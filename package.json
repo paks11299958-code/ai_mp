@@ -1,8 +1,7 @@
 {
   "name": "multi-persona-ai-chat",
   "workspaces": [
-    "frontend",
-    "backend"
+    "frontend"
   ],
   "scripts": {
     "dev": "npm run frontend",
