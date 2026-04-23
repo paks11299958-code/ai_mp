@@ -7,14 +7,20 @@ import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
+import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPage } from './components/LandingPage';
+import { MainPage } from './components/MainPage';
 import { Icon } from './components/Icons';
 
 const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
-    const [showLanding, setShowLanding] = useState(false);
+    const [showMain, setShowMain] = useState(false);
+    const [resetToken, setResetToken] = useState<string | null>(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('token');
+    });
 
     const [personas, setPersonas] = useState<Persona[]>([]);
     const [isPersonasLoading, setIsPersonasLoading] = useState(false);
@@ -37,6 +43,7 @@ const App: React.FC = () => {
             try {
                 const { user } = await authApi.me();
                 setUser(user);
+                setShowMain(true);
             } catch {
                 localStorage.removeItem('token');
             } finally {
@@ -119,12 +126,14 @@ const App: React.FC = () => {
         localStorage.setItem('token', token);
         setShowAuthModal(false);
         setUser(loggedInUser);
+        setShowMain(true);
     };
 
     const handleLogout = async () => {
         await authApi.logout();
         localStorage.removeItem('token');
         setUser(null);
+        setShowMain(false);
         setShowAuthModal(false);
         setPersonas([]);
         setSessions({});
@@ -305,6 +314,15 @@ const App: React.FC = () => {
         }));
     }, []);
 
+    if (resetToken) {
+        return (
+            <ResetPasswordModal
+                token={resetToken}
+                onClose={() => setResetToken(null)}
+            />
+        );
+    }
+
     if (isAuthChecking) {
         return (
             <div className="flex h-full w-full bg-gray-950 items-center justify-center">
@@ -316,29 +334,31 @@ const App: React.FC = () => {
         );
     }
 
-    if (!user || showLanding) {
+    if (!user) {
         return (
             <>
-                <LandingPage onStart={() => { setShowLanding(false); setShowAuthModal(true); }} />
+                <LandingPage onStart={() => setShowAuthModal(true)} />
                 {showAuthModal && (
                     <AuthModal
-                        onSuccess={(u, t) => { handleAuthSuccess(u, t); setShowLanding(false); }}
+                        onSuccess={handleAuthSuccess}
                         onClose={() => setShowAuthModal(false)}
-                        defaultMode={user ? 'login' : 'register'}
+                        defaultMode="login"
                     />
                 )}
             </>
         );
     }
 
-    if (isPersonasLoading) {
+    if (showMain) {
         return (
-            <div className="flex h-full w-full bg-gray-950 items-center justify-center">
-                <div className="text-center">
-                    <Icon name="Bot" size={48} className="text-blue-500 animate-bounce mx-auto mb-4" />
-                    <p className="text-gray-400">페르소나 로딩 중...</p>
-                </div>
-            </div>
+            <MainPage
+                personas={personas}
+                isLoading={isPersonasLoading}
+                user={user}
+                onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
+                onLogout={handleLogout}
+                onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+            />
         );
     }
 
@@ -354,7 +374,7 @@ const App: React.FC = () => {
                 onReorder={handleReorderPersona}
                 user={user}
                 onLogout={handleLogout}
-                onGoHome={() => setShowLanding(true)}
+                onGoHome={() => setShowMain(true)}
             />
 
             {isAdminMode ? (

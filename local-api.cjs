@@ -2,6 +2,7 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('./src/generated/prisma/client.js');
 const fs = require('fs');
@@ -169,6 +170,67 @@ app.get('/api/auth/me', async (req, res) => {
     return res.json({ user });
   } catch (e) {
     return res.status(401).json({ error: '인증이 만료되었습니다.' });
+  }
+});
+
+app.post('/api/auth/forgot-password', async (req, res) => {
+  const { email } = req.body || {};
+  if (!email) return res.status(400).json({ error: '이메일을 입력해주세요.' });
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiry = new Date(Date.now() + 30 * 60 * 1000);
+      await prisma.user.update({
+        where: { email },
+        data: { resetToken: token, resetTokenExpiry: expiry },
+      });
+
+      const BREVO_API_KEY = process.env.BREVO_API_KEY;
+      const baseUrl = process.env.APP_BASE_URL || 'http://localhost:5173';
+      const resetUrl = `${baseUrl}/?token=${token}`;
+
+      if (BREVO_API_KEY) {
+        const senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@dbzone.kr';
+        await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'api-key': BREVO_API_KEY },
+          body: JSON.stringify({
+            sender: { name: 'AI 페르소나', email: senderEmail },
+            to: [{ email }],
+            subject: '[AI 페르소나] 비밀번호 재설정',
+            htmlContent: `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#111827;color:#f9fafb;border-radius:12px;"><h2 style="color:#60a5fa;margin-bottom:16px;">비밀번호 재설정</h2><p style="color:#9ca3af;margin-bottom:24px;">아래 버튼을 클릭해 비밀번호를 재설정하세요.<br>링크는 30분 후 만료됩니다.</p><a href="${resetUrl}" style="display:inline-block;background:linear-gradient(to right,#2563eb,#7c3aed);color:white;font-weight:bold;padding:12px 28px;border-radius:999px;text-decoration:none;">비밀번호 재설정하기</a><p style="margin-top:24px;font-size:12px;color:#6b7280;">이 요청을 하지 않으셨다면 무시하셔도 됩니다.</p></div>`,
+          }),
+        }).catch(e => console.error('[forgot-password] 이메일 전송 실패:', e.message));
+      } else {
+        console.log(`[forgot-password] BREVO_API_KEY 없음 — 재설정 링크: ${resetUrl}`);
+      }
+    }
+    return res.json({ message: '입력한 이메일로 재설정 링크를 전송했습니다.' });
+  } catch (e) {
+    console.error('[forgot-password]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/auth/reset-password', async (req, res) => {
+  const { token, password } = req.body || {};
+  if (!token || !password) return res.status(400).json({ error: '토큰과 새 비밀번호를 입력해주세요.' });
+  if (password.length < 6) return res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다.' });
+  try {
+    const user = await prisma.user.findFirst({
+      where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
+    });
+    if (!user) return res.status(400).json({ error: '유효하지 않거나 만료된 링크입니다.' });
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashed, resetToken: null, resetTokenExpiry: null },
+    });
+    return res.json({ message: '비밀번호가 성공적으로 변경되었습니다.' });
+  } catch (e) {
+    console.error('[reset-password]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });
 
