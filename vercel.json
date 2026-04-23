@@ -1,7 +1,0 @@
-{
-  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend",
-  "outputDirectory": "frontend/dist",
-  "rewrites": [
-    { "source": "/api-proxy", "destination": "/api/api-proxy" }
-  ]
-}
