@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'crypto';
-import { getPrisma } from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 import { sendEmail } from '../lib/email';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -9,7 +9,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { email } = req.body || {};
     if (!email) return res.status(400).json({ error: '이메일을 입력해주세요.' });
 
-    const prisma = getPrisma();
     try {
         const user = await prisma.user.findUnique({ where: { email } });
 

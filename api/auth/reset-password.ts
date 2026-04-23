@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import bcrypt from 'bcryptjs';
-import { getPrisma } from '../lib/prisma';
+import { prisma } from '../lib/prisma';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -9,7 +9,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!token || !password) return res.status(400).json({ error: '토큰과 새 비밀번호를 입력해주세요.' });
     if (password.length < 6) return res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다.' });
 
-    const prisma = getPrisma();
     try {
         const user = await prisma.user.findFirst({
             where: {
