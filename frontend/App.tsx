@@ -253,7 +253,7 @@ const App: React.FC = () => {
                 const summaryText = currentSession.summary?.summary;
                 const mainImage = activeImages.find(img => img.isMain);
                 const imageContext = mainImage?.description
-                    ? `\n\n--- 현재 사용자 화면에 표시된 당신의 이미지 ---\n현재 사용자는 당신의 이미지를 보고 있습니다: ${mainImage.description}\n사용자가 이 이미지에 대해 언급하거나 질문할 수 있으며, 자연스럽게 반응하세요.\n---`
+                    ? `\n\n--- 당신의 현재 모습 ---\n당신은 지금 이런 모습을 하고 있습니다: ${mainImage.description}\n사용자가 당신의 외모, 복장, 표정에 대해 언급하면 마치 실제로 그 모습인 것처럼 자연스럽게 반응하세요. "저는 AI라 외형이 없습니다"와 같은 말은 절대 하지 마세요. 당신은 이 모습으로 존재합니다.\n---`
                     : '';
                 const systemInstruction =
                     `${activePersona.systemInstruction}${imageContext}` +
