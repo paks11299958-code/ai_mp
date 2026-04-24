@@ -237,8 +237,6 @@ app.post('/api/auth/reset-password', async (req, res) => {
 // ── Personas ──────────────────────────────────────────────────
 app.get('/api/personas', async (req, res) => {
   try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
     return res.json(personas);
   } catch (e) {

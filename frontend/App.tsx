@@ -23,7 +23,7 @@ const App: React.FC = () => {
     });
 
     const [personas, setPersonas] = useState<Persona[]>([]);
-    const [isPersonasLoading, setIsPersonasLoading] = useState(false);
+    const [isPersonasLoading, setIsPersonasLoading] = useState(true);
     const [activePersonaId, setActivePersonaId] = useState<string>('');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [inputText, setInputText] = useState('');
@@ -35,41 +35,20 @@ const App: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    // 앱 시작 시 토큰으로 자동 로그인 확인
+    // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
-        const checkAuth = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) { setIsAuthChecking(false); return; }
-            try {
-                const { user } = await authApi.me();
-                setUser(user);
-                setShowMain(true);
-            } catch {
-                localStorage.removeItem('token');
-            } finally {
-                setIsAuthChecking(false);
-            }
-        };
-        checkAuth();
-    }, []);
+        personaApi.getAll()
+            .then(data => { setPersonas(data); if (data.length > 0) setActivePersonaId(data[0].id); })
+            .catch(() => {})
+            .finally(() => setIsPersonasLoading(false));
 
-    // 로그인 후 페르소나 로드
-    useEffect(() => {
-        if (!user) return;
-        const loadPersonas = async () => {
-            setIsPersonasLoading(true);
-            try {
-                const data = await personaApi.getAll();
-                setPersonas(data);
-                if (data.length > 0) setActivePersonaId(data[0].id);
-            } catch (error) {
-                console.error('페르소나 로드 실패:', error);
-            } finally {
-                setIsPersonasLoading(false);
-            }
-        };
-        loadPersonas();
-    }, [user]);
+        const token = localStorage.getItem('token');
+        if (!token) { setIsAuthChecking(false); return; }
+        authApi.me()
+            .then(({ user }) => { setUser(user); setShowMain(true); })
+            .catch(() => localStorage.removeItem('token'))
+            .finally(() => setIsAuthChecking(false));
+    }, []);
 
     // 페르소나 목록 변경 시 세션 상태 동기화
     useEffect(() => {
@@ -316,10 +295,13 @@ const App: React.FC = () => {
 
     if (resetToken) {
         return (
-            <ResetPasswordModal
-                token={resetToken}
-                onClose={() => setResetToken(null)}
-            />
+            <>
+                <LandingPage personas={personas} isLoading={isPersonasLoading} onStart={() => {}} />
+                <ResetPasswordModal
+                    token={resetToken}
+                    onClose={() => setResetToken(null)}
+                />
+            </>
         );
     }
 
@@ -337,7 +319,7 @@ const App: React.FC = () => {
     if (!user) {
         return (
             <>
-                <LandingPage onStart={() => setShowAuthModal(true)} />
+                <LandingPage personas={personas} isLoading={isPersonasLoading} onStart={() => setShowAuthModal(true)} />
                 {showAuthModal && (
                     <AuthModal
                         onSuccess={handleAuthSuccess}

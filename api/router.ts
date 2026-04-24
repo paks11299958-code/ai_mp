@@ -135,12 +135,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return userId;
         };
 
-        // GET /api/personas
+        // GET /api/personas (public)
         if (!seg1 && req.method === 'GET') {
             try {
-                const token = getTokenFromRequest(req);
-                if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
-                verifyToken(token);
                 const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
                 return res.status(200).json(personas);
             } catch (e: any) {
