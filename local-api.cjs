@@ -286,6 +286,83 @@ app.delete('/api/personas/:id', async (req, res) => {
   }
 });
 
+// ── Persona Images ────────────────────────────────────────────
+app.get('/api/personas/:id/images', async (req, res) => {
+  try {
+    const images = await prisma.personaImage.findMany({
+      where: { personaId: req.params.id },
+      orderBy: [{ isMain: 'desc' }, { order: 'asc' }, { createdAt: 'asc' }],
+    });
+    return res.json(images);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/personas/:id/images', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { imageUrl, description, isMain } = req.body;
+    if (!imageUrl) return res.status(400).json({ error: 'imageUrl은 필수입니다.' });
+    if (isMain) {
+      await prisma.personaImage.updateMany({ where: { personaId: req.params.id }, data: { isMain: false } });
+    }
+    const count = await prisma.personaImage.count({ where: { personaId: req.params.id } });
+    const image = await prisma.personaImage.create({
+      data: { personaId: req.params.id, imageUrl, description, isMain: isMain ?? count === 0, order: count },
+    });
+    return res.status(201).json(image);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.put('/api/personas/:id/images', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { imageId, isMain, description } = req.body;
+    if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
+    if (isMain) {
+      await prisma.personaImage.updateMany({ where: { personaId: req.params.id }, data: { isMain: false } });
+    }
+    const image = await prisma.personaImage.update({
+      where: { id: Number(imageId) },
+      data: { ...(isMain !== undefined && { isMain }), ...(description !== undefined && { description }) },
+    });
+    return res.json(image);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.delete('/api/personas/:id/images', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { imageId } = req.body;
+    if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
+    const deleted = await prisma.personaImage.delete({ where: { id: Number(imageId) } });
+    if (deleted.isMain) {
+      const first = await prisma.personaImage.findFirst({
+        where: { personaId: req.params.id },
+        orderBy: { order: 'asc' },
+      });
+      if (first) await prisma.personaImage.update({ where: { id: first.id }, data: { isMain: true } });
+    }
+    return res.json({ message: '삭제 완료' });
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // ── Sessions ──────────────────────────────────────────────────
 app.get('/api/sessions', async (req, res) => {
   try {
