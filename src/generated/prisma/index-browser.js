@@ -146,6 +146,16 @@ exports.Prisma.PersonaScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PersonaImageScalarFieldEnum = {
+  id: 'id',
+  personaId: 'personaId',
+  imageUrl: 'imageUrl',
+  description: 'description',
+  isMain: 'isMain',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.ChatSessionScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -191,6 +201,7 @@ exports.Prisma.NullsOrder = {
 exports.Prisma.ModelName = {
   User: 'User',
   Persona: 'Persona',
+  PersonaImage: 'PersonaImage',
   ChatSession: 'ChatSession',
   Message: 'Message',
   ConversationSummary: 'ConversationSummary'

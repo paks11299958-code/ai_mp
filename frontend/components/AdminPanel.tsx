@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Persona } from '../types';
+import { Persona, PersonaImage } from '../types';
+import { personaImageApi } from '../services/apiService';
+import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 
 interface AdminPanelProps {
@@ -37,6 +39,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [showSuccess, setShowSuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // 이미지 갤러리 상태
+    const [images, setImages] = useState<PersonaImage[]>([]);
+    const [imageDesc, setImageDesc] = useState('');
+    const [isUploadingImage, setIsUploadingImage] = useState(false);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
+
     useEffect(() => {
         if (selectedId === 'new') {
             setName('');
@@ -47,6 +55,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             setImageUrl('');
             setIsVisible(true);
             setShowSuccess(false);
+            setImages([]);
         } else {
             const p = personas.find(p => p.id === selectedId);
             if (p) {
@@ -59,8 +68,64 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setIsVisible(p.isVisible !== false);
                 setShowSuccess(false);
             }
+            personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
         }
     }, [selectedId, personas]);
+
+    const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 5 * 1024 * 1024) { alert('5MB 이하 이미지만 업로드 가능합니다.'); return; }
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            setIsUploadingImage(true);
+            try {
+                const base64 = reader.result as string;
+                // 설명이 없으면 AI가 자동 생성
+                let desc = imageDesc.trim();
+                if (!desc) {
+                    setImageDesc('설명 생성 중...');
+                    desc = await generateImageDescription(base64) || '';
+                    setImageDesc(desc);
+                }
+                const isFirst = images.length === 0;
+                const newImage = await personaImageApi.create(selectedId, base64, desc, isFirst);
+                setImages(prev => isFirst ? [{ ...newImage, isMain: true }, ...prev] : [...prev, newImage]);
+                setImageDesc('');
+                if (galleryInputRef.current) galleryInputRef.current.value = '';
+            } catch (e: any) {
+                alert('이미지 업로드 실패: ' + e.message);
+            } finally {
+                setIsUploadingImage(false);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleSetMain = async (imageId: number) => {
+        try {
+            await personaImageApi.setMain(selectedId, imageId);
+            setImages(prev => prev.map(img => ({ ...img, isMain: img.id === imageId })));
+        } catch (e: any) {
+            alert('대표 이미지 설정 실패: ' + e.message);
+        }
+    };
+
+    const handleDeleteImage = async (imageId: number) => {
+        if (!window.confirm('이미지를 삭제하시겠습니까?')) return;
+        try {
+            await personaImageApi.delete(selectedId, imageId);
+            setImages(prev => {
+                const filtered = prev.filter(img => img.id !== imageId);
+                if (filtered.length > 0 && !filtered.some(img => img.isMain)) {
+                    filtered[0] = { ...filtered[0], isMain: true };
+                }
+                return filtered;
+            });
+        } catch (e: any) {
+            alert('이미지 삭제 실패: ' + e.message);
+        }
+    };
 
     const [isSaving, setIsSaving] = useState(false);
 
@@ -292,6 +357,75 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                 </div>
                             </div>
                         </div>
+
+                        {/* 이미지 갤러리 관리 */}
+                        {selectedId !== 'new' && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                AI 이미지 갤러리
+                            </label>
+                            <p className="text-xs text-gray-500 mb-3">
+                                여러 이미지를 등록하고, 별표(★)를 눌러 대표 이미지를 설정하세요. 이미지 설명은 AI에게 전달됩니다.
+                            </p>
+
+                            {/* 업로드 폼 */}
+                            <div className="flex gap-2 mb-3">
+                                <input
+                                    type="text"
+                                    value={imageDesc}
+                                    onChange={e => setImageDesc(e.target.value)}
+                                    placeholder="이미지 설명 (AI에게 전달됨)"
+                                    className="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                />
+                                <button
+                                    onClick={() => galleryInputRef.current?.click()}
+                                    disabled={isUploadingImage}
+                                    className="bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
+                                >
+                                    <Icon name="Upload" size={14} />
+                                    {isUploadingImage ? '업로드 중...' : '이미지 추가'}
+                                </button>
+                                <input type="file" accept="image/*" className="hidden" ref={galleryInputRef} onChange={handleGalleryUpload} />
+                            </div>
+
+                            {/* 이미지 목록 */}
+                            {images.length > 0 ? (
+                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                    {images.map(img => (
+                                        <div key={img.id} className={`relative group rounded-xl overflow-hidden border-2 ${img.isMain ? 'border-yellow-400' : 'border-gray-700'}`}>
+                                            <img src={img.imageUrl} alt={img.description || ''} className="w-full aspect-square object-cover" />
+                                            {img.isMain && (
+                                                <span className="absolute top-1 left-1 bg-yellow-400 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">대표</span>
+                                            )}
+                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                                                {!img.isMain && (
+                                                    <button
+                                                        onClick={() => handleSetMain(img.id)}
+                                                        className="text-yellow-400 hover:text-yellow-300 text-xs font-medium bg-gray-900/80 px-2 py-1 rounded-lg"
+                                                    >
+                                                        ★ 대표 설정
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleDeleteImage(img.id)}
+                                                    className="text-red-400 hover:text-red-300 text-xs bg-gray-900/80 px-2 py-1 rounded-lg"
+                                                >
+                                                    삭제
+                                                </button>
+                                            </div>
+                                            {img.description && (
+                                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[10px] text-gray-300 px-1.5 py-1 truncate">
+                                                    {img.description}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-xs text-gray-600 text-center py-4">등록된 이미지가 없습니다.</p>
+                            )}
+                        </div>
+                        )}
 
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">

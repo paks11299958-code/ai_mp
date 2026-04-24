@@ -21,20 +21,32 @@ model User {
 }
 
 model Persona {
-  id                String        @id @default(cuid())
+  id                String          @id @default(cuid())
   name              String
   description       String?
   systemInstruction String
-  iconName          String        @default("Bot")
-  colorClass        String        @default("from-blue-500 to-cyan-500")
-  order             Int           @default(0)
+  iconName          String          @default("Bot")
+  colorClass        String          @default("from-blue-500 to-cyan-500")
+  order             Int             @default(0)
   imageUrl          String?
-  isDefault         Boolean       @default(false)
-  isVisible         Boolean       @default(true)
+  isDefault         Boolean         @default(false)
+  isVisible         Boolean         @default(true)
   createdBy         Int?
-  user              User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  createdAt         DateTime      @default(now())
+  user              User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdAt         DateTime        @default(now())
   sessions          ChatSession[]
+  images            PersonaImage[]
+}
+
+model PersonaImage {
+  id          Int      @id @default(autoincrement())
+  personaId   String
+  imageUrl    String
+  description String?
+  isMain      Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  persona     Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
 }
 
 model ChatSession {

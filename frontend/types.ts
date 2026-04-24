@@ -21,6 +21,16 @@ export interface Persona {
     isVisible?: boolean;
 }
 
+export interface PersonaImage {
+    id: number;
+    personaId: string;
+    imageUrl: string;
+    description?: string;
+    isMain: boolean;
+    order: number;
+    createdAt: string;
+}
+
 export interface ConversationSummary {
     id: number;
     sessionId: number;

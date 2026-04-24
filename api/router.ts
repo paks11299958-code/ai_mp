@@ -182,7 +182,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // DELETE /api/personas/:id
-        if (seg1 && req.method === 'DELETE') {
+        if (seg1 && !seg2 && req.method === 'DELETE') {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
@@ -193,6 +193,85 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json({ message: '삭제 완료' });
             } catch (e: any) {
                 console.error('[personas DELETE]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // GET /api/personas/:id/images
+        if (seg1 && seg2 === 'images' && req.method === 'GET') {
+            try {
+                const images = await prisma.personaImage.findMany({
+                    where: { personaId: seg1 },
+                    orderBy: [{ isMain: 'desc' }, { order: 'asc' }, { createdAt: 'asc' }],
+                });
+                return res.status(200).json(images);
+            } catch (e: any) {
+                console.error('[persona images GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/personas/:id/images
+        if (seg1 && seg2 === 'images' && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { imageUrl, description, isMain } = req.body;
+                if (!imageUrl) return res.status(400).json({ error: 'imageUrl은 필수입니다.' });
+                if (isMain) {
+                    await prisma.personaImage.updateMany({ where: { personaId: seg1 }, data: { isMain: false } });
+                }
+                const count = await prisma.personaImage.count({ where: { personaId: seg1 } });
+                const image = await prisma.personaImage.create({
+                    data: { personaId: seg1, imageUrl, description, isMain: isMain ?? count === 0, order: count },
+                });
+                return res.status(201).json(image);
+            } catch (e: any) {
+                console.error('[persona images POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // PUT /api/personas/:id/images  (body: { imageId, isMain?, description? })
+        if (seg1 && seg2 === 'images' && req.method === 'PUT') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { imageId, isMain, description } = req.body;
+                if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
+                if (isMain) {
+                    await prisma.personaImage.updateMany({ where: { personaId: seg1 }, data: { isMain: false } });
+                }
+                const image = await prisma.personaImage.update({
+                    where: { id: Number(imageId) },
+                    data: { ...(isMain !== undefined && { isMain }), ...(description !== undefined && { description }) },
+                });
+                return res.status(200).json(image);
+            } catch (e: any) {
+                console.error('[persona images PUT]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // DELETE /api/personas/:id/images  (body: { imageId })
+        if (seg1 && seg2 === 'images' && req.method === 'DELETE') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { imageId } = req.body;
+                if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
+                const deleted = await prisma.personaImage.delete({ where: { id: Number(imageId) } });
+                // 삭제된 이미지가 대표였으면 첫 번째 이미지를 대표로 설정
+                if (deleted.isMain) {
+                    const first = await prisma.personaImage.findFirst({
+                        where: { personaId: seg1 },
+                        orderBy: { order: 'asc' },
+                    });
+                    if (first) await prisma.personaImage.update({ where: { id: first.id }, data: { isMain: true } });
+                }
+                return res.status(200).json({ message: '삭제 완료' });
+            } catch (e: any) {
+                console.error('[persona images DELETE]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }

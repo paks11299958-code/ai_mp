@@ -1,4 +1,4 @@
-import { Persona, User, DbSession, Message, ConversationSummary } from '../types';
+import { Persona, PersonaImage, User, DbSession, Message, ConversationSummary } from '../types';
 
 const BASE = '/api';
 
@@ -85,6 +85,36 @@ export const personaApi = {
 
     delete: (id: string) =>
         request<{ message: string }>(`/personas/${id}`, { method: 'DELETE' }),
+};
+
+// Persona Images
+export const personaImageApi = {
+    getAll: (personaId: string) =>
+        request<PersonaImage[]>(`/personas/${personaId}/images`),
+
+    create: (personaId: string, imageUrl: string, description: string, isMain?: boolean) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'POST',
+            body: JSON.stringify({ imageUrl, description, isMain }),
+        }),
+
+    setMain: (personaId: string, imageId: number) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'PUT',
+            body: JSON.stringify({ imageId, isMain: true }),
+        }),
+
+    updateDescription: (personaId: string, imageId: number, description: string) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'PUT',
+            body: JSON.stringify({ imageId, description }),
+        }),
+
+    delete: (personaId: string, imageId: number) =>
+        request<{ message: string }>(`/personas/${personaId}/images`, {
+            method: 'DELETE',
+            body: JSON.stringify({ imageId }),
+        }),
 };
 
 // Sessions
