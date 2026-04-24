@@ -24,6 +24,11 @@ export type User = $Result.DefaultSelection<Prisma.$UserPayload>
  */
 export type Persona = $Result.DefaultSelection<Prisma.$PersonaPayload>
 /**
+ * Model PersonaImage
+ * 
+ */
+export type PersonaImage = $Result.DefaultSelection<Prisma.$PersonaImagePayload>
+/**
  * Model ChatSession
  * 
  */
@@ -179,6 +184,16 @@ export class PrismaClient<
     * ```
     */
   get persona(): Prisma.PersonaDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.personaImage`: Exposes CRUD operations for the **PersonaImage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PersonaImages
+    * const personaImages = await prisma.personaImage.findMany()
+    * ```
+    */
+  get personaImage(): Prisma.PersonaImageDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.chatSession`: Exposes CRUD operations for the **ChatSession** model.
@@ -645,6 +660,7 @@ export namespace Prisma {
   export const ModelName: {
     User: 'User',
     Persona: 'Persona',
+    PersonaImage: 'PersonaImage',
     ChatSession: 'ChatSession',
     Message: 'Message',
     ConversationSummary: 'ConversationSummary'
@@ -663,7 +679,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "persona" | "chatSession" | "message" | "conversationSummary"
+      modelProps: "user" | "persona" | "personaImage" | "chatSession" | "message" | "conversationSummary"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -812,6 +828,80 @@ export namespace Prisma {
           count: {
             args: Prisma.PersonaCountArgs<ExtArgs>
             result: $Utils.Optional<PersonaCountAggregateOutputType> | number
+          }
+        }
+      }
+      PersonaImage: {
+        payload: Prisma.$PersonaImagePayload<ExtArgs>
+        fields: Prisma.PersonaImageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PersonaImageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PersonaImageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>
+          }
+          findFirst: {
+            args: Prisma.PersonaImageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PersonaImageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>
+          }
+          findMany: {
+            args: Prisma.PersonaImageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>[]
+          }
+          create: {
+            args: Prisma.PersonaImageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>
+          }
+          createMany: {
+            args: Prisma.PersonaImageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PersonaImageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>[]
+          }
+          delete: {
+            args: Prisma.PersonaImageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>
+          }
+          update: {
+            args: Prisma.PersonaImageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>
+          }
+          deleteMany: {
+            args: Prisma.PersonaImageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PersonaImageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PersonaImageUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>[]
+          }
+          upsert: {
+            args: Prisma.PersonaImageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaImagePayload>
+          }
+          aggregate: {
+            args: Prisma.PersonaImageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePersonaImage>
+          }
+          groupBy: {
+            args: Prisma.PersonaImageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PersonaImageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PersonaImageCountArgs<ExtArgs>
+            result: $Utils.Optional<PersonaImageCountAggregateOutputType> | number
           }
         }
       }
@@ -1147,6 +1237,7 @@ export namespace Prisma {
   export type GlobalOmitConfig = {
     user?: UserOmit
     persona?: PersonaOmit
+    personaImage?: PersonaImageOmit
     chatSession?: ChatSessionOmit
     message?: MessageOmit
     conversationSummary?: ConversationSummaryOmit
@@ -1271,10 +1362,12 @@ export namespace Prisma {
 
   export type PersonaCountOutputType = {
     sessions: number
+    images: number
   }
 
   export type PersonaCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     sessions?: boolean | PersonaCountOutputTypeCountSessionsArgs
+    images?: boolean | PersonaCountOutputTypeCountImagesArgs
   }
 
   // Custom InputTypes
@@ -1293,6 +1386,13 @@ export namespace Prisma {
    */
   export type PersonaCountOutputTypeCountSessionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ChatSessionWhereInput
+  }
+
+  /**
+   * PersonaCountOutputType without action
+   */
+  export type PersonaCountOutputTypeCountImagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PersonaImageWhereInput
   }
 
 
@@ -2767,6 +2867,7 @@ export namespace Prisma {
     createdAt?: boolean
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
+    images?: boolean | Persona$imagesArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["persona"]>
 
@@ -2821,6 +2922,7 @@ export namespace Prisma {
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
+    images?: boolean | Persona$imagesArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PersonaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2835,6 +2937,7 @@ export namespace Prisma {
     objects: {
       user: Prisma.$UserPayload<ExtArgs> | null
       sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
+      images: Prisma.$PersonaImagePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -3245,6 +3348,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends Persona$userArgs<ExtArgs> = {}>(args?: Subset<T, Persona$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     sessions<T extends Persona$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    images<T extends Persona$imagesArgs<ExtArgs> = {}>(args?: Subset<T, Persona$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3730,6 +3834,30 @@ export namespace Prisma {
   }
 
   /**
+   * Persona.images
+   */
+  export type Persona$imagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    where?: PersonaImageWhereInput
+    orderBy?: PersonaImageOrderByWithRelationInput | PersonaImageOrderByWithRelationInput[]
+    cursor?: PersonaImageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PersonaImageScalarFieldEnum | PersonaImageScalarFieldEnum[]
+  }
+
+  /**
    * Persona without action
    */
   export type PersonaDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3745,6 +3873,1133 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PersonaInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PersonaImage
+   */
+
+  export type AggregatePersonaImage = {
+    _count: PersonaImageCountAggregateOutputType | null
+    _avg: PersonaImageAvgAggregateOutputType | null
+    _sum: PersonaImageSumAggregateOutputType | null
+    _min: PersonaImageMinAggregateOutputType | null
+    _max: PersonaImageMaxAggregateOutputType | null
+  }
+
+  export type PersonaImageAvgAggregateOutputType = {
+    id: number | null
+    order: number | null
+  }
+
+  export type PersonaImageSumAggregateOutputType = {
+    id: number | null
+    order: number | null
+  }
+
+  export type PersonaImageMinAggregateOutputType = {
+    id: number | null
+    personaId: string | null
+    imageUrl: string | null
+    description: string | null
+    isMain: boolean | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type PersonaImageMaxAggregateOutputType = {
+    id: number | null
+    personaId: string | null
+    imageUrl: string | null
+    description: string | null
+    isMain: boolean | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type PersonaImageCountAggregateOutputType = {
+    id: number
+    personaId: number
+    imageUrl: number
+    description: number
+    isMain: number
+    order: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PersonaImageAvgAggregateInputType = {
+    id?: true
+    order?: true
+  }
+
+  export type PersonaImageSumAggregateInputType = {
+    id?: true
+    order?: true
+  }
+
+  export type PersonaImageMinAggregateInputType = {
+    id?: true
+    personaId?: true
+    imageUrl?: true
+    description?: true
+    isMain?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type PersonaImageMaxAggregateInputType = {
+    id?: true
+    personaId?: true
+    imageUrl?: true
+    description?: true
+    isMain?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type PersonaImageCountAggregateInputType = {
+    id?: true
+    personaId?: true
+    imageUrl?: true
+    description?: true
+    isMain?: true
+    order?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PersonaImageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PersonaImage to aggregate.
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaImages to fetch.
+     */
+    orderBy?: PersonaImageOrderByWithRelationInput | PersonaImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PersonaImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PersonaImages
+    **/
+    _count?: true | PersonaImageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PersonaImageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PersonaImageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PersonaImageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PersonaImageMaxAggregateInputType
+  }
+
+  export type GetPersonaImageAggregateType<T extends PersonaImageAggregateArgs> = {
+        [P in keyof T & keyof AggregatePersonaImage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePersonaImage[P]>
+      : GetScalarType<T[P], AggregatePersonaImage[P]>
+  }
+
+
+
+
+  export type PersonaImageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PersonaImageWhereInput
+    orderBy?: PersonaImageOrderByWithAggregationInput | PersonaImageOrderByWithAggregationInput[]
+    by: PersonaImageScalarFieldEnum[] | PersonaImageScalarFieldEnum
+    having?: PersonaImageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PersonaImageCountAggregateInputType | true
+    _avg?: PersonaImageAvgAggregateInputType
+    _sum?: PersonaImageSumAggregateInputType
+    _min?: PersonaImageMinAggregateInputType
+    _max?: PersonaImageMaxAggregateInputType
+  }
+
+  export type PersonaImageGroupByOutputType = {
+    id: number
+    personaId: string
+    imageUrl: string
+    description: string | null
+    isMain: boolean
+    order: number
+    createdAt: Date
+    _count: PersonaImageCountAggregateOutputType | null
+    _avg: PersonaImageAvgAggregateOutputType | null
+    _sum: PersonaImageSumAggregateOutputType | null
+    _min: PersonaImageMinAggregateOutputType | null
+    _max: PersonaImageMaxAggregateOutputType | null
+  }
+
+  type GetPersonaImageGroupByPayload<T extends PersonaImageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PersonaImageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PersonaImageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PersonaImageGroupByOutputType[P]>
+            : GetScalarType<T[P], PersonaImageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PersonaImageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    personaId?: boolean
+    imageUrl?: boolean
+    description?: boolean
+    isMain?: boolean
+    order?: boolean
+    createdAt?: boolean
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaImage"]>
+
+  export type PersonaImageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    personaId?: boolean
+    imageUrl?: boolean
+    description?: boolean
+    isMain?: boolean
+    order?: boolean
+    createdAt?: boolean
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaImage"]>
+
+  export type PersonaImageSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    personaId?: boolean
+    imageUrl?: boolean
+    description?: boolean
+    isMain?: boolean
+    order?: boolean
+    createdAt?: boolean
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaImage"]>
+
+  export type PersonaImageSelectScalar = {
+    id?: boolean
+    personaId?: boolean
+    imageUrl?: boolean
+    description?: boolean
+    isMain?: boolean
+    order?: boolean
+    createdAt?: boolean
+  }
+
+  export type PersonaImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "imageUrl" | "description" | "isMain" | "order" | "createdAt", ExtArgs["result"]["personaImage"]>
+  export type PersonaImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type PersonaImageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type PersonaImageIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+
+  export type $PersonaImagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PersonaImage"
+    objects: {
+      persona: Prisma.$PersonaPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      personaId: string
+      imageUrl: string
+      description: string | null
+      isMain: boolean
+      order: number
+      createdAt: Date
+    }, ExtArgs["result"]["personaImage"]>
+    composites: {}
+  }
+
+  type PersonaImageGetPayload<S extends boolean | null | undefined | PersonaImageDefaultArgs> = $Result.GetResult<Prisma.$PersonaImagePayload, S>
+
+  type PersonaImageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PersonaImageFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PersonaImageCountAggregateInputType | true
+    }
+
+  export interface PersonaImageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PersonaImage'], meta: { name: 'PersonaImage' } }
+    /**
+     * Find zero or one PersonaImage that matches the filter.
+     * @param {PersonaImageFindUniqueArgs} args - Arguments to find a PersonaImage
+     * @example
+     * // Get one PersonaImage
+     * const personaImage = await prisma.personaImage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PersonaImageFindUniqueArgs>(args: SelectSubset<T, PersonaImageFindUniqueArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PersonaImage that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PersonaImageFindUniqueOrThrowArgs} args - Arguments to find a PersonaImage
+     * @example
+     * // Get one PersonaImage
+     * const personaImage = await prisma.personaImage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PersonaImageFindUniqueOrThrowArgs>(args: SelectSubset<T, PersonaImageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PersonaImage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageFindFirstArgs} args - Arguments to find a PersonaImage
+     * @example
+     * // Get one PersonaImage
+     * const personaImage = await prisma.personaImage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PersonaImageFindFirstArgs>(args?: SelectSubset<T, PersonaImageFindFirstArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PersonaImage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageFindFirstOrThrowArgs} args - Arguments to find a PersonaImage
+     * @example
+     * // Get one PersonaImage
+     * const personaImage = await prisma.personaImage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PersonaImageFindFirstOrThrowArgs>(args?: SelectSubset<T, PersonaImageFindFirstOrThrowArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PersonaImages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PersonaImages
+     * const personaImages = await prisma.personaImage.findMany()
+     * 
+     * // Get first 10 PersonaImages
+     * const personaImages = await prisma.personaImage.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const personaImageWithIdOnly = await prisma.personaImage.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PersonaImageFindManyArgs>(args?: SelectSubset<T, PersonaImageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PersonaImage.
+     * @param {PersonaImageCreateArgs} args - Arguments to create a PersonaImage.
+     * @example
+     * // Create one PersonaImage
+     * const PersonaImage = await prisma.personaImage.create({
+     *   data: {
+     *     // ... data to create a PersonaImage
+     *   }
+     * })
+     * 
+     */
+    create<T extends PersonaImageCreateArgs>(args: SelectSubset<T, PersonaImageCreateArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PersonaImages.
+     * @param {PersonaImageCreateManyArgs} args - Arguments to create many PersonaImages.
+     * @example
+     * // Create many PersonaImages
+     * const personaImage = await prisma.personaImage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PersonaImageCreateManyArgs>(args?: SelectSubset<T, PersonaImageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PersonaImages and returns the data saved in the database.
+     * @param {PersonaImageCreateManyAndReturnArgs} args - Arguments to create many PersonaImages.
+     * @example
+     * // Create many PersonaImages
+     * const personaImage = await prisma.personaImage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PersonaImages and only return the `id`
+     * const personaImageWithIdOnly = await prisma.personaImage.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PersonaImageCreateManyAndReturnArgs>(args?: SelectSubset<T, PersonaImageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PersonaImage.
+     * @param {PersonaImageDeleteArgs} args - Arguments to delete one PersonaImage.
+     * @example
+     * // Delete one PersonaImage
+     * const PersonaImage = await prisma.personaImage.delete({
+     *   where: {
+     *     // ... filter to delete one PersonaImage
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PersonaImageDeleteArgs>(args: SelectSubset<T, PersonaImageDeleteArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PersonaImage.
+     * @param {PersonaImageUpdateArgs} args - Arguments to update one PersonaImage.
+     * @example
+     * // Update one PersonaImage
+     * const personaImage = await prisma.personaImage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PersonaImageUpdateArgs>(args: SelectSubset<T, PersonaImageUpdateArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PersonaImages.
+     * @param {PersonaImageDeleteManyArgs} args - Arguments to filter PersonaImages to delete.
+     * @example
+     * // Delete a few PersonaImages
+     * const { count } = await prisma.personaImage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PersonaImageDeleteManyArgs>(args?: SelectSubset<T, PersonaImageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PersonaImages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PersonaImages
+     * const personaImage = await prisma.personaImage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PersonaImageUpdateManyArgs>(args: SelectSubset<T, PersonaImageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PersonaImages and returns the data updated in the database.
+     * @param {PersonaImageUpdateManyAndReturnArgs} args - Arguments to update many PersonaImages.
+     * @example
+     * // Update many PersonaImages
+     * const personaImage = await prisma.personaImage.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PersonaImages and only return the `id`
+     * const personaImageWithIdOnly = await prisma.personaImage.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PersonaImageUpdateManyAndReturnArgs>(args: SelectSubset<T, PersonaImageUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PersonaImage.
+     * @param {PersonaImageUpsertArgs} args - Arguments to update or create a PersonaImage.
+     * @example
+     * // Update or create a PersonaImage
+     * const personaImage = await prisma.personaImage.upsert({
+     *   create: {
+     *     // ... data to create a PersonaImage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PersonaImage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PersonaImageUpsertArgs>(args: SelectSubset<T, PersonaImageUpsertArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PersonaImages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageCountArgs} args - Arguments to filter PersonaImages to count.
+     * @example
+     * // Count the number of PersonaImages
+     * const count = await prisma.personaImage.count({
+     *   where: {
+     *     // ... the filter for the PersonaImages we want to count
+     *   }
+     * })
+    **/
+    count<T extends PersonaImageCountArgs>(
+      args?: Subset<T, PersonaImageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PersonaImageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PersonaImage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PersonaImageAggregateArgs>(args: Subset<T, PersonaImageAggregateArgs>): Prisma.PrismaPromise<GetPersonaImageAggregateType<T>>
+
+    /**
+     * Group by PersonaImage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaImageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PersonaImageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PersonaImageGroupByArgs['orderBy'] }
+        : { orderBy?: PersonaImageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PersonaImageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPersonaImageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PersonaImage model
+   */
+  readonly fields: PersonaImageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PersonaImage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PersonaImageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    persona<T extends PersonaDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PersonaDefaultArgs<ExtArgs>>): Prisma__PersonaClient<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PersonaImage model
+   */
+  interface PersonaImageFieldRefs {
+    readonly id: FieldRef<"PersonaImage", 'Int'>
+    readonly personaId: FieldRef<"PersonaImage", 'String'>
+    readonly imageUrl: FieldRef<"PersonaImage", 'String'>
+    readonly description: FieldRef<"PersonaImage", 'String'>
+    readonly isMain: FieldRef<"PersonaImage", 'Boolean'>
+    readonly order: FieldRef<"PersonaImage", 'Int'>
+    readonly createdAt: FieldRef<"PersonaImage", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PersonaImage findUnique
+   */
+  export type PersonaImageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaImage to fetch.
+     */
+    where: PersonaImageWhereUniqueInput
+  }
+
+  /**
+   * PersonaImage findUniqueOrThrow
+   */
+  export type PersonaImageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaImage to fetch.
+     */
+    where: PersonaImageWhereUniqueInput
+  }
+
+  /**
+   * PersonaImage findFirst
+   */
+  export type PersonaImageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaImage to fetch.
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaImages to fetch.
+     */
+    orderBy?: PersonaImageOrderByWithRelationInput | PersonaImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PersonaImages.
+     */
+    cursor?: PersonaImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaImages.
+     */
+    distinct?: PersonaImageScalarFieldEnum | PersonaImageScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaImage findFirstOrThrow
+   */
+  export type PersonaImageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaImage to fetch.
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaImages to fetch.
+     */
+    orderBy?: PersonaImageOrderByWithRelationInput | PersonaImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PersonaImages.
+     */
+    cursor?: PersonaImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaImages.
+     */
+    distinct?: PersonaImageScalarFieldEnum | PersonaImageScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaImage findMany
+   */
+  export type PersonaImageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaImages to fetch.
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaImages to fetch.
+     */
+    orderBy?: PersonaImageOrderByWithRelationInput | PersonaImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PersonaImages.
+     */
+    cursor?: PersonaImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaImages.
+     */
+    distinct?: PersonaImageScalarFieldEnum | PersonaImageScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaImage create
+   */
+  export type PersonaImageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PersonaImage.
+     */
+    data: XOR<PersonaImageCreateInput, PersonaImageUncheckedCreateInput>
+  }
+
+  /**
+   * PersonaImage createMany
+   */
+  export type PersonaImageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PersonaImages.
+     */
+    data: PersonaImageCreateManyInput | PersonaImageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PersonaImage createManyAndReturn
+   */
+  export type PersonaImageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * The data used to create many PersonaImages.
+     */
+    data: PersonaImageCreateManyInput | PersonaImageCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PersonaImage update
+   */
+  export type PersonaImageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PersonaImage.
+     */
+    data: XOR<PersonaImageUpdateInput, PersonaImageUncheckedUpdateInput>
+    /**
+     * Choose, which PersonaImage to update.
+     */
+    where: PersonaImageWhereUniqueInput
+  }
+
+  /**
+   * PersonaImage updateMany
+   */
+  export type PersonaImageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PersonaImages.
+     */
+    data: XOR<PersonaImageUpdateManyMutationInput, PersonaImageUncheckedUpdateManyInput>
+    /**
+     * Filter which PersonaImages to update
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * Limit how many PersonaImages to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PersonaImage updateManyAndReturn
+   */
+  export type PersonaImageUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * The data used to update PersonaImages.
+     */
+    data: XOR<PersonaImageUpdateManyMutationInput, PersonaImageUncheckedUpdateManyInput>
+    /**
+     * Filter which PersonaImages to update
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * Limit how many PersonaImages to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PersonaImage upsert
+   */
+  export type PersonaImageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PersonaImage to update in case it exists.
+     */
+    where: PersonaImageWhereUniqueInput
+    /**
+     * In case the PersonaImage found by the `where` argument doesn't exist, create a new PersonaImage with this data.
+     */
+    create: XOR<PersonaImageCreateInput, PersonaImageUncheckedCreateInput>
+    /**
+     * In case the PersonaImage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PersonaImageUpdateInput, PersonaImageUncheckedUpdateInput>
+  }
+
+  /**
+   * PersonaImage delete
+   */
+  export type PersonaImageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
+    /**
+     * Filter which PersonaImage to delete.
+     */
+    where: PersonaImageWhereUniqueInput
+  }
+
+  /**
+   * PersonaImage deleteMany
+   */
+  export type PersonaImageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PersonaImages to delete
+     */
+    where?: PersonaImageWhereInput
+    /**
+     * Limit how many PersonaImages to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PersonaImage without action
+   */
+  export type PersonaImageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImage
+     */
+    select?: PersonaImageSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaImage
+     */
+    omit?: PersonaImageOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaImageInclude<ExtArgs> | null
   }
 
 
@@ -7188,6 +8443,19 @@ export namespace Prisma {
   export type PersonaScalarFieldEnum = (typeof PersonaScalarFieldEnum)[keyof typeof PersonaScalarFieldEnum]
 
 
+  export const PersonaImageScalarFieldEnum: {
+    id: 'id',
+    personaId: 'personaId',
+    imageUrl: 'imageUrl',
+    description: 'description',
+    isMain: 'isMain',
+    order: 'order',
+    createdAt: 'createdAt'
+  };
+
+  export type PersonaImageScalarFieldEnum = (typeof PersonaImageScalarFieldEnum)[keyof typeof PersonaImageScalarFieldEnum]
+
+
   export const ChatSessionScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -7411,6 +8679,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Persona"> | Date | string
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     sessions?: ChatSessionListRelationFilter
+    images?: PersonaImageListRelationFilter
   }
 
   export type PersonaOrderByWithRelationInput = {
@@ -7428,6 +8697,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
     sessions?: ChatSessionOrderByRelationAggregateInput
+    images?: PersonaImageOrderByRelationAggregateInput
   }
 
   export type PersonaWhereUniqueInput = Prisma.AtLeast<{
@@ -7448,6 +8718,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Persona"> | Date | string
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     sessions?: ChatSessionListRelationFilter
+    images?: PersonaImageListRelationFilter
   }, "id">
 
   export type PersonaOrderByWithAggregationInput = {
@@ -7486,6 +8757,73 @@ export namespace Prisma {
     isVisible?: BoolWithAggregatesFilter<"Persona"> | boolean
     createdBy?: IntNullableWithAggregatesFilter<"Persona"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Persona"> | Date | string
+  }
+
+  export type PersonaImageWhereInput = {
+    AND?: PersonaImageWhereInput | PersonaImageWhereInput[]
+    OR?: PersonaImageWhereInput[]
+    NOT?: PersonaImageWhereInput | PersonaImageWhereInput[]
+    id?: IntFilter<"PersonaImage"> | number
+    personaId?: StringFilter<"PersonaImage"> | string
+    imageUrl?: StringFilter<"PersonaImage"> | string
+    description?: StringNullableFilter<"PersonaImage"> | string | null
+    isMain?: BoolFilter<"PersonaImage"> | boolean
+    order?: IntFilter<"PersonaImage"> | number
+    createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }
+
+  export type PersonaImageOrderByWithRelationInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    imageUrl?: SortOrder
+    description?: SortOrderInput | SortOrder
+    isMain?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    persona?: PersonaOrderByWithRelationInput
+  }
+
+  export type PersonaImageWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PersonaImageWhereInput | PersonaImageWhereInput[]
+    OR?: PersonaImageWhereInput[]
+    NOT?: PersonaImageWhereInput | PersonaImageWhereInput[]
+    personaId?: StringFilter<"PersonaImage"> | string
+    imageUrl?: StringFilter<"PersonaImage"> | string
+    description?: StringNullableFilter<"PersonaImage"> | string | null
+    isMain?: BoolFilter<"PersonaImage"> | boolean
+    order?: IntFilter<"PersonaImage"> | number
+    createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }, "id">
+
+  export type PersonaImageOrderByWithAggregationInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    imageUrl?: SortOrder
+    description?: SortOrderInput | SortOrder
+    isMain?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    _count?: PersonaImageCountOrderByAggregateInput
+    _avg?: PersonaImageAvgOrderByAggregateInput
+    _max?: PersonaImageMaxOrderByAggregateInput
+    _min?: PersonaImageMinOrderByAggregateInput
+    _sum?: PersonaImageSumOrderByAggregateInput
+  }
+
+  export type PersonaImageScalarWhereWithAggregatesInput = {
+    AND?: PersonaImageScalarWhereWithAggregatesInput | PersonaImageScalarWhereWithAggregatesInput[]
+    OR?: PersonaImageScalarWhereWithAggregatesInput[]
+    NOT?: PersonaImageScalarWhereWithAggregatesInput | PersonaImageScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PersonaImage"> | number
+    personaId?: StringWithAggregatesFilter<"PersonaImage"> | string
+    imageUrl?: StringWithAggregatesFilter<"PersonaImage"> | string
+    description?: StringNullableWithAggregatesFilter<"PersonaImage"> | string | null
+    isMain?: BoolWithAggregatesFilter<"PersonaImage"> | boolean
+    order?: IntWithAggregatesFilter<"PersonaImage"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"PersonaImage"> | Date | string
   }
 
   export type ChatSessionWhereInput = {
@@ -7774,6 +9112,7 @@ export namespace Prisma {
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateInput = {
@@ -7790,6 +9129,7 @@ export namespace Prisma {
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUpdateInput = {
@@ -7806,6 +9146,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateInput = {
@@ -7822,6 +9163,7 @@ export namespace Prisma {
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateManyInput = {
@@ -7865,6 +9207,72 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaImageCreateInput = {
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+    persona: PersonaCreateNestedOneWithoutImagesInput
+  }
+
+  export type PersonaImageUncheckedCreateInput = {
+    id?: number
+    personaId: string
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaImageUpdateInput = {
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
+  }
+
+  export type PersonaImageUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaImageCreateManyInput = {
+    id?: number
+    personaId: string
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaImageUpdateManyMutationInput = {
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaImageUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -8275,6 +9683,16 @@ export namespace Prisma {
     isNot?: UserWhereInput | null
   }
 
+  export type PersonaImageListRelationFilter = {
+    every?: PersonaImageWhereInput
+    some?: PersonaImageWhereInput
+    none?: PersonaImageWhereInput
+  }
+
+  export type PersonaImageOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type PersonaCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -8354,14 +9772,54 @@ export namespace Prisma {
     _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
-  }
-
   export type PersonaScalarRelationFilter = {
     is?: PersonaWhereInput
     isNot?: PersonaWhereInput
+  }
+
+  export type PersonaImageCountOrderByAggregateInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    imageUrl?: SortOrder
+    description?: SortOrder
+    isMain?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaImageAvgOrderByAggregateInput = {
+    id?: SortOrder
+    order?: SortOrder
+  }
+
+  export type PersonaImageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    imageUrl?: SortOrder
+    description?: SortOrder
+    isMain?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaImageMinOrderByAggregateInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    imageUrl?: SortOrder
+    description?: SortOrder
+    isMain?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaImageSumOrderByAggregateInput = {
+    id?: SortOrder
+    order?: SortOrder
+  }
+
+  export type UserScalarRelationFilter = {
+    is?: UserWhereInput
+    isNot?: UserWhereInput
   }
 
   export type MessageListRelationFilter = {
@@ -8615,11 +10073,25 @@ export namespace Prisma {
     connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
   }
 
+  export type PersonaImageCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<PersonaImageCreateWithoutPersonaInput, PersonaImageUncheckedCreateWithoutPersonaInput> | PersonaImageCreateWithoutPersonaInput[] | PersonaImageUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaImageCreateOrConnectWithoutPersonaInput | PersonaImageCreateOrConnectWithoutPersonaInput[]
+    createMany?: PersonaImageCreateManyPersonaInputEnvelope
+    connect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutPersonaInput = {
     create?: XOR<ChatSessionCreateWithoutPersonaInput, ChatSessionUncheckedCreateWithoutPersonaInput> | ChatSessionCreateWithoutPersonaInput[] | ChatSessionUncheckedCreateWithoutPersonaInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutPersonaInput | ChatSessionCreateOrConnectWithoutPersonaInput[]
     createMany?: ChatSessionCreateManyPersonaInputEnvelope
     connect?: ChatSessionWhereUniqueInput | ChatSessionWhereUniqueInput[]
+  }
+
+  export type PersonaImageUncheckedCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<PersonaImageCreateWithoutPersonaInput, PersonaImageUncheckedCreateWithoutPersonaInput> | PersonaImageCreateWithoutPersonaInput[] | PersonaImageUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaImageCreateOrConnectWithoutPersonaInput | PersonaImageCreateOrConnectWithoutPersonaInput[]
+    createMany?: PersonaImageCreateManyPersonaInputEnvelope
+    connect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -8650,6 +10122,20 @@ export namespace Prisma {
     deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
   }
 
+  export type PersonaImageUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<PersonaImageCreateWithoutPersonaInput, PersonaImageUncheckedCreateWithoutPersonaInput> | PersonaImageCreateWithoutPersonaInput[] | PersonaImageUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaImageCreateOrConnectWithoutPersonaInput | PersonaImageCreateOrConnectWithoutPersonaInput[]
+    upsert?: PersonaImageUpsertWithWhereUniqueWithoutPersonaInput | PersonaImageUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: PersonaImageCreateManyPersonaInputEnvelope
+    set?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    disconnect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    delete?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    connect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    update?: PersonaImageUpdateWithWhereUniqueWithoutPersonaInput | PersonaImageUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: PersonaImageUpdateManyWithWhereWithoutPersonaInput | PersonaImageUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: PersonaImageScalarWhereInput | PersonaImageScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -8670,6 +10156,34 @@ export namespace Prisma {
     update?: ChatSessionUpdateWithWhereUniqueWithoutPersonaInput | ChatSessionUpdateWithWhereUniqueWithoutPersonaInput[]
     updateMany?: ChatSessionUpdateManyWithWhereWithoutPersonaInput | ChatSessionUpdateManyWithWhereWithoutPersonaInput[]
     deleteMany?: ChatSessionScalarWhereInput | ChatSessionScalarWhereInput[]
+  }
+
+  export type PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<PersonaImageCreateWithoutPersonaInput, PersonaImageUncheckedCreateWithoutPersonaInput> | PersonaImageCreateWithoutPersonaInput[] | PersonaImageUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaImageCreateOrConnectWithoutPersonaInput | PersonaImageCreateOrConnectWithoutPersonaInput[]
+    upsert?: PersonaImageUpsertWithWhereUniqueWithoutPersonaInput | PersonaImageUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: PersonaImageCreateManyPersonaInputEnvelope
+    set?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    disconnect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    delete?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    connect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+    update?: PersonaImageUpdateWithWhereUniqueWithoutPersonaInput | PersonaImageUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: PersonaImageUpdateManyWithWhereWithoutPersonaInput | PersonaImageUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: PersonaImageScalarWhereInput | PersonaImageScalarWhereInput[]
+  }
+
+  export type PersonaCreateNestedOneWithoutImagesInput = {
+    create?: XOR<PersonaCreateWithoutImagesInput, PersonaUncheckedCreateWithoutImagesInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutImagesInput
+    connect?: PersonaWhereUniqueInput
+  }
+
+  export type PersonaUpdateOneRequiredWithoutImagesNestedInput = {
+    create?: XOR<PersonaCreateWithoutImagesInput, PersonaUncheckedCreateWithoutImagesInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutImagesInput
+    upsert?: PersonaUpsertWithoutImagesInput
+    connect?: PersonaWhereUniqueInput
+    update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutImagesInput, PersonaUpdateWithoutImagesInput>, PersonaUncheckedUpdateWithoutImagesInput>
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -9016,6 +10530,7 @@ export namespace Prisma {
     isVisible?: boolean
     createdAt?: Date | string
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutUserInput = {
@@ -9031,6 +10546,7 @@ export namespace Prisma {
     isVisible?: boolean
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutUserInput = {
@@ -9191,6 +10707,33 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PersonaImageCreateWithoutPersonaInput = {
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaImageUncheckedCreateWithoutPersonaInput = {
+    id?: number
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaImageCreateOrConnectWithoutPersonaInput = {
+    where: PersonaImageWhereUniqueInput
+    create: XOR<PersonaImageCreateWithoutPersonaInput, PersonaImageUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type PersonaImageCreateManyPersonaInputEnvelope = {
+    data: PersonaImageCreateManyPersonaInput | PersonaImageCreateManyPersonaInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutPersonasInput = {
     update: XOR<UserUpdateWithoutPersonasInput, UserUncheckedUpdateWithoutPersonasInput>
     create: XOR<UserCreateWithoutPersonasInput, UserUncheckedCreateWithoutPersonasInput>
@@ -9241,6 +10784,115 @@ export namespace Prisma {
     data: XOR<ChatSessionUpdateManyMutationInput, ChatSessionUncheckedUpdateManyWithoutPersonaInput>
   }
 
+  export type PersonaImageUpsertWithWhereUniqueWithoutPersonaInput = {
+    where: PersonaImageWhereUniqueInput
+    update: XOR<PersonaImageUpdateWithoutPersonaInput, PersonaImageUncheckedUpdateWithoutPersonaInput>
+    create: XOR<PersonaImageCreateWithoutPersonaInput, PersonaImageUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type PersonaImageUpdateWithWhereUniqueWithoutPersonaInput = {
+    where: PersonaImageWhereUniqueInput
+    data: XOR<PersonaImageUpdateWithoutPersonaInput, PersonaImageUncheckedUpdateWithoutPersonaInput>
+  }
+
+  export type PersonaImageUpdateManyWithWhereWithoutPersonaInput = {
+    where: PersonaImageScalarWhereInput
+    data: XOR<PersonaImageUpdateManyMutationInput, PersonaImageUncheckedUpdateManyWithoutPersonaInput>
+  }
+
+  export type PersonaImageScalarWhereInput = {
+    AND?: PersonaImageScalarWhereInput | PersonaImageScalarWhereInput[]
+    OR?: PersonaImageScalarWhereInput[]
+    NOT?: PersonaImageScalarWhereInput | PersonaImageScalarWhereInput[]
+    id?: IntFilter<"PersonaImage"> | number
+    personaId?: StringFilter<"PersonaImage"> | string
+    imageUrl?: StringFilter<"PersonaImage"> | string
+    description?: StringNullableFilter<"PersonaImage"> | string | null
+    isMain?: BoolFilter<"PersonaImage"> | boolean
+    order?: IntFilter<"PersonaImage"> | number
+    createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
+  }
+
+  export type PersonaCreateWithoutImagesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    systemInstruction: string
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutPersonasInput
+    sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaUncheckedCreateWithoutImagesInput = {
+    id?: string
+    name: string
+    description?: string | null
+    systemInstruction: string
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdBy?: number | null
+    createdAt?: Date | string
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaCreateOrConnectWithoutImagesInput = {
+    where: PersonaWhereUniqueInput
+    create: XOR<PersonaCreateWithoutImagesInput, PersonaUncheckedCreateWithoutImagesInput>
+  }
+
+  export type PersonaUpsertWithoutImagesInput = {
+    update: XOR<PersonaUpdateWithoutImagesInput, PersonaUncheckedUpdateWithoutImagesInput>
+    create: XOR<PersonaCreateWithoutImagesInput, PersonaUncheckedCreateWithoutImagesInput>
+    where?: PersonaWhereInput
+  }
+
+  export type PersonaUpdateToOneWithWhereWithoutImagesInput = {
+    where?: PersonaWhereInput
+    data: XOR<PersonaUpdateWithoutImagesInput, PersonaUncheckedUpdateWithoutImagesInput>
+  }
+
+  export type PersonaUpdateWithoutImagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutPersonasNestedInput
+    sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type PersonaUncheckedUpdateWithoutImagesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+  }
+
   export type UserCreateWithoutSessionsInput = {
     email: string
     password: string
@@ -9282,6 +10934,7 @@ export namespace Prisma {
     isVisible?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutSessionsInput = {
@@ -9297,6 +10950,7 @@ export namespace Prisma {
     isVisible?: boolean
     createdBy?: number | null
     createdAt?: Date | string
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutSessionsInput = {
@@ -9405,6 +11059,7 @@ export namespace Prisma {
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutSessionsInput = {
@@ -9420,6 +11075,7 @@ export namespace Prisma {
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutSessionInput = {
@@ -9618,6 +11274,7 @@ export namespace Prisma {
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutUserInput = {
@@ -9633,6 +11290,7 @@ export namespace Prisma {
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserInput = {
@@ -9684,6 +11342,15 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type PersonaImageCreateManyPersonaInput = {
+    id?: number
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+  }
+
   export type ChatSessionUpdateWithoutPersonaInput = {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9709,6 +11376,32 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaImageUpdateWithoutPersonaInput = {
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaImageUncheckedUpdateWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaImageUncheckedUpdateManyWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MessageCreateManySessionInput = {

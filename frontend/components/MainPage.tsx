@@ -81,8 +81,10 @@ export const MainPage: React.FC<MainPageProps> = ({
                     </div>
 
                     {isLoading ? (
-                        <div className="flex justify-center py-20">
+                        <div className="flex flex-col items-center py-20 gap-4">
                             <Bot size={48} className="text-blue-500 animate-bounce" />
+                            <p className="text-gray-200 text-sm">AI 페르소나를 불러오는 중입니다...</p>
+                            <p className="text-gray-400 text-xs">잠시만 기다려주세요...</p>
                         </div>
                     ) : (
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

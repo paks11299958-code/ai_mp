@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
-import { Message, Persona, ChatSessionState, User } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
 import { getAIInstance, createChatSession, generateSummary } from './services/geminiService';
-import { personaApi, sessionApi, authApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi } from './services/apiService';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
@@ -10,6 +10,7 @@ import { AuthModal } from './components/AuthModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPage } from './components/LandingPage';
 import { MainPage } from './components/MainPage';
+import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { Icon } from './components/Icons';
 
 const App: React.FC = () => {
@@ -30,6 +31,7 @@ const App: React.FC = () => {
     const [isAdminMode, setIsAdminMode] = useState(false);
 
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
+    const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
 
     const chatInstancesRef = useRef<Record<string, Chat>>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -73,6 +75,13 @@ const App: React.FC = () => {
         if (current?.dbSessionId || current?.messages.length > 0) return;
 
         try {
+            // 이미지 로드 (아직 없을 경우)
+            if (!personaImages[personaId]) {
+                personaImageApi.getAll(personaId)
+                    .then(imgs => setPersonaImages(prev => ({ ...prev, [personaId]: imgs })))
+                    .catch(() => {});
+            }
+
             const allSessions = await sessionApi.getAll();
             const existing = allSessions.find(s => s.personaId === personaId);
             if (existing) {
@@ -146,6 +155,16 @@ const App: React.FC = () => {
     const visiblePersonas = personas.filter(p => p.isVisible !== false);
     const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
+    const activeImages = personaImages[activePersonaId] || [];
+
+    const handleSwitchImage = (image: PersonaImage) => {
+        setPersonaImages(prev => ({
+            ...prev,
+            [activePersonaId]: (prev[activePersonaId] || []).map(img => ({ ...img, isMain: img.id === image.id })),
+        }));
+        // 채팅 인스턴스 초기화 → 다음 메시지 시 새 이미지 설명으로 시스템 프롬프트 재생성
+        delete chatInstancesRef.current[activePersonaId];
+    };
 
     useEffect(() => {
         if (!isAdminMode) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -232,9 +251,13 @@ const App: React.FC = () => {
             let chat = chatInstancesRef.current[activePersonaId];
             if (!chat) {
                 const summaryText = currentSession.summary?.summary;
-                const systemInstruction = summaryText
-                    ? `${activePersona.systemInstruction}\n\n--- 이전 대화 요약 ---\n${summaryText}\n---`
-                    : activePersona.systemInstruction;
+                const mainImage = activeImages.find(img => img.isMain);
+                const imageContext = mainImage?.description
+                    ? `\n\n--- 현재 사용자 화면에 표시된 당신의 이미지 ---\n현재 사용자는 당신의 이미지를 보고 있습니다: ${mainImage.description}\n사용자가 이 이미지에 대해 언급하거나 질문할 수 있으며, 자연스럽게 반응하세요.\n---`
+                    : '';
+                const systemInstruction =
+                    `${activePersona.systemInstruction}${imageContext}` +
+                    (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
             }
@@ -437,21 +460,42 @@ const App: React.FC = () => {
                 />
             ) : (
                 <div className="flex-1 flex h-full relative min-w-0">
-                    {activePersona?.imageUrl && (
-                        <div className="hidden md:flex w-1/3 border-r border-gray-800 bg-gray-900/30 p-8 flex-col items-center justify-center">
-                            <div className="w-full max-h-[60%] flex items-center justify-center">
-                                <img
-                                    src={activePersona.imageUrl}
-                                    alt={`${activePersona.name} 프로필`}
-                                    className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
-                                />
+                    {(() => {
+                        const mainImg = activeImages.find(img => img.isMain);
+                        const displayUrl = mainImg?.imageUrl || activePersona?.imageUrl;
+                        const displayDesc = mainImg?.description;
+                        return displayUrl ? (
+                            <div className="hidden md:flex w-1/3 border-r border-gray-800 bg-gray-900/30 p-8 flex-col items-center justify-center">
+                                <div className="w-full max-h-[60%] flex items-center justify-center">
+                                    <img
+                                        src={displayUrl}
+                                        alt={`${activePersona?.name} 프로필`}
+                                        className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
+                                    />
+                                </div>
+                                <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
+                                <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
+                                {activeImages.length > 1 && (
+                                    <div className="flex gap-2 mt-4 justify-center flex-wrap">
+                                        {activeImages.map(img => (
+                                            <button
+                                                key={img.id}
+                                                onClick={() => handleSwitchImage(img)}
+                                                title={img.description || ''}
+                                                className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                                                    img.isMain ? 'border-blue-400 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'
+                                                }`}
+                                            >
+                                                <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona.name}</h3>
-                            <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona.description}</p>
-                        </div>
-                    )}
+                        ) : null;
+                    })()}
 
-                    <div className={`flex flex-col h-full ${activePersona?.imageUrl ? 'w-full md:w-2/3' : 'w-full'}`}>
+                    <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
                         <header className="h-16 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-4 shrink-0 z-10">
                             <div className="flex items-center">
                                 <button
@@ -473,6 +517,10 @@ const App: React.FC = () => {
                                 )}
                             </div>
                         </header>
+
+                        {activeImages.length > 0 && (
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} />
+                        )}
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
                             {currentSession.messages.length === 0 && activePersona ? (
