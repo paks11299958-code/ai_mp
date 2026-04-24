@@ -4,8 +4,7 @@
   "functions": {
     "api/router.ts": {
       "includeFiles": "src/generated/prisma/**"
-    },
-    "api/api-proxy.js": {}
+    }
   },
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
