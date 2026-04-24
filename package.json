@@ -1,0 +1,34 @@
+{
+  "name": "multi-persona-ai-chat",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "postinstall": "prisma generate",
+    "dev": "npm run frontend",
+    "local": "concurrently \"node local-api.cjs\" \"npm run frontend\"",
+    "api": "node local-api.cjs",
+    "frontend": "npm run dev --prefix frontend"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "concurrently": "latest",
+    "express": "^4.21.2",
+    "prisma": "^7.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "@types/pg": "^8.20.0",
+    "@vercel/node": "^5.7.13",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0"
+  }
+}

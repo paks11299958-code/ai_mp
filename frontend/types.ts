@@ -1,0 +1,55 @@
+export type Role = 'user' | 'model';
+
+export interface Message {
+    id: string;
+    role: Role;
+    text: string;
+    isStreaming?: boolean;
+    error?: boolean;
+}
+
+export interface Persona {
+    id: string;
+    name: string;
+    description: string;
+    iconName: string;
+    systemInstruction: string;
+    colorClass: string;
+    order?: number;
+    imageUrl?: string;
+    isDefault?: boolean;
+    isVisible?: boolean;
+}
+
+export interface ConversationSummary {
+    id: number;
+    sessionId: number;
+    summary: string;
+    messageCount: number;
+    updatedAt: string;
+}
+
+export interface ChatSessionState {
+    messages: Message[];
+    isTyping: boolean;
+    dbSessionId?: number;
+    hasMoreMessages?: boolean;
+    oldestMessageId?: number;
+    summary?: ConversationSummary | null;
+    isSummarizing?: boolean;
+}
+
+export interface User {
+    id: number;
+    email: string;
+    username?: string;
+    role: string;
+}
+
+export interface DbSession {
+    id: number;
+    personaId: string;
+    title: string;
+    updatedAt: string;
+    persona: Pick<Persona, 'id' | 'name' | 'iconName' | 'colorClass'>;
+}

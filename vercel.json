@@ -1,0 +1,15 @@
+{
+  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend",
+  "outputDirectory": "frontend/dist",
+  "functions": {
+    "api/router.ts": {
+      "includeFiles": "src/generated/prisma/**"
+    }
+  },
+  "rewrites": [
+    { "source": "/api-proxy", "destination": "/api/api-proxy" },
+    { "source": "/api/:d/:s1/:s2", "destination": "/api/router?d=:d&s1=:s1&s2=:s2" },
+    { "source": "/api/:d/:s1", "destination": "/api/router?d=:d&s1=:s1" },
+    { "source": "/api/:d", "destination": "/api/router?d=:d" }
+  ]
+}
