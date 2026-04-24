@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { PrismaPg } = require('@prisma/adapter-pg');
-const { PrismaClient } = require('./src/generated/prisma/client.js');
+const { PrismaClient } = require('./src/generated/prisma/index.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -319,12 +319,60 @@ app.get('/api/sessions/:id/messages', async (req, res) => {
   try {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const messages = await prisma.message.findMany({
-      where: { sessionId: Number(req.params.id) },
-      orderBy: { createdAt: 'asc' },
+
+    const sessionId = Number(req.params.id);
+    const limit = Math.min(Number(req.query.limit) || 50, 100);
+    const cursor = req.query.cursor ? Number(req.query.cursor) : undefined;
+
+    const where = { sessionId };
+    if (cursor) where.id = { lt: cursor };
+
+    const raw = await prisma.message.findMany({
+      where,
+      orderBy: { id: 'desc' },
+      take: limit + 1,
     });
-    return res.json(messages);
+    const hasMore = raw.length > limit;
+    const messages = raw.slice(0, limit).reverse();
+
+    return res.json({ messages, hasMore });
   } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.get('/api/sessions/:id/summary', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const sessionId = Number(req.params.id);
+    const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId: payload.userId } });
+    if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+    const summary = await prisma.conversationSummary.findUnique({ where: { sessionId } });
+    return res.json(summary || null);
+  } catch (e) {
+    console.error('[summary GET]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/sessions/:id/summary', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const sessionId = Number(req.params.id);
+    const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId: payload.userId } });
+    if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+    const { summary, messageCount } = req.body;
+    if (!summary || !messageCount) return res.status(400).json({ error: 'summary와 messageCount는 필수입니다.' });
+    const saved = await prisma.conversationSummary.upsert({
+      where: { sessionId },
+      update: { summary, messageCount, updatedAt: new Date() },
+      create: { sessionId, summary, messageCount },
+    });
+    return res.json(saved);
+  } catch (e) {
+    console.error('[summary POST]', e.message);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });

@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, process.cwd(), '');
     return {
+      publicDir: '../public',
       define: {
         // This is just generic value for the GEMINI API key.
         // This is not used at all, and can be ignored!

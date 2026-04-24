@@ -169,10 +169,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { name, description, systemInstruction, iconName, colorClass, imageUrl, order } = req.body;
+                const { name, description, systemInstruction, iconName, colorClass, imageUrl, order, isVisible } = req.body;
                 const persona = await prisma.persona.update({
                     where: { id: seg1 },
-                    data: { name, description, systemInstruction, iconName, colorClass, imageUrl, order },
+                    data: { name, description, systemInstruction, iconName, colorClass, imageUrl, order, ...(isVisible !== undefined && { isVisible }) },
                 });
                 return res.status(200).json(persona);
             } catch (e: any) {
@@ -249,10 +249,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
                 const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
                 if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
-                const messages = await prisma.message.findMany({ where: { sessionId }, orderBy: { createdAt: 'asc' } });
-                return res.status(200).json(messages);
+
+                const limit = Math.min(Number(req.query.limit) || 50, 100);
+                const cursor = req.query.cursor ? Number(req.query.cursor) : undefined;
+
+                const where: any = { sessionId };
+                if (cursor) where.id = { lt: cursor };
+
+                const raw = await prisma.message.findMany({
+                    where,
+                    orderBy: { id: 'desc' },
+                    take: limit + 1,
+                });
+                const hasMore = raw.length > limit;
+                const messages = raw.slice(0, limit).reverse();
+
+                return res.status(200).json({ messages, hasMore });
             } catch (e: any) {
                 console.error('[messages GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // GET /api/sessions/:id/summary
+        if (sessionId && seg2 === 'summary' && req.method === 'GET') {
+            try {
+                if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
+                const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+                if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const summary = await prisma.conversationSummary.findUnique({ where: { sessionId } });
+                return res.status(200).json(summary || null);
+            } catch (e: any) {
+                console.error('[summary GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/sessions/:id/summary
+        if (sessionId && seg2 === 'summary' && req.method === 'POST') {
+            try {
+                if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
+                const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+                if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const { summary, messageCount } = req.body;
+                if (!summary || !messageCount) return res.status(400).json({ error: 'summary와 messageCount는 필수입니다.' });
+                const saved = await prisma.conversationSummary.upsert({
+                    where: { sessionId },
+                    update: { summary, messageCount, updatedAt: new Date() },
+                    create: { sessionId, summary, messageCount },
+                });
+                return res.status(200).json(saved);
+            } catch (e: any) {
+                console.error('[summary POST]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }

@@ -10,5 +10,5 @@
     "resolveJsonModule": true
   },
   "include": ["api/**/*"],
-  "exclude": ["node_modules", "frontend", "src/generated"]
+  "exclude": ["node_modules", "frontend"]
 }

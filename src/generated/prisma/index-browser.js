@@ -141,6 +141,7 @@ exports.Prisma.PersonaScalarFieldEnum = {
   order: 'order',
   imageUrl: 'imageUrl',
   isDefault: 'isDefault',
+  isVisible: 'isVisible',
   createdBy: 'createdBy',
   createdAt: 'createdAt'
 };
@@ -160,6 +161,15 @@ exports.Prisma.MessageScalarFieldEnum = {
   role: 'role',
   text: 'text',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.ConversationSummaryScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  summary: 'summary',
+  messageCount: 'messageCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -182,7 +192,8 @@ exports.Prisma.ModelName = {
   User: 'User',
   Persona: 'Persona',
   ChatSession: 'ChatSession',
-  Message: 'Message'
+  Message: 'Message',
+  ConversationSummary: 'ConversationSummary'
 };
 
 /**

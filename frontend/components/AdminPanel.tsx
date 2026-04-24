@@ -4,7 +4,7 @@ import { Icon } from './Icons';
 
 interface AdminPanelProps {
     personas: Persona[];
-    onSave: (persona: Persona) => void;
+    onSave: (persona: Persona) => Promise<void>;
     onDelete: (id: string) => void;
     onClose: () => void;
 }
@@ -33,6 +33,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [colorClass, setColorClass] = useState(AVAILABLE_COLORS[0].value);
     const [imageUrl, setImageUrl] = useState('');
     
+    const [isVisible, setIsVisible] = useState(true);
     const [showSuccess, setShowSuccess] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -44,6 +45,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             setIconName('Bot');
             setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl('');
+            setIsVisible(true);
             setShowSuccess(false);
         } else {
             const p = personas.find(p => p.id === selectedId);
@@ -54,35 +56,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setIconName(p.iconName || 'Bot');
                 setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
                 setImageUrl(p.imageUrl || '');
+                setIsVisible(p.isVisible !== false);
                 setShowSuccess(false);
             }
         }
     }, [selectedId, personas]);
 
-    const handleSave = () => {
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
         if (!name.trim() || !instruction.trim()) {
             alert('이름과 시스템 프롬프트를 입력해주세요.');
             return;
         }
 
-        const idToSave = selectedId === 'new' ? `custom-${Date.now()}` : selectedId;
-        
-        onSave({ 
-            id: idToSave, 
-            name, 
-            description,
-            systemInstruction: instruction,
-            iconName,
-            colorClass,
-            imageUrl
-        });
-        
-        if (selectedId === 'new') {
-            setSelectedId(idToSave);
-        }
+        const isNew = selectedId === 'new';
+        const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
 
-        setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 3000);
+        setIsSaving(true);
+        try {
+            await onSave({
+                id: idToSave,
+                name,
+                description,
+                systemInstruction: instruction,
+                iconName,
+                colorClass,
+                imageUrl,
+                isVisible,
+            });
+
+            if (isNew) {
+                setSelectedId(idToSave);
+            }
+
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 3000);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleDelete = () => {
@@ -297,6 +309,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             />
                         </div>
 
+                        {/* 공개 여부 */}
+                        <div className="flex items-center gap-3 p-4 bg-gray-900/50 rounded-xl border border-gray-700/50">
+                            <input
+                                type="checkbox"
+                                id="isVisible"
+                                checked={isVisible}
+                                onChange={e => setIsVisible(e.target.checked)}
+                                className="w-4 h-4 accent-blue-500 cursor-pointer"
+                            />
+                            <label htmlFor="isVisible" className="text-sm text-gray-300 cursor-pointer select-none">
+                                페르소나 목록에 표시
+                            </label>
+                            {!isVisible && (
+                                <span className="text-xs text-yellow-500 ml-1">숨김 — 대화 데이터는 보존됩니다</span>
+                            )}
+                        </div>
+
                         <div className="pt-4 flex items-center justify-between border-t border-gray-700/50">
                             <div className="flex items-center gap-4">
                                 {selectedId !== 'new' && !isDefaultPersona && (
@@ -317,10 +346,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             </div>
                             <button
                                 onClick={handleSave}
-                                className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 px-6 rounded-xl flex items-center transition-colors shadow-lg shadow-blue-900/20"
+                                disabled={isSaving}
+                                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-2.5 px-6 rounded-xl flex items-center transition-colors shadow-lg shadow-blue-900/20"
                             >
-                                <Icon name="Save" size={18} className="mr-2" /> 
-                                {selectedId === 'new' ? '새 AI 추가하기' : '변경사항 저장'}
+                                <Icon name="Save" size={18} className="mr-2" />
+                                {isSaving ? '저장 중...' : (selectedId === 'new' ? '새 AI 추가하기' : '변경사항 저장')}
                             </button>
                         </div>
                     </div>

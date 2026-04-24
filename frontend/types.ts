@@ -18,12 +18,25 @@ export interface Persona {
     order?: number;
     imageUrl?: string;
     isDefault?: boolean;
+    isVisible?: boolean;
+}
+
+export interface ConversationSummary {
+    id: number;
+    sessionId: number;
+    summary: string;
+    messageCount: number;
+    updatedAt: string;
 }
 
 export interface ChatSessionState {
     messages: Message[];
     isTyping: boolean;
     dbSessionId?: number;
+    hasMoreMessages?: boolean;
+    oldestMessageId?: number;
+    summary?: ConversationSummary | null;
+    isSummarizing?: boolean;
 }
 
 export interface User {

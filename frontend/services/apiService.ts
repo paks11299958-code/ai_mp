@@ -1,4 +1,4 @@
-import { Persona, User, DbSession, Message } from '../types';
+import { Persona, User, DbSession, Message, ConversationSummary } from '../types';
 
 const BASE = '/api';
 
@@ -98,12 +98,23 @@ export const sessionApi = {
             body: JSON.stringify({ personaId, title }),
         }),
 
-    getMessages: (sessionId: number) =>
-        request<Message[]>(`/sessions/${sessionId}/messages`),
+    getMessages: (sessionId: number, cursor?: number, limit?: number) =>
+        request<{ messages: Message[]; hasMore: boolean }>(
+            `/sessions/${sessionId}/messages?limit=${limit || 50}${cursor ? `&cursor=${cursor}` : ''}`
+        ),
 
     saveMessage: (sessionId: number, role: string, text: string) =>
         request<Message>(`/sessions/${sessionId}/messages`, {
             method: 'POST',
             body: JSON.stringify({ role, text }),
+        }),
+
+    getSummary: (sessionId: number) =>
+        request<ConversationSummary | null>(`/sessions/${sessionId}/summary`),
+
+    saveSummary: (sessionId: number, summary: string, messageCount: number) =>
+        request<ConversationSummary>(`/sessions/${sessionId}/summary`, {
+            method: 'POST',
+            body: JSON.stringify({ summary, messageCount }),
         }),
 };

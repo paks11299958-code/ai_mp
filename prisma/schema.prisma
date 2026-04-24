@@ -30,6 +30,7 @@ model Persona {
   order             Int           @default(0)
   imageUrl          String?
   isDefault         Boolean       @default(false)
+  isVisible         Boolean       @default(true)
   createdBy         Int?
   user              User?         @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   createdAt         DateTime      @default(now())
@@ -37,15 +38,16 @@ model Persona {
 }
 
 model ChatSession {
-  id        Int       @id @default(autoincrement())
+  id        Int                  @id @default(autoincrement())
   userId    Int
   personaId String
   title     String?
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  persona   Persona   @relation(fields: [personaId], references: [id], onDelete: Cascade)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  user      User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona   Persona              @relation(fields: [personaId], references: [id], onDelete: Cascade)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
   messages  Message[]
+  summary   ConversationSummary?
 }
 
 model Message {
@@ -55,4 +57,14 @@ model Message {
   text      String
   session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   createdAt DateTime    @default(now())
+}
+
+model ConversationSummary {
+  id           Int         @id @default(autoincrement())
+  sessionId    Int         @unique
+  summary      String
+  messageCount Int
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  session      ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }

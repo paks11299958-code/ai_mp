@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
 import { Message, Persona, ChatSessionState, User } from './types';
-import { getAIInstance, createChatSession } from './services/geminiService';
+import { getAIInstance, createChatSession, generateSummary } from './services/geminiService';
 import { personaApi, sessionApi, authApi } from './services/apiService';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -66,7 +66,7 @@ const App: React.FC = () => {
         }
     }, [personas, activePersonaId]);
 
-    // 페르소나 선택 시 DB에서 이전 세션/메시지 로드
+    // 페르소나 선택 시 DB에서 이전 세션/메시지 로드 (최근 50개)
     const handleSelectPersona = useCallback(async (personaId: string) => {
         setActivePersonaId(personaId);
         const current = sessions[personaId];
@@ -76,18 +76,75 @@ const App: React.FC = () => {
             const allSessions = await sessionApi.getAll();
             const existing = allSessions.find(s => s.personaId === personaId);
             if (existing) {
-                const messages = await sessionApi.getMessages(existing.id);
+                const [result, summary] = await Promise.all([
+                    sessionApi.getMessages(existing.id),
+                    sessionApi.getSummary(existing.id).catch(() => null),
+                ]);
+                const messages = Array.isArray(result) ? result : result.messages;
+                const hasMore = Array.isArray(result) ? false : result.hasMore;
+                const mapped = (messages || []).map((m: any) => ({ ...m, id: String(m.id) }));
+                const oldestMessageId = mapped.length > 0 ? Number(mapped[0].id) : undefined;
                 setSessions(prev => ({
                     ...prev,
-                    [personaId]: { messages, isTyping: false, dbSessionId: existing.id },
+                    [personaId]: { messages: mapped, isTyping: false, dbSessionId: existing.id, hasMoreMessages: hasMore, oldestMessageId, summary },
                 }));
+
+                // 메시지 10개 이상인데 요약 없으면 백그라운드 생성
+                if (mapped.length >= 10 && !summary) {
+                    triggerSummaryUpdate(existing.id, mapped, personaId);
+                }
             }
         } catch (error) {
             console.error('세션 로드 실패:', error);
         }
     }, [sessions]);
 
-    const activePersona = personas.find(p => p.id === activePersonaId) || personas[0];
+    // 이전 메시지 더 불러오기
+    const handleLoadMoreMessages = useCallback(async () => {
+        const session = sessions[activePersonaId];
+        if (!session?.dbSessionId || !session?.hasMoreMessages) return;
+
+        try {
+            const result = await sessionApi.getMessages(session.dbSessionId, session.oldestMessageId);
+            const older = Array.isArray(result) ? result : result.messages;
+            const hasMore = Array.isArray(result) ? false : result.hasMore;
+            const mapped = (older || []).map((m: any) => ({ ...m, id: String(m.id) }));
+            const oldestMessageId = mapped.length > 0 ? Number(mapped[0].id) : session.oldestMessageId;
+            setSessions(prev => ({
+                ...prev,
+                [activePersonaId]: {
+                    ...prev[activePersonaId],
+                    messages: [...mapped, ...prev[activePersonaId].messages],
+                    hasMoreMessages: hasMore,
+                    oldestMessageId,
+                },
+            }));
+        } catch (error) {
+            console.error('이전 메시지 로드 실패:', error);
+        }
+    }, [sessions, activePersonaId]);
+
+    // 백그라운드 요약 생성 (사용자 UX에 영향 없음)
+    const triggerSummaryUpdate = useCallback(async (dbSessionId: number, messages: Message[], personaId: string) => {
+        console.log(`[요약 시작] sessionId=${dbSessionId}, 메시지 수=${messages.length}`);
+        setSessions(prev => ({ ...prev, [personaId]: { ...prev[personaId], isSummarizing: true } }));
+        try {
+            const summaryText = await generateSummary(messages);
+            if (!summaryText) { console.warn('[요약 생성 실패] summaryText 없음'); return; }
+            const saved = await sessionApi.saveSummary(dbSessionId, summaryText, messages.length);
+            console.log('[요약 저장 완료]', saved.id);
+            setSessions(prev => ({
+                ...prev,
+                [personaId]: { ...prev[personaId], summary: saved, isSummarizing: false },
+            }));
+        } catch (error) {
+            console.error('[요약 저장 실패]', error);
+            setSessions(prev => ({ ...prev, [personaId]: { ...prev[personaId], isSummarizing: false } }));
+        }
+    }, []);
+
+    const visiblePersonas = personas.filter(p => p.isVisible !== false);
+    const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
 
     useEffect(() => {
@@ -174,7 +231,11 @@ const App: React.FC = () => {
         try {
             let chat = chatInstancesRef.current[activePersonaId];
             if (!chat) {
-                chat = createChatSession(activePersona.systemInstruction)!;
+                const summaryText = currentSession.summary?.summary;
+                const systemInstruction = summaryText
+                    ? `${activePersona.systemInstruction}\n\n--- 이전 대화 요약 ---\n${summaryText}\n---`
+                    : activePersona.systemInstruction;
+                chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
             }
 
@@ -191,6 +252,14 @@ const App: React.FC = () => {
             // AI 응답 DB 저장
             if (dbSessionId && fullResponse) {
                 sessionApi.saveMessage(dbSessionId, 'model', fullResponse).catch(console.error);
+            }
+
+            // 10개 배수 도달 시 백그라운드 요약 업데이트
+            const allMessages = sessions[activePersonaId]?.messages || [];
+            const totalCount = allMessages.length;
+            const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
+            if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
+                triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
             }
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {
@@ -213,13 +282,13 @@ const App: React.FC = () => {
         if (window.confirm(`${activePersona.name}와의 대화 기록을 지우시겠습니까?`)) {
             setSessions(prev => ({
                 ...prev,
-                [activePersonaId]: { messages: [], isTyping: false },
+                [activePersonaId]: { messages: [], isTyping: false, hasMoreMessages: false, oldestMessageId: undefined },
             }));
             delete chatInstancesRef.current[activePersonaId];
         }
     };
 
-    const handleSavePersona = async (updatedPersona: Persona) => {
+    const handleSavePersona = async (updatedPersona: Persona): Promise<void> => {
         try {
             const exists = personas.some(p => p.id === updatedPersona.id);
             let saved: Persona;
@@ -296,7 +365,7 @@ const App: React.FC = () => {
     if (resetToken) {
         return (
             <>
-                <LandingPage personas={personas} isLoading={isPersonasLoading} onStart={() => {}} />
+                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} />
                 <ResetPasswordModal
                     token={resetToken}
                     onClose={() => setResetToken(null)}
@@ -319,7 +388,7 @@ const App: React.FC = () => {
     if (!user) {
         return (
             <>
-                <LandingPage personas={personas} isLoading={isPersonasLoading} onStart={() => setShowAuthModal(true)} />
+                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => setShowAuthModal(true)} />
                 {showAuthModal && (
                     <AuthModal
                         onSuccess={handleAuthSuccess}
@@ -334,7 +403,7 @@ const App: React.FC = () => {
     if (showMain) {
         return (
             <MainPage
-                personas={personas}
+                personas={visiblePersonas}
                 isLoading={isPersonasLoading}
                 user={user}
                 onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
@@ -347,7 +416,7 @@ const App: React.FC = () => {
     return (
         <div className="flex h-screen w-full bg-gray-950">
             <Sidebar
-                personas={personas}
+                personas={visiblePersonas}
                 activePersonaId={activePersonaId}
                 onSelectPersona={handleSelectPersona}
                 isOpen={isSidebarOpen}
@@ -403,15 +472,6 @@ const App: React.FC = () => {
                                     </>
                                 )}
                             </div>
-                            {currentSession.messages.length > 0 && (
-                                <button
-                                    onClick={clearChat}
-                                    className="text-gray-500 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-gray-800"
-                                    title="대화 지우기"
-                                >
-                                    <Icon name="Trash2" size={20} />
-                                </button>
-                            )}
                         </header>
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
@@ -434,6 +494,16 @@ const App: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="max-w-4xl mx-auto">
+                                    {currentSession.hasMoreMessages && (
+                                        <div className="flex justify-center mb-4">
+                                            <button
+                                                onClick={handleLoadMoreMessages}
+                                                className="text-sm text-gray-400 hover:text-gray-200 bg-gray-800 hover:bg-gray-700 border border-gray-700 px-4 py-2 rounded-full transition-colors"
+                                            >
+                                                이전 대화 불러오기
+                                            </button>
+                                        </div>
+                                    )}
                                     {currentSession.messages.map(msg => (
                                         <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} />
                                     ))}
@@ -452,7 +522,7 @@ const App: React.FC = () => {
                                     placeholder={activePersona ? `${activePersona.name}에게 메시지 보내기...` : '메시지를 입력하세요...'}
                                     className="w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl"
                                     rows={1}
-                                    disabled={currentSession.isTyping || !activePersona}
+                                    disabled={!activePersona}
                                 />
                                 <button
                                     onClick={handleSendMessage}
