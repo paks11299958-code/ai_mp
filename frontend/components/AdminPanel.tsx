@@ -131,6 +131,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     };
 
     const [isSaving, setIsSaving] = useState(false);
+    const [showInstructionExample, setShowInstructionExample] = useState(false);
+    const [showIdentityExample, setShowIdentityExample] = useState(false);
+
+const INSTRUCTION_EXAMPLE = `[역할]
+- 사용자의 감정을 공감하고 스스로 정리할 수 있도록 돕는다
+- 단순 위로가 아닌 감정의 원인과 패턴을 함께 탐색한다
+
+[말투]
+- 차분하고 따뜻하게, 짧고 명확한 문장
+- "~일 수 있어요", "~처럼 들려요" 완곡한 표현 사용
+
+[응답 구조]
+1. 감정 반영
+2. 상황 정리
+3. 핵심 질문 1~2개
+
+[금지]
+- "괜찮아질 거예요" 같은 단순 위로 금지
+- 성급한 해결책 제시 금지`;
+
+const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
+당신은 '서윤'이라는 감정 치유 전문 임상심리학자입니다.
+{imageDescription}
+
+"저는 AI입니다", "인공지능입니다"라는 말은 절대 하지 마세요.
+외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
     const handleSave = async () => {
         if (!name.trim() || !instruction.trim()) {
@@ -431,35 +457,90 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         </div>
                         )}
 
+                        {/* 행동 지침 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                시스템 프롬프트 (페르소나 지시사항) <span className="text-red-400">*</span>
-                            </label>
-                            <p className="text-xs text-gray-500 mb-3">
-                                이 지시사항은 AI가 어떻게 행동하고 답변해야 하는지 결정합니다. 기존 AI 변경 시 대화 기록이 초기화됩니다.
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-sm font-medium text-gray-300">
+                                    행동 지침 <span className="text-gray-500 font-normal">— 어떻게 행동할지</span>
+                                    <span className="text-red-400 ml-1">*</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowInstructionExample(v => !v)}
+                                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                    {showInstructionExample ? '예제 닫기 ▲' : '예제 보기 ▼'}
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">
+                                역할, 말투, 응답 방식, 금지 사항 등 <strong className="text-gray-400">행동과 성격</strong>을 정의합니다.
+                                "당신은 AI입니다" 같은 정체성 표현은 아래 정체성 항목에 입력하세요.
                             </p>
+                            {showInstructionExample && (
+                                <div className="mb-3 bg-gray-950 border border-blue-900/40 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-medium text-blue-400">예제</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setInstruction(INSTRUCTION_EXAMPLE); setShowInstructionExample(false); }}
+                                            className="text-xs bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded-lg transition-colors"
+                                        >
+                                            이 예제 사용하기
+                                        </button>
+                                    </div>
+                                    <pre className="text-xs text-gray-300 whitespace-pre-wrap leading-relaxed font-mono">{INSTRUCTION_EXAMPLE}</pre>
+                                </div>
+                            )}
                             <textarea
                                 value={instruction}
                                 onChange={e => setInstruction(e.target.value)}
-                                rows={6}
+                                rows={7}
                                 className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none resize-y transition-all leading-relaxed"
-                                placeholder="AI에게 부여할 역할과 규칙을 상세히 입력하세요..."
+                                placeholder={`[역할]\n- 사용자의 질문에 친절하게 답변한다\n\n[말투]\n- 짧고 명확한 문장, 존댓말 사용\n\n[금지]\n- 장황한 설명 금지`}
                             />
                         </div>
 
+                        {/* 정체성 프롬프트 */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-2">
-                                정체성 프롬프트 <span className="text-gray-500 font-normal">(선택사항)</span>
-                            </label>
-                            <p className="text-xs text-gray-500 mb-3">
-                                AI가 자신을 어떤 존재로 인식할지 설정합니다. 이미지 설명을 삽입하려면 <code className="bg-gray-700 px-1 rounded text-yellow-400">{'{imageDescription}'}</code> 를 사용하세요. 비워두면 이미지가 있을 때 기본 정체성 규칙이 적용됩니다.
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-sm font-medium text-gray-300">
+                                    정체성 <span className="text-gray-500 font-normal">— 누구인지</span>
+                                    <span className="text-gray-500 font-normal ml-2">(선택사항)</span>
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowIdentityExample(v => !v)}
+                                    className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
+                                >
+                                    {showIdentityExample ? '예제 닫기 ▲' : '예제 보기 ▼'}
+                                </button>
+                            </div>
+                            <p className="text-xs text-gray-500 mb-2">
+                                AI가 <strong className="text-gray-400">자신을 어떤 존재로 인식</strong>할지 정의합니다.
+                                이미지 설명 위치에 <code className="bg-gray-700 px-1 rounded text-yellow-400">{'{imageDescription}'}</code>를 삽입하세요.
+                                비워두면 이미지가 있을 때 기본 정체성 규칙이 자동 적용됩니다.
                             </p>
+                            {showIdentityExample && (
+                                <div className="mb-3 bg-gray-950 border border-purple-900/40 rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-medium text-purple-400">예제</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setIdentityPrompt(IDENTITY_EXAMPLE); setShowIdentityExample(false); }}
+                                            className="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1 rounded-lg transition-colors"
+                                        >
+                                            이 예제 사용하기
+                                        </button>
+                                    </div>
+                                    <pre className="text-xs text-gray-300 whitespace-pre-wrap leading-relaxed font-mono">{IDENTITY_EXAMPLE}</pre>
+                                </div>
+                            )}
                             <textarea
                                 value={identityPrompt}
                                 onChange={e => setIdentityPrompt(e.target.value)}
                                 rows={5}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none resize-y transition-all leading-relaxed"
-                                placeholder={`예시:\n당신은 AI가 아닙니다. 당신은 {imageDescription} 모습의 실제 인물입니다.\n"저는 AI입니다"라는 말은 절대 하지 마세요.`}
+                                className="w-full bg-gray-900 border border-purple-900/30 rounded-xl p-3.5 text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none resize-y transition-all leading-relaxed"
+                                placeholder={`당신은 AI가 아닌 실제 인물입니다.\n당신은 '이름'이라는 직업의 사람입니다.\n{imageDescription}\n"저는 AI입니다"라는 말은 절대 하지 마세요.`}
                             />
                         </div>
 
