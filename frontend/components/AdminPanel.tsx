@@ -52,6 +52,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [videoUrl, setVideoUrl] = useState('');
     const [videoTitle, setVideoTitle] = useState('');
     const [isAddingVideo, setIsAddingVideo] = useState(false);
+    const videoFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (selectedId === 'new') {
@@ -156,12 +157,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (!selectedImageId || !videoUrl.trim()) return;
         setIsAddingVideo(true);
         try {
-            const video = await personaVideoApi.create(selectedImageId, videoUrl.trim(), videoTitle.trim() || undefined);
+            const video = await personaVideoApi.create(selectedImageId, { videoUrl: videoUrl.trim(), title: videoTitle.trim() || undefined });
             setVideos(prev => [...prev, video]);
             setVideoUrl('');
             setVideoTitle('');
         } catch (e: any) {
             alert('동영상 추가 실패: ' + e.message);
+        } finally {
+            setIsAddingVideo(false);
+        }
+    };
+
+    const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedImageId) return;
+        if (file.size > 100 * 1024 * 1024) { alert('100MB 이하 동영상만 업로드 가능합니다.'); return; }
+        setIsAddingVideo(true);
+        try {
+            const reader = new FileReader();
+            reader.onloadend = async () => {
+                const base64 = (reader.result as string).split(',')[1];
+                const video = await personaVideoApi.create(selectedImageId, {
+                    videoBase64: base64,
+                    mimeType: file.type,
+                    title: videoTitle.trim() || file.name,
+                });
+                setVideos(prev => [...prev, video]);
+                setVideoTitle('');
+                if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+            };
+            reader.readAsDataURL(file);
+        } catch (e: any) {
+            alert('동영상 업로드 실패: ' + e.message);
         } finally {
             setIsAddingVideo(false);
         }
@@ -536,14 +563,26 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                             placeholder="제목 (선택)"
                                             className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                         />
-                                        <button
-                                            onClick={handleAddVideo}
-                                            disabled={isAddingVideo || !videoUrl.trim()}
-                                            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
-                                        >
-                                            <Icon name="Plus" size={12} />
-                                            {isAddingVideo ? '추가 중...' : '동영상 추가'}
-                                        </button>
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={handleAddVideo}
+                                                disabled={isAddingVideo || !videoUrl.trim()}
+                                                className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs px-2 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                            >
+                                                <Icon name="Plus" size={12} />
+                                                URL 추가
+                                            </button>
+                                            <button
+                                                onClick={() => videoFileInputRef.current?.click()}
+                                                disabled={isAddingVideo}
+                                                className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-xs px-2 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                            >
+                                                <Icon name="Upload" size={12} />
+                                                파일 업로드
+                                            </button>
+                                            <input type="file" accept="video/*" className="hidden" ref={videoFileInputRef} onChange={handleVideoFileUpload} />
+                                        </div>
+                                        {isAddingVideo && <p className="text-[10px] text-blue-400 text-center">업로드 중...</p>}
 
                                         {/* 동영상 목록 */}
                                         <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto max-h-48">

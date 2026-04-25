@@ -122,10 +122,10 @@ export const personaVideoApi = {
     getAll: (imageId: number) =>
         request<PersonaVideo[]>(`/persona-videos/${imageId}`),
 
-    create: (imageId: number, videoUrl: string, title?: string) =>
+    create: (imageId: number, data: { videoUrl?: string; videoBase64?: string; mimeType?: string; title?: string }) =>
         request<PersonaVideo>('/persona-videos', {
             method: 'POST',
-            body: JSON.stringify({ imageId, videoUrl, title }),
+            body: JSON.stringify({ imageId, ...data }),
         }),
 
     update: (videoId: number, data: { title?: string; order?: number }) =>

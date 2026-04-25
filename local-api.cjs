@@ -5,8 +5,38 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('./src/generated/prisma/index.js');
+const { Storage } = require('@google-cloud/storage');
 const fs = require('fs');
 const path = require('path');
+
+const BUCKET_NAME = 'ai-mp-media';
+let _gcsStorage = null;
+function getGCSStorage() {
+    if (_gcsStorage) return _gcsStorage;
+    const creds = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    if (creds) {
+        const credentials = JSON.parse(creds);
+        _gcsStorage = new Storage({ credentials, projectId: credentials.project_id });
+    } else {
+        _gcsStorage = new Storage();
+    }
+    return _gcsStorage;
+}
+async function uploadToGCS(buffer, destPath, mimeType) {
+    const gcs = getGCSStorage();
+    const file = gcs.bucket(BUCKET_NAME).file(destPath);
+    await file.save(buffer, { metadata: { contentType: mimeType }, resumable: false });
+    await file.makePublic();
+    return `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
+}
+async function deleteFromGCS(publicUrl) {
+    try {
+        const prefix = `https://storage.googleapis.com/${BUCKET_NAME}/`;
+        if (!publicUrl || !publicUrl.startsWith(prefix)) return;
+        const filePath = publicUrl.slice(prefix.length);
+        await getGCSStorage().bucket(BUCKET_NAME).file(filePath).delete();
+    } catch { /* 파일 없으면 무시 */ }
+}
 
 // 구조적 \n (JSON 바깥)을 실제 줄바꿈으로 변환, 문자열 내부 \n은 그대로 유지
 function fixPrettyJson(val) {
@@ -307,15 +337,26 @@ app.post('/api/personas/:id/images', async (req, res) => {
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     const { imageUrl, description, isMain } = req.body;
     if (!imageUrl) return res.status(400).json({ error: 'imageUrl은 필수입니다.' });
+
+    let finalUrl = imageUrl;
+    if (imageUrl.startsWith('data:')) {
+      const mimeType = imageUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+      const ext = mimeType.split('/')[1] || 'jpg';
+      const buffer = Buffer.from(imageUrl.split(',')[1], 'base64');
+      const destPath = `personas/${req.params.id}/images/${Date.now()}.${ext}`;
+      finalUrl = await uploadToGCS(buffer, destPath, mimeType);
+    }
+
     if (isMain) {
       await prisma.personaImage.updateMany({ where: { personaId: req.params.id }, data: { isMain: false } });
     }
     const count = await prisma.personaImage.count({ where: { personaId: req.params.id } });
     const image = await prisma.personaImage.create({
-      data: { personaId: req.params.id, imageUrl, description, isMain: isMain ?? count === 0, order: count },
+      data: { personaId: req.params.id, imageUrl: finalUrl, description, isMain: isMain ?? count === 0, order: count },
     });
     return res.status(201).json(image);
   } catch (e) {
+    console.error('[images POST]', e);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });
@@ -350,6 +391,7 @@ app.delete('/api/personas/:id/images', async (req, res) => {
     const { imageId } = req.body;
     if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
     const deleted = await prisma.personaImage.delete({ where: { id: Number(imageId) } });
+    await deleteFromGCS(deleted.imageUrl);
     if (deleted.isMain) {
       const first = await prisma.personaImage.findFirst({
         where: { personaId: req.params.id },
@@ -382,14 +424,25 @@ app.post('/api/persona-videos', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { imageId, videoUrl, title } = req.body;
-    if (!imageId || !videoUrl) return res.status(400).json({ error: 'imageId와 videoUrl은 필수입니다.' });
+    const { imageId, videoUrl, videoBase64, mimeType, title } = req.body;
+    if (!imageId || (!videoUrl && !videoBase64)) return res.status(400).json({ error: 'imageId와 videoUrl 또는 videoBase64는 필수입니다.' });
+
+    let finalUrl = videoUrl || '';
+    if (videoBase64) {
+      const type = mimeType || 'video/mp4';
+      const ext = type.split('/')[1] || 'mp4';
+      const buffer = Buffer.from(videoBase64, 'base64');
+      const destPath = `personas/videos/${Date.now()}.${ext}`;
+      finalUrl = await uploadToGCS(buffer, destPath, type);
+    }
+
     const count = await prisma.personaVideo.count({ where: { imageId: Number(imageId) } });
     const video = await prisma.personaVideo.create({
-      data: { imageId: Number(imageId), videoUrl, title: title || null, order: count },
+      data: { imageId: Number(imageId), videoUrl: finalUrl, title: title || null, order: count },
     });
     return res.status(201).json(video);
   } catch (e) {
+    console.error('[persona-videos POST]', e);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });
@@ -417,7 +470,8 @@ app.delete('/api/persona-videos/:videoId', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    await prisma.personaVideo.delete({ where: { id: Number(req.params.videoId) } });
+    const deleted = await prisma.personaVideo.delete({ where: { id: Number(req.params.videoId) } });
+    await deleteFromGCS(deleted.videoUrl);
     return res.json({ message: '삭제 완료' });
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });

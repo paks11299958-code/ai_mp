@@ -6,6 +6,7 @@ import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verif
 import { sendEmail } from './_lib/email.js';
 import { generateEmbedding } from './_lib/embedding.js';
 import { extractMemories, generateSummary } from './_lib/gemini.js';
+import { uploadToGCS, deleteFromGCS } from './_lib/storage.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const domain = req.query.d as string;
@@ -220,12 +221,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (!userId) return;
                 const { imageUrl, description, isMain } = req.body;
                 if (!imageUrl) return res.status(400).json({ error: 'imageUrl은 필수입니다.' });
+
+                let finalUrl = imageUrl;
+                // base64 이미지이면 GCS에 업로드
+                if (imageUrl.startsWith('data:')) {
+                    const mimeType = imageUrl.split(';')[0].split(':')[1] || 'image/jpeg';
+                    const ext = mimeType.split('/')[1] || 'jpg';
+                    const base64Data = imageUrl.split(',')[1];
+                    const buffer = Buffer.from(base64Data, 'base64');
+                    const destPath = `personas/${seg1}/images/${Date.now()}.${ext}`;
+                    finalUrl = await uploadToGCS(buffer, destPath, mimeType);
+                }
+
                 if (isMain) {
                     await prisma.personaImage.updateMany({ where: { personaId: seg1 }, data: { isMain: false } });
                 }
                 const count = await prisma.personaImage.count({ where: { personaId: seg1 } });
                 const image = await prisma.personaImage.create({
-                    data: { personaId: seg1, imageUrl, description, isMain: isMain ?? count === 0, order: count },
+                    data: { personaId: seg1, imageUrl: finalUrl, description, isMain: isMain ?? count === 0, order: count },
                 });
                 return res.status(201).json(image);
             } catch (e: any) {
@@ -263,6 +276,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const { imageId } = req.body;
                 if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
                 const deleted = await prisma.personaImage.delete({ where: { id: Number(imageId) } });
+                // GCS 파일 삭제
+                await deleteFromGCS(deleted.imageUrl);
                 // 삭제된 이미지가 대표였으면 첫 번째 이미지를 대표로 설정
                 if (deleted.isMain) {
                     const first = await prisma.personaImage.findFirst({
@@ -588,11 +603,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { imageId, videoUrl, title } = req.body;
-                if (!imageId || !videoUrl) return res.status(400).json({ error: 'imageId와 videoUrl은 필수입니다.' });
+                const { imageId, videoUrl, videoBase64, mimeType, title } = req.body;
+                if (!imageId || (!videoUrl && !videoBase64)) return res.status(400).json({ error: 'imageId와 videoUrl 또는 videoBase64는 필수입니다.' });
+
+                let finalUrl = videoUrl || '';
+                // base64 동영상이면 GCS에 업로드
+                if (videoBase64) {
+                    const type = mimeType || 'video/mp4';
+                    const ext = type.split('/')[1] || 'mp4';
+                    const buffer = Buffer.from(videoBase64, 'base64');
+                    const destPath = `personas/videos/${Date.now()}.${ext}`;
+                    finalUrl = await uploadToGCS(buffer, destPath, type);
+                }
+
                 const count = await prisma.personaVideo.count({ where: { imageId: Number(imageId) } });
                 const video = await prisma.personaVideo.create({
-                    data: { imageId: Number(imageId), videoUrl, title: title || null, order: count },
+                    data: { imageId: Number(imageId), videoUrl: finalUrl, title: title || null, order: count },
                 });
                 return res.status(201).json(video);
             } catch (e: any) {
@@ -623,7 +649,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                await prisma.personaVideo.delete({ where: { id: Number(seg1) } });
+                const deleted = await prisma.personaVideo.delete({ where: { id: Number(seg1) } });
+                await deleteFromGCS(deleted.videoUrl);
                 return res.status(200).json({ message: '삭제 완료' });
             } catch (e: any) {
                 console.error('[persona-videos DELETE]', e);
