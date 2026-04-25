@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
-import { getAIInstance, createChatSession, generateSummary } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi } from './services/apiService';
+import { getAIInstance, createChatSession, generateSummary, extractMemories } from './services/geminiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi } from './services/apiService';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
@@ -255,8 +255,19 @@ const App: React.FC = () => {
                 const imageContext = mainImage?.description
                     ? `\n\n--- 당신의 현재 모습 ---\n당신은 지금 이런 모습을 하고 있습니다: ${mainImage.description}\n사용자가 당신의 외모, 복장, 표정에 대해 언급하면 마치 실제로 그 모습인 것처럼 자연스럽게 반응하세요. "저는 AI라 외형이 없습니다"와 같은 말은 절대 하지 마세요. 당신은 이 모습으로 존재합니다.\n---`
                     : '';
+
+                // 관련 기억 검색
+                let memoryContext = '';
+                try {
+                    const memories = await memoryApi.search(text);
+                    if (memories.length > 0) {
+                        const memList = memories.map(m => `- ${m.content}`).join('\n');
+                        memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n---`;
+                    }
+                } catch {}
+
                 const systemInstruction =
-                    `${activePersona.systemInstruction}${imageContext}` +
+                    `${activePersona.systemInstruction}${imageContext}${memoryContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
@@ -283,6 +294,13 @@ const App: React.FC = () => {
             const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
             if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
                 triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
+            }
+
+            // 백그라운드 기억 추출 + 저장
+            if (fullResponse && user) {
+                extractMemories(text, fullResponse).then(memories => {
+                    memories.forEach(content => memoryApi.save(content).catch(() => {}));
+                }).catch(() => {});
             }
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {

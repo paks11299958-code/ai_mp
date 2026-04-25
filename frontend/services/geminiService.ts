@@ -51,6 +51,32 @@ export const generateImageDescription = async (base64Image: string): Promise<str
     }
 };
 
+export const extractMemories = async (userText: string, aiText: string): Promise<string[]> => {
+    if (!aiInstance) return [];
+    const prompt = `다음 대화에서 사용자에 대한 장기 기억으로 저장할 중요한 사실을 추출하세요.
+직업, 취미, 선호도, 목표, 가족, 거주지 등 개인 정보만 추출하세요.
+일반적인 대화 내용은 제외하세요.
+각 항목을 JSON 배열로 반환하세요. 추출할 내용이 없으면 빈 배열 []을 반환하세요.
+
+사용자: ${userText}
+AI: ${aiText}
+
+반환 형식: ["사실1", "사실2"]`;
+
+    try {
+        const response = await aiInstance.models.generateContent({
+            model: MODEL_NAME,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        });
+        const text = response.text?.trim() || '[]';
+        const match = text.match(/\[[\s\S]*\]/);
+        if (!match) return [];
+        return JSON.parse(match[0]) as string[];
+    } catch {
+        return [];
+    }
+};
+
 export const generateSummary = async (messages: Message[]): Promise<string | null> => {
     if (!aiInstance || messages.length < 2) return null;
 

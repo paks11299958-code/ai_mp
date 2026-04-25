@@ -18,6 +18,17 @@ model User {
   createdAt        DateTime      @default(now())
   personas         Persona[]
   sessions         ChatSession[]
+  memories         UserMemory[]
+}
+
+model UserMemory {
+  id        Int                      @id @default(autoincrement())
+  userId    Int
+  content   String
+  embedding Unsupported("vector(768)")?
+  category  String?
+  createdAt DateTime                 @default(now())
+  user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Persona {

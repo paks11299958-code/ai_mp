@@ -1,4 +1,4 @@
-import { Persona, PersonaImage, User, DbSession, Message, ConversationSummary } from '../types';
+import { Persona, PersonaImage, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
 
 const BASE = '/api';
 
@@ -147,4 +147,25 @@ export const sessionApi = {
             method: 'POST',
             body: JSON.stringify({ summary, messageCount }),
         }),
+};
+
+// Memory
+export const memoryApi = {
+    getAll: () =>
+        request<UserMemory[]>('/memory'),
+
+    save: (content: string, category?: string) =>
+        request<UserMemory>('/memory', {
+            method: 'POST',
+            body: JSON.stringify({ content, category }),
+        }),
+
+    search: (query: string) =>
+        request<UserMemory[]>('/memory/search', {
+            method: 'POST',
+            body: JSON.stringify({ query }),
+        }),
+
+    delete: (id: number) =>
+        request<{ message: string }>(`/memory/${id}`, { method: 'DELETE' }),
 };

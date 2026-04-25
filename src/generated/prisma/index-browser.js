@@ -131,6 +131,14 @@ exports.Prisma.UserScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.UserMemoryScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  content: 'content',
+  category: 'category',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.PersonaScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -200,6 +208,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  UserMemory: 'UserMemory',
   Persona: 'Persona',
   PersonaImage: 'PersonaImage',
   ChatSession: 'ChatSession',

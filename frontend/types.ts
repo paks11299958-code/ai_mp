@@ -21,6 +21,15 @@ export interface Persona {
     isVisible?: boolean;
 }
 
+export interface UserMemory {
+    id: number;
+    userId: number;
+    content: string;
+    category?: string;
+    similarity?: number;
+    createdAt: string;
+}
+
 export interface PersonaImage {
     id: number;
     personaId: string;
