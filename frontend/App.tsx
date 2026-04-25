@@ -276,8 +276,16 @@ const App: React.FC = () => {
                     }
                 } catch {}
 
+                const now = new Date();
+                const kstTime = now.toLocaleString('ko-KR', {
+                    timeZone: 'Asia/Seoul',
+                    year: 'numeric', month: 'long', day: 'numeric',
+                    weekday: 'long', hour: '2-digit', minute: '2-digit',
+                });
+                const timeContext = `\n\n--- 현재 시간 ---\n${kstTime} (한국 시간)\n이 시간을 자연스럽게 대화에 반영하세요. (예: 저녁 시간이면 저녁 인사, 늦은 밤이면 수고했다는 말 등)\n---`;
+
                 const systemInstruction =
-                    `${activePersona.systemInstruction}${imageContext}${memoryContext}` +
+                    `${activePersona.systemInstruction}${imageContext}${memoryContext}${timeContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
