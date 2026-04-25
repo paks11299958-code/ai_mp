@@ -268,7 +268,7 @@ const App: React.FC = () => {
                     const memories = await memoryApi.search(text);
                     if (memories.length > 0) {
                         const memList = memories.map(m => `- ${m.content}`).join('\n');
-                        memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n---`;
+                        memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n이 정보를 대화에 자연스럽게 녹여서 활용하세요. 직접적으로 "당신이 ~라고 알고 있어요"라고 말하지 말고, 맥락에 맞게 자연스럽게 반영하세요.\n---`;
                     }
                 } catch {}
 
