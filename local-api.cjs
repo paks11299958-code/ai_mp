@@ -26,7 +26,6 @@ async function uploadToGCS(buffer, destPath, mimeType) {
     const gcs = getGCSStorage();
     const file = gcs.bucket(BUCKET_NAME).file(destPath);
     await file.save(buffer, { metadata: { contentType: mimeType }, resumable: false });
-    await file.makePublic();
     return `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
 }
 async function deleteFromGCS(publicUrl) {

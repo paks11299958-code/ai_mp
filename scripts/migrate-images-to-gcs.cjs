@@ -6,7 +6,29 @@ const path = require('path');
 const BUCKET_NAME = 'ai-mp-media';
 const DB_URL = 'postgresql://aichat_user:aichat_9958@34.50.27.95:5432/aichat';
 
-// .env.local에서 GCP 서비스 계정 읽기
+// local-api.cjs와 동일한 JSON 파서
+function fixPrettyJson(val) {
+    let result = '';
+    let inString = false;
+    let i = 0;
+    while (i < val.length) {
+        const ch = val[i];
+        if (ch === '\\' && i + 1 < val.length) {
+            if (inString) {
+                result += ch + val[i + 1];
+            } else {
+                result += (val[i + 1] === 'n') ? '\n' : ch + val[i + 1];
+            }
+            i += 2;
+            continue;
+        }
+        if (ch === '"') inString = !inString;
+        result += ch;
+        i++;
+    }
+    return result;
+}
+
 function loadCredentials() {
     const envPath = path.join(__dirname, '../.env.local');
     const content = fs.readFileSync(envPath, 'utf8');
@@ -14,19 +36,22 @@ function loadCredentials() {
         const trimmed = line.trim();
         if (trimmed.startsWith('GOOGLE_APPLICATION_CREDENTIALS_JSON=')) {
             let val = trimmed.slice('GOOGLE_APPLICATION_CREDENTIALS_JSON='.length).trim();
-            if (val.startsWith('"') && val.endsWith('"')) val = val.slice(1, -1);
-            val = val.replace(/\\n/g, '\n').replace(/\\"/g, '"');
-            return JSON.parse(val);
+            if (val.startsWith('"') && val.endsWith('"')) {
+                try {
+                    val = JSON.parse(val);
+                } catch {
+                    val = fixPrettyJson(val.slice(1, -1));
+                }
+            }
+            return typeof val === 'string' ? JSON.parse(val) : val;
         }
     }
     throw new Error('GOOGLE_APPLICATION_CREDENTIALS_JSON not found in .env.local');
 }
 
 async function uploadToGCS(storage, buffer, destPath, mimeType) {
-    const bucket = storage.bucket(BUCKET_NAME);
-    const file = bucket.file(destPath);
+    const file = storage.bucket(BUCKET_NAME).file(destPath);
     await file.save(buffer, { metadata: { contentType: mimeType }, resumable: false });
-    await file.makePublic();
     return `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
 }
 

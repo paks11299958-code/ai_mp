@@ -31,8 +31,6 @@ export async function uploadToGCS(
         resumable: false,
     });
 
-    await file.makePublic();
-
     return `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
 }
 
