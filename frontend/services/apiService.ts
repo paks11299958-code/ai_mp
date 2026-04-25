@@ -147,6 +147,17 @@ export const sessionApi = {
             method: 'POST',
             body: JSON.stringify({ summary, messageCount }),
         }),
+
+    extractMemories: (sessionId: number, userText: string, aiText: string) =>
+        request<{ saved: number }>(`/sessions/${sessionId}/extract-memories`, {
+            method: 'POST',
+            body: JSON.stringify({ userText, aiText }),
+        }),
+
+    summarize: (sessionId: number) =>
+        request<ConversationSummary | null>(`/sessions/${sessionId}/summarize`, {
+            method: 'POST',
+        }),
 };
 
 // Memory

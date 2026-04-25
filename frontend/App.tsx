@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
-import { getAIInstance, createChatSession, generateSummary, extractMemories } from './services/geminiService';
+import { getAIInstance, createChatSession } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, authApi, memoryApi } from './services/apiService';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -141,20 +141,14 @@ const App: React.FC = () => {
         console.log(`[요약 시작] sessionId=${dbSessionId}, 메시지 수=${messages.length}`);
         setSessions(prev => ({ ...prev, [personaId]: { ...prev[personaId], isSummarizing: true } }));
         try {
-            const summaryText = await generateSummary(messages);
-            if (!summaryText) { console.warn('[요약 생성 실패] summaryText 없음'); return; }
-            const saved = await sessionApi.saveSummary(dbSessionId, summaryText, messages.length);
+            // 백엔드에서 요약 생성 + 기억 추출까지 처리
+            const saved = await sessionApi.summarize(dbSessionId);
+            if (!saved) { console.warn('[요약 생성 실패]'); return; }
             console.log('[요약 저장 완료]', saved.id);
             setSessions(prev => ({
                 ...prev,
                 [personaId]: { ...prev[personaId], summary: saved, isSummarizing: false },
             }));
-
-            // 요약에서 개인 정보 추출 → UserMemory 저장
-            extractMemories(summaryText, '').then(memories => {
-                memories.forEach(content => memoryApi.save(content, '요약추출').catch(() => {}));
-                if (memories.length > 0) console.log(`[기억 추출] 요약에서 ${memories.length}개 저장`);
-            }).catch(() => {});
         } catch (error) {
             console.error('[요약 저장 실패]', error);
             setSessions(prev => ({ ...prev, [personaId]: { ...prev[personaId], isSummarizing: false } }));
@@ -326,12 +320,10 @@ const App: React.FC = () => {
                 triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
             }
 
-            // 백그라운드 기억 추출 + 저장 (스트림 완료 후 3초 뒤 실행해 충돌 방지)
-            if (fullResponse && user) {
+            // 백그라운드 기억 추출 — 백엔드에서 처리 (스트림 완료 후 3초 뒤)
+            if (fullResponse && user && dbSessionId) {
                 setTimeout(() => {
-                    extractMemories(text, fullResponse).then(memories => {
-                        memories.forEach(content => memoryApi.save(content).catch(() => {}));
-                    }).catch(() => {});
+                    sessionApi.extractMemories(dbSessionId, text, fullResponse).catch(() => {});
                 }, 3000);
             }
         } catch (error: any) {

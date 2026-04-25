@@ -51,7 +51,9 @@ export const generateImageDescription = async (base64Image: string): Promise<str
     }
 };
 
-export const extractMemories = async (userText: string, aiText: string): Promise<string[]> => {
+// extractMemories, generateSummary → 백엔드 이관 (api/_lib/gemini.ts)
+
+export const _extractMemories_DEPRECATED = async (userText: string, aiText: string): Promise<string[]> => {
     if (!aiInstance) return [];
 
     const content = aiText
@@ -92,7 +94,7 @@ ${content}
     }
 };
 
-export const generateSummary = async (messages: Message[]): Promise<string | null> => {
+export const _generateSummary_DEPRECATED = async (messages: Message[]): Promise<string | null> => {
     if (!aiInstance || messages.length < 2) return null;
 
     // 최근 30개만 사용 (너무 긴 요약 방지)

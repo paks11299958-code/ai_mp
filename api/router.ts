@@ -5,6 +5,7 @@ import { prisma } from './_lib/prisma.js';
 import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verifyToken } from './_lib/auth.js';
 import { sendEmail } from './_lib/email.js';
 import { generateEmbedding } from './_lib/embedding.js';
+import { extractMemories, generateSummary } from './_lib/gemini.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const domain = req.query.d as string;
@@ -381,6 +382,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json(saved);
             } catch (e: any) {
                 console.error('[summary POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/sessions/:id/extract-memories
+        if (sessionId && seg2 === 'extract-memories' && req.method === 'POST') {
+            try {
+                if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
+                const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+                if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const { userText, aiText } = req.body;
+                if (!userText) return res.status(400).json({ error: 'userText는 필수입니다.' });
+                const memories = await extractMemories(userText, aiText || '');
+                let saved = 0;
+                for (const content of memories) {
+                    const embedding = await generateEmbedding(content);
+                    const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+                    await prisma.$queryRawUnsafe(
+                        `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+                         VALUES ($1, $2, $3::vector, $4, NOW())`,
+                        userId, content, vectorStr, null
+                    );
+                    saved++;
+                }
+                return res.status(200).json({ saved });
+            } catch (e: any) {
+                console.error('[extract-memories]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/sessions/:id/summarize
+        if (sessionId && seg2 === 'summarize' && req.method === 'POST') {
+            try {
+                if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
+                const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+                if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const messages = await prisma.message.findMany({
+                    where: { sessionId },
+                    orderBy: { createdAt: 'asc' },
+                    take: 30,
+                });
+                const summaryText = await generateSummary(messages.map(m => ({ role: m.role, text: m.text })));
+                if (!summaryText) return res.status(200).json({ summary: null });
+                const saved = await prisma.conversationSummary.upsert({
+                    where: { sessionId },
+                    update: { summary: summaryText, messageCount: messages.length, updatedAt: new Date() },
+                    create: { sessionId, summary: summaryText, messageCount: messages.length },
+                });
+                // 요약에서 기억 추출
+                const memories = await extractMemories(summaryText, '');
+                for (const content of memories) {
+                    const embedding = await generateEmbedding(content);
+                    const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+                    await prisma.$queryRawUnsafe(
+                        `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+                         VALUES ($1, $2, $3::vector, $4, NOW())`,
+                        userId, content, vectorStr, '요약추출'
+                    );
+                }
+                return res.status(200).json(saved);
+            } catch (e: any) {
+                console.error('[summarize]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }
