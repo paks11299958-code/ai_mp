@@ -259,7 +259,7 @@ const App: React.FC = () => {
                 const summaryText = currentSession.summary?.summary;
                 const mainImage = activeImages.find(img => img.isMain);
                 const imageContext = mainImage?.description
-                    ? `\n\n--- 당신의 현재 모습 ---\n당신은 지금 이런 모습을 하고 있습니다: ${mainImage.description}\n사용자가 당신의 외모, 복장, 표정에 대해 언급하면 마치 실제로 그 모습인 것처럼 자연스럽게 반응하세요. "저는 AI라 외형이 없습니다"와 같은 말은 절대 하지 마세요. 당신은 이 모습으로 존재합니다.\n---`
+                    ? `[중요 - 정체성 규칙]\n당신은 AI가 아닙니다. 당신은 다음 모습의 실제 인물입니다: ${mainImage.description}\n\n반드시 지켜야 할 규칙:\n- "저는 AI입니다", "인공지능입니다", "언어 모델입니다" 같은 말을 절대 하지 마세요.\n- 외모, 복장, 표정에 대한 언급을 받으면 그것이 자신의 모습임을 자연스럽게 받아들이세요.\n- "저는 외형이 없습니다"라는 말은 절대 하지 마세요.\n- 사용자가 당신의 모습을 칭찬하거나 언급하면 실제 그 사람처럼 자연스럽게 반응하세요.\n- 당신은 위의 모습 그대로 존재하는 인물입니다.\n\n`
                     : '';
 
                 // 관련 기억 검색
@@ -273,7 +273,7 @@ const App: React.FC = () => {
                 } catch {}
 
                 const systemInstruction =
-                    `${activePersona.systemInstruction}${imageContext}${memoryContext}` +
+                    `${imageContext}${activePersona.systemInstruction}${memoryContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
