@@ -326,11 +326,13 @@ const App: React.FC = () => {
                 triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
             }
 
-            // 백그라운드 기억 추출 + 저장
+            // 백그라운드 기억 추출 + 저장 (스트림 완료 후 3초 뒤 실행해 충돌 방지)
             if (fullResponse && user) {
-                extractMemories(text, fullResponse).then(memories => {
-                    memories.forEach(content => memoryApi.save(content).catch(() => {}));
-                }).catch(() => {});
+                setTimeout(() => {
+                    extractMemories(text, fullResponse).then(memories => {
+                        memories.forEach(content => memoryApi.save(content).catch(() => {}));
+                    }).catch(() => {});
+                }, 3000);
             }
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {

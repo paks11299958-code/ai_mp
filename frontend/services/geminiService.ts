@@ -104,12 +104,11 @@ export const generateSummary = async (messages: Message[]): Promise<string | nul
     const prompt = `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
 
     try {
-        const chat = aiInstance.chats.create({ model: MODEL_NAME, config: {} });
-        const stream = await chat.sendMessageStream({ message: prompt });
-        let fullText = '';
-        for await (const chunk of stream) {
-            if (chunk.text) fullText += chunk.text;
-        }
+        const response = await aiInstance.models.generateContent({
+            model: MODEL_NAME,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        });
+        const fullText = response.text?.trim() || '';
         console.log('[요약 생성 완료]', fullText.slice(0, 80) + '...');
         return fullText || null;
     } catch (error) {
