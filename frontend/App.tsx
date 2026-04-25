@@ -43,7 +43,7 @@ const App: React.FC = () => {
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
         personaApi.getAll()
-            .then(data => { setPersonas(data); if (data.length > 0) setActivePersonaId(data[0].id); })
+            .then(data => { setPersonas(data); const first = data.find(p => p.isVisible !== false); if (first) setActivePersonaId(first.id); })
             .catch(() => {})
             .finally(() => setIsPersonasLoading(false));
 
