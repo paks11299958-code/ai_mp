@@ -146,6 +146,12 @@ const App: React.FC = () => {
                 ...prev,
                 [personaId]: { ...prev[personaId], summary: saved, isSummarizing: false },
             }));
+
+            // 요약에서 개인 정보 추출 → UserMemory 저장
+            extractMemories(summaryText, '').then(memories => {
+                memories.forEach(content => memoryApi.save(content, '요약추출').catch(() => {}));
+                if (memories.length > 0) console.log(`[기억 추출] 요약에서 ${memories.length}개 저장`);
+            }).catch(() => {});
         } catch (error) {
             console.error('[요약 저장 실패]', error);
             setSessions(prev => ({ ...prev, [personaId]: { ...prev[personaId], isSummarizing: false } }));

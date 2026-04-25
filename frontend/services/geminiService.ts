@@ -53,13 +53,17 @@ export const generateImageDescription = async (base64Image: string): Promise<str
 
 export const extractMemories = async (userText: string, aiText: string): Promise<string[]> => {
     if (!aiInstance) return [];
-    const prompt = `다음 대화에서 사용자에 대한 장기 기억으로 저장할 중요한 사실을 추출하세요.
-직업, 취미, 선호도, 목표, 가족, 거주지 등 개인 정보만 추출하세요.
-일반적인 대화 내용은 제외하세요.
+
+    const content = aiText
+        ? `사용자: ${userText}\nAI: ${aiText}`
+        : `대화 요약: ${userText}`;
+
+    const prompt = `다음 내용에서 사용자에 대한 장기 기억으로 저장할 중요한 사실을 추출하세요.
+직업, 취미, 선호도, 목표, 가족, 거주지, 기술 스택 등 개인 정보만 추출하세요.
+일반적인 대화 내용이나 질문은 제외하세요.
 각 항목을 JSON 배열로 반환하세요. 추출할 내용이 없으면 빈 배열 []을 반환하세요.
 
-사용자: ${userText}
-AI: ${aiText}
+${content}
 
 반환 형식: ["사실1", "사실2"]`;
 
