@@ -88,7 +88,7 @@ export const MainPage: React.FC<MainPageProps> = ({
                         </div>
                     ) : (
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {personas.map((persona) => (
+                            {personas.filter(p => p.isVisible !== false).map((persona) => (
                                 <button
                                     key={persona.id}
                                     onClick={() => onSelectPersona(persona.id)}

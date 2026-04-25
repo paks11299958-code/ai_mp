@@ -14,11 +14,21 @@ export interface Persona {
     description: string;
     iconName: string;
     systemInstruction: string;
+    identityPrompt?: string;
     colorClass: string;
     order?: number;
     imageUrl?: string;
     isDefault?: boolean;
     isVisible?: boolean;
+}
+
+export interface UserMemory {
+    id: number;
+    userId: number;
+    content: string;
+    category?: string;
+    similarity?: number;
+    createdAt: string;
 }
 
 export interface PersonaImage {

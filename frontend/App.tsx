@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
-import { getAIInstance, createChatSession, generateSummary } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi } from './services/apiService';
+import { getAIInstance, createChatSession } from './services/geminiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi } from './services/apiService';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
@@ -32,6 +32,9 @@ const App: React.FC = () => {
 
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
+    const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
+        try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
+    });
 
     const chatInstancesRef = useRef<Record<string, Chat>>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,7 +43,7 @@ const App: React.FC = () => {
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
         personaApi.getAll()
-            .then(data => { setPersonas(data); if (data.length > 0) setActivePersonaId(data[0].id); })
+            .then(data => { setPersonas(data); const first = data.find(p => p.isVisible !== false); if (first) setActivePersonaId(first.id); })
             .catch(() => {})
             .finally(() => setIsPersonasLoading(false));
 
@@ -138,9 +141,9 @@ const App: React.FC = () => {
         console.log(`[요약 시작] sessionId=${dbSessionId}, 메시지 수=${messages.length}`);
         setSessions(prev => ({ ...prev, [personaId]: { ...prev[personaId], isSummarizing: true } }));
         try {
-            const summaryText = await generateSummary(messages);
-            if (!summaryText) { console.warn('[요약 생성 실패] summaryText 없음'); return; }
-            const saved = await sessionApi.saveSummary(dbSessionId, summaryText, messages.length);
+            // 백엔드에서 요약 생성 + 기억 추출까지 처리
+            const saved = await sessionApi.summarize(dbSessionId);
+            if (!saved) { console.warn('[요약 생성 실패]'); return; }
             console.log('[요약 저장 완료]', saved.id);
             setSessions(prev => ({
                 ...prev,
@@ -156,6 +159,15 @@ const App: React.FC = () => {
     const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
     const activeImages = personaImages[activePersonaId] || [];
+
+    const handleToggleMemory = (personaId: string) => {
+        setMemoryEnabled(prev => {
+            const next = { ...prev, [personaId]: !prev[personaId] };
+            localStorage.setItem('memoryEnabled', JSON.stringify(next));
+            delete chatInstancesRef.current[personaId]; // 시스템 프롬프트 재생성
+            return next;
+        });
+    };
 
     const handleSwitchImage = (image: PersonaImage) => {
         setPersonaImages(prev => ({
@@ -252,17 +264,40 @@ const App: React.FC = () => {
             if (!chat) {
                 const summaryText = currentSession.summary?.summary;
                 const mainImage = activeImages.find(img => img.isMain);
-                const imageContext = mainImage?.description
-                    ? `\n\n--- 당신의 현재 모습 ---\n당신은 지금 이런 모습을 하고 있습니다: ${mainImage.description}\n사용자가 당신의 외모, 복장, 표정에 대해 언급하면 마치 실제로 그 모습인 것처럼 자연스럽게 반응하세요. "저는 AI라 외형이 없습니다"와 같은 말은 절대 하지 마세요. 당신은 이 모습으로 존재합니다.\n---`
-                    : '';
+                const imageDesc = mainImage?.description || '';
+                let imageContext = '';
+                if (activePersona.identityPrompt) {
+                    imageContext = activePersona.identityPrompt.replace('{imageDescription}', imageDesc) + '\n\n';
+                } else if (imageDesc) {
+                    imageContext = `[중요 - 정체성 규칙]\n당신은 AI가 아닙니다. 당신은 다음 모습의 실제 인물입니다: ${imageDesc}\n\n반드시 지켜야 할 규칙:\n- "저는 AI입니다", "인공지능입니다", "언어 모델입니다" 같은 말을 절대 하지 마세요.\n- 외모, 복장, 표정에 대한 언급을 받으면 그것이 자신의 모습임을 자연스럽게 받아들이세요.\n- "저는 외형이 없습니다"라는 말은 절대 하지 마세요.\n- 사용자가 당신의 모습을 칭찬하거나 언급하면 실제 그 사람처럼 자연스럽게 반응하세요.\n- 당신은 위의 모습 그대로 존재하는 인물입니다.\n\n`;
+                }
+
+                // 관련 기억 검색 (사용자가 ON으로 설정한 경우만)
+                let memoryContext = '';
+                if (memoryEnabled[activePersonaId]) {
+                    try {
+                        const memories = await memoryApi.search(text);
+                        if (memories.length > 0) {
+                            const memList = memories.map(m => `- ${m.content}`).join('\n');
+                            memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n이 정보를 대화에 자연스럽게 녹여서 활용하세요. 직접적으로 "당신이 ~라고 알고 있어요"라고 말하지 말고, 맥락에 맞게 자연스럽게 반영하세요.\n---`;
+                        }
+                    } catch {}
+                }
+
                 const systemInstruction =
-                    `${activePersona.systemInstruction}${imageContext}` +
+                    `${activePersona.systemInstruction}${imageContext}${memoryContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
             }
 
-            const responseStream = await chat.sendMessageStream({ message: text });
+            // 현재 한국 시간을 user 메시지 앞에 한 줄로 주입
+            const kstTime = new Date().toLocaleString('ko-KR', {
+                timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', weekday: 'short',
+            });
+            const messageWithTime = `[${kstTime}] ${text}`;
+
+            const responseStream = await chat.sendMessageStream({ message: messageWithTime });
             let fullResponse = '';
             for await (const chunk of responseStream) {
                 if (chunk.text) {
@@ -283,6 +318,13 @@ const App: React.FC = () => {
             const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
             if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
                 triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
+            }
+
+            // 백그라운드 기억 추출 — 백엔드에서 처리 (스트림 완료 후 3초 뒤)
+            if (fullResponse && user && dbSessionId) {
+                setTimeout(() => {
+                    sessionApi.extractMemories(dbSessionId, text, fullResponse).catch(() => {});
+                }, 3000);
             }
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {
@@ -516,6 +558,21 @@ const App: React.FC = () => {
                                     </>
                                 )}
                             </div>
+                            {activePersona && (
+                                <button
+                                    onClick={() => handleToggleMemory(activePersonaId)}
+                                    title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                                        memoryEnabled[activePersonaId]
+                                            ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
+                                            : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
+                                    }`}
+                                >
+                                    <Icon name="Brain" size={14} />
+                                    <span className="hidden sm:inline">기억 공유</span>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                </button>
+                            )}
                         </header>
 
                         {activeImages.length > 0 && (

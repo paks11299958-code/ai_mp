@@ -4,6 +4,8 @@ import crypto from 'crypto';
 import { prisma } from './_lib/prisma.js';
 import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verifyToken } from './_lib/auth.js';
 import { sendEmail } from './_lib/email.js';
+import { generateEmbedding } from './_lib/embedding.js';
+import { extractMemories, generateSummary } from './_lib/gemini.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const domain = req.query.d as string;
@@ -384,6 +386,69 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
+        // POST /api/sessions/:id/extract-memories
+        if (sessionId && seg2 === 'extract-memories' && req.method === 'POST') {
+            try {
+                if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
+                const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+                if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const { userText, aiText } = req.body;
+                if (!userText) return res.status(400).json({ error: 'userText는 필수입니다.' });
+                const memories = await extractMemories(userText, aiText || '');
+                let saved = 0;
+                for (const content of memories) {
+                    const embedding = await generateEmbedding(content);
+                    const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+                    await prisma.$queryRawUnsafe(
+                        `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+                         VALUES ($1, $2, $3::vector, $4, NOW())`,
+                        userId, content, vectorStr, null
+                    );
+                    saved++;
+                }
+                return res.status(200).json({ saved });
+            } catch (e: any) {
+                console.error('[extract-memories]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/sessions/:id/summarize
+        if (sessionId && seg2 === 'summarize' && req.method === 'POST') {
+            try {
+                if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
+                const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
+                if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const messages = await prisma.message.findMany({
+                    where: { sessionId },
+                    orderBy: { createdAt: 'asc' },
+                    take: 30,
+                });
+                const summaryText = await generateSummary(messages.map(m => ({ role: m.role, text: m.text })));
+                if (!summaryText) return res.status(200).json({ summary: null });
+                const saved = await prisma.conversationSummary.upsert({
+                    where: { sessionId },
+                    update: { summary: summaryText, messageCount: messages.length, updatedAt: new Date() },
+                    create: { sessionId, summary: summaryText, messageCount: messages.length },
+                });
+                // 요약에서 기억 추출
+                const memories = await extractMemories(summaryText, '');
+                for (const content of memories) {
+                    const embedding = await generateEmbedding(content);
+                    const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+                    await prisma.$queryRawUnsafe(
+                        `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+                         VALUES ($1, $2, $3::vector, $4, NOW())`,
+                        userId, content, vectorStr, '요약추출'
+                    );
+                }
+                return res.status(200).json(saved);
+            } catch (e: any) {
+                console.error('[summarize]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
         // POST /api/sessions/:id/messages
         if (sessionId && seg2 === 'messages' && req.method === 'POST') {
             try {
@@ -397,6 +462,92 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(201).json(message);
             } catch (e: any) {
                 console.error('[messages POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+    }
+
+    // ── Memory ────────────────────────────────────────────────
+    if (domain === 'memory') {
+        const token = getTokenFromRequest(req);
+        if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
+        let userId: number;
+        try {
+            ({ userId } = verifyToken(token));
+        } catch {
+            return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+        }
+
+        // POST /api/memory — 기억 저장 (임베딩 생성 후 저장)
+        if (req.method === 'POST' && !seg1) {
+            try {
+                const { content, category } = req.body;
+                if (!content) return res.status(400).json({ error: 'content는 필수입니다.' });
+                const embedding = await generateEmbedding(content);
+                const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+                const result = await prisma.$queryRawUnsafe<any[]>(
+                    `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+                     VALUES ($1, $2, $3::vector, $4, NOW())
+                     RETURNING "id", "userId", "content", "category", "createdAt"`,
+                    userId, content, vectorStr, category || null
+                );
+                return res.status(201).json(result[0]);
+            } catch (e: any) {
+                console.error('[memory POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // GET /api/memory — 전체 기억 조회
+        if (req.method === 'GET' && !seg1) {
+            try {
+                const memories = await prisma.$queryRawUnsafe<any[]>(
+                    `SELECT "id", "userId", "content", "category", "createdAt"
+                     FROM "UserMemory" WHERE "userId" = $1
+                     ORDER BY "createdAt" DESC LIMIT 50`,
+                    userId
+                );
+                return res.status(200).json(memories);
+            } catch (e: any) {
+                console.error('[memory GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/memory/search — 유사도 검색
+        if (req.method === 'POST' && seg1 === 'search') {
+            try {
+                const { query } = req.body;
+                if (!query) return res.status(400).json({ error: 'query는 필수입니다.' });
+                const embedding = await generateEmbedding(query);
+                if (!embedding) return res.status(200).json([]);
+                const vectorStr = `[${embedding.join(',')}]`;
+                const memories = await prisma.$queryRawUnsafe<any[]>(
+                    `SELECT "id", "content", "category",
+                            1 - ("embedding" <=> $2::vector) AS similarity
+                     FROM "UserMemory"
+                     WHERE "userId" = $1 AND "embedding" IS NOT NULL
+                     ORDER BY "embedding" <=> $2::vector
+                     LIMIT 5`,
+                    userId, vectorStr
+                );
+                return res.status(200).json(memories);
+            } catch (e: any) {
+                console.error('[memory search]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // DELETE /api/memory/:id
+        if (req.method === 'DELETE' && seg1) {
+            try {
+                await prisma.$queryRawUnsafe(
+                    `DELETE FROM "UserMemory" WHERE "id" = $1 AND "userId" = $2`,
+                    Number(seg1), userId
+                );
+                return res.status(200).json({ message: '삭제 완료' });
+            } catch (e: any) {
+                console.error('[memory DELETE]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }

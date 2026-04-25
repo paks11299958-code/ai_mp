@@ -468,6 +468,204 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
   }
 });
 
+// ── Background Tasks (Gemini 호출 — 백엔드 처리) ──────────────
+async function callGeminiText(prompt) {
+  try {
+    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    if (!credsJson) return null;
+    const creds = JSON.parse(credsJson);
+    const { GoogleGenAI } = require('@google/genai');
+    const ai = new GoogleGenAI({
+      vertexai: true,
+      project: creds.project_id,
+      location: 'us-central1',
+      googleAuthOptions: { credentials: creds },
+    });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    });
+    return response.text?.trim() || null;
+  } catch (e) {
+    console.error('[callGeminiText]', e.message);
+    return null;
+  }
+}
+
+async function extractMemoriesLocal(userText, aiText) {
+  const content = aiText ? `사용자: ${userText}\nAI: ${aiText}` : `대화 요약: ${userText}`;
+  const prompt = `다음 대화에서 "사용자(인간)"에 대한 장기 기억으로 저장할 중요한 사실을 추출하세요.
+[추출 대상] 사용자의 직업, 취미, 선호도, 목표, 가족, 거주지, 기술 스택 등 개인 정보
+[절대 추출 금지] AI 발화 내용, AI 페르소나 이름/직업, 일반 대화, 추측성 정보
+반드시 "사용자:"가 직접 말한 내용만 추출하세요.
+${content}
+JSON 배열로 반환. 없으면 []. 형식: ["사실1", "사실2"]`;
+  const text = await callGeminiText(prompt);
+  if (!text) return [];
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+  try { return JSON.parse(match[0]); } catch { return []; }
+}
+
+app.post('/api/sessions/:id/extract-memories', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const sessionId = Number(req.params.id);
+    const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId: payload.userId } });
+    if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+    const { userText, aiText } = req.body;
+    if (!userText) return res.status(400).json({ error: 'userText는 필수입니다.' });
+    const memories = await extractMemoriesLocal(userText, aiText || '');
+    let saved = 0;
+    for (const content of memories) {
+      const embedding = await getEmbedding(content);
+      const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+      await prisma.$queryRawUnsafe(
+        `INSERT INTO "UserMemory" ("userId","content","embedding","category","createdAt") VALUES ($1,$2,$3::vector,$4,NOW())`,
+        payload.userId, content, vectorStr, null
+      );
+      saved++;
+    }
+    return res.json({ saved });
+  } catch (e) {
+    console.error('[extract-memories]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/sessions/:id/summarize', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const sessionId = Number(req.params.id);
+    const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId: payload.userId } });
+    if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+    const messages = await prisma.message.findMany({ where: { sessionId }, orderBy: { createdAt: 'asc' }, take: 30 });
+    if (messages.length < 2) return res.json({ summary: null });
+    const conversation = messages.map(m => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.text}`).join('\n');
+    const prompt = `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
+    const summaryText = await callGeminiText(prompt);
+    if (!summaryText) return res.json({ summary: null });
+    const saved = await prisma.conversationSummary.upsert({
+      where: { sessionId },
+      update: { summary: summaryText, messageCount: messages.length, updatedAt: new Date() },
+      create: { sessionId, summary: summaryText, messageCount: messages.length },
+    });
+    // 요약에서 기억 추출
+    const memories = await extractMemoriesLocal(summaryText, '');
+    for (const content of memories) {
+      const embedding = await getEmbedding(content);
+      const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+      await prisma.$queryRawUnsafe(
+        `INSERT INTO "UserMemory" ("userId","content","embedding","category","createdAt") VALUES ($1,$2,$3::vector,$4,NOW())`,
+        payload.userId, content, vectorStr, '요약추출'
+      );
+    }
+    return res.json(saved);
+  } catch (e) {
+    console.error('[summarize]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// ── Memory ────────────────────────────────────────────────────
+async function getEmbedding(text) {
+  try {
+    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    if (!credsJson) return null;
+    const creds = JSON.parse(credsJson);
+    const { GoogleGenAI } = require('@google/genai');
+    const ai = new GoogleGenAI({
+      vertexai: true,
+      project: creds.project_id,
+      location: 'us-central1',
+      googleAuthOptions: { credentials: creds },
+    });
+    const response = await ai.models.embedContent({ model: 'text-embedding-004', contents: text });
+    return response.embeddings?.[0]?.values ?? null;
+  } catch (e) {
+    console.error('[embedding]', e.message);
+    return null;
+  }
+}
+
+app.post('/api/memory', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const { content, category } = req.body;
+    if (!content) return res.status(400).json({ error: 'content는 필수입니다.' });
+    const embedding = await getEmbedding(content);
+    const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+    const result = await prisma.$queryRawUnsafe(
+      `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+       VALUES ($1, $2, $3::vector, $4, NOW())
+       RETURNING "id", "userId", "content", "category", "createdAt"`,
+      payload.userId, content, vectorStr, category || null
+    );
+    return res.status(201).json(result[0]);
+  } catch (e) {
+    console.error('[memory POST]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.get('/api/memory', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const memories = await prisma.$queryRawUnsafe(
+      `SELECT "id", "userId", "content", "category", "createdAt"
+       FROM "UserMemory" WHERE "userId" = $1
+       ORDER BY "createdAt" DESC LIMIT 50`,
+      payload.userId
+    );
+    return res.json(memories);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/memory/search', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const { query } = req.body;
+    if (!query) return res.status(400).json({ error: 'query는 필수입니다.' });
+    const embedding = await getEmbedding(query);
+    if (!embedding) return res.json([]);
+    const vectorStr = `[${embedding.join(',')}]`;
+    const memories = await prisma.$queryRawUnsafe(
+      `SELECT "id", "content", "category",
+              1 - ("embedding" <=> $2::vector) AS similarity
+       FROM "UserMemory"
+       WHERE "userId" = $1 AND "embedding" IS NOT NULL
+       ORDER BY "embedding" <=> $2::vector
+       LIMIT 5`,
+      payload.userId, vectorStr
+    );
+    return res.json(memories);
+  } catch (e) {
+    console.error('[memory search]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.delete('/api/memory/:id', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    await prisma.$queryRawUnsafe(
+      `DELETE FROM "UserMemory" WHERE "id" = $1 AND "userId" = $2`,
+      Number(req.params.id), payload.userId
+    );
+    return res.json({ message: '삭제 완료' });
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // ── AI Proxy ──────────────────────────────────────────────────
 app.post('/api-proxy', async (req, res) => {
   try {
