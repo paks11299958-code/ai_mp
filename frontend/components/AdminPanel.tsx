@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Persona, PersonaImage } from '../types';
-import { personaImageApi } from '../services/apiService';
+import { Persona, PersonaImage, PersonaVideo } from '../types';
+import { personaImageApi, personaVideoApi } from '../services/apiService';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 
@@ -9,6 +9,7 @@ interface AdminPanelProps {
     onSave: (persona: Persona) => Promise<void>;
     onDelete: (id: string) => void;
     onClose: () => void;
+    onImagesChanged?: (personaId: string) => void;
 }
 
 const AVAILABLE_ICONS = ['Bot', 'Code2', 'PenTool', 'Languages', 'Send', 'Settings'];
@@ -24,7 +25,7 @@ const AVAILABLE_COLORS = [
 // 기본 제공되는 AI는 삭제하지 못하도록 보호
 const DEFAULT_IDS = ['general', 'coder', 'writer', 'translator'];
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     
     // Form states
@@ -45,6 +46,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [imageDesc, setImageDesc] = useState('');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+
+    // 동영상 상태
+    const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
+    const [videos, setVideos] = useState<PersonaVideo[]>([]);
+    const [videoUrl, setVideoUrl] = useState('');
+    const [videoTitle, setVideoTitle] = useState('');
+    const [isAddingVideo, setIsAddingVideo] = useState(false);
+    const videoFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (selectedId === 'new') {
@@ -79,30 +88,41 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         const file = e.target.files?.[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) { alert('5MB 이하 이미지만 업로드 가능합니다.'); return; }
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            setIsUploadingImage(true);
-            try {
-                const base64 = reader.result as string;
-                // 설명이 없으면 AI가 자동 생성
-                let desc = imageDesc.trim();
-                if (!desc) {
-                    setImageDesc('설명 생성 중...');
-                    desc = await generateImageDescription(base64) || '';
-                    setImageDesc(desc);
-                }
-                const isFirst = images.length === 0;
-                const newImage = await personaImageApi.create(selectedId, base64, desc, isFirst);
-                setImages(prev => isFirst ? [{ ...newImage, isMain: true }, ...prev] : [...prev, newImage]);
-                setImageDesc('');
-                if (galleryInputRef.current) galleryInputRef.current.value = '';
-            } catch (e: any) {
-                alert('이미지 업로드 실패: ' + e.message);
-            } finally {
-                setIsUploadingImage(false);
+        setIsUploadingImage(true);
+        try {
+            // AI 설명 생성 (base64 미리보기용으로만 사용)
+            let desc = imageDesc.trim();
+            if (!desc) {
+                const reader = new FileReader();
+                const base64 = await new Promise<string>(resolve => {
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(file);
+                });
+                setImageDesc('설명 생성 중...');
+                desc = await generateImageDescription(base64) || '';
+                setImageDesc(desc);
             }
-        };
-        reader.readAsDataURL(file);
+
+            // Signed URL 발급 → GCS 직접 업로드
+            const { signedUrl, publicUrl } = await personaImageApi.getSignedUrl(selectedId, file.type, file.name);
+            await fetch(signedUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+
+            // DB에 URL 저장
+            const isFirst = images.length === 0;
+            const newImage = await personaImageApi.create(selectedId, publicUrl, desc, isFirst);
+            setImages(prev => isFirst ? [{ ...newImage, isMain: true }, ...prev] : [...prev, newImage]);
+            setImageDesc('');
+            if (galleryInputRef.current) galleryInputRef.current.value = '';
+            onImagesChanged?.(selectedId);
+        } catch (e: any) {
+            alert('이미지 업로드 실패: ' + e.message);
+        } finally {
+            setIsUploadingImage(false);
+        }
     };
 
     const handleSetMain = async (imageId: number) => {
@@ -125,8 +145,81 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 }
                 return filtered;
             });
+            onImagesChanged?.(selectedId);
         } catch (e: any) {
             alert('이미지 삭제 실패: ' + e.message);
+        }
+    };
+
+    const handleSelectImage = async (imageId: number) => {
+        if (selectedImageId === imageId) {
+            setSelectedImageId(null);
+            setVideos([]);
+            return;
+        }
+        setSelectedImageId(imageId);
+        try {
+            const data = await personaVideoApi.getAll(imageId);
+            setVideos(data);
+        } catch {
+            setVideos([]);
+        }
+    };
+
+    const handleAddVideo = async () => {
+        if (!selectedImageId || !videoUrl.trim()) return;
+        setIsAddingVideo(true);
+        try {
+            const video = await personaVideoApi.create(selectedImageId, { videoUrl: videoUrl.trim(), title: videoTitle.trim() || undefined });
+            setVideos(prev => [...prev, video]);
+            setVideoUrl('');
+            setVideoTitle('');
+            onImagesChanged?.(selectedId);
+        } catch (e: any) {
+            alert('동영상 추가 실패: ' + e.message);
+        } finally {
+            setIsAddingVideo(false);
+        }
+    };
+
+    const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !selectedImageId) return;
+        if (file.size > 20 * 1024 * 1024) { alert('20MB 이하 동영상만 업로드 가능합니다.'); return; }
+        setIsAddingVideo(true);
+        try {
+            // Signed URL 발급 → GCS 직접 업로드
+            const { signedUrl, publicUrl } = await personaVideoApi.getSignedUrl(file.type, file.name);
+            await fetch(signedUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+
+            // DB에 URL 저장
+            const video = await personaVideoApi.create(selectedImageId, {
+                videoUrl: publicUrl,
+                title: videoTitle.trim() || file.name,
+            });
+            setVideos(prev => [...prev, video]);
+            setVideoTitle('');
+            if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+            onImagesChanged?.(selectedId);
+        } catch (e: any) {
+            alert('동영상 업로드 실패: ' + e.message);
+        } finally {
+            setIsAddingVideo(false);
+        }
+    };
+
+    const handleDeleteVideo = async (videoId: number) => {
+        if (!window.confirm('동영상을 삭제하시겠습니까?')) return;
+        try {
+            await personaVideoApi.delete(videoId);
+            setVideos(prev => prev.filter(v => v.id !== videoId));
+            onImagesChanged?.(selectedId);
+        } catch (e: any) {
+            alert('동영상 삭제 실패: ' + e.message);
         }
     };
 
@@ -395,7 +488,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                 AI 이미지 갤러리
                             </label>
                             <p className="text-xs text-gray-500 mb-3">
-                                여러 이미지를 등록하고, 별표(★)를 눌러 대표 이미지를 설정하세요. 이미지 설명은 AI에게 전달됩니다.
+                                이미지를 클릭하면 연결된 동영상을 관리할 수 있습니다. 별표(★)로 대표 이미지를 설정하세요.
                             </p>
 
                             {/* 업로드 폼 */}
@@ -418,42 +511,122 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                 <input type="file" accept="image/*" className="hidden" ref={galleryInputRef} onChange={handleGalleryUpload} />
                             </div>
 
-                            {/* 이미지 목록 */}
-                            {images.length > 0 ? (
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                    {images.map(img => (
-                                        <div key={img.id} className={`relative group rounded-xl overflow-hidden border-2 ${img.isMain ? 'border-yellow-400' : 'border-gray-700'}`}>
-                                            <img src={img.imageUrl} alt={img.description || ''} className="w-full aspect-square object-cover" />
-                                            {img.isMain && (
-                                                <span className="absolute top-1 left-1 bg-yellow-400 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">대표</span>
-                                            )}
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
-                                                {!img.isMain && (
-                                                    <button
-                                                        onClick={() => handleSetMain(img.id)}
-                                                        className="text-yellow-400 hover:text-yellow-300 text-xs font-medium bg-gray-900/80 px-2 py-1 rounded-lg"
-                                                    >
-                                                        ★ 대표 설정
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleDeleteImage(img.id)}
-                                                    className="text-red-400 hover:text-red-300 text-xs bg-gray-900/80 px-2 py-1 rounded-lg"
+                            <div className="flex gap-4">
+                                {/* 이미지 목록 */}
+                                <div className="flex-1">
+                                    {images.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {images.map(img => (
+                                                <div
+                                                    key={img.id}
+                                                    onClick={() => handleSelectImage(img.id)}
+                                                    className={`relative group rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                                                        selectedImageId === img.id
+                                                            ? 'border-blue-400 ring-2 ring-blue-400/30'
+                                                            : img.isMain ? 'border-yellow-400' : 'border-gray-700 hover:border-gray-500'
+                                                    }`}
                                                 >
-                                                    삭제
-                                                </button>
-                                            </div>
-                                            {img.description && (
-                                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[10px] text-gray-300 px-1.5 py-1 truncate">
-                                                    {img.description}
+                                                    <img src={img.imageUrl} alt={img.description || ''} className="w-full aspect-square object-cover" />
+                                                    {img.isMain && (
+                                                        <span className="absolute top-1 left-1 bg-yellow-400 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">대표</span>
+                                                    )}
+                                                    {selectedImageId === img.id && (
+                                                        <span className="absolute top-1 right-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">선택됨</span>
+                                                    )}
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                                                        {!img.isMain && (
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); handleSetMain(img.id); }}
+                                                                className="text-yellow-400 hover:text-yellow-300 text-xs font-medium bg-gray-900/80 px-2 py-1 rounded-lg"
+                                                            >
+                                                                ★ 대표 설정
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={e => { e.stopPropagation(); handleDeleteImage(img.id); }}
+                                                            className="text-red-400 hover:text-red-300 text-xs bg-gray-900/80 px-2 py-1 rounded-lg"
+                                                        >
+                                                            삭제
+                                                        </button>
+                                                    </div>
+                                                    {img.description && (
+                                                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[10px] text-gray-300 px-1.5 py-1 truncate">
+                                                            {img.description}
+                                                        </div>
+                                                    )}
                                                 </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-600 text-center py-4">등록된 이미지가 없습니다.</p>
+                                    )}
+                                </div>
+
+                                {/* 동영상 패널 */}
+                                {selectedImageId && (
+                                    <div className="w-52 shrink-0 bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex flex-col gap-2">
+                                        <p className="text-xs font-medium text-blue-400 mb-1">연결된 동영상</p>
+
+                                        {/* 동영상 추가 폼 */}
+                                        <input
+                                            type="text"
+                                            value={videoUrl}
+                                            onChange={e => setVideoUrl(e.target.value)}
+                                            placeholder="동영상 URL (mp4)"
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={videoTitle}
+                                            onChange={e => setVideoTitle(e.target.value)}
+                                            placeholder="제목 (선택)"
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                        <div className="flex gap-1">
+                                            <button
+                                                onClick={handleAddVideo}
+                                                disabled={isAddingVideo || !videoUrl.trim()}
+                                                className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs px-2 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                            >
+                                                <Icon name="Plus" size={12} />
+                                                URL 추가
+                                            </button>
+                                            <button
+                                                onClick={() => videoFileInputRef.current?.click()}
+                                                disabled={isAddingVideo}
+                                                className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-white text-xs px-2 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                            >
+                                                <Icon name="Upload" size={12} />
+                                                파일 업로드
+                                            </button>
+                                            <input type="file" accept="video/*" className="hidden" ref={videoFileInputRef} onChange={handleVideoFileUpload} />
+                                        </div>
+                                        {isAddingVideo && <p className="text-[10px] text-blue-400 text-center">업로드 중...</p>}
+
+                                        {/* 동영상 목록 */}
+                                        <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto max-h-48">
+                                            {videos.length === 0 ? (
+                                                <p className="text-[11px] text-gray-600 text-center py-2">동영상 없음</p>
+                                            ) : (
+                                                videos.map(v => (
+                                                    <div key={v.id} className="flex items-center gap-1.5 bg-gray-800 rounded-lg px-2 py-1.5 group">
+                                                        <Icon name="Play" size={12} className="text-blue-400 shrink-0" />
+                                                        <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
+                                                            {v.title || v.videoUrl.split('/').pop()}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleDeleteVideo(v.id)}
+                                                            className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                                                        >
+                                                            <Icon name="X" size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))
                                             )}
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-xs text-gray-600 text-center py-4">등록된 이미지가 없습니다.</p>
-                            )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         )}
 

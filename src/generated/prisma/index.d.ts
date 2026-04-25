@@ -34,6 +34,11 @@ export type Persona = $Result.DefaultSelection<Prisma.$PersonaPayload>
  */
 export type PersonaImage = $Result.DefaultSelection<Prisma.$PersonaImagePayload>
 /**
+ * Model PersonaVideo
+ * 
+ */
+export type PersonaVideo = $Result.DefaultSelection<Prisma.$PersonaVideoPayload>
+/**
  * Model ChatSession
  * 
  */
@@ -209,6 +214,16 @@ export class PrismaClient<
     * ```
     */
   get personaImage(): Prisma.PersonaImageDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.personaVideo`: Exposes CRUD operations for the **PersonaVideo** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PersonaVideos
+    * const personaVideos = await prisma.personaVideo.findMany()
+    * ```
+    */
+  get personaVideo(): Prisma.PersonaVideoDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.chatSession`: Exposes CRUD operations for the **ChatSession** model.
@@ -677,6 +692,7 @@ export namespace Prisma {
     UserMemory: 'UserMemory',
     Persona: 'Persona',
     PersonaImage: 'PersonaImage',
+    PersonaVideo: 'PersonaVideo',
     ChatSession: 'ChatSession',
     Message: 'Message',
     ConversationSummary: 'ConversationSummary'
@@ -695,7 +711,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userMemory" | "persona" | "personaImage" | "chatSession" | "message" | "conversationSummary"
+      modelProps: "user" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -992,6 +1008,80 @@ export namespace Prisma {
           count: {
             args: Prisma.PersonaImageCountArgs<ExtArgs>
             result: $Utils.Optional<PersonaImageCountAggregateOutputType> | number
+          }
+        }
+      }
+      PersonaVideo: {
+        payload: Prisma.$PersonaVideoPayload<ExtArgs>
+        fields: Prisma.PersonaVideoFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PersonaVideoFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PersonaVideoFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>
+          }
+          findFirst: {
+            args: Prisma.PersonaVideoFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PersonaVideoFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>
+          }
+          findMany: {
+            args: Prisma.PersonaVideoFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>[]
+          }
+          create: {
+            args: Prisma.PersonaVideoCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>
+          }
+          createMany: {
+            args: Prisma.PersonaVideoCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PersonaVideoCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>[]
+          }
+          delete: {
+            args: Prisma.PersonaVideoDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>
+          }
+          update: {
+            args: Prisma.PersonaVideoUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>
+          }
+          deleteMany: {
+            args: Prisma.PersonaVideoDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PersonaVideoUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PersonaVideoUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>[]
+          }
+          upsert: {
+            args: Prisma.PersonaVideoUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaVideoPayload>
+          }
+          aggregate: {
+            args: Prisma.PersonaVideoAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePersonaVideo>
+          }
+          groupBy: {
+            args: Prisma.PersonaVideoGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PersonaVideoGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PersonaVideoCountArgs<ExtArgs>
+            result: $Utils.Optional<PersonaVideoCountAggregateOutputType> | number
           }
         }
       }
@@ -1329,6 +1419,7 @@ export namespace Prisma {
     userMemory?: UserMemoryOmit
     persona?: PersonaOmit
     personaImage?: PersonaImageOmit
+    personaVideo?: PersonaVideoOmit
     chatSession?: ChatSessionOmit
     message?: MessageOmit
     conversationSummary?: ConversationSummaryOmit
@@ -1493,6 +1584,37 @@ export namespace Prisma {
    */
   export type PersonaCountOutputTypeCountImagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PersonaImageWhereInput
+  }
+
+
+  /**
+   * Count Type PersonaImageCountOutputType
+   */
+
+  export type PersonaImageCountOutputType = {
+    videos: number
+  }
+
+  export type PersonaImageCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    videos?: boolean | PersonaImageCountOutputTypeCountVideosArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PersonaImageCountOutputType without action
+   */
+  export type PersonaImageCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaImageCountOutputType
+     */
+    select?: PersonaImageCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PersonaImageCountOutputType without action
+   */
+  export type PersonaImageCountOutputTypeCountVideosArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PersonaVideoWhereInput
   }
 
 
@@ -3863,6 +3985,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     systemInstruction: string | null
+    identityPrompt: string | null
     iconName: string | null
     colorClass: string | null
     order: number | null
@@ -3878,6 +4001,7 @@ export namespace Prisma {
     name: string | null
     description: string | null
     systemInstruction: string | null
+    identityPrompt: string | null
     iconName: string | null
     colorClass: string | null
     order: number | null
@@ -3893,6 +4017,7 @@ export namespace Prisma {
     name: number
     description: number
     systemInstruction: number
+    identityPrompt: number
     iconName: number
     colorClass: number
     order: number
@@ -3920,6 +4045,7 @@ export namespace Prisma {
     name?: true
     description?: true
     systemInstruction?: true
+    identityPrompt?: true
     iconName?: true
     colorClass?: true
     order?: true
@@ -3935,6 +4061,7 @@ export namespace Prisma {
     name?: true
     description?: true
     systemInstruction?: true
+    identityPrompt?: true
     iconName?: true
     colorClass?: true
     order?: true
@@ -3950,6 +4077,7 @@ export namespace Prisma {
     name?: true
     description?: true
     systemInstruction?: true
+    identityPrompt?: true
     iconName?: true
     colorClass?: true
     order?: true
@@ -4052,6 +4180,7 @@ export namespace Prisma {
     name: string
     description: string | null
     systemInstruction: string
+    identityPrompt: string | null
     iconName: string
     colorClass: string
     order: number
@@ -4086,6 +4215,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     systemInstruction?: boolean
+    identityPrompt?: boolean
     iconName?: boolean
     colorClass?: boolean
     order?: boolean
@@ -4105,6 +4235,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     systemInstruction?: boolean
+    identityPrompt?: boolean
     iconName?: boolean
     colorClass?: boolean
     order?: boolean
@@ -4121,6 +4252,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     systemInstruction?: boolean
+    identityPrompt?: boolean
     iconName?: boolean
     colorClass?: boolean
     order?: boolean
@@ -4137,6 +4269,7 @@ export namespace Prisma {
     name?: boolean
     description?: boolean
     systemInstruction?: boolean
+    identityPrompt?: boolean
     iconName?: boolean
     colorClass?: boolean
     order?: boolean
@@ -4147,7 +4280,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "systemInstruction" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
+  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
@@ -4173,6 +4306,7 @@ export namespace Prisma {
       name: string
       description: string | null
       systemInstruction: string
+      identityPrompt: string | null
       iconName: string
       colorClass: string
       order: number
@@ -4611,6 +4745,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Persona", 'String'>
     readonly description: FieldRef<"Persona", 'String'>
     readonly systemInstruction: FieldRef<"Persona", 'String'>
+    readonly identityPrompt: FieldRef<"Persona", 'String'>
     readonly iconName: FieldRef<"Persona", 'String'>
     readonly colorClass: FieldRef<"Persona", 'String'>
     readonly order: FieldRef<"Persona", 'Int'>
@@ -5324,6 +5459,8 @@ export namespace Prisma {
     order?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
+    videos?: boolean | PersonaImage$videosArgs<ExtArgs>
+    _count?: boolean | PersonaImageCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaImage"]>
 
   export type PersonaImageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -5361,6 +5498,8 @@ export namespace Prisma {
   export type PersonaImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "imageUrl" | "description" | "isMain" | "order" | "createdAt", ExtArgs["result"]["personaImage"]>
   export type PersonaImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
+    videos?: boolean | PersonaImage$videosArgs<ExtArgs>
+    _count?: boolean | PersonaImageCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PersonaImageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
@@ -5373,6 +5512,7 @@ export namespace Prisma {
     name: "PersonaImage"
     objects: {
       persona: Prisma.$PersonaPayload<ExtArgs>
+      videos: Prisma.$PersonaVideoPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -5777,6 +5917,7 @@ export namespace Prisma {
   export interface Prisma__PersonaImageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     persona<T extends PersonaDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PersonaDefaultArgs<ExtArgs>>): Prisma__PersonaClient<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    videos<T extends PersonaImage$videosArgs<ExtArgs> = {}>(args?: Subset<T, PersonaImage$videosArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6214,6 +6355,30 @@ export namespace Prisma {
   }
 
   /**
+   * PersonaImage.videos
+   */
+  export type PersonaImage$videosArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    where?: PersonaVideoWhereInput
+    orderBy?: PersonaVideoOrderByWithRelationInput | PersonaVideoOrderByWithRelationInput[]
+    cursor?: PersonaVideoWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PersonaVideoScalarFieldEnum | PersonaVideoScalarFieldEnum[]
+  }
+
+  /**
    * PersonaImage without action
    */
   export type PersonaImageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6229,6 +6394,1124 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PersonaImageInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PersonaVideo
+   */
+
+  export type AggregatePersonaVideo = {
+    _count: PersonaVideoCountAggregateOutputType | null
+    _avg: PersonaVideoAvgAggregateOutputType | null
+    _sum: PersonaVideoSumAggregateOutputType | null
+    _min: PersonaVideoMinAggregateOutputType | null
+    _max: PersonaVideoMaxAggregateOutputType | null
+  }
+
+  export type PersonaVideoAvgAggregateOutputType = {
+    id: number | null
+    imageId: number | null
+    order: number | null
+  }
+
+  export type PersonaVideoSumAggregateOutputType = {
+    id: number | null
+    imageId: number | null
+    order: number | null
+  }
+
+  export type PersonaVideoMinAggregateOutputType = {
+    id: number | null
+    imageId: number | null
+    videoUrl: string | null
+    title: string | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type PersonaVideoMaxAggregateOutputType = {
+    id: number | null
+    imageId: number | null
+    videoUrl: string | null
+    title: string | null
+    order: number | null
+    createdAt: Date | null
+  }
+
+  export type PersonaVideoCountAggregateOutputType = {
+    id: number
+    imageId: number
+    videoUrl: number
+    title: number
+    order: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PersonaVideoAvgAggregateInputType = {
+    id?: true
+    imageId?: true
+    order?: true
+  }
+
+  export type PersonaVideoSumAggregateInputType = {
+    id?: true
+    imageId?: true
+    order?: true
+  }
+
+  export type PersonaVideoMinAggregateInputType = {
+    id?: true
+    imageId?: true
+    videoUrl?: true
+    title?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type PersonaVideoMaxAggregateInputType = {
+    id?: true
+    imageId?: true
+    videoUrl?: true
+    title?: true
+    order?: true
+    createdAt?: true
+  }
+
+  export type PersonaVideoCountAggregateInputType = {
+    id?: true
+    imageId?: true
+    videoUrl?: true
+    title?: true
+    order?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PersonaVideoAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PersonaVideo to aggregate.
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaVideos to fetch.
+     */
+    orderBy?: PersonaVideoOrderByWithRelationInput | PersonaVideoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PersonaVideoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaVideos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaVideos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PersonaVideos
+    **/
+    _count?: true | PersonaVideoCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PersonaVideoAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PersonaVideoSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PersonaVideoMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PersonaVideoMaxAggregateInputType
+  }
+
+  export type GetPersonaVideoAggregateType<T extends PersonaVideoAggregateArgs> = {
+        [P in keyof T & keyof AggregatePersonaVideo]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePersonaVideo[P]>
+      : GetScalarType<T[P], AggregatePersonaVideo[P]>
+  }
+
+
+
+
+  export type PersonaVideoGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PersonaVideoWhereInput
+    orderBy?: PersonaVideoOrderByWithAggregationInput | PersonaVideoOrderByWithAggregationInput[]
+    by: PersonaVideoScalarFieldEnum[] | PersonaVideoScalarFieldEnum
+    having?: PersonaVideoScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PersonaVideoCountAggregateInputType | true
+    _avg?: PersonaVideoAvgAggregateInputType
+    _sum?: PersonaVideoSumAggregateInputType
+    _min?: PersonaVideoMinAggregateInputType
+    _max?: PersonaVideoMaxAggregateInputType
+  }
+
+  export type PersonaVideoGroupByOutputType = {
+    id: number
+    imageId: number
+    videoUrl: string
+    title: string | null
+    order: number
+    createdAt: Date
+    _count: PersonaVideoCountAggregateOutputType | null
+    _avg: PersonaVideoAvgAggregateOutputType | null
+    _sum: PersonaVideoSumAggregateOutputType | null
+    _min: PersonaVideoMinAggregateOutputType | null
+    _max: PersonaVideoMaxAggregateOutputType | null
+  }
+
+  type GetPersonaVideoGroupByPayload<T extends PersonaVideoGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PersonaVideoGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PersonaVideoGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PersonaVideoGroupByOutputType[P]>
+            : GetScalarType<T[P], PersonaVideoGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PersonaVideoSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    imageId?: boolean
+    videoUrl?: boolean
+    title?: boolean
+    order?: boolean
+    createdAt?: boolean
+    image?: boolean | PersonaImageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaVideo"]>
+
+  export type PersonaVideoSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    imageId?: boolean
+    videoUrl?: boolean
+    title?: boolean
+    order?: boolean
+    createdAt?: boolean
+    image?: boolean | PersonaImageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaVideo"]>
+
+  export type PersonaVideoSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    imageId?: boolean
+    videoUrl?: boolean
+    title?: boolean
+    order?: boolean
+    createdAt?: boolean
+    image?: boolean | PersonaImageDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaVideo"]>
+
+  export type PersonaVideoSelectScalar = {
+    id?: boolean
+    imageId?: boolean
+    videoUrl?: boolean
+    title?: boolean
+    order?: boolean
+    createdAt?: boolean
+  }
+
+  export type PersonaVideoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "imageId" | "videoUrl" | "title" | "order" | "createdAt", ExtArgs["result"]["personaVideo"]>
+  export type PersonaVideoInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    image?: boolean | PersonaImageDefaultArgs<ExtArgs>
+  }
+  export type PersonaVideoIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    image?: boolean | PersonaImageDefaultArgs<ExtArgs>
+  }
+  export type PersonaVideoIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    image?: boolean | PersonaImageDefaultArgs<ExtArgs>
+  }
+
+  export type $PersonaVideoPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PersonaVideo"
+    objects: {
+      image: Prisma.$PersonaImagePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      imageId: number
+      videoUrl: string
+      title: string | null
+      order: number
+      createdAt: Date
+    }, ExtArgs["result"]["personaVideo"]>
+    composites: {}
+  }
+
+  type PersonaVideoGetPayload<S extends boolean | null | undefined | PersonaVideoDefaultArgs> = $Result.GetResult<Prisma.$PersonaVideoPayload, S>
+
+  type PersonaVideoCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PersonaVideoFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PersonaVideoCountAggregateInputType | true
+    }
+
+  export interface PersonaVideoDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PersonaVideo'], meta: { name: 'PersonaVideo' } }
+    /**
+     * Find zero or one PersonaVideo that matches the filter.
+     * @param {PersonaVideoFindUniqueArgs} args - Arguments to find a PersonaVideo
+     * @example
+     * // Get one PersonaVideo
+     * const personaVideo = await prisma.personaVideo.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PersonaVideoFindUniqueArgs>(args: SelectSubset<T, PersonaVideoFindUniqueArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PersonaVideo that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PersonaVideoFindUniqueOrThrowArgs} args - Arguments to find a PersonaVideo
+     * @example
+     * // Get one PersonaVideo
+     * const personaVideo = await prisma.personaVideo.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PersonaVideoFindUniqueOrThrowArgs>(args: SelectSubset<T, PersonaVideoFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PersonaVideo that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoFindFirstArgs} args - Arguments to find a PersonaVideo
+     * @example
+     * // Get one PersonaVideo
+     * const personaVideo = await prisma.personaVideo.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PersonaVideoFindFirstArgs>(args?: SelectSubset<T, PersonaVideoFindFirstArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PersonaVideo that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoFindFirstOrThrowArgs} args - Arguments to find a PersonaVideo
+     * @example
+     * // Get one PersonaVideo
+     * const personaVideo = await prisma.personaVideo.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PersonaVideoFindFirstOrThrowArgs>(args?: SelectSubset<T, PersonaVideoFindFirstOrThrowArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PersonaVideos that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PersonaVideos
+     * const personaVideos = await prisma.personaVideo.findMany()
+     * 
+     * // Get first 10 PersonaVideos
+     * const personaVideos = await prisma.personaVideo.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const personaVideoWithIdOnly = await prisma.personaVideo.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PersonaVideoFindManyArgs>(args?: SelectSubset<T, PersonaVideoFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PersonaVideo.
+     * @param {PersonaVideoCreateArgs} args - Arguments to create a PersonaVideo.
+     * @example
+     * // Create one PersonaVideo
+     * const PersonaVideo = await prisma.personaVideo.create({
+     *   data: {
+     *     // ... data to create a PersonaVideo
+     *   }
+     * })
+     * 
+     */
+    create<T extends PersonaVideoCreateArgs>(args: SelectSubset<T, PersonaVideoCreateArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PersonaVideos.
+     * @param {PersonaVideoCreateManyArgs} args - Arguments to create many PersonaVideos.
+     * @example
+     * // Create many PersonaVideos
+     * const personaVideo = await prisma.personaVideo.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PersonaVideoCreateManyArgs>(args?: SelectSubset<T, PersonaVideoCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PersonaVideos and returns the data saved in the database.
+     * @param {PersonaVideoCreateManyAndReturnArgs} args - Arguments to create many PersonaVideos.
+     * @example
+     * // Create many PersonaVideos
+     * const personaVideo = await prisma.personaVideo.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PersonaVideos and only return the `id`
+     * const personaVideoWithIdOnly = await prisma.personaVideo.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PersonaVideoCreateManyAndReturnArgs>(args?: SelectSubset<T, PersonaVideoCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PersonaVideo.
+     * @param {PersonaVideoDeleteArgs} args - Arguments to delete one PersonaVideo.
+     * @example
+     * // Delete one PersonaVideo
+     * const PersonaVideo = await prisma.personaVideo.delete({
+     *   where: {
+     *     // ... filter to delete one PersonaVideo
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PersonaVideoDeleteArgs>(args: SelectSubset<T, PersonaVideoDeleteArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PersonaVideo.
+     * @param {PersonaVideoUpdateArgs} args - Arguments to update one PersonaVideo.
+     * @example
+     * // Update one PersonaVideo
+     * const personaVideo = await prisma.personaVideo.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PersonaVideoUpdateArgs>(args: SelectSubset<T, PersonaVideoUpdateArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PersonaVideos.
+     * @param {PersonaVideoDeleteManyArgs} args - Arguments to filter PersonaVideos to delete.
+     * @example
+     * // Delete a few PersonaVideos
+     * const { count } = await prisma.personaVideo.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PersonaVideoDeleteManyArgs>(args?: SelectSubset<T, PersonaVideoDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PersonaVideos.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PersonaVideos
+     * const personaVideo = await prisma.personaVideo.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PersonaVideoUpdateManyArgs>(args: SelectSubset<T, PersonaVideoUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PersonaVideos and returns the data updated in the database.
+     * @param {PersonaVideoUpdateManyAndReturnArgs} args - Arguments to update many PersonaVideos.
+     * @example
+     * // Update many PersonaVideos
+     * const personaVideo = await prisma.personaVideo.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PersonaVideos and only return the `id`
+     * const personaVideoWithIdOnly = await prisma.personaVideo.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PersonaVideoUpdateManyAndReturnArgs>(args: SelectSubset<T, PersonaVideoUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PersonaVideo.
+     * @param {PersonaVideoUpsertArgs} args - Arguments to update or create a PersonaVideo.
+     * @example
+     * // Update or create a PersonaVideo
+     * const personaVideo = await prisma.personaVideo.upsert({
+     *   create: {
+     *     // ... data to create a PersonaVideo
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PersonaVideo we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PersonaVideoUpsertArgs>(args: SelectSubset<T, PersonaVideoUpsertArgs<ExtArgs>>): Prisma__PersonaVideoClient<$Result.GetResult<Prisma.$PersonaVideoPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PersonaVideos.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoCountArgs} args - Arguments to filter PersonaVideos to count.
+     * @example
+     * // Count the number of PersonaVideos
+     * const count = await prisma.personaVideo.count({
+     *   where: {
+     *     // ... the filter for the PersonaVideos we want to count
+     *   }
+     * })
+    **/
+    count<T extends PersonaVideoCountArgs>(
+      args?: Subset<T, PersonaVideoCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PersonaVideoCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PersonaVideo.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PersonaVideoAggregateArgs>(args: Subset<T, PersonaVideoAggregateArgs>): Prisma.PrismaPromise<GetPersonaVideoAggregateType<T>>
+
+    /**
+     * Group by PersonaVideo.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaVideoGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PersonaVideoGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PersonaVideoGroupByArgs['orderBy'] }
+        : { orderBy?: PersonaVideoGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PersonaVideoGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPersonaVideoGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PersonaVideo model
+   */
+  readonly fields: PersonaVideoFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PersonaVideo.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PersonaVideoClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    image<T extends PersonaImageDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PersonaImageDefaultArgs<ExtArgs>>): Prisma__PersonaImageClient<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PersonaVideo model
+   */
+  interface PersonaVideoFieldRefs {
+    readonly id: FieldRef<"PersonaVideo", 'Int'>
+    readonly imageId: FieldRef<"PersonaVideo", 'Int'>
+    readonly videoUrl: FieldRef<"PersonaVideo", 'String'>
+    readonly title: FieldRef<"PersonaVideo", 'String'>
+    readonly order: FieldRef<"PersonaVideo", 'Int'>
+    readonly createdAt: FieldRef<"PersonaVideo", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PersonaVideo findUnique
+   */
+  export type PersonaVideoFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaVideo to fetch.
+     */
+    where: PersonaVideoWhereUniqueInput
+  }
+
+  /**
+   * PersonaVideo findUniqueOrThrow
+   */
+  export type PersonaVideoFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaVideo to fetch.
+     */
+    where: PersonaVideoWhereUniqueInput
+  }
+
+  /**
+   * PersonaVideo findFirst
+   */
+  export type PersonaVideoFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaVideo to fetch.
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaVideos to fetch.
+     */
+    orderBy?: PersonaVideoOrderByWithRelationInput | PersonaVideoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PersonaVideos.
+     */
+    cursor?: PersonaVideoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaVideos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaVideos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaVideos.
+     */
+    distinct?: PersonaVideoScalarFieldEnum | PersonaVideoScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaVideo findFirstOrThrow
+   */
+  export type PersonaVideoFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaVideo to fetch.
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaVideos to fetch.
+     */
+    orderBy?: PersonaVideoOrderByWithRelationInput | PersonaVideoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PersonaVideos.
+     */
+    cursor?: PersonaVideoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaVideos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaVideos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaVideos.
+     */
+    distinct?: PersonaVideoScalarFieldEnum | PersonaVideoScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaVideo findMany
+   */
+  export type PersonaVideoFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaVideos to fetch.
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaVideos to fetch.
+     */
+    orderBy?: PersonaVideoOrderByWithRelationInput | PersonaVideoOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PersonaVideos.
+     */
+    cursor?: PersonaVideoWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaVideos from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaVideos.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaVideos.
+     */
+    distinct?: PersonaVideoScalarFieldEnum | PersonaVideoScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaVideo create
+   */
+  export type PersonaVideoCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PersonaVideo.
+     */
+    data: XOR<PersonaVideoCreateInput, PersonaVideoUncheckedCreateInput>
+  }
+
+  /**
+   * PersonaVideo createMany
+   */
+  export type PersonaVideoCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PersonaVideos.
+     */
+    data: PersonaVideoCreateManyInput | PersonaVideoCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PersonaVideo createManyAndReturn
+   */
+  export type PersonaVideoCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * The data used to create many PersonaVideos.
+     */
+    data: PersonaVideoCreateManyInput | PersonaVideoCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PersonaVideo update
+   */
+  export type PersonaVideoUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PersonaVideo.
+     */
+    data: XOR<PersonaVideoUpdateInput, PersonaVideoUncheckedUpdateInput>
+    /**
+     * Choose, which PersonaVideo to update.
+     */
+    where: PersonaVideoWhereUniqueInput
+  }
+
+  /**
+   * PersonaVideo updateMany
+   */
+  export type PersonaVideoUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PersonaVideos.
+     */
+    data: XOR<PersonaVideoUpdateManyMutationInput, PersonaVideoUncheckedUpdateManyInput>
+    /**
+     * Filter which PersonaVideos to update
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * Limit how many PersonaVideos to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PersonaVideo updateManyAndReturn
+   */
+  export type PersonaVideoUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * The data used to update PersonaVideos.
+     */
+    data: XOR<PersonaVideoUpdateManyMutationInput, PersonaVideoUncheckedUpdateManyInput>
+    /**
+     * Filter which PersonaVideos to update
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * Limit how many PersonaVideos to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PersonaVideo upsert
+   */
+  export type PersonaVideoUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PersonaVideo to update in case it exists.
+     */
+    where: PersonaVideoWhereUniqueInput
+    /**
+     * In case the PersonaVideo found by the `where` argument doesn't exist, create a new PersonaVideo with this data.
+     */
+    create: XOR<PersonaVideoCreateInput, PersonaVideoUncheckedCreateInput>
+    /**
+     * In case the PersonaVideo was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PersonaVideoUpdateInput, PersonaVideoUncheckedUpdateInput>
+  }
+
+  /**
+   * PersonaVideo delete
+   */
+  export type PersonaVideoDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
+    /**
+     * Filter which PersonaVideo to delete.
+     */
+    where: PersonaVideoWhereUniqueInput
+  }
+
+  /**
+   * PersonaVideo deleteMany
+   */
+  export type PersonaVideoDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PersonaVideos to delete
+     */
+    where?: PersonaVideoWhereInput
+    /**
+     * Limit how many PersonaVideos to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PersonaVideo without action
+   */
+  export type PersonaVideoDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaVideo
+     */
+    select?: PersonaVideoSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaVideo
+     */
+    omit?: PersonaVideoOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaVideoInclude<ExtArgs> | null
   }
 
 
@@ -9670,6 +10953,7 @@ export namespace Prisma {
     name: 'name',
     description: 'description',
     systemInstruction: 'systemInstruction',
+    identityPrompt: 'identityPrompt',
     iconName: 'iconName',
     colorClass: 'colorClass',
     order: 'order',
@@ -9694,6 +10978,18 @@ export namespace Prisma {
   };
 
   export type PersonaImageScalarFieldEnum = (typeof PersonaImageScalarFieldEnum)[keyof typeof PersonaImageScalarFieldEnum]
+
+
+  export const PersonaVideoScalarFieldEnum: {
+    id: 'id',
+    imageId: 'imageId',
+    videoUrl: 'videoUrl',
+    title: 'title',
+    order: 'order',
+    createdAt: 'createdAt'
+  };
+
+  export type PersonaVideoScalarFieldEnum = (typeof PersonaVideoScalarFieldEnum)[keyof typeof PersonaVideoScalarFieldEnum]
 
 
   export const ChatSessionScalarFieldEnum: {
@@ -9969,6 +11265,7 @@ export namespace Prisma {
     name?: StringFilter<"Persona"> | string
     description?: StringNullableFilter<"Persona"> | string | null
     systemInstruction?: StringFilter<"Persona"> | string
+    identityPrompt?: StringNullableFilter<"Persona"> | string | null
     iconName?: StringFilter<"Persona"> | string
     colorClass?: StringFilter<"Persona"> | string
     order?: IntFilter<"Persona"> | number
@@ -9987,6 +11284,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     systemInstruction?: SortOrder
+    identityPrompt?: SortOrderInput | SortOrder
     iconName?: SortOrder
     colorClass?: SortOrder
     order?: SortOrder
@@ -10008,6 +11306,7 @@ export namespace Prisma {
     name?: StringFilter<"Persona"> | string
     description?: StringNullableFilter<"Persona"> | string | null
     systemInstruction?: StringFilter<"Persona"> | string
+    identityPrompt?: StringNullableFilter<"Persona"> | string | null
     iconName?: StringFilter<"Persona"> | string
     colorClass?: StringFilter<"Persona"> | string
     order?: IntFilter<"Persona"> | number
@@ -10026,6 +11325,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrderInput | SortOrder
     systemInstruction?: SortOrder
+    identityPrompt?: SortOrderInput | SortOrder
     iconName?: SortOrder
     colorClass?: SortOrder
     order?: SortOrder
@@ -10049,6 +11349,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Persona"> | string
     description?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     systemInstruction?: StringWithAggregatesFilter<"Persona"> | string
+    identityPrompt?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     iconName?: StringWithAggregatesFilter<"Persona"> | string
     colorClass?: StringWithAggregatesFilter<"Persona"> | string
     order?: IntWithAggregatesFilter<"Persona"> | number
@@ -10071,6 +11372,7 @@ export namespace Prisma {
     order?: IntFilter<"PersonaImage"> | number
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
     persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+    videos?: PersonaVideoListRelationFilter
   }
 
   export type PersonaImageOrderByWithRelationInput = {
@@ -10082,6 +11384,7 @@ export namespace Prisma {
     order?: SortOrder
     createdAt?: SortOrder
     persona?: PersonaOrderByWithRelationInput
+    videos?: PersonaVideoOrderByRelationAggregateInput
   }
 
   export type PersonaImageWhereUniqueInput = Prisma.AtLeast<{
@@ -10096,6 +11399,7 @@ export namespace Prisma {
     order?: IntFilter<"PersonaImage"> | number
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
     persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+    videos?: PersonaVideoListRelationFilter
   }, "id">
 
   export type PersonaImageOrderByWithAggregationInput = {
@@ -10124,6 +11428,68 @@ export namespace Prisma {
     isMain?: BoolWithAggregatesFilter<"PersonaImage"> | boolean
     order?: IntWithAggregatesFilter<"PersonaImage"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PersonaImage"> | Date | string
+  }
+
+  export type PersonaVideoWhereInput = {
+    AND?: PersonaVideoWhereInput | PersonaVideoWhereInput[]
+    OR?: PersonaVideoWhereInput[]
+    NOT?: PersonaVideoWhereInput | PersonaVideoWhereInput[]
+    id?: IntFilter<"PersonaVideo"> | number
+    imageId?: IntFilter<"PersonaVideo"> | number
+    videoUrl?: StringFilter<"PersonaVideo"> | string
+    title?: StringNullableFilter<"PersonaVideo"> | string | null
+    order?: IntFilter<"PersonaVideo"> | number
+    createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
+    image?: XOR<PersonaImageScalarRelationFilter, PersonaImageWhereInput>
+  }
+
+  export type PersonaVideoOrderByWithRelationInput = {
+    id?: SortOrder
+    imageId?: SortOrder
+    videoUrl?: SortOrder
+    title?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    image?: PersonaImageOrderByWithRelationInput
+  }
+
+  export type PersonaVideoWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PersonaVideoWhereInput | PersonaVideoWhereInput[]
+    OR?: PersonaVideoWhereInput[]
+    NOT?: PersonaVideoWhereInput | PersonaVideoWhereInput[]
+    imageId?: IntFilter<"PersonaVideo"> | number
+    videoUrl?: StringFilter<"PersonaVideo"> | string
+    title?: StringNullableFilter<"PersonaVideo"> | string | null
+    order?: IntFilter<"PersonaVideo"> | number
+    createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
+    image?: XOR<PersonaImageScalarRelationFilter, PersonaImageWhereInput>
+  }, "id">
+
+  export type PersonaVideoOrderByWithAggregationInput = {
+    id?: SortOrder
+    imageId?: SortOrder
+    videoUrl?: SortOrder
+    title?: SortOrderInput | SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+    _count?: PersonaVideoCountOrderByAggregateInput
+    _avg?: PersonaVideoAvgOrderByAggregateInput
+    _max?: PersonaVideoMaxOrderByAggregateInput
+    _min?: PersonaVideoMinOrderByAggregateInput
+    _sum?: PersonaVideoSumOrderByAggregateInput
+  }
+
+  export type PersonaVideoScalarWhereWithAggregatesInput = {
+    AND?: PersonaVideoScalarWhereWithAggregatesInput | PersonaVideoScalarWhereWithAggregatesInput[]
+    OR?: PersonaVideoScalarWhereWithAggregatesInput[]
+    NOT?: PersonaVideoScalarWhereWithAggregatesInput | PersonaVideoScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PersonaVideo"> | number
+    imageId?: IntWithAggregatesFilter<"PersonaVideo"> | number
+    videoUrl?: StringWithAggregatesFilter<"PersonaVideo"> | string
+    title?: StringNullableWithAggregatesFilter<"PersonaVideo"> | string | null
+    order?: IntWithAggregatesFilter<"PersonaVideo"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"PersonaVideo"> | Date | string
   }
 
   export type ChatSessionWhereInput = {
@@ -10459,6 +11825,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -10476,6 +11843,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -10493,6 +11861,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -10510,6 +11879,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -10527,6 +11897,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -10542,6 +11913,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -10556,6 +11928,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -10573,6 +11946,7 @@ export namespace Prisma {
     order?: number
     createdAt?: Date | string
     persona: PersonaCreateNestedOneWithoutImagesInput
+    videos?: PersonaVideoCreateNestedManyWithoutImageInput
   }
 
   export type PersonaImageUncheckedCreateInput = {
@@ -10583,6 +11957,7 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     createdAt?: Date | string
+    videos?: PersonaVideoUncheckedCreateNestedManyWithoutImageInput
   }
 
   export type PersonaImageUpdateInput = {
@@ -10592,6 +11967,7 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
+    videos?: PersonaVideoUpdateManyWithoutImageNestedInput
   }
 
   export type PersonaImageUncheckedUpdateInput = {
@@ -10602,6 +11978,7 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    videos?: PersonaVideoUncheckedUpdateManyWithoutImageNestedInput
   }
 
   export type PersonaImageCreateManyInput = {
@@ -10628,6 +12005,65 @@ export namespace Prisma {
     imageUrl?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaVideoCreateInput = {
+    videoUrl: string
+    title?: string | null
+    order?: number
+    createdAt?: Date | string
+    image: PersonaImageCreateNestedOneWithoutVideosInput
+  }
+
+  export type PersonaVideoUncheckedCreateInput = {
+    id?: number
+    imageId: number
+    videoUrl: string
+    title?: string | null
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaVideoUpdateInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    image?: PersonaImageUpdateOneRequiredWithoutVideosNestedInput
+  }
+
+  export type PersonaVideoUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    imageId?: IntFieldUpdateOperationsInput | number
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaVideoCreateManyInput = {
+    id?: number
+    imageId: number
+    videoUrl: string
+    title?: string | null
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaVideoUpdateManyMutationInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaVideoUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    imageId?: IntFieldUpdateOperationsInput | number
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -11103,6 +12539,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     systemInstruction?: SortOrder
+    identityPrompt?: SortOrder
     iconName?: SortOrder
     colorClass?: SortOrder
     order?: SortOrder
@@ -11123,6 +12560,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     systemInstruction?: SortOrder
+    identityPrompt?: SortOrder
     iconName?: SortOrder
     colorClass?: SortOrder
     order?: SortOrder
@@ -11138,6 +12576,7 @@ export namespace Prisma {
     name?: SortOrder
     description?: SortOrder
     systemInstruction?: SortOrder
+    identityPrompt?: SortOrder
     iconName?: SortOrder
     colorClass?: SortOrder
     order?: SortOrder
@@ -11182,6 +12621,16 @@ export namespace Prisma {
     isNot?: PersonaWhereInput
   }
 
+  export type PersonaVideoListRelationFilter = {
+    every?: PersonaVideoWhereInput
+    some?: PersonaVideoWhereInput
+    none?: PersonaVideoWhereInput
+  }
+
+  export type PersonaVideoOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type PersonaImageCountOrderByAggregateInput = {
     id?: SortOrder
     personaId?: SortOrder
@@ -11219,6 +12668,50 @@ export namespace Prisma {
 
   export type PersonaImageSumOrderByAggregateInput = {
     id?: SortOrder
+    order?: SortOrder
+  }
+
+  export type PersonaImageScalarRelationFilter = {
+    is?: PersonaImageWhereInput
+    isNot?: PersonaImageWhereInput
+  }
+
+  export type PersonaVideoCountOrderByAggregateInput = {
+    id?: SortOrder
+    imageId?: SortOrder
+    videoUrl?: SortOrder
+    title?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaVideoAvgOrderByAggregateInput = {
+    id?: SortOrder
+    imageId?: SortOrder
+    order?: SortOrder
+  }
+
+  export type PersonaVideoMaxOrderByAggregateInput = {
+    id?: SortOrder
+    imageId?: SortOrder
+    videoUrl?: SortOrder
+    title?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaVideoMinOrderByAggregateInput = {
+    id?: SortOrder
+    imageId?: SortOrder
+    videoUrl?: SortOrder
+    title?: SortOrder
+    order?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaVideoSumOrderByAggregateInput = {
+    id?: SortOrder
+    imageId?: SortOrder
     order?: SortOrder
   }
 
@@ -11634,12 +13127,68 @@ export namespace Prisma {
     connect?: PersonaWhereUniqueInput
   }
 
+  export type PersonaVideoCreateNestedManyWithoutImageInput = {
+    create?: XOR<PersonaVideoCreateWithoutImageInput, PersonaVideoUncheckedCreateWithoutImageInput> | PersonaVideoCreateWithoutImageInput[] | PersonaVideoUncheckedCreateWithoutImageInput[]
+    connectOrCreate?: PersonaVideoCreateOrConnectWithoutImageInput | PersonaVideoCreateOrConnectWithoutImageInput[]
+    createMany?: PersonaVideoCreateManyImageInputEnvelope
+    connect?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+  }
+
+  export type PersonaVideoUncheckedCreateNestedManyWithoutImageInput = {
+    create?: XOR<PersonaVideoCreateWithoutImageInput, PersonaVideoUncheckedCreateWithoutImageInput> | PersonaVideoCreateWithoutImageInput[] | PersonaVideoUncheckedCreateWithoutImageInput[]
+    connectOrCreate?: PersonaVideoCreateOrConnectWithoutImageInput | PersonaVideoCreateOrConnectWithoutImageInput[]
+    createMany?: PersonaVideoCreateManyImageInputEnvelope
+    connect?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+  }
+
   export type PersonaUpdateOneRequiredWithoutImagesNestedInput = {
     create?: XOR<PersonaCreateWithoutImagesInput, PersonaUncheckedCreateWithoutImagesInput>
     connectOrCreate?: PersonaCreateOrConnectWithoutImagesInput
     upsert?: PersonaUpsertWithoutImagesInput
     connect?: PersonaWhereUniqueInput
     update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutImagesInput, PersonaUpdateWithoutImagesInput>, PersonaUncheckedUpdateWithoutImagesInput>
+  }
+
+  export type PersonaVideoUpdateManyWithoutImageNestedInput = {
+    create?: XOR<PersonaVideoCreateWithoutImageInput, PersonaVideoUncheckedCreateWithoutImageInput> | PersonaVideoCreateWithoutImageInput[] | PersonaVideoUncheckedCreateWithoutImageInput[]
+    connectOrCreate?: PersonaVideoCreateOrConnectWithoutImageInput | PersonaVideoCreateOrConnectWithoutImageInput[]
+    upsert?: PersonaVideoUpsertWithWhereUniqueWithoutImageInput | PersonaVideoUpsertWithWhereUniqueWithoutImageInput[]
+    createMany?: PersonaVideoCreateManyImageInputEnvelope
+    set?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    disconnect?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    delete?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    connect?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    update?: PersonaVideoUpdateWithWhereUniqueWithoutImageInput | PersonaVideoUpdateWithWhereUniqueWithoutImageInput[]
+    updateMany?: PersonaVideoUpdateManyWithWhereWithoutImageInput | PersonaVideoUpdateManyWithWhereWithoutImageInput[]
+    deleteMany?: PersonaVideoScalarWhereInput | PersonaVideoScalarWhereInput[]
+  }
+
+  export type PersonaVideoUncheckedUpdateManyWithoutImageNestedInput = {
+    create?: XOR<PersonaVideoCreateWithoutImageInput, PersonaVideoUncheckedCreateWithoutImageInput> | PersonaVideoCreateWithoutImageInput[] | PersonaVideoUncheckedCreateWithoutImageInput[]
+    connectOrCreate?: PersonaVideoCreateOrConnectWithoutImageInput | PersonaVideoCreateOrConnectWithoutImageInput[]
+    upsert?: PersonaVideoUpsertWithWhereUniqueWithoutImageInput | PersonaVideoUpsertWithWhereUniqueWithoutImageInput[]
+    createMany?: PersonaVideoCreateManyImageInputEnvelope
+    set?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    disconnect?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    delete?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    connect?: PersonaVideoWhereUniqueInput | PersonaVideoWhereUniqueInput[]
+    update?: PersonaVideoUpdateWithWhereUniqueWithoutImageInput | PersonaVideoUpdateWithWhereUniqueWithoutImageInput[]
+    updateMany?: PersonaVideoUpdateManyWithWhereWithoutImageInput | PersonaVideoUpdateManyWithWhereWithoutImageInput[]
+    deleteMany?: PersonaVideoScalarWhereInput | PersonaVideoScalarWhereInput[]
+  }
+
+  export type PersonaImageCreateNestedOneWithoutVideosInput = {
+    create?: XOR<PersonaImageCreateWithoutVideosInput, PersonaImageUncheckedCreateWithoutVideosInput>
+    connectOrCreate?: PersonaImageCreateOrConnectWithoutVideosInput
+    connect?: PersonaImageWhereUniqueInput
+  }
+
+  export type PersonaImageUpdateOneRequiredWithoutVideosNestedInput = {
+    create?: XOR<PersonaImageCreateWithoutVideosInput, PersonaImageUncheckedCreateWithoutVideosInput>
+    connectOrCreate?: PersonaImageCreateOrConnectWithoutVideosInput
+    upsert?: PersonaImageUpsertWithoutVideosInput
+    connect?: PersonaImageWhereUniqueInput
+    update?: XOR<XOR<PersonaImageUpdateToOneWithWhereWithoutVideosInput, PersonaImageUpdateWithoutVideosInput>, PersonaImageUncheckedUpdateWithoutVideosInput>
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -11978,6 +13527,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -11994,6 +13544,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -12091,6 +13642,7 @@ export namespace Prisma {
     name?: StringFilter<"Persona"> | string
     description?: StringNullableFilter<"Persona"> | string | null
     systemInstruction?: StringFilter<"Persona"> | string
+    identityPrompt?: StringNullableFilter<"Persona"> | string | null
     iconName?: StringFilter<"Persona"> | string
     colorClass?: StringFilter<"Persona"> | string
     order?: IntFilter<"Persona"> | number
@@ -12287,6 +13839,7 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     createdAt?: Date | string
+    videos?: PersonaVideoCreateNestedManyWithoutImageInput
   }
 
   export type PersonaImageUncheckedCreateWithoutPersonaInput = {
@@ -12296,6 +13849,7 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     createdAt?: Date | string
+    videos?: PersonaVideoUncheckedCreateNestedManyWithoutImageInput
   }
 
   export type PersonaImageCreateOrConnectWithoutPersonaInput = {
@@ -12394,6 +13948,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -12410,6 +13965,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -12424,6 +13980,31 @@ export namespace Prisma {
   export type PersonaCreateOrConnectWithoutImagesInput = {
     where: PersonaWhereUniqueInput
     create: XOR<PersonaCreateWithoutImagesInput, PersonaUncheckedCreateWithoutImagesInput>
+  }
+
+  export type PersonaVideoCreateWithoutImageInput = {
+    videoUrl: string
+    title?: string | null
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaVideoUncheckedCreateWithoutImageInput = {
+    id?: number
+    videoUrl: string
+    title?: string | null
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaVideoCreateOrConnectWithoutImageInput = {
+    where: PersonaVideoWhereUniqueInput
+    create: XOR<PersonaVideoCreateWithoutImageInput, PersonaVideoUncheckedCreateWithoutImageInput>
+  }
+
+  export type PersonaVideoCreateManyImageInputEnvelope = {
+    data: PersonaVideoCreateManyImageInput | PersonaVideoCreateManyImageInput[]
+    skipDuplicates?: boolean
   }
 
   export type PersonaUpsertWithoutImagesInput = {
@@ -12442,6 +14023,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12458,6 +14040,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12467,6 +14050,88 @@ export namespace Prisma {
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type PersonaVideoUpsertWithWhereUniqueWithoutImageInput = {
+    where: PersonaVideoWhereUniqueInput
+    update: XOR<PersonaVideoUpdateWithoutImageInput, PersonaVideoUncheckedUpdateWithoutImageInput>
+    create: XOR<PersonaVideoCreateWithoutImageInput, PersonaVideoUncheckedCreateWithoutImageInput>
+  }
+
+  export type PersonaVideoUpdateWithWhereUniqueWithoutImageInput = {
+    where: PersonaVideoWhereUniqueInput
+    data: XOR<PersonaVideoUpdateWithoutImageInput, PersonaVideoUncheckedUpdateWithoutImageInput>
+  }
+
+  export type PersonaVideoUpdateManyWithWhereWithoutImageInput = {
+    where: PersonaVideoScalarWhereInput
+    data: XOR<PersonaVideoUpdateManyMutationInput, PersonaVideoUncheckedUpdateManyWithoutImageInput>
+  }
+
+  export type PersonaVideoScalarWhereInput = {
+    AND?: PersonaVideoScalarWhereInput | PersonaVideoScalarWhereInput[]
+    OR?: PersonaVideoScalarWhereInput[]
+    NOT?: PersonaVideoScalarWhereInput | PersonaVideoScalarWhereInput[]
+    id?: IntFilter<"PersonaVideo"> | number
+    imageId?: IntFilter<"PersonaVideo"> | number
+    videoUrl?: StringFilter<"PersonaVideo"> | string
+    title?: StringNullableFilter<"PersonaVideo"> | string | null
+    order?: IntFilter<"PersonaVideo"> | number
+    createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
+  }
+
+  export type PersonaImageCreateWithoutVideosInput = {
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+    persona: PersonaCreateNestedOneWithoutImagesInput
+  }
+
+  export type PersonaImageUncheckedCreateWithoutVideosInput = {
+    id?: number
+    personaId: string
+    imageUrl: string
+    description?: string | null
+    isMain?: boolean
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaImageCreateOrConnectWithoutVideosInput = {
+    where: PersonaImageWhereUniqueInput
+    create: XOR<PersonaImageCreateWithoutVideosInput, PersonaImageUncheckedCreateWithoutVideosInput>
+  }
+
+  export type PersonaImageUpsertWithoutVideosInput = {
+    update: XOR<PersonaImageUpdateWithoutVideosInput, PersonaImageUncheckedUpdateWithoutVideosInput>
+    create: XOR<PersonaImageCreateWithoutVideosInput, PersonaImageUncheckedCreateWithoutVideosInput>
+    where?: PersonaImageWhereInput
+  }
+
+  export type PersonaImageUpdateToOneWithWhereWithoutVideosInput = {
+    where?: PersonaImageWhereInput
+    data: XOR<PersonaImageUpdateWithoutVideosInput, PersonaImageUncheckedUpdateWithoutVideosInput>
+  }
+
+  export type PersonaImageUpdateWithoutVideosInput = {
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
+  }
+
+  export type PersonaImageUncheckedUpdateWithoutVideosInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -12504,6 +14169,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -12520,6 +14186,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -12631,6 +14298,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12647,6 +14315,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12824,6 +14493,7 @@ export namespace Prisma {
     name: string
     description?: string | null
     systemInstruction: string
+    identityPrompt?: string | null
     iconName?: string
     colorClass?: string
     order?: number
@@ -12853,6 +14523,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12869,6 +14540,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12885,6 +14557,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
     iconName?: StringFieldUpdateOperationsInput | string
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
@@ -12991,6 +14664,7 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    videos?: PersonaVideoUpdateManyWithoutImageNestedInput
   }
 
   export type PersonaImageUncheckedUpdateWithoutPersonaInput = {
@@ -13000,6 +14674,7 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    videos?: PersonaVideoUncheckedUpdateManyWithoutImageNestedInput
   }
 
   export type PersonaImageUncheckedUpdateManyWithoutPersonaInput = {
@@ -13007,6 +14682,37 @@ export namespace Prisma {
     imageUrl?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaVideoCreateManyImageInput = {
+    id?: number
+    videoUrl: string
+    title?: string | null
+    order?: number
+    createdAt?: Date | string
+  }
+
+  export type PersonaVideoUpdateWithoutImageInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaVideoUncheckedUpdateWithoutImageInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaVideoUncheckedUpdateManyWithoutImageInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

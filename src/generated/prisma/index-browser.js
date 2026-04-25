@@ -144,6 +144,7 @@ exports.Prisma.PersonaScalarFieldEnum = {
   name: 'name',
   description: 'description',
   systemInstruction: 'systemInstruction',
+  identityPrompt: 'identityPrompt',
   iconName: 'iconName',
   colorClass: 'colorClass',
   order: 'order',
@@ -160,6 +161,15 @@ exports.Prisma.PersonaImageScalarFieldEnum = {
   imageUrl: 'imageUrl',
   description: 'description',
   isMain: 'isMain',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PersonaVideoScalarFieldEnum = {
+  id: 'id',
+  imageId: 'imageId',
+  videoUrl: 'videoUrl',
+  title: 'title',
   order: 'order',
   createdAt: 'createdAt'
 };
@@ -211,6 +221,7 @@ exports.Prisma.ModelName = {
   UserMemory: 'UserMemory',
   Persona: 'Persona',
   PersonaImage: 'PersonaImage',
+  PersonaVideo: 'PersonaVideo',
   ChatSession: 'ChatSession',
   Message: 'Message',
   ConversationSummary: 'ConversationSummary'

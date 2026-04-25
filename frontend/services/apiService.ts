@@ -1,4 +1,4 @@
-import { Persona, PersonaImage, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
+import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
 
 const BASE = '/api';
 
@@ -92,6 +92,12 @@ export const personaImageApi = {
     getAll: (personaId: string) =>
         request<PersonaImage[]>(`/personas/${personaId}/images`),
 
+    getSignedUrl: (personaId: string, mimeType: string, filename: string) =>
+        request<{ signedUrl: string; publicUrl: string }>(`/personas/${personaId}/images?action=signed-url`, {
+            method: 'POST',
+            body: JSON.stringify({ mimeType, filename }),
+        }),
+
     create: (personaId: string, imageUrl: string, description: string, isMain?: boolean) =>
         request<PersonaImage>(`/personas/${personaId}/images`, {
             method: 'POST',
@@ -115,6 +121,33 @@ export const personaImageApi = {
             method: 'DELETE',
             body: JSON.stringify({ imageId }),
         }),
+};
+
+// Persona Videos
+export const personaVideoApi = {
+    getAll: (imageId: number) =>
+        request<PersonaVideo[]>(`/persona-videos/${imageId}`),
+
+    getSignedUrl: (mimeType: string, filename: string) =>
+        request<{ signedUrl: string; publicUrl: string }>('/persona-videos/signed-url', {
+            method: 'POST',
+            body: JSON.stringify({ mimeType, filename }),
+        }),
+
+    create: (imageId: number, data: { videoUrl?: string; videoBase64?: string; mimeType?: string; title?: string }) =>
+        request<PersonaVideo>('/persona-videos', {
+            method: 'POST',
+            body: JSON.stringify({ imageId, ...data }),
+        }),
+
+    update: (videoId: number, data: { title?: string; order?: number }) =>
+        request<PersonaVideo>(`/persona-videos/${videoId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+
+    delete: (videoId: number) =>
+        request<{ message: string }>(`/persona-videos/${videoId}`, { method: 'DELETE' }),
 };
 
 // Sessions

@@ -85,6 +85,7 @@ const App: React.FC = () => {
                     .catch(() => {});
             }
 
+
             const allSessions = await sessionApi.getAll();
             const existing = allSessions.find(s => s.personaId === personaId);
             if (existing) {
@@ -499,6 +500,11 @@ const App: React.FC = () => {
                     onSave={handleSavePersona}
                     onDelete={handleDeletePersona}
                     onClose={() => setIsAdminMode(false)}
+                    onImagesChanged={(personaId: string) => {
+                        personaImageApi.getAll(personaId)
+                            .then(imgs => setPersonaImages(prev => ({ ...prev, [personaId]: imgs })))
+                            .catch(() => {});
+                    }}
                 />
             ) : (
                 <div className="flex-1 flex h-full relative min-w-0">

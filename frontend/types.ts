@@ -39,6 +39,16 @@ export interface PersonaImage {
     isMain: boolean;
     order: number;
     createdAt: string;
+    _count?: { videos: number };
+}
+
+export interface PersonaVideo {
+    id: number;
+    imageId: number;
+    videoUrl: string;
+    title?: string;
+    order: number;
+    createdAt: string;
 }
 
 export interface ConversationSummary {

@@ -51,14 +51,25 @@ model Persona {
 }
 
 model PersonaImage {
-  id          Int      @id @default(autoincrement())
+  id          Int            @id @default(autoincrement())
   personaId   String
   imageUrl    String
   description String?
-  isMain      Boolean  @default(false)
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  persona     Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
+  isMain      Boolean        @default(false)
+  order       Int            @default(0)
+  createdAt   DateTime       @default(now())
+  persona     Persona        @relation(fields: [personaId], references: [id], onDelete: Cascade)
+  videos      PersonaVideo[]
+}
+
+model PersonaVideo {
+  id        Int          @id @default(autoincrement())
+  imageId   Int
+  videoUrl  String
+  title     String?
+  order     Int          @default(0)
+  createdAt DateTime     @default(now())
+  image     PersonaImage @relation(fields: [imageId], references: [id], onDelete: Cascade)
 }
 
 model ChatSession {
