@@ -87,7 +87,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 50 * 1024 * 1024) { alert('50MB 이하 이미지만 업로드 가능합니다.'); return; }
+        if (file.size > 5 * 1024 * 1024) { alert('5MB 이하 이미지만 업로드 가능합니다.'); return; }
         setIsUploadingImage(true);
         try {
             // AI 설명 생성 (base64 미리보기용으로만 사용)
@@ -185,6 +185,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !selectedImageId) return;
+        if (file.size > 20 * 1024 * 1024) { alert('20MB 이하 동영상만 업로드 가능합니다.'); return; }
         setIsAddingVideo(true);
         try {
             // Signed URL 발급 → GCS 직접 업로드
