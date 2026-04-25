@@ -363,6 +363,67 @@ app.delete('/api/personas/:id/images', async (req, res) => {
   }
 });
 
+// ── Persona Videos ────────────────────────────────────────────
+app.get('/api/persona-videos/:imageId', async (req, res) => {
+  try {
+    const videos = await prisma.personaVideo.findMany({
+      where: { imageId: Number(req.params.imageId) },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+    });
+    return res.json(videos);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/persona-videos', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { imageId, videoUrl, title } = req.body;
+    if (!imageId || !videoUrl) return res.status(400).json({ error: 'imageId와 videoUrl은 필수입니다.' });
+    const count = await prisma.personaVideo.count({ where: { imageId: Number(imageId) } });
+    const video = await prisma.personaVideo.create({
+      data: { imageId: Number(imageId), videoUrl, title: title || null, order: count },
+    });
+    return res.status(201).json(video);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.put('/api/persona-videos/:videoId', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { title, order } = req.body;
+    const video = await prisma.personaVideo.update({
+      where: { id: Number(req.params.videoId) },
+      data: { ...(title !== undefined && { title }), ...(order !== undefined && { order }) },
+    });
+    return res.json(video);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.delete('/api/persona-videos/:videoId', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    await prisma.personaVideo.delete({ where: { id: Number(req.params.videoId) } });
+    return res.json({ message: '삭제 완료' });
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // ── Sessions ──────────────────────────────────────────────────
 app.get('/api/sessions', async (req, res) => {
   try {

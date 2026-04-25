@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Persona, PersonaImage } from '../types';
-import { personaImageApi } from '../services/apiService';
+import { Persona, PersonaImage, PersonaVideo } from '../types';
+import { personaImageApi, personaVideoApi } from '../services/apiService';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 
@@ -45,6 +45,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [imageDesc, setImageDesc] = useState('');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+
+    // 동영상 상태
+    const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
+    const [videos, setVideos] = useState<PersonaVideo[]>([]);
+    const [videoUrl, setVideoUrl] = useState('');
+    const [videoTitle, setVideoTitle] = useState('');
+    const [isAddingVideo, setIsAddingVideo] = useState(false);
 
     useEffect(() => {
         if (selectedId === 'new') {
@@ -127,6 +134,46 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             });
         } catch (e: any) {
             alert('이미지 삭제 실패: ' + e.message);
+        }
+    };
+
+    const handleSelectImage = async (imageId: number) => {
+        if (selectedImageId === imageId) {
+            setSelectedImageId(null);
+            setVideos([]);
+            return;
+        }
+        setSelectedImageId(imageId);
+        try {
+            const data = await personaVideoApi.getAll(imageId);
+            setVideos(data);
+        } catch {
+            setVideos([]);
+        }
+    };
+
+    const handleAddVideo = async () => {
+        if (!selectedImageId || !videoUrl.trim()) return;
+        setIsAddingVideo(true);
+        try {
+            const video = await personaVideoApi.create(selectedImageId, videoUrl.trim(), videoTitle.trim() || undefined);
+            setVideos(prev => [...prev, video]);
+            setVideoUrl('');
+            setVideoTitle('');
+        } catch (e: any) {
+            alert('동영상 추가 실패: ' + e.message);
+        } finally {
+            setIsAddingVideo(false);
+        }
+    };
+
+    const handleDeleteVideo = async (videoId: number) => {
+        if (!window.confirm('동영상을 삭제하시겠습니까?')) return;
+        try {
+            await personaVideoApi.delete(videoId);
+            setVideos(prev => prev.filter(v => v.id !== videoId));
+        } catch (e: any) {
+            alert('동영상 삭제 실패: ' + e.message);
         }
     };
 
@@ -395,7 +442,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                 AI 이미지 갤러리
                             </label>
                             <p className="text-xs text-gray-500 mb-3">
-                                여러 이미지를 등록하고, 별표(★)를 눌러 대표 이미지를 설정하세요. 이미지 설명은 AI에게 전달됩니다.
+                                이미지를 클릭하면 연결된 동영상을 관리할 수 있습니다. 별표(★)로 대표 이미지를 설정하세요.
                             </p>
 
                             {/* 업로드 폼 */}
@@ -418,42 +465,110 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                 <input type="file" accept="image/*" className="hidden" ref={galleryInputRef} onChange={handleGalleryUpload} />
                             </div>
 
-                            {/* 이미지 목록 */}
-                            {images.length > 0 ? (
-                                <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                    {images.map(img => (
-                                        <div key={img.id} className={`relative group rounded-xl overflow-hidden border-2 ${img.isMain ? 'border-yellow-400' : 'border-gray-700'}`}>
-                                            <img src={img.imageUrl} alt={img.description || ''} className="w-full aspect-square object-cover" />
-                                            {img.isMain && (
-                                                <span className="absolute top-1 left-1 bg-yellow-400 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">대표</span>
-                                            )}
-                                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
-                                                {!img.isMain && (
-                                                    <button
-                                                        onClick={() => handleSetMain(img.id)}
-                                                        className="text-yellow-400 hover:text-yellow-300 text-xs font-medium bg-gray-900/80 px-2 py-1 rounded-lg"
-                                                    >
-                                                        ★ 대표 설정
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleDeleteImage(img.id)}
-                                                    className="text-red-400 hover:text-red-300 text-xs bg-gray-900/80 px-2 py-1 rounded-lg"
+                            <div className="flex gap-4">
+                                {/* 이미지 목록 */}
+                                <div className="flex-1">
+                                    {images.length > 0 ? (
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {images.map(img => (
+                                                <div
+                                                    key={img.id}
+                                                    onClick={() => handleSelectImage(img.id)}
+                                                    className={`relative group rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
+                                                        selectedImageId === img.id
+                                                            ? 'border-blue-400 ring-2 ring-blue-400/30'
+                                                            : img.isMain ? 'border-yellow-400' : 'border-gray-700 hover:border-gray-500'
+                                                    }`}
                                                 >
-                                                    삭제
-                                                </button>
-                                            </div>
-                                            {img.description && (
-                                                <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[10px] text-gray-300 px-1.5 py-1 truncate">
-                                                    {img.description}
+                                                    <img src={img.imageUrl} alt={img.description || ''} className="w-full aspect-square object-cover" />
+                                                    {img.isMain && (
+                                                        <span className="absolute top-1 left-1 bg-yellow-400 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full">대표</span>
+                                                    )}
+                                                    {selectedImageId === img.id && (
+                                                        <span className="absolute top-1 right-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">선택됨</span>
+                                                    )}
+                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-1">
+                                                        {!img.isMain && (
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); handleSetMain(img.id); }}
+                                                                className="text-yellow-400 hover:text-yellow-300 text-xs font-medium bg-gray-900/80 px-2 py-1 rounded-lg"
+                                                            >
+                                                                ★ 대표 설정
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={e => { e.stopPropagation(); handleDeleteImage(img.id); }}
+                                                            className="text-red-400 hover:text-red-300 text-xs bg-gray-900/80 px-2 py-1 rounded-lg"
+                                                        >
+                                                            삭제
+                                                        </button>
+                                                    </div>
+                                                    {img.description && (
+                                                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[10px] text-gray-300 px-1.5 py-1 truncate">
+                                                            {img.description}
+                                                        </div>
+                                                    )}
                                                 </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-600 text-center py-4">등록된 이미지가 없습니다.</p>
+                                    )}
+                                </div>
+
+                                {/* 동영상 패널 */}
+                                {selectedImageId && (
+                                    <div className="w-52 shrink-0 bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex flex-col gap-2">
+                                        <p className="text-xs font-medium text-blue-400 mb-1">연결된 동영상</p>
+
+                                        {/* 동영상 추가 폼 */}
+                                        <input
+                                            type="text"
+                                            value={videoUrl}
+                                            onChange={e => setVideoUrl(e.target.value)}
+                                            placeholder="동영상 URL (mp4)"
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={videoTitle}
+                                            onChange={e => setVideoTitle(e.target.value)}
+                                            placeholder="제목 (선택)"
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                        <button
+                                            onClick={handleAddVideo}
+                                            disabled={isAddingVideo || !videoUrl.trim()}
+                                            className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg flex items-center justify-center gap-1 transition-colors"
+                                        >
+                                            <Icon name="Plus" size={12} />
+                                            {isAddingVideo ? '추가 중...' : '동영상 추가'}
+                                        </button>
+
+                                        {/* 동영상 목록 */}
+                                        <div className="flex flex-col gap-1.5 mt-1 overflow-y-auto max-h-48">
+                                            {videos.length === 0 ? (
+                                                <p className="text-[11px] text-gray-600 text-center py-2">동영상 없음</p>
+                                            ) : (
+                                                videos.map(v => (
+                                                    <div key={v.id} className="flex items-center gap-1.5 bg-gray-800 rounded-lg px-2 py-1.5 group">
+                                                        <Icon name="Play" size={12} className="text-blue-400 shrink-0" />
+                                                        <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
+                                                            {v.title || v.videoUrl.split('/').pop()}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => handleDeleteVideo(v.id)}
+                                                            className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                                                        >
+                                                            <Icon name="X" size={12} />
+                                                        </button>
+                                                    </div>
+                                                ))
                                             )}
                                         </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="text-xs text-gray-600 text-center py-4">등록된 이미지가 없습니다.</p>
-                            )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         )}
 

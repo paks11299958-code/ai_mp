@@ -1,4 +1,4 @@
-import { Persona, PersonaImage, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
+import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
 
 const BASE = '/api';
 
@@ -115,6 +115,27 @@ export const personaImageApi = {
             method: 'DELETE',
             body: JSON.stringify({ imageId }),
         }),
+};
+
+// Persona Videos
+export const personaVideoApi = {
+    getAll: (imageId: number) =>
+        request<PersonaVideo[]>(`/persona-videos/${imageId}`),
+
+    create: (imageId: number, videoUrl: string, title?: string) =>
+        request<PersonaVideo>('/persona-videos', {
+            method: 'POST',
+            body: JSON.stringify({ imageId, videoUrl, title }),
+        }),
+
+    update: (videoId: number, data: { title?: string; order?: number }) =>
+        request<PersonaVideo>(`/persona-videos/${videoId}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+
+    delete: (videoId: number) =>
+        request<{ message: string }>(`/persona-videos/${videoId}`, { method: 'DELETE' }),
 };
 
 // Sessions

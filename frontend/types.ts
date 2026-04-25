@@ -41,6 +41,15 @@ export interface PersonaImage {
     createdAt: string;
 }
 
+export interface PersonaVideo {
+    id: number;
+    imageId: number;
+    videoUrl: string;
+    title?: string;
+    order: number;
+    createdAt: string;
+}
+
 export interface ConversationSummary {
     id: number;
     sessionId: number;
