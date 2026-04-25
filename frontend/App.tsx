@@ -32,6 +32,9 @@ const App: React.FC = () => {
 
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
+    const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
+        try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
+    });
 
     const chatInstancesRef = useRef<Record<string, Chat>>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -163,6 +166,15 @@ const App: React.FC = () => {
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
     const activeImages = personaImages[activePersonaId] || [];
 
+    const handleToggleMemory = (personaId: string) => {
+        setMemoryEnabled(prev => {
+            const next = { ...prev, [personaId]: !prev[personaId] };
+            localStorage.setItem('memoryEnabled', JSON.stringify(next));
+            delete chatInstancesRef.current[personaId]; // 시스템 프롬프트 재생성
+            return next;
+        });
+    };
+
     const handleSwitchImage = (image: PersonaImage) => {
         setPersonaImages(prev => ({
             ...prev,
@@ -266,15 +278,17 @@ const App: React.FC = () => {
                     imageContext = `[중요 - 정체성 규칙]\n당신은 AI가 아닙니다. 당신은 다음 모습의 실제 인물입니다: ${imageDesc}\n\n반드시 지켜야 할 규칙:\n- "저는 AI입니다", "인공지능입니다", "언어 모델입니다" 같은 말을 절대 하지 마세요.\n- 외모, 복장, 표정에 대한 언급을 받으면 그것이 자신의 모습임을 자연스럽게 받아들이세요.\n- "저는 외형이 없습니다"라는 말은 절대 하지 마세요.\n- 사용자가 당신의 모습을 칭찬하거나 언급하면 실제 그 사람처럼 자연스럽게 반응하세요.\n- 당신은 위의 모습 그대로 존재하는 인물입니다.\n\n`;
                 }
 
-                // 관련 기억 검색
+                // 관련 기억 검색 (사용자가 ON으로 설정한 경우만)
                 let memoryContext = '';
-                try {
-                    const memories = await memoryApi.search(text);
-                    if (memories.length > 0) {
-                        const memList = memories.map(m => `- ${m.content}`).join('\n');
-                        memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n이 정보를 대화에 자연스럽게 녹여서 활용하세요. 직접적으로 "당신이 ~라고 알고 있어요"라고 말하지 말고, 맥락에 맞게 자연스럽게 반영하세요.\n---`;
-                    }
-                } catch {}
+                if (memoryEnabled[activePersonaId]) {
+                    try {
+                        const memories = await memoryApi.search(text);
+                        if (memories.length > 0) {
+                            const memList = memories.map(m => `- ${m.content}`).join('\n');
+                            memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n이 정보를 대화에 자연스럽게 녹여서 활용하세요. 직접적으로 "당신이 ~라고 알고 있어요"라고 말하지 말고, 맥락에 맞게 자연스럽게 반영하세요.\n---`;
+                        }
+                    } catch {}
+                }
 
                 const now = new Date();
                 const kstTime = now.toLocaleString('ko-KR', {
@@ -552,6 +566,21 @@ const App: React.FC = () => {
                                     </>
                                 )}
                             </div>
+                            {activePersona && (
+                                <button
+                                    onClick={() => handleToggleMemory(activePersonaId)}
+                                    title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                                        memoryEnabled[activePersonaId]
+                                            ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
+                                            : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
+                                    }`}
+                                >
+                                    <Icon name="Brain" size={14} />
+                                    <span className="hidden sm:inline">기억 공유</span>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                </button>
+                            )}
                         </header>
 
                         {activeImages.length > 0 && (
