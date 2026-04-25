@@ -277,7 +277,7 @@ const App: React.FC = () => {
                 } catch {}
 
                 const systemInstruction =
-                    `${imageContext}${activePersona.systemInstruction}${memoryContext}` +
+                    `${activePersona.systemInstruction}${imageContext}${memoryContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
