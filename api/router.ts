@@ -6,7 +6,7 @@ import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verif
 import { sendEmail } from './_lib/email.js';
 import { generateEmbedding } from './_lib/embedding.js';
 import { extractMemories, generateSummary } from './_lib/gemini.js';
-import { uploadToGCS, deleteFromGCS } from './_lib/storage.js';
+import { uploadToGCS, deleteFromGCS, generateSignedUrl } from './_lib/storage.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const domain = req.query.d as string;
@@ -211,6 +211,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json(images);
             } catch (e: any) {
                 console.error('[persona images GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/personas/:id/images/signed-url
+        if (seg1 && seg2 === 'images' && req.query.action === 'signed-url' && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { mimeType, filename } = req.body;
+                if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+                const ext = mimeType.split('/')[1] || 'jpg';
+                const destPath = `personas/${seg1}/images/${Date.now()}_${filename || 'image'}.${ext}`;
+                const result = await generateSignedUrl(destPath, mimeType);
+                return res.status(200).json(result);
+            } catch (e: any) {
+                console.error('[persona images signed-url]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }
@@ -595,6 +612,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json(videos);
             } catch (e: any) {
                 console.error('[persona-videos GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/persona-videos/signed-url
+        if (seg1 === 'signed-url' && req.method === 'POST') {
+            try {
+                const token = getTokenFromRequest(req);
+                if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
+                const { userId } = verifyToken(token);
+                const user = await prisma.user.findUnique({ where: { id: userId } });
+                if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+                const { mimeType, filename } = req.body;
+                if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+                const ext = mimeType.split('/')[1] || 'mp4';
+                const destPath = `personas/videos/${Date.now()}_${filename || 'video'}.${ext}`;
+                const result = await generateSignedUrl(destPath, mimeType);
+                return res.status(200).json(result);
+            } catch (e: any) {
+                console.error('[persona-videos signed-url]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }

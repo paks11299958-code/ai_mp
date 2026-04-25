@@ -406,6 +406,59 @@ app.delete('/api/personas/:id/images', async (req, res) => {
   }
 });
 
+// ── Signed URL ────────────────────────────────────────────────
+async function generateSignedUrl(destPath, mimeType) {
+  const gcs = getGCSStorage();
+  const file = gcs.bucket(BUCKET_NAME).file(destPath);
+  const [signedUrl] = await file.getSignedUrl({
+    version: 'v4',
+    action: 'write',
+    expires: Date.now() + 15 * 60 * 1000,
+    contentType: mimeType,
+  });
+  const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
+  return { signedUrl, publicUrl };
+}
+
+// POST /api/personas/:id/images?action=signed-url
+app.post('/api/personas/:id/images', async (req, res, next) => {
+  if (req.query.action !== 'signed-url') return next();
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { mimeType, filename } = req.body;
+    if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+    const ext = mimeType.split('/')[1] || 'jpg';
+    const destPath = `personas/${req.params.id}/images/${Date.now()}_${filename || 'image'}.${ext}`;
+    const result = await generateSignedUrl(destPath, mimeType);
+    return res.json(result);
+  } catch (e) {
+    console.error('[image signed-url]', e);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+// POST /api/persona-videos/signed-url
+app.post('/api/persona-videos/signed-url', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { mimeType, filename } = req.body;
+    if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+    const ext = mimeType.split('/')[1] || 'mp4';
+    const destPath = `personas/videos/${Date.now()}_${filename || 'video'}.${ext}`;
+    const result = await generateSignedUrl(destPath, mimeType);
+    return res.json(result);
+  } catch (e) {
+    console.error('[video signed-url]', e);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // ── Persona Videos ────────────────────────────────────────────
 app.get('/api/persona-videos/:imageId', async (req, res) => {
   try {

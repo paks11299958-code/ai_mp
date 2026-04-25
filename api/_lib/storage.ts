@@ -34,6 +34,24 @@ export async function uploadToGCS(
     return `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
 }
 
+export async function generateSignedUrl(
+    destPath: string,
+    mimeType: string
+): Promise<{ signedUrl: string; publicUrl: string }> {
+    const gcs = getStorage();
+    const file = gcs.bucket(BUCKET_NAME).file(destPath);
+
+    const [signedUrl] = await file.getSignedUrl({
+        version: 'v4',
+        action: 'write',
+        expires: Date.now() + 15 * 60 * 1000, // 15분
+        contentType: mimeType,
+    });
+
+    const publicUrl = `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}`;
+    return { signedUrl, publicUrl };
+}
+
 export async function deleteFromGCS(publicUrl: string): Promise<void> {
     try {
         const prefix = `https://storage.googleapis.com/${BUCKET_NAME}/`;

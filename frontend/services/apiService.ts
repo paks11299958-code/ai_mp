@@ -92,6 +92,12 @@ export const personaImageApi = {
     getAll: (personaId: string) =>
         request<PersonaImage[]>(`/personas/${personaId}/images`),
 
+    getSignedUrl: (personaId: string, mimeType: string, filename: string) =>
+        request<{ signedUrl: string; publicUrl: string }>(`/personas/${personaId}/images?action=signed-url`, {
+            method: 'POST',
+            body: JSON.stringify({ mimeType, filename }),
+        }),
+
     create: (personaId: string, imageUrl: string, description: string, isMain?: boolean) =>
         request<PersonaImage>(`/personas/${personaId}/images`, {
             method: 'POST',
@@ -121,6 +127,12 @@ export const personaImageApi = {
 export const personaVideoApi = {
     getAll: (imageId: number) =>
         request<PersonaVideo[]>(`/persona-videos/${imageId}`),
+
+    getSignedUrl: (mimeType: string, filename: string) =>
+        request<{ signedUrl: string; publicUrl: string }>('/persona-videos/signed-url', {
+            method: 'POST',
+            body: JSON.stringify({ mimeType, filename }),
+        }),
 
     create: (imageId: number, data: { videoUrl?: string; videoBase64?: string; mimeType?: string; title?: string }) =>
         request<PersonaVideo>('/persona-videos', {

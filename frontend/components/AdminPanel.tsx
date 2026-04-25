@@ -87,32 +87,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 5 * 1024 * 1024) { alert('5MB 이하 이미지만 업로드 가능합니다.'); return; }
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            setIsUploadingImage(true);
-            try {
-                const base64 = reader.result as string;
-                // 설명이 없으면 AI가 자동 생성
-                let desc = imageDesc.trim();
-                if (!desc) {
-                    setImageDesc('설명 생성 중...');
-                    desc = await generateImageDescription(base64) || '';
-                    setImageDesc(desc);
-                }
-                const isFirst = images.length === 0;
-                const newImage = await personaImageApi.create(selectedId, base64, desc, isFirst);
-                setImages(prev => isFirst ? [{ ...newImage, isMain: true }, ...prev] : [...prev, newImage]);
-                setImageDesc('');
-                if (galleryInputRef.current) galleryInputRef.current.value = '';
-                onImagesChanged?.(selectedId);
-            } catch (e: any) {
-                alert('이미지 업로드 실패: ' + e.message);
-            } finally {
-                setIsUploadingImage(false);
+        if (file.size > 50 * 1024 * 1024) { alert('50MB 이하 이미지만 업로드 가능합니다.'); return; }
+        setIsUploadingImage(true);
+        try {
+            // AI 설명 생성 (base64 미리보기용으로만 사용)
+            let desc = imageDesc.trim();
+            if (!desc) {
+                const reader = new FileReader();
+                const base64 = await new Promise<string>(resolve => {
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(file);
+                });
+                setImageDesc('설명 생성 중...');
+                desc = await generateImageDescription(base64) || '';
+                setImageDesc(desc);
             }
-        };
-        reader.readAsDataURL(file);
+
+            // Signed URL 발급 → GCS 직접 업로드
+            const { signedUrl, publicUrl } = await personaImageApi.getSignedUrl(selectedId, file.type, file.name);
+            await fetch(signedUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+
+            // DB에 URL 저장
+            const isFirst = images.length === 0;
+            const newImage = await personaImageApi.create(selectedId, publicUrl, desc, isFirst);
+            setImages(prev => isFirst ? [{ ...newImage, isMain: true }, ...prev] : [...prev, newImage]);
+            setImageDesc('');
+            if (galleryInputRef.current) galleryInputRef.current.value = '';
+            onImagesChanged?.(selectedId);
+        } catch (e: any) {
+            alert('이미지 업로드 실패: ' + e.message);
+        } finally {
+            setIsUploadingImage(false);
+        }
     };
 
     const handleSetMain = async (imageId: number) => {
@@ -175,28 +185,30 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const handleVideoFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !selectedImageId) return;
-        if (file.size > 100 * 1024 * 1024) { alert('100MB 이하 동영상만 업로드 가능합니다.'); return; }
         setIsAddingVideo(true);
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            try {
-                const base64 = (reader.result as string).split(',')[1];
-                const video = await personaVideoApi.create(selectedImageId, {
-                    videoBase64: base64,
-                    mimeType: file.type,
-                    title: videoTitle.trim() || file.name,
-                });
-                setVideos(prev => [...prev, video]);
-                setVideoTitle('');
-                if (videoFileInputRef.current) videoFileInputRef.current.value = '';
-                onImagesChanged?.(selectedId);
-            } catch (e: any) {
-                alert('동영상 업로드 실패: ' + e.message);
-            } finally {
-                setIsAddingVideo(false);
-            }
-        };
-        reader.readAsDataURL(file);
+        try {
+            // Signed URL 발급 → GCS 직접 업로드
+            const { signedUrl, publicUrl } = await personaVideoApi.getSignedUrl(file.type, file.name);
+            await fetch(signedUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+
+            // DB에 URL 저장
+            const video = await personaVideoApi.create(selectedImageId, {
+                videoUrl: publicUrl,
+                title: videoTitle.trim() || file.name,
+            });
+            setVideos(prev => [...prev, video]);
+            setVideoTitle('');
+            if (videoFileInputRef.current) videoFileInputRef.current.value = '';
+            onImagesChanged?.(selectedId);
+        } catch (e: any) {
+            alert('동영상 업로드 실패: ' + e.message);
+        } finally {
+            setIsAddingVideo(false);
+        }
     };
 
     const handleDeleteVideo = async (videoId: number) => {
