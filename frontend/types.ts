@@ -39,6 +39,7 @@ export interface PersonaImage {
     isMain: boolean;
     order: number;
     createdAt: string;
+    _count?: { videos: number };
 }
 
 export interface PersonaVideo {

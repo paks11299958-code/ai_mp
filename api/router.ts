@@ -206,6 +206,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const images = await prisma.personaImage.findMany({
                     where: { personaId: seg1 },
                     orderBy: [{ isMain: 'desc' }, { order: 'asc' }, { createdAt: 'asc' }],
+                    include: { _count: { select: { videos: true } } },
                 });
                 return res.status(200).json(images);
             } catch (e: any) {

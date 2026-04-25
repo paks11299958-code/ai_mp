@@ -9,6 +9,7 @@ interface AdminPanelProps {
     onSave: (persona: Persona) => Promise<void>;
     onDelete: (id: string) => void;
     onClose: () => void;
+    onImagesChanged?: (personaId: string) => void;
 }
 
 const AVAILABLE_ICONS = ['Bot', 'Code2', 'PenTool', 'Languages', 'Send', 'Settings'];
@@ -24,7 +25,7 @@ const AVAILABLE_COLORS = [
 // 기본 제공되는 AI는 삭제하지 못하도록 보호
 const DEFAULT_IDS = ['general', 'coder', 'writer', 'translator'];
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     
     // Form states
@@ -104,6 +105,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setImages(prev => isFirst ? [{ ...newImage, isMain: true }, ...prev] : [...prev, newImage]);
                 setImageDesc('');
                 if (galleryInputRef.current) galleryInputRef.current.value = '';
+                onImagesChanged?.(selectedId);
             } catch (e: any) {
                 alert('이미지 업로드 실패: ' + e.message);
             } finally {
@@ -133,6 +135,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 }
                 return filtered;
             });
+            onImagesChanged?.(selectedId);
         } catch (e: any) {
             alert('이미지 삭제 실패: ' + e.message);
         }
@@ -161,6 +164,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             setVideos(prev => [...prev, video]);
             setVideoUrl('');
             setVideoTitle('');
+            onImagesChanged?.(selectedId);
         } catch (e: any) {
             alert('동영상 추가 실패: ' + e.message);
         } finally {
@@ -173,9 +177,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (!file || !selectedImageId) return;
         if (file.size > 100 * 1024 * 1024) { alert('100MB 이하 동영상만 업로드 가능합니다.'); return; }
         setIsAddingVideo(true);
-        try {
-            const reader = new FileReader();
-            reader.onloadend = async () => {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            try {
                 const base64 = (reader.result as string).split(',')[1];
                 const video = await personaVideoApi.create(selectedImageId, {
                     videoBase64: base64,
@@ -185,13 +189,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setVideos(prev => [...prev, video]);
                 setVideoTitle('');
                 if (videoFileInputRef.current) videoFileInputRef.current.value = '';
-            };
-            reader.readAsDataURL(file);
-        } catch (e: any) {
-            alert('동영상 업로드 실패: ' + e.message);
-        } finally {
-            setIsAddingVideo(false);
-        }
+                onImagesChanged?.(selectedId);
+            } catch (e: any) {
+                alert('동영상 업로드 실패: ' + e.message);
+            } finally {
+                setIsAddingVideo(false);
+            }
+        };
+        reader.readAsDataURL(file);
     };
 
     const handleDeleteVideo = async (videoId: number) => {
@@ -199,6 +204,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         try {
             await personaVideoApi.delete(videoId);
             setVideos(prev => prev.filter(v => v.id !== videoId));
+            onImagesChanged?.(selectedId);
         } catch (e: any) {
             alert('동영상 삭제 실패: ' + e.message);
         }

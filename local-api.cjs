@@ -114,7 +114,8 @@ const adapter = new PrismaPg({ connectionString: DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '200mb' }));
+app.use(express.urlencoded({ limit: '200mb', extended: true }));
 
 // CORS
 app.use((req, res, next) => {
@@ -321,6 +322,7 @@ app.get('/api/personas/:id/images', async (req, res) => {
     const images = await prisma.personaImage.findMany({
       where: { personaId: req.params.id },
       orderBy: [{ isMain: 'desc' }, { order: 'asc' }, { createdAt: 'asc' }],
+      include: { _count: { select: { videos: true } } },
     });
     return res.json(images);
   } catch (e) {
