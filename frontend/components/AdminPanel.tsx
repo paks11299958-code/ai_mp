@@ -31,6 +31,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [instruction, setInstruction] = useState('');
+    const [identityPrompt, setIdentityPrompt] = useState('');
     const [iconName, setIconName] = useState('Bot');
     const [colorClass, setColorClass] = useState(AVAILABLE_COLORS[0].value);
     const [imageUrl, setImageUrl] = useState('');
@@ -50,6 +51,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             setName('');
             setDescription('');
             setInstruction('');
+            setIdentityPrompt('');
             setIconName('Bot');
             setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl('');
@@ -62,6 +64,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setName(p.name);
                 setDescription(p.description || '');
                 setInstruction(p.systemInstruction);
+                setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot');
                 setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
                 setImageUrl(p.imageUrl || '');
@@ -145,6 +148,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 name,
                 description,
                 systemInstruction: instruction,
+                identityPrompt: identityPrompt.trim() || undefined,
                 iconName,
                 colorClass,
                 imageUrl,
@@ -440,6 +444,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                 rows={6}
                                 className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none resize-y transition-all leading-relaxed"
                                 placeholder="AI에게 부여할 역할과 규칙을 상세히 입력하세요..."
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                정체성 프롬프트 <span className="text-gray-500 font-normal">(선택사항)</span>
+                            </label>
+                            <p className="text-xs text-gray-500 mb-3">
+                                AI가 자신을 어떤 존재로 인식할지 설정합니다. 이미지 설명을 삽입하려면 <code className="bg-gray-700 px-1 rounded text-yellow-400">{'{imageDescription}'}</code> 를 사용하세요. 비워두면 이미지가 있을 때 기본 정체성 규칙이 적용됩니다.
+                            </p>
+                            <textarea
+                                value={identityPrompt}
+                                onChange={e => setIdentityPrompt(e.target.value)}
+                                rows={5}
+                                className="w-full bg-gray-900 border border-gray-700 rounded-xl p-3.5 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none resize-y transition-all leading-relaxed"
+                                placeholder={`예시:\n당신은 AI가 아닙니다. 당신은 {imageDescription} 모습의 실제 인물입니다.\n"저는 AI입니다"라는 말은 절대 하지 마세요.`}
                             />
                         </div>
 

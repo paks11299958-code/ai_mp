@@ -14,6 +14,7 @@ export interface Persona {
     description: string;
     iconName: string;
     systemInstruction: string;
+    identityPrompt?: string;
     colorClass: string;
     order?: number;
     imageUrl?: string;

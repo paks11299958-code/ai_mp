@@ -36,6 +36,7 @@ model Persona {
   name              String
   description       String?
   systemInstruction String
+  identityPrompt    String?
   iconName          String          @default("Bot")
   colorClass        String          @default("from-blue-500 to-cyan-500")
   order             Int             @default(0)
