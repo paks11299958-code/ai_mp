@@ -55,6 +55,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [showGlobalSettings, setShowGlobalSettings] = useState(false);
     const [commonInstruction, setCommonInstruction] = useState('');
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
+    const [showSavedModal, setShowSavedModal] = useState(false);
 
     // Form states
     const [name, setName] = useState('');
@@ -113,7 +114,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setIsSavingGlobal(true);
         try {
             await settingsApi.update({ commonInstruction });
-            setShowGlobalSettings(false);
+            setShowSavedModal(true);
         } catch (e: any) {
             alert('저장 실패: ' + e.message);
         } finally {
@@ -286,6 +287,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
     return (
         <div className="flex-1 flex flex-col h-full bg-gray-900 z-40 relative animate-in fade-in duration-200">
+
+            {/* 저장 완료 모달 */}
+            {showSavedModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+                    <div className="bg-gray-800 border border-gray-700 rounded-2xl p-6 w-72 shadow-2xl text-center animate-in fade-in zoom-in duration-200">
+                        <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+                            <Icon name="Save" size={22} className="text-emerald-400" />
+                        </div>
+                        <p className="text-white font-semibold mb-1">저장되었습니다.</p>
+                        <p className="text-xs text-gray-400 mb-5">공통 설정이 모든 페르소나에 적용됩니다.</p>
+                        <button
+                            onClick={() => { setShowSavedModal(false); setShowGlobalSettings(false); }}
+                            className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-xl transition-colors"
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* ── 헤더 ── */}
             <header className="h-14 border-b border-gray-800 bg-gray-900/95 flex items-center justify-between px-5 shrink-0">
