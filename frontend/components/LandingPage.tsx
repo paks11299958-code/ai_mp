@@ -76,10 +76,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ personas, isLoading, o
                                     className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-left hover:border-gray-600 hover:bg-gray-800/50 hover:scale-[1.02] transition-all group"
                                 >
                                     {persona.imageUrl ? (
-                                        <img src={persona.imageUrl} alt={persona.name} className="w-12 h-12 rounded-xl object-cover mb-4 shadow-lg" />
+                                        <img src={persona.imageUrl} alt={persona.name} className="w-[72px] h-[72px] rounded-xl object-cover mb-4 shadow-lg" />
                                     ) : (
-                                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${persona.colorClass} text-white flex items-center justify-center mb-4 shadow-lg`}>
-                                            <Icon name={persona.iconName} size={24} />
+                                        <div className={`w-[72px] h-[72px] rounded-xl bg-gradient-to-br ${persona.colorClass} text-white flex items-center justify-center mb-4 shadow-lg`}>
+                                            <Icon name={persona.iconName} size={36} />
                                         </div>
                                     )}
                                     <h3 className="text-lg font-bold text-gray-100 mb-2 group-hover:text-white">{persona.name}</h3>
