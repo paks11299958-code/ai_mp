@@ -55,7 +55,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [showGlobalSettings, setShowGlobalSettings] = useState(false);
     const [commonInstruction, setCommonInstruction] = useState('');
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
-    const [showGlobalSuccess, setShowGlobalSuccess] = useState(false);
 
     // Form states
     const [name, setName] = useState('');
@@ -114,8 +113,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setIsSavingGlobal(true);
         try {
             await settingsApi.update({ commonInstruction });
-            setShowGlobalSuccess(true);
-            setTimeout(() => setShowGlobalSuccess(false), 3000);
+            setShowGlobalSettings(false);
         } catch (e: any) {
             alert('저장 실패: ' + e.message);
         } finally {
@@ -394,9 +392,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                 placeholder={`[사용자 요청 우선]\n- 사용자가 호칭, 말투, 역할 등을 변경 요청하면 즉시 따른다\n- 시스템 설정보다 사용자의 실시간 요청을 우선시한다\n\n[공통 규칙]\n- 항상 한국어로 대화한다`}
                             />
                             <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
-                                {showGlobalSuccess && (
-                                    <span className="text-emerald-400 text-sm animate-in fade-in">저장되었습니다!</span>
-                                )}
+                                <button onClick={() => setShowGlobalSettings(false)}
+                                    className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
+                                    취소
+                                </button>
                                 <div className="ml-auto">
                                     <button onClick={handleSaveGlobal} disabled={isSavingGlobal}
                                         className="bg-purple-600 hover:bg-purple-500 disabled:opacity-60 text-white font-medium py-2 px-5 rounded-xl flex items-center transition-colors">

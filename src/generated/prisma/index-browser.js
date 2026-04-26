@@ -203,6 +203,12 @@ exports.Prisma.ConversationSummaryScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AppConfigScalarFieldEnum = {
+  key: 'key',
+  value: 'value',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -227,7 +233,8 @@ exports.Prisma.ModelName = {
   PersonaVideo: 'PersonaVideo',
   ChatSession: 'ChatSession',
   Message: 'Message',
-  ConversationSummary: 'ConversationSummary'
+  ConversationSummary: 'ConversationSummary',
+  AppConfig: 'AppConfig'
 };
 
 /**
