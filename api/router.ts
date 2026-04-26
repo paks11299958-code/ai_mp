@@ -270,7 +270,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { imageId, isMain, description, requiredLevel } = req.body;
+                const { imageId, isMain, description, requiredLevel, order } = req.body;
                 if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
                 if (isMain) {
                     await prisma.personaImage.updateMany({ where: { personaId: seg1 }, data: { isMain: false } });
@@ -281,6 +281,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         ...(isMain !== undefined && { isMain }),
                         ...(description !== undefined && { description }),
                         ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+                        ...(order !== undefined && { order: Number(order) }),
                     },
                 });
                 return res.status(200).json(image);

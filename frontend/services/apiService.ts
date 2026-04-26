@@ -122,6 +122,12 @@ export const personaImageApi = {
             body: JSON.stringify({ imageId, requiredLevel }),
         }),
 
+    updateOrder: (personaId: string, imageId: number, order: number) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'PUT',
+            body: JSON.stringify({ imageId, order }),
+        }),
+
     delete: (personaId: string, imageId: number) =>
         request<{ message: string }>(`/personas/${personaId}/images`, {
             method: 'DELETE',

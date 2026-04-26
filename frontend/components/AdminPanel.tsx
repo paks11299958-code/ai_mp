@@ -126,6 +126,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         }
     };
 
+    const handleReorderImage = async (imageId: number, direction: 'left' | 'right') => {
+        const idx = images.findIndex(img => img.id === imageId);
+        if (direction === 'left' && idx === 0) return;
+        if (direction === 'right' && idx === images.length - 1) return;
+        const swapIdx = direction === 'left' ? idx - 1 : idx + 1;
+        const newImages = [...images];
+        [newImages[idx], newImages[swapIdx]] = [newImages[swapIdx], newImages[idx]];
+        setImages(newImages);
+        try {
+            await Promise.all([
+                personaImageApi.updateOrder(selectedId, newImages[idx].id, idx),
+                personaImageApi.updateOrder(selectedId, newImages[swapIdx].id, swapIdx),
+            ]);
+        } catch (e: any) {
+            alert('순서 변경 실패: ' + e.message);
+        }
+    };
+
     const handleSetMain = async (imageId: number) => {
         try {
             await personaImageApi.setMain(selectedId, imageId);
@@ -549,6 +567,23 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                                         >
                                                             삭제
                                                         </button>
+                                                        {/* 순서 변경 */}
+                                                        <div className="flex gap-1 mt-0.5">
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); handleReorderImage(img.id, 'left'); }}
+                                                                disabled={images.findIndex(i => i.id === img.id) === 0}
+                                                                className="text-gray-300 hover:text-white disabled:opacity-20 text-xs bg-gray-900/80 px-2 py-1 rounded-lg transition-colors"
+                                                            >
+                                                                ←
+                                                            </button>
+                                                            <button
+                                                                onClick={e => { e.stopPropagation(); handleReorderImage(img.id, 'right'); }}
+                                                                disabled={images.findIndex(i => i.id === img.id) === images.length - 1}
+                                                                className="text-gray-300 hover:text-white disabled:opacity-20 text-xs bg-gray-900/80 px-2 py-1 rounded-lg transition-colors"
+                                                            >
+                                                                →
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     {img.description && (
                                                         <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[10px] text-gray-300 px-1.5 py-1 truncate">

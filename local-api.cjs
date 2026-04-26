@@ -368,7 +368,7 @@ app.put('/api/personas/:id/images', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { imageId, isMain, description, requiredLevel } = req.body;
+    const { imageId, isMain, description, requiredLevel, order } = req.body;
     if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
     if (isMain) {
       await prisma.personaImage.updateMany({ where: { personaId: req.params.id }, data: { isMain: false } });
@@ -379,6 +379,7 @@ app.put('/api/personas/:id/images', async (req, res) => {
         ...(isMain !== undefined && { isMain }),
         ...(description !== undefined && { description }),
         ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+        ...(order !== undefined && { order: Number(order) }),
       },
     });
     return res.json(image);
