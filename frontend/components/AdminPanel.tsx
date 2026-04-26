@@ -298,10 +298,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                         : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
                                     }`}
                             >
-                                <div className={`p-1.5 rounded-lg shrink-0 transition-colors
-                                    ${selectedId === p.id ? 'bg-white/20' : 'bg-gray-800 group-hover:bg-gray-700'}`}>
-                                    <Icon name={p.iconName} size={15} />
-                                </div>
+                                {p.imageUrl ? (
+                                    <img
+                                        src={p.imageUrl}
+                                        alt={p.name}
+                                        className={`w-8 h-8 rounded-lg object-cover shrink-0 border-2 transition-all ${
+                                            selectedId === p.id ? 'border-white/40' : 'border-transparent'
+                                        }`}
+                                    />
+                                ) : (
+                                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors
+                                        ${selectedId === p.id ? 'bg-white/20' : 'bg-gray-800 group-hover:bg-gray-700'}`}>
+                                        <Icon name={p.iconName} size={15} />
+                                    </div>
+                                )}
                                 <div className="min-w-0">
                                     <p className="text-sm font-medium truncate">{p.name}</p>
                                     {p.description && (

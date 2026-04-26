@@ -107,10 +107,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                             if (window.innerWidth < 768) setIsOpen(false);
                                         }}
                                     >
-                                        <div className={`p-2 rounded-lg mr-3 shrink-0 transition-colors
-                                            ${isActive ? `bg-gradient-to-br ${persona.colorClass} text-white` : 'bg-gray-800 text-gray-400 group-hover:text-gray-200'}`}>
-                                            <Icon name={persona.iconName} size={20} />
-                                        </div>
+                                        {persona.imageUrl ? (
+                                            <img
+                                                src={persona.imageUrl}
+                                                alt={persona.name}
+                                                className={`w-9 h-9 rounded-lg object-cover mr-3 shrink-0 border-2 transition-all ${
+                                                    isActive ? 'border-white/40' : 'border-transparent'
+                                                }`}
+                                            />
+                                        ) : (
+                                            <div className={`p-2 rounded-lg mr-3 shrink-0 transition-colors
+                                                ${isActive ? `bg-gradient-to-br ${persona.colorClass} text-white` : 'bg-gray-800 text-gray-400 group-hover:text-gray-200'}`}>
+                                                <Icon name={persona.iconName} size={20} />
+                                            </div>
+                                        )}
                                         <div className="flex-1 min-w-0">
                                             <h3 className={`font-medium truncate ${isActive ? 'text-white' : 'text-gray-300'}`}>
                                                 {persona.name}
