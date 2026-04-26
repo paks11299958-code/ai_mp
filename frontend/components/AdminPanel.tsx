@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo } from '../types';
-import { personaApi, personaImageApi, personaVideoApi } from '../services/apiService';
+import { personaImageApi, personaVideoApi } from '../services/apiService';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';

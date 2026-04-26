@@ -41,6 +41,12 @@ const App: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+    const refreshPersonaImages = useCallback((personaId: string) => {
+        personaImageApi.getAll(personaId)
+            .then(imgs => setPersonaImages(prev => ({ ...prev, [personaId]: imgs })))
+            .catch(() => {});
+    }, []);
+
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
         personaApi.getAll()
@@ -81,9 +87,7 @@ const App: React.FC = () => {
         try {
             // 이미지 로드 (아직 없을 경우)
             if (!personaImages[personaId]) {
-                personaImageApi.getAll(personaId)
-                    .then(imgs => setPersonaImages(prev => ({ ...prev, [personaId]: imgs })))
-                    .catch(() => {});
+                refreshPersonaImages(personaId);
             }
 
 
@@ -508,9 +512,7 @@ const App: React.FC = () => {
                     onDelete={handleDeletePersona}
                     onClose={() => setIsAdminMode(false)}
                     onImagesChanged={(personaId: string) => {
-                        personaImageApi.getAll(personaId)
-                            .then(imgs => setPersonaImages(prev => ({ ...prev, [personaId]: imgs })))
-                            .catch(() => {});
+                        refreshPersonaImages(personaId);
                     }}
                 />
             ) : (
