@@ -2,18 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PersonaImage, PersonaVideo } from '../types';
 import { personaVideoApi } from '../services/apiService';
 import { Icon } from './Icons';
+import { getLevel, getLevelDisplay } from '../utils/level';
 
 interface PersonaImageViewerProps {
     images: PersonaImage[];
     onSelectMain: (image: PersonaImage) => void;
+    userXp: number;
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain }) => {
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp }) => {
     const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
     const [videos, setVideos] = useState<PersonaVideo[]>([]);
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
+    const userLevel = getLevel(userXp);
     const mainImage = images.find(img => img.isMain) || images[0];
 
     // 이미지 선택 시 동영상 로드
@@ -29,47 +32,63 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     }, [mainImage?.id]);
 
     const handleImageClick = (img: PersonaImage) => {
+        if (userLevel < img.requiredLevel) return; // 잠긴 이미지는 클릭 불가
         onSelectMain(img);
         setSelectedImageId(prev => prev === img.id ? null : img.id);
     };
 
     if (images.length === 0) return null;
 
+    const unlockedVideos = videos.filter(v => userLevel >= v.requiredLevel);
+    const lockedVideos = videos.filter(v => userLevel < v.requiredLevel);
+
     return (
         <>
             <div className="px-3 py-2 bg-gray-900/50 border-b border-gray-800">
                 {/* 이미지 썸네일 */}
                 <div className="flex gap-2 overflow-x-auto">
-                    {images.map(img => (
-                        <button
-                            key={img.id}
-                            onClick={() => handleImageClick(img)}
-                            className="relative shrink-0 group"
-                            title={img.description || ''}
-                        >
-                            <img
-                                src={img.imageUrl}
-                                alt={img.description || ''}
-                                className={`w-14 h-14 rounded-lg object-cover border-2 transition-all ${
-                                    img.id === mainImage.id
-                                        ? 'border-blue-400 opacity-100'
-                                        : 'border-transparent opacity-60 group-hover:opacity-90 group-hover:border-gray-500'
-                                } ${selectedImageId === img.id ? 'ring-2 ring-blue-400/50' : ''}`}
-                            />
-                            {/* 동영상 있음 표시 */}
-                            {(img._count?.videos ?? 0) > 0 && (
-                                <span className="absolute -top-1 -right-1 bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center shadow">
-                                    <Icon name="Play" size={8} className="text-white ml-0.5" />
-                                </span>
-                            )}
-                        </button>
-                    ))}
+                    {images.map(img => {
+                        const isLocked = userLevel < img.requiredLevel;
+                        return (
+                            <button
+                                key={img.id}
+                                onClick={() => handleImageClick(img)}
+                                className={`relative shrink-0 group ${isLocked ? 'cursor-not-allowed' : ''}`}
+                                title={isLocked ? `Lv.${img.requiredLevel} 해제` : (img.description || '')}
+                            >
+                                <img
+                                    src={img.imageUrl}
+                                    alt={img.description || ''}
+                                    className={`w-14 h-14 rounded-lg object-cover border-2 transition-all ${
+                                        isLocked
+                                            ? 'border-gray-700 opacity-30 blur-[2px]'
+                                            : img.id === mainImage?.id
+                                                ? 'border-blue-400 opacity-100'
+                                                : 'border-transparent opacity-60 group-hover:opacity-90 group-hover:border-gray-500'
+                                    } ${selectedImageId === img.id ? 'ring-2 ring-blue-400/50' : ''}`}
+                                />
+                                {/* 잠금 오버레이 */}
+                                {isLocked && (
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-gray-900/60">
+                                        <Icon name="Lock" size={14} className="text-gray-400" />
+                                        <span className="text-[9px] text-gray-400 mt-0.5">Lv.{img.requiredLevel}</span>
+                                    </div>
+                                )}
+                                {/* 동영상 있음 배지 */}
+                                {!isLocked && (img._count?.videos ?? 0) > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-blue-500 rounded-full w-4 h-4 flex items-center justify-center shadow">
+                                        <Icon name="Play" size={8} className="text-white ml-0.5" />
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* 동영상 목록 */}
-                {selectedImageId && videos.length > 0 && (
+                {selectedImageId && (unlockedVideos.length > 0 || lockedVideos.length > 0) && (
                     <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
-                        {videos.map(v => (
+                        {unlockedVideos.map(v => (
                             <button
                                 key={v.id}
                                 onClick={() => setPlayingVideo(v)}
@@ -82,6 +101,20 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                     {v.title || '동영상'}
                                 </span>
                             </button>
+                        ))}
+                        {lockedVideos.map(v => (
+                            <div
+                                key={v.id}
+                                className="shrink-0 flex items-center gap-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg px-3 py-1.5 opacity-50 cursor-not-allowed"
+                                title={`${getLevelDisplay(v.requiredLevel * 15)} 달성 시 해제`}
+                            >
+                                <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center shrink-0">
+                                    <Icon name="Lock" size={10} className="text-gray-400" />
+                                </div>
+                                <span className="text-xs text-gray-500 max-w-[80px] truncate">
+                                    Lv.{v.requiredLevel}
+                                </span>
+                            </div>
                         ))}
                     </div>
                 )}

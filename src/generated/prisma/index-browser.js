@@ -126,6 +126,7 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   username: 'username',
   role: 'role',
+  xp: 'xp',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
   createdAt: 'createdAt'
@@ -162,6 +163,7 @@ exports.Prisma.PersonaImageScalarFieldEnum = {
   description: 'description',
   isMain: 'isMain',
   order: 'order',
+  requiredLevel: 'requiredLevel',
   createdAt: 'createdAt'
 };
 
@@ -171,6 +173,7 @@ exports.Prisma.PersonaVideoScalarFieldEnum = {
   videoUrl: 'videoUrl',
   title: 'title',
   order: 'order',
+  requiredLevel: 'requiredLevel',
   createdAt: 'createdAt'
 };
 

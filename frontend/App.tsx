@@ -252,9 +252,15 @@ const App: React.FC = () => {
             }
         }
 
-        // 유저 메시지 DB 저장
+        // 유저 메시지 DB 저장 + XP 증가
         if (dbSessionId) {
-            sessionApi.saveMessage(dbSessionId, 'user', text).catch(console.error);
+            sessionApi.saveMessage(dbSessionId, 'user', text)
+                .then(res => {
+                    if (res.xp !== undefined) {
+                        setUser(prev => prev ? { ...prev, xp: res.xp! } : prev);
+                    }
+                })
+                .catch(console.error);
         }
 
         const modelMsgId = (Date.now() + 1).toString();
@@ -582,7 +588,7 @@ const App: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} />
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.xp ?? 0} />
                         )}
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">

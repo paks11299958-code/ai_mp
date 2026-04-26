@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo } from '../types';
 import { personaImageApi, personaVideoApi } from '../services/apiService';
+import { getLevelDisplay } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 
@@ -565,7 +566,25 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                 {/* 동영상 패널 */}
                                 {selectedImageId && (
                                     <div className="w-52 shrink-0 bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex flex-col gap-2">
-                                        <p className="text-xs font-medium text-blue-400 mb-1">연결된 동영상</p>
+                                        {/* 이미지 레벨 설정 */}
+                                        <div className="flex items-center gap-2 pb-2 border-b border-gray-700">
+                                            <span className="text-[11px] text-gray-400 shrink-0">이미지 해제 레벨</span>
+                                            <input
+                                                type="number"
+                                                min={1}
+                                                max={100}
+                                                defaultValue={images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1}
+                                                onBlur={async e => {
+                                                    const lv = Math.max(1, Math.min(100, Number(e.target.value)));
+                                                    try {
+                                                        const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, lv);
+                                                        setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
+                                                    } catch {}
+                                                }}
+                                                className="w-14 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white text-center focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                            />
+                                        </div>
+                                        <p className="text-xs font-medium text-blue-400">연결된 동영상</p>
 
                                         {/* 동영상 추가 폼 */}
                                         <input
@@ -609,17 +628,36 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                                 <p className="text-[11px] text-gray-600 text-center py-2">동영상 없음</p>
                                             ) : (
                                                 videos.map(v => (
-                                                    <div key={v.id} className="flex items-center gap-1.5 bg-gray-800 rounded-lg px-2 py-1.5 group">
-                                                        <Icon name="Play" size={12} className="text-blue-400 shrink-0" />
-                                                        <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
-                                                            {v.title || v.videoUrl.split('/').pop()}
-                                                        </span>
-                                                        <button
-                                                            onClick={() => handleDeleteVideo(v.id)}
-                                                            className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
-                                                        >
-                                                            <Icon name="X" size={12} />
-                                                        </button>
+                                                    <div key={v.id} className="flex flex-col bg-gray-800 rounded-lg px-2 py-1.5 gap-1 group">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Icon name="Play" size={12} className="text-blue-400 shrink-0" />
+                                                            <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
+                                                                {v.title || v.videoUrl.split('/').pop()}
+                                                            </span>
+                                                            <button
+                                                                onClick={() => handleDeleteVideo(v.id)}
+                                                                className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0"
+                                                            >
+                                                                <Icon name="X" size={12} />
+                                                            </button>
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-[10px] text-gray-500">해제 레벨</span>
+                                                            <input
+                                                                type="number"
+                                                                min={1}
+                                                                max={100}
+                                                                defaultValue={v.requiredLevel ?? 1}
+                                                                onBlur={async e => {
+                                                                    const lv = Math.max(1, Math.min(100, Number(e.target.value)));
+                                                                    try {
+                                                                        const updated = await personaVideoApi.update(v.id, { requiredLevel: lv });
+                                                                        setVideos(prev => prev.map(vid => vid.id === v.id ? { ...vid, requiredLevel: updated.requiredLevel } : vid));
+                                                                    } catch {}
+                                                                }}
+                                                                className="w-12 bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-[10px] text-white text-center focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
                                                     </div>
                                                 ))
                                             )}

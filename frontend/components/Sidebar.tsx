@@ -1,6 +1,7 @@
 import React from 'react';
 import { Persona, User } from '../types';
 import { Icon } from './Icons';
+import { getLevelDisplay, getLevel, getLevelProgress, getXpToNextLevel, getRank } from '../utils/level';
 
 interface SidebarProps {
     personas: Persona[];
@@ -108,22 +109,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <div className="p-4 border-t border-gray-800 shrink-0">
                     {user && (
-                        <div className="flex items-center justify-between mb-3 px-1">
-                            <div className="flex items-center min-w-0">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mr-2">
-                                    {(user.username || user.email)[0].toUpperCase()}
+                        <div className="mb-3 px-1">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center min-w-0">
+                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mr-2">
+                                        {(user.username || user.email)[0].toUpperCase()}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-sm text-gray-300 truncate block">
+                                            {user.username || user.email}
+                                        </span>
+                                        <span className={`text-xs font-bold ${getRank(user.xp ?? 0) ? 'text-yellow-400' : 'text-blue-400'}`}>
+                                            {getLevelDisplay(user.xp ?? 0)}
+                                        </span>
+                                    </div>
                                 </div>
-                                <span className="text-sm text-gray-300 truncate">
-                                    {user.username || user.email}
-                                </span>
+                                <button
+                                    onClick={onLogout}
+                                    className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-red-400 transition-colors shrink-0 ml-2"
+                                    title="로그아웃"
+                                >
+                                    <Icon name="LogOut" size={16} />
+                                </button>
                             </div>
-                            <button
-                                onClick={onLogout}
-                                className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-red-400 transition-colors shrink-0 ml-2"
-                                title="로그아웃"
-                            >
-                                <Icon name="LogOut" size={16} />
-                            </button>
+                            {/* XP 진행 바 */}
+                            {!getRank(user.xp ?? 0) && (
+                                <div className="mt-2">
+                                    <div className="flex justify-between text-[10px] text-gray-600 mb-1">
+                                        <span>다음 레벨까지 {getXpToNextLevel(user.xp ?? 0)}개</span>
+                                        <span>{(user.xp ?? 0)} XP</span>
+                                    </div>
+                                    <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
+                                            style={{ width: `${getLevelProgress(user.xp ?? 0)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                     <div className="flex justify-between items-center text-xs text-gray-500">

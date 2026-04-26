@@ -38,6 +38,7 @@ export interface PersonaImage {
     description?: string;
     isMain: boolean;
     order: number;
+    requiredLevel: number;
     createdAt: string;
     _count?: { videos: number };
 }
@@ -48,6 +49,7 @@ export interface PersonaVideo {
     videoUrl: string;
     title?: string;
     order: number;
+    requiredLevel: number;
     createdAt: string;
 }
 
@@ -74,6 +76,7 @@ export interface User {
     email: string;
     username?: string;
     role: string;
+    xp: number;
 }
 
 export interface DbSession {
