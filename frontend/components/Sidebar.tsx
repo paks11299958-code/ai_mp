@@ -1,7 +1,7 @@
 import React from 'react';
 import { Persona, User } from '../types';
 import { Icon } from './Icons';
-import { getLevelDisplay, getLevel, getLevelProgress, getXpToNextLevel, getRank } from '../utils/level';
+import { getStage, getStageProgress, getXpToNextStage, STAGES } from '../utils/level';
 
 interface SidebarProps {
     personas: Persona[];
@@ -108,47 +108,62 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
 
                 <div className="p-4 border-t border-gray-800 shrink-0">
-                    {user && (
-                        <div className="mb-3 px-1">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center min-w-0">
-                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mr-2">
-                                        {(user.username || user.email)[0].toUpperCase()}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <span className="text-sm text-gray-300 truncate block">
+                    {user && (() => {
+                        const xp = user.xp ?? 0;
+                        const stage = getStage(xp);
+                        const progress = getStageProgress(xp);
+                        const toNext = getXpToNextStage(xp);
+                        const isMax = stage.stage === STAGES.length;
+                        return (
+                            <div className="mb-3 px-1">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center min-w-0">
+                                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 mr-2">
+                                            {(user.username || user.email)[0].toUpperCase()}
+                                        </div>
+                                        <span className="text-sm text-gray-300 truncate">
                                             {user.username || user.email}
                                         </span>
-                                        <span className={`text-xs font-bold ${getRank(user.xp ?? 0) ? 'text-yellow-400' : 'text-blue-400'}`}>
-                                            {getLevelDisplay(user.xp ?? 0)}
-                                        </span>
                                     </div>
+                                    <button
+                                        onClick={onLogout}
+                                        className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-red-400 transition-colors shrink-0 ml-2"
+                                        title="로그아웃"
+                                    >
+                                        <Icon name="LogOut" size={16} />
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={onLogout}
-                                    className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-red-400 transition-colors shrink-0 ml-2"
-                                    title="로그아웃"
-                                >
-                                    <Icon name="LogOut" size={16} />
-                                </button>
-                            </div>
-                            {/* XP 진행 바 */}
-                            {!getRank(user.xp ?? 0) && (
-                                <div className="mt-2">
-                                    <div className="flex justify-between text-[10px] text-gray-600 mb-1">
-                                        <span>다음 레벨까지 {getXpToNextLevel(user.xp ?? 0)}개</span>
-                                        <span>{(user.xp ?? 0)} XP</span>
+
+                                {/* 단계 이름 + 설명 */}
+                                <div className="mt-2 bg-gray-800/60 rounded-xl px-3 py-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className={`text-xs font-bold bg-gradient-to-r ${stage.color} bg-clip-text text-transparent`}>
+                                            {stage.stage}단계 · {stage.name}
+                                        </span>
+                                        <span className="text-[10px] text-gray-600">{xp} XP</span>
                                     </div>
+                                    <p className="text-[10px] text-gray-500 leading-relaxed mb-2">
+                                        {stage.description}
+                                    </p>
+                                    {/* 진행 바 */}
                                     <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
                                         <div
-                                            className="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                                            style={{ width: `${getLevelProgress(user.xp ?? 0)}%` }}
+                                            className={`h-full bg-gradient-to-r ${stage.color} rounded-full transition-all duration-500`}
+                                            style={{ width: `${isMax ? 100 : progress}%` }}
                                         />
                                     </div>
+                                    {!isMax && (
+                                        <p className="text-[10px] text-gray-600 mt-1">
+                                            다음 단계까지 <span className="text-gray-400">{toNext}개</span> 더
+                                        </p>
+                                    )}
+                                    {isMax && (
+                                        <p className="text-[10px] text-yellow-600 mt-1">전설의 경지에 도달했습니다</p>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                        );
+                    })()}
                     <div className="flex justify-between items-center text-xs text-gray-500">
                         <span>Gemini 2.5 Flash 기반</span>
                         {user?.role === 'ADMIN' && (

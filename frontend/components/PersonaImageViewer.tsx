@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { PersonaImage, PersonaVideo } from '../types';
 import { personaVideoApi } from '../services/apiService';
 import { Icon } from './Icons';
-import { getLevel, getLevelDisplay } from '../utils/level';
+import { getStage, STAGES } from '../utils/level';
 
 interface PersonaImageViewerProps {
     images: PersonaImage[];
@@ -16,7 +16,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    const userLevel = getLevel(userXp);
+    const userStage = getStage(userXp).stage;
     const mainImage = images.find(img => img.isMain) || images[0];
 
     // 이미지 선택 시 동영상 로드
@@ -32,15 +32,15 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     }, [mainImage?.id]);
 
     const handleImageClick = (img: PersonaImage) => {
-        if (userLevel < img.requiredLevel) return; // 잠긴 이미지는 클릭 불가
+        if (userStage < img.requiredLevel) return; // 잠긴 이미지는 클릭 불가
         onSelectMain(img);
         setSelectedImageId(prev => prev === img.id ? null : img.id);
     };
 
     if (images.length === 0) return null;
 
-    const unlockedVideos = videos.filter(v => userLevel >= v.requiredLevel);
-    const lockedVideos = videos.filter(v => userLevel < v.requiredLevel);
+    const unlockedVideos = videos.filter(v => userStage >= v.requiredLevel);
+    const lockedVideos = videos.filter(v => userStage < v.requiredLevel);
 
     return (
         <>
@@ -48,13 +48,14 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                 {/* 이미지 썸네일 */}
                 <div className="flex gap-2 overflow-x-auto">
                     {images.map(img => {
-                        const isLocked = userLevel < img.requiredLevel;
+                        const isLocked = userStage < img.requiredLevel;
+                        const reqStageName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
                         return (
                             <button
                                 key={img.id}
                                 onClick={() => handleImageClick(img)}
                                 className={`relative shrink-0 group ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                title={isLocked ? `Lv.${img.requiredLevel} 해제` : (img.description || '')}
+                                title={isLocked ? `${img.requiredLevel}단계 "${reqStageName}" 달성 시 해제` : (img.description || '')}
                             >
                                 <img
                                     src={img.imageUrl}
@@ -71,7 +72,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                 {isLocked && (
                                     <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-gray-900/60">
                                         <Icon name="Lock" size={14} className="text-gray-400" />
-                                        <span className="text-[9px] text-gray-400 mt-0.5">Lv.{img.requiredLevel}</span>
+                                        <span className="text-[9px] text-gray-400 mt-0.5">{img.requiredLevel}단계</span>
                                     </div>
                                 )}
                                 {/* 동영상 있음 배지 */}
@@ -106,13 +107,13 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                             <div
                                 key={v.id}
                                 className="shrink-0 flex items-center gap-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg px-3 py-1.5 opacity-50 cursor-not-allowed"
-                                title={`${getLevelDisplay(v.requiredLevel * 15)} 달성 시 해제`}
+                                title={`${v.requiredLevel}단계 "${STAGES[v.requiredLevel - 1]?.name}" 달성 시 해제`}
                             >
                                 <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center shrink-0">
                                     <Icon name="Lock" size={10} className="text-gray-400" />
                                 </div>
                                 <span className="text-xs text-gray-500 max-w-[80px] truncate">
-                                    Lv.{v.requiredLevel}
+                                    {v.requiredLevel}단계
                                 </span>
                             </div>
                         ))}

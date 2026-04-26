@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo } from '../types';
 import { personaImageApi, personaVideoApi } from '../services/apiService';
-import { getLevelDisplay } from '../utils/level';
+import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 
@@ -566,23 +566,24 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                 {/* 동영상 패널 */}
                                 {selectedImageId && (
                                     <div className="w-52 shrink-0 bg-gray-900/60 border border-gray-700 rounded-xl p-3 flex flex-col gap-2">
-                                        {/* 이미지 레벨 설정 */}
-                                        <div className="flex items-center gap-2 pb-2 border-b border-gray-700">
-                                            <span className="text-[11px] text-gray-400 shrink-0">이미지 해제 레벨</span>
-                                            <input
-                                                type="number"
-                                                min={1}
-                                                max={100}
-                                                defaultValue={images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1}
-                                                onBlur={async e => {
-                                                    const lv = Math.max(1, Math.min(100, Number(e.target.value)));
+                                        {/* 이미지 해제 단계 설정 */}
+                                        <div className="pb-2 border-b border-gray-700">
+                                            <span className="text-[11px] text-gray-400 block mb-1">이미지 해제 단계</span>
+                                            <select
+                                                value={images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1}
+                                                onChange={async e => {
+                                                    const lv = Number(e.target.value);
                                                     try {
                                                         const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, lv);
                                                         setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
                                                     } catch {}
                                                 }}
-                                                className="w-14 bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white text-center focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                            />
+                                                className="w-full bg-gray-800 border border-gray-600 rounded-lg px-2 py-1 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                            >
+                                                {STAGES.map(s => (
+                                                    <option key={s.stage} value={s.stage}>{s.stage}단계 · {s.name}</option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <p className="text-xs font-medium text-blue-400">연결된 동영상</p>
 
@@ -641,23 +642,21 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
                                                                 <Icon name="X" size={12} />
                                                             </button>
                                                         </div>
-                                                        <div className="flex items-center gap-1">
-                                                            <span className="text-[10px] text-gray-500">해제 레벨</span>
-                                                            <input
-                                                                type="number"
-                                                                min={1}
-                                                                max={100}
-                                                                defaultValue={v.requiredLevel ?? 1}
-                                                                onBlur={async e => {
-                                                                    const lv = Math.max(1, Math.min(100, Number(e.target.value)));
-                                                                    try {
-                                                                        const updated = await personaVideoApi.update(v.id, { requiredLevel: lv });
-                                                                        setVideos(prev => prev.map(vid => vid.id === v.id ? { ...vid, requiredLevel: updated.requiredLevel } : vid));
-                                                                    } catch {}
-                                                                }}
-                                                                className="w-12 bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-[10px] text-white text-center focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                                            />
-                                                        </div>
+                                                        <select
+                                                            value={v.requiredLevel ?? 1}
+                                                            onChange={async e => {
+                                                                const lv = Number(e.target.value);
+                                                                try {
+                                                                    const updated = await personaVideoApi.update(v.id, { requiredLevel: lv });
+                                                                    setVideos(prev => prev.map(vid => vid.id === v.id ? { ...vid, requiredLevel: updated.requiredLevel } : vid));
+                                                                } catch {}
+                                                            }}
+                                                            className="w-full bg-gray-700 border border-gray-600 rounded px-1 py-0.5 text-[10px] text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                                        >
+                                                            {STAGES.map(s => (
+                                                                <option key={s.stage} value={s.stage}>{s.stage}단계 · {s.name}</option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                 ))
                                             )}
