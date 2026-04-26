@@ -88,33 +88,23 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
 
                 {/* 동영상 목록 */}
                 {selectedImageId && (unlockedVideos.length > 0 || lockedVideos.length > 0) && (
-                    <div className="flex gap-2 mt-2 overflow-x-auto pb-1">
-                        {unlockedVideos.map(v => (
+                    <div className="flex gap-1.5 mt-2 overflow-x-auto pb-1">
+                        {unlockedVideos.map((v, i) => (
                             <button
                                 key={v.id}
                                 onClick={() => setPlayingVideo(v)}
-                                className="shrink-0 flex items-center gap-1.5 bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-blue-500 rounded-lg px-3 py-1.5 transition-all group"
+                                className="shrink-0 w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 border-2 border-blue-500 hover:border-blue-400 flex items-center justify-center transition-all group relative"
                             >
-                                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                                    <Icon name="Play" size={10} className="text-white ml-0.5" />
-                                </div>
-                                <span className="text-xs text-gray-300 group-hover:text-white max-w-[120px] truncate">
-                                    {v.title || '동영상'}
-                                </span>
+                                <span className="text-xs font-bold text-white">{i + 1}</span>
                             </button>
                         ))}
-                        {lockedVideos.map(v => (
+                        {lockedVideos.map((v, i) => (
                             <div
                                 key={v.id}
-                                className="shrink-0 flex items-center gap-1.5 bg-gray-800/50 border border-gray-700/50 rounded-lg px-3 py-1.5 opacity-50 cursor-not-allowed"
                                 title={`${v.requiredLevel}단계 "${STAGES[v.requiredLevel - 1]?.name}" 달성 시 해제`}
+                                className="shrink-0 w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center opacity-40 cursor-not-allowed"
                             >
-                                <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center shrink-0">
-                                    <Icon name="Lock" size={10} className="text-gray-400" />
-                                </div>
-                                <span className="text-xs text-gray-500 max-w-[80px] truncate">
-                                    {v.requiredLevel}단계
-                                </span>
+                                <Icon name="Lock" size={10} className="text-gray-400" />
                             </div>
                         ))}
                     </div>
