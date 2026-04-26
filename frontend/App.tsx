@@ -3,6 +3,7 @@ import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, authApi, memoryApi } from './services/apiService';
+import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
@@ -529,22 +530,40 @@ const App: React.FC = () => {
                                 </div>
                                 <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
                                 <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
-                                {activeImages.length > 1 && (
-                                    <div className="flex gap-2 mt-4 justify-center flex-wrap">
-                                        {activeImages.map(img => (
-                                            <button
-                                                key={img.id}
-                                                onClick={() => handleSwitchImage(img)}
-                                                title={img.description || ''}
-                                                className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                                                    img.isMain ? 'border-blue-400 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'
-                                                }`}
-                                            >
-                                                <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                {activeImages.length > 1 && (() => {
+                                    const userStage = getStage(user?.xp ?? 0).stage;
+                                    return (
+                                        <div className="flex gap-2 mt-4 justify-center flex-wrap">
+                                            {activeImages.map(img => {
+                                                const isLocked = userStage < img.requiredLevel;
+                                                const reqName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
+                                                return (
+                                                    <button
+                                                        key={img.id}
+                                                        onClick={() => !isLocked && handleSwitchImage(img)}
+                                                        title={isLocked ? `${img.requiredLevel}단계 "${reqName}" 달성 시 해제` : (img.description || '')}
+                                                        disabled={isLocked}
+                                                        className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                                                            isLocked
+                                                                ? 'border-gray-700 cursor-not-allowed opacity-40'
+                                                                : img.isMain
+                                                                    ? 'border-blue-400 opacity-100'
+                                                                    : 'border-transparent opacity-50 hover:opacity-80'
+                                                        }`}
+                                                    >
+                                                        <img src={img.imageUrl} alt="" className={`w-full h-full object-cover ${isLocked ? 'blur-[2px]' : ''}`} />
+                                                        {isLocked && (
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/60">
+                                                                <Icon name="Lock" size={14} className="text-gray-400" />
+                                                                <span className="text-[8px] text-gray-400 mt-0.5">{img.requiredLevel}단계</span>
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         ) : null;
                     })()}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Persona, User } from '../types';
 import { Icon } from './Icons';
 import { getStage, getStageProgress, getXpToNextStage, STAGES } from '../utils/level';
@@ -21,6 +21,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isOpen, setIsOpen, onAdminClick, onReorder,
     user, onLogout, onGoHome,
 }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+    const filteredPersonas = searchQuery.trim()
+        ? personas.filter(p =>
+            p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (p.description || '').toLowerCase().includes(searchQuery.toLowerCase())
+          )
+        : personas;
+
     return (
         <>
             {isOpen && (
@@ -53,8 +61,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </button>
                 </div>
 
+                {personas.length > 4 && (
+                    <div className="px-3 py-2 border-b border-gray-800">
+                        <div className="relative">
+                            <Icon name="Search" size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="페르소나 검색..."
+                                className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            {searchQuery && (
+                                <button
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                >
+                                    <Icon name="X" size={12} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                    {personas.map((persona, index) => {
+                    {filteredPersonas.length === 0 && searchQuery ? (
+                        <p className="text-xs text-gray-600 text-center py-8">검색 결과 없음</p>
+                    ) : filteredPersonas.map((persona, index) => {
+                        const originalIndex = personas.indexOf(persona);
                         const isActive = persona.id === activePersonaId;
                         return (
                             <div
@@ -85,22 +119,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity ml-1 shrink-0">
-                                        <button
-                                            onClick={e => { e.stopPropagation(); onReorder(index, 'up'); }}
-                                            disabled={index === 0}
-                                            className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
-                                        >
-                                            <Icon name="ChevronUp" size={16} />
-                                        </button>
-                                        <button
-                                            onClick={e => { e.stopPropagation(); onReorder(index, 'down'); }}
-                                            disabled={index === personas.length - 1}
-                                            className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
-                                        >
-                                            <Icon name="ChevronDown" size={16} />
-                                        </button>
-                                    </div>
+                                    {!searchQuery && (
+                                        <div className="flex flex-col opacity-0 group-hover:opacity-100 transition-opacity ml-1 shrink-0">
+                                            <button
+                                                onClick={e => { e.stopPropagation(); onReorder(originalIndex, 'up'); }}
+                                                disabled={originalIndex === 0}
+                                                className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
+                                            >
+                                                <Icon name="ChevronUp" size={16} />
+                                            </button>
+                                            <button
+                                                onClick={e => { e.stopPropagation(); onReorder(originalIndex, 'down'); }}
+                                                disabled={originalIndex === personas.length - 1}
+                                                className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
+                                            >
+                                                <Icon name="ChevronDown" size={16} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         );
