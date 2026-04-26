@@ -28,7 +28,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (!valid) return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
                 const token = signToken(user.id);
                 res.setHeader('Set-Cookie', setTokenCookie(token));
-                return res.status(200).json({ user: { id: user.id, email: user.email, username: user.username, role: user.role }, token });
+                return res.status(200).json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, xp: user.xp }, token });
             } catch (e: any) {
                 console.error('[login]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -45,7 +45,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const hashed = await bcrypt.hash(password, 10);
                 const user = await prisma.user.create({
                     data: { email, password: hashed, username },
-                    select: { id: true, email: true, username: true, role: true },
+                    select: { id: true, email: true, username: true, role: true, xp: true },
                 });
                 const token = signToken(user.id);
                 res.setHeader('Set-Cookie', setTokenCookie(token));
@@ -70,7 +70,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const { userId } = verifyToken(token);
                 const user = await prisma.user.findUnique({
                     where: { id: userId },
-                    select: { id: true, email: true, username: true, role: true },
+                    select: { id: true, email: true, username: true, role: true, xp: true },
                 });
                 if (!user) return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
                 return res.status(200).json({ user });
@@ -270,14 +270,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { imageId, isMain, description } = req.body;
+                const { imageId, isMain, description, requiredLevel, order } = req.body;
                 if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
                 if (isMain) {
                     await prisma.personaImage.updateMany({ where: { personaId: seg1 }, data: { isMain: false } });
                 }
                 const image = await prisma.personaImage.update({
                     where: { id: Number(imageId) },
-                    data: { ...(isMain !== undefined && { isMain }), ...(description !== undefined && { description }) },
+                    data: {
+                        ...(isMain !== undefined && { isMain }),
+                        ...(description !== undefined && { description }),
+                        ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+                        ...(order !== undefined && { order: Number(order) }),
+                    },
                 });
                 return res.status(200).json(image);
             } catch (e: any) {
@@ -492,7 +497,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (!role || !text) return res.status(400).json({ error: 'role과 text는 필수입니다.' });
                 const message = await prisma.message.create({ data: { sessionId, role, text } });
                 await prisma.chatSession.update({ where: { id: sessionId }, data: { updatedAt: new Date() } });
-                return res.status(201).json(message);
+                // 사용자 메시지 1개 = 1 XP
+                let updatedXp: number | undefined;
+                if (role === 'user') {
+                    const updated = await prisma.user.update({
+                        where: { id: userId },
+                        data: { xp: { increment: 1 } },
+                        select: { xp: true },
+                    });
+                    updatedXp = updated.xp;
+                }
+                return res.status(201).json({ ...message, xp: updatedXp });
             } catch (e: any) {
                 console.error('[messages POST]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -670,10 +685,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { title, order } = req.body;
+                const { title, order, requiredLevel } = req.body;
                 const video = await prisma.personaVideo.update({
                     where: { id: Number(seg1) },
-                    data: { ...(title !== undefined && { title }), ...(order !== undefined && { order }) },
+                    data: {
+                        ...(title !== undefined && { title }),
+                        ...(order !== undefined && { order }),
+                        ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+                    },
                 });
                 return res.status(200).json(video);
             } catch (e: any) {

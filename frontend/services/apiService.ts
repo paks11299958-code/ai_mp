@@ -116,6 +116,18 @@ export const personaImageApi = {
             body: JSON.stringify({ imageId, description }),
         }),
 
+    updateRequiredLevel: (personaId: string, imageId: number, requiredLevel: number) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'PUT',
+            body: JSON.stringify({ imageId, requiredLevel }),
+        }),
+
+    updateOrder: (personaId: string, imageId: number, order: number) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'PUT',
+            body: JSON.stringify({ imageId, order }),
+        }),
+
     delete: (personaId: string, imageId: number) =>
         request<{ message: string }>(`/personas/${personaId}/images`, {
             method: 'DELETE',
@@ -140,7 +152,7 @@ export const personaVideoApi = {
             body: JSON.stringify({ imageId, ...data }),
         }),
 
-    update: (videoId: number, data: { title?: string; order?: number }) =>
+    update: (videoId: number, data: { title?: string; order?: number; requiredLevel?: number }) =>
         request<PersonaVideo>(`/persona-videos/${videoId}`, {
             method: 'PUT',
             body: JSON.stringify(data),
@@ -167,7 +179,7 @@ export const sessionApi = {
         ),
 
     saveMessage: (sessionId: number, role: string, text: string) =>
-        request<Message>(`/sessions/${sessionId}/messages`, {
+        request<Message & { xp?: number }>(`/sessions/${sessionId}/messages`, {
             method: 'POST',
             body: JSON.stringify({ role, text }),
         }),

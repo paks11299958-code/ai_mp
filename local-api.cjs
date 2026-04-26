@@ -153,7 +153,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { email, password: hashed, username: username || null },
-      select: { id: true, email: true, username: true, role: true },
+      select: { id: true, email: true, username: true, role: true, xp: true },
     });
     const token = signToken(user.id);
     res.setHeader('Set-Cookie', tokenCookie(token));
@@ -194,7 +194,7 @@ app.get('/api/auth/me', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, username: true, role: true },
+      select: { id: true, email: true, username: true, role: true, xp: true },
     });
     if (!user) return res.status(401).json({ error: '사용자를 찾을 수 없습니다.' });
     return res.json({ user });
@@ -336,6 +336,17 @@ app.post('/api/personas/:id/images', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+
+    // signed-url 발급 요청
+    if (req.query.action === 'signed-url') {
+      const { mimeType, filename } = req.body;
+      if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+      const ext = mimeType.split('/')[1] || 'jpg';
+      const destPath = `personas/${req.params.id}/images/${Date.now()}_${filename || 'image'}.${ext}`;
+      const result = await generateSignedUrl(destPath, mimeType);
+      return res.json(result);
+    }
+
     const { imageUrl, description, isMain } = req.body;
     if (!imageUrl) return res.status(400).json({ error: 'imageUrl은 필수입니다.' });
 
@@ -368,14 +379,19 @@ app.put('/api/personas/:id/images', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { imageId, isMain, description } = req.body;
+    const { imageId, isMain, description, requiredLevel, order } = req.body;
     if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
     if (isMain) {
       await prisma.personaImage.updateMany({ where: { personaId: req.params.id }, data: { isMain: false } });
     }
     const image = await prisma.personaImage.update({
       where: { id: Number(imageId) },
-      data: { ...(isMain !== undefined && { isMain }), ...(description !== undefined && { description }) },
+      data: {
+        ...(isMain !== undefined && { isMain }),
+        ...(description !== undefined && { description }),
+        ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+        ...(order !== undefined && { order: Number(order) }),
+      },
     });
     return res.json(image);
   } catch (e) {
@@ -420,25 +436,6 @@ async function generateSignedUrl(destPath, mimeType) {
   return { signedUrl, publicUrl };
 }
 
-// POST /api/personas/:id/images?action=signed-url
-app.post('/api/personas/:id/images', async (req, res, next) => {
-  if (req.query.action !== 'signed-url') return next();
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { mimeType, filename } = req.body;
-    if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
-    const ext = mimeType.split('/')[1] || 'jpg';
-    const destPath = `personas/${req.params.id}/images/${Date.now()}_${filename || 'image'}.${ext}`;
-    const result = await generateSignedUrl(destPath, mimeType);
-    return res.json(result);
-  } catch (e) {
-    console.error('[image signed-url]', e);
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
 
 // POST /api/persona-videos/signed-url
 app.post('/api/persona-videos/signed-url', async (req, res) => {
@@ -507,10 +504,14 @@ app.put('/api/persona-videos/:videoId', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { title, order } = req.body;
+    const { title, order, requiredLevel } = req.body;
     const video = await prisma.personaVideo.update({
       where: { id: Number(req.params.videoId) },
-      data: { ...(title !== undefined && { title }), ...(order !== undefined && { order }) },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(order !== undefined && { order }),
+        ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+      },
     });
     return res.json(video);
   } catch (e) {
@@ -631,7 +632,16 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
     const message = await prisma.message.create({
       data: { sessionId: Number(req.params.id), role, text },
     });
-    return res.status(201).json(message);
+    let updatedXp;
+    if (role === 'user') {
+      const updated = await prisma.user.update({
+        where: { id: payload.userId },
+        data: { xp: { increment: 1 } },
+        select: { xp: true },
+      });
+      updatedXp = updated.xp;
+    }
+    return res.status(201).json({ ...message, xp: updatedXp });
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }

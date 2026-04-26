@@ -1667,10 +1667,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     id: number | null
+    xp: number | null
   }
 
   export type UserSumAggregateOutputType = {
     id: number | null
+    xp: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -1679,6 +1681,7 @@ export namespace Prisma {
     password: string | null
     username: string | null
     role: string | null
+    xp: number | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date | null
@@ -1690,6 +1693,7 @@ export namespace Prisma {
     password: string | null
     username: string | null
     role: string | null
+    xp: number | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date | null
@@ -1701,6 +1705,7 @@ export namespace Prisma {
     password: number
     username: number
     role: number
+    xp: number
     resetToken: number
     resetTokenExpiry: number
     createdAt: number
@@ -1710,10 +1715,12 @@ export namespace Prisma {
 
   export type UserAvgAggregateInputType = {
     id?: true
+    xp?: true
   }
 
   export type UserSumAggregateInputType = {
     id?: true
+    xp?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -1722,6 +1729,7 @@ export namespace Prisma {
     password?: true
     username?: true
     role?: true
+    xp?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1733,6 +1741,7 @@ export namespace Prisma {
     password?: true
     username?: true
     role?: true
+    xp?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1744,6 +1753,7 @@ export namespace Prisma {
     password?: true
     username?: true
     role?: true
+    xp?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1842,6 +1852,7 @@ export namespace Prisma {
     password: string
     username: string | null
     role: string
+    xp: number
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date
@@ -1872,6 +1883,7 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
+    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
@@ -1887,6 +1899,7 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
+    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
@@ -1898,6 +1911,7 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
+    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
@@ -1909,12 +1923,13 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
+    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "username" | "role" | "resetToken" | "resetTokenExpiry" | "createdAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "username" | "role" | "xp" | "resetToken" | "resetTokenExpiry" | "createdAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     personas?: boolean | User$personasArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
@@ -1937,6 +1952,7 @@ export namespace Prisma {
       password: string
       username: string | null
       role: string
+      xp: number
       resetToken: string | null
       resetTokenExpiry: Date | null
       createdAt: Date
@@ -2371,6 +2387,7 @@ export namespace Prisma {
     readonly password: FieldRef<"User", 'String'>
     readonly username: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'String'>
+    readonly xp: FieldRef<"User", 'Int'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
@@ -5255,11 +5272,13 @@ export namespace Prisma {
   export type PersonaImageAvgAggregateOutputType = {
     id: number | null
     order: number | null
+    requiredLevel: number | null
   }
 
   export type PersonaImageSumAggregateOutputType = {
     id: number | null
     order: number | null
+    requiredLevel: number | null
   }
 
   export type PersonaImageMinAggregateOutputType = {
@@ -5269,6 +5288,7 @@ export namespace Prisma {
     description: string | null
     isMain: boolean | null
     order: number | null
+    requiredLevel: number | null
     createdAt: Date | null
   }
 
@@ -5279,6 +5299,7 @@ export namespace Prisma {
     description: string | null
     isMain: boolean | null
     order: number | null
+    requiredLevel: number | null
     createdAt: Date | null
   }
 
@@ -5289,6 +5310,7 @@ export namespace Prisma {
     description: number
     isMain: number
     order: number
+    requiredLevel: number
     createdAt: number
     _all: number
   }
@@ -5297,11 +5319,13 @@ export namespace Prisma {
   export type PersonaImageAvgAggregateInputType = {
     id?: true
     order?: true
+    requiredLevel?: true
   }
 
   export type PersonaImageSumAggregateInputType = {
     id?: true
     order?: true
+    requiredLevel?: true
   }
 
   export type PersonaImageMinAggregateInputType = {
@@ -5311,6 +5335,7 @@ export namespace Prisma {
     description?: true
     isMain?: true
     order?: true
+    requiredLevel?: true
     createdAt?: true
   }
 
@@ -5321,6 +5346,7 @@ export namespace Prisma {
     description?: true
     isMain?: true
     order?: true
+    requiredLevel?: true
     createdAt?: true
   }
 
@@ -5331,6 +5357,7 @@ export namespace Prisma {
     description?: true
     isMain?: true
     order?: true
+    requiredLevel?: true
     createdAt?: true
     _all?: true
   }
@@ -5428,6 +5455,7 @@ export namespace Prisma {
     description: string | null
     isMain: boolean
     order: number
+    requiredLevel: number
     createdAt: Date
     _count: PersonaImageCountAggregateOutputType | null
     _avg: PersonaImageAvgAggregateOutputType | null
@@ -5457,6 +5485,7 @@ export namespace Prisma {
     description?: boolean
     isMain?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
     videos?: boolean | PersonaImage$videosArgs<ExtArgs>
@@ -5470,6 +5499,7 @@ export namespace Prisma {
     description?: boolean
     isMain?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaImage"]>
@@ -5481,6 +5511,7 @@ export namespace Prisma {
     description?: boolean
     isMain?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaImage"]>
@@ -5492,10 +5523,11 @@ export namespace Prisma {
     description?: boolean
     isMain?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "imageUrl" | "description" | "isMain" | "order" | "createdAt", ExtArgs["result"]["personaImage"]>
+  export type PersonaImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "imageUrl" | "description" | "isMain" | "order" | "requiredLevel" | "createdAt", ExtArgs["result"]["personaImage"]>
   export type PersonaImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
     videos?: boolean | PersonaImage$videosArgs<ExtArgs>
@@ -5521,6 +5553,7 @@ export namespace Prisma {
       description: string | null
       isMain: boolean
       order: number
+      requiredLevel: number
       createdAt: Date
     }, ExtArgs["result"]["personaImage"]>
     composites: {}
@@ -5953,6 +5986,7 @@ export namespace Prisma {
     readonly description: FieldRef<"PersonaImage", 'String'>
     readonly isMain: FieldRef<"PersonaImage", 'Boolean'>
     readonly order: FieldRef<"PersonaImage", 'Int'>
+    readonly requiredLevel: FieldRef<"PersonaImage", 'Int'>
     readonly createdAt: FieldRef<"PersonaImage", 'DateTime'>
   }
     
@@ -6413,12 +6447,14 @@ export namespace Prisma {
     id: number | null
     imageId: number | null
     order: number | null
+    requiredLevel: number | null
   }
 
   export type PersonaVideoSumAggregateOutputType = {
     id: number | null
     imageId: number | null
     order: number | null
+    requiredLevel: number | null
   }
 
   export type PersonaVideoMinAggregateOutputType = {
@@ -6427,6 +6463,7 @@ export namespace Prisma {
     videoUrl: string | null
     title: string | null
     order: number | null
+    requiredLevel: number | null
     createdAt: Date | null
   }
 
@@ -6436,6 +6473,7 @@ export namespace Prisma {
     videoUrl: string | null
     title: string | null
     order: number | null
+    requiredLevel: number | null
     createdAt: Date | null
   }
 
@@ -6445,6 +6483,7 @@ export namespace Prisma {
     videoUrl: number
     title: number
     order: number
+    requiredLevel: number
     createdAt: number
     _all: number
   }
@@ -6454,12 +6493,14 @@ export namespace Prisma {
     id?: true
     imageId?: true
     order?: true
+    requiredLevel?: true
   }
 
   export type PersonaVideoSumAggregateInputType = {
     id?: true
     imageId?: true
     order?: true
+    requiredLevel?: true
   }
 
   export type PersonaVideoMinAggregateInputType = {
@@ -6468,6 +6509,7 @@ export namespace Prisma {
     videoUrl?: true
     title?: true
     order?: true
+    requiredLevel?: true
     createdAt?: true
   }
 
@@ -6477,6 +6519,7 @@ export namespace Prisma {
     videoUrl?: true
     title?: true
     order?: true
+    requiredLevel?: true
     createdAt?: true
   }
 
@@ -6486,6 +6529,7 @@ export namespace Prisma {
     videoUrl?: true
     title?: true
     order?: true
+    requiredLevel?: true
     createdAt?: true
     _all?: true
   }
@@ -6582,6 +6626,7 @@ export namespace Prisma {
     videoUrl: string
     title: string | null
     order: number
+    requiredLevel: number
     createdAt: Date
     _count: PersonaVideoCountAggregateOutputType | null
     _avg: PersonaVideoAvgAggregateOutputType | null
@@ -6610,6 +6655,7 @@ export namespace Prisma {
     videoUrl?: boolean
     title?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaVideo"]>
@@ -6620,6 +6666,7 @@ export namespace Prisma {
     videoUrl?: boolean
     title?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaVideo"]>
@@ -6630,6 +6677,7 @@ export namespace Prisma {
     videoUrl?: boolean
     title?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaVideo"]>
@@ -6640,10 +6688,11 @@ export namespace Prisma {
     videoUrl?: boolean
     title?: boolean
     order?: boolean
+    requiredLevel?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaVideoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "imageId" | "videoUrl" | "title" | "order" | "createdAt", ExtArgs["result"]["personaVideo"]>
+  export type PersonaVideoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "imageId" | "videoUrl" | "title" | "order" | "requiredLevel" | "createdAt", ExtArgs["result"]["personaVideo"]>
   export type PersonaVideoInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }
@@ -6665,6 +6714,7 @@ export namespace Prisma {
       videoUrl: string
       title: string | null
       order: number
+      requiredLevel: number
       createdAt: Date
     }, ExtArgs["result"]["personaVideo"]>
     composites: {}
@@ -7095,6 +7145,7 @@ export namespace Prisma {
     readonly videoUrl: FieldRef<"PersonaVideo", 'String'>
     readonly title: FieldRef<"PersonaVideo", 'String'>
     readonly order: FieldRef<"PersonaVideo", 'Int'>
+    readonly requiredLevel: FieldRef<"PersonaVideo", 'Int'>
     readonly createdAt: FieldRef<"PersonaVideo", 'DateTime'>
   }
     
@@ -10929,6 +10980,7 @@ export namespace Prisma {
     password: 'password',
     username: 'username',
     role: 'role',
+    xp: 'xp',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
     createdAt: 'createdAt'
@@ -10974,6 +11026,7 @@ export namespace Prisma {
     description: 'description',
     isMain: 'isMain',
     order: 'order',
+    requiredLevel: 'requiredLevel',
     createdAt: 'createdAt'
   };
 
@@ -10986,6 +11039,7 @@ export namespace Prisma {
     videoUrl: 'videoUrl',
     title: 'title',
     order: 'order',
+    requiredLevel: 'requiredLevel',
     createdAt: 'createdAt'
   };
 
@@ -11131,6 +11185,7 @@ export namespace Prisma {
     password?: StringFilter<"User"> | string
     username?: StringNullableFilter<"User"> | string | null
     role?: StringFilter<"User"> | string
+    xp?: IntFilter<"User"> | number
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
@@ -11145,6 +11200,7 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrderInput | SortOrder
     role?: SortOrder
+    xp?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -11162,6 +11218,7 @@ export namespace Prisma {
     password?: StringFilter<"User"> | string
     username?: StringNullableFilter<"User"> | string | null
     role?: StringFilter<"User"> | string
+    xp?: IntFilter<"User"> | number
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
@@ -11176,6 +11233,7 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrderInput | SortOrder
     role?: SortOrder
+    xp?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -11195,6 +11253,7 @@ export namespace Prisma {
     password?: StringWithAggregatesFilter<"User"> | string
     username?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: StringWithAggregatesFilter<"User"> | string
+    xp?: IntWithAggregatesFilter<"User"> | number
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -11370,6 +11429,7 @@ export namespace Prisma {
     description?: StringNullableFilter<"PersonaImage"> | string | null
     isMain?: BoolFilter<"PersonaImage"> | boolean
     order?: IntFilter<"PersonaImage"> | number
+    requiredLevel?: IntFilter<"PersonaImage"> | number
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
     persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
     videos?: PersonaVideoListRelationFilter
@@ -11382,6 +11442,7 @@ export namespace Prisma {
     description?: SortOrderInput | SortOrder
     isMain?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
     persona?: PersonaOrderByWithRelationInput
     videos?: PersonaVideoOrderByRelationAggregateInput
@@ -11397,6 +11458,7 @@ export namespace Prisma {
     description?: StringNullableFilter<"PersonaImage"> | string | null
     isMain?: BoolFilter<"PersonaImage"> | boolean
     order?: IntFilter<"PersonaImage"> | number
+    requiredLevel?: IntFilter<"PersonaImage"> | number
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
     persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
     videos?: PersonaVideoListRelationFilter
@@ -11409,6 +11471,7 @@ export namespace Prisma {
     description?: SortOrderInput | SortOrder
     isMain?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
     _count?: PersonaImageCountOrderByAggregateInput
     _avg?: PersonaImageAvgOrderByAggregateInput
@@ -11427,6 +11490,7 @@ export namespace Prisma {
     description?: StringNullableWithAggregatesFilter<"PersonaImage"> | string | null
     isMain?: BoolWithAggregatesFilter<"PersonaImage"> | boolean
     order?: IntWithAggregatesFilter<"PersonaImage"> | number
+    requiredLevel?: IntWithAggregatesFilter<"PersonaImage"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PersonaImage"> | Date | string
   }
 
@@ -11439,6 +11503,7 @@ export namespace Prisma {
     videoUrl?: StringFilter<"PersonaVideo"> | string
     title?: StringNullableFilter<"PersonaVideo"> | string | null
     order?: IntFilter<"PersonaVideo"> | number
+    requiredLevel?: IntFilter<"PersonaVideo"> | number
     createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
     image?: XOR<PersonaImageScalarRelationFilter, PersonaImageWhereInput>
   }
@@ -11449,6 +11514,7 @@ export namespace Prisma {
     videoUrl?: SortOrder
     title?: SortOrderInput | SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
     image?: PersonaImageOrderByWithRelationInput
   }
@@ -11462,6 +11528,7 @@ export namespace Prisma {
     videoUrl?: StringFilter<"PersonaVideo"> | string
     title?: StringNullableFilter<"PersonaVideo"> | string | null
     order?: IntFilter<"PersonaVideo"> | number
+    requiredLevel?: IntFilter<"PersonaVideo"> | number
     createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
     image?: XOR<PersonaImageScalarRelationFilter, PersonaImageWhereInput>
   }, "id">
@@ -11472,6 +11539,7 @@ export namespace Prisma {
     videoUrl?: SortOrder
     title?: SortOrderInput | SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
     _count?: PersonaVideoCountOrderByAggregateInput
     _avg?: PersonaVideoAvgOrderByAggregateInput
@@ -11489,6 +11557,7 @@ export namespace Prisma {
     videoUrl?: StringWithAggregatesFilter<"PersonaVideo"> | string
     title?: StringNullableWithAggregatesFilter<"PersonaVideo"> | string | null
     order?: IntWithAggregatesFilter<"PersonaVideo"> | number
+    requiredLevel?: IntWithAggregatesFilter<"PersonaVideo"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PersonaVideo"> | Date | string
   }
 
@@ -11687,6 +11756,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -11701,6 +11771,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -11714,6 +11785,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11728,6 +11800,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11742,6 +11815,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -11752,6 +11826,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11763,6 +11838,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11944,6 +12020,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
     persona: PersonaCreateNestedOneWithoutImagesInput
     videos?: PersonaVideoCreateNestedManyWithoutImageInput
@@ -11956,6 +12033,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
     videos?: PersonaVideoUncheckedCreateNestedManyWithoutImageInput
   }
@@ -11965,6 +12043,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
     videos?: PersonaVideoUpdateManyWithoutImageNestedInput
@@ -11977,6 +12056,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     videos?: PersonaVideoUncheckedUpdateManyWithoutImageNestedInput
   }
@@ -11988,6 +12068,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -11996,6 +12077,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12006,6 +12088,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12013,6 +12096,7 @@ export namespace Prisma {
     videoUrl: string
     title?: string | null
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
     image: PersonaImageCreateNestedOneWithoutVideosInput
   }
@@ -12023,6 +12107,7 @@ export namespace Prisma {
     videoUrl: string
     title?: string | null
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -12030,6 +12115,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: PersonaImageUpdateOneRequiredWithoutVideosNestedInput
   }
@@ -12040,6 +12126,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12049,6 +12136,7 @@ export namespace Prisma {
     videoUrl: string
     title?: string | null
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -12056,6 +12144,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12065,6 +12154,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -12349,6 +12439,7 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrder
     role?: SortOrder
+    xp?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -12356,6 +12447,7 @@ export namespace Prisma {
 
   export type UserAvgOrderByAggregateInput = {
     id?: SortOrder
+    xp?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -12364,6 +12456,7 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrder
     role?: SortOrder
+    xp?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -12375,6 +12468,7 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrder
     role?: SortOrder
+    xp?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -12382,6 +12476,7 @@ export namespace Prisma {
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
+    xp?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -12638,12 +12733,14 @@ export namespace Prisma {
     description?: SortOrder
     isMain?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
   }
 
   export type PersonaImageAvgOrderByAggregateInput = {
     id?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
   }
 
   export type PersonaImageMaxOrderByAggregateInput = {
@@ -12653,6 +12750,7 @@ export namespace Prisma {
     description?: SortOrder
     isMain?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -12663,12 +12761,14 @@ export namespace Prisma {
     description?: SortOrder
     isMain?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
   }
 
   export type PersonaImageSumOrderByAggregateInput = {
     id?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
   }
 
   export type PersonaImageScalarRelationFilter = {
@@ -12682,6 +12782,7 @@ export namespace Prisma {
     videoUrl?: SortOrder
     title?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -12689,6 +12790,7 @@ export namespace Prisma {
     id?: SortOrder
     imageId?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
   }
 
   export type PersonaVideoMaxOrderByAggregateInput = {
@@ -12697,6 +12799,7 @@ export namespace Prisma {
     videoUrl?: SortOrder
     title?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -12706,6 +12809,7 @@ export namespace Prisma {
     videoUrl?: SortOrder
     title?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -12713,6 +12817,7 @@ export namespace Prisma {
     id?: SortOrder
     imageId?: SortOrder
     order?: SortOrder
+    requiredLevel?: SortOrder
   }
 
   export type MessageListRelationFilter = {
@@ -12895,6 +13000,14 @@ export namespace Prisma {
     set?: string | null
   }
 
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
   }
@@ -12943,14 +13056,6 @@ export namespace Prisma {
     update?: UserMemoryUpdateWithWhereUniqueWithoutUserInput | UserMemoryUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: UserMemoryUpdateManyWithWhereWithoutUserInput | UserMemoryUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: UserMemoryScalarWhereInput | UserMemoryScalarWhereInput[]
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserNestedInput = {
@@ -13713,6 +13818,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -13726,6 +13832,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -13754,6 +13861,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13767,6 +13875,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13779,6 +13888,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -13792,6 +13902,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -13838,6 +13949,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
     videos?: PersonaVideoCreateNestedManyWithoutImageInput
   }
@@ -13848,6 +13960,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
     videos?: PersonaVideoUncheckedCreateNestedManyWithoutImageInput
   }
@@ -13878,6 +13991,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13891,6 +14005,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -13940,6 +14055,7 @@ export namespace Prisma {
     description?: StringNullableFilter<"PersonaImage"> | string | null
     isMain?: BoolFilter<"PersonaImage"> | boolean
     order?: IntFilter<"PersonaImage"> | number
+    requiredLevel?: IntFilter<"PersonaImage"> | number
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
   }
 
@@ -13986,6 +14102,7 @@ export namespace Prisma {
     videoUrl: string
     title?: string | null
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -13994,6 +14111,7 @@ export namespace Prisma {
     videoUrl: string
     title?: string | null
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -14077,6 +14195,7 @@ export namespace Prisma {
     videoUrl?: StringFilter<"PersonaVideo"> | string
     title?: StringNullableFilter<"PersonaVideo"> | string | null
     order?: IntFilter<"PersonaVideo"> | number
+    requiredLevel?: IntFilter<"PersonaVideo"> | number
     createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
   }
 
@@ -14085,6 +14204,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
     persona: PersonaCreateNestedOneWithoutImagesInput
   }
@@ -14096,6 +14216,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -14120,6 +14241,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
   }
@@ -14131,6 +14253,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -14139,6 +14262,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -14152,6 +14276,7 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
+    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -14262,6 +14387,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14275,6 +14401,7 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -14628,6 +14755,7 @@ export namespace Prisma {
     description?: string | null
     isMain?: boolean
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -14663,6 +14791,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     videos?: PersonaVideoUpdateManyWithoutImageNestedInput
   }
@@ -14673,6 +14802,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     videos?: PersonaVideoUncheckedUpdateManyWithoutImageNestedInput
   }
@@ -14683,6 +14813,7 @@ export namespace Prisma {
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -14691,6 +14822,7 @@ export namespace Prisma {
     videoUrl: string
     title?: string | null
     order?: number
+    requiredLevel?: number
     createdAt?: Date | string
   }
 
@@ -14698,6 +14830,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -14706,6 +14839,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -14714,6 +14848,7 @@ export namespace Prisma {
     videoUrl?: StringFieldUpdateOperationsInput | string
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

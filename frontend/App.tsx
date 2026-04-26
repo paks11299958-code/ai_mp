@@ -3,6 +3,7 @@ import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, authApi, memoryApi } from './services/apiService';
+import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
@@ -252,9 +253,15 @@ const App: React.FC = () => {
             }
         }
 
-        // 유저 메시지 DB 저장
+        // 유저 메시지 DB 저장 + XP 증가
         if (dbSessionId) {
-            sessionApi.saveMessage(dbSessionId, 'user', text).catch(console.error);
+            sessionApi.saveMessage(dbSessionId, 'user', text)
+                .then(res => {
+                    if (res.xp !== undefined) {
+                        setUser(prev => prev ? { ...prev, xp: res.xp! } : prev);
+                    }
+                })
+                .catch(console.error);
         }
 
         const modelMsgId = (Date.now() + 1).toString();
@@ -510,7 +517,7 @@ const App: React.FC = () => {
                 <div className="flex-1 flex h-full relative min-w-0">
                     {(() => {
                         const mainImg = activeImages.find(img => img.isMain);
-                        const displayUrl = mainImg?.imageUrl || activePersona?.imageUrl;
+                        const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
                             <div className="hidden md:flex w-1/3 border-r border-gray-800 bg-gray-900/30 p-8 flex-col items-center justify-center">
@@ -523,22 +530,40 @@ const App: React.FC = () => {
                                 </div>
                                 <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
                                 <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
-                                {activeImages.length > 1 && (
-                                    <div className="flex gap-2 mt-4 justify-center flex-wrap">
-                                        {activeImages.map(img => (
-                                            <button
-                                                key={img.id}
-                                                onClick={() => handleSwitchImage(img)}
-                                                title={img.description || ''}
-                                                className={`w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
-                                                    img.isMain ? 'border-blue-400 opacity-100' : 'border-transparent opacity-50 hover:opacity-80'
-                                                }`}
-                                            >
-                                                <img src={img.imageUrl} alt="" className="w-full h-full object-cover" />
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                {activeImages.length > 1 && (() => {
+                                    const userStage = getStage(user?.xp ?? 0).stage;
+                                    return (
+                                        <div className="flex gap-2 mt-4 justify-center flex-wrap">
+                                            {activeImages.map(img => {
+                                                const isLocked = userStage < img.requiredLevel;
+                                                const reqName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
+                                                return (
+                                                    <button
+                                                        key={img.id}
+                                                        onClick={() => !isLocked && handleSwitchImage(img)}
+                                                        title={isLocked ? `${img.requiredLevel}단계 "${reqName}" 달성 시 해제` : (img.description || '')}
+                                                        disabled={isLocked}
+                                                        className={`relative w-14 h-14 rounded-lg overflow-hidden border-2 transition-all ${
+                                                            isLocked
+                                                                ? 'border-gray-700 cursor-not-allowed opacity-40'
+                                                                : img.isMain
+                                                                    ? 'border-blue-400 opacity-100'
+                                                                    : 'border-transparent opacity-50 hover:opacity-80'
+                                                        }`}
+                                                    >
+                                                        <img src={img.imageUrl} alt="" className={`w-full h-full object-cover ${isLocked ? 'blur-[2px]' : ''}`} />
+                                                        {isLocked && (
+                                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/60">
+                                                                <Icon name="Lock" size={14} className="text-gray-400" />
+                                                                <span className="text-[8px] text-gray-400 mt-0.5">{img.requiredLevel}단계</span>
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         ) : null;
                     })()}
@@ -564,25 +589,36 @@ const App: React.FC = () => {
                                     </>
                                 )}
                             </div>
-                            {activePersona && (
-                                <button
-                                    onClick={() => handleToggleMemory(activePersonaId)}
-                                    title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                                        memoryEnabled[activePersonaId]
-                                            ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
-                                            : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
-                                    }`}
-                                >
-                                    <Icon name="Brain" size={14} />
-                                    <span className="hidden sm:inline">기억 공유</span>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
-                                </button>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {user && (() => {
+                                    const stage = getStage(user.xp ?? 0);
+                                    return (
+                                        <div className={`md:hidden flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${stage.color} bg-opacity-20`}>
+                                            <span className="text-[10px] font-bold text-white drop-shadow">{stage.stage}단계</span>
+                                            <span className="text-[10px] text-white/80 hidden xs:inline">{stage.name}</span>
+                                        </div>
+                                    );
+                                })()}
+                                {activePersona && (
+                                    <button
+                                        onClick={() => handleToggleMemory(activePersonaId)}
+                                        title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                                            memoryEnabled[activePersonaId]
+                                                ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
+                                                : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
+                                        }`}
+                                    >
+                                        <Icon name="Brain" size={14} />
+                                        <span className="hidden sm:inline">기억 공유</span>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                    </button>
+                                )}
+                            </div>
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} />
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.xp ?? 0} />
                         )}
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
