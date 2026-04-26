@@ -517,7 +517,7 @@ const App: React.FC = () => {
                 <div className="flex-1 flex h-full relative min-w-0">
                     {(() => {
                         const mainImg = activeImages.find(img => img.isMain);
-                        const displayUrl = mainImg?.imageUrl || activePersona?.imageUrl;
+                        const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
                             <div className="hidden md:flex w-1/3 border-r border-gray-800 bg-gray-900/30 p-8 flex-col items-center justify-center">
