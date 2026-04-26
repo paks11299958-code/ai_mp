@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi } from './services/apiService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -31,6 +31,7 @@ const App: React.FC = () => {
     const [inputText, setInputText] = useState('');
     const [isAdminMode, setIsAdminMode] = useState(false);
 
+    const [commonInstruction, setCommonInstruction] = useState('');
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
@@ -53,6 +54,10 @@ const App: React.FC = () => {
             .then(data => { setPersonas(data); const first = data.find(p => p.isVisible !== false); if (first) setActivePersonaId(first.id); })
             .catch(() => {})
             .finally(() => setIsPersonasLoading(false));
+
+        settingsApi.get()
+            .then(s => setCommonInstruction(s.commonInstruction || ''))
+            .catch(() => {});
 
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
@@ -297,7 +302,7 @@ const App: React.FC = () => {
                 }
 
                 const systemInstruction =
-                    `${activePersona.systemInstruction}${imageContext}${memoryContext}` +
+                    `${commonInstruction ? commonInstruction + '\n\n' : ''}${activePersona.systemInstruction}${imageContext}${memoryContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;

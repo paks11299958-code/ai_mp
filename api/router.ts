@@ -126,6 +126,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
     }
 
+    // ── App Settings ──────────────────────────────────────────
+    if (domain === 'settings') {
+        if (method === 'GET') {
+            const configs = await prisma.appConfig.findMany();
+            const result: Record<string, string> = {};
+            configs.forEach((c: any) => { result[c.key] = c.value; });
+            return res.json(result);
+        }
+        if (method === 'PUT') {
+            if (!userId) return res.status(401).json({ error: '인증이 필요합니다.' });
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+            const updates = body as Record<string, string>;
+            await Promise.all(
+                Object.entries(updates).map(([key, value]) =>
+                    prisma.appConfig.upsert({
+                        where: { key },
+                        update: { value: String(value), updatedAt: new Date() },
+                        create: { key, value: String(value) },
+                    })
+                )
+            );
+            return res.json({ message: '저장 완료' });
+        }
+    }
+
     // ── Personas ──────────────────────────────────────────────
 
     if (domain === 'personas') {

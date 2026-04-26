@@ -205,6 +205,18 @@ export const sessionApi = {
         }),
 };
 
+// Settings
+export const settingsApi = {
+    get: () =>
+        request<Record<string, string>>('/settings'),
+
+    update: (data: Record<string, string>) =>
+        request<{ message: string }>('/settings', {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+};
+
 // Memory
 export const memoryApi = {
     getAll: () =>
