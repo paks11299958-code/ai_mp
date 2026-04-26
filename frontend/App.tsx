@@ -589,21 +589,32 @@ const App: React.FC = () => {
                                     </>
                                 )}
                             </div>
-                            {activePersona && (
-                                <button
-                                    onClick={() => handleToggleMemory(activePersonaId)}
-                                    title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                                        memoryEnabled[activePersonaId]
-                                            ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
-                                            : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
-                                    }`}
-                                >
-                                    <Icon name="Brain" size={14} />
-                                    <span className="hidden sm:inline">기억 공유</span>
-                                    <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
-                                </button>
-                            )}
+                            <div className="flex items-center gap-2">
+                                {user && (() => {
+                                    const stage = getStage(user.xp ?? 0);
+                                    return (
+                                        <div className={`md:hidden flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${stage.color} bg-opacity-20`}>
+                                            <span className="text-[10px] font-bold text-white drop-shadow">{stage.stage}단계</span>
+                                            <span className="text-[10px] text-white/80 hidden xs:inline">{stage.name}</span>
+                                        </div>
+                                    );
+                                })()}
+                                {activePersona && (
+                                    <button
+                                        onClick={() => handleToggleMemory(activePersonaId)}
+                                        title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                                            memoryEnabled[activePersonaId]
+                                                ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
+                                                : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
+                                        }`}
+                                    >
+                                        <Icon name="Brain" size={14} />
+                                        <span className="hidden sm:inline">기억 공유</span>
+                                        <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                    </button>
+                                )}
+                            </div>
                         </header>
 
                         {activeImages.length > 0 && (
