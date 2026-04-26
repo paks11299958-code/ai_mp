@@ -264,6 +264,40 @@ app.post('/api/auth/reset-password', async (req, res) => {
   }
 });
 
+// ── App Settings ──────────────────────────────────────────────
+app.get('/api/settings', async (req, res) => {
+  try {
+    const configs = await prisma.appConfig.findMany();
+    const result = {};
+    configs.forEach(c => { result[c.key] = c.value; });
+    return res.json(result);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.put('/api/settings', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const updates = req.body;
+    await Promise.all(
+      Object.entries(updates).map(([key, value]) =>
+        prisma.appConfig.upsert({
+          where: { key },
+          update: { value: String(value), updatedAt: new Date() },
+          create: { key, value: String(value) },
+        })
+      )
+    );
+    return res.json({ message: '저장 완료' });
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // ── Personas ──────────────────────────────────────────────────
 app.get('/api/personas', async (req, res) => {
   try {

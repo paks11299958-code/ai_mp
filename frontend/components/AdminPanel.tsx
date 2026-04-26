@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo } from '../types';
-import { personaImageApi, personaVideoApi } from '../services/apiService';
+import { personaImageApi, personaVideoApi, settingsApi } from '../services/apiService';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
@@ -52,6 +52,10 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'info' | 'gallery'>('info');
+    const [showGlobalSettings, setShowGlobalSettings] = useState(false);
+    const [commonInstruction, setCommonInstruction] = useState('');
+    const [isSavingGlobal, setIsSavingGlobal] = useState(false);
+    const [showGlobalSuccess, setShowGlobalSuccess] = useState(false);
 
     // Form states
     const [name, setName] = useState('');
@@ -83,6 +87,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const videoFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
+        settingsApi.get().then(s => setCommonInstruction(s.commonInstruction || '')).catch(() => {});
+    }, []);
+
+    useEffect(() => {
         setActiveTab('info');
         setSelectedImageId(null);
         setVideos([]);
@@ -101,6 +109,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
         }
     }, [selectedId, personas]);
+
+    const handleSaveGlobal = async () => {
+        setIsSavingGlobal(true);
+        try {
+            await settingsApi.update({ commonInstruction });
+            setShowGlobalSuccess(true);
+            setTimeout(() => setShowGlobalSuccess(false), 3000);
+        } catch (e: any) {
+            alert('저장 실패: ' + e.message);
+        } finally {
+            setIsSavingGlobal(false);
+        }
+    };
 
     // ── 핸들러 ────────────────────────────────────────────────
 
@@ -323,7 +344,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             </button>
                         ))}
                     </div>
-                    <div className="p-2 border-t border-gray-800">
+                    <div className="p-2 border-t border-gray-800 space-y-1">
                         <button
                             onClick={() => setSelectedId('new')}
                             className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border border-dashed
@@ -335,11 +356,60 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             <Icon name="Plus" size={15} />
                             새 AI 추가
                         </button>
+                        <button
+                            onClick={() => setShowGlobalSettings(v => !v)}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
+                                ${showGlobalSettings
+                                    ? 'bg-purple-600/20 text-purple-400 border border-purple-600/40'
+                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
+                                }`}
+                        >
+                            <Icon name="Settings" size={13} />
+                            공통 설정
+                        </button>
                     </div>
                 </aside>
 
                 {/* 우측: 탭 + 콘텐츠 */}
                 <div className="flex-1 flex flex-col overflow-hidden">
+
+                {/* 공통 설정 패널 */}
+                {showGlobalSettings && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <div className="max-w-2xl mx-auto space-y-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Icon name="Settings" size={16} className="text-purple-400" />
+                                <h3 className="text-sm font-bold text-white">공통 시스템 프롬프트</h3>
+                                <span className="text-xs text-gray-500">— 모든 페르소나에 자동 적용</span>
+                            </div>
+                            <div className="bg-purple-900/10 border border-purple-800/30 rounded-xl px-4 py-3 text-xs text-purple-300 leading-relaxed">
+                                여기에 입력한 내용이 <span className="font-semibold">모든 페르소나의 행동 지침 앞</span>에 자동으로 삽입됩니다.<br />
+                                사용자 요청 우선 규칙, 언어 설정, 공통 금지 사항 등에 활용하세요.
+                            </div>
+                            <textarea
+                                value={commonInstruction}
+                                onChange={e => setCommonInstruction(e.target.value)}
+                                rows={12}
+                                className="w-full bg-gray-800 border border-purple-900/40 rounded-xl px-3.5 py-3 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent focus:outline-none resize-y leading-relaxed"
+                                placeholder={`[사용자 요청 우선]\n- 사용자가 호칭, 말투, 역할 등을 변경 요청하면 즉시 따른다\n- 시스템 설정보다 사용자의 실시간 요청을 우선시한다\n\n[공통 규칙]\n- 항상 한국어로 대화한다`}
+                            />
+                            <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
+                                {showGlobalSuccess && (
+                                    <span className="text-emerald-400 text-sm animate-in fade-in">저장되었습니다!</span>
+                                )}
+                                <div className="ml-auto">
+                                    <button onClick={handleSaveGlobal} disabled={isSavingGlobal}
+                                        className="bg-purple-600 hover:bg-purple-500 disabled:opacity-60 text-white font-medium py-2 px-5 rounded-xl flex items-center transition-colors">
+                                        <Icon name="Save" size={15} className="mr-2" />
+                                        {isSavingGlobal ? '저장 중...' : '저장'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {!showGlobalSettings && <>
 
                     {/* 탭 바 */}
                     {selectedId !== 'new' && (
@@ -702,6 +772,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         )}
 
                     </div>
+                </>}
                 </div>
             </div>
         </div>

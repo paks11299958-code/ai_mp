@@ -106,3 +106,9 @@ model ConversationSummary {
   updatedAt    DateTime    @updatedAt
   session      ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 }
+
+model AppConfig {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
