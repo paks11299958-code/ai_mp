@@ -43,15 +43,20 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaNa
                                 <Icon name="AlertCircle" size={16} className="mr-2" />
                                 {message.text}
                             </div>
+                        ) : message.isStreaming && !message.text ? (
+                            /* 응답 대기 중 — 세 점 바운스 애니메이션 */
+                            <div className="flex items-end gap-1.5 py-1 px-1 h-8">
+                                <span className="w-3 h-3 bg-blue-400 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                                <span className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                                <span className="w-3 h-3 bg-pink-400 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                            </div>
                         ) : (
                             <div className="markdown-body text-sm md:text-base leading-relaxed break-words">
                                 <ReactMarkdown>{message.text}</ReactMarkdown>
+                                {message.isStreaming && (
+                                    <span className="inline-block w-1.5 h-4 bg-gray-400 rounded-sm animate-pulse ml-0.5 align-middle"></span>
+                                )}
                             </div>
-                        )}
-                        
-                        {/* Streaming indicator dot */}
-                        {message.isStreaming && (
-                            <span className="inline-block w-2 h-2 bg-gray-400 rounded-full animate-pulse ml-2 mt-1 absolute bottom-3 right-3"></span>
                         )}
                     </div>
                 </div>

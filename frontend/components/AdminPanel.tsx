@@ -122,6 +122,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setIsSavingGlobal(true);
         try {
             await settingsApi.update({ commonInstruction });
+            localStorage.removeItem('settings_cache');
             setShowSavedModal(true);
         } catch (e: any) {
             alert('저장 실패: ' + e.message);
@@ -266,6 +267,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setIsSaving(true);
         try {
             await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible });
+            localStorage.removeItem('personas_cache');
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);

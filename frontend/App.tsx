@@ -51,13 +51,49 @@ const App: React.FC = () => {
 
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
+        const CACHE_TTL = 5 * 60 * 1000; // 5분
+
+        // 페르소나 캐시 즉시 표시
+        try {
+            const cached = localStorage.getItem('personas_cache');
+            if (cached) {
+                const { data, ts } = JSON.parse(cached);
+                if (Date.now() - ts < CACHE_TTL) {
+                    setPersonas(data);
+                    const first = data.find((p: any) => p.isVisible !== false);
+                    if (first) setActivePersonaId(first.id);
+                    setIsPersonasLoading(false);
+                }
+            }
+        } catch {}
+
+        // 백그라운드에서 최신 데이터 갱신
         personaApi.getAll()
-            .then(data => { setPersonas(data); const first = data.find(p => p.isVisible !== false); if (first) setActivePersonaId(first.id); })
+            .then(data => {
+                setPersonas(data);
+                const first = data.find(p => p.isVisible !== false);
+                if (first) setActivePersonaId(first.id);
+                localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+            })
             .catch(() => {})
             .finally(() => setIsPersonasLoading(false));
 
+        // 설정 캐시 즉시 표시
+        try {
+            const cachedSettings = localStorage.getItem('settings_cache');
+            if (cachedSettings) {
+                const { data, ts } = JSON.parse(cachedSettings);
+                if (Date.now() - ts < CACHE_TTL) {
+                    setCommonInstruction(data.commonInstruction || '');
+                }
+            }
+        } catch {}
+
         settingsApi.get()
-            .then(s => setCommonInstruction(s.commonInstruction || ''))
+            .then(s => {
+                setCommonInstruction(s.commonInstruction || '');
+                localStorage.setItem('settings_cache', JSON.stringify({ data: s, ts: Date.now() }));
+            })
             .catch(() => {});
 
         const token = localStorage.getItem('token');
@@ -342,19 +378,21 @@ const App: React.FC = () => {
                 sessionApi.saveMessage(dbSessionId, 'model', fullResponse).catch(console.error);
             }
 
-            // 10개 배수 도달 시 백그라운드 요약 업데이트
+            // 10개 배수 도달 시 백그라운드 요약 업데이트 (5초 딜레이)
             const allMessages = sessions[activePersonaId]?.messages || [];
             const totalCount = allMessages.length;
             const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
             if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
-                triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
+                setTimeout(() => {
+                    triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
+                }, 5000);
             }
 
-            // 백그라운드 기억 추출 — 백엔드에서 처리 (스트림 완료 후 3초 뒤)
+            // 백그라운드 기억 추출 — 스트림 완료 후 10초 뒤
             if (fullResponse && user && dbSessionId) {
                 setTimeout(() => {
                     sessionApi.extractMemories(dbSessionId, text, fullResponse).catch(() => {});
-                }, 3000);
+                }, 10000);
             }
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {
