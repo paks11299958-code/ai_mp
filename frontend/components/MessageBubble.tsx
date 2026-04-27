@@ -45,10 +45,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaNa
                             </div>
                         ) : message.isStreaming && !message.text ? (
                             /* 응답 대기 중 — 세 점 바운스 애니메이션 */
-                            <div className="flex items-center gap-1 py-1 px-1">
-                                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]"></span>
-                                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
-                                <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]"></span>
+                            <div className="flex items-end gap-1.5 py-1 px-1 h-8">
+                                <span className="w-3 h-3 bg-blue-400 rounded-full animate-bounce [animation-delay:0ms]"></span>
+                                <span className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
+                                <span className="w-3 h-3 bg-pink-400 rounded-full animate-bounce [animation-delay:300ms]"></span>
                             </div>
                         ) : (
                             <div className="markdown-body text-sm md:text-base leading-relaxed break-words">
