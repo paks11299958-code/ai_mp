@@ -51,13 +51,49 @@ const App: React.FC = () => {
 
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
+        const CACHE_TTL = 5 * 60 * 1000; // 5분
+
+        // 페르소나 캐시 즉시 표시
+        try {
+            const cached = localStorage.getItem('personas_cache');
+            if (cached) {
+                const { data, ts } = JSON.parse(cached);
+                if (Date.now() - ts < CACHE_TTL) {
+                    setPersonas(data);
+                    const first = data.find((p: any) => p.isVisible !== false);
+                    if (first) setActivePersonaId(first.id);
+                    setIsPersonasLoading(false);
+                }
+            }
+        } catch {}
+
+        // 백그라운드에서 최신 데이터 갱신
         personaApi.getAll()
-            .then(data => { setPersonas(data); const first = data.find(p => p.isVisible !== false); if (first) setActivePersonaId(first.id); })
+            .then(data => {
+                setPersonas(data);
+                const first = data.find(p => p.isVisible !== false);
+                if (first) setActivePersonaId(first.id);
+                localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+            })
             .catch(() => {})
             .finally(() => setIsPersonasLoading(false));
 
+        // 설정 캐시 즉시 표시
+        try {
+            const cachedSettings = localStorage.getItem('settings_cache');
+            if (cachedSettings) {
+                const { data, ts } = JSON.parse(cachedSettings);
+                if (Date.now() - ts < CACHE_TTL) {
+                    setCommonInstruction(data.commonInstruction || '');
+                }
+            }
+        } catch {}
+
         settingsApi.get()
-            .then(s => setCommonInstruction(s.commonInstruction || ''))
+            .then(s => {
+                setCommonInstruction(s.commonInstruction || '');
+                localStorage.setItem('settings_cache', JSON.stringify({ data: s, ts: Date.now() }));
+            })
             .catch(() => {});
 
         const token = localStorage.getItem('token');
