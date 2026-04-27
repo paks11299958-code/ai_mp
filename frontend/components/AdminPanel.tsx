@@ -59,6 +59,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
     // Form states
     const [name, setName] = useState('');
+    const [jobTitle, setJobTitle] = useState('');
     const [description, setDescription] = useState('');
     const [instruction, setInstruction] = useState('');
     const [identityPrompt, setIdentityPrompt] = useState('');
@@ -95,13 +96,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setSelectedImageId(null);
         setVideos([]);
         if (selectedId === 'new') {
-            setName(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
+            setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl(''); setIsVisible(true); setShowSuccess(false); setImages([]);
         } else {
             const p = personas.find(p => p.id === selectedId);
             if (p) {
-                setName(p.name); setDescription(p.description || '');
+                setName(p.name); setJobTitle(p.jobTitle || ''); setDescription(p.description || '');
                 setInstruction(p.systemInstruction); setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
                 setImageUrl(p.imageUrl || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
@@ -257,7 +258,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
         setIsSaving(true);
         try {
-            await onSave({ id: idToSave, name, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible });
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
@@ -459,26 +460,34 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         {(activeTab === 'info' || selectedId === 'new') && (
                             <div className="max-w-2xl mx-auto p-6 space-y-6">
 
-                                {/* 이름 + 설명 */}
+                                {/* 이름 + 직업 + 설명 */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-400 mb-1.5">
-                                            페르소나 이름 <span className="text-red-400">*</span>
+                                            이름 <span className="text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text" value={name} onChange={e => setName(e.target.value)}
                                             className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
-                                            placeholder="예: 마케팅 전문가"
+                                            placeholder="예: 이서연"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">짧은 설명</label>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">직업 / 역할</label>
                                         <input
-                                            type="text" value={description} onChange={e => setDescription(e.target.value)}
+                                            type="text" value={jobTitle} onChange={e => setJobTitle(e.target.value)}
                                             className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
-                                            placeholder="예: 마케팅 카피와 전략을 기획합니다."
+                                            placeholder="예: 전문 번역가"
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 mb-1.5">짧은 설명</label>
+                                    <input
+                                        type="text" value={description} onChange={e => setDescription(e.target.value)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
+                                        placeholder="예: 마케팅 카피와 전략을 기획합니다."
+                                    />
                                 </div>
 
                                 {/* 아이콘 + 색상 + 프로필 이미지 */}

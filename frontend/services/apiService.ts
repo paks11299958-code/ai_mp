@@ -179,7 +179,7 @@ export const sessionApi = {
         ),
 
     saveMessage: (sessionId: number, role: string, text: string) =>
-        request<Message & { xp?: number }>(`/sessions/${sessionId}/messages`, {
+        request<Message & { xp?: number; personaId?: string }>(`/sessions/${sessionId}/messages`, {
             method: 'POST',
             body: JSON.stringify({ role, text }),
         }),

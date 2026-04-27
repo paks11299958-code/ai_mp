@@ -8,18 +8,27 @@ datasource db {
 }
 
 model User {
-  id               Int           @id @default(autoincrement())
-  email            String        @unique
+  id               Int              @id @default(autoincrement())
+  email            String           @unique
   password         String
   username         String?
-  role             String        @default("USER")
-  xp               Int           @default(0)
+  role             String           @default("USER")
   resetToken       String?
   resetTokenExpiry DateTime?
-  createdAt        DateTime      @default(now())
+  createdAt        DateTime         @default(now())
   personas         Persona[]
   sessions         ChatSession[]
   memories         UserMemory[]
+  personaXps       UserPersonaXp[]
+}
+
+model UserPersonaXp {
+  userId    Int
+  personaId String
+  xp        Int      @default(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona   Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
+  @@id([userId, personaId])
 }
 
 model UserMemory {
@@ -35,6 +44,7 @@ model UserMemory {
 model Persona {
   id                String          @id @default(cuid())
   name              String
+  jobTitle          String?
   description       String?
   systemInstruction String
   identityPrompt    String?
@@ -49,6 +59,7 @@ model Persona {
   createdAt         DateTime        @default(now())
   sessions          ChatSession[]
   images            PersonaImage[]
+  personaXps        UserPersonaXp[]
 }
 
 model PersonaImage {

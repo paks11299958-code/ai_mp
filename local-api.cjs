@@ -153,11 +153,11 @@ app.post('/api/auth/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { email, password: hashed, username: username || null },
-      select: { id: true, email: true, username: true, role: true, xp: true },
+      select: { id: true, email: true, username: true, role: true },
     });
     const token = signToken(user.id);
     res.setHeader('Set-Cookie', tokenCookie(token));
-    return res.status(201).json({ user, token });
+    return res.status(201).json({ user: { ...user, personaXp: {} }, token });
   } catch (e) {
     console.error('[register]', e.message);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -169,14 +169,17 @@ app.post('/api/auth/login', async (req, res) => {
   if (!email || !password)
     return res.status(400).json({ error: '이메일과 비밀번호를 입력해주세요.' });
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { personaXps: { select: { personaId: true, xp: true } } },
+    });
     if (!user) return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: '이메일 또는 비밀번호가 올바르지 않습니다.' });
-    const { password: _p, ...safeUser } = user;
     const token = signToken(user.id);
     res.setHeader('Set-Cookie', tokenCookie(token));
-    return res.json({ user: safeUser, token });
+    const personaXp = Object.fromEntries(user.personaXps.map(p => [p.personaId, p.xp]));
+    return res.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaXp }, token });
   } catch (e) {
     console.error('[login]', e.message);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -194,10 +197,11 @@ app.get('/api/auth/me', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true, email: true, username: true, role: true, xp: true },
+      include: { personaXps: { select: { personaId: true, xp: true } } },
     });
     if (!user) return res.status(401).json({ error: '사용자를 찾을 수 없습니다.' });
-    return res.json({ user });
+    const personaXp = Object.fromEntries(user.personaXps.map(p => [p.personaId, p.xp]));
+    return res.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaXp } });
   } catch (e) {
     return res.status(401).json({ error: '인증이 만료되었습니다.' });
   }
@@ -667,15 +671,24 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
       data: { sessionId: Number(req.params.id), role, text },
     });
     let updatedXp;
+    let personaId;
     if (role === 'user') {
-      const updated = await prisma.user.update({
-        where: { id: payload.userId },
-        data: { xp: { increment: 1 } },
-        select: { xp: true },
+      const session = await prisma.chatSession.findUnique({
+        where: { id: Number(req.params.id) },
+        select: { personaId: true },
       });
-      updatedXp = updated.xp;
+      if (session) {
+        personaId = session.personaId;
+        const upserted = await prisma.userPersonaXp.upsert({
+          where: { userId_personaId: { userId: payload.userId, personaId } },
+          update: { xp: { increment: 1 } },
+          create: { userId: payload.userId, personaId, xp: 1 },
+          select: { xp: true },
+        });
+        updatedXp = upserted.xp;
+      }
     }
-    return res.status(201).json({ ...message, xp: updatedXp });
+    return res.status(201).json({ ...message, personaId, xp: updatedXp });
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }

@@ -11,6 +11,7 @@ export interface Message {
 export interface Persona {
     id: string;
     name: string;
+    jobTitle?: string;
     description: string;
     iconName: string;
     systemInstruction: string;
@@ -76,7 +77,7 @@ export interface User {
     email: string;
     username?: string;
     role: string;
-    xp: number;
+    personaXp: Record<string, number>;
 }
 
 export interface DbSession {
