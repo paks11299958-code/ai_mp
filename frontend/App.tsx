@@ -378,19 +378,21 @@ const App: React.FC = () => {
                 sessionApi.saveMessage(dbSessionId, 'model', fullResponse).catch(console.error);
             }
 
-            // 10개 배수 도달 시 백그라운드 요약 업데이트
+            // 10개 배수 도달 시 백그라운드 요약 업데이트 (5초 딜레이)
             const allMessages = sessions[activePersonaId]?.messages || [];
             const totalCount = allMessages.length;
             const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
             if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
-                triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
+                setTimeout(() => {
+                    triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
+                }, 5000);
             }
 
-            // 백그라운드 기억 추출 — 백엔드에서 처리 (스트림 완료 후 3초 뒤)
+            // 백그라운드 기억 추출 — 스트림 완료 후 10초 뒤
             if (fullResponse && user && dbSessionId) {
                 setTimeout(() => {
                     sessionApi.extractMemories(dbSessionId, text, fullResponse).catch(() => {});
-                }, 3000);
+                }, 10000);
             }
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {
