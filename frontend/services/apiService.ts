@@ -237,3 +237,29 @@ export const memoryApi = {
     delete: (id: number) =>
         request<{ message: string }>(`/memory/${id}`, { method: 'DELETE' }),
 };
+
+// Knowledge
+export const knowledgeApi = {
+    upload: (personaId: string, title: string, text: string) =>
+        request<{ saved: number; total: number; sourceId: string }>('/knowledge', {
+            method: 'POST',
+            body: JSON.stringify({ personaId, title, text }),
+        }),
+
+    getAll: (personaId: string) =>
+        request<{ sourceId: string | null; title: string | null; chunkCount: number; preview: string; createdAt: string }[]>(
+            `/knowledge/${personaId}`
+        ),
+
+    deleteSource: (sourceId: string) =>
+        request<{ message: string; deleted: number }>(`/knowledge/source/${sourceId}`, { method: 'DELETE' }),
+
+    delete: (id: number) =>
+        request<{ message: string }>(`/knowledge/${id}`, { method: 'DELETE' }),
+
+    search: (personaId: string, query: string) =>
+        request<{ id: number; content: string; similarity: number }[]>('/knowledge/search', {
+            method: 'POST',
+            body: JSON.stringify({ personaId, query }),
+        }),
+};

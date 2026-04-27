@@ -215,6 +215,15 @@ exports.Prisma.AppConfigScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.PersonaKnowledgeScalarFieldEnum = {
+  id: 'id',
+  personaId: 'personaId',
+  sourceId: 'sourceId',
+  title: 'title',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -241,7 +250,8 @@ exports.Prisma.ModelName = {
   ChatSession: 'ChatSession',
   Message: 'Message',
   ConversationSummary: 'ConversationSummary',
-  AppConfig: 'AppConfig'
+  AppConfig: 'AppConfig',
+  PersonaKnowledge: 'PersonaKnowledge'
 };
 
 /**

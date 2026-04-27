@@ -63,6 +63,11 @@ export type ConversationSummary = $Result.DefaultSelection<Prisma.$ConversationS
  * 
  */
 export type AppConfig = $Result.DefaultSelection<Prisma.$AppConfigPayload>
+/**
+ * Model PersonaKnowledge
+ * 
+ */
+export type PersonaKnowledge = $Result.DefaultSelection<Prisma.$PersonaKnowledgePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -284,6 +289,16 @@ export class PrismaClient<
     * ```
     */
   get appConfig(): Prisma.AppConfigDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.personaKnowledge`: Exposes CRUD operations for the **PersonaKnowledge** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PersonaKnowledges
+    * const personaKnowledges = await prisma.personaKnowledge.findMany()
+    * ```
+    */
+  get personaKnowledge(): Prisma.PersonaKnowledgeDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -727,7 +742,8 @@ export namespace Prisma {
     ChatSession: 'ChatSession',
     Message: 'Message',
     ConversationSummary: 'ConversationSummary',
-    AppConfig: 'AppConfig'
+    AppConfig: 'AppConfig',
+    PersonaKnowledge: 'PersonaKnowledge'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -743,7 +759,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1487,6 +1503,80 @@ export namespace Prisma {
           }
         }
       }
+      PersonaKnowledge: {
+        payload: Prisma.$PersonaKnowledgePayload<ExtArgs>
+        fields: Prisma.PersonaKnowledgeFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PersonaKnowledgeFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PersonaKnowledgeFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>
+          }
+          findFirst: {
+            args: Prisma.PersonaKnowledgeFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PersonaKnowledgeFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>
+          }
+          findMany: {
+            args: Prisma.PersonaKnowledgeFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>[]
+          }
+          create: {
+            args: Prisma.PersonaKnowledgeCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>
+          }
+          createMany: {
+            args: Prisma.PersonaKnowledgeCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PersonaKnowledgeCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>[]
+          }
+          delete: {
+            args: Prisma.PersonaKnowledgeDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>
+          }
+          update: {
+            args: Prisma.PersonaKnowledgeUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>
+          }
+          deleteMany: {
+            args: Prisma.PersonaKnowledgeDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PersonaKnowledgeUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.PersonaKnowledgeUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>[]
+          }
+          upsert: {
+            args: Prisma.PersonaKnowledgeUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PersonaKnowledgePayload>
+          }
+          aggregate: {
+            args: Prisma.PersonaKnowledgeAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePersonaKnowledge>
+          }
+          groupBy: {
+            args: Prisma.PersonaKnowledgeGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PersonaKnowledgeGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PersonaKnowledgeCountArgs<ExtArgs>
+            result: $Utils.Optional<PersonaKnowledgeCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1605,6 +1695,7 @@ export namespace Prisma {
     message?: MessageOmit
     conversationSummary?: ConversationSummaryOmit
     appConfig?: AppConfigOmit
+    personaKnowledge?: PersonaKnowledgeOmit
   }
 
   /* Types for Logging */
@@ -1746,12 +1837,14 @@ export namespace Prisma {
     sessions: number
     images: number
     personaXps: number
+    knowledge: number
   }
 
   export type PersonaCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     sessions?: boolean | PersonaCountOutputTypeCountSessionsArgs
     images?: boolean | PersonaCountOutputTypeCountImagesArgs
     personaXps?: boolean | PersonaCountOutputTypeCountPersonaXpsArgs
+    knowledge?: boolean | PersonaCountOutputTypeCountKnowledgeArgs
   }
 
   // Custom InputTypes
@@ -1784,6 +1877,13 @@ export namespace Prisma {
    */
   export type PersonaCountOutputTypeCountPersonaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserPersonaXpWhereInput
+  }
+
+  /**
+   * PersonaCountOutputType without action
+   */
+  export type PersonaCountOutputTypeCountKnowledgeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PersonaKnowledgeWhereInput
   }
 
 
@@ -5547,6 +5647,7 @@ export namespace Prisma {
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
     images?: boolean | Persona$imagesArgs<ExtArgs>
     personaXps?: boolean | Persona$personaXpsArgs<ExtArgs>
+    knowledge?: boolean | Persona$knowledgeArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["persona"]>
 
@@ -5609,6 +5710,7 @@ export namespace Prisma {
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
     images?: boolean | Persona$imagesArgs<ExtArgs>
     personaXps?: boolean | Persona$personaXpsArgs<ExtArgs>
+    knowledge?: boolean | Persona$knowledgeArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PersonaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5625,6 +5727,7 @@ export namespace Prisma {
       sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
       images: Prisma.$PersonaImagePayload<ExtArgs>[]
       personaXps: Prisma.$UserPersonaXpPayload<ExtArgs>[]
+      knowledge: Prisma.$PersonaKnowledgePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6039,6 +6142,7 @@ export namespace Prisma {
     sessions<T extends Persona$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     images<T extends Persona$imagesArgs<ExtArgs> = {}>(args?: Subset<T, Persona$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     personaXps<T extends Persona$personaXpsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$personaXpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    knowledge<T extends Persona$knowledgeArgs<ExtArgs> = {}>(args?: Subset<T, Persona$knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6571,6 +6675,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
+  }
+
+  /**
+   * Persona.knowledge
+   */
+  export type Persona$knowledgeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    where?: PersonaKnowledgeWhereInput
+    orderBy?: PersonaKnowledgeOrderByWithRelationInput | PersonaKnowledgeOrderByWithRelationInput[]
+    cursor?: PersonaKnowledgeWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PersonaKnowledgeScalarFieldEnum | PersonaKnowledgeScalarFieldEnum[]
   }
 
   /**
@@ -13270,6 +13398,1116 @@ export namespace Prisma {
 
 
   /**
+   * Model PersonaKnowledge
+   */
+
+  export type AggregatePersonaKnowledge = {
+    _count: PersonaKnowledgeCountAggregateOutputType | null
+    _avg: PersonaKnowledgeAvgAggregateOutputType | null
+    _sum: PersonaKnowledgeSumAggregateOutputType | null
+    _min: PersonaKnowledgeMinAggregateOutputType | null
+    _max: PersonaKnowledgeMaxAggregateOutputType | null
+  }
+
+  export type PersonaKnowledgeAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type PersonaKnowledgeSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type PersonaKnowledgeMinAggregateOutputType = {
+    id: number | null
+    personaId: string | null
+    sourceId: string | null
+    title: string | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type PersonaKnowledgeMaxAggregateOutputType = {
+    id: number | null
+    personaId: string | null
+    sourceId: string | null
+    title: string | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type PersonaKnowledgeCountAggregateOutputType = {
+    id: number
+    personaId: number
+    sourceId: number
+    title: number
+    content: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type PersonaKnowledgeAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type PersonaKnowledgeSumAggregateInputType = {
+    id?: true
+  }
+
+  export type PersonaKnowledgeMinAggregateInputType = {
+    id?: true
+    personaId?: true
+    sourceId?: true
+    title?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type PersonaKnowledgeMaxAggregateInputType = {
+    id?: true
+    personaId?: true
+    sourceId?: true
+    title?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type PersonaKnowledgeCountAggregateInputType = {
+    id?: true
+    personaId?: true
+    sourceId?: true
+    title?: true
+    content?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type PersonaKnowledgeAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PersonaKnowledge to aggregate.
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaKnowledges to fetch.
+     */
+    orderBy?: PersonaKnowledgeOrderByWithRelationInput | PersonaKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PersonaKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PersonaKnowledges
+    **/
+    _count?: true | PersonaKnowledgeCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PersonaKnowledgeAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PersonaKnowledgeSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PersonaKnowledgeMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PersonaKnowledgeMaxAggregateInputType
+  }
+
+  export type GetPersonaKnowledgeAggregateType<T extends PersonaKnowledgeAggregateArgs> = {
+        [P in keyof T & keyof AggregatePersonaKnowledge]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePersonaKnowledge[P]>
+      : GetScalarType<T[P], AggregatePersonaKnowledge[P]>
+  }
+
+
+
+
+  export type PersonaKnowledgeGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PersonaKnowledgeWhereInput
+    orderBy?: PersonaKnowledgeOrderByWithAggregationInput | PersonaKnowledgeOrderByWithAggregationInput[]
+    by: PersonaKnowledgeScalarFieldEnum[] | PersonaKnowledgeScalarFieldEnum
+    having?: PersonaKnowledgeScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PersonaKnowledgeCountAggregateInputType | true
+    _avg?: PersonaKnowledgeAvgAggregateInputType
+    _sum?: PersonaKnowledgeSumAggregateInputType
+    _min?: PersonaKnowledgeMinAggregateInputType
+    _max?: PersonaKnowledgeMaxAggregateInputType
+  }
+
+  export type PersonaKnowledgeGroupByOutputType = {
+    id: number
+    personaId: string
+    sourceId: string | null
+    title: string | null
+    content: string
+    createdAt: Date
+    _count: PersonaKnowledgeCountAggregateOutputType | null
+    _avg: PersonaKnowledgeAvgAggregateOutputType | null
+    _sum: PersonaKnowledgeSumAggregateOutputType | null
+    _min: PersonaKnowledgeMinAggregateOutputType | null
+    _max: PersonaKnowledgeMaxAggregateOutputType | null
+  }
+
+  type GetPersonaKnowledgeGroupByPayload<T extends PersonaKnowledgeGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PersonaKnowledgeGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PersonaKnowledgeGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PersonaKnowledgeGroupByOutputType[P]>
+            : GetScalarType<T[P], PersonaKnowledgeGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PersonaKnowledgeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    personaId?: boolean
+    sourceId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaKnowledge"]>
+
+  export type PersonaKnowledgeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    personaId?: boolean
+    sourceId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaKnowledge"]>
+
+  export type PersonaKnowledgeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    personaId?: boolean
+    sourceId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["personaKnowledge"]>
+
+  export type PersonaKnowledgeSelectScalar = {
+    id?: boolean
+    personaId?: boolean
+    sourceId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }
+
+  export type PersonaKnowledgeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "sourceId" | "title" | "content" | "createdAt", ExtArgs["result"]["personaKnowledge"]>
+  export type PersonaKnowledgeInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type PersonaKnowledgeIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type PersonaKnowledgeIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+
+  export type $PersonaKnowledgePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PersonaKnowledge"
+    objects: {
+      persona: Prisma.$PersonaPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      personaId: string
+      sourceId: string | null
+      title: string | null
+      content: string
+      createdAt: Date
+    }, ExtArgs["result"]["personaKnowledge"]>
+    composites: {}
+  }
+
+  type PersonaKnowledgeGetPayload<S extends boolean | null | undefined | PersonaKnowledgeDefaultArgs> = $Result.GetResult<Prisma.$PersonaKnowledgePayload, S>
+
+  type PersonaKnowledgeCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<PersonaKnowledgeFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: PersonaKnowledgeCountAggregateInputType | true
+    }
+
+  export interface PersonaKnowledgeDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PersonaKnowledge'], meta: { name: 'PersonaKnowledge' } }
+    /**
+     * Find zero or one PersonaKnowledge that matches the filter.
+     * @param {PersonaKnowledgeFindUniqueArgs} args - Arguments to find a PersonaKnowledge
+     * @example
+     * // Get one PersonaKnowledge
+     * const personaKnowledge = await prisma.personaKnowledge.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PersonaKnowledgeFindUniqueArgs>(args: SelectSubset<T, PersonaKnowledgeFindUniqueArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one PersonaKnowledge that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {PersonaKnowledgeFindUniqueOrThrowArgs} args - Arguments to find a PersonaKnowledge
+     * @example
+     * // Get one PersonaKnowledge
+     * const personaKnowledge = await prisma.personaKnowledge.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PersonaKnowledgeFindUniqueOrThrowArgs>(args: SelectSubset<T, PersonaKnowledgeFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PersonaKnowledge that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeFindFirstArgs} args - Arguments to find a PersonaKnowledge
+     * @example
+     * // Get one PersonaKnowledge
+     * const personaKnowledge = await prisma.personaKnowledge.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PersonaKnowledgeFindFirstArgs>(args?: SelectSubset<T, PersonaKnowledgeFindFirstArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first PersonaKnowledge that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeFindFirstOrThrowArgs} args - Arguments to find a PersonaKnowledge
+     * @example
+     * // Get one PersonaKnowledge
+     * const personaKnowledge = await prisma.personaKnowledge.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PersonaKnowledgeFindFirstOrThrowArgs>(args?: SelectSubset<T, PersonaKnowledgeFindFirstOrThrowArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more PersonaKnowledges that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PersonaKnowledges
+     * const personaKnowledges = await prisma.personaKnowledge.findMany()
+     * 
+     * // Get first 10 PersonaKnowledges
+     * const personaKnowledges = await prisma.personaKnowledge.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const personaKnowledgeWithIdOnly = await prisma.personaKnowledge.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PersonaKnowledgeFindManyArgs>(args?: SelectSubset<T, PersonaKnowledgeFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a PersonaKnowledge.
+     * @param {PersonaKnowledgeCreateArgs} args - Arguments to create a PersonaKnowledge.
+     * @example
+     * // Create one PersonaKnowledge
+     * const PersonaKnowledge = await prisma.personaKnowledge.create({
+     *   data: {
+     *     // ... data to create a PersonaKnowledge
+     *   }
+     * })
+     * 
+     */
+    create<T extends PersonaKnowledgeCreateArgs>(args: SelectSubset<T, PersonaKnowledgeCreateArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many PersonaKnowledges.
+     * @param {PersonaKnowledgeCreateManyArgs} args - Arguments to create many PersonaKnowledges.
+     * @example
+     * // Create many PersonaKnowledges
+     * const personaKnowledge = await prisma.personaKnowledge.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PersonaKnowledgeCreateManyArgs>(args?: SelectSubset<T, PersonaKnowledgeCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PersonaKnowledges and returns the data saved in the database.
+     * @param {PersonaKnowledgeCreateManyAndReturnArgs} args - Arguments to create many PersonaKnowledges.
+     * @example
+     * // Create many PersonaKnowledges
+     * const personaKnowledge = await prisma.personaKnowledge.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PersonaKnowledges and only return the `id`
+     * const personaKnowledgeWithIdOnly = await prisma.personaKnowledge.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PersonaKnowledgeCreateManyAndReturnArgs>(args?: SelectSubset<T, PersonaKnowledgeCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a PersonaKnowledge.
+     * @param {PersonaKnowledgeDeleteArgs} args - Arguments to delete one PersonaKnowledge.
+     * @example
+     * // Delete one PersonaKnowledge
+     * const PersonaKnowledge = await prisma.personaKnowledge.delete({
+     *   where: {
+     *     // ... filter to delete one PersonaKnowledge
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PersonaKnowledgeDeleteArgs>(args: SelectSubset<T, PersonaKnowledgeDeleteArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one PersonaKnowledge.
+     * @param {PersonaKnowledgeUpdateArgs} args - Arguments to update one PersonaKnowledge.
+     * @example
+     * // Update one PersonaKnowledge
+     * const personaKnowledge = await prisma.personaKnowledge.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PersonaKnowledgeUpdateArgs>(args: SelectSubset<T, PersonaKnowledgeUpdateArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more PersonaKnowledges.
+     * @param {PersonaKnowledgeDeleteManyArgs} args - Arguments to filter PersonaKnowledges to delete.
+     * @example
+     * // Delete a few PersonaKnowledges
+     * const { count } = await prisma.personaKnowledge.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PersonaKnowledgeDeleteManyArgs>(args?: SelectSubset<T, PersonaKnowledgeDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PersonaKnowledges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PersonaKnowledges
+     * const personaKnowledge = await prisma.personaKnowledge.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PersonaKnowledgeUpdateManyArgs>(args: SelectSubset<T, PersonaKnowledgeUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PersonaKnowledges and returns the data updated in the database.
+     * @param {PersonaKnowledgeUpdateManyAndReturnArgs} args - Arguments to update many PersonaKnowledges.
+     * @example
+     * // Update many PersonaKnowledges
+     * const personaKnowledge = await prisma.personaKnowledge.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more PersonaKnowledges and only return the `id`
+     * const personaKnowledgeWithIdOnly = await prisma.personaKnowledge.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends PersonaKnowledgeUpdateManyAndReturnArgs>(args: SelectSubset<T, PersonaKnowledgeUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one PersonaKnowledge.
+     * @param {PersonaKnowledgeUpsertArgs} args - Arguments to update or create a PersonaKnowledge.
+     * @example
+     * // Update or create a PersonaKnowledge
+     * const personaKnowledge = await prisma.personaKnowledge.upsert({
+     *   create: {
+     *     // ... data to create a PersonaKnowledge
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PersonaKnowledge we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PersonaKnowledgeUpsertArgs>(args: SelectSubset<T, PersonaKnowledgeUpsertArgs<ExtArgs>>): Prisma__PersonaKnowledgeClient<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of PersonaKnowledges.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeCountArgs} args - Arguments to filter PersonaKnowledges to count.
+     * @example
+     * // Count the number of PersonaKnowledges
+     * const count = await prisma.personaKnowledge.count({
+     *   where: {
+     *     // ... the filter for the PersonaKnowledges we want to count
+     *   }
+     * })
+    **/
+    count<T extends PersonaKnowledgeCountArgs>(
+      args?: Subset<T, PersonaKnowledgeCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PersonaKnowledgeCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PersonaKnowledge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PersonaKnowledgeAggregateArgs>(args: Subset<T, PersonaKnowledgeAggregateArgs>): Prisma.PrismaPromise<GetPersonaKnowledgeAggregateType<T>>
+
+    /**
+     * Group by PersonaKnowledge.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PersonaKnowledgeGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PersonaKnowledgeGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PersonaKnowledgeGroupByArgs['orderBy'] }
+        : { orderBy?: PersonaKnowledgeGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PersonaKnowledgeGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPersonaKnowledgeGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PersonaKnowledge model
+   */
+  readonly fields: PersonaKnowledgeFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PersonaKnowledge.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PersonaKnowledgeClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    persona<T extends PersonaDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PersonaDefaultArgs<ExtArgs>>): Prisma__PersonaClient<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PersonaKnowledge model
+   */
+  interface PersonaKnowledgeFieldRefs {
+    readonly id: FieldRef<"PersonaKnowledge", 'Int'>
+    readonly personaId: FieldRef<"PersonaKnowledge", 'String'>
+    readonly sourceId: FieldRef<"PersonaKnowledge", 'String'>
+    readonly title: FieldRef<"PersonaKnowledge", 'String'>
+    readonly content: FieldRef<"PersonaKnowledge", 'String'>
+    readonly createdAt: FieldRef<"PersonaKnowledge", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PersonaKnowledge findUnique
+   */
+  export type PersonaKnowledgeFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaKnowledge to fetch.
+     */
+    where: PersonaKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * PersonaKnowledge findUniqueOrThrow
+   */
+  export type PersonaKnowledgeFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaKnowledge to fetch.
+     */
+    where: PersonaKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * PersonaKnowledge findFirst
+   */
+  export type PersonaKnowledgeFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaKnowledge to fetch.
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaKnowledges to fetch.
+     */
+    orderBy?: PersonaKnowledgeOrderByWithRelationInput | PersonaKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PersonaKnowledges.
+     */
+    cursor?: PersonaKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaKnowledges.
+     */
+    distinct?: PersonaKnowledgeScalarFieldEnum | PersonaKnowledgeScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaKnowledge findFirstOrThrow
+   */
+  export type PersonaKnowledgeFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaKnowledge to fetch.
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaKnowledges to fetch.
+     */
+    orderBy?: PersonaKnowledgeOrderByWithRelationInput | PersonaKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PersonaKnowledges.
+     */
+    cursor?: PersonaKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaKnowledges.
+     */
+    distinct?: PersonaKnowledgeScalarFieldEnum | PersonaKnowledgeScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaKnowledge findMany
+   */
+  export type PersonaKnowledgeFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * Filter, which PersonaKnowledges to fetch.
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PersonaKnowledges to fetch.
+     */
+    orderBy?: PersonaKnowledgeOrderByWithRelationInput | PersonaKnowledgeOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PersonaKnowledges.
+     */
+    cursor?: PersonaKnowledgeWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PersonaKnowledges from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PersonaKnowledges.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PersonaKnowledges.
+     */
+    distinct?: PersonaKnowledgeScalarFieldEnum | PersonaKnowledgeScalarFieldEnum[]
+  }
+
+  /**
+   * PersonaKnowledge create
+   */
+  export type PersonaKnowledgeCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PersonaKnowledge.
+     */
+    data: XOR<PersonaKnowledgeCreateInput, PersonaKnowledgeUncheckedCreateInput>
+  }
+
+  /**
+   * PersonaKnowledge createMany
+   */
+  export type PersonaKnowledgeCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PersonaKnowledges.
+     */
+    data: PersonaKnowledgeCreateManyInput | PersonaKnowledgeCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PersonaKnowledge createManyAndReturn
+   */
+  export type PersonaKnowledgeCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * The data used to create many PersonaKnowledges.
+     */
+    data: PersonaKnowledgeCreateManyInput | PersonaKnowledgeCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PersonaKnowledge update
+   */
+  export type PersonaKnowledgeUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PersonaKnowledge.
+     */
+    data: XOR<PersonaKnowledgeUpdateInput, PersonaKnowledgeUncheckedUpdateInput>
+    /**
+     * Choose, which PersonaKnowledge to update.
+     */
+    where: PersonaKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * PersonaKnowledge updateMany
+   */
+  export type PersonaKnowledgeUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PersonaKnowledges.
+     */
+    data: XOR<PersonaKnowledgeUpdateManyMutationInput, PersonaKnowledgeUncheckedUpdateManyInput>
+    /**
+     * Filter which PersonaKnowledges to update
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * Limit how many PersonaKnowledges to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * PersonaKnowledge updateManyAndReturn
+   */
+  export type PersonaKnowledgeUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * The data used to update PersonaKnowledges.
+     */
+    data: XOR<PersonaKnowledgeUpdateManyMutationInput, PersonaKnowledgeUncheckedUpdateManyInput>
+    /**
+     * Filter which PersonaKnowledges to update
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * Limit how many PersonaKnowledges to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PersonaKnowledge upsert
+   */
+  export type PersonaKnowledgeUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PersonaKnowledge to update in case it exists.
+     */
+    where: PersonaKnowledgeWhereUniqueInput
+    /**
+     * In case the PersonaKnowledge found by the `where` argument doesn't exist, create a new PersonaKnowledge with this data.
+     */
+    create: XOR<PersonaKnowledgeCreateInput, PersonaKnowledgeUncheckedCreateInput>
+    /**
+     * In case the PersonaKnowledge was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PersonaKnowledgeUpdateInput, PersonaKnowledgeUncheckedUpdateInput>
+  }
+
+  /**
+   * PersonaKnowledge delete
+   */
+  export type PersonaKnowledgeDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+    /**
+     * Filter which PersonaKnowledge to delete.
+     */
+    where: PersonaKnowledgeWhereUniqueInput
+  }
+
+  /**
+   * PersonaKnowledge deleteMany
+   */
+  export type PersonaKnowledgeDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PersonaKnowledges to delete
+     */
+    where?: PersonaKnowledgeWhereInput
+    /**
+     * Limit how many PersonaKnowledges to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * PersonaKnowledge without action
+   */
+  export type PersonaKnowledgeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PersonaKnowledge
+     */
+    select?: PersonaKnowledgeSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the PersonaKnowledge
+     */
+    omit?: PersonaKnowledgeOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaKnowledgeInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -13406,6 +14644,18 @@ export namespace Prisma {
   };
 
   export type AppConfigScalarFieldEnum = (typeof AppConfigScalarFieldEnum)[keyof typeof AppConfigScalarFieldEnum]
+
+
+  export const PersonaKnowledgeScalarFieldEnum: {
+    id: 'id',
+    personaId: 'personaId',
+    sourceId: 'sourceId',
+    title: 'title',
+    content: 'content',
+    createdAt: 'createdAt'
+  };
+
+  export type PersonaKnowledgeScalarFieldEnum = (typeof PersonaKnowledgeScalarFieldEnum)[keyof typeof PersonaKnowledgeScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -13714,6 +14964,7 @@ export namespace Prisma {
     sessions?: ChatSessionListRelationFilter
     images?: PersonaImageListRelationFilter
     personaXps?: UserPersonaXpListRelationFilter
+    knowledge?: PersonaKnowledgeListRelationFilter
   }
 
   export type PersonaOrderByWithRelationInput = {
@@ -13735,6 +14986,7 @@ export namespace Prisma {
     sessions?: ChatSessionOrderByRelationAggregateInput
     images?: PersonaImageOrderByRelationAggregateInput
     personaXps?: UserPersonaXpOrderByRelationAggregateInput
+    knowledge?: PersonaKnowledgeOrderByRelationAggregateInput
   }
 
   export type PersonaWhereUniqueInput = Prisma.AtLeast<{
@@ -13759,6 +15011,7 @@ export namespace Prisma {
     sessions?: ChatSessionListRelationFilter
     images?: PersonaImageListRelationFilter
     personaXps?: UserPersonaXpListRelationFilter
+    knowledge?: PersonaKnowledgeListRelationFilter
   }, "id">
 
   export type PersonaOrderByWithAggregationInput = {
@@ -14177,6 +15430,68 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"AppConfig"> | Date | string
   }
 
+  export type PersonaKnowledgeWhereInput = {
+    AND?: PersonaKnowledgeWhereInput | PersonaKnowledgeWhereInput[]
+    OR?: PersonaKnowledgeWhereInput[]
+    NOT?: PersonaKnowledgeWhereInput | PersonaKnowledgeWhereInput[]
+    id?: IntFilter<"PersonaKnowledge"> | number
+    personaId?: StringFilter<"PersonaKnowledge"> | string
+    sourceId?: StringNullableFilter<"PersonaKnowledge"> | string | null
+    title?: StringNullableFilter<"PersonaKnowledge"> | string | null
+    content?: StringFilter<"PersonaKnowledge"> | string
+    createdAt?: DateTimeFilter<"PersonaKnowledge"> | Date | string
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }
+
+  export type PersonaKnowledgeOrderByWithRelationInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    sourceId?: SortOrderInput | SortOrder
+    title?: SortOrderInput | SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    persona?: PersonaOrderByWithRelationInput
+  }
+
+  export type PersonaKnowledgeWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PersonaKnowledgeWhereInput | PersonaKnowledgeWhereInput[]
+    OR?: PersonaKnowledgeWhereInput[]
+    NOT?: PersonaKnowledgeWhereInput | PersonaKnowledgeWhereInput[]
+    personaId?: StringFilter<"PersonaKnowledge"> | string
+    sourceId?: StringNullableFilter<"PersonaKnowledge"> | string | null
+    title?: StringNullableFilter<"PersonaKnowledge"> | string | null
+    content?: StringFilter<"PersonaKnowledge"> | string
+    createdAt?: DateTimeFilter<"PersonaKnowledge"> | Date | string
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }, "id">
+
+  export type PersonaKnowledgeOrderByWithAggregationInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    sourceId?: SortOrderInput | SortOrder
+    title?: SortOrderInput | SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    _count?: PersonaKnowledgeCountOrderByAggregateInput
+    _avg?: PersonaKnowledgeAvgOrderByAggregateInput
+    _max?: PersonaKnowledgeMaxOrderByAggregateInput
+    _min?: PersonaKnowledgeMinOrderByAggregateInput
+    _sum?: PersonaKnowledgeSumOrderByAggregateInput
+  }
+
+  export type PersonaKnowledgeScalarWhereWithAggregatesInput = {
+    AND?: PersonaKnowledgeScalarWhereWithAggregatesInput | PersonaKnowledgeScalarWhereWithAggregatesInput[]
+    OR?: PersonaKnowledgeScalarWhereWithAggregatesInput[]
+    NOT?: PersonaKnowledgeScalarWhereWithAggregatesInput | PersonaKnowledgeScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PersonaKnowledge"> | number
+    personaId?: StringWithAggregatesFilter<"PersonaKnowledge"> | string
+    sourceId?: StringNullableWithAggregatesFilter<"PersonaKnowledge"> | string | null
+    title?: StringNullableWithAggregatesFilter<"PersonaKnowledge"> | string | null
+    content?: StringWithAggregatesFilter<"PersonaKnowledge"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"PersonaKnowledge"> | Date | string
+  }
+
   export type UserCreateInput = {
     email: string
     password: string
@@ -14377,6 +15692,7 @@ export namespace Prisma {
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateInput = {
@@ -14397,6 +15713,7 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUpdateInput = {
@@ -14417,6 +15734,7 @@ export namespace Prisma {
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateInput = {
@@ -14437,6 +15755,7 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateManyInput = {
@@ -14851,6 +16170,65 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type PersonaKnowledgeCreateInput = {
+    sourceId?: string | null
+    title?: string | null
+    content: string
+    createdAt?: Date | string
+    persona: PersonaCreateNestedOneWithoutKnowledgeInput
+  }
+
+  export type PersonaKnowledgeUncheckedCreateInput = {
+    id?: number
+    personaId: string
+    sourceId?: string | null
+    title?: string | null
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type PersonaKnowledgeUpdateInput = {
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    persona?: PersonaUpdateOneRequiredWithoutKnowledgeNestedInput
+  }
+
+  export type PersonaKnowledgeUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaKnowledgeCreateManyInput = {
+    id?: number
+    personaId: string
+    sourceId?: string | null
+    title?: string | null
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type PersonaKnowledgeUpdateManyMutationInput = {
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaKnowledgeUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -15184,7 +16562,17 @@ export namespace Prisma {
     none?: PersonaImageWhereInput
   }
 
+  export type PersonaKnowledgeListRelationFilter = {
+    every?: PersonaKnowledgeWhereInput
+    some?: PersonaKnowledgeWhereInput
+    none?: PersonaKnowledgeWhereInput
+  }
+
   export type PersonaImageOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PersonaKnowledgeOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -15525,6 +16913,41 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type PersonaKnowledgeCountOrderByAggregateInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    sourceId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaKnowledgeAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type PersonaKnowledgeMaxOrderByAggregateInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    sourceId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaKnowledgeMinOrderByAggregateInput = {
+    id?: SortOrder
+    personaId?: SortOrder
+    sourceId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type PersonaKnowledgeSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
   export type PersonaCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -15786,6 +17209,13 @@ export namespace Prisma {
     connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
   }
 
+  export type PersonaKnowledgeCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<PersonaKnowledgeCreateWithoutPersonaInput, PersonaKnowledgeUncheckedCreateWithoutPersonaInput> | PersonaKnowledgeCreateWithoutPersonaInput[] | PersonaKnowledgeUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaKnowledgeCreateOrConnectWithoutPersonaInput | PersonaKnowledgeCreateOrConnectWithoutPersonaInput[]
+    createMany?: PersonaKnowledgeCreateManyPersonaInputEnvelope
+    connect?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutPersonaInput = {
     create?: XOR<ChatSessionCreateWithoutPersonaInput, ChatSessionUncheckedCreateWithoutPersonaInput> | ChatSessionCreateWithoutPersonaInput[] | ChatSessionUncheckedCreateWithoutPersonaInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutPersonaInput | ChatSessionCreateOrConnectWithoutPersonaInput[]
@@ -15805,6 +17235,13 @@ export namespace Prisma {
     connectOrCreate?: UserPersonaXpCreateOrConnectWithoutPersonaInput | UserPersonaXpCreateOrConnectWithoutPersonaInput[]
     createMany?: UserPersonaXpCreateManyPersonaInputEnvelope
     connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+  }
+
+  export type PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<PersonaKnowledgeCreateWithoutPersonaInput, PersonaKnowledgeUncheckedCreateWithoutPersonaInput> | PersonaKnowledgeCreateWithoutPersonaInput[] | PersonaKnowledgeUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaKnowledgeCreateOrConnectWithoutPersonaInput | PersonaKnowledgeCreateOrConnectWithoutPersonaInput[]
+    createMany?: PersonaKnowledgeCreateManyPersonaInputEnvelope
+    connect?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -15863,6 +17300,20 @@ export namespace Prisma {
     deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
   }
 
+  export type PersonaKnowledgeUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<PersonaKnowledgeCreateWithoutPersonaInput, PersonaKnowledgeUncheckedCreateWithoutPersonaInput> | PersonaKnowledgeCreateWithoutPersonaInput[] | PersonaKnowledgeUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaKnowledgeCreateOrConnectWithoutPersonaInput | PersonaKnowledgeCreateOrConnectWithoutPersonaInput[]
+    upsert?: PersonaKnowledgeUpsertWithWhereUniqueWithoutPersonaInput | PersonaKnowledgeUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: PersonaKnowledgeCreateManyPersonaInputEnvelope
+    set?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    disconnect?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    delete?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    connect?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    update?: PersonaKnowledgeUpdateWithWhereUniqueWithoutPersonaInput | PersonaKnowledgeUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: PersonaKnowledgeUpdateManyWithWhereWithoutPersonaInput | PersonaKnowledgeUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: PersonaKnowledgeScalarWhereInput | PersonaKnowledgeScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -15911,6 +17362,20 @@ export namespace Prisma {
     update?: UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput | UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput[]
     updateMany?: UserPersonaXpUpdateManyWithWhereWithoutPersonaInput | UserPersonaXpUpdateManyWithWhereWithoutPersonaInput[]
     deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+  }
+
+  export type PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<PersonaKnowledgeCreateWithoutPersonaInput, PersonaKnowledgeUncheckedCreateWithoutPersonaInput> | PersonaKnowledgeCreateWithoutPersonaInput[] | PersonaKnowledgeUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: PersonaKnowledgeCreateOrConnectWithoutPersonaInput | PersonaKnowledgeCreateOrConnectWithoutPersonaInput[]
+    upsert?: PersonaKnowledgeUpsertWithWhereUniqueWithoutPersonaInput | PersonaKnowledgeUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: PersonaKnowledgeCreateManyPersonaInputEnvelope
+    set?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    disconnect?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    delete?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    connect?: PersonaKnowledgeWhereUniqueInput | PersonaKnowledgeWhereUniqueInput[]
+    update?: PersonaKnowledgeUpdateWithWhereUniqueWithoutPersonaInput | PersonaKnowledgeUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: PersonaKnowledgeUpdateManyWithWhereWithoutPersonaInput | PersonaKnowledgeUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: PersonaKnowledgeScalarWhereInput | PersonaKnowledgeScalarWhereInput[]
   }
 
   export type PersonaCreateNestedOneWithoutImagesInput = {
@@ -16111,6 +17576,20 @@ export namespace Prisma {
     upsert?: ChatSessionUpsertWithoutSummaryInput
     connect?: ChatSessionWhereUniqueInput
     update?: XOR<XOR<ChatSessionUpdateToOneWithWhereWithoutSummaryInput, ChatSessionUpdateWithoutSummaryInput>, ChatSessionUncheckedUpdateWithoutSummaryInput>
+  }
+
+  export type PersonaCreateNestedOneWithoutKnowledgeInput = {
+    create?: XOR<PersonaCreateWithoutKnowledgeInput, PersonaUncheckedCreateWithoutKnowledgeInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutKnowledgeInput
+    connect?: PersonaWhereUniqueInput
+  }
+
+  export type PersonaUpdateOneRequiredWithoutKnowledgeNestedInput = {
+    create?: XOR<PersonaCreateWithoutKnowledgeInput, PersonaUncheckedCreateWithoutKnowledgeInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutKnowledgeInput
+    upsert?: PersonaUpsertWithoutKnowledgeInput
+    connect?: PersonaWhereUniqueInput
+    update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutKnowledgeInput, PersonaUpdateWithoutKnowledgeInput>, PersonaUncheckedUpdateWithoutKnowledgeInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -16331,6 +17810,7 @@ export namespace Prisma {
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutUserInput = {
@@ -16350,6 +17830,7 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutUserInput = {
@@ -16599,6 +18080,7 @@ export namespace Prisma {
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutPersonaXpsInput = {
@@ -16618,6 +18100,7 @@ export namespace Prisma {
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutPersonaXpsInput = {
@@ -16691,6 +18174,7 @@ export namespace Prisma {
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutPersonaXpsInput = {
@@ -16710,6 +18194,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type UserCreateWithoutMemoriesInput = {
@@ -16894,6 +18379,31 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PersonaKnowledgeCreateWithoutPersonaInput = {
+    sourceId?: string | null
+    title?: string | null
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type PersonaKnowledgeUncheckedCreateWithoutPersonaInput = {
+    id?: number
+    sourceId?: string | null
+    title?: string | null
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type PersonaKnowledgeCreateOrConnectWithoutPersonaInput = {
+    where: PersonaKnowledgeWhereUniqueInput
+    create: XOR<PersonaKnowledgeCreateWithoutPersonaInput, PersonaKnowledgeUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type PersonaKnowledgeCreateManyPersonaInputEnvelope = {
+    data: PersonaKnowledgeCreateManyPersonaInput | PersonaKnowledgeCreateManyPersonaInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutPersonasInput = {
     update: XOR<UserUpdateWithoutPersonasInput, UserUncheckedUpdateWithoutPersonasInput>
     create: XOR<UserCreateWithoutPersonasInput, UserUncheckedCreateWithoutPersonasInput>
@@ -16994,6 +18504,34 @@ export namespace Prisma {
     data: XOR<UserPersonaXpUpdateManyMutationInput, UserPersonaXpUncheckedUpdateManyWithoutPersonaInput>
   }
 
+  export type PersonaKnowledgeUpsertWithWhereUniqueWithoutPersonaInput = {
+    where: PersonaKnowledgeWhereUniqueInput
+    update: XOR<PersonaKnowledgeUpdateWithoutPersonaInput, PersonaKnowledgeUncheckedUpdateWithoutPersonaInput>
+    create: XOR<PersonaKnowledgeCreateWithoutPersonaInput, PersonaKnowledgeUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type PersonaKnowledgeUpdateWithWhereUniqueWithoutPersonaInput = {
+    where: PersonaKnowledgeWhereUniqueInput
+    data: XOR<PersonaKnowledgeUpdateWithoutPersonaInput, PersonaKnowledgeUncheckedUpdateWithoutPersonaInput>
+  }
+
+  export type PersonaKnowledgeUpdateManyWithWhereWithoutPersonaInput = {
+    where: PersonaKnowledgeScalarWhereInput
+    data: XOR<PersonaKnowledgeUpdateManyMutationInput, PersonaKnowledgeUncheckedUpdateManyWithoutPersonaInput>
+  }
+
+  export type PersonaKnowledgeScalarWhereInput = {
+    AND?: PersonaKnowledgeScalarWhereInput | PersonaKnowledgeScalarWhereInput[]
+    OR?: PersonaKnowledgeScalarWhereInput[]
+    NOT?: PersonaKnowledgeScalarWhereInput | PersonaKnowledgeScalarWhereInput[]
+    id?: IntFilter<"PersonaKnowledge"> | number
+    personaId?: StringFilter<"PersonaKnowledge"> | string
+    sourceId?: StringNullableFilter<"PersonaKnowledge"> | string | null
+    title?: StringNullableFilter<"PersonaKnowledge"> | string | null
+    content?: StringFilter<"PersonaKnowledge"> | string
+    createdAt?: DateTimeFilter<"PersonaKnowledge"> | Date | string
+  }
+
   export type PersonaCreateWithoutImagesInput = {
     id?: string
     name: string
@@ -17011,6 +18549,7 @@ export namespace Prisma {
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutImagesInput = {
@@ -17030,6 +18569,7 @@ export namespace Prisma {
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutImagesInput = {
@@ -17092,6 +18632,7 @@ export namespace Prisma {
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutImagesInput = {
@@ -17111,6 +18652,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaVideoUpsertWithWhereUniqueWithoutImageInput = {
@@ -17249,6 +18791,7 @@ export namespace Prisma {
     user?: UserCreateNestedOneWithoutPersonasInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutSessionsInput = {
@@ -17268,6 +18811,7 @@ export namespace Prisma {
     createdAt?: Date | string
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutSessionsInput = {
@@ -17384,6 +18928,7 @@ export namespace Prisma {
     user?: UserUpdateOneWithoutPersonasNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutSessionsInput = {
@@ -17403,6 +18948,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutSessionInput = {
@@ -17566,6 +19112,102 @@ export namespace Prisma {
     messages?: MessageUncheckedUpdateManyWithoutSessionNestedInput
   }
 
+  export type PersonaCreateWithoutKnowledgeInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutPersonasInput
+    sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaUncheckedCreateWithoutKnowledgeInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdBy?: number | null
+    createdAt?: Date | string
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaCreateOrConnectWithoutKnowledgeInput = {
+    where: PersonaWhereUniqueInput
+    create: XOR<PersonaCreateWithoutKnowledgeInput, PersonaUncheckedCreateWithoutKnowledgeInput>
+  }
+
+  export type PersonaUpsertWithoutKnowledgeInput = {
+    update: XOR<PersonaUpdateWithoutKnowledgeInput, PersonaUncheckedUpdateWithoutKnowledgeInput>
+    create: XOR<PersonaCreateWithoutKnowledgeInput, PersonaUncheckedCreateWithoutKnowledgeInput>
+    where?: PersonaWhereInput
+  }
+
+  export type PersonaUpdateToOneWithWhereWithoutKnowledgeInput = {
+    where?: PersonaWhereInput
+    data: XOR<PersonaUpdateWithoutKnowledgeInput, PersonaUncheckedUpdateWithoutKnowledgeInput>
+  }
+
+  export type PersonaUpdateWithoutKnowledgeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutPersonasNestedInput
+    sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type PersonaUncheckedUpdateWithoutKnowledgeInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+  }
+
   export type PersonaCreateManyUserInput = {
     id?: string
     name: string
@@ -17619,6 +19261,7 @@ export namespace Prisma {
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutUserInput = {
@@ -17638,6 +19281,7 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserInput = {
@@ -17741,6 +19385,14 @@ export namespace Prisma {
     xp?: number
   }
 
+  export type PersonaKnowledgeCreateManyPersonaInput = {
+    id?: number
+    sourceId?: string | null
+    title?: string | null
+    content: string
+    createdAt?: Date | string
+  }
+
   export type ChatSessionUpdateWithoutPersonaInput = {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -17812,6 +19464,29 @@ export namespace Prisma {
   export type UserPersonaXpUncheckedUpdateManyWithoutPersonaInput = {
     userId?: IntFieldUpdateOperationsInput | number
     xp?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type PersonaKnowledgeUpdateWithoutPersonaInput = {
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaKnowledgeUncheckedUpdateWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PersonaKnowledgeUncheckedUpdateManyWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    sourceId?: NullableStringFieldUpdateOperationsInput | string | null
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PersonaVideoCreateManyImageInput = {

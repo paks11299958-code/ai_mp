@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo } from '../types';
-import { personaImageApi, personaVideoApi, settingsApi } from '../services/apiService';
+import { personaImageApi, personaVideoApi, settingsApi, knowledgeApi } from '../services/apiService';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
@@ -51,7 +51,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
-    const [activeTab, setActiveTab] = useState<'info' | 'gallery'>('info');
+    const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge'>('info');
     const [showGlobalSettings, setShowGlobalSettings] = useState(false);
     const [commonInstruction, setCommonInstruction] = useState('');
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
@@ -78,6 +78,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [imageDesc, setImageDesc] = useState('');
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     const galleryInputRef = useRef<HTMLInputElement>(null);
+
+    // 지식 상태
+    const [knowledgeList, setKnowledgeList] = useState<{ sourceId: string | null; title: string | null; chunkCount: number; preview: string; createdAt: string }[]>([]);
+    const [knowledgeTitle, setKnowledgeTitle] = useState('');
+    const [knowledgeText, setKnowledgeText] = useState('');
+    const [isUploadingKnowledge, setIsUploadingKnowledge] = useState(false);
 
     // 동영상 상태
     const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
@@ -108,6 +114,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setImageUrl(p.imageUrl || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
             }
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
+            knowledgeApi.getAll(selectedId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
         }
     }, [selectedId, personas]);
 
@@ -434,7 +441,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                     {/* 탭 바 */}
                     {selectedId !== 'new' && (
                         <div className="border-b border-gray-800 px-6 flex shrink-0">
-                            {(['info', 'gallery'] as const).map(tab => (
+                            {(['info', 'gallery', 'knowledge'] as const).map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -444,9 +451,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                             : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
                                         }`}
                                 >
-                                    {tab === 'info' ? '기본 정보' : '이미지 / 동영상'}
+                                    {tab === 'info' ? '기본 정보' : tab === 'gallery' ? '이미지 / 동영상' : '지식 창고'}
                                     {tab === 'gallery' && images.length > 0 && (
                                         <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{images.length}</span>
+                                    )}
+                                    {tab === 'knowledge' && knowledgeList.length > 0 && (
+                                        <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{knowledgeList.length}</span>
                                     )}
                                 </button>
                             ))}
@@ -796,6 +806,111 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                         </div>
                                     )}
                                 </div>
+                            </div>
+                        )}
+
+                        {/* ── 지식 창고 탭 ── */}
+                        {activeTab === 'knowledge' && selectedId !== 'new' && (
+                            <div className="p-6 max-w-2xl mx-auto space-y-6">
+                                {/* 업로드 폼 */}
+                                <div className="bg-gray-800/40 border border-gray-700/50 rounded-2xl p-5 space-y-4">
+                                    <h3 className="text-sm font-bold text-white">텍스트 지식 추가</h3>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">제목 (선택)</label>
+                                        <input
+                                            type="text"
+                                            value={knowledgeTitle}
+                                            onChange={e => setKnowledgeTitle(e.target.value)}
+                                            placeholder={(() => { const p = personas.find(x => x.id === selectedId); return p ? `${p.name}${p.jobTitle ? ` - ${p.jobTitle}` : ''}` : '제목 입력'; })()}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="text-xs font-semibold text-gray-400">내용 <span className="text-red-400">*</span></label>
+                                            <label className="cursor-pointer flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                                .txt 파일 선택
+                                                <input
+                                                    type="file"
+                                                    accept=".txt"
+                                                    className="hidden"
+                                                    onChange={e => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        if (!knowledgeTitle) setKnowledgeTitle(file.name.replace(/\.txt$/, ''));
+                                                        const reader = new FileReader();
+                                                        reader.onload = ev => setKnowledgeText(ev.target?.result as string ?? '');
+                                                        reader.readAsText(file, 'UTF-8');
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
+                                        <textarea
+                                            value={knowledgeText}
+                                            onChange={e => setKnowledgeText(e.target.value)}
+                                            placeholder="페르소나가 알아야 할 전문 지식을 입력하세요.&#10;&#10;문단을 빈 줄로 구분하면 자동으로 청크로 나뉩니다."
+                                            rows={10}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+                                        />
+                                        <p className="text-[11px] text-gray-500 mt-1">문단 기준 자동 청크 분할 (최대 600자 / 50자 오버랩)</p>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (!knowledgeText.trim()) return;
+                                            setIsUploadingKnowledge(true);
+                                            try {
+                                                const result = await knowledgeApi.upload(selectedId, knowledgeTitle, knowledgeText);
+                                                setKnowledgeTitle('');
+                                                setKnowledgeText('');
+                                                const updated = await knowledgeApi.getAll(selectedId);
+                                                setKnowledgeList(updated);
+                                                alert(`저장 완료 — ${result.total}개 청크 생성`);
+                                            } catch (e: any) {
+                                                alert('저장 실패: ' + e.message);
+                                            } finally {
+                                                setIsUploadingKnowledge(false);
+                                            }
+                                        }}
+                                        disabled={isUploadingKnowledge || !knowledgeText.trim()}
+                                        className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white text-sm font-semibold transition-colors"
+                                    >
+                                        {isUploadingKnowledge ? '처리 중...' : '저장'}
+                                    </button>
+                                </div>
+
+                                {/* 저장된 문서 목록 */}
+                                {knowledgeList.length > 0 ? (
+                                    <div className="space-y-2">
+                                        <h3 className="text-sm font-bold text-white">저장된 문서 ({knowledgeList.length}개)</h3>
+                                        {knowledgeList.map(k => (
+                                            <div key={k.sourceId ?? k.createdAt} className="bg-gray-800/40 border border-gray-700/50 rounded-xl px-4 py-3 flex items-start justify-between gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                        {k.title && <p className="text-xs font-semibold text-blue-400">{k.title}</p>}
+                                                        <span className="text-[10px] text-gray-500 bg-gray-700/60 px-1.5 py-0.5 rounded-full">{k.chunkCount}청크</span>
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 leading-relaxed line-clamp-2">{k.preview}...</p>
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm(`"${k.title || '(제목 없음)'}" 문서 전체(${k.chunkCount}청크)를 삭제할까요?`)) return;
+                                                        if (k.sourceId) {
+                                                            await knowledgeApi.deleteSource(k.sourceId);
+                                                        }
+                                                        setKnowledgeList(prev => prev.filter(x => x.sourceId !== k.sourceId));
+                                                    }}
+                                                    className="shrink-0 text-gray-600 hover:text-red-400 transition-colors"
+                                                >
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-600 text-center py-8">아직 저장된 지식이 없습니다.</p>
+                                )}
                             </div>
                         )}
 
