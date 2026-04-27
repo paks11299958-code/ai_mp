@@ -43,24 +43,25 @@ model UserMemory {
 }
 
 model Persona {
-  id                String          @id @default(cuid())
+  id                String             @id @default(cuid())
   name              String
   jobTitle          String?
   description       String?
   systemInstruction String
   identityPrompt    String?
-  iconName          String          @default("Bot")
-  colorClass        String          @default("from-blue-500 to-cyan-500")
-  order             Int             @default(0)
+  iconName          String             @default("Bot")
+  colorClass        String             @default("from-blue-500 to-cyan-500")
+  order             Int                @default(0)
   imageUrl          String?
-  isDefault         Boolean         @default(false)
-  isVisible         Boolean         @default(true)
+  isDefault         Boolean            @default(false)
+  isVisible         Boolean            @default(true)
   createdBy         Int?
-  user              User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
-  createdAt         DateTime        @default(now())
+  user              User?              @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  createdAt         DateTime           @default(now())
   sessions          ChatSession[]
   images            PersonaImage[]
   personaXps        UserPersonaXp[]
+  knowledge         PersonaKnowledge[]
 }
 
 model PersonaImage {
@@ -123,4 +124,15 @@ model AppConfig {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+model PersonaKnowledge {
+  id        Int                         @id @default(autoincrement())
+  personaId String
+  sourceId  String?
+  title     String?
+  content   String
+  embedding Unsupported("vector(768)")?
+  createdAt DateTime                    @default(now())
+  persona   Persona                     @relation(fields: [personaId], references: [id], onDelete: Cascade)
 }
