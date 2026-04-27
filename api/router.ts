@@ -150,17 +150,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── App Settings ──────────────────────────────────────────
     if (domain === 'settings') {
-        if (method === 'GET') {
+        if (req.method === 'GET') {
             const configs = await prisma.appConfig.findMany();
             const result: Record<string, string> = {};
             configs.forEach((c: any) => { result[c.key] = c.value; });
             return res.json(result);
         }
-        if (method === 'PUT') {
-            if (!userId) return res.status(401).json({ error: '인증이 필요합니다.' });
+        if (req.method === 'PUT') {
+            const token = getTokenFromRequest(req);
+            if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
+            const { userId } = verifyToken(token);
             const user = await prisma.user.findUnique({ where: { id: userId } });
             if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-            const updates = body as Record<string, string>;
+            const updates = req.body as Record<string, string>;
             await Promise.all(
                 Object.entries(updates).map(([key, value]) =>
                     prisma.appConfig.upsert({
@@ -768,6 +770,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── Knowledge ─────────────────────────────────────────────
     if (domain === 'knowledge') {
+
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user || user.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
 
         // POST /api/knowledge — 텍스트 업로드 → 청크 분할 → 임베딩 → 저장
         if (req.method === 'POST' && !seg1) {
