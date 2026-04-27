@@ -126,10 +126,15 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   username: 'username',
   role: 'role',
-  xp: 'xp',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.UserPersonaXpScalarFieldEnum = {
+  userId: 'userId',
+  personaId: 'personaId',
+  xp: 'xp'
 };
 
 exports.Prisma.UserMemoryScalarFieldEnum = {
@@ -143,6 +148,7 @@ exports.Prisma.UserMemoryScalarFieldEnum = {
 exports.Prisma.PersonaScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  jobTitle: 'jobTitle',
   description: 'description',
   systemInstruction: 'systemInstruction',
   identityPrompt: 'identityPrompt',
@@ -227,6 +233,7 @@ exports.Prisma.NullsOrder = {
 
 exports.Prisma.ModelName = {
   User: 'User',
+  UserPersonaXp: 'UserPersonaXp',
   UserMemory: 'UserMemory',
   Persona: 'Persona',
   PersonaImage: 'PersonaImage',

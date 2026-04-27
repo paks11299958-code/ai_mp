@@ -19,6 +19,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
  */
 export type User = $Result.DefaultSelection<Prisma.$UserPayload>
 /**
+ * Model UserPersonaXp
+ * 
+ */
+export type UserPersonaXp = $Result.DefaultSelection<Prisma.$UserPersonaXpPayload>
+/**
  * Model UserMemory
  * 
  */
@@ -189,6 +194,16 @@ export class PrismaClient<
     * ```
     */
   get user(): Prisma.UserDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userPersonaXp`: Exposes CRUD operations for the **UserPersonaXp** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserPersonaXps
+    * const userPersonaXps = await prisma.userPersonaXp.findMany()
+    * ```
+    */
+  get userPersonaXp(): Prisma.UserPersonaXpDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.userMemory`: Exposes CRUD operations for the **UserMemory** model.
@@ -704,6 +719,7 @@ export namespace Prisma {
 
   export const ModelName: {
     User: 'User',
+    UserPersonaXp: 'UserPersonaXp',
     UserMemory: 'UserMemory',
     Persona: 'Persona',
     PersonaImage: 'PersonaImage',
@@ -727,7 +743,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -802,6 +818,80 @@ export namespace Prisma {
           count: {
             args: Prisma.UserCountArgs<ExtArgs>
             result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
+        }
+      }
+      UserPersonaXp: {
+        payload: Prisma.$UserPersonaXpPayload<ExtArgs>
+        fields: Prisma.UserPersonaXpFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserPersonaXpFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserPersonaXpFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>
+          }
+          findFirst: {
+            args: Prisma.UserPersonaXpFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserPersonaXpFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>
+          }
+          findMany: {
+            args: Prisma.UserPersonaXpFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>[]
+          }
+          create: {
+            args: Prisma.UserPersonaXpCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>
+          }
+          createMany: {
+            args: Prisma.UserPersonaXpCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserPersonaXpCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>[]
+          }
+          delete: {
+            args: Prisma.UserPersonaXpDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>
+          }
+          update: {
+            args: Prisma.UserPersonaXpUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserPersonaXpDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserPersonaXpUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserPersonaXpUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserPersonaXpUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserPersonaXpPayload>
+          }
+          aggregate: {
+            args: Prisma.UserPersonaXpAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserPersonaXp>
+          }
+          groupBy: {
+            args: Prisma.UserPersonaXpGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserPersonaXpGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserPersonaXpCountArgs<ExtArgs>
+            result: $Utils.Optional<UserPersonaXpCountAggregateOutputType> | number
           }
         }
       }
@@ -1506,6 +1596,7 @@ export namespace Prisma {
   }
   export type GlobalOmitConfig = {
     user?: UserOmit
+    userPersonaXp?: UserPersonaXpOmit
     userMemory?: UserMemoryOmit
     persona?: PersonaOmit
     personaImage?: PersonaImageOmit
@@ -1597,12 +1688,14 @@ export namespace Prisma {
     personas: number
     sessions: number
     memories: number
+    personaXps: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     personas?: boolean | UserCountOutputTypeCountPersonasArgs
     sessions?: boolean | UserCountOutputTypeCountSessionsArgs
     memories?: boolean | UserCountOutputTypeCountMemoriesArgs
+    personaXps?: boolean | UserCountOutputTypeCountPersonaXpsArgs
   }
 
   // Custom InputTypes
@@ -1637,6 +1730,13 @@ export namespace Prisma {
     where?: UserMemoryWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPersonaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserPersonaXpWhereInput
+  }
+
 
   /**
    * Count Type PersonaCountOutputType
@@ -1645,11 +1745,13 @@ export namespace Prisma {
   export type PersonaCountOutputType = {
     sessions: number
     images: number
+    personaXps: number
   }
 
   export type PersonaCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     sessions?: boolean | PersonaCountOutputTypeCountSessionsArgs
     images?: boolean | PersonaCountOutputTypeCountImagesArgs
+    personaXps?: boolean | PersonaCountOutputTypeCountPersonaXpsArgs
   }
 
   // Custom InputTypes
@@ -1675,6 +1777,13 @@ export namespace Prisma {
    */
   export type PersonaCountOutputTypeCountImagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PersonaImageWhereInput
+  }
+
+  /**
+   * PersonaCountOutputType without action
+   */
+  export type PersonaCountOutputTypeCountPersonaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserPersonaXpWhereInput
   }
 
 
@@ -1758,12 +1867,10 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     id: number | null
-    xp: number | null
   }
 
   export type UserSumAggregateOutputType = {
     id: number | null
-    xp: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -1772,7 +1879,6 @@ export namespace Prisma {
     password: string | null
     username: string | null
     role: string | null
-    xp: number | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date | null
@@ -1784,7 +1890,6 @@ export namespace Prisma {
     password: string | null
     username: string | null
     role: string | null
-    xp: number | null
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date | null
@@ -1796,7 +1901,6 @@ export namespace Prisma {
     password: number
     username: number
     role: number
-    xp: number
     resetToken: number
     resetTokenExpiry: number
     createdAt: number
@@ -1806,12 +1910,10 @@ export namespace Prisma {
 
   export type UserAvgAggregateInputType = {
     id?: true
-    xp?: true
   }
 
   export type UserSumAggregateInputType = {
     id?: true
-    xp?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -1820,7 +1922,6 @@ export namespace Prisma {
     password?: true
     username?: true
     role?: true
-    xp?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1832,7 +1933,6 @@ export namespace Prisma {
     password?: true
     username?: true
     role?: true
-    xp?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1844,7 +1944,6 @@ export namespace Prisma {
     password?: true
     username?: true
     role?: true
-    xp?: true
     resetToken?: true
     resetTokenExpiry?: true
     createdAt?: true
@@ -1943,7 +2042,6 @@ export namespace Prisma {
     password: string
     username: string | null
     role: string
-    xp: number
     resetToken: string | null
     resetTokenExpiry: Date | null
     createdAt: Date
@@ -1974,13 +2072,13 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
-    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
     personas?: boolean | User$personasArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     memories?: boolean | User$memoriesArgs<ExtArgs>
+    personaXps?: boolean | User$personaXpsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1990,7 +2088,6 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
-    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
@@ -2002,7 +2099,6 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
-    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
@@ -2014,17 +2110,17 @@ export namespace Prisma {
     password?: boolean
     username?: boolean
     role?: boolean
-    xp?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
     createdAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "username" | "role" | "xp" | "resetToken" | "resetTokenExpiry" | "createdAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "username" | "role" | "resetToken" | "resetTokenExpiry" | "createdAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     personas?: boolean | User$personasArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     memories?: boolean | User$memoriesArgs<ExtArgs>
+    personaXps?: boolean | User$personaXpsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2036,6 +2132,7 @@ export namespace Prisma {
       personas: Prisma.$PersonaPayload<ExtArgs>[]
       sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
       memories: Prisma.$UserMemoryPayload<ExtArgs>[]
+      personaXps: Prisma.$UserPersonaXpPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2043,7 +2140,6 @@ export namespace Prisma {
       password: string
       username: string | null
       role: string
-      xp: number
       resetToken: string | null
       resetTokenExpiry: Date | null
       createdAt: Date
@@ -2444,6 +2540,7 @@ export namespace Prisma {
     personas<T extends User$personasArgs<ExtArgs> = {}>(args?: Subset<T, User$personasArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     memories<T extends User$memoriesArgs<ExtArgs> = {}>(args?: Subset<T, User$memoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserMemoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    personaXps<T extends User$personaXpsArgs<ExtArgs> = {}>(args?: Subset<T, User$personaXpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2478,7 +2575,6 @@ export namespace Prisma {
     readonly password: FieldRef<"User", 'String'>
     readonly username: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'String'>
-    readonly xp: FieldRef<"User", 'Int'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
@@ -2947,6 +3043,30 @@ export namespace Prisma {
   }
 
   /**
+   * User.personaXps
+   */
+  export type User$personaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    where?: UserPersonaXpWhereInput
+    orderBy?: UserPersonaXpOrderByWithRelationInput | UserPersonaXpOrderByWithRelationInput[]
+    cursor?: UserPersonaXpWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
+  }
+
+  /**
    * User without action
    */
   export type UserDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2962,6 +3082,1089 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: UserInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model UserPersonaXp
+   */
+
+  export type AggregateUserPersonaXp = {
+    _count: UserPersonaXpCountAggregateOutputType | null
+    _avg: UserPersonaXpAvgAggregateOutputType | null
+    _sum: UserPersonaXpSumAggregateOutputType | null
+    _min: UserPersonaXpMinAggregateOutputType | null
+    _max: UserPersonaXpMaxAggregateOutputType | null
+  }
+
+  export type UserPersonaXpAvgAggregateOutputType = {
+    userId: number | null
+    xp: number | null
+  }
+
+  export type UserPersonaXpSumAggregateOutputType = {
+    userId: number | null
+    xp: number | null
+  }
+
+  export type UserPersonaXpMinAggregateOutputType = {
+    userId: number | null
+    personaId: string | null
+    xp: number | null
+  }
+
+  export type UserPersonaXpMaxAggregateOutputType = {
+    userId: number | null
+    personaId: string | null
+    xp: number | null
+  }
+
+  export type UserPersonaXpCountAggregateOutputType = {
+    userId: number
+    personaId: number
+    xp: number
+    _all: number
+  }
+
+
+  export type UserPersonaXpAvgAggregateInputType = {
+    userId?: true
+    xp?: true
+  }
+
+  export type UserPersonaXpSumAggregateInputType = {
+    userId?: true
+    xp?: true
+  }
+
+  export type UserPersonaXpMinAggregateInputType = {
+    userId?: true
+    personaId?: true
+    xp?: true
+  }
+
+  export type UserPersonaXpMaxAggregateInputType = {
+    userId?: true
+    personaId?: true
+    xp?: true
+  }
+
+  export type UserPersonaXpCountAggregateInputType = {
+    userId?: true
+    personaId?: true
+    xp?: true
+    _all?: true
+  }
+
+  export type UserPersonaXpAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserPersonaXp to aggregate.
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPersonaXps to fetch.
+     */
+    orderBy?: UserPersonaXpOrderByWithRelationInput | UserPersonaXpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserPersonaXpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPersonaXps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPersonaXps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserPersonaXps
+    **/
+    _count?: true | UserPersonaXpCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserPersonaXpAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserPersonaXpSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserPersonaXpMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserPersonaXpMaxAggregateInputType
+  }
+
+  export type GetUserPersonaXpAggregateType<T extends UserPersonaXpAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserPersonaXp]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserPersonaXp[P]>
+      : GetScalarType<T[P], AggregateUserPersonaXp[P]>
+  }
+
+
+
+
+  export type UserPersonaXpGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserPersonaXpWhereInput
+    orderBy?: UserPersonaXpOrderByWithAggregationInput | UserPersonaXpOrderByWithAggregationInput[]
+    by: UserPersonaXpScalarFieldEnum[] | UserPersonaXpScalarFieldEnum
+    having?: UserPersonaXpScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserPersonaXpCountAggregateInputType | true
+    _avg?: UserPersonaXpAvgAggregateInputType
+    _sum?: UserPersonaXpSumAggregateInputType
+    _min?: UserPersonaXpMinAggregateInputType
+    _max?: UserPersonaXpMaxAggregateInputType
+  }
+
+  export type UserPersonaXpGroupByOutputType = {
+    userId: number
+    personaId: string
+    xp: number
+    _count: UserPersonaXpCountAggregateOutputType | null
+    _avg: UserPersonaXpAvgAggregateOutputType | null
+    _sum: UserPersonaXpSumAggregateOutputType | null
+    _min: UserPersonaXpMinAggregateOutputType | null
+    _max: UserPersonaXpMaxAggregateOutputType | null
+  }
+
+  type GetUserPersonaXpGroupByPayload<T extends UserPersonaXpGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserPersonaXpGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserPersonaXpGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserPersonaXpGroupByOutputType[P]>
+            : GetScalarType<T[P], UserPersonaXpGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserPersonaXpSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    personaId?: boolean
+    xp?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userPersonaXp"]>
+
+  export type UserPersonaXpSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    personaId?: boolean
+    xp?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userPersonaXp"]>
+
+  export type UserPersonaXpSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    userId?: boolean
+    personaId?: boolean
+    xp?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userPersonaXp"]>
+
+  export type UserPersonaXpSelectScalar = {
+    userId?: boolean
+    personaId?: boolean
+    xp?: boolean
+  }
+
+  export type UserPersonaXpOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"userId" | "personaId" | "xp", ExtArgs["result"]["userPersonaXp"]>
+  export type UserPersonaXpInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type UserPersonaXpIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type UserPersonaXpIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+
+  export type $UserPersonaXpPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserPersonaXp"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      persona: Prisma.$PersonaPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      userId: number
+      personaId: string
+      xp: number
+    }, ExtArgs["result"]["userPersonaXp"]>
+    composites: {}
+  }
+
+  type UserPersonaXpGetPayload<S extends boolean | null | undefined | UserPersonaXpDefaultArgs> = $Result.GetResult<Prisma.$UserPersonaXpPayload, S>
+
+  type UserPersonaXpCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserPersonaXpFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserPersonaXpCountAggregateInputType | true
+    }
+
+  export interface UserPersonaXpDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserPersonaXp'], meta: { name: 'UserPersonaXp' } }
+    /**
+     * Find zero or one UserPersonaXp that matches the filter.
+     * @param {UserPersonaXpFindUniqueArgs} args - Arguments to find a UserPersonaXp
+     * @example
+     * // Get one UserPersonaXp
+     * const userPersonaXp = await prisma.userPersonaXp.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserPersonaXpFindUniqueArgs>(args: SelectSubset<T, UserPersonaXpFindUniqueArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserPersonaXp that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserPersonaXpFindUniqueOrThrowArgs} args - Arguments to find a UserPersonaXp
+     * @example
+     * // Get one UserPersonaXp
+     * const userPersonaXp = await prisma.userPersonaXp.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserPersonaXpFindUniqueOrThrowArgs>(args: SelectSubset<T, UserPersonaXpFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserPersonaXp that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpFindFirstArgs} args - Arguments to find a UserPersonaXp
+     * @example
+     * // Get one UserPersonaXp
+     * const userPersonaXp = await prisma.userPersonaXp.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserPersonaXpFindFirstArgs>(args?: SelectSubset<T, UserPersonaXpFindFirstArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserPersonaXp that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpFindFirstOrThrowArgs} args - Arguments to find a UserPersonaXp
+     * @example
+     * // Get one UserPersonaXp
+     * const userPersonaXp = await prisma.userPersonaXp.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserPersonaXpFindFirstOrThrowArgs>(args?: SelectSubset<T, UserPersonaXpFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserPersonaXps that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserPersonaXps
+     * const userPersonaXps = await prisma.userPersonaXp.findMany()
+     * 
+     * // Get first 10 UserPersonaXps
+     * const userPersonaXps = await prisma.userPersonaXp.findMany({ take: 10 })
+     * 
+     * // Only select the `userId`
+     * const userPersonaXpWithUserIdOnly = await prisma.userPersonaXp.findMany({ select: { userId: true } })
+     * 
+     */
+    findMany<T extends UserPersonaXpFindManyArgs>(args?: SelectSubset<T, UserPersonaXpFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserPersonaXp.
+     * @param {UserPersonaXpCreateArgs} args - Arguments to create a UserPersonaXp.
+     * @example
+     * // Create one UserPersonaXp
+     * const UserPersonaXp = await prisma.userPersonaXp.create({
+     *   data: {
+     *     // ... data to create a UserPersonaXp
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserPersonaXpCreateArgs>(args: SelectSubset<T, UserPersonaXpCreateArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserPersonaXps.
+     * @param {UserPersonaXpCreateManyArgs} args - Arguments to create many UserPersonaXps.
+     * @example
+     * // Create many UserPersonaXps
+     * const userPersonaXp = await prisma.userPersonaXp.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserPersonaXpCreateManyArgs>(args?: SelectSubset<T, UserPersonaXpCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserPersonaXps and returns the data saved in the database.
+     * @param {UserPersonaXpCreateManyAndReturnArgs} args - Arguments to create many UserPersonaXps.
+     * @example
+     * // Create many UserPersonaXps
+     * const userPersonaXp = await prisma.userPersonaXp.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserPersonaXps and only return the `userId`
+     * const userPersonaXpWithUserIdOnly = await prisma.userPersonaXp.createManyAndReturn({
+     *   select: { userId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserPersonaXpCreateManyAndReturnArgs>(args?: SelectSubset<T, UserPersonaXpCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserPersonaXp.
+     * @param {UserPersonaXpDeleteArgs} args - Arguments to delete one UserPersonaXp.
+     * @example
+     * // Delete one UserPersonaXp
+     * const UserPersonaXp = await prisma.userPersonaXp.delete({
+     *   where: {
+     *     // ... filter to delete one UserPersonaXp
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserPersonaXpDeleteArgs>(args: SelectSubset<T, UserPersonaXpDeleteArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserPersonaXp.
+     * @param {UserPersonaXpUpdateArgs} args - Arguments to update one UserPersonaXp.
+     * @example
+     * // Update one UserPersonaXp
+     * const userPersonaXp = await prisma.userPersonaXp.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserPersonaXpUpdateArgs>(args: SelectSubset<T, UserPersonaXpUpdateArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserPersonaXps.
+     * @param {UserPersonaXpDeleteManyArgs} args - Arguments to filter UserPersonaXps to delete.
+     * @example
+     * // Delete a few UserPersonaXps
+     * const { count } = await prisma.userPersonaXp.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserPersonaXpDeleteManyArgs>(args?: SelectSubset<T, UserPersonaXpDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserPersonaXps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserPersonaXps
+     * const userPersonaXp = await prisma.userPersonaXp.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserPersonaXpUpdateManyArgs>(args: SelectSubset<T, UserPersonaXpUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserPersonaXps and returns the data updated in the database.
+     * @param {UserPersonaXpUpdateManyAndReturnArgs} args - Arguments to update many UserPersonaXps.
+     * @example
+     * // Update many UserPersonaXps
+     * const userPersonaXp = await prisma.userPersonaXp.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserPersonaXps and only return the `userId`
+     * const userPersonaXpWithUserIdOnly = await prisma.userPersonaXp.updateManyAndReturn({
+     *   select: { userId: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserPersonaXpUpdateManyAndReturnArgs>(args: SelectSubset<T, UserPersonaXpUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserPersonaXp.
+     * @param {UserPersonaXpUpsertArgs} args - Arguments to update or create a UserPersonaXp.
+     * @example
+     * // Update or create a UserPersonaXp
+     * const userPersonaXp = await prisma.userPersonaXp.upsert({
+     *   create: {
+     *     // ... data to create a UserPersonaXp
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserPersonaXp we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserPersonaXpUpsertArgs>(args: SelectSubset<T, UserPersonaXpUpsertArgs<ExtArgs>>): Prisma__UserPersonaXpClient<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserPersonaXps.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpCountArgs} args - Arguments to filter UserPersonaXps to count.
+     * @example
+     * // Count the number of UserPersonaXps
+     * const count = await prisma.userPersonaXp.count({
+     *   where: {
+     *     // ... the filter for the UserPersonaXps we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserPersonaXpCountArgs>(
+      args?: Subset<T, UserPersonaXpCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserPersonaXpCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserPersonaXp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserPersonaXpAggregateArgs>(args: Subset<T, UserPersonaXpAggregateArgs>): Prisma.PrismaPromise<GetUserPersonaXpAggregateType<T>>
+
+    /**
+     * Group by UserPersonaXp.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserPersonaXpGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserPersonaXpGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserPersonaXpGroupByArgs['orderBy'] }
+        : { orderBy?: UserPersonaXpGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserPersonaXpGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserPersonaXpGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserPersonaXp model
+   */
+  readonly fields: UserPersonaXpFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserPersonaXp.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserPersonaXpClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    persona<T extends PersonaDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PersonaDefaultArgs<ExtArgs>>): Prisma__PersonaClient<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserPersonaXp model
+   */
+  interface UserPersonaXpFieldRefs {
+    readonly userId: FieldRef<"UserPersonaXp", 'Int'>
+    readonly personaId: FieldRef<"UserPersonaXp", 'String'>
+    readonly xp: FieldRef<"UserPersonaXp", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserPersonaXp findUnique
+   */
+  export type UserPersonaXpFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPersonaXp to fetch.
+     */
+    where: UserPersonaXpWhereUniqueInput
+  }
+
+  /**
+   * UserPersonaXp findUniqueOrThrow
+   */
+  export type UserPersonaXpFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPersonaXp to fetch.
+     */
+    where: UserPersonaXpWhereUniqueInput
+  }
+
+  /**
+   * UserPersonaXp findFirst
+   */
+  export type UserPersonaXpFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPersonaXp to fetch.
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPersonaXps to fetch.
+     */
+    orderBy?: UserPersonaXpOrderByWithRelationInput | UserPersonaXpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserPersonaXps.
+     */
+    cursor?: UserPersonaXpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPersonaXps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPersonaXps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserPersonaXps.
+     */
+    distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
+  }
+
+  /**
+   * UserPersonaXp findFirstOrThrow
+   */
+  export type UserPersonaXpFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPersonaXp to fetch.
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPersonaXps to fetch.
+     */
+    orderBy?: UserPersonaXpOrderByWithRelationInput | UserPersonaXpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserPersonaXps.
+     */
+    cursor?: UserPersonaXpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPersonaXps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPersonaXps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserPersonaXps.
+     */
+    distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
+  }
+
+  /**
+   * UserPersonaXp findMany
+   */
+  export type UserPersonaXpFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * Filter, which UserPersonaXps to fetch.
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserPersonaXps to fetch.
+     */
+    orderBy?: UserPersonaXpOrderByWithRelationInput | UserPersonaXpOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserPersonaXps.
+     */
+    cursor?: UserPersonaXpWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserPersonaXps from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserPersonaXps.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserPersonaXps.
+     */
+    distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
+  }
+
+  /**
+   * UserPersonaXp create
+   */
+  export type UserPersonaXpCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserPersonaXp.
+     */
+    data: XOR<UserPersonaXpCreateInput, UserPersonaXpUncheckedCreateInput>
+  }
+
+  /**
+   * UserPersonaXp createMany
+   */
+  export type UserPersonaXpCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserPersonaXps.
+     */
+    data: UserPersonaXpCreateManyInput | UserPersonaXpCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserPersonaXp createManyAndReturn
+   */
+  export type UserPersonaXpCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserPersonaXps.
+     */
+    data: UserPersonaXpCreateManyInput | UserPersonaXpCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserPersonaXp update
+   */
+  export type UserPersonaXpUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserPersonaXp.
+     */
+    data: XOR<UserPersonaXpUpdateInput, UserPersonaXpUncheckedUpdateInput>
+    /**
+     * Choose, which UserPersonaXp to update.
+     */
+    where: UserPersonaXpWhereUniqueInput
+  }
+
+  /**
+   * UserPersonaXp updateMany
+   */
+  export type UserPersonaXpUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserPersonaXps.
+     */
+    data: XOR<UserPersonaXpUpdateManyMutationInput, UserPersonaXpUncheckedUpdateManyInput>
+    /**
+     * Filter which UserPersonaXps to update
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * Limit how many UserPersonaXps to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserPersonaXp updateManyAndReturn
+   */
+  export type UserPersonaXpUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * The data used to update UserPersonaXps.
+     */
+    data: XOR<UserPersonaXpUpdateManyMutationInput, UserPersonaXpUncheckedUpdateManyInput>
+    /**
+     * Filter which UserPersonaXps to update
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * Limit how many UserPersonaXps to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserPersonaXp upsert
+   */
+  export type UserPersonaXpUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserPersonaXp to update in case it exists.
+     */
+    where: UserPersonaXpWhereUniqueInput
+    /**
+     * In case the UserPersonaXp found by the `where` argument doesn't exist, create a new UserPersonaXp with this data.
+     */
+    create: XOR<UserPersonaXpCreateInput, UserPersonaXpUncheckedCreateInput>
+    /**
+     * In case the UserPersonaXp was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserPersonaXpUpdateInput, UserPersonaXpUncheckedUpdateInput>
+  }
+
+  /**
+   * UserPersonaXp delete
+   */
+  export type UserPersonaXpDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    /**
+     * Filter which UserPersonaXp to delete.
+     */
+    where: UserPersonaXpWhereUniqueInput
+  }
+
+  /**
+   * UserPersonaXp deleteMany
+   */
+  export type UserPersonaXpDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserPersonaXps to delete
+     */
+    where?: UserPersonaXpWhereInput
+    /**
+     * Limit how many UserPersonaXps to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserPersonaXp without action
+   */
+  export type UserPersonaXpDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
   }
 
 
@@ -4091,6 +5294,7 @@ export namespace Prisma {
   export type PersonaMinAggregateOutputType = {
     id: string | null
     name: string | null
+    jobTitle: string | null
     description: string | null
     systemInstruction: string | null
     identityPrompt: string | null
@@ -4107,6 +5311,7 @@ export namespace Prisma {
   export type PersonaMaxAggregateOutputType = {
     id: string | null
     name: string | null
+    jobTitle: string | null
     description: string | null
     systemInstruction: string | null
     identityPrompt: string | null
@@ -4123,6 +5328,7 @@ export namespace Prisma {
   export type PersonaCountAggregateOutputType = {
     id: number
     name: number
+    jobTitle: number
     description: number
     systemInstruction: number
     identityPrompt: number
@@ -4151,6 +5357,7 @@ export namespace Prisma {
   export type PersonaMinAggregateInputType = {
     id?: true
     name?: true
+    jobTitle?: true
     description?: true
     systemInstruction?: true
     identityPrompt?: true
@@ -4167,6 +5374,7 @@ export namespace Prisma {
   export type PersonaMaxAggregateInputType = {
     id?: true
     name?: true
+    jobTitle?: true
     description?: true
     systemInstruction?: true
     identityPrompt?: true
@@ -4183,6 +5391,7 @@ export namespace Prisma {
   export type PersonaCountAggregateInputType = {
     id?: true
     name?: true
+    jobTitle?: true
     description?: true
     systemInstruction?: true
     identityPrompt?: true
@@ -4286,6 +5495,7 @@ export namespace Prisma {
   export type PersonaGroupByOutputType = {
     id: string
     name: string
+    jobTitle: string | null
     description: string | null
     systemInstruction: string
     identityPrompt: string | null
@@ -4321,6 +5531,7 @@ export namespace Prisma {
   export type PersonaSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    jobTitle?: boolean
     description?: boolean
     systemInstruction?: boolean
     identityPrompt?: boolean
@@ -4335,12 +5546,14 @@ export namespace Prisma {
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
     images?: boolean | Persona$imagesArgs<ExtArgs>
+    personaXps?: boolean | Persona$personaXpsArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["persona"]>
 
   export type PersonaSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    jobTitle?: boolean
     description?: boolean
     systemInstruction?: boolean
     identityPrompt?: boolean
@@ -4358,6 +5571,7 @@ export namespace Prisma {
   export type PersonaSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     name?: boolean
+    jobTitle?: boolean
     description?: boolean
     systemInstruction?: boolean
     identityPrompt?: boolean
@@ -4375,6 +5589,7 @@ export namespace Prisma {
   export type PersonaSelectScalar = {
     id?: boolean
     name?: boolean
+    jobTitle?: boolean
     description?: boolean
     systemInstruction?: boolean
     identityPrompt?: boolean
@@ -4388,11 +5603,12 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
+  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
     images?: boolean | Persona$imagesArgs<ExtArgs>
+    personaXps?: boolean | Persona$personaXpsArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PersonaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4408,10 +5624,12 @@ export namespace Prisma {
       user: Prisma.$UserPayload<ExtArgs> | null
       sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
       images: Prisma.$PersonaImagePayload<ExtArgs>[]
+      personaXps: Prisma.$UserPersonaXpPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       name: string
+      jobTitle: string | null
       description: string | null
       systemInstruction: string
       identityPrompt: string | null
@@ -4820,6 +6038,7 @@ export namespace Prisma {
     user<T extends Persona$userArgs<ExtArgs> = {}>(args?: Subset<T, Persona$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     sessions<T extends Persona$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     images<T extends Persona$imagesArgs<ExtArgs> = {}>(args?: Subset<T, Persona$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaImagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    personaXps<T extends Persona$personaXpsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$personaXpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4851,6 +6070,7 @@ export namespace Prisma {
   interface PersonaFieldRefs {
     readonly id: FieldRef<"Persona", 'String'>
     readonly name: FieldRef<"Persona", 'String'>
+    readonly jobTitle: FieldRef<"Persona", 'String'>
     readonly description: FieldRef<"Persona", 'String'>
     readonly systemInstruction: FieldRef<"Persona", 'String'>
     readonly identityPrompt: FieldRef<"Persona", 'String'>
@@ -5327,6 +6547,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PersonaImageScalarFieldEnum | PersonaImageScalarFieldEnum[]
+  }
+
+  /**
+   * Persona.personaXps
+   */
+  export type Persona$personaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserPersonaXp
+     */
+    select?: UserPersonaXpSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserPersonaXp
+     */
+    omit?: UserPersonaXpOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserPersonaXpInclude<ExtArgs> | null
+    where?: UserPersonaXpWhereInput
+    orderBy?: UserPersonaXpOrderByWithRelationInput | UserPersonaXpOrderByWithRelationInput[]
+    cursor?: UserPersonaXpWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
   }
 
   /**
@@ -12045,13 +13289,21 @@ export namespace Prisma {
     password: 'password',
     username: 'username',
     role: 'role',
-    xp: 'xp',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
     createdAt: 'createdAt'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const UserPersonaXpScalarFieldEnum: {
+    userId: 'userId',
+    personaId: 'personaId',
+    xp: 'xp'
+  };
+
+  export type UserPersonaXpScalarFieldEnum = (typeof UserPersonaXpScalarFieldEnum)[keyof typeof UserPersonaXpScalarFieldEnum]
 
 
   export const UserMemoryScalarFieldEnum: {
@@ -12068,6 +13320,7 @@ export namespace Prisma {
   export const PersonaScalarFieldEnum: {
     id: 'id',
     name: 'name',
+    jobTitle: 'jobTitle',
     description: 'description',
     systemInstruction: 'systemInstruction',
     identityPrompt: 'identityPrompt',
@@ -12259,13 +13512,13 @@ export namespace Prisma {
     password?: StringFilter<"User"> | string
     username?: StringNullableFilter<"User"> | string | null
     role?: StringFilter<"User"> | string
-    xp?: IntFilter<"User"> | number
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     personas?: PersonaListRelationFilter
     sessions?: ChatSessionListRelationFilter
     memories?: UserMemoryListRelationFilter
+    personaXps?: UserPersonaXpListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -12274,13 +13527,13 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrderInput | SortOrder
     role?: SortOrder
-    xp?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     personas?: PersonaOrderByRelationAggregateInput
     sessions?: ChatSessionOrderByRelationAggregateInput
     memories?: UserMemoryOrderByRelationAggregateInput
+    personaXps?: UserPersonaXpOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -12292,13 +13545,13 @@ export namespace Prisma {
     password?: StringFilter<"User"> | string
     username?: StringNullableFilter<"User"> | string | null
     role?: StringFilter<"User"> | string
-    xp?: IntFilter<"User"> | number
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     personas?: PersonaListRelationFilter
     sessions?: ChatSessionListRelationFilter
     memories?: UserMemoryListRelationFilter
+    personaXps?: UserPersonaXpListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -12307,7 +13560,6 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrderInput | SortOrder
     role?: SortOrder
-    xp?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -12327,10 +13579,60 @@ export namespace Prisma {
     password?: StringWithAggregatesFilter<"User"> | string
     username?: StringNullableWithAggregatesFilter<"User"> | string | null
     role?: StringWithAggregatesFilter<"User"> | string
-    xp?: IntWithAggregatesFilter<"User"> | number
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+  }
+
+  export type UserPersonaXpWhereInput = {
+    AND?: UserPersonaXpWhereInput | UserPersonaXpWhereInput[]
+    OR?: UserPersonaXpWhereInput[]
+    NOT?: UserPersonaXpWhereInput | UserPersonaXpWhereInput[]
+    userId?: IntFilter<"UserPersonaXp"> | number
+    personaId?: StringFilter<"UserPersonaXp"> | string
+    xp?: IntFilter<"UserPersonaXp"> | number
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }
+
+  export type UserPersonaXpOrderByWithRelationInput = {
+    userId?: SortOrder
+    personaId?: SortOrder
+    xp?: SortOrder
+    user?: UserOrderByWithRelationInput
+    persona?: PersonaOrderByWithRelationInput
+  }
+
+  export type UserPersonaXpWhereUniqueInput = Prisma.AtLeast<{
+    userId_personaId?: UserPersonaXpUserIdPersonaIdCompoundUniqueInput
+    AND?: UserPersonaXpWhereInput | UserPersonaXpWhereInput[]
+    OR?: UserPersonaXpWhereInput[]
+    NOT?: UserPersonaXpWhereInput | UserPersonaXpWhereInput[]
+    userId?: IntFilter<"UserPersonaXp"> | number
+    personaId?: StringFilter<"UserPersonaXp"> | string
+    xp?: IntFilter<"UserPersonaXp"> | number
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }, "userId_personaId">
+
+  export type UserPersonaXpOrderByWithAggregationInput = {
+    userId?: SortOrder
+    personaId?: SortOrder
+    xp?: SortOrder
+    _count?: UserPersonaXpCountOrderByAggregateInput
+    _avg?: UserPersonaXpAvgOrderByAggregateInput
+    _max?: UserPersonaXpMaxOrderByAggregateInput
+    _min?: UserPersonaXpMinOrderByAggregateInput
+    _sum?: UserPersonaXpSumOrderByAggregateInput
+  }
+
+  export type UserPersonaXpScalarWhereWithAggregatesInput = {
+    AND?: UserPersonaXpScalarWhereWithAggregatesInput | UserPersonaXpScalarWhereWithAggregatesInput[]
+    OR?: UserPersonaXpScalarWhereWithAggregatesInput[]
+    NOT?: UserPersonaXpScalarWhereWithAggregatesInput | UserPersonaXpScalarWhereWithAggregatesInput[]
+    userId?: IntWithAggregatesFilter<"UserPersonaXp"> | number
+    personaId?: StringWithAggregatesFilter<"UserPersonaXp"> | string
+    xp?: IntWithAggregatesFilter<"UserPersonaXp"> | number
   }
 
   export type UserMemoryWhereInput = {
@@ -12396,6 +13698,7 @@ export namespace Prisma {
     NOT?: PersonaWhereInput | PersonaWhereInput[]
     id?: StringFilter<"Persona"> | string
     name?: StringFilter<"Persona"> | string
+    jobTitle?: StringNullableFilter<"Persona"> | string | null
     description?: StringNullableFilter<"Persona"> | string | null
     systemInstruction?: StringFilter<"Persona"> | string
     identityPrompt?: StringNullableFilter<"Persona"> | string | null
@@ -12410,11 +13713,13 @@ export namespace Prisma {
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     sessions?: ChatSessionListRelationFilter
     images?: PersonaImageListRelationFilter
+    personaXps?: UserPersonaXpListRelationFilter
   }
 
   export type PersonaOrderByWithRelationInput = {
     id?: SortOrder
     name?: SortOrder
+    jobTitle?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     systemInstruction?: SortOrder
     identityPrompt?: SortOrderInput | SortOrder
@@ -12429,6 +13734,7 @@ export namespace Prisma {
     user?: UserOrderByWithRelationInput
     sessions?: ChatSessionOrderByRelationAggregateInput
     images?: PersonaImageOrderByRelationAggregateInput
+    personaXps?: UserPersonaXpOrderByRelationAggregateInput
   }
 
   export type PersonaWhereUniqueInput = Prisma.AtLeast<{
@@ -12437,6 +13743,7 @@ export namespace Prisma {
     OR?: PersonaWhereInput[]
     NOT?: PersonaWhereInput | PersonaWhereInput[]
     name?: StringFilter<"Persona"> | string
+    jobTitle?: StringNullableFilter<"Persona"> | string | null
     description?: StringNullableFilter<"Persona"> | string | null
     systemInstruction?: StringFilter<"Persona"> | string
     identityPrompt?: StringNullableFilter<"Persona"> | string | null
@@ -12451,11 +13758,13 @@ export namespace Prisma {
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     sessions?: ChatSessionListRelationFilter
     images?: PersonaImageListRelationFilter
+    personaXps?: UserPersonaXpListRelationFilter
   }, "id">
 
   export type PersonaOrderByWithAggregationInput = {
     id?: SortOrder
     name?: SortOrder
+    jobTitle?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     systemInstruction?: SortOrder
     identityPrompt?: SortOrderInput | SortOrder
@@ -12480,6 +13789,7 @@ export namespace Prisma {
     NOT?: PersonaScalarWhereWithAggregatesInput | PersonaScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Persona"> | string
     name?: StringWithAggregatesFilter<"Persona"> | string
+    jobTitle?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     description?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     systemInstruction?: StringWithAggregatesFilter<"Persona"> | string
     identityPrompt?: StringNullableWithAggregatesFilter<"Persona"> | string | null
@@ -12872,13 +14182,13 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -12887,13 +14197,13 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -12901,13 +14211,13 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -12916,13 +14226,13 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -12931,7 +14241,6 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
@@ -12942,7 +14251,6 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -12954,10 +14262,49 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPersonaXpCreateInput = {
+    xp?: number
+    user: UserCreateNestedOneWithoutPersonaXpsInput
+    persona: PersonaCreateNestedOneWithoutPersonaXpsInput
+  }
+
+  export type UserPersonaXpUncheckedCreateInput = {
+    userId: number
+    personaId: string
+    xp?: number
+  }
+
+  export type UserPersonaXpUpdateInput = {
+    xp?: IntFieldUpdateOperationsInput | number
+    user?: UserUpdateOneRequiredWithoutPersonaXpsNestedInput
+    persona?: PersonaUpdateOneRequiredWithoutPersonaXpsNestedInput
+  }
+
+  export type UserPersonaXpUncheckedUpdateInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserPersonaXpCreateManyInput = {
+    userId: number
+    personaId: string
+    xp?: number
+  }
+
+  export type UserPersonaXpUpdateManyMutationInput = {
+    xp?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserPersonaXpUncheckedUpdateManyInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
   }
 
   export type UserMemoryCreateInput = {
@@ -13015,6 +14362,7 @@ export namespace Prisma {
   export type PersonaCreateInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -13028,11 +14376,13 @@ export namespace Prisma {
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -13046,11 +14396,13 @@ export namespace Prisma {
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13064,11 +14416,13 @@ export namespace Prisma {
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13082,11 +14436,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateManyInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -13103,6 +14459,7 @@ export namespace Prisma {
   export type PersonaUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13118,6 +14475,7 @@ export namespace Prisma {
   export type PersonaUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13574,6 +14932,12 @@ export namespace Prisma {
     none?: UserMemoryWhereInput
   }
 
+  export type UserPersonaXpListRelationFilter = {
+    every?: UserPersonaXpWhereInput
+    some?: UserPersonaXpWhereInput
+    none?: UserPersonaXpWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -13591,13 +14955,16 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type UserPersonaXpOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
     password?: SortOrder
     username?: SortOrder
     role?: SortOrder
-    xp?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -13605,7 +14972,6 @@ export namespace Prisma {
 
   export type UserAvgOrderByAggregateInput = {
     id?: SortOrder
-    xp?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -13614,7 +14980,6 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrder
     role?: SortOrder
-    xp?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -13626,7 +14991,6 @@ export namespace Prisma {
     password?: SortOrder
     username?: SortOrder
     role?: SortOrder
-    xp?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
     createdAt?: SortOrder
@@ -13634,7 +14998,6 @@ export namespace Prisma {
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
-    xp?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -13722,6 +15085,44 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
+  export type PersonaScalarRelationFilter = {
+    is?: PersonaWhereInput
+    isNot?: PersonaWhereInput
+  }
+
+  export type UserPersonaXpUserIdPersonaIdCompoundUniqueInput = {
+    userId: number
+    personaId: string
+  }
+
+  export type UserPersonaXpCountOrderByAggregateInput = {
+    userId?: SortOrder
+    personaId?: SortOrder
+    xp?: SortOrder
+  }
+
+  export type UserPersonaXpAvgOrderByAggregateInput = {
+    userId?: SortOrder
+    xp?: SortOrder
+  }
+
+  export type UserPersonaXpMaxOrderByAggregateInput = {
+    userId?: SortOrder
+    personaId?: SortOrder
+    xp?: SortOrder
+  }
+
+  export type UserPersonaXpMinOrderByAggregateInput = {
+    userId?: SortOrder
+    personaId?: SortOrder
+    xp?: SortOrder
+  }
+
+  export type UserPersonaXpSumOrderByAggregateInput = {
+    userId?: SortOrder
+    xp?: SortOrder
+  }
+
   export type UserMemoryCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -13790,6 +15191,7 @@ export namespace Prisma {
   export type PersonaCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    jobTitle?: SortOrder
     description?: SortOrder
     systemInstruction?: SortOrder
     identityPrompt?: SortOrder
@@ -13811,6 +15213,7 @@ export namespace Prisma {
   export type PersonaMaxOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    jobTitle?: SortOrder
     description?: SortOrder
     systemInstruction?: SortOrder
     identityPrompt?: SortOrder
@@ -13827,6 +15230,7 @@ export namespace Prisma {
   export type PersonaMinOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
+    jobTitle?: SortOrder
     description?: SortOrder
     systemInstruction?: SortOrder
     identityPrompt?: SortOrder
@@ -13867,11 +15271,6 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedIntNullableFilter<$PrismaModel>
     _max?: NestedIntNullableFilter<$PrismaModel>
-  }
-
-  export type PersonaScalarRelationFilter = {
-    is?: PersonaWhereInput
-    isNot?: PersonaWhereInput
   }
 
   export type PersonaVideoListRelationFilter = {
@@ -14147,6 +15546,13 @@ export namespace Prisma {
     connect?: UserMemoryWhereUniqueInput | UserMemoryWhereUniqueInput[]
   }
 
+  export type UserPersonaXpCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserPersonaXpCreateWithoutUserInput, UserPersonaXpUncheckedCreateWithoutUserInput> | UserPersonaXpCreateWithoutUserInput[] | UserPersonaXpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutUserInput | UserPersonaXpCreateOrConnectWithoutUserInput[]
+    createMany?: UserPersonaXpCreateManyUserInputEnvelope
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+  }
+
   export type PersonaUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -14168,20 +15574,19 @@ export namespace Prisma {
     connect?: UserMemoryWhereUniqueInput | UserMemoryWhereUniqueInput[]
   }
 
+  export type UserPersonaXpUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserPersonaXpCreateWithoutUserInput, UserPersonaXpUncheckedCreateWithoutUserInput> | UserPersonaXpCreateWithoutUserInput[] | UserPersonaXpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutUserInput | UserPersonaXpCreateOrConnectWithoutUserInput[]
+    createMany?: UserPersonaXpCreateManyUserInputEnvelope
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
@@ -14234,6 +15639,28 @@ export namespace Prisma {
     deleteMany?: UserMemoryScalarWhereInput | UserMemoryScalarWhereInput[]
   }
 
+  export type UserPersonaXpUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserPersonaXpCreateWithoutUserInput, UserPersonaXpUncheckedCreateWithoutUserInput> | UserPersonaXpCreateWithoutUserInput[] | UserPersonaXpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutUserInput | UserPersonaXpCreateOrConnectWithoutUserInput[]
+    upsert?: UserPersonaXpUpsertWithWhereUniqueWithoutUserInput | UserPersonaXpUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserPersonaXpCreateManyUserInputEnvelope
+    set?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    disconnect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    delete?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    update?: UserPersonaXpUpdateWithWhereUniqueWithoutUserInput | UserPersonaXpUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserPersonaXpUpdateManyWithWhereWithoutUserInput | UserPersonaXpUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
   export type PersonaUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -14276,6 +15703,48 @@ export namespace Prisma {
     deleteMany?: UserMemoryScalarWhereInput | UserMemoryScalarWhereInput[]
   }
 
+  export type UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserPersonaXpCreateWithoutUserInput, UserPersonaXpUncheckedCreateWithoutUserInput> | UserPersonaXpCreateWithoutUserInput[] | UserPersonaXpUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutUserInput | UserPersonaXpCreateOrConnectWithoutUserInput[]
+    upsert?: UserPersonaXpUpsertWithWhereUniqueWithoutUserInput | UserPersonaXpUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserPersonaXpCreateManyUserInputEnvelope
+    set?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    disconnect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    delete?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    update?: UserPersonaXpUpdateWithWhereUniqueWithoutUserInput | UserPersonaXpUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserPersonaXpUpdateManyWithWhereWithoutUserInput | UserPersonaXpUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+  }
+
+  export type UserCreateNestedOneWithoutPersonaXpsInput = {
+    create?: XOR<UserCreateWithoutPersonaXpsInput, UserUncheckedCreateWithoutPersonaXpsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPersonaXpsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type PersonaCreateNestedOneWithoutPersonaXpsInput = {
+    create?: XOR<PersonaCreateWithoutPersonaXpsInput, PersonaUncheckedCreateWithoutPersonaXpsInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutPersonaXpsInput
+    connect?: PersonaWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutPersonaXpsNestedInput = {
+    create?: XOR<UserCreateWithoutPersonaXpsInput, UserUncheckedCreateWithoutPersonaXpsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutPersonaXpsInput
+    upsert?: UserUpsertWithoutPersonaXpsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPersonaXpsInput, UserUpdateWithoutPersonaXpsInput>, UserUncheckedUpdateWithoutPersonaXpsInput>
+  }
+
+  export type PersonaUpdateOneRequiredWithoutPersonaXpsNestedInput = {
+    create?: XOR<PersonaCreateWithoutPersonaXpsInput, PersonaUncheckedCreateWithoutPersonaXpsInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutPersonaXpsInput
+    upsert?: PersonaUpsertWithoutPersonaXpsInput
+    connect?: PersonaWhereUniqueInput
+    update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutPersonaXpsInput, PersonaUpdateWithoutPersonaXpsInput>, PersonaUncheckedUpdateWithoutPersonaXpsInput>
+  }
+
   export type UserCreateNestedOneWithoutMemoriesInput = {
     create?: XOR<UserCreateWithoutMemoriesInput, UserUncheckedCreateWithoutMemoriesInput>
     connectOrCreate?: UserCreateOrConnectWithoutMemoriesInput
@@ -14310,6 +15779,13 @@ export namespace Prisma {
     connect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
   }
 
+  export type UserPersonaXpCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<UserPersonaXpCreateWithoutPersonaInput, UserPersonaXpUncheckedCreateWithoutPersonaInput> | UserPersonaXpCreateWithoutPersonaInput[] | UserPersonaXpUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutPersonaInput | UserPersonaXpCreateOrConnectWithoutPersonaInput[]
+    createMany?: UserPersonaXpCreateManyPersonaInputEnvelope
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutPersonaInput = {
     create?: XOR<ChatSessionCreateWithoutPersonaInput, ChatSessionUncheckedCreateWithoutPersonaInput> | ChatSessionCreateWithoutPersonaInput[] | ChatSessionUncheckedCreateWithoutPersonaInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutPersonaInput | ChatSessionCreateOrConnectWithoutPersonaInput[]
@@ -14322,6 +15798,13 @@ export namespace Prisma {
     connectOrCreate?: PersonaImageCreateOrConnectWithoutPersonaInput | PersonaImageCreateOrConnectWithoutPersonaInput[]
     createMany?: PersonaImageCreateManyPersonaInputEnvelope
     connect?: PersonaImageWhereUniqueInput | PersonaImageWhereUniqueInput[]
+  }
+
+  export type UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<UserPersonaXpCreateWithoutPersonaInput, UserPersonaXpUncheckedCreateWithoutPersonaInput> | UserPersonaXpCreateWithoutPersonaInput[] | UserPersonaXpUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutPersonaInput | UserPersonaXpCreateOrConnectWithoutPersonaInput[]
+    createMany?: UserPersonaXpCreateManyPersonaInputEnvelope
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -14366,6 +15849,20 @@ export namespace Prisma {
     deleteMany?: PersonaImageScalarWhereInput | PersonaImageScalarWhereInput[]
   }
 
+  export type UserPersonaXpUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<UserPersonaXpCreateWithoutPersonaInput, UserPersonaXpUncheckedCreateWithoutPersonaInput> | UserPersonaXpCreateWithoutPersonaInput[] | UserPersonaXpUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutPersonaInput | UserPersonaXpCreateOrConnectWithoutPersonaInput[]
+    upsert?: UserPersonaXpUpsertWithWhereUniqueWithoutPersonaInput | UserPersonaXpUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: UserPersonaXpCreateManyPersonaInputEnvelope
+    set?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    disconnect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    delete?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    update?: UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput | UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: UserPersonaXpUpdateManyWithWhereWithoutPersonaInput | UserPersonaXpUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -14400,6 +15897,20 @@ export namespace Prisma {
     update?: PersonaImageUpdateWithWhereUniqueWithoutPersonaInput | PersonaImageUpdateWithWhereUniqueWithoutPersonaInput[]
     updateMany?: PersonaImageUpdateManyWithWhereWithoutPersonaInput | PersonaImageUpdateManyWithWhereWithoutPersonaInput[]
     deleteMany?: PersonaImageScalarWhereInput | PersonaImageScalarWhereInput[]
+  }
+
+  export type UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<UserPersonaXpCreateWithoutPersonaInput, UserPersonaXpUncheckedCreateWithoutPersonaInput> | UserPersonaXpCreateWithoutPersonaInput[] | UserPersonaXpUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserPersonaXpCreateOrConnectWithoutPersonaInput | UserPersonaXpCreateOrConnectWithoutPersonaInput[]
+    upsert?: UserPersonaXpUpsertWithWhereUniqueWithoutPersonaInput | UserPersonaXpUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: UserPersonaXpCreateManyPersonaInputEnvelope
+    set?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    disconnect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    delete?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+    update?: UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput | UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: UserPersonaXpUpdateManyWithWhereWithoutPersonaInput | UserPersonaXpUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
   }
 
   export type PersonaCreateNestedOneWithoutImagesInput = {
@@ -14806,6 +16317,7 @@ export namespace Prisma {
   export type PersonaCreateWithoutUserInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -14818,11 +16330,13 @@ export namespace Prisma {
     createdAt?: Date | string
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutUserInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -14835,6 +16349,7 @@ export namespace Prisma {
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutUserInput = {
@@ -14899,6 +16414,26 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserPersonaXpCreateWithoutUserInput = {
+    xp?: number
+    persona: PersonaCreateNestedOneWithoutPersonaXpsInput
+  }
+
+  export type UserPersonaXpUncheckedCreateWithoutUserInput = {
+    personaId: string
+    xp?: number
+  }
+
+  export type UserPersonaXpCreateOrConnectWithoutUserInput = {
+    where: UserPersonaXpWhereUniqueInput
+    create: XOR<UserPersonaXpCreateWithoutUserInput, UserPersonaXpUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserPersonaXpCreateManyUserInputEnvelope = {
+    data: UserPersonaXpCreateManyUserInput | UserPersonaXpCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PersonaUpsertWithWhereUniqueWithoutUserInput = {
     where: PersonaWhereUniqueInput
     update: XOR<PersonaUpdateWithoutUserInput, PersonaUncheckedUpdateWithoutUserInput>
@@ -14921,6 +16456,7 @@ export namespace Prisma {
     NOT?: PersonaScalarWhereInput | PersonaScalarWhereInput[]
     id?: StringFilter<"Persona"> | string
     name?: StringFilter<"Persona"> | string
+    jobTitle?: StringNullableFilter<"Persona"> | string | null
     description?: StringNullableFilter<"Persona"> | string | null
     systemInstruction?: StringFilter<"Persona"> | string
     identityPrompt?: StringNullableFilter<"Persona"> | string | null
@@ -14989,17 +16525,204 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"UserMemory"> | Date | string
   }
 
-  export type UserCreateWithoutMemoriesInput = {
+  export type UserPersonaXpUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserPersonaXpWhereUniqueInput
+    update: XOR<UserPersonaXpUpdateWithoutUserInput, UserPersonaXpUncheckedUpdateWithoutUserInput>
+    create: XOR<UserPersonaXpCreateWithoutUserInput, UserPersonaXpUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserPersonaXpUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserPersonaXpWhereUniqueInput
+    data: XOR<UserPersonaXpUpdateWithoutUserInput, UserPersonaXpUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserPersonaXpUpdateManyWithWhereWithoutUserInput = {
+    where: UserPersonaXpScalarWhereInput
+    data: XOR<UserPersonaXpUpdateManyMutationInput, UserPersonaXpUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserPersonaXpScalarWhereInput = {
+    AND?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+    OR?: UserPersonaXpScalarWhereInput[]
+    NOT?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+    userId?: IntFilter<"UserPersonaXp"> | number
+    personaId?: StringFilter<"UserPersonaXp"> | string
+    xp?: IntFilter<"UserPersonaXp"> | number
+  }
+
+  export type UserCreateWithoutPersonaXpsInput = {
     email: string
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
+    memories?: UserMemoryCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutPersonaXpsInput = {
+    id?: number
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
+    memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutPersonaXpsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutPersonaXpsInput, UserUncheckedCreateWithoutPersonaXpsInput>
+  }
+
+  export type PersonaCreateWithoutPersonaXpsInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutPersonasInput
+    sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaUncheckedCreateWithoutPersonaXpsInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdBy?: number | null
+    createdAt?: Date | string
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaCreateOrConnectWithoutPersonaXpsInput = {
+    where: PersonaWhereUniqueInput
+    create: XOR<PersonaCreateWithoutPersonaXpsInput, PersonaUncheckedCreateWithoutPersonaXpsInput>
+  }
+
+  export type UserUpsertWithoutPersonaXpsInput = {
+    update: XOR<UserUpdateWithoutPersonaXpsInput, UserUncheckedUpdateWithoutPersonaXpsInput>
+    create: XOR<UserCreateWithoutPersonaXpsInput, UserUncheckedCreateWithoutPersonaXpsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPersonaXpsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPersonaXpsInput, UserUncheckedUpdateWithoutPersonaXpsInput>
+  }
+
+  export type UserUpdateWithoutPersonaXpsInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutPersonaXpsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type PersonaUpsertWithoutPersonaXpsInput = {
+    update: XOR<PersonaUpdateWithoutPersonaXpsInput, PersonaUncheckedUpdateWithoutPersonaXpsInput>
+    create: XOR<PersonaCreateWithoutPersonaXpsInput, PersonaUncheckedCreateWithoutPersonaXpsInput>
+    where?: PersonaWhereInput
+  }
+
+  export type PersonaUpdateToOneWithWhereWithoutPersonaXpsInput = {
+    where?: PersonaWhereInput
+    data: XOR<PersonaUpdateWithoutPersonaXpsInput, PersonaUncheckedUpdateWithoutPersonaXpsInput>
+  }
+
+  export type PersonaUpdateWithoutPersonaXpsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutPersonasNestedInput
+    sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type PersonaUncheckedUpdateWithoutPersonaXpsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type UserCreateWithoutMemoriesInput = {
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMemoriesInput = {
@@ -15008,12 +16731,12 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMemoriesInput = {
@@ -15037,12 +16760,12 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMemoriesInput = {
@@ -15051,12 +16774,12 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutPersonasInput = {
@@ -15064,12 +16787,12 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonasInput = {
@@ -15078,12 +16801,12 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonasInput = {
@@ -15151,6 +16874,26 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserPersonaXpCreateWithoutPersonaInput = {
+    xp?: number
+    user: UserCreateNestedOneWithoutPersonaXpsInput
+  }
+
+  export type UserPersonaXpUncheckedCreateWithoutPersonaInput = {
+    userId: number
+    xp?: number
+  }
+
+  export type UserPersonaXpCreateOrConnectWithoutPersonaInput = {
+    where: UserPersonaXpWhereUniqueInput
+    create: XOR<UserPersonaXpCreateWithoutPersonaInput, UserPersonaXpUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type UserPersonaXpCreateManyPersonaInputEnvelope = {
+    data: UserPersonaXpCreateManyPersonaInput | UserPersonaXpCreateManyPersonaInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutPersonasInput = {
     update: XOR<UserUpdateWithoutPersonasInput, UserUncheckedUpdateWithoutPersonasInput>
     create: XOR<UserCreateWithoutPersonasInput, UserUncheckedCreateWithoutPersonasInput>
@@ -15167,12 +16910,12 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonasInput = {
@@ -15181,12 +16924,12 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChatSessionUpsertWithWhereUniqueWithoutPersonaInput = {
@@ -15235,9 +16978,26 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
   }
 
+  export type UserPersonaXpUpsertWithWhereUniqueWithoutPersonaInput = {
+    where: UserPersonaXpWhereUniqueInput
+    update: XOR<UserPersonaXpUpdateWithoutPersonaInput, UserPersonaXpUncheckedUpdateWithoutPersonaInput>
+    create: XOR<UserPersonaXpCreateWithoutPersonaInput, UserPersonaXpUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type UserPersonaXpUpdateWithWhereUniqueWithoutPersonaInput = {
+    where: UserPersonaXpWhereUniqueInput
+    data: XOR<UserPersonaXpUpdateWithoutPersonaInput, UserPersonaXpUncheckedUpdateWithoutPersonaInput>
+  }
+
+  export type UserPersonaXpUpdateManyWithWhereWithoutPersonaInput = {
+    where: UserPersonaXpScalarWhereInput
+    data: XOR<UserPersonaXpUpdateManyMutationInput, UserPersonaXpUncheckedUpdateManyWithoutPersonaInput>
+  }
+
   export type PersonaCreateWithoutImagesInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -15250,11 +17010,13 @@ export namespace Prisma {
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutImagesInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -15267,6 +17029,7 @@ export namespace Prisma {
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutImagesInput = {
@@ -15315,6 +17078,7 @@ export namespace Prisma {
   export type PersonaUpdateWithoutImagesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15327,11 +17091,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutImagesInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15344,6 +17110,7 @@ export namespace Prisma {
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaVideoUpsertWithWhereUniqueWithoutImageInput = {
@@ -15438,12 +17205,12 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -15452,12 +17219,12 @@ export namespace Prisma {
     password: string
     username?: string | null
     role?: string
-    xp?: number
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -15468,6 +17235,7 @@ export namespace Prisma {
   export type PersonaCreateWithoutSessionsInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -15480,11 +17248,13 @@ export namespace Prisma {
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutSessionsInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -15497,6 +17267,7 @@ export namespace Prisma {
     createdBy?: number | null
     createdAt?: Date | string
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutSessionsInput = {
@@ -15563,12 +17334,12 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -15577,12 +17348,12 @@ export namespace Prisma {
     password?: StringFieldUpdateOperationsInput | string
     username?: NullableStringFieldUpdateOperationsInput | string | null
     role?: StringFieldUpdateOperationsInput | string
-    xp?: IntFieldUpdateOperationsInput | number
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutSessionsInput = {
@@ -15599,6 +17370,7 @@ export namespace Prisma {
   export type PersonaUpdateWithoutSessionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15611,11 +17383,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutSessionsInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15628,6 +17402,7 @@ export namespace Prisma {
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutSessionInput = {
@@ -15794,6 +17569,7 @@ export namespace Prisma {
   export type PersonaCreateManyUserInput = {
     id?: string
     name: string
+    jobTitle?: string | null
     description?: string | null
     systemInstruction: string
     identityPrompt?: string | null
@@ -15821,9 +17597,15 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type UserPersonaXpCreateManyUserInput = {
+    personaId: string
+    xp?: number
+  }
+
   export type PersonaUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15836,11 +17618,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15853,11 +17637,13 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     systemInstruction?: StringFieldUpdateOperationsInput | string
     identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
@@ -15917,6 +17703,21 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserPersonaXpUpdateWithoutUserInput = {
+    xp?: IntFieldUpdateOperationsInput | number
+    persona?: PersonaUpdateOneRequiredWithoutPersonaXpsNestedInput
+  }
+
+  export type UserPersonaXpUncheckedUpdateWithoutUserInput = {
+    personaId?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserPersonaXpUncheckedUpdateManyWithoutUserInput = {
+    personaId?: StringFieldUpdateOperationsInput | string
+    xp?: IntFieldUpdateOperationsInput | number
+  }
+
   export type ChatSessionCreateManyPersonaInput = {
     id?: number
     userId: number
@@ -15933,6 +17734,11 @@ export namespace Prisma {
     order?: number
     requiredLevel?: number
     createdAt?: Date | string
+  }
+
+  export type UserPersonaXpCreateManyPersonaInput = {
+    userId: number
+    xp?: number
   }
 
   export type ChatSessionUpdateWithoutPersonaInput = {
@@ -15991,6 +17797,21 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserPersonaXpUpdateWithoutPersonaInput = {
+    xp?: IntFieldUpdateOperationsInput | number
+    user?: UserUpdateOneRequiredWithoutPersonaXpsNestedInput
+  }
+
+  export type UserPersonaXpUncheckedUpdateWithoutPersonaInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    xp?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type UserPersonaXpUncheckedUpdateManyWithoutPersonaInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    xp?: IntFieldUpdateOperationsInput | number
   }
 
   export type PersonaVideoCreateManyImageInput = {

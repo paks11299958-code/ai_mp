@@ -122,10 +122,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                             </div>
                                         )}
                                         <div className="flex-1 min-w-0">
-                                            <h3 className={`font-medium truncate ${isActive ? 'text-white' : 'text-gray-300'}`}>
-                                                {persona.name}
-                                            </h3>
-                                            <p className="text-xs text-gray-500 truncate mt-0.5">{persona.description}</p>
+                                            <div className="flex items-baseline gap-1.5 truncate">
+                                                <h3 className={`font-medium shrink-0 ${isActive ? 'text-white' : 'text-gray-300'}`}>{persona.name}</h3>
+                                                {persona.jobTitle && <span className="text-[11px] text-gray-400 truncate">[{persona.jobTitle}]</span>}
+                                            </div>
+                                            <p className="text-xs text-gray-400 truncate mt-0.5">{persona.description}</p>
                                         </div>
                                     </div>
 
@@ -155,7 +156,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
                 <div className="p-4 border-t border-gray-800 shrink-0">
                     {user && (() => {
-                        const xp = user.xp ?? 0;
+                        const xp = user.personaXp?.[activePersonaId] ?? 0;
                         const stage = getStage(xp);
                         const progress = getStageProgress(xp);
                         const toNext = getXpToNextStage(xp);

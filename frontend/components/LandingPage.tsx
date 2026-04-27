@@ -82,7 +82,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ personas, isLoading, o
                                             <Icon name={persona.iconName} size={36} />
                                         </div>
                                     )}
-                                    <h3 className="text-lg font-bold text-gray-100 mb-2 group-hover:text-white">{persona.name}</h3>
+                                    <div className="flex items-baseline gap-2 mb-2">
+                                        <h3 className="text-lg font-bold text-gray-100 group-hover:text-white">{persona.name}</h3>
+                                        {persona.jobTitle && <span className="text-xs text-gray-400 shrink-0">[{persona.jobTitle}]</span>}
+                                    </div>
                                     <p className="text-sm text-gray-400 leading-relaxed">{persona.description}</p>
                                 </button>
                             ))}

@@ -14,6 +14,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
     const [videos, setVideos] = useState<PersonaVideo[]>([]);
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
+    const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const userStage = getStage(userXp).stage;
@@ -32,9 +33,10 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     }, [mainImage?.id]);
 
     const handleImageClick = (img: PersonaImage) => {
-        if (userStage < img.requiredLevel) return; // 잠긴 이미지는 클릭 불가
+        if (userStage < img.requiredLevel) return;
         onSelectMain(img);
         setSelectedImageId(prev => prev === img.id ? null : img.id);
+        setPreviewImage(img);
     };
 
     if (images.length === 0) return null;
@@ -110,6 +112,27 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                     </div>
                 )}
             </div>
+
+            {/* 이미지 전체보기 모달 */}
+            {previewImage && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/85"
+                    onClick={() => setPreviewImage(null)}
+                >
+                    <img
+                        src={previewImage.imageUrl}
+                        alt={previewImage.description || ''}
+                        className="max-w-[92vw] max-h-[88vh] rounded-2xl object-contain shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                    />
+                    <button
+                        className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2"
+                        onClick={() => setPreviewImage(null)}
+                    >
+                        <Icon name="X" size={20} />
+                    </button>
+                </div>
+            )}
 
             {/* 동영상 재생 모달 */}
             {playingVideo && (

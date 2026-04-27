@@ -32,6 +32,7 @@ const App: React.FC = () => {
     const [isAdminMode, setIsAdminMode] = useState(false);
 
     const [commonInstruction, setCommonInstruction] = useState('');
+    const [headerImageModal, setHeaderImageModal] = useState(false);
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
@@ -262,12 +263,18 @@ const App: React.FC = () => {
             }
         }
 
-        // 유저 메시지 DB 저장 + XP 증가
+        // 유저 메시지 DB 저장 + 페르소나 XP 증가
         if (dbSessionId) {
             sessionApi.saveMessage(dbSessionId, 'user', text)
                 .then(res => {
-                    if (res.xp !== undefined) {
-                        setUser(prev => prev ? { ...prev, xp: res.xp! } : prev);
+                    if (res.xp !== undefined && res.personaId) {
+                        setUser(prev => {
+                            if (!prev) return prev;
+                            return {
+                                ...prev,
+                                personaXp: { ...prev.personaXp, [res.personaId]: res.xp! },
+                            };
+                        });
                     }
                 })
                 .catch(console.error);
@@ -538,7 +545,7 @@ const App: React.FC = () => {
                                 <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
                                 <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
                                 {activeImages.length > 1 && (() => {
-                                    const userStage = getStage(user?.xp ?? 0).stage;
+                                    const userStage = getStage(user?.personaXp?.[activePersonaId] ?? 0).stage;
                                     return (
                                         <div className="flex gap-2 mt-4 justify-center flex-wrap">
                                             {activeImages.map(img => {
@@ -575,6 +582,30 @@ const App: React.FC = () => {
                         ) : null;
                     })()}
 
+                    {/* 모바일 썸네일 전체보기 모달 */}
+                    {headerImageModal && activePersona && (() => {
+                        const mainImg = activeImages.find(img => img.isMain)?.imageUrl || activePersona.imageUrl;
+                        return mainImg ? (
+                            <div
+                                className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 md:hidden"
+                                onClick={() => setHeaderImageModal(false)}
+                            >
+                                <img
+                                    src={mainImg}
+                                    alt={activePersona.name}
+                                    className="max-w-[90vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl"
+                                    onClick={e => e.stopPropagation()}
+                                />
+                                <button
+                                    className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2"
+                                    onClick={() => setHeaderImageModal(false)}
+                                >
+                                    <Icon name="X" size={20} />
+                                </button>
+                            </div>
+                        ) : null;
+                    })()}
+
                     <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
                         <header className="h-16 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-4 shrink-0 z-10">
                             <div className="flex items-center">
@@ -586,11 +617,23 @@ const App: React.FC = () => {
                                 </button>
                                 {activePersona && (
                                     <>
-                                        <div className={`p-1.5 rounded-md mr-3 bg-gradient-to-br ${activePersona.colorClass} text-white`}>
-                                            <Icon name={activePersona.iconName} size={20} />
-                                        </div>
+                                        {(() => {
+                                            const mainImg = activeImages.find(img => img.isMain)?.imageUrl || activePersona.imageUrl;
+                                            return mainImg ? (
+                                                <button onClick={() => setHeaderImageModal(true)} className="md:hidden mr-3 shrink-0 focus:outline-none">
+                                                    <img src={mainImg} alt={activePersona.name} className="w-10 h-10 rounded-lg object-cover" />
+                                                </button>
+                                            ) : (
+                                                <div className={`p-1.5 rounded-md mr-3 bg-gradient-to-br ${activePersona.colorClass} text-white`}>
+                                                    <Icon name={activePersona.iconName} size={20} />
+                                                </div>
+                                            );
+                                        })()}
                                         <div>
-                                            <h2 className="font-semibold text-gray-100">{activePersona.name}</h2>
+                                            <h2 className="font-semibold text-gray-100">
+                                                {activePersona.name}
+                                                {activePersona.jobTitle && <span className="ml-1.5 text-xs font-normal text-gray-500">[{activePersona.jobTitle}]</span>}
+                                            </h2>
                                             <p className="text-xs text-gray-400 hidden sm:block">{activePersona.description}</p>
                                         </div>
                                     </>
@@ -598,7 +641,7 @@ const App: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 {user && (() => {
-                                    const stage = getStage(user.xp ?? 0);
+                                    const stage = getStage(user.personaXp?.[activePersonaId] ?? 0);
                                     return (
                                         <div className={`md:hidden flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${stage.color} bg-opacity-20`}>
                                             <span className="text-[10px] font-bold text-white drop-shadow">{stage.stage}단계</span>
@@ -625,7 +668,7 @@ const App: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.xp ?? 0} />
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} />
                         )}
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
@@ -638,13 +681,6 @@ const App: React.FC = () => {
                                     )}
                                     <h3 className="text-2xl font-bold text-gray-100 mb-3">{activePersona.name}</h3>
                                     <p className="text-gray-400 max-w-md mb-6 text-lg">{activePersona.description}</p>
-                                    <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 max-w-lg w-full text-sm text-gray-300 text-left">
-                                        <p className="font-semibold text-gray-200 mb-2 flex items-center">
-                                            <Icon name="Bot" size={16} className="mr-2" />
-                                            적용된 시스템 프롬프트:
-                                        </p>
-                                        <p className="italic text-gray-400">"{activePersona.systemInstruction}"</p>
-                                    </div>
                                 </div>
                             ) : (
                                 <div className="max-w-4xl mx-auto">
