@@ -892,6 +892,130 @@ app.delete('/api/memory/:id', async (req, res) => {
   }
 });
 
+// ── Knowledge ─────────────────────────────────────────────────
+function chunkText(text) {
+  const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 50);
+  const chunks = [];
+  for (const para of paragraphs) {
+    if (para.length <= 600) {
+      chunks.push(para);
+    } else {
+      let i = 0;
+      while (i < para.length) {
+        chunks.push(para.slice(i, i + 600));
+        i += 600 - 50;
+      }
+    }
+  }
+  return chunks;
+}
+
+app.post('/api/knowledge', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
+    const { personaId, title, text } = req.body;
+    if (!personaId || !text) return res.status(400).json({ error: 'personaId, text는 필수입니다.' });
+    const sourceId = crypto.randomUUID();
+    const chunks = chunkText(text);
+    let saved = 0;
+    for (const chunk of chunks) {
+      const embedding = await getEmbedding(chunk);
+      if (embedding) {
+        const vectorStr = `[${embedding.join(',')}]`;
+        await prisma.$queryRawUnsafe(
+          `INSERT INTO "PersonaKnowledge" ("personaId", "sourceId", "title", "content", "embedding", "createdAt")
+           VALUES ($1, $2, $3, $4, $5::vector, NOW())`,
+          personaId, sourceId, title || null, chunk, vectorStr
+        );
+      } else {
+        await prisma.personaKnowledge.create({ data: { personaId, sourceId, title: title || null, content: chunk } });
+      }
+      saved++;
+    }
+    return res.json({ saved, total: chunks.length, sourceId });
+  } catch (e) {
+    console.error('[knowledge upload]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.get('/api/knowledge/:personaId', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
+    const list = await prisma.$queryRawUnsafe(
+      `SELECT "sourceId", "title",
+              COUNT(*)::int AS "chunkCount",
+              LEFT(MIN("content"), 100) AS "preview",
+              MIN("createdAt") AS "createdAt"
+       FROM "PersonaKnowledge"
+       WHERE "personaId" = $1
+       GROUP BY "sourceId", "title"
+       ORDER BY MIN("createdAt") DESC`,
+      req.params.personaId
+    );
+    return res.json(list);
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.delete('/api/knowledge/source/:sourceId', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
+    const { count } = await prisma.personaKnowledge.deleteMany({ where: { sourceId: req.params.sourceId } });
+    return res.json({ message: '삭제 완료', deleted: count });
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.delete('/api/knowledge/:id', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
+    await prisma.personaKnowledge.delete({ where: { id: Number(req.params.id) } });
+    return res.json({ message: '삭제 완료' });
+  } catch (e) {
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/knowledge/search', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const { personaId, query } = req.body;
+    if (!personaId || !query) return res.status(400).json({ error: 'personaId, query는 필수입니다.' });
+    const embedding = await getEmbedding(query);
+    if (!embedding) return res.json([]);
+    const vectorStr = `[${embedding.join(',')}]`;
+    const results = await prisma.$queryRawUnsafe(
+      `SELECT "id", "content", 1 - ("embedding" <=> $2::vector) AS similarity
+       FROM "PersonaKnowledge"
+       WHERE "personaId" = $1 AND "embedding" IS NOT NULL
+         AND 1 - ("embedding" <=> $2::vector) > 0.70
+       ORDER BY "embedding" <=> $2::vector
+       LIMIT 3`,
+      personaId, vectorStr
+    );
+    return res.json(results);
+  } catch (e) {
+    console.error('[knowledge search]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
 // ── AI Proxy ──────────────────────────────────────────────────
 app.post('/api-proxy', async (req, res) => {
   try {
