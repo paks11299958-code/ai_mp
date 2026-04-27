@@ -8,6 +8,23 @@ import { generateEmbedding } from './_lib/embedding.js';
 import { extractMemories, generateSummary } from './_lib/gemini.js';
 import { uploadToGCS, deleteFromGCS, generateSignedUrl } from './_lib/storage.js';
 
+function chunkText(text: string): string[] {
+    const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 50);
+    const chunks: string[] = [];
+    for (const para of paragraphs) {
+        if (para.length <= 600) {
+            chunks.push(para);
+        } else {
+            let i = 0;
+            while (i < para.length) {
+                chunks.push(para.slice(i, i + 600));
+                i += 600 - 50;
+            }
+        }
+    }
+    return chunks;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     const domain = req.query.d as string;
     const seg1 = req.query.s1 as string | undefined;
@@ -751,24 +768,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── Knowledge ─────────────────────────────────────────────
     if (domain === 'knowledge') {
-
-        // 문단 기준 청크 분할 — 각 문단을 독립 청크로 유지 (600자 초과 시에만 분할)
-        function chunkText(text: string): string[] {
-            const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p.length > 50);
-            const chunks: string[] = [];
-            for (const para of paragraphs) {
-                if (para.length <= 600) {
-                    chunks.push(para);
-                } else {
-                    let i = 0;
-                    while (i < para.length) {
-                        chunks.push(para.slice(i, i + 600));
-                        i += 600 - 50;
-                    }
-                }
-            }
-            return chunks;
-        }
 
         // POST /api/knowledge — 텍스트 업로드 → 청크 분할 → 임베딩 → 저장
         if (req.method === 'POST' && !seg1) {
