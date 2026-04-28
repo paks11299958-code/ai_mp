@@ -306,6 +306,10 @@ const App: React.FC = () => {
                     if (res.xp !== undefined && res.personaId) {
                         setUser(prev => {
                             if (!prev) return prev;
+                            const prevXp = prev.personaXp[res.personaId] ?? 0;
+                            if (getStage(prevXp).stage !== getStage(res.xp!).stage) {
+                                delete chatInstancesRef.current[res.personaId];
+                            }
                             return {
                                 ...prev,
                                 personaXp: { ...prev.personaXp, [res.personaId]: res.xp! },
@@ -350,8 +354,33 @@ const App: React.FC = () => {
                     memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n이 정보를 대화에 자연스럽게 녹여서 활용하세요. 직접적으로 "당신이 ~라고 알고 있어요"라고 말하지 말고, 맥락에 맞게 자연스럽게 반영하세요.\n---`;
                 }
 
+                let mediaContext = '';
+                if (activeImages.length > 0) {
+                    const userXp = user?.personaXp?.[activePersonaId] ?? 0;
+                    const userLevel = getStage(userXp).stage;
+                    const unlockedImgs = activeImages.filter(img => img.requiredLevel <= userLevel);
+                    const lockedImgs = activeImages.filter(img => img.requiredLevel > userLevel);
+                    const totalVideos = activeImages.reduce((sum, img) => sum + (img._count?.videos ?? 0), 0);
+                    const unlockedVideos = unlockedImgs.reduce((sum, img) => sum + (img._count?.videos ?? 0), 0);
+
+                    let lines = `\n\n--- 나의 미디어 갤러리 ---`;
+                    lines += `\n사진: 총 ${activeImages.length}장 (공개 ${unlockedImgs.length}장, 잠김 ${lockedImgs.length}장)`;
+                    if (totalVideos > 0) {
+                        lines += `\n동영상: 총 ${totalVideos}개 (공개 ${unlockedVideos}개, 잠김 ${totalVideos - unlockedVideos}개)`;
+                    }
+                    if (lockedImgs.length > 0) {
+                        const nextLevel = Math.min(...lockedImgs.map(img => img.requiredLevel));
+                        const nextStage = STAGES.find(s => s.stage === nextLevel);
+                        lines += `\n다음 공개 단계: ${nextLevel}단계${nextStage ? ` (${nextStage.name})` : ''}`;
+                    }
+                    lines += `\n사용자 현재 단계: ${userLevel}단계 (XP ${userXp})`;
+                    lines += `\n잠긴 사진이나 동영상을 물어보면 더 대화하면 볼 수 있다고 자연스럽게 유도하세요.`;
+                    lines += `\n---`;
+                    mediaContext = lines;
+                }
+
                 const systemInstruction =
-                    `${commonInstruction ? commonInstruction + '\n\n' : ''}${activePersona.systemInstruction}${imageContext}${knowledgeContext}${memoryContext}` +
+                    `${commonInstruction ? commonInstruction + '\n\n' : ''}${activePersona.systemInstruction}${imageContext}${knowledgeContext}${memoryContext}${mediaContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
