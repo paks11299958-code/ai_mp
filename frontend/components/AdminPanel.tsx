@@ -92,6 +92,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [videoTitle, setVideoTitle] = useState('');
     const [isAddingVideo, setIsAddingVideo] = useState(false);
     const videoFileInputRef = useRef<HTMLInputElement>(null);
+    const [playingVideo, setPlayingVideo] = useState<{ url: string; title?: string } | null>(null);
 
     useEffect(() => {
         settingsApi.get().then(s => setCommonInstruction(s.commonInstruction || '')).catch(() => {});
@@ -297,6 +298,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
     return (
         <div className="flex-1 flex flex-col h-full bg-gray-900 z-40 relative animate-in fade-in duration-200">
+
+            {/* 동영상 재생 모달 */}
+            {playingVideo && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80" onClick={() => setPlayingVideo(null)}>
+                    <div className="relative max-w-2xl w-full mx-4" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-2 px-1">
+                            <p className="text-white text-sm font-medium truncate flex-1">{playingVideo.title}</p>
+                            <button onClick={() => setPlayingVideo(null)} className="ml-3 text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-1.5 rounded-lg transition-colors shrink-0">
+                                <Icon name="X" size={18} />
+                            </button>
+                        </div>
+                        <video
+                            src={playingVideo.url}
+                            controls
+                            autoPlay
+                            className="w-full rounded-xl bg-black max-h-[70vh]"
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* 저장 완료 모달 */}
             {showSavedModal && (
@@ -780,10 +801,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                     ) : videos.map(v => (
                                                         <div key={v.id} className="flex flex-col bg-gray-700/60 rounded-xl px-2.5 py-2 gap-1.5 group">
                                                             <div className="flex items-center gap-1.5">
-                                                                <Icon name="Play" size={11} className="text-blue-400 shrink-0" />
-                                                                <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
-                                                                    {v.title || v.videoUrl.split('/').pop()}
-                                                                </span>
+                                                                <button
+                                                                    onClick={() => setPlayingVideo({ url: v.videoUrl, title: v.title || v.videoUrl.split('/').pop() })}
+                                                                    className="flex items-center gap-1.5 flex-1 min-w-0 hover:text-blue-300 transition-colors text-left"
+                                                                >
+                                                                    <Icon name="Play" size={11} className="text-blue-400 shrink-0" />
+                                                                    <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
+                                                                        {v.title || v.videoUrl.split('/').pop()}
+                                                                    </span>
+                                                                </button>
                                                                 <button onClick={() => handleDeleteVideo(v.id)}
                                                                     className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0">
                                                                     <Icon name="X" size={11} />
