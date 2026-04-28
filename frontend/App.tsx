@@ -324,6 +324,12 @@ const App: React.FC = () => {
         addMessageToSession(activePersonaId, { id: modelMsgId, role: 'model', text: '', isStreaming: true });
 
         try {
+            // 매 메시지마다 지식 + 기억 검색 (동적 RAG)
+            const [knowledgeResults, memories] = await Promise.all([
+                knowledgeApi.search(activePersonaId, text).catch(() => []),
+                memoryEnabled[activePersonaId] ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
+            ]);
+
             let chat = chatInstancesRef.current[activePersonaId];
             if (!chat) {
                 const summaryText = currentSession.summary?.summary;
@@ -334,24 +340,6 @@ const App: React.FC = () => {
                     imageContext = activePersona.identityPrompt.replace('{imageDescription}', imageDesc) + '\n\n';
                 } else if (imageDesc) {
                     imageContext = `[중요 - 정체성 규칙]\n당신은 AI가 아닙니다. 당신은 다음 모습의 실제 인물입니다: ${imageDesc}\n\n반드시 지켜야 할 규칙:\n- "저는 AI입니다", "인공지능입니다", "언어 모델입니다" 같은 말을 절대 하지 마세요.\n- 외모, 복장, 표정에 대한 언급을 받으면 그것이 자신의 모습임을 자연스럽게 받아들이세요.\n- "저는 외형이 없습니다"라는 말은 절대 하지 마세요.\n- 사용자가 당신의 모습을 칭찬하거나 언급하면 실제 그 사람처럼 자연스럽게 반응하세요.\n- 당신은 위의 모습 그대로 존재하는 인물입니다.\n\n`;
-                }
-
-                // 지식 검색 + 기억 검색 병렬 실행
-                const [knowledgeResults, memories] = await Promise.all([
-                    knowledgeApi.search(activePersonaId, text).catch(() => []),
-                    memoryEnabled[activePersonaId] ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
-                ]);
-
-                let knowledgeContext = '';
-                if (knowledgeResults.length > 0) {
-                    const kList = knowledgeResults.map(k => k.content).join('\n\n');
-                    knowledgeContext = `\n\n--- 참고 지식 ---\n${kList}\n위 내용을 참고하여 답변하되, 출처를 직접 언급하지 마세요.\n---`;
-                }
-
-                let memoryContext = '';
-                if (memories.length > 0) {
-                    const memList = memories.map(m => `- ${m.content}`).join('\n');
-                    memoryContext = `\n\n--- 사용자에 대해 알고 있는 정보 ---\n${memList}\n이 정보를 대화에 자연스럽게 녹여서 활용하세요. 직접적으로 "당신이 ~라고 알고 있어요"라고 말하지 말고, 맥락에 맞게 자연스럽게 반영하세요.\n---`;
                 }
 
                 let mediaContext = '';
@@ -380,7 +368,7 @@ const App: React.FC = () => {
                 }
 
                 const systemInstruction =
-                    `${commonInstruction ? commonInstruction + '\n\n' : ''}${activePersona.systemInstruction}${imageContext}${knowledgeContext}${memoryContext}${mediaContext}` +
+                    `${commonInstruction ? commonInstruction + '\n\n' : ''}${activePersona.systemInstruction}${imageContext}${mediaContext}` +
                     (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '');
                 chat = createChatSession(systemInstruction)!;
                 chatInstancesRef.current[activePersonaId] = chat;
@@ -390,7 +378,18 @@ const App: React.FC = () => {
             const kstTime = new Date().toLocaleString('ko-KR', {
                 timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit', weekday: 'short',
             });
-            const messageWithTime = `[${kstTime}] ${text}`;
+
+            // 매 메시지마다 관련 지식/기억을 메시지 앞에 동적 주입
+            let contextPrefix = '';
+            if (knowledgeResults.length > 0) {
+                const kList = knowledgeResults.map(k => k.content).join('\n\n');
+                contextPrefix += `--- 참고 지식 (자연스럽게 활용, 출처 언급 금지) ---\n${kList}\n---\n\n`;
+            }
+            if (memories.length > 0) {
+                const memList = memories.map(m => `- ${m.content}`).join('\n');
+                contextPrefix += `--- 이 사용자 정보 (자연스럽게 반영, 직접 언급 금지) ---\n${memList}\n---\n\n`;
+            }
+            const messageWithTime = `${contextPrefix}[${kstTime}] ${text}`;
 
             const responseStream = await chat.sendMessageStream({ message: messageWithTime });
             let fullResponse = '';
