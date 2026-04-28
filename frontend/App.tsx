@@ -140,8 +140,8 @@ const App: React.FC = () => {
                     sessionApi.getMessages(existing.id),
                     sessionApi.getSummary(existing.id).catch(() => null),
                 ]);
-                const messages = Array.isArray(result) ? result : result.messages;
-                const hasMore = Array.isArray(result) ? false : result.hasMore;
+                const messages = result.messages;
+                const hasMore = result.hasMore;
                 const mapped = (messages || []).map((m: any) => ({ ...m, id: String(m.id) }));
                 const oldestMessageId = mapped.length > 0 ? Number(mapped[0].id) : undefined;
                 setSessions(prev => ({
@@ -166,8 +166,8 @@ const App: React.FC = () => {
 
         try {
             const result = await sessionApi.getMessages(session.dbSessionId, session.oldestMessageId);
-            const older = Array.isArray(result) ? result : result.messages;
-            const hasMore = Array.isArray(result) ? false : result.hasMore;
+            const older = result.messages;
+            const hasMore = result.hasMore;
             const mapped = (older || []).map((m: any) => ({ ...m, id: String(m.id) }));
             const oldestMessageId = mapped.length > 0 ? Number(mapped[0].id) : session.oldestMessageId;
             setSessions(prev => ({
