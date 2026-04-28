@@ -11,6 +11,7 @@ import { AuthModal } from './components/AuthModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPage } from './components/LandingPage';
 import { MainPage } from './components/MainPage';
+import { UserPersonaPanel } from './components/UserPersonaPanel';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { Icon } from './components/Icons';
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [inputText, setInputText] = useState('');
     const [isAdminMode, setIsAdminMode] = useState(false);
+    const [showMyPersonas, setShowMyPersonas] = useState(false);
 
     const [commonInstruction, setCommonInstruction] = useState('');
     const [headerImageModal, setHeaderImageModal] = useState(false);
@@ -67,7 +69,7 @@ const App: React.FC = () => {
             }
         } catch {}
 
-        // 백그라운드에서 최신 데이터 갱신
+        // 백그라운드에서 최신 데이터 갱신 (공개 페르소나만)
         personaApi.getAll()
             .then(data => {
                 setPersonas(data);
@@ -99,7 +101,19 @@ const App: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); setShowMain(true); })
+            .then(({ user }) => {
+                setUser(user);
+                setShowMain(true);
+                // 어드민이면 전체 페르소나(pending 포함) 재로드
+                if (user.role === 'ADMIN') {
+                    personaApi.getAdminAll()
+                        .then(data => {
+                            setPersonas(data);
+                            localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+                        })
+                        .catch(() => {});
+                }
+            })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -449,22 +463,19 @@ const App: React.FC = () => {
         }
     };
 
-    const handleSavePersona = async (updatedPersona: Persona): Promise<void> => {
-        try {
-            const exists = personas.some(p => p.id === updatedPersona.id);
-            let saved: Persona;
-            if (exists) {
-                saved = await personaApi.update(updatedPersona.id, updatedPersona);
-                setPersonas(prev => prev.map(p => p.id === saved.id ? saved : p));
-                delete chatInstancesRef.current[saved.id];
-            } else {
-                saved = await personaApi.create(updatedPersona);
-                setPersonas(prev => [...prev, saved].sort((a, b) => (a.order ?? 999) - (b.order ?? 999)));
-                setSessions(prev => ({ ...prev, [saved.id]: { messages: [], isTyping: false } }));
-            }
-        } catch (error: any) {
-            alert(error.message || '저장에 실패했습니다.');
+    const handleSavePersona = async (updatedPersona: Partial<Persona>): Promise<Persona> => {
+        const exists = !!updatedPersona.id && personas.some(p => p.id === updatedPersona.id);
+        let saved: Persona;
+        if (exists) {
+            saved = await personaApi.update(updatedPersona.id!, updatedPersona);
+            setPersonas(prev => prev.map(p => p.id === saved.id ? saved : p));
+            delete chatInstancesRef.current[saved.id];
+        } else {
+            saved = await personaApi.create(updatedPersona);
+            setPersonas(prev => [...prev, saved].sort((a, b) => (a.order ?? 999) - (b.order ?? 999)));
+            setSessions(prev => ({ ...prev, [saved.id]: { messages: [], isTyping: false } }));
         }
+        return saved;
     };
 
     const handleDeletePersona = async (id: string) => {
@@ -563,14 +574,32 @@ const App: React.FC = () => {
 
     if (showMain) {
         return (
-            <MainPage
-                personas={visiblePersonas}
-                isLoading={isPersonasLoading}
-                user={user}
-                onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
-                onLogout={handleLogout}
-                onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
-            />
+            <>
+                <MainPage
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    user={user}
+                    onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
+                    onLogout={handleLogout}
+                    onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                    onMyPersonasClick={() => setShowMyPersonas(true)}
+                />
+                {showMyPersonas && (
+                    <UserPersonaPanel
+                        user={user}
+                        onClose={() => setShowMyPersonas(false)}
+                        onSelectPersona={(personaId) => {
+                            setShowMyPersonas(false);
+                            setShowMain(false);
+                            handleSelectPersona(personaId);
+                        }}
+                        onPersonaUpdated={(updated) => {
+                            setPersonas(prev => prev.map(p => p.id === updated.id ? updated : p));
+                            delete chatInstancesRef.current[updated.id];
+                        }}
+                    />
+                )}
+            </>
         );
     }
 
@@ -602,7 +631,9 @@ const App: React.FC = () => {
             ) : (
                 <div className="flex-1 flex h-full relative min-w-0">
                     {(() => {
-                        const mainImg = activeImages.find(img => img.isMain);
+                        const isOwnerOrAdmin = user?.role === 'ADMIN' || activePersona?.createdBy === user?.id;
+                        const visibleActiveImages = isOwnerOrAdmin ? activeImages : activeImages.filter(img => img.status === 'approved');
+                        const mainImg = visibleActiveImages.find(img => img.isMain);
                         const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
@@ -616,11 +647,11 @@ const App: React.FC = () => {
                                 </div>
                                 <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
                                 <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
-                                {activeImages.length > 1 && (() => {
+                                {visibleActiveImages.length > 1 && (() => {
                                     const userStage = getStage(user?.personaXp?.[activePersonaId] ?? 0).stage;
                                     return (
                                         <div className="flex gap-2 mt-4 justify-center flex-wrap">
-                                            {activeImages.map(img => {
+                                            {visibleActiveImages.map(img => {
                                                 const isLocked = userStage < img.requiredLevel;
                                                 const reqName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
                                                 return (
@@ -740,7 +771,12 @@ const App: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} />
+                            <PersonaImageViewer
+                                images={activeImages}
+                                onSelectMain={handleSwitchImage}
+                                userXp={user?.personaXp?.[activePersonaId] ?? 0}
+                                isOwnerOrAdmin={user?.role === 'ADMIN' || activePersona?.createdBy === user?.id}
+                            />
                         )}
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">

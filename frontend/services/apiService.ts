@@ -1,4 +1,4 @@
-import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
+import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, PersonaQuotaRequest, PersonaDashboardEntry } from '../types';
 
 const BASE = '/api';
 
@@ -71,7 +71,13 @@ export const personaApi = {
     getAll: () =>
         request<Persona[]>('/personas'),
 
-    create: (data: Omit<Persona, 'id'>) =>
+    getMine: () =>
+        request<Persona[]>('/personas/mine'),
+
+    getAdminAll: () =>
+        request<Persona[]>('/personas/all'),
+
+    create: (data: Partial<Persona>) =>
         request<Persona>('/personas', {
             method: 'POST',
             body: JSON.stringify(data),
@@ -85,6 +91,24 @@ export const personaApi = {
 
     delete: (id: string) =>
         request<{ message: string }>(`/personas/${id}`, { method: 'DELETE' }),
+
+    approve: (id: string) =>
+        request<Persona>(`/personas/${id}/approve`, { method: 'POST' }),
+
+    reject: (id: string) =>
+        request<Persona>(`/personas/${id}/reject`, { method: 'POST' }),
+
+    suspend: (id: string) =>
+        request<Persona>(`/personas/${id}/suspend`, { method: 'POST' }),
+
+    unsuspend: (id: string) =>
+        request<Persona>(`/personas/${id}/unsuspend`, { method: 'POST' }),
+
+    archive: (id: string) =>
+        request<{ message: string }>(`/personas/${id}/archive`, { method: 'POST' }),
+
+    restore: (id: string) =>
+        request<Persona>(`/personas/${id}/restore`, { method: 'POST' }),
 };
 
 // Persona Images
@@ -122,10 +146,21 @@ export const personaImageApi = {
             body: JSON.stringify({ imageId, requiredLevel }),
         }),
 
+    approveImage: (personaId: string, imageId: number) =>
+        request<PersonaImage>(`/personas/${personaId}/images`, {
+            method: 'PUT',
+            body: JSON.stringify({ imageId, status: 'approved' }),
+        }),
+
     updateOrder: (personaId: string, imageId: number, order: number) =>
         request<PersonaImage>(`/personas/${personaId}/images`, {
             method: 'PUT',
             body: JSON.stringify({ imageId, order }),
+        }),
+
+    submitReview: (personaId: string) =>
+        request<{ imageCount: number; videoCount: number }>(`/personas/${personaId}/submit-review`, {
+            method: 'POST',
         }),
 
     delete: (personaId: string, imageId: number) =>
@@ -140,10 +175,10 @@ export const personaVideoApi = {
     getAll: (imageId: number) =>
         request<PersonaVideo[]>(`/persona-videos/${imageId}`),
 
-    getSignedUrl: (mimeType: string, filename: string) =>
+    getSignedUrl: (mimeType: string, filename: string, imageId?: number) =>
         request<{ signedUrl: string; publicUrl: string }>('/persona-videos/signed-url', {
             method: 'POST',
-            body: JSON.stringify({ mimeType, filename }),
+            body: JSON.stringify({ mimeType, filename, imageId }),
         }),
 
     create: (imageId: number, data: { videoUrl?: string; videoBase64?: string; mimeType?: string; title?: string }) =>
@@ -152,7 +187,7 @@ export const personaVideoApi = {
             body: JSON.stringify({ imageId, ...data }),
         }),
 
-    update: (videoId: number, data: { title?: string; order?: number; requiredLevel?: number }) =>
+    update: (videoId: number, data: { title?: string; order?: number; requiredLevel?: number; status?: string }) =>
         request<PersonaVideo>(`/persona-videos/${videoId}`, {
             method: 'PUT',
             body: JSON.stringify(data),
@@ -236,6 +271,27 @@ export const memoryApi = {
 
     delete: (id: number) =>
         request<{ message: string }>(`/memory/${id}`, { method: 'DELETE' }),
+};
+
+// Quota Requests
+export const quotaRequestApi = {
+    getAll: () =>
+        request<PersonaQuotaRequest[]>('/quota-requests'),
+
+    create: (note?: string) =>
+        request<PersonaQuotaRequest>('/quota-requests', {
+            method: 'POST',
+            body: JSON.stringify({ note }),
+        }),
+
+    approve: (id: number) =>
+        request<{ message: string; personaQuota: number }>(`/quota-requests/${id}/approve`, { method: 'POST' }),
+
+    reject: (id: number) =>
+        request<{ message: string }>(`/quota-requests/${id}/reject`, { method: 'POST' }),
+
+    getDashboard: () =>
+        request<PersonaDashboardEntry[]>('/quota-requests/dashboard'),
 };
 
 // Knowledge

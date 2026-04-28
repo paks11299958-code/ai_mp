@@ -8,6 +8,9 @@ export interface Message {
     error?: boolean;
 }
 
+export type PersonaStatus = 'pending' | 'approved' | 'rejected' | 'suspended' | 'archived';
+export type MediaStatus = 'pending' | 'approved';
+
 export interface Persona {
     id: string;
     name: string;
@@ -21,6 +24,9 @@ export interface Persona {
     imageUrl?: string;
     isDefault?: boolean;
     isVisible?: boolean;
+    status: PersonaStatus;
+    createdBy?: number;
+    createdAt?: string;
 }
 
 export interface UserMemory {
@@ -40,6 +46,7 @@ export interface PersonaImage {
     isMain: boolean;
     order: number;
     requiredLevel: number;
+    status: MediaStatus;
     createdAt: string;
     _count?: { videos: number };
 }
@@ -51,6 +58,7 @@ export interface PersonaVideo {
     title?: string;
     order: number;
     requiredLevel: number;
+    status: MediaStatus;
     createdAt: string;
 }
 
@@ -77,7 +85,28 @@ export interface User {
     email: string;
     username?: string;
     role: string;
+    personaQuota: number;
     personaXp: Record<string, number>;
+}
+
+export interface PersonaQuotaRequest {
+    id: number;
+    userId: number;
+    status: 'pending' | 'approved' | 'rejected';
+    note?: string;
+    createdAt: string;
+    updatedAt: string;
+    user?: { id: number; username?: string; email: string; personaQuota: number };
+}
+
+export interface PersonaDashboardEntry {
+    id: string;
+    name: string;
+    status: PersonaStatus;
+    createdAt: string;
+    totalXp: number;
+    totalUsers: number;
+    totalSessions: number;
 }
 
 export interface DbSession {
