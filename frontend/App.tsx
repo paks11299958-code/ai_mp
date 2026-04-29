@@ -100,6 +100,7 @@ const App: React.FC = () => {
     });
 
     const [swingUploading, setSwingUploading] = useState(false);
+    const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
     const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
     const [showSwingModal, setShowSwingModal] = useState(false);
     const [swingHistory, setSwingHistory] = useState<UserSwingAnalysis[]>([]);
@@ -351,6 +352,7 @@ const App: React.FC = () => {
         if (!file || !activePersonaId || !user) return;
         e.target.value = '';
         setSwingUploading(true);
+        setSwingStep('uploading');
         const pendingMsgId = Date.now().toString();
         addMessageToSession(activePersonaId, {
             id: pendingMsgId, role: 'model',
@@ -360,7 +362,9 @@ const App: React.FC = () => {
         try {
             const { signedUrl, publicUrl } = await swingAnalysisApi.getSignedUrl(file.type, file.name);
             await fetch(signedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+            setSwingStep('analyzing');
             const result = await swingAnalysisApi.analyze(publicUrl, activePersonaId, file.type, file.name);
+            setSwingStep('saving');
             updateMessageInSession(activePersonaId, pendingMsgId, {
                 text: `스윙 분석 완료! 종합 점수: **${result.analysis.overallScore}점**\n${result.analysis.overallComment}`,
                 isStreaming: false,
@@ -375,6 +379,7 @@ const App: React.FC = () => {
             });
         } finally {
             setSwingUploading(false);
+            setSwingStep('idle');
         }
     };
 
@@ -787,6 +792,61 @@ const App: React.FC = () => {
             )}
 
             {/* 스윙 분석 결과 모달 */}
+            {/* 스윙 분석 진행 상태 카드 */}
+            {swingStep !== 'idle' && (
+                <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[70] w-72 bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl p-4 pointer-events-none">
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="text-sm font-semibold text-white">스윙 분석</span>
+                        <span className="ml-auto text-[10px] text-gray-500">
+                            {swingStep === 'uploading' ? '1/3' : swingStep === 'analyzing' ? '2/3' : '3/3'}
+                        </span>
+                    </div>
+                    {/* 단계 목록 */}
+                    {([
+                        { key: 'uploading', label: '영상 업로드 중' },
+                        { key: 'analyzing', label: 'AI 스윙 분석 중' },
+                        { key: 'saving', label: '결과 저장 중' },
+                    ] as const).map(({ key, label }, idx) => {
+                        const stepOrder = { uploading: 0, analyzing: 1, saving: 2 };
+                        const current = stepOrder[swingStep];
+                        const mine = idx;
+                        const done = mine < current;
+                        const active = mine === current;
+                        return (
+                            <div key={key} className="flex items-center gap-2.5 py-1.5">
+                                {done ? (
+                                    <span className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center shrink-0">
+                                        <svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="white" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>
+                                    </span>
+                                ) : active ? (
+                                    <span className="w-5 h-5 rounded-full border-2 border-green-400 border-t-transparent animate-spin shrink-0" />
+                                ) : (
+                                    <span className="w-5 h-5 rounded-full border border-gray-600 shrink-0" />
+                                )}
+                                <span className={`text-xs ${done ? 'text-green-400' : active ? 'text-white' : 'text-gray-600'}`}>{label}</span>
+                            </div>
+                        );
+                    })}
+                    {/* 진행 바 */}
+                    <div className="mt-3 w-full bg-gray-700 rounded-full h-1 overflow-hidden">
+                        <div
+                            className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-400"
+                            style={{
+                                width: swingStep === 'uploading' ? '20%'
+                                    : swingStep === 'analyzing' ? '88%'
+                                    : '100%',
+                                transition: swingStep === 'analyzing'
+                                    ? 'width 32s ease-out'
+                                    : 'width 0.4s ease',
+                            }}
+                        />
+                    </div>
+                    {swingStep === 'analyzing' && (
+                        <p className="mt-2 text-[10px] text-gray-500 text-center">Gemini AI가 영상을 분석하고 있어요 (20~40초)</p>
+                    )}
+                </div>
+            )}
+
             {showSwingModal && swingResult && (
                 <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
                     onClick={() => setShowSwingModal(false)}>
