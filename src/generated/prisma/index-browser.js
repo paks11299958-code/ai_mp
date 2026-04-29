@@ -246,6 +246,15 @@ exports.Prisma.BoardPostScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.UserSwingAnalysisScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  personaId: 'personaId',
+  videoUrl: 'videoUrl',
+  analysisJson: 'analysisJson',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.BoardReplyScalarFieldEnum = {
   id: 'id',
   postId: 'postId',
@@ -285,6 +294,7 @@ exports.Prisma.ModelName = {
   PersonaKnowledge: 'PersonaKnowledge',
   PersonaTriggerVideo: 'PersonaTriggerVideo',
   BoardPost: 'BoardPost',
+  UserSwingAnalysis: 'UserSwingAnalysis',
   BoardReply: 'BoardReply'
 };
 

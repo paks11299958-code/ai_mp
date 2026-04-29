@@ -88,6 +88,46 @@ export async function extractTriggerKeywords(title: string, description: string)
     }
 }
 
+export async function analyzeGolfSwing(videoGcsUri: string, mimeType: string): Promise<object> {
+    const ai = getAI();
+    const prompt = `당신은 전문 골프 티칭 프로입니다. 이 골프 스윙 영상을 분석하고 아래 JSON 형식으로만 응답하세요. JSON 외 다른 텍스트는 절대 포함하지 마세요.
+
+{
+  "overallScore": 0~100 사이 정수,
+  "overallComment": "전반적인 스윙 평가 2~3문장 (한국어)",
+  "sections": [
+    {
+      "name": "어드레스 & 셋업",
+      "score": 0~100 정수,
+      "comment": "이 구간 평가 1~2문장",
+      "good": ["잘된 점1", "잘된 점2"],
+      "improve": ["개선점1", "개선점2"]
+    },
+    { "name": "백스윙", "score": ..., "comment": ..., "good": [...], "improve": [...] },
+    { "name": "다운스윙", "score": ..., "comment": ..., "good": [...], "improve": [...] },
+    { "name": "임팩트", "score": ..., "comment": ..., "good": [...], "improve": [...] },
+    { "name": "팔로우스루", "score": ..., "comment": ..., "good": [...], "improve": [...] }
+  ],
+  "topPriorities": ["가장 중요한 개선점1", "개선점2", "개선점3"],
+  "recommendedDrills": ["추천 드릴1", "추천 드릴2", "추천 드릴3"]
+}`;
+
+    const response = await ai.models.generateContent({
+        model: MODEL_NAME,
+        contents: [{
+            role: 'user',
+            parts: [
+                { fileData: { mimeType, fileUri: videoGcsUri } },
+                { text: prompt },
+            ],
+        }],
+    });
+    const text = response.text?.trim() || '{}';
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('분석 결과 JSON 파싱 실패');
+    return JSON.parse(match[0]);
+}
+
 export async function generateSummary(messages: { role: string; text: string }[]): Promise<string | null> {
     if (messages.length < 2) return null;
     const ai = getAI();

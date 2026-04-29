@@ -1219,6 +1219,57 @@ app.delete('/api/board/:id/reply/:replyId', async (req, res) => {
 
 // ── Trigger Videos ────────────────────────────────────────────
 
+async function callGeminiVideo(videoGcsUri, mimeType, promptText) {
+  try {
+    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    if (!credsJson) return null;
+    const creds = JSON.parse(credsJson);
+    const { GoogleGenAI } = require('@google/genai');
+    const ai = new GoogleGenAI({
+      vertexai: true,
+      project: creds.project_id,
+      location: 'us-central1',
+      googleAuthOptions: { credentials: creds },
+    });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [{
+        role: 'user',
+        parts: [
+          { fileData: { mimeType, fileUri: videoGcsUri } },
+          { text: promptText },
+        ],
+      }],
+    });
+    return response.text?.trim() || null;
+  } catch (e) {
+    console.error('[callGeminiVideo]', e.message);
+    return null;
+  }
+}
+
+const GOLF_ANALYSIS_PROMPT = `당신은 전문 골프 티칭 프로입니다. 이 골프 스윙 영상을 분석하고 아래 JSON 형식으로만 응답하세요. JSON 외 다른 텍스트는 절대 포함하지 마세요.
+
+{
+  "overallScore": 0~100 사이 정수,
+  "overallComment": "전반적인 스윙 평가 2~3문장 (한국어)",
+  "sections": [
+    {
+      "name": "어드레스 & 셋업",
+      "score": 0~100 정수,
+      "comment": "이 구간 평가 1~2문장",
+      "good": ["잘된 점1", "잘된 점2"],
+      "improve": ["개선점1", "개선점2"]
+    },
+    { "name": "백스윙", "score": ..., "comment": ..., "good": [...], "improve": [...] },
+    { "name": "다운스윙", "score": ..., "comment": ..., "good": [...], "improve": [...] },
+    { "name": "임팩트", "score": ..., "comment": ..., "good": [...], "improve": [...] },
+    { "name": "팔로우스루", "score": ..., "comment": ..., "good": [...], "improve": [...] }
+  ],
+  "topPriorities": ["가장 중요한 개선점1", "개선점2", "개선점3"],
+  "recommendedDrills": ["추천 드릴1", "추천 드릴2", "추천 드릴3"]
+}`;
+
 async function extractTriggerKeywordsLocal(title, description) {
   const prompt = `다음 영상의 제목과 설명을 보고, 채팅에서 이 영상을 재생할 때 사용할 트리거 키워드를 추출하세요.
 제목: ${title}
@@ -1334,6 +1385,87 @@ app.delete('/api/trigger-videos/:id', async (req, res) => {
   try {
     const deleted = await prisma.personaTriggerVideo.delete({ where: { id: Number(req.params.id) } });
     await deleteFromGCS(deleted.videoUrl);
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: '삭제 실패' });
+  }
+});
+
+// ── Swing Analysis ────────────────────────────────────────
+
+// POST /api/swing-analysis/signed-url
+app.post('/api/swing-analysis/signed-url', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  try {
+    const { mimeType, filename } = req.body;
+    if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+    const ext = (mimeType || 'video/mp4').split('/')[1] || 'mp4';
+    const destPath = `users/${payload.userId}/swing/${Date.now()}_${filename || 'video'}.${ext}`;
+    const gcs = getGCSStorage();
+    const file = gcs.bucket(BUCKET_NAME).file(destPath);
+    const [signedUrl] = await file.getSignedUrl({
+      version: 'v4', action: 'write', expires: Date.now() + 15 * 60 * 1000, contentType: mimeType,
+    });
+    return res.json({ signedUrl, publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}` });
+  } catch (e) {
+    console.error('[swing signed-url]', e.message);
+    return res.status(500).json({ error: '서명 URL 생성 실패' });
+  }
+});
+
+// POST /api/swing-analysis/analyze
+app.post('/api/swing-analysis/analyze', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  try {
+    const { videoUrl, personaId, mimeType } = req.body;
+    if (!videoUrl || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
+    const gcsUri = videoUrl.replace('https://storage.googleapis.com/ai-mp-media/', 'gs://ai-mp-media/');
+    const text = await callGeminiVideo(gcsUri, mimeType || 'video/mp4', GOLF_ANALYSIS_PROMPT);
+    if (!text) return res.status(500).json({ error: 'Gemini 분석 실패' });
+    const match = text.match(/\{[\s\S]*\}/);
+    if (!match) return res.status(500).json({ error: '분석 결과 파싱 실패' });
+    const analysis = JSON.parse(match[0]);
+    const record = await prisma.userSwingAnalysis.create({
+      data: { userId: payload.userId, personaId, videoUrl, analysisJson: JSON.stringify(analysis) },
+    });
+    return res.json({ id: record.id, analysis, createdAt: record.createdAt });
+  } catch (e) {
+    console.error('[swing analyze]', e.message);
+    return res.status(500).json({ error: '분석 실패: ' + e.message });
+  }
+});
+
+// GET /api/swing-analysis?personaId=xxx
+app.get('/api/swing-analysis', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  try {
+    const { personaId } = req.query;
+    const records = await prisma.userSwingAnalysis.findMany({
+      where: { userId: payload.userId, ...(personaId ? { personaId } : {}) },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+    return res.json(records.map(r => ({
+      id: r.id, videoUrl: r.videoUrl, createdAt: r.createdAt, analysis: JSON.parse(r.analysisJson),
+    })));
+  } catch (e) {
+    return res.status(500).json({ error: '조회 실패' });
+  }
+});
+
+// DELETE /api/swing-analysis/:id
+app.delete('/api/swing-analysis/:id', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  try {
+    const record = await prisma.userSwingAnalysis.findFirst({
+      where: { id: parseInt(req.params.id), userId: payload.userId },
+    });
+    if (!record) return res.status(404).json({ error: '기록을 찾을 수 없습니다.' });
+    await prisma.userSwingAnalysis.delete({ where: { id: record.id } });
     return res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ error: '삭제 실패' });

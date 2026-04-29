@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
-import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, UserSwingAnalysis } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi } from './services/apiService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -55,9 +55,17 @@ const App: React.FC = () => {
         try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
     });
 
+    const [swingUploading, setSwingUploading] = useState(false);
+    const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
+    const [showSwingModal, setShowSwingModal] = useState(false);
+    const [swingHistory, setSwingHistory] = useState<UserSwingAnalysis[]>([]);
+    const [showSwingHistory, setShowSwingHistory] = useState(false);
+    const [swingHistoryLoading, setSwingHistoryLoading] = useState(false);
+
     const chatInstancesRef = useRef<Record<string, Chat>>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const swingVideoRef = useRef<HTMLInputElement>(null);
 
     const refreshPersonaImages = useCallback((personaId: string) => {
         personaImageApi.getAll(personaId)
@@ -232,6 +240,7 @@ const App: React.FC = () => {
     const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
     const activeImages = personaImages[activePersonaId] || [];
+    const isGolfPersona = !!(activePersona?.jobTitle?.includes('골프') || activePersona?.name?.includes('골프'));
 
     const handleToggleMemory = (personaId: string) => {
         setMemoryEnabled(prev => {
@@ -290,6 +299,60 @@ const App: React.FC = () => {
             setIsAdminMode(true);
         } else {
             alert('관리자 권한이 없습니다.');
+        }
+    };
+
+    const handleSwingVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !activePersonaId || !user) return;
+        e.target.value = '';
+        setSwingUploading(true);
+        const pendingMsgId = Date.now().toString();
+        addMessageToSession(activePersonaId, {
+            id: pendingMsgId, role: 'model',
+            text: '스윙 영상을 분석 중입니다... 잠시 기다려 주세요. (약 20~40초 소요)',
+            isStreaming: true,
+        });
+        try {
+            const { signedUrl, publicUrl } = await swingAnalysisApi.getSignedUrl(file.type, file.name);
+            await fetch(signedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
+            const result = await swingAnalysisApi.analyze(publicUrl, activePersonaId, file.type);
+            updateMessageInSession(activePersonaId, pendingMsgId, {
+                text: `스윙 분석 완료! 종합 점수: **${result.analysis.overallScore}점**\n${result.analysis.overallComment}`,
+                isStreaming: false,
+            });
+            setSwingResult(result);
+            setShowSwingModal(true);
+            setSwingHistory([]);
+        } catch (error: any) {
+            updateMessageInSession(activePersonaId, pendingMsgId, {
+                text: `스윙 분석 실패: ${error.message}`,
+                isStreaming: false, error: true,
+            });
+        } finally {
+            setSwingUploading(false);
+        }
+    };
+
+    const handleOpenSwingHistory = async () => {
+        setShowSwingHistory(true);
+        if (swingHistory.length > 0) return;
+        setSwingHistoryLoading(true);
+        try {
+            const history = await swingAnalysisApi.getHistory(activePersonaId);
+            setSwingHistory(history);
+        } catch {}
+        finally { setSwingHistoryLoading(false); }
+    };
+
+    const handleDeleteSwingRecord = async (id: number) => {
+        if (!window.confirm('이 분석 기록을 삭제하시겠습니까?')) return;
+        try {
+            await swingAnalysisApi.delete(id);
+            setSwingHistory(prev => prev.filter(r => r.id !== id));
+            if (swingResult?.id === id) { setSwingResult(null); setShowSwingModal(false); }
+        } catch (e: any) {
+            alert(e.message || '삭제 실패');
         }
     };
 
@@ -630,6 +693,134 @@ const App: React.FC = () => {
                 onGoHome={() => setShowMain(true)}
             />
 
+            {/* 스윙 분석 기록 패널 */}
+            {showSwingHistory && (
+                <div className="fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-4"
+                    onClick={() => setShowSwingHistory(false)}>
+                    <div className="relative w-full max-w-sm bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden"
+                        onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800">
+                            <span className="text-sm font-semibold text-white flex items-center gap-2">
+                                <Icon name="Play" size={16} className="text-green-400" />
+                                스윙 분석 기록
+                            </span>
+                            <button onClick={() => setShowSwingHistory(false)} className="text-gray-400 hover:text-white transition-colors">
+                                <Icon name="X" size={18} />
+                            </button>
+                        </div>
+                        <div className="p-4 max-h-[60vh] overflow-y-auto">
+                            {swingHistoryLoading ? (
+                                <p className="text-center text-gray-500 py-6 text-sm">불러오는 중...</p>
+                            ) : swingHistory.length === 0 ? (
+                                <p className="text-center text-gray-500 py-6 text-sm">분석 기록이 없습니다.</p>
+                            ) : (
+                                <div className="flex flex-col gap-2">
+                                    {swingHistory.map(record => (
+                                        <div key={record.id}
+                                            className="flex items-center justify-between bg-gray-800 hover:bg-gray-750 rounded-xl px-4 py-3 cursor-pointer group"
+                                            onClick={() => { setSwingResult({ id: record.id, analysis: record.analysis, createdAt: record.createdAt }); setShowSwingModal(true); setShowSwingHistory(false); }}>
+                                            <div>
+                                                <p className="text-sm text-white font-medium">{record.analysis.overallScore}점</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">{new Date(record.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs text-gray-400 group-hover:text-white transition-colors">상세 보기</span>
+                                                <button
+                                                    onClick={e => { e.stopPropagation(); handleDeleteSwingRecord(record.id); }}
+                                                    className="text-gray-600 hover:text-red-400 transition-colors p-1"
+                                                    title="삭제"
+                                                >
+                                                    <Icon name="Trash2" size={14} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 스윙 분석 결과 모달 */}
+            {showSwingModal && swingResult && (
+                <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
+                    onClick={() => setShowSwingModal(false)}>
+                    <div className="relative w-full max-w-2xl bg-gray-900 rounded-2xl shadow-2xl border border-gray-700 overflow-hidden max-h-[90vh] flex flex-col"
+                        onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-800 shrink-0">
+                            <span className="text-sm font-semibold text-white">골프 스윙 분석 리포트</span>
+                            <button onClick={() => setShowSwingModal(false)} className="text-gray-400 hover:text-white transition-colors">
+                                <Icon name="X" size={18} />
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto p-5 flex flex-col gap-5">
+                            {/* 종합 점수 */}
+                            <div className="flex flex-col items-center bg-gradient-to-br from-green-900/40 to-gray-800 rounded-xl p-5 border border-green-800/30">
+                                <span className="text-5xl font-black text-green-400">{swingResult.analysis.overallScore}</span>
+                                <span className="text-sm text-gray-400 mt-1">/ 100점</span>
+                                <p className="mt-3 text-sm text-gray-300 text-center leading-relaxed">{swingResult.analysis.overallComment}</p>
+                            </div>
+
+                            {/* 섹션별 점수 */}
+                            <div className="flex flex-col gap-3">
+                                {swingResult.analysis.sections.map(sec => (
+                                    <div key={sec.name} className="bg-gray-800/60 rounded-xl p-4 border border-gray-700/50">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-semibold text-gray-200">{sec.name}</span>
+                                            <span className={`text-sm font-bold ${sec.score >= 80 ? 'text-green-400' : sec.score >= 60 ? 'text-yellow-400' : 'text-red-400'}`}>{sec.score}점</span>
+                                        </div>
+                                        <div className="w-full bg-gray-700 rounded-full h-1.5 mb-2">
+                                            <div
+                                                className={`h-1.5 rounded-full transition-all ${sec.score >= 80 ? 'bg-green-500' : sec.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'}`}
+                                                style={{ width: `${sec.score}%` }}
+                                            />
+                                        </div>
+                                        <p className="text-xs text-gray-400 mb-2">{sec.comment}</p>
+                                        {sec.good.length > 0 && (
+                                            <div className="flex flex-col gap-0.5 mb-1">
+                                                {sec.good.map((g, i) => <span key={i} className="text-xs text-green-400">✓ {g}</span>)}
+                                            </div>
+                                        )}
+                                        {sec.improve.length > 0 && (
+                                            <div className="flex flex-col gap-0.5">
+                                                {sec.improve.map((im, i) => <span key={i} className="text-xs text-amber-400">△ {im}</span>)}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* 우선 개선 사항 */}
+                            {swingResult.analysis.topPriorities.length > 0 && (
+                                <div className="bg-amber-900/20 border border-amber-700/30 rounded-xl p-4">
+                                    <h4 className="text-sm font-semibold text-amber-400 mb-2">우선 개선 사항</h4>
+                                    <ol className="flex flex-col gap-1.5 list-decimal list-inside">
+                                        {swingResult.analysis.topPriorities.map((p, i) => (
+                                            <li key={i} className="text-xs text-gray-300">{p}</li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            )}
+
+                            {/* 추천 드릴 */}
+                            {swingResult.analysis.recommendedDrills.length > 0 && (
+                                <div className="bg-blue-900/20 border border-blue-700/30 rounded-xl p-4">
+                                    <h4 className="text-sm font-semibold text-blue-400 mb-2">추천 드릴</h4>
+                                    <ol className="flex flex-col gap-1.5 list-decimal list-inside">
+                                        {swingResult.analysis.recommendedDrills.map((d, i) => (
+                                            <li key={i} className="text-xs text-gray-300">{d}</li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            )}
+
+                            <p className="text-center text-[10px] text-gray-600">{new Date(swingResult.createdAt).toLocaleString('ko-KR')}</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* 트리거 영상 팝업 */}
             {triggerVideoPopup && (
                 <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
@@ -795,6 +986,16 @@ const App: React.FC = () => {
                                     <Icon name="MessageSquare" size={14} />
                                     <span className="hidden sm:inline">게시판</span>
                                 </button>
+                                {isGolfPersona && user && (
+                                    <button
+                                        onClick={handleOpenSwingHistory}
+                                        title="스윙 분석 기록"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border bg-green-900/30 border-green-700/50 text-green-400 hover:bg-green-900/50 hover:text-green-300 transition-all"
+                                    >
+                                        <Icon name="Play" size={14} />
+                                        <span className="hidden sm:inline">스윙 기록</span>
+                                    </button>
+                                )}
                                 {activePersona && (
                                     <button
                                         onClick={() => handleToggleMemory(activePersonaId)}
@@ -885,13 +1086,32 @@ const App: React.FC = () => {
 
                         <div className="p-4 bg-gray-900 border-t border-gray-800 shrink-0">
                             <div className="max-w-4xl mx-auto relative flex items-end bg-gray-800 rounded-2xl border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-all">
+                                {isGolfPersona && user && (
+                                    <>
+                                        <input
+                                            ref={swingVideoRef}
+                                            type="file"
+                                            accept="video/*"
+                                            className="hidden"
+                                            onChange={handleSwingVideoSelect}
+                                        />
+                                        <button
+                                            onClick={() => swingVideoRef.current?.click()}
+                                            disabled={swingUploading || currentSession.isTyping}
+                                            title="골프 스윙 영상 분석"
+                                            className="absolute left-2 bottom-2 p-2 rounded-xl bg-green-900/40 text-green-400 hover:bg-green-900/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                        >
+                                            <Icon name="Upload" size={18} />
+                                        </button>
+                                    </>
+                                )}
                                 <textarea
                                     ref={textareaRef}
                                     value={inputText}
                                     onChange={e => setInputText(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     placeholder={activePersona ? `${activePersona.name}에게 메시지 보내기...` : '메시지를 입력하세요...'}
-                                    className="w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl"
+                                    className={`w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl ${isGolfPersona ? 'pl-12' : ''}`}
                                     rows={1}
                                     disabled={!activePersona}
                                 />

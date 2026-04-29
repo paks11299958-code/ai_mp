@@ -3,7 +3,8 @@
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/router.ts": {
-      "includeFiles": "src/generated/prisma/**"
+      "includeFiles": "src/generated/prisma/**",
+      "maxDuration": 60
     }
   },
   "rewrites": [

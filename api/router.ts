@@ -5,7 +5,7 @@ import { prisma } from './_lib/prisma.js';
 import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verifyToken } from './_lib/auth.js';
 import { sendEmail } from './_lib/email.js';
 import { generateEmbedding } from './_lib/embedding.js';
-import { extractMemories, generateSummary, extractTriggerKeywords } from './_lib/gemini.js';
+import { extractMemories, generateSummary, extractTriggerKeywords, analyzeGolfSwing } from './_lib/gemini.js';
 import { uploadToGCS, deleteFromGCS, generateSignedUrl } from './_lib/storage.js';
 
 function chunkText(text: string): string[] {
@@ -1151,6 +1151,84 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 await deleteFromGCS(deleted.videoUrl);
                 return res.status(200).json({ ok: true });
             } catch (e: any) {
+                return res.status(500).json({ error: '삭제 실패' });
+            }
+        }
+    }
+
+    // ── Swing Analysis ────────────────────────────────────────
+    if (domain === 'swing-analysis') {
+        const token = getTokenFromRequest(req);
+        if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
+        const { userId } = verifyToken(token);
+
+        // POST /api/swing-analysis/signed-url
+        if (seg1 === 'signed-url' && req.method === 'POST') {
+            try {
+                const { mimeType, filename } = req.body;
+                if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+                const ext = mimeType.split('/')[1] || 'mp4';
+                const destPath = `users/${userId}/swing/${Date.now()}_${filename || 'video'}.${ext}`;
+                const result = await generateSignedUrl(destPath, mimeType);
+                return res.status(200).json(result);
+            } catch (e: any) {
+                console.error('[swing signed-url]', e);
+                return res.status(500).json({ error: '서명 URL 생성 실패' });
+            }
+        }
+
+        // POST /api/swing-analysis/analyze
+        if (seg1 === 'analyze' && req.method === 'POST') {
+            try {
+                const { videoUrl, personaId, mimeType } = req.body;
+                if (!videoUrl || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
+                const gcsUri = videoUrl.replace(
+                    'https://storage.googleapis.com/ai-mp-media/',
+                    'gs://ai-mp-media/'
+                );
+                const analysis = await analyzeGolfSwing(gcsUri, mimeType || 'video/mp4');
+                const record = await prisma.userSwingAnalysis.create({
+                    data: { userId, personaId, videoUrl, analysisJson: JSON.stringify(analysis) },
+                });
+                return res.status(200).json({ id: record.id, analysis, createdAt: record.createdAt });
+            } catch (e: any) {
+                console.error('[swing analyze]', e);
+                return res.status(500).json({ error: '분석 실패: ' + (e.message || '알 수 없는 오류') });
+            }
+        }
+
+        // GET /api/swing-analysis?personaId=xxx
+        if (!seg1 && req.method === 'GET') {
+            try {
+                const personaId = req.query.personaId as string | undefined;
+                const records = await prisma.userSwingAnalysis.findMany({
+                    where: { userId, ...(personaId ? { personaId } : {}) },
+                    orderBy: { createdAt: 'desc' },
+                    take: 20,
+                });
+                return res.status(200).json(records.map(r => ({
+                    id: r.id,
+                    videoUrl: r.videoUrl,
+                    createdAt: r.createdAt,
+                    analysis: JSON.parse(r.analysisJson),
+                })));
+            } catch (e: any) {
+                console.error('[swing GET]', e);
+                return res.status(500).json({ error: '조회 실패' });
+            }
+        }
+
+        // DELETE /api/swing-analysis/:id
+        if (seg1 && req.method === 'DELETE') {
+            try {
+                const record = await prisma.userSwingAnalysis.findFirst({
+                    where: { id: parseInt(seg1), userId },
+                });
+                if (!record) return res.status(404).json({ error: '기록을 찾을 수 없습니다.' });
+                await prisma.userSwingAnalysis.delete({ where: { id: record.id } });
+                return res.status(200).json({ ok: true });
+            } catch (e: any) {
+                console.error('[swing DELETE]', e);
                 return res.status(500).json({ error: '삭제 실패' });
             }
         }

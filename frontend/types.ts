@@ -100,6 +100,29 @@ export interface TriggerVideo {
     createdAt: string;
 }
 
+export interface SwingAnalysisSection {
+    name: string;
+    score: number;
+    comment: string;
+    good: string[];
+    improve: string[];
+}
+
+export interface SwingAnalysis {
+    overallScore: number;
+    overallComment: string;
+    sections: SwingAnalysisSection[];
+    topPriorities: string[];
+    recommendedDrills: string[];
+}
+
+export interface UserSwingAnalysis {
+    id: number;
+    videoUrl: string;
+    createdAt: string;
+    analysis: SwingAnalysis;
+}
+
 export interface BoardReply {
     id: number;
     postId: number;

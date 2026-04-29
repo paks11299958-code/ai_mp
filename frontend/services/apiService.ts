@@ -1,4 +1,4 @@
-import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory } from '../types';
+import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, SwingAnalysis, UserSwingAnalysis } from '../types';
 
 const BASE = '/api';
 
@@ -295,6 +295,27 @@ export const triggerVideoApi = {
 
     delete: (id: number) =>
         request<{ ok: boolean }>(`/trigger-videos/${id}`, { method: 'DELETE' }),
+};
+
+// Swing Analysis
+export const swingAnalysisApi = {
+    getSignedUrl: (mimeType: string, filename: string) =>
+        request<{ signedUrl: string; publicUrl: string }>('/swing-analysis/signed-url', {
+            method: 'POST',
+            body: JSON.stringify({ mimeType, filename }),
+        }),
+
+    analyze: (videoUrl: string, personaId: string, mimeType: string) =>
+        request<{ id: number; analysis: SwingAnalysis; createdAt: string }>('/swing-analysis/analyze', {
+            method: 'POST',
+            body: JSON.stringify({ videoUrl, personaId, mimeType }),
+        }),
+
+    getHistory: (personaId: string) =>
+        request<UserSwingAnalysis[]>(`/swing-analysis?personaId=${encodeURIComponent(personaId)}`),
+
+    delete: (id: number) =>
+        request<{ ok: boolean }>(`/swing-analysis/${id}`, { method: 'DELETE' }),
 };
 
 // Board

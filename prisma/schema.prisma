@@ -8,20 +8,21 @@ datasource db {
 }
 
 model User {
-  id               Int              @id @default(autoincrement())
-  email            String           @unique
+  id               Int                 @id @default(autoincrement())
+  email            String              @unique
   password         String
   username         String?
-  role             String           @default("USER")
+  role             String              @default("USER")
   resetToken       String?
   resetTokenExpiry DateTime?
-  createdAt        DateTime         @default(now())
+  createdAt        DateTime            @default(now())
   personas         Persona[]
   sessions         ChatSession[]
   memories         UserMemory[]
   personaXps       UserPersonaXp[]
   boardPosts       BoardPost[]
   boardReplies     BoardReply[]
+  swingAnalyses    UserSwingAnalysis[]
 }
 
 model UserPersonaXp {
@@ -65,6 +66,7 @@ model Persona {
   knowledge         PersonaKnowledge[]
   boardPosts        BoardPost[]
   triggerVideos     PersonaTriggerVideo[]
+  swingAnalyses     UserSwingAnalysis[]
 }
 
 model PersonaImage {
@@ -164,6 +166,17 @@ model BoardPost {
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   replies   BoardReply[]
+}
+
+model UserSwingAnalysis {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  personaId    String
+  videoUrl     String
+  analysisJson String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona      Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
 }
 
 model BoardReply {

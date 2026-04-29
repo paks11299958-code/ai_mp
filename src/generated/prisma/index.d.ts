@@ -79,6 +79,11 @@ export type PersonaTriggerVideo = $Result.DefaultSelection<Prisma.$PersonaTrigge
  */
 export type BoardPost = $Result.DefaultSelection<Prisma.$BoardPostPayload>
 /**
+ * Model UserSwingAnalysis
+ * 
+ */
+export type UserSwingAnalysis = $Result.DefaultSelection<Prisma.$UserSwingAnalysisPayload>
+/**
  * Model BoardReply
  * 
  */
@@ -334,6 +339,16 @@ export class PrismaClient<
     * ```
     */
   get boardPost(): Prisma.BoardPostDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.userSwingAnalysis`: Exposes CRUD operations for the **UserSwingAnalysis** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more UserSwingAnalyses
+    * const userSwingAnalyses = await prisma.userSwingAnalysis.findMany()
+    * ```
+    */
+  get userSwingAnalysis(): Prisma.UserSwingAnalysisDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.boardReply`: Exposes CRUD operations for the **BoardReply** model.
@@ -791,6 +806,7 @@ export namespace Prisma {
     PersonaKnowledge: 'PersonaKnowledge',
     PersonaTriggerVideo: 'PersonaTriggerVideo',
     BoardPost: 'BoardPost',
+    UserSwingAnalysis: 'UserSwingAnalysis',
     BoardReply: 'BoardReply'
   };
 
@@ -807,7 +823,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "boardReply"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1773,6 +1789,80 @@ export namespace Prisma {
           }
         }
       }
+      UserSwingAnalysis: {
+        payload: Prisma.$UserSwingAnalysisPayload<ExtArgs>
+        fields: Prisma.UserSwingAnalysisFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.UserSwingAnalysisFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserSwingAnalysisFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>
+          }
+          findFirst: {
+            args: Prisma.UserSwingAnalysisFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserSwingAnalysisFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>
+          }
+          findMany: {
+            args: Prisma.UserSwingAnalysisFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>[]
+          }
+          create: {
+            args: Prisma.UserSwingAnalysisCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>
+          }
+          createMany: {
+            args: Prisma.UserSwingAnalysisCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.UserSwingAnalysisCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>[]
+          }
+          delete: {
+            args: Prisma.UserSwingAnalysisDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>
+          }
+          update: {
+            args: Prisma.UserSwingAnalysisUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserSwingAnalysisDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserSwingAnalysisUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.UserSwingAnalysisUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>[]
+          }
+          upsert: {
+            args: Prisma.UserSwingAnalysisUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$UserSwingAnalysisPayload>
+          }
+          aggregate: {
+            args: Prisma.UserSwingAnalysisAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateUserSwingAnalysis>
+          }
+          groupBy: {
+            args: Prisma.UserSwingAnalysisGroupByArgs<ExtArgs>
+            result: $Utils.Optional<UserSwingAnalysisGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserSwingAnalysisCountArgs<ExtArgs>
+            result: $Utils.Optional<UserSwingAnalysisCountAggregateOutputType> | number
+          }
+        }
+      }
       BoardReply: {
         payload: Prisma.$BoardReplyPayload<ExtArgs>
         fields: Prisma.BoardReplyFieldRefs
@@ -1968,6 +2058,7 @@ export namespace Prisma {
     personaKnowledge?: PersonaKnowledgeOmit
     personaTriggerVideo?: PersonaTriggerVideoOmit
     boardPost?: BoardPostOmit
+    userSwingAnalysis?: UserSwingAnalysisOmit
     boardReply?: BoardReplyOmit
   }
 
@@ -2055,6 +2146,7 @@ export namespace Prisma {
     personaXps: number
     boardPosts: number
     boardReplies: number
+    swingAnalyses: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2064,6 +2156,7 @@ export namespace Prisma {
     personaXps?: boolean | UserCountOutputTypeCountPersonaXpsArgs
     boardPosts?: boolean | UserCountOutputTypeCountBoardPostsArgs
     boardReplies?: boolean | UserCountOutputTypeCountBoardRepliesArgs
+    swingAnalyses?: boolean | UserCountOutputTypeCountSwingAnalysesArgs
   }
 
   // Custom InputTypes
@@ -2119,6 +2212,13 @@ export namespace Prisma {
     where?: BoardReplyWhereInput
   }
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountSwingAnalysesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserSwingAnalysisWhereInput
+  }
+
 
   /**
    * Count Type PersonaCountOutputType
@@ -2131,6 +2231,7 @@ export namespace Prisma {
     knowledge: number
     boardPosts: number
     triggerVideos: number
+    swingAnalyses: number
   }
 
   export type PersonaCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2140,6 +2241,7 @@ export namespace Prisma {
     knowledge?: boolean | PersonaCountOutputTypeCountKnowledgeArgs
     boardPosts?: boolean | PersonaCountOutputTypeCountBoardPostsArgs
     triggerVideos?: boolean | PersonaCountOutputTypeCountTriggerVideosArgs
+    swingAnalyses?: boolean | PersonaCountOutputTypeCountSwingAnalysesArgs
   }
 
   // Custom InputTypes
@@ -2193,6 +2295,13 @@ export namespace Prisma {
    */
   export type PersonaCountOutputTypeCountTriggerVideosArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PersonaTriggerVideoWhereInput
+  }
+
+  /**
+   * PersonaCountOutputType without action
+   */
+  export type PersonaCountOutputTypeCountSwingAnalysesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserSwingAnalysisWhereInput
   }
 
 
@@ -2521,6 +2630,7 @@ export namespace Prisma {
     personaXps?: boolean | User$personaXpsArgs<ExtArgs>
     boardPosts?: boolean | User$boardPostsArgs<ExtArgs>
     boardReplies?: boolean | User$boardRepliesArgs<ExtArgs>
+    swingAnalyses?: boolean | User$swingAnalysesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2565,6 +2675,7 @@ export namespace Prisma {
     personaXps?: boolean | User$personaXpsArgs<ExtArgs>
     boardPosts?: boolean | User$boardPostsArgs<ExtArgs>
     boardReplies?: boolean | User$boardRepliesArgs<ExtArgs>
+    swingAnalyses?: boolean | User$swingAnalysesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2579,6 +2690,7 @@ export namespace Prisma {
       personaXps: Prisma.$UserPersonaXpPayload<ExtArgs>[]
       boardPosts: Prisma.$BoardPostPayload<ExtArgs>[]
       boardReplies: Prisma.$BoardReplyPayload<ExtArgs>[]
+      swingAnalyses: Prisma.$UserSwingAnalysisPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2989,6 +3101,7 @@ export namespace Prisma {
     personaXps<T extends User$personaXpsArgs<ExtArgs> = {}>(args?: Subset<T, User$personaXpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     boardPosts<T extends User$boardPostsArgs<ExtArgs> = {}>(args?: Subset<T, User$boardPostsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     boardReplies<T extends User$boardRepliesArgs<ExtArgs> = {}>(args?: Subset<T, User$boardRepliesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    swingAnalyses<T extends User$swingAnalysesArgs<ExtArgs> = {}>(args?: Subset<T, User$swingAnalysesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3560,6 +3673,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BoardReplyScalarFieldEnum | BoardReplyScalarFieldEnum[]
+  }
+
+  /**
+   * User.swingAnalyses
+   */
+  export type User$swingAnalysesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    where?: UserSwingAnalysisWhereInput
+    orderBy?: UserSwingAnalysisOrderByWithRelationInput | UserSwingAnalysisOrderByWithRelationInput[]
+    cursor?: UserSwingAnalysisWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserSwingAnalysisScalarFieldEnum | UserSwingAnalysisScalarFieldEnum[]
   }
 
   /**
@@ -6046,6 +6183,7 @@ export namespace Prisma {
     knowledge?: boolean | Persona$knowledgeArgs<ExtArgs>
     boardPosts?: boolean | Persona$boardPostsArgs<ExtArgs>
     triggerVideos?: boolean | Persona$triggerVideosArgs<ExtArgs>
+    swingAnalyses?: boolean | Persona$swingAnalysesArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["persona"]>
 
@@ -6111,6 +6249,7 @@ export namespace Prisma {
     knowledge?: boolean | Persona$knowledgeArgs<ExtArgs>
     boardPosts?: boolean | Persona$boardPostsArgs<ExtArgs>
     triggerVideos?: boolean | Persona$triggerVideosArgs<ExtArgs>
+    swingAnalyses?: boolean | Persona$swingAnalysesArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PersonaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -6130,6 +6269,7 @@ export namespace Prisma {
       knowledge: Prisma.$PersonaKnowledgePayload<ExtArgs>[]
       boardPosts: Prisma.$BoardPostPayload<ExtArgs>[]
       triggerVideos: Prisma.$PersonaTriggerVideoPayload<ExtArgs>[]
+      swingAnalyses: Prisma.$UserSwingAnalysisPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -6547,6 +6687,7 @@ export namespace Prisma {
     knowledge<T extends Persona$knowledgeArgs<ExtArgs> = {}>(args?: Subset<T, Persona$knowledgeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaKnowledgePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     boardPosts<T extends Persona$boardPostsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$boardPostsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     triggerVideos<T extends Persona$triggerVideosArgs<ExtArgs> = {}>(args?: Subset<T, Persona$triggerVideosArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaTriggerVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    swingAnalyses<T extends Persona$swingAnalysesArgs<ExtArgs> = {}>(args?: Subset<T, Persona$swingAnalysesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7151,6 +7292,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PersonaTriggerVideoScalarFieldEnum | PersonaTriggerVideoScalarFieldEnum[]
+  }
+
+  /**
+   * Persona.swingAnalyses
+   */
+  export type Persona$swingAnalysesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    where?: UserSwingAnalysisWhereInput
+    orderBy?: UserSwingAnalysisOrderByWithRelationInput | UserSwingAnalysisOrderByWithRelationInput[]
+    cursor?: UserSwingAnalysisWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: UserSwingAnalysisScalarFieldEnum | UserSwingAnalysisScalarFieldEnum[]
   }
 
   /**
@@ -17278,6 +17443,1128 @@ export namespace Prisma {
 
 
   /**
+   * Model UserSwingAnalysis
+   */
+
+  export type AggregateUserSwingAnalysis = {
+    _count: UserSwingAnalysisCountAggregateOutputType | null
+    _avg: UserSwingAnalysisAvgAggregateOutputType | null
+    _sum: UserSwingAnalysisSumAggregateOutputType | null
+    _min: UserSwingAnalysisMinAggregateOutputType | null
+    _max: UserSwingAnalysisMaxAggregateOutputType | null
+  }
+
+  export type UserSwingAnalysisAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type UserSwingAnalysisSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type UserSwingAnalysisMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    personaId: string | null
+    videoUrl: string | null
+    analysisJson: string | null
+    createdAt: Date | null
+  }
+
+  export type UserSwingAnalysisMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    personaId: string | null
+    videoUrl: string | null
+    analysisJson: string | null
+    createdAt: Date | null
+  }
+
+  export type UserSwingAnalysisCountAggregateOutputType = {
+    id: number
+    userId: number
+    personaId: number
+    videoUrl: number
+    analysisJson: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type UserSwingAnalysisAvgAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type UserSwingAnalysisSumAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type UserSwingAnalysisMinAggregateInputType = {
+    id?: true
+    userId?: true
+    personaId?: true
+    videoUrl?: true
+    analysisJson?: true
+    createdAt?: true
+  }
+
+  export type UserSwingAnalysisMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    personaId?: true
+    videoUrl?: true
+    analysisJson?: true
+    createdAt?: true
+  }
+
+  export type UserSwingAnalysisCountAggregateInputType = {
+    id?: true
+    userId?: true
+    personaId?: true
+    videoUrl?: true
+    analysisJson?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type UserSwingAnalysisAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserSwingAnalysis to aggregate.
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserSwingAnalyses to fetch.
+     */
+    orderBy?: UserSwingAnalysisOrderByWithRelationInput | UserSwingAnalysisOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: UserSwingAnalysisWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserSwingAnalyses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserSwingAnalyses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned UserSwingAnalyses
+    **/
+    _count?: true | UserSwingAnalysisCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: UserSwingAnalysisAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: UserSwingAnalysisSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: UserSwingAnalysisMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: UserSwingAnalysisMaxAggregateInputType
+  }
+
+  export type GetUserSwingAnalysisAggregateType<T extends UserSwingAnalysisAggregateArgs> = {
+        [P in keyof T & keyof AggregateUserSwingAnalysis]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateUserSwingAnalysis[P]>
+      : GetScalarType<T[P], AggregateUserSwingAnalysis[P]>
+  }
+
+
+
+
+  export type UserSwingAnalysisGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: UserSwingAnalysisWhereInput
+    orderBy?: UserSwingAnalysisOrderByWithAggregationInput | UserSwingAnalysisOrderByWithAggregationInput[]
+    by: UserSwingAnalysisScalarFieldEnum[] | UserSwingAnalysisScalarFieldEnum
+    having?: UserSwingAnalysisScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: UserSwingAnalysisCountAggregateInputType | true
+    _avg?: UserSwingAnalysisAvgAggregateInputType
+    _sum?: UserSwingAnalysisSumAggregateInputType
+    _min?: UserSwingAnalysisMinAggregateInputType
+    _max?: UserSwingAnalysisMaxAggregateInputType
+  }
+
+  export type UserSwingAnalysisGroupByOutputType = {
+    id: number
+    userId: number
+    personaId: string
+    videoUrl: string
+    analysisJson: string
+    createdAt: Date
+    _count: UserSwingAnalysisCountAggregateOutputType | null
+    _avg: UserSwingAnalysisAvgAggregateOutputType | null
+    _sum: UserSwingAnalysisSumAggregateOutputType | null
+    _min: UserSwingAnalysisMinAggregateOutputType | null
+    _max: UserSwingAnalysisMaxAggregateOutputType | null
+  }
+
+  type GetUserSwingAnalysisGroupByPayload<T extends UserSwingAnalysisGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<UserSwingAnalysisGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof UserSwingAnalysisGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserSwingAnalysisGroupByOutputType[P]>
+            : GetScalarType<T[P], UserSwingAnalysisGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type UserSwingAnalysisSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    personaId?: boolean
+    videoUrl?: boolean
+    analysisJson?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userSwingAnalysis"]>
+
+  export type UserSwingAnalysisSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    personaId?: boolean
+    videoUrl?: boolean
+    analysisJson?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userSwingAnalysis"]>
+
+  export type UserSwingAnalysisSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    personaId?: boolean
+    videoUrl?: boolean
+    analysisJson?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["userSwingAnalysis"]>
+
+  export type UserSwingAnalysisSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    personaId?: boolean
+    videoUrl?: boolean
+    analysisJson?: boolean
+    createdAt?: boolean
+  }
+
+  export type UserSwingAnalysisOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "personaId" | "videoUrl" | "analysisJson" | "createdAt", ExtArgs["result"]["userSwingAnalysis"]>
+  export type UserSwingAnalysisInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type UserSwingAnalysisIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+  export type UserSwingAnalysisIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    persona?: boolean | PersonaDefaultArgs<ExtArgs>
+  }
+
+  export type $UserSwingAnalysisPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "UserSwingAnalysis"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      persona: Prisma.$PersonaPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      personaId: string
+      videoUrl: string
+      analysisJson: string
+      createdAt: Date
+    }, ExtArgs["result"]["userSwingAnalysis"]>
+    composites: {}
+  }
+
+  type UserSwingAnalysisGetPayload<S extends boolean | null | undefined | UserSwingAnalysisDefaultArgs> = $Result.GetResult<Prisma.$UserSwingAnalysisPayload, S>
+
+  type UserSwingAnalysisCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<UserSwingAnalysisFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: UserSwingAnalysisCountAggregateInputType | true
+    }
+
+  export interface UserSwingAnalysisDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['UserSwingAnalysis'], meta: { name: 'UserSwingAnalysis' } }
+    /**
+     * Find zero or one UserSwingAnalysis that matches the filter.
+     * @param {UserSwingAnalysisFindUniqueArgs} args - Arguments to find a UserSwingAnalysis
+     * @example
+     * // Get one UserSwingAnalysis
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends UserSwingAnalysisFindUniqueArgs>(args: SelectSubset<T, UserSwingAnalysisFindUniqueArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one UserSwingAnalysis that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {UserSwingAnalysisFindUniqueOrThrowArgs} args - Arguments to find a UserSwingAnalysis
+     * @example
+     * // Get one UserSwingAnalysis
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends UserSwingAnalysisFindUniqueOrThrowArgs>(args: SelectSubset<T, UserSwingAnalysisFindUniqueOrThrowArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserSwingAnalysis that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisFindFirstArgs} args - Arguments to find a UserSwingAnalysis
+     * @example
+     * // Get one UserSwingAnalysis
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends UserSwingAnalysisFindFirstArgs>(args?: SelectSubset<T, UserSwingAnalysisFindFirstArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first UserSwingAnalysis that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisFindFirstOrThrowArgs} args - Arguments to find a UserSwingAnalysis
+     * @example
+     * // Get one UserSwingAnalysis
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends UserSwingAnalysisFindFirstOrThrowArgs>(args?: SelectSubset<T, UserSwingAnalysisFindFirstOrThrowArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more UserSwingAnalyses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all UserSwingAnalyses
+     * const userSwingAnalyses = await prisma.userSwingAnalysis.findMany()
+     * 
+     * // Get first 10 UserSwingAnalyses
+     * const userSwingAnalyses = await prisma.userSwingAnalysis.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const userSwingAnalysisWithIdOnly = await prisma.userSwingAnalysis.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends UserSwingAnalysisFindManyArgs>(args?: SelectSubset<T, UserSwingAnalysisFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a UserSwingAnalysis.
+     * @param {UserSwingAnalysisCreateArgs} args - Arguments to create a UserSwingAnalysis.
+     * @example
+     * // Create one UserSwingAnalysis
+     * const UserSwingAnalysis = await prisma.userSwingAnalysis.create({
+     *   data: {
+     *     // ... data to create a UserSwingAnalysis
+     *   }
+     * })
+     * 
+     */
+    create<T extends UserSwingAnalysisCreateArgs>(args: SelectSubset<T, UserSwingAnalysisCreateArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many UserSwingAnalyses.
+     * @param {UserSwingAnalysisCreateManyArgs} args - Arguments to create many UserSwingAnalyses.
+     * @example
+     * // Create many UserSwingAnalyses
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends UserSwingAnalysisCreateManyArgs>(args?: SelectSubset<T, UserSwingAnalysisCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many UserSwingAnalyses and returns the data saved in the database.
+     * @param {UserSwingAnalysisCreateManyAndReturnArgs} args - Arguments to create many UserSwingAnalyses.
+     * @example
+     * // Create many UserSwingAnalyses
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many UserSwingAnalyses and only return the `id`
+     * const userSwingAnalysisWithIdOnly = await prisma.userSwingAnalysis.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends UserSwingAnalysisCreateManyAndReturnArgs>(args?: SelectSubset<T, UserSwingAnalysisCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a UserSwingAnalysis.
+     * @param {UserSwingAnalysisDeleteArgs} args - Arguments to delete one UserSwingAnalysis.
+     * @example
+     * // Delete one UserSwingAnalysis
+     * const UserSwingAnalysis = await prisma.userSwingAnalysis.delete({
+     *   where: {
+     *     // ... filter to delete one UserSwingAnalysis
+     *   }
+     * })
+     * 
+     */
+    delete<T extends UserSwingAnalysisDeleteArgs>(args: SelectSubset<T, UserSwingAnalysisDeleteArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one UserSwingAnalysis.
+     * @param {UserSwingAnalysisUpdateArgs} args - Arguments to update one UserSwingAnalysis.
+     * @example
+     * // Update one UserSwingAnalysis
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends UserSwingAnalysisUpdateArgs>(args: SelectSubset<T, UserSwingAnalysisUpdateArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more UserSwingAnalyses.
+     * @param {UserSwingAnalysisDeleteManyArgs} args - Arguments to filter UserSwingAnalyses to delete.
+     * @example
+     * // Delete a few UserSwingAnalyses
+     * const { count } = await prisma.userSwingAnalysis.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends UserSwingAnalysisDeleteManyArgs>(args?: SelectSubset<T, UserSwingAnalysisDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserSwingAnalyses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many UserSwingAnalyses
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends UserSwingAnalysisUpdateManyArgs>(args: SelectSubset<T, UserSwingAnalysisUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more UserSwingAnalyses and returns the data updated in the database.
+     * @param {UserSwingAnalysisUpdateManyAndReturnArgs} args - Arguments to update many UserSwingAnalyses.
+     * @example
+     * // Update many UserSwingAnalyses
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more UserSwingAnalyses and only return the `id`
+     * const userSwingAnalysisWithIdOnly = await prisma.userSwingAnalysis.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends UserSwingAnalysisUpdateManyAndReturnArgs>(args: SelectSubset<T, UserSwingAnalysisUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one UserSwingAnalysis.
+     * @param {UserSwingAnalysisUpsertArgs} args - Arguments to update or create a UserSwingAnalysis.
+     * @example
+     * // Update or create a UserSwingAnalysis
+     * const userSwingAnalysis = await prisma.userSwingAnalysis.upsert({
+     *   create: {
+     *     // ... data to create a UserSwingAnalysis
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the UserSwingAnalysis we want to update
+     *   }
+     * })
+     */
+    upsert<T extends UserSwingAnalysisUpsertArgs>(args: SelectSubset<T, UserSwingAnalysisUpsertArgs<ExtArgs>>): Prisma__UserSwingAnalysisClient<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of UserSwingAnalyses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisCountArgs} args - Arguments to filter UserSwingAnalyses to count.
+     * @example
+     * // Count the number of UserSwingAnalyses
+     * const count = await prisma.userSwingAnalysis.count({
+     *   where: {
+     *     // ... the filter for the UserSwingAnalyses we want to count
+     *   }
+     * })
+    **/
+    count<T extends UserSwingAnalysisCountArgs>(
+      args?: Subset<T, UserSwingAnalysisCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], UserSwingAnalysisCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a UserSwingAnalysis.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends UserSwingAnalysisAggregateArgs>(args: Subset<T, UserSwingAnalysisAggregateArgs>): Prisma.PrismaPromise<GetUserSwingAnalysisAggregateType<T>>
+
+    /**
+     * Group by UserSwingAnalysis.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserSwingAnalysisGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends UserSwingAnalysisGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: UserSwingAnalysisGroupByArgs['orderBy'] }
+        : { orderBy?: UserSwingAnalysisGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, UserSwingAnalysisGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserSwingAnalysisGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the UserSwingAnalysis model
+   */
+  readonly fields: UserSwingAnalysisFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for UserSwingAnalysis.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__UserSwingAnalysisClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    persona<T extends PersonaDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PersonaDefaultArgs<ExtArgs>>): Prisma__PersonaClient<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the UserSwingAnalysis model
+   */
+  interface UserSwingAnalysisFieldRefs {
+    readonly id: FieldRef<"UserSwingAnalysis", 'Int'>
+    readonly userId: FieldRef<"UserSwingAnalysis", 'Int'>
+    readonly personaId: FieldRef<"UserSwingAnalysis", 'String'>
+    readonly videoUrl: FieldRef<"UserSwingAnalysis", 'String'>
+    readonly analysisJson: FieldRef<"UserSwingAnalysis", 'String'>
+    readonly createdAt: FieldRef<"UserSwingAnalysis", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * UserSwingAnalysis findUnique
+   */
+  export type UserSwingAnalysisFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * Filter, which UserSwingAnalysis to fetch.
+     */
+    where: UserSwingAnalysisWhereUniqueInput
+  }
+
+  /**
+   * UserSwingAnalysis findUniqueOrThrow
+   */
+  export type UserSwingAnalysisFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * Filter, which UserSwingAnalysis to fetch.
+     */
+    where: UserSwingAnalysisWhereUniqueInput
+  }
+
+  /**
+   * UserSwingAnalysis findFirst
+   */
+  export type UserSwingAnalysisFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * Filter, which UserSwingAnalysis to fetch.
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserSwingAnalyses to fetch.
+     */
+    orderBy?: UserSwingAnalysisOrderByWithRelationInput | UserSwingAnalysisOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserSwingAnalyses.
+     */
+    cursor?: UserSwingAnalysisWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserSwingAnalyses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserSwingAnalyses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserSwingAnalyses.
+     */
+    distinct?: UserSwingAnalysisScalarFieldEnum | UserSwingAnalysisScalarFieldEnum[]
+  }
+
+  /**
+   * UserSwingAnalysis findFirstOrThrow
+   */
+  export type UserSwingAnalysisFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * Filter, which UserSwingAnalysis to fetch.
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserSwingAnalyses to fetch.
+     */
+    orderBy?: UserSwingAnalysisOrderByWithRelationInput | UserSwingAnalysisOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for UserSwingAnalyses.
+     */
+    cursor?: UserSwingAnalysisWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserSwingAnalyses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserSwingAnalyses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserSwingAnalyses.
+     */
+    distinct?: UserSwingAnalysisScalarFieldEnum | UserSwingAnalysisScalarFieldEnum[]
+  }
+
+  /**
+   * UserSwingAnalysis findMany
+   */
+  export type UserSwingAnalysisFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * Filter, which UserSwingAnalyses to fetch.
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of UserSwingAnalyses to fetch.
+     */
+    orderBy?: UserSwingAnalysisOrderByWithRelationInput | UserSwingAnalysisOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing UserSwingAnalyses.
+     */
+    cursor?: UserSwingAnalysisWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` UserSwingAnalyses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` UserSwingAnalyses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of UserSwingAnalyses.
+     */
+    distinct?: UserSwingAnalysisScalarFieldEnum | UserSwingAnalysisScalarFieldEnum[]
+  }
+
+  /**
+   * UserSwingAnalysis create
+   */
+  export type UserSwingAnalysisCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * The data needed to create a UserSwingAnalysis.
+     */
+    data: XOR<UserSwingAnalysisCreateInput, UserSwingAnalysisUncheckedCreateInput>
+  }
+
+  /**
+   * UserSwingAnalysis createMany
+   */
+  export type UserSwingAnalysisCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many UserSwingAnalyses.
+     */
+    data: UserSwingAnalysisCreateManyInput | UserSwingAnalysisCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * UserSwingAnalysis createManyAndReturn
+   */
+  export type UserSwingAnalysisCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * The data used to create many UserSwingAnalyses.
+     */
+    data: UserSwingAnalysisCreateManyInput | UserSwingAnalysisCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserSwingAnalysis update
+   */
+  export type UserSwingAnalysisUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * The data needed to update a UserSwingAnalysis.
+     */
+    data: XOR<UserSwingAnalysisUpdateInput, UserSwingAnalysisUncheckedUpdateInput>
+    /**
+     * Choose, which UserSwingAnalysis to update.
+     */
+    where: UserSwingAnalysisWhereUniqueInput
+  }
+
+  /**
+   * UserSwingAnalysis updateMany
+   */
+  export type UserSwingAnalysisUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update UserSwingAnalyses.
+     */
+    data: XOR<UserSwingAnalysisUpdateManyMutationInput, UserSwingAnalysisUncheckedUpdateManyInput>
+    /**
+     * Filter which UserSwingAnalyses to update
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * Limit how many UserSwingAnalyses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserSwingAnalysis updateManyAndReturn
+   */
+  export type UserSwingAnalysisUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * The data used to update UserSwingAnalyses.
+     */
+    data: XOR<UserSwingAnalysisUpdateManyMutationInput, UserSwingAnalysisUncheckedUpdateManyInput>
+    /**
+     * Filter which UserSwingAnalyses to update
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * Limit how many UserSwingAnalyses to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * UserSwingAnalysis upsert
+   */
+  export type UserSwingAnalysisUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * The filter to search for the UserSwingAnalysis to update in case it exists.
+     */
+    where: UserSwingAnalysisWhereUniqueInput
+    /**
+     * In case the UserSwingAnalysis found by the `where` argument doesn't exist, create a new UserSwingAnalysis with this data.
+     */
+    create: XOR<UserSwingAnalysisCreateInput, UserSwingAnalysisUncheckedCreateInput>
+    /**
+     * In case the UserSwingAnalysis was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<UserSwingAnalysisUpdateInput, UserSwingAnalysisUncheckedUpdateInput>
+  }
+
+  /**
+   * UserSwingAnalysis delete
+   */
+  export type UserSwingAnalysisDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+    /**
+     * Filter which UserSwingAnalysis to delete.
+     */
+    where: UserSwingAnalysisWhereUniqueInput
+  }
+
+  /**
+   * UserSwingAnalysis deleteMany
+   */
+  export type UserSwingAnalysisDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which UserSwingAnalyses to delete
+     */
+    where?: UserSwingAnalysisWhereInput
+    /**
+     * Limit how many UserSwingAnalyses to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * UserSwingAnalysis without action
+   */
+  export type UserSwingAnalysisDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the UserSwingAnalysis
+     */
+    select?: UserSwingAnalysisSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the UserSwingAnalysis
+     */
+    omit?: UserSwingAnalysisOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserSwingAnalysisInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Model BoardReply
    */
 
@@ -18582,6 +19869,18 @@ export namespace Prisma {
   export type BoardPostScalarFieldEnum = (typeof BoardPostScalarFieldEnum)[keyof typeof BoardPostScalarFieldEnum]
 
 
+  export const UserSwingAnalysisScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    personaId: 'personaId',
+    videoUrl: 'videoUrl',
+    analysisJson: 'analysisJson',
+    createdAt: 'createdAt'
+  };
+
+  export type UserSwingAnalysisScalarFieldEnum = (typeof UserSwingAnalysisScalarFieldEnum)[keyof typeof UserSwingAnalysisScalarFieldEnum]
+
+
   export const BoardReplyScalarFieldEnum: {
     id: 'id',
     postId: 'postId',
@@ -18707,6 +20006,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpListRelationFilter
     boardPosts?: BoardPostListRelationFilter
     boardReplies?: BoardReplyListRelationFilter
+    swingAnalyses?: UserSwingAnalysisListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -18724,6 +20024,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpOrderByRelationAggregateInput
     boardPosts?: BoardPostOrderByRelationAggregateInput
     boardReplies?: BoardReplyOrderByRelationAggregateInput
+    swingAnalyses?: UserSwingAnalysisOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -18744,6 +20045,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpListRelationFilter
     boardPosts?: BoardPostListRelationFilter
     boardReplies?: BoardReplyListRelationFilter
+    swingAnalyses?: UserSwingAnalysisListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -18909,6 +20211,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeListRelationFilter
     boardPosts?: BoardPostListRelationFilter
     triggerVideos?: PersonaTriggerVideoListRelationFilter
+    swingAnalyses?: UserSwingAnalysisListRelationFilter
   }
 
   export type PersonaOrderByWithRelationInput = {
@@ -18933,6 +20236,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeOrderByRelationAggregateInput
     boardPosts?: BoardPostOrderByRelationAggregateInput
     triggerVideos?: PersonaTriggerVideoOrderByRelationAggregateInput
+    swingAnalyses?: UserSwingAnalysisOrderByRelationAggregateInput
   }
 
   export type PersonaWhereUniqueInput = Prisma.AtLeast<{
@@ -18960,6 +20264,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeListRelationFilter
     boardPosts?: BoardPostListRelationFilter
     triggerVideos?: PersonaTriggerVideoListRelationFilter
+    swingAnalyses?: UserSwingAnalysisListRelationFilter
   }, "id">
 
   export type PersonaOrderByWithAggregationInput = {
@@ -19590,6 +20895,71 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"BoardPost"> | Date | string
   }
 
+  export type UserSwingAnalysisWhereInput = {
+    AND?: UserSwingAnalysisWhereInput | UserSwingAnalysisWhereInput[]
+    OR?: UserSwingAnalysisWhereInput[]
+    NOT?: UserSwingAnalysisWhereInput | UserSwingAnalysisWhereInput[]
+    id?: IntFilter<"UserSwingAnalysis"> | number
+    userId?: IntFilter<"UserSwingAnalysis"> | number
+    personaId?: StringFilter<"UserSwingAnalysis"> | string
+    videoUrl?: StringFilter<"UserSwingAnalysis"> | string
+    analysisJson?: StringFilter<"UserSwingAnalysis"> | string
+    createdAt?: DateTimeFilter<"UserSwingAnalysis"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }
+
+  export type UserSwingAnalysisOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    personaId?: SortOrder
+    videoUrl?: SortOrder
+    analysisJson?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    persona?: PersonaOrderByWithRelationInput
+  }
+
+  export type UserSwingAnalysisWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: UserSwingAnalysisWhereInput | UserSwingAnalysisWhereInput[]
+    OR?: UserSwingAnalysisWhereInput[]
+    NOT?: UserSwingAnalysisWhereInput | UserSwingAnalysisWhereInput[]
+    userId?: IntFilter<"UserSwingAnalysis"> | number
+    personaId?: StringFilter<"UserSwingAnalysis"> | string
+    videoUrl?: StringFilter<"UserSwingAnalysis"> | string
+    analysisJson?: StringFilter<"UserSwingAnalysis"> | string
+    createdAt?: DateTimeFilter<"UserSwingAnalysis"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
+  }, "id">
+
+  export type UserSwingAnalysisOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    personaId?: SortOrder
+    videoUrl?: SortOrder
+    analysisJson?: SortOrder
+    createdAt?: SortOrder
+    _count?: UserSwingAnalysisCountOrderByAggregateInput
+    _avg?: UserSwingAnalysisAvgOrderByAggregateInput
+    _max?: UserSwingAnalysisMaxOrderByAggregateInput
+    _min?: UserSwingAnalysisMinOrderByAggregateInput
+    _sum?: UserSwingAnalysisSumOrderByAggregateInput
+  }
+
+  export type UserSwingAnalysisScalarWhereWithAggregatesInput = {
+    AND?: UserSwingAnalysisScalarWhereWithAggregatesInput | UserSwingAnalysisScalarWhereWithAggregatesInput[]
+    OR?: UserSwingAnalysisScalarWhereWithAggregatesInput[]
+    NOT?: UserSwingAnalysisScalarWhereWithAggregatesInput | UserSwingAnalysisScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"UserSwingAnalysis"> | number
+    userId?: IntWithAggregatesFilter<"UserSwingAnalysis"> | number
+    personaId?: StringWithAggregatesFilter<"UserSwingAnalysis"> | string
+    videoUrl?: StringWithAggregatesFilter<"UserSwingAnalysis"> | string
+    analysisJson?: StringWithAggregatesFilter<"UserSwingAnalysis"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"UserSwingAnalysis"> | Date | string
+  }
+
   export type BoardReplyWhereInput = {
     AND?: BoardReplyWhereInput | BoardReplyWhereInput[]
     OR?: BoardReplyWhereInput[]
@@ -19669,6 +21039,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -19686,6 +21057,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -19702,6 +21074,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -19719,6 +21092,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -19866,6 +21240,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateInput = {
@@ -19889,6 +21264,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUpdateInput = {
@@ -19912,6 +21288,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateInput = {
@@ -19935,6 +21312,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateManyInput = {
@@ -20557,6 +21935,64 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserSwingAnalysisCreateInput = {
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutSwingAnalysesInput
+    persona: PersonaCreateNestedOneWithoutSwingAnalysesInput
+  }
+
+  export type UserSwingAnalysisUncheckedCreateInput = {
+    id?: number
+    userId: number
+    personaId: string
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+  }
+
+  export type UserSwingAnalysisUpdateInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSwingAnalysesNestedInput
+    persona?: PersonaUpdateOneRequiredWithoutSwingAnalysesNestedInput
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserSwingAnalysisCreateManyInput = {
+    id?: number
+    userId: number
+    personaId: string
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+  }
+
+  export type UserSwingAnalysisUpdateManyMutationInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type BoardReplyCreateInput = {
     isAdminReply?: boolean
     content: string
@@ -20714,6 +22150,12 @@ export namespace Prisma {
     none?: BoardReplyWhereInput
   }
 
+  export type UserSwingAnalysisListRelationFilter = {
+    every?: UserSwingAnalysisWhereInput
+    some?: UserSwingAnalysisWhereInput
+    none?: UserSwingAnalysisWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -20740,6 +22182,10 @@ export namespace Prisma {
   }
 
   export type BoardReplyOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type UserSwingAnalysisOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -21450,6 +22896,43 @@ export namespace Prisma {
     userId?: SortOrder
   }
 
+  export type UserSwingAnalysisCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    personaId?: SortOrder
+    videoUrl?: SortOrder
+    analysisJson?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserSwingAnalysisAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type UserSwingAnalysisMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    personaId?: SortOrder
+    videoUrl?: SortOrder
+    analysisJson?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserSwingAnalysisMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    personaId?: SortOrder
+    videoUrl?: SortOrder
+    analysisJson?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type UserSwingAnalysisSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
   export type BoardPostScalarRelationFilter = {
     is?: BoardPostWhereInput
     isNot?: BoardPostWhereInput
@@ -21536,6 +23019,13 @@ export namespace Prisma {
     connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
   }
 
+  export type UserSwingAnalysisCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutUserInput, UserSwingAnalysisUncheckedCreateWithoutUserInput> | UserSwingAnalysisCreateWithoutUserInput[] | UserSwingAnalysisUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutUserInput | UserSwingAnalysisCreateOrConnectWithoutUserInput[]
+    createMany?: UserSwingAnalysisCreateManyUserInputEnvelope
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+  }
+
   export type PersonaUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -21576,6 +23066,13 @@ export namespace Prisma {
     connectOrCreate?: BoardReplyCreateOrConnectWithoutUserInput | BoardReplyCreateOrConnectWithoutUserInput[]
     createMany?: BoardReplyCreateManyUserInputEnvelope
     connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+  }
+
+  export type UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutUserInput, UserSwingAnalysisUncheckedCreateWithoutUserInput> | UserSwingAnalysisCreateWithoutUserInput[] | UserSwingAnalysisUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutUserInput | UserSwingAnalysisCreateOrConnectWithoutUserInput[]
+    createMany?: UserSwingAnalysisCreateManyUserInputEnvelope
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -21678,6 +23175,20 @@ export namespace Prisma {
     deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
   }
 
+  export type UserSwingAnalysisUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutUserInput, UserSwingAnalysisUncheckedCreateWithoutUserInput> | UserSwingAnalysisCreateWithoutUserInput[] | UserSwingAnalysisUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutUserInput | UserSwingAnalysisCreateOrConnectWithoutUserInput[]
+    upsert?: UserSwingAnalysisUpsertWithWhereUniqueWithoutUserInput | UserSwingAnalysisUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserSwingAnalysisCreateManyUserInputEnvelope
+    set?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    disconnect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    delete?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    update?: UserSwingAnalysisUpdateWithWhereUniqueWithoutUserInput | UserSwingAnalysisUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserSwingAnalysisUpdateManyWithWhereWithoutUserInput | UserSwingAnalysisUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -21770,6 +23281,20 @@ export namespace Prisma {
     deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
   }
 
+  export type UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutUserInput, UserSwingAnalysisUncheckedCreateWithoutUserInput> | UserSwingAnalysisCreateWithoutUserInput[] | UserSwingAnalysisUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutUserInput | UserSwingAnalysisCreateOrConnectWithoutUserInput[]
+    upsert?: UserSwingAnalysisUpsertWithWhereUniqueWithoutUserInput | UserSwingAnalysisUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: UserSwingAnalysisCreateManyUserInputEnvelope
+    set?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    disconnect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    delete?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    update?: UserSwingAnalysisUpdateWithWhereUniqueWithoutUserInput | UserSwingAnalysisUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: UserSwingAnalysisUpdateManyWithWhereWithoutUserInput | UserSwingAnalysisUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutPersonaXpsInput = {
     create?: XOR<UserCreateWithoutPersonaXpsInput, UserUncheckedCreateWithoutPersonaXpsInput>
     connectOrCreate?: UserCreateOrConnectWithoutPersonaXpsInput
@@ -21860,6 +23385,13 @@ export namespace Prisma {
     connect?: PersonaTriggerVideoWhereUniqueInput | PersonaTriggerVideoWhereUniqueInput[]
   }
 
+  export type UserSwingAnalysisCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutPersonaInput, UserSwingAnalysisUncheckedCreateWithoutPersonaInput> | UserSwingAnalysisCreateWithoutPersonaInput[] | UserSwingAnalysisUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutPersonaInput | UserSwingAnalysisCreateOrConnectWithoutPersonaInput[]
+    createMany?: UserSwingAnalysisCreateManyPersonaInputEnvelope
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutPersonaInput = {
     create?: XOR<ChatSessionCreateWithoutPersonaInput, ChatSessionUncheckedCreateWithoutPersonaInput> | ChatSessionCreateWithoutPersonaInput[] | ChatSessionUncheckedCreateWithoutPersonaInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutPersonaInput | ChatSessionCreateOrConnectWithoutPersonaInput[]
@@ -21900,6 +23432,13 @@ export namespace Prisma {
     connectOrCreate?: PersonaTriggerVideoCreateOrConnectWithoutPersonaInput | PersonaTriggerVideoCreateOrConnectWithoutPersonaInput[]
     createMany?: PersonaTriggerVideoCreateManyPersonaInputEnvelope
     connect?: PersonaTriggerVideoWhereUniqueInput | PersonaTriggerVideoWhereUniqueInput[]
+  }
+
+  export type UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutPersonaInput, UserSwingAnalysisUncheckedCreateWithoutPersonaInput> | UserSwingAnalysisCreateWithoutPersonaInput[] | UserSwingAnalysisUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutPersonaInput | UserSwingAnalysisCreateOrConnectWithoutPersonaInput[]
+    createMany?: UserSwingAnalysisCreateManyPersonaInputEnvelope
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -22000,6 +23539,20 @@ export namespace Prisma {
     deleteMany?: PersonaTriggerVideoScalarWhereInput | PersonaTriggerVideoScalarWhereInput[]
   }
 
+  export type UserSwingAnalysisUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutPersonaInput, UserSwingAnalysisUncheckedCreateWithoutPersonaInput> | UserSwingAnalysisCreateWithoutPersonaInput[] | UserSwingAnalysisUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutPersonaInput | UserSwingAnalysisCreateOrConnectWithoutPersonaInput[]
+    upsert?: UserSwingAnalysisUpsertWithWhereUniqueWithoutPersonaInput | UserSwingAnalysisUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: UserSwingAnalysisCreateManyPersonaInputEnvelope
+    set?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    disconnect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    delete?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    update?: UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput | UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput | UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -22090,6 +23643,20 @@ export namespace Prisma {
     update?: PersonaTriggerVideoUpdateWithWhereUniqueWithoutPersonaInput | PersonaTriggerVideoUpdateWithWhereUniqueWithoutPersonaInput[]
     updateMany?: PersonaTriggerVideoUpdateManyWithWhereWithoutPersonaInput | PersonaTriggerVideoUpdateManyWithWhereWithoutPersonaInput[]
     deleteMany?: PersonaTriggerVideoScalarWhereInput | PersonaTriggerVideoScalarWhereInput[]
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<UserSwingAnalysisCreateWithoutPersonaInput, UserSwingAnalysisUncheckedCreateWithoutPersonaInput> | UserSwingAnalysisCreateWithoutPersonaInput[] | UserSwingAnalysisUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutPersonaInput | UserSwingAnalysisCreateOrConnectWithoutPersonaInput[]
+    upsert?: UserSwingAnalysisUpsertWithWhereUniqueWithoutPersonaInput | UserSwingAnalysisUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: UserSwingAnalysisCreateManyPersonaInputEnvelope
+    set?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    disconnect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    delete?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+    update?: UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput | UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput | UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
   }
 
   export type PersonaCreateNestedOneWithoutImagesInput = {
@@ -22390,6 +23957,34 @@ export namespace Prisma {
     deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
   }
 
+  export type UserCreateNestedOneWithoutSwingAnalysesInput = {
+    create?: XOR<UserCreateWithoutSwingAnalysesInput, UserUncheckedCreateWithoutSwingAnalysesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSwingAnalysesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type PersonaCreateNestedOneWithoutSwingAnalysesInput = {
+    create?: XOR<PersonaCreateWithoutSwingAnalysesInput, PersonaUncheckedCreateWithoutSwingAnalysesInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutSwingAnalysesInput
+    connect?: PersonaWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutSwingAnalysesNestedInput = {
+    create?: XOR<UserCreateWithoutSwingAnalysesInput, UserUncheckedCreateWithoutSwingAnalysesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSwingAnalysesInput
+    upsert?: UserUpsertWithoutSwingAnalysesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSwingAnalysesInput, UserUpdateWithoutSwingAnalysesInput>, UserUncheckedUpdateWithoutSwingAnalysesInput>
+  }
+
+  export type PersonaUpdateOneRequiredWithoutSwingAnalysesNestedInput = {
+    create?: XOR<PersonaCreateWithoutSwingAnalysesInput, PersonaUncheckedCreateWithoutSwingAnalysesInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutSwingAnalysesInput
+    upsert?: PersonaUpsertWithoutSwingAnalysesInput
+    connect?: PersonaWhereUniqueInput
+    update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutSwingAnalysesInput, PersonaUpdateWithoutSwingAnalysesInput>, PersonaUncheckedUpdateWithoutSwingAnalysesInput>
+  }
+
   export type BoardPostCreateNestedOneWithoutRepliesInput = {
     create?: XOR<BoardPostCreateWithoutRepliesInput, BoardPostUncheckedCreateWithoutRepliesInput>
     connectOrCreate?: BoardPostCreateOrConnectWithoutRepliesInput
@@ -22639,6 +24234,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutUserInput = {
@@ -22661,6 +24257,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutUserInput = {
@@ -22796,6 +24393,31 @@ export namespace Prisma {
 
   export type BoardReplyCreateManyUserInputEnvelope = {
     data: BoardReplyCreateManyUserInput | BoardReplyCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserSwingAnalysisCreateWithoutUserInput = {
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+    persona: PersonaCreateNestedOneWithoutSwingAnalysesInput
+  }
+
+  export type UserSwingAnalysisUncheckedCreateWithoutUserInput = {
+    id?: number
+    personaId: string
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+  }
+
+  export type UserSwingAnalysisCreateOrConnectWithoutUserInput = {
+    where: UserSwingAnalysisWhereUniqueInput
+    create: XOR<UserSwingAnalysisCreateWithoutUserInput, UserSwingAnalysisUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserSwingAnalysisCreateManyUserInputEnvelope = {
+    data: UserSwingAnalysisCreateManyUserInput | UserSwingAnalysisCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -22972,6 +24594,34 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"BoardReply"> | Date | string
   }
 
+  export type UserSwingAnalysisUpsertWithWhereUniqueWithoutUserInput = {
+    where: UserSwingAnalysisWhereUniqueInput
+    update: XOR<UserSwingAnalysisUpdateWithoutUserInput, UserSwingAnalysisUncheckedUpdateWithoutUserInput>
+    create: XOR<UserSwingAnalysisCreateWithoutUserInput, UserSwingAnalysisUncheckedCreateWithoutUserInput>
+  }
+
+  export type UserSwingAnalysisUpdateWithWhereUniqueWithoutUserInput = {
+    where: UserSwingAnalysisWhereUniqueInput
+    data: XOR<UserSwingAnalysisUpdateWithoutUserInput, UserSwingAnalysisUncheckedUpdateWithoutUserInput>
+  }
+
+  export type UserSwingAnalysisUpdateManyWithWhereWithoutUserInput = {
+    where: UserSwingAnalysisScalarWhereInput
+    data: XOR<UserSwingAnalysisUpdateManyMutationInput, UserSwingAnalysisUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserSwingAnalysisScalarWhereInput = {
+    AND?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
+    OR?: UserSwingAnalysisScalarWhereInput[]
+    NOT?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
+    id?: IntFilter<"UserSwingAnalysis"> | number
+    userId?: IntFilter<"UserSwingAnalysis"> | number
+    personaId?: StringFilter<"UserSwingAnalysis"> | string
+    videoUrl?: StringFilter<"UserSwingAnalysis"> | string
+    analysisJson?: StringFilter<"UserSwingAnalysis"> | string
+    createdAt?: DateTimeFilter<"UserSwingAnalysis"> | Date | string
+  }
+
   export type UserCreateWithoutPersonaXpsInput = {
     email: string
     password: string
@@ -22985,6 +24635,7 @@ export namespace Prisma {
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonaXpsInput = {
@@ -23001,6 +24652,7 @@ export namespace Prisma {
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonaXpsInput = {
@@ -23028,6 +24680,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutPersonaXpsInput = {
@@ -23050,6 +24703,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutPersonaXpsInput = {
@@ -23081,6 +24735,7 @@ export namespace Prisma {
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonaXpsInput = {
@@ -23097,6 +24752,7 @@ export namespace Prisma {
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutPersonaXpsInput = {
@@ -23130,6 +24786,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutPersonaXpsInput = {
@@ -23152,6 +24809,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type UserCreateWithoutMemoriesInput = {
@@ -23167,6 +24825,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMemoriesInput = {
@@ -23183,6 +24842,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMemoriesInput = {
@@ -23214,6 +24874,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMemoriesInput = {
@@ -23230,6 +24891,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutPersonasInput = {
@@ -23245,6 +24907,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonasInput = {
@@ -23261,6 +24924,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonasInput = {
@@ -23433,6 +25097,31 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type UserSwingAnalysisCreateWithoutPersonaInput = {
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutSwingAnalysesInput
+  }
+
+  export type UserSwingAnalysisUncheckedCreateWithoutPersonaInput = {
+    id?: number
+    userId: number
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+  }
+
+  export type UserSwingAnalysisCreateOrConnectWithoutPersonaInput = {
+    where: UserSwingAnalysisWhereUniqueInput
+    create: XOR<UserSwingAnalysisCreateWithoutPersonaInput, UserSwingAnalysisUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type UserSwingAnalysisCreateManyPersonaInputEnvelope = {
+    data: UserSwingAnalysisCreateManyPersonaInput | UserSwingAnalysisCreateManyPersonaInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutPersonasInput = {
     update: XOR<UserUpdateWithoutPersonasInput, UserUncheckedUpdateWithoutPersonasInput>
     create: XOR<UserCreateWithoutPersonasInput, UserUncheckedCreateWithoutPersonasInput>
@@ -23457,6 +25146,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonasInput = {
@@ -23473,6 +25163,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChatSessionUpsertWithWhereUniqueWithoutPersonaInput = {
@@ -23612,6 +25303,22 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PersonaTriggerVideo"> | Date | string
   }
 
+  export type UserSwingAnalysisUpsertWithWhereUniqueWithoutPersonaInput = {
+    where: UserSwingAnalysisWhereUniqueInput
+    update: XOR<UserSwingAnalysisUpdateWithoutPersonaInput, UserSwingAnalysisUncheckedUpdateWithoutPersonaInput>
+    create: XOR<UserSwingAnalysisCreateWithoutPersonaInput, UserSwingAnalysisUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput = {
+    where: UserSwingAnalysisWhereUniqueInput
+    data: XOR<UserSwingAnalysisUpdateWithoutPersonaInput, UserSwingAnalysisUncheckedUpdateWithoutPersonaInput>
+  }
+
+  export type UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput = {
+    where: UserSwingAnalysisScalarWhereInput
+    data: XOR<UserSwingAnalysisUpdateManyMutationInput, UserSwingAnalysisUncheckedUpdateManyWithoutPersonaInput>
+  }
+
   export type PersonaCreateWithoutImagesInput = {
     id?: string
     name: string
@@ -23632,6 +25339,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutImagesInput = {
@@ -23654,6 +25362,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutImagesInput = {
@@ -23719,6 +25428,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutImagesInput = {
@@ -23741,6 +25451,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaVideoUpsertWithWhereUniqueWithoutImageInput = {
@@ -23843,6 +25554,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -23859,6 +25571,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -23886,6 +25599,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutSessionsInput = {
@@ -23908,6 +25622,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutSessionsInput = {
@@ -23982,6 +25697,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -23998,6 +25714,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutSessionsInput = {
@@ -24031,6 +25748,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutSessionsInput = {
@@ -24053,6 +25771,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutSessionInput = {
@@ -24236,6 +25955,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutKnowledgeInput = {
@@ -24258,6 +25978,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutKnowledgeInput = {
@@ -24296,6 +26017,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutKnowledgeInput = {
@@ -24318,6 +26040,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateWithoutTriggerVideosInput = {
@@ -24340,6 +26063,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutTriggerVideosInput = {
@@ -24362,6 +26086,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutTriggerVideosInput = {
@@ -24400,6 +26125,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutTriggerVideosInput = {
@@ -24422,6 +26148,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type UserCreateWithoutBoardPostsInput = {
@@ -24437,6 +26164,7 @@ export namespace Prisma {
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBoardPostsInput = {
@@ -24453,6 +26181,7 @@ export namespace Prisma {
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
     boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBoardPostsInput = {
@@ -24480,6 +26209,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutBoardPostsInput = {
@@ -24502,6 +26232,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutBoardPostsInput = {
@@ -24558,6 +26289,7 @@ export namespace Prisma {
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBoardPostsInput = {
@@ -24574,6 +26306,7 @@ export namespace Prisma {
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
     boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutBoardPostsInput = {
@@ -24607,6 +26340,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutBoardPostsInput = {
@@ -24629,6 +26363,7 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type BoardReplyUpsertWithWhereUniqueWithoutPostInput = {
@@ -24645,6 +26380,196 @@ export namespace Prisma {
   export type BoardReplyUpdateManyWithWhereWithoutPostInput = {
     where: BoardReplyScalarWhereInput
     data: XOR<BoardReplyUpdateManyMutationInput, BoardReplyUncheckedUpdateManyWithoutPostInput>
+  }
+
+  export type UserCreateWithoutSwingAnalysesInput = {
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionCreateNestedManyWithoutUserInput
+    memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutSwingAnalysesInput = {
+    id?: number
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
+    memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutSwingAnalysesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSwingAnalysesInput, UserUncheckedCreateWithoutSwingAnalysesInput>
+  }
+
+  export type PersonaCreateWithoutSwingAnalysesInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutPersonasInput
+    sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
+    boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
+    triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaUncheckedCreateWithoutSwingAnalysesInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdBy?: number | null
+    createdAt?: Date | string
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
+    triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaCreateOrConnectWithoutSwingAnalysesInput = {
+    where: PersonaWhereUniqueInput
+    create: XOR<PersonaCreateWithoutSwingAnalysesInput, PersonaUncheckedCreateWithoutSwingAnalysesInput>
+  }
+
+  export type UserUpsertWithoutSwingAnalysesInput = {
+    update: XOR<UserUpdateWithoutSwingAnalysesInput, UserUncheckedUpdateWithoutSwingAnalysesInput>
+    create: XOR<UserCreateWithoutSwingAnalysesInput, UserUncheckedCreateWithoutSwingAnalysesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSwingAnalysesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSwingAnalysesInput, UserUncheckedUpdateWithoutSwingAnalysesInput>
+  }
+
+  export type UserUpdateWithoutSwingAnalysesInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSwingAnalysesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type PersonaUpsertWithoutSwingAnalysesInput = {
+    update: XOR<PersonaUpdateWithoutSwingAnalysesInput, PersonaUncheckedUpdateWithoutSwingAnalysesInput>
+    create: XOR<PersonaCreateWithoutSwingAnalysesInput, PersonaUncheckedCreateWithoutSwingAnalysesInput>
+    where?: PersonaWhereInput
+  }
+
+  export type PersonaUpdateToOneWithWhereWithoutSwingAnalysesInput = {
+    where?: PersonaWhereInput
+    data: XOR<PersonaUpdateWithoutSwingAnalysesInput, PersonaUncheckedUpdateWithoutSwingAnalysesInput>
+  }
+
+  export type PersonaUpdateWithoutSwingAnalysesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutPersonasNestedInput
+    sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
+    triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type PersonaUncheckedUpdateWithoutSwingAnalysesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
+    triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type BoardPostCreateWithoutRepliesInput = {
@@ -24684,6 +26609,7 @@ export namespace Prisma {
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBoardRepliesInput = {
@@ -24700,6 +26626,7 @@ export namespace Prisma {
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBoardRepliesInput = {
@@ -24761,6 +26688,7 @@ export namespace Prisma {
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBoardRepliesInput = {
@@ -24777,6 +26705,7 @@ export namespace Prisma {
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaCreateManyUserInput = {
@@ -24832,6 +26761,14 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type UserSwingAnalysisCreateManyUserInput = {
+    id?: number
+    personaId: string
+    videoUrl: string
+    analysisJson: string
+    createdAt?: Date | string
+  }
+
   export type PersonaUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -24852,6 +26789,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutUserInput = {
@@ -24874,6 +26812,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserInput = {
@@ -25005,6 +26944,29 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type UserSwingAnalysisUpdateWithoutUserInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    persona?: PersonaUpdateOneRequiredWithoutSwingAnalysesNestedInput
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    personaId?: StringFieldUpdateOperationsInput | string
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type ChatSessionCreateManyPersonaInput = {
     id?: number
     userId: number
@@ -25053,6 +27015,14 @@ export namespace Prisma {
     keywords: string
     tag?: string | null
     order?: number
+    createdAt?: Date | string
+  }
+
+  export type UserSwingAnalysisCreateManyPersonaInput = {
+    id?: number
+    userId: number
+    videoUrl: string
+    analysisJson: string
     createdAt?: Date | string
   }
 
@@ -25209,6 +27179,29 @@ export namespace Prisma {
     keywords?: StringFieldUpdateOperationsInput | string
     tag?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserSwingAnalysisUpdateWithoutPersonaInput = {
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSwingAnalysesNestedInput
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserSwingAnalysisUncheckedUpdateManyWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    videoUrl?: StringFieldUpdateOperationsInput | string
+    analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
