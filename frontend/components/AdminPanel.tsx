@@ -1085,24 +1085,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                         <h3 className="text-sm font-bold text-white">등록된 트리거 영상 ({triggerVideos.length}개)</h3>
                                         {triggerVideos.map(tv => (
                                             <div key={tv.id} className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-4 space-y-3">
-                                                <div className="flex items-start justify-between gap-2">
+                                                <div className="flex gap-3">
+                                                    {/* 영상 미리보기 */}
+                                                    <video
+                                                        src={tv.videoUrl}
+                                                        className="w-28 h-20 object-cover rounded-lg bg-black shrink-0 cursor-pointer"
+                                                        onClick={e => { const v = e.currentTarget; v.paused ? v.play() : v.pause(); }}
+                                                        title="클릭하여 재생/정지"
+                                                        muted
+                                                        preload="metadata"
+                                                    />
                                                     <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 flex-wrap">
-                                                            <span className="text-sm font-semibold text-white">{tv.title || '(제목 없음)'}</span>
-                                                            {tv.tag && <span className="text-[10px] bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded-full">{tv.tag}</span>}
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="text-sm font-semibold text-white">{tv.title || '(제목 없음)'}</span>
+                                                                    {tv.tag && <span className="text-[10px] bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded-full">{tv.tag}</span>}
+                                                                </div>
+                                                                {tv.description && <p className="text-xs text-gray-500 mt-0.5">{tv.description}</p>}
+                                                                <p className="text-[10px] text-gray-600 mt-1 truncate">{tv.videoUrl.split('/').pop()}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`"${tv.title}" 트리거 영상을 삭제할까요?`)) return;
+                                                                    await triggerVideoApi.delete(tv.id);
+                                                                    setTriggerVideos(prev => prev.filter(x => x.id !== tv.id));
+                                                                }}
+                                                                className="shrink-0 text-gray-600 hover:text-red-400 transition-colors"
+                                                            >
+                                                                <Icon name="Trash2" size={14} />
+                                                            </button>
                                                         </div>
-                                                        {tv.description && <p className="text-xs text-gray-500 mt-0.5">{tv.description}</p>}
                                                     </div>
-                                                    <button
-                                                        onClick={async () => {
-                                                            if (!confirm(`"${tv.title}" 트리거 영상을 삭제할까요?`)) return;
-                                                            await triggerVideoApi.delete(tv.id);
-                                                            setTriggerVideos(prev => prev.filter(x => x.id !== tv.id));
-                                                        }}
-                                                        className="shrink-0 text-gray-600 hover:text-red-400 transition-colors"
-                                                    >
-                                                        <Icon name="Trash2" size={14} />
-                                                    </button>
                                                 </div>
 
                                                 {/* 키워드 편집 */}
