@@ -768,22 +768,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                             <p className="text-xs font-semibold text-gray-300">선택된 이미지 설정</p>
 
                                             {/* 이미지 해제 단계 */}
-                                            <div>
-                                                <label className="text-[11px] text-gray-500 block mb-1">이미지 해제 단계</label>
-                                                <select
-                                                    value={images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1}
-                                                    onChange={async e => {
-                                                        const lv = Number(e.target.value);
-                                                        try {
-                                                            const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, lv);
-                                                            setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
-                                                        } catch {}
-                                                    }}
-                                                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                                >
-                                                    {STAGES.map(s => <option key={s.stage} value={s.stage}>{s.stage}단계 · {s.name}</option>)}
-                                                </select>
-                                            </div>
+                                            {(() => {
+                                                const currentLevel = images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1;
+                                                const [pendingLevel, setPendingLevel] = React.useState(currentLevel);
+                                                const [savingLevel, setSavingLevel] = React.useState(false);
+                                                const [savedLevel, setSavedLevel] = React.useState(false);
+                                                React.useEffect(() => { setPendingLevel(currentLevel); }, [selectedImageId]);
+                                                return (
+                                                    <div>
+                                                        <label className="text-[11px] text-gray-500 block mb-1">이미지 해제 단계</label>
+                                                        <select
+                                                            value={pendingLevel}
+                                                            onChange={e => { setPendingLevel(Number(e.target.value)); setSavedLevel(false); }}
+                                                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                                        >
+                                                            {STAGES.map(s => <option key={s.stage} value={s.stage}>{s.stage}단계 · {s.name}</option>)}
+                                                        </select>
+                                                        <button
+                                                            onClick={async () => {
+                                                                setSavingLevel(true);
+                                                                try {
+                                                                    const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, pendingLevel);
+                                                                    setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
+                                                                    setSavedLevel(true);
+                                                                    setTimeout(() => setSavedLevel(false), 2000);
+                                                                } catch (e: any) {
+                                                                    alert('저장 실패: ' + e.message);
+                                                                } finally {
+                                                                    setSavingLevel(false);
+                                                                }
+                                                            }}
+                                                            disabled={savingLevel || pendingLevel === currentLevel}
+                                                            className="mt-1.5 w-full text-xs py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40
+                                                                bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white"
+                                                        >
+                                                            {savingLevel ? '저장 중...' : savedLevel ? '✓ 저장됨' : '단계 저장'}
+                                                        </button>
+                                                    </div>
+                                                );
+                                            })()}
 
                                             <div className="border-t border-gray-700 pt-3">
                                                 <p className="text-[11px] font-semibold text-blue-400 mb-2">연결된 동영상</p>
