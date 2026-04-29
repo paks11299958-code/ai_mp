@@ -17468,7 +17468,7 @@ export namespace Prisma {
     id: number | null
     userId: number | null
     personaId: string | null
-    videoUrl: string | null
+    fileName: string | null
     analysisJson: string | null
     createdAt: Date | null
   }
@@ -17477,7 +17477,7 @@ export namespace Prisma {
     id: number | null
     userId: number | null
     personaId: string | null
-    videoUrl: string | null
+    fileName: string | null
     analysisJson: string | null
     createdAt: Date | null
   }
@@ -17486,7 +17486,7 @@ export namespace Prisma {
     id: number
     userId: number
     personaId: number
-    videoUrl: number
+    fileName: number
     analysisJson: number
     createdAt: number
     _all: number
@@ -17507,7 +17507,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     personaId?: true
-    videoUrl?: true
+    fileName?: true
     analysisJson?: true
     createdAt?: true
   }
@@ -17516,7 +17516,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     personaId?: true
-    videoUrl?: true
+    fileName?: true
     analysisJson?: true
     createdAt?: true
   }
@@ -17525,7 +17525,7 @@ export namespace Prisma {
     id?: true
     userId?: true
     personaId?: true
-    videoUrl?: true
+    fileName?: true
     analysisJson?: true
     createdAt?: true
     _all?: true
@@ -17621,7 +17621,7 @@ export namespace Prisma {
     id: number
     userId: number
     personaId: string
-    videoUrl: string
+    fileName: string | null
     analysisJson: string
     createdAt: Date
     _count: UserSwingAnalysisCountAggregateOutputType | null
@@ -17649,7 +17649,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     personaId?: boolean
-    videoUrl?: boolean
+    fileName?: boolean
     analysisJson?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -17660,7 +17660,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     personaId?: boolean
-    videoUrl?: boolean
+    fileName?: boolean
     analysisJson?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -17671,7 +17671,7 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     personaId?: boolean
-    videoUrl?: boolean
+    fileName?: boolean
     analysisJson?: boolean
     createdAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -17682,12 +17682,12 @@ export namespace Prisma {
     id?: boolean
     userId?: boolean
     personaId?: boolean
-    videoUrl?: boolean
+    fileName?: boolean
     analysisJson?: boolean
     createdAt?: boolean
   }
 
-  export type UserSwingAnalysisOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "personaId" | "videoUrl" | "analysisJson" | "createdAt", ExtArgs["result"]["userSwingAnalysis"]>
+  export type UserSwingAnalysisOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "personaId" | "fileName" | "analysisJson" | "createdAt", ExtArgs["result"]["userSwingAnalysis"]>
   export type UserSwingAnalysisInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
@@ -17711,7 +17711,7 @@ export namespace Prisma {
       id: number
       userId: number
       personaId: string
-      videoUrl: string
+      fileName: string | null
       analysisJson: string
       createdAt: Date
     }, ExtArgs["result"]["userSwingAnalysis"]>
@@ -18142,7 +18142,7 @@ export namespace Prisma {
     readonly id: FieldRef<"UserSwingAnalysis", 'Int'>
     readonly userId: FieldRef<"UserSwingAnalysis", 'Int'>
     readonly personaId: FieldRef<"UserSwingAnalysis", 'String'>
-    readonly videoUrl: FieldRef<"UserSwingAnalysis", 'String'>
+    readonly fileName: FieldRef<"UserSwingAnalysis", 'String'>
     readonly analysisJson: FieldRef<"UserSwingAnalysis", 'String'>
     readonly createdAt: FieldRef<"UserSwingAnalysis", 'DateTime'>
   }
@@ -19873,7 +19873,7 @@ export namespace Prisma {
     id: 'id',
     userId: 'userId',
     personaId: 'personaId',
-    videoUrl: 'videoUrl',
+    fileName: 'fileName',
     analysisJson: 'analysisJson',
     createdAt: 'createdAt'
   };
@@ -20902,7 +20902,7 @@ export namespace Prisma {
     id?: IntFilter<"UserSwingAnalysis"> | number
     userId?: IntFilter<"UserSwingAnalysis"> | number
     personaId?: StringFilter<"UserSwingAnalysis"> | string
-    videoUrl?: StringFilter<"UserSwingAnalysis"> | string
+    fileName?: StringNullableFilter<"UserSwingAnalysis"> | string | null
     analysisJson?: StringFilter<"UserSwingAnalysis"> | string
     createdAt?: DateTimeFilter<"UserSwingAnalysis"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -20913,7 +20913,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     personaId?: SortOrder
-    videoUrl?: SortOrder
+    fileName?: SortOrderInput | SortOrder
     analysisJson?: SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -20927,7 +20927,7 @@ export namespace Prisma {
     NOT?: UserSwingAnalysisWhereInput | UserSwingAnalysisWhereInput[]
     userId?: IntFilter<"UserSwingAnalysis"> | number
     personaId?: StringFilter<"UserSwingAnalysis"> | string
-    videoUrl?: StringFilter<"UserSwingAnalysis"> | string
+    fileName?: StringNullableFilter<"UserSwingAnalysis"> | string | null
     analysisJson?: StringFilter<"UserSwingAnalysis"> | string
     createdAt?: DateTimeFilter<"UserSwingAnalysis"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -20938,7 +20938,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     personaId?: SortOrder
-    videoUrl?: SortOrder
+    fileName?: SortOrderInput | SortOrder
     analysisJson?: SortOrder
     createdAt?: SortOrder
     _count?: UserSwingAnalysisCountOrderByAggregateInput
@@ -20955,7 +20955,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"UserSwingAnalysis"> | number
     userId?: IntWithAggregatesFilter<"UserSwingAnalysis"> | number
     personaId?: StringWithAggregatesFilter<"UserSwingAnalysis"> | string
-    videoUrl?: StringWithAggregatesFilter<"UserSwingAnalysis"> | string
+    fileName?: StringNullableWithAggregatesFilter<"UserSwingAnalysis"> | string | null
     analysisJson?: StringWithAggregatesFilter<"UserSwingAnalysis"> | string
     createdAt?: DateTimeWithAggregatesFilter<"UserSwingAnalysis"> | Date | string
   }
@@ -21936,7 +21936,7 @@ export namespace Prisma {
   }
 
   export type UserSwingAnalysisCreateInput = {
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSwingAnalysesInput
@@ -21947,13 +21947,13 @@ export namespace Prisma {
     id?: number
     userId: number
     personaId: string
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
   }
 
   export type UserSwingAnalysisUpdateInput = {
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSwingAnalysesNestedInput
@@ -21964,7 +21964,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     userId?: IntFieldUpdateOperationsInput | number
     personaId?: StringFieldUpdateOperationsInput | string
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21973,13 +21973,13 @@ export namespace Prisma {
     id?: number
     userId: number
     personaId: string
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
   }
 
   export type UserSwingAnalysisUpdateManyMutationInput = {
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -21988,7 +21988,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     userId?: IntFieldUpdateOperationsInput | number
     personaId?: StringFieldUpdateOperationsInput | string
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -22900,7 +22900,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     personaId?: SortOrder
-    videoUrl?: SortOrder
+    fileName?: SortOrder
     analysisJson?: SortOrder
     createdAt?: SortOrder
   }
@@ -22914,7 +22914,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     personaId?: SortOrder
-    videoUrl?: SortOrder
+    fileName?: SortOrder
     analysisJson?: SortOrder
     createdAt?: SortOrder
   }
@@ -22923,7 +22923,7 @@ export namespace Prisma {
     id?: SortOrder
     userId?: SortOrder
     personaId?: SortOrder
-    videoUrl?: SortOrder
+    fileName?: SortOrder
     analysisJson?: SortOrder
     createdAt?: SortOrder
   }
@@ -24397,7 +24397,7 @@ export namespace Prisma {
   }
 
   export type UserSwingAnalysisCreateWithoutUserInput = {
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
     persona: PersonaCreateNestedOneWithoutSwingAnalysesInput
@@ -24406,7 +24406,7 @@ export namespace Prisma {
   export type UserSwingAnalysisUncheckedCreateWithoutUserInput = {
     id?: number
     personaId: string
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
   }
@@ -24617,7 +24617,7 @@ export namespace Prisma {
     id?: IntFilter<"UserSwingAnalysis"> | number
     userId?: IntFilter<"UserSwingAnalysis"> | number
     personaId?: StringFilter<"UserSwingAnalysis"> | string
-    videoUrl?: StringFilter<"UserSwingAnalysis"> | string
+    fileName?: StringNullableFilter<"UserSwingAnalysis"> | string | null
     analysisJson?: StringFilter<"UserSwingAnalysis"> | string
     createdAt?: DateTimeFilter<"UserSwingAnalysis"> | Date | string
   }
@@ -25098,7 +25098,7 @@ export namespace Prisma {
   }
 
   export type UserSwingAnalysisCreateWithoutPersonaInput = {
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutSwingAnalysesInput
@@ -25107,7 +25107,7 @@ export namespace Prisma {
   export type UserSwingAnalysisUncheckedCreateWithoutPersonaInput = {
     id?: number
     userId: number
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
   }
@@ -26764,7 +26764,7 @@ export namespace Prisma {
   export type UserSwingAnalysisCreateManyUserInput = {
     id?: number
     personaId: string
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
   }
@@ -26945,7 +26945,7 @@ export namespace Prisma {
   }
 
   export type UserSwingAnalysisUpdateWithoutUserInput = {
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneRequiredWithoutSwingAnalysesNestedInput
@@ -26954,7 +26954,7 @@ export namespace Prisma {
   export type UserSwingAnalysisUncheckedUpdateWithoutUserInput = {
     id?: IntFieldUpdateOperationsInput | number
     personaId?: StringFieldUpdateOperationsInput | string
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -26962,7 +26962,7 @@ export namespace Prisma {
   export type UserSwingAnalysisUncheckedUpdateManyWithoutUserInput = {
     id?: IntFieldUpdateOperationsInput | number
     personaId?: StringFieldUpdateOperationsInput | string
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27021,7 +27021,7 @@ export namespace Prisma {
   export type UserSwingAnalysisCreateManyPersonaInput = {
     id?: number
     userId: number
-    videoUrl: string
+    fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
   }
@@ -27183,7 +27183,7 @@ export namespace Prisma {
   }
 
   export type UserSwingAnalysisUpdateWithoutPersonaInput = {
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSwingAnalysesNestedInput
@@ -27192,7 +27192,7 @@ export namespace Prisma {
   export type UserSwingAnalysisUncheckedUpdateWithoutPersonaInput = {
     id?: IntFieldUpdateOperationsInput | number
     userId?: IntFieldUpdateOperationsInput | number
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -27200,7 +27200,7 @@ export namespace Prisma {
   export type UserSwingAnalysisUncheckedUpdateManyWithoutPersonaInput = {
     id?: IntFieldUpdateOperationsInput | number
     userId?: IntFieldUpdateOperationsInput | number
-    videoUrl?: StringFieldUpdateOperationsInput | string
+    fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

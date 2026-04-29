@@ -316,7 +316,7 @@ const App: React.FC = () => {
         try {
             const { signedUrl, publicUrl } = await swingAnalysisApi.getSignedUrl(file.type, file.name);
             await fetch(signedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
-            const result = await swingAnalysisApi.analyze(publicUrl, activePersonaId, file.type);
+            const result = await swingAnalysisApi.analyze(publicUrl, activePersonaId, file.type, file.name);
             updateMessageInSession(activePersonaId, pendingMsgId, {
                 text: `스윙 분석 완료! 종합 점수: **${result.analysis.overallScore}점**\n${result.analysis.overallComment}`,
                 isStreaming: false,

@@ -1180,15 +1180,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // POST /api/swing-analysis/analyze
         if (seg1 === 'analyze' && req.method === 'POST') {
             try {
-                const { videoUrl, personaId, mimeType } = req.body;
+                const { videoUrl, personaId, mimeType, fileName } = req.body;
                 if (!videoUrl || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
                 const gcsUri = videoUrl.replace(
                     'https://storage.googleapis.com/ai-mp-media/',
                     'gs://ai-mp-media/'
                 );
                 const analysis = await analyzeGolfSwing(gcsUri, mimeType || 'video/mp4');
+                // 분석 완료 즉시 GCS에서 영상 삭제 (개인정보 보호)
+                await deleteFromGCS(videoUrl).catch(() => {});
                 const record = await prisma.userSwingAnalysis.create({
-                    data: { userId, personaId, videoUrl, analysisJson: JSON.stringify(analysis) },
+                    data: { userId, personaId, fileName: fileName || null, analysisJson: JSON.stringify(analysis) },
                 });
                 return res.status(200).json({ id: record.id, analysis, createdAt: record.createdAt });
             } catch (e: any) {
@@ -1208,7 +1210,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 });
                 return res.status(200).json(records.map(r => ({
                     id: r.id,
-                    videoUrl: r.videoUrl,
+                    fileName: r.fileName,
                     createdAt: r.createdAt,
                     analysis: JSON.parse(r.analysisJson),
                 })));

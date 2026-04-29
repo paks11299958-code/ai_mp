@@ -305,10 +305,10 @@ export const swingAnalysisApi = {
             body: JSON.stringify({ mimeType, filename }),
         }),
 
-    analyze: (videoUrl: string, personaId: string, mimeType: string) =>
+    analyze: (videoUrl: string, personaId: string, mimeType: string, fileName: string) =>
         request<{ id: number; analysis: SwingAnalysis; createdAt: string }>('/swing-analysis/analyze', {
             method: 'POST',
-            body: JSON.stringify({ videoUrl, personaId, mimeType }),
+            body: JSON.stringify({ videoUrl, personaId, mimeType, fileName }),
         }),
 
     getHistory: (personaId: string) =>

@@ -250,7 +250,7 @@ exports.Prisma.UserSwingAnalysisScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   personaId: 'personaId',
-  videoUrl: 'videoUrl',
+  fileName: 'fileName',
   analysisJson: 'analysisJson',
   createdAt: 'createdAt'
 };

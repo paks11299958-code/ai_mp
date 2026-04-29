@@ -1419,7 +1419,7 @@ app.post('/api/swing-analysis/analyze', async (req, res) => {
   const payload = verifyToken(req);
   if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
   try {
-    const { videoUrl, personaId, mimeType } = req.body;
+    const { videoUrl, personaId, mimeType, fileName } = req.body;
     if (!videoUrl || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
     const gcsUri = videoUrl.replace('https://storage.googleapis.com/ai-mp-media/', 'gs://ai-mp-media/');
     const text = await callGeminiVideo(gcsUri, mimeType || 'video/mp4', GOLF_ANALYSIS_PROMPT);
@@ -1427,8 +1427,10 @@ app.post('/api/swing-analysis/analyze', async (req, res) => {
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return res.status(500).json({ error: '분석 결과 파싱 실패' });
     const analysis = JSON.parse(match[0]);
+    // 분석 완료 즉시 GCS에서 영상 삭제 (개인정보 보호)
+    await deleteFromGCS(videoUrl).catch(() => {});
     const record = await prisma.userSwingAnalysis.create({
-      data: { userId: payload.userId, personaId, videoUrl, analysisJson: JSON.stringify(analysis) },
+      data: { userId: payload.userId, personaId, fileName: fileName || null, analysisJson: JSON.stringify(analysis) },
     });
     return res.json({ id: record.id, analysis, createdAt: record.createdAt });
   } catch (e) {
@@ -1449,7 +1451,7 @@ app.get('/api/swing-analysis', async (req, res) => {
       take: 20,
     });
     return res.json(records.map(r => ({
-      id: r.id, videoUrl: r.videoUrl, createdAt: r.createdAt, analysis: JSON.parse(r.analysisJson),
+      id: r.id, fileName: r.fileName, createdAt: r.createdAt, analysis: JSON.parse(r.analysisJson),
     })));
   } catch (e) {
     return res.status(500).json({ error: '조회 실패' });

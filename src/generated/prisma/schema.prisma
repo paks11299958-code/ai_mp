@@ -173,7 +173,7 @@ model UserSwingAnalysis {
   id           Int      @id @default(autoincrement())
   userId       Int
   personaId    String
-  videoUrl     String
+  fileName     String?
   analysisJson String
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)

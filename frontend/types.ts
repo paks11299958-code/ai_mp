@@ -118,7 +118,7 @@ export interface SwingAnalysis {
 
 export interface UserSwingAnalysis {
     id: number;
-    videoUrl: string;
+    fileName?: string;
     createdAt: string;
     analysis: SwingAnalysis;
 }
