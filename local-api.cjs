@@ -153,7 +153,7 @@ app.post('/api/auth/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: { email, password: hashed, username: username || null },
-      select: { id: true, email: true, username: true, role: true, personaQuota: true },
+      select: { id: true, email: true, username: true, role: true },
     });
     const token = signToken(user.id);
     res.setHeader('Set-Cookie', tokenCookie(token));
@@ -179,7 +179,7 @@ app.post('/api/auth/login', async (req, res) => {
     const token = signToken(user.id);
     res.setHeader('Set-Cookie', tokenCookie(token));
     const personaXp = Object.fromEntries(user.personaXps.map(p => [p.personaId, p.xp]));
-    return res.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaQuota: user.personaQuota, personaXp }, token });
+    return res.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaXp }, token });
   } catch (e) {
     console.error('[login]', e.message);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -201,7 +201,7 @@ app.get('/api/auth/me', async (req, res) => {
     });
     if (!user) return res.status(401).json({ error: '사용자를 찾을 수 없습니다.' });
     const personaXp = Object.fromEntries(user.personaXps.map(p => [p.personaId, p.xp]));
-    return res.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaQuota: user.personaQuota, personaXp } });
+    return res.json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaXp } });
   } catch (e) {
     return res.status(401).json({ error: '인증이 만료되었습니다.' });
   }
@@ -305,40 +305,7 @@ app.put('/api/settings', async (req, res) => {
 // ── Personas ──────────────────────────────────────────────────
 app.get('/api/personas', async (req, res) => {
   try {
-    const personas = await prisma.persona.findMany({
-      where: { status: 'approved', isVisible: true },
-      orderBy: { order: 'asc' },
-    });
-    return res.json(personas);
-  } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-app.get('/api/personas/mine', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const personas = await prisma.persona.findMany({
-      where: { createdBy: payload.userId },
-      orderBy: { createdAt: 'desc' },
-    });
-    return res.json(personas);
-  } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-app.get('/api/personas/all', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const personas = await prisma.persona.findMany({
-      orderBy: { order: 'asc' },
-      include: { user: { select: { id: true, email: true, username: true } } },
-    });
+    const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
     return res.json(personas);
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -349,57 +316,10 @@ app.post('/api/personas', async (req, res) => {
   try {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    const isAdmin = caller?.role === 'ADMIN';
-
-    if (!isAdmin) {
-      const activeCount = await prisma.persona.count({
-        where: { createdBy: payload.userId, status: { not: 'archived' } },
-      });
-      if (activeCount >= (caller?.personaQuota ?? 1)) {
-        return res.status(403).json({ error: `페르소나 슬롯이 부족합니다. (${activeCount}/${caller?.personaQuota ?? 1})` });
-      }
-    }
-
-    const { id: _id, createdAt: _ca, user: _u, sessions: _s, ...data } = req.body;
-    const persona = await prisma.persona.create({
-      data: { ...data, createdBy: payload.userId, status: isAdmin ? 'approved' : 'pending' },
-    });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const persona = await prisma.persona.create({ data: { ...req.body, createdBy: payload.userId } });
     return res.status(201).json(persona);
-  } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-// 상태 관리 액션 (approve / reject / suspend / unsuspend / archive / restore)
-app.post('/api/personas/:id/:action', async (req, res, next) => {
-  const { id, action } = req.params;
-  const validActions = ['approve', 'reject', 'suspend', 'unsuspend', 'archive', 'restore'];
-  if (!validActions.includes(action)) return next(); // 이미지/동영상 등 하위 라우트로 위임
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-
-    const statusMap = {
-      approve: 'approved', reject: 'rejected',
-      suspend: 'suspended', unsuspend: 'approved',
-      restore: 'approved',
-    };
-
-    if (action === 'archive') {
-      const persona = await prisma.persona.findUnique({ where: { id } });
-      if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-      await prisma.persona.update({ where: { id }, data: { status: 'archived', isVisible: false } });
-      return res.json({ message: '아카이브 완료' });
-    }
-
-    const updated = await prisma.persona.update({
-      where: { id },
-      data: { status: statusMap[action] },
-    });
-    return res.json(updated);
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
@@ -409,20 +329,9 @@ app.put('/api/personas/:id', async (req, res) => {
   try {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
-    if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-    const isOwner = persona.createdBy === payload.userId;
-    if (caller?.role !== 'ADMIN' && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
-    const { id, isDefault, createdAt, updatedAt, user: _u, sessions: _s, personaXps: _x, ...data } = req.body;
-
-    // 소유자가 핵심 콘텐츠 필드를 수정하면 재심사(pending)로 되돌림
-    const isAdmin = caller?.role === 'ADMIN';
-    const contentChanged = data.systemInstruction !== undefined || data.identityPrompt !== undefined;
-    if (!isAdmin && isOwner && persona.status === 'approved' && contentChanged) {
-      data.status = 'pending';
-    }
-
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { id, isDefault, createdAt, user: _u, sessions: _s, ...data } = req.body;
     const updated = await prisma.persona.update({ where: { id: req.params.id }, data });
     return res.json(updated);
   } catch (e) {
@@ -434,46 +343,13 @@ app.delete('/api/personas/:id', async (req, res) => {
   try {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
     if (persona?.isDefault) return res.status(400).json({ error: '기본 페르소나는 삭제할 수 없습니다.' });
     await prisma.persona.delete({ where: { id: req.params.id } });
     return res.json({ message: '삭제되었습니다.' });
   } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-// POST /api/personas/:id/submit-review
-app.post('/api/personas/:id/submit-review', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-    const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
-    if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-    if (!isAdmin && persona.createdBy !== user.id) return res.status(403).json({ error: '권한이 없습니다.' });
-
-    const allImages = await prisma.personaImage.findMany({
-      where: { personaId: req.params.id },
-      select: { id: true },
-    });
-    const allImageIds = allImages.map(img => img.id);
-
-    const imgResult = await prisma.personaImage.updateMany({
-      where: { personaId: req.params.id, status: 'draft' },
-      data: { status: 'pending' },
-    });
-    const vidResult = await prisma.personaVideo.updateMany({
-      where: { imageId: { in: allImageIds }, status: 'draft' },
-      data: { status: 'pending' },
-    });
-    return res.json({ imageCount: imgResult.count, videoCount: vidResult.count });
-  } catch (e) {
-    console.error('[submit-review]', e);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });
@@ -496,17 +372,11 @@ app.post('/api/personas/:id/images', async (req, res) => {
   try {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
-    const isAdmin = caller?.role === 'ADMIN';
-    const isOwner = persona?.createdBy === payload.userId;
-    if (!isAdmin && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
 
-    // signed-url 발급 요청 (어드민 또는 소유자)
+    // signed-url 발급 요청
     if (req.query.action === 'signed-url') {
-      const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
-      const isOwner = persona?.createdBy === payload.userId;
-      if (caller?.role !== 'ADMIN' && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
       const { mimeType, filename } = req.body;
       if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
       const ext = mimeType.split('/')[1] || 'jpg';
@@ -532,11 +402,7 @@ app.post('/api/personas/:id/images', async (req, res) => {
     }
     const count = await prisma.personaImage.count({ where: { personaId: req.params.id } });
     const image = await prisma.personaImage.create({
-      data: {
-        personaId: req.params.id, imageUrl: finalUrl, description,
-        isMain: isMain ?? count === 0, order: count,
-        status: isAdmin ? 'approved' : 'draft',
-      },
+      data: { personaId: req.params.id, imageUrl: finalUrl, description, isMain: isMain ?? count === 0, order: count },
     });
     return res.status(201).json(image);
   } catch (e) {
@@ -550,28 +416,20 @@ app.put('/api/personas/:id/images', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-    const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
-    const isOwner = persona?.createdBy === user.id;
-    if (!isAdmin && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
-
-    const { imageId, isMain, description, requiredLevel, order, status } = req.body;
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { imageId, isMain, description, requiredLevel, order } = req.body;
     if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
     if (isMain) {
       await prisma.personaImage.updateMany({ where: { personaId: req.params.id }, data: { isMain: false } });
     }
-    const updateData = {
-      ...(isMain !== undefined && { isMain }),
-      ...(description !== undefined && { description }),
-      ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
-      ...(order !== undefined && { order: Number(order) }),
-      // status 변경은 관리자만 가능
-      ...(status !== undefined && isAdmin && { status }),
-    };
     const image = await prisma.personaImage.update({
       where: { id: Number(imageId) },
-      data: updateData,
+      data: {
+        ...(isMain !== undefined && { isMain }),
+        ...(description !== undefined && { description }),
+        ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+        ...(order !== undefined && { order: Number(order) }),
+      },
     });
     return res.json(image);
   } catch (e) {
@@ -584,11 +442,7 @@ app.delete('/api/personas/:id/images', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-    const persona = await prisma.persona.findUnique({ where: { id: req.params.id } });
-    const isOwner = persona?.createdBy === user.id;
-    if (!isAdmin && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     const { imageId } = req.body;
     if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
     const deleted = await prisma.personaImage.delete({ where: { id: Number(imageId) } });
@@ -627,22 +481,7 @@ app.post('/api/persona-videos/signed-url', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-
-    // 관리자가 아닌 경우 imageId로 소유권 확인
-    if (!isAdmin) {
-      const { imageId } = req.body;
-      if (!imageId) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-      const image = await prisma.personaImage.findUnique({
-        where: { id: Number(imageId) },
-        include: { persona: { select: { createdBy: true } } },
-      });
-      if (!image || image.persona.createdBy !== user.id) {
-        return res.status(403).json({ error: '권한이 없습니다.' });
-      }
-    }
-
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     const { mimeType, filename } = req.body;
     if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
     const ext = mimeType.split('/')[1] || 'mp4';
@@ -673,22 +512,9 @@ app.post('/api/persona-videos', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     const { imageId, videoUrl, videoBase64, mimeType, title } = req.body;
     if (!imageId || (!videoUrl && !videoBase64)) return res.status(400).json({ error: 'imageId와 videoUrl 또는 videoBase64는 필수입니다.' });
-
-    // 소유자 확인 (관리자가 아닌 경우)
-    if (!isAdmin) {
-      const image = await prisma.personaImage.findUnique({
-        where: { id: Number(imageId) },
-        include: { persona: { select: { createdBy: true } } },
-      });
-      if (!image || image.persona.createdBy !== user.id) {
-        return res.status(403).json({ error: '권한이 없습니다.' });
-      }
-    }
 
     let finalUrl = videoUrl || '';
     if (videoBase64) {
@@ -701,10 +527,7 @@ app.post('/api/persona-videos', async (req, res) => {
 
     const count = await prisma.personaVideo.count({ where: { imageId: Number(imageId) } });
     const video = await prisma.personaVideo.create({
-      data: {
-        imageId: Number(imageId), videoUrl: finalUrl, title: title || null, order: count,
-        status: isAdmin ? 'approved' : 'draft',
-      },
+      data: { imageId: Number(imageId), videoUrl: finalUrl, title: title || null, order: count },
     });
     return res.status(201).json(video);
   } catch (e) {
@@ -718,27 +541,14 @@ app.put('/api/persona-videos/:videoId', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-
-    if (!isAdmin) {
-      const video = await prisma.personaVideo.findUnique({
-        where: { id: Number(req.params.videoId) },
-        include: { image: { include: { persona: { select: { createdBy: true } } } } },
-      });
-      if (!video || video.image.persona.createdBy !== user.id) {
-        return res.status(403).json({ error: '권한이 없습니다.' });
-      }
-    }
-
-    const { title, order, requiredLevel, status } = req.body;
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { title, order, requiredLevel } = req.body;
     const video = await prisma.personaVideo.update({
       where: { id: Number(req.params.videoId) },
       data: {
         ...(title !== undefined && { title }),
         ...(order !== undefined && { order }),
         ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
-        ...(status !== undefined && isAdmin && { status }),
       },
     });
     return res.json(video);
@@ -752,20 +562,9 @@ app.delete('/api/persona-videos/:videoId', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (!user) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const isAdmin = user.role === 'ADMIN';
-
-    const videoToDelete = await prisma.personaVideo.findUnique({
-      where: { id: Number(req.params.videoId) },
-      include: { image: { include: { persona: { select: { createdBy: true } } } } },
-    });
-    if (!videoToDelete) return res.status(404).json({ error: '동영상을 찾을 수 없습니다.' });
-    if (!isAdmin && videoToDelete.image.persona.createdBy !== user.id) {
-      return res.status(403).json({ error: '권한이 없습니다.' });
-    }
-
-    await prisma.personaVideo.delete({ where: { id: Number(req.params.videoId) } });
-    await deleteFromGCS(videoToDelete.videoUrl);
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const deleted = await prisma.personaVideo.delete({ where: { id: Number(req.params.videoId) } });
+    await deleteFromGCS(deleted.videoUrl);
     return res.json({ message: '삭제 완료' });
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -780,7 +579,6 @@ app.get('/api/sessions', async (req, res) => {
     const sessions = await prisma.chatSession.findMany({
       where: { userId: payload.userId },
       orderBy: { updatedAt: 'desc' },
-      include: { persona: { select: { id: true, name: true, iconName: true, colorClass: true } } },
     });
     return res.json(sessions);
   } catch (e) {
@@ -1214,106 +1012,6 @@ app.post('/api/knowledge/search', async (req, res) => {
     return res.json(results);
   } catch (e) {
     console.error('[knowledge search]', e.message);
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-// ── Quota Requests ────────────────────────────────────────────
-app.get('/api/quota-requests/dashboard', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const personas = await prisma.persona.findMany({
-      where: { createdBy: payload.userId },
-      include: {
-        personaXps: { select: { xp: true, userId: true } },
-        sessions: { select: { id: true, userId: true } },
-      },
-    });
-    const result = personas.map(p => ({
-      id: p.id,
-      name: p.name,
-      status: p.status,
-      createdAt: p.createdAt,
-      totalXp: p.personaXps.reduce((s, x) => s + x.xp, 0),
-      totalUsers: new Set(p.personaXps.map(x => x.userId)).size,
-      totalSessions: new Set(p.sessions.map(s => s.userId)).size,
-    }));
-    return res.json(result);
-  } catch (e) {
-    console.error('[quota-dashboard]', e.message);
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-app.get('/api/quota-requests', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    const isAdmin = caller?.role === 'ADMIN';
-    const requests = await prisma.personaQuotaRequest.findMany({
-      where: isAdmin ? {} : { userId: payload.userId },
-      orderBy: { createdAt: 'desc' },
-      include: { user: { select: { id: true, email: true, username: true, personaQuota: true } } },
-    });
-    return res.json(requests);
-  } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-app.post('/api/quota-requests', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const existing = await prisma.personaQuotaRequest.findFirst({
-      where: { userId: payload.userId, status: 'pending' },
-    });
-    if (existing) return res.status(409).json({ error: '이미 대기 중인 요청이 있습니다.' });
-    const { note } = req.body;
-    const request = await prisma.personaQuotaRequest.create({
-      data: { userId: payload.userId, note: note || null },
-    });
-    return res.status(201).json(request);
-  } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-app.post('/api/quota-requests/:id/approve', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const qr = await prisma.personaQuotaRequest.update({
-      where: { id: Number(req.params.id) },
-      data: { status: 'approved' },
-    });
-    const updated = await prisma.user.update({
-      where: { id: qr.userId },
-      data: { personaQuota: { increment: 1 } },
-      select: { personaQuota: true },
-    });
-    return res.json({ message: '승인 완료', personaQuota: updated.personaQuota });
-  } catch (e) {
-    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-  }
-});
-
-app.post('/api/quota-requests/:id/reject', async (req, res) => {
-  try {
-    const payload = verifyToken(req);
-    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
-    const caller = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    await prisma.personaQuotaRequest.update({
-      where: { id: Number(req.params.id) },
-      data: { status: 'rejected' },
-    });
-    return res.json({ message: '거부 완료' });
-  } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });

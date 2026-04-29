@@ -10,11 +10,10 @@ interface MainPageProps {
     onSelectPersona: (personaId: string) => void;
     onLogout: () => void;
     onAdminClick: () => void;
-    onMyPersonasClick: () => void;
 }
 
 export const MainPage: React.FC<MainPageProps> = ({
-    personas, isLoading, user, onSelectPersona, onLogout, onAdminClick, onMyPersonasClick,
+    personas, isLoading, user, onSelectPersona, onLogout, onAdminClick,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -34,9 +33,6 @@ export const MainPage: React.FC<MainPageProps> = ({
                     {/* 데스크톱 메뉴 */}
                     <div className="hidden sm:flex items-center gap-2">
                         <span className="text-sm text-gray-400">{user.username || user.email}</span>
-                        <button onClick={onMyPersonasClick} className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors">
-                            <Bot size={16} />내 페르소나
-                        </button>
                         {user.role === 'ADMIN' && (
                             <button onClick={onAdminClick} className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors">
                                 <Settings size={16} />관리
@@ -60,9 +56,6 @@ export const MainPage: React.FC<MainPageProps> = ({
                 {menuOpen && (
                     <div className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 flex flex-col gap-1">
                         <div className="text-xs text-gray-500 px-3 py-1">{user.username || user.email}</div>
-                        <button onClick={() => { setMenuOpen(false); onMyPersonasClick(); }} className="flex items-center gap-2 text-gray-300 hover:text-white py-2 px-3 rounded-lg hover:bg-gray-800 transition-colors text-sm">
-                            <Bot size={16} />내 페르소나
-                        </button>
                         {user.role === 'ADMIN' && (
                             <button onClick={() => { setMenuOpen(false); onAdminClick(); }} className="flex items-center gap-2 text-gray-300 hover:text-white py-2 px-3 rounded-lg hover:bg-gray-800 transition-colors text-sm">
                                 <Settings size={16} />관리

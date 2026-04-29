@@ -8,11 +8,9 @@ interface PersonaImageViewerProps {
     images: PersonaImage[];
     onSelectMain: (image: PersonaImage) => void;
     userXp: number;
-    isOwnerOrAdmin?: boolean;
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, isOwnerOrAdmin = false }) => {
-    const visibleImages = isOwnerOrAdmin ? images : images.filter(img => img.status === 'approved');
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp }) => {
     const [videosByImage, setVideosByImage] = useState<Record<number, PersonaVideo[]>>({});
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
@@ -20,23 +18,20 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     const loadedImageIdsRef = useRef<Set<number>>(new Set());
 
     const userStage = getStage(userXp).stage;
-    const mainImage = visibleImages.find(img => img.isMain) || visibleImages[0];
+    const mainImage = images.find(img => img.isMain) || images[0];
 
     // 잠금 해제된 이미지의 동영상 미리 로드
     useEffect(() => {
-        const unlockedImages = visibleImages.filter(img => userStage >= img.requiredLevel && (img._count?.videos ?? 0) > 0);
+        const unlockedImages = images.filter(img => userStage >= img.requiredLevel && (img._count?.videos ?? 0) > 0);
         unlockedImages.forEach(img => {
             if (!loadedImageIdsRef.current.has(img.id)) {
                 loadedImageIdsRef.current.add(img.id);
                 personaVideoApi.getAll(img.id)
-                    .then(vids => {
-                        const filtered = isOwnerOrAdmin ? vids : vids.filter(v => v.status === 'approved');
-                        setVideosByImage(prev => ({ ...prev, [img.id]: filtered }));
-                    })
+                    .then(vids => setVideosByImage(prev => ({ ...prev, [img.id]: vids })))
                     .catch(() => loadedImageIdsRef.current.delete(img.id));
             }
         });
-    }, [visibleImages, userStage]);
+    }, [images, userStage]);
 
     const handleImageClick = (img: PersonaImage) => {
         if (userStage < img.requiredLevel) return;
@@ -48,13 +43,13 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
         setPlayingVideo(video);
     };
 
-    if (visibleImages.length === 0) return null;
+    if (images.length === 0) return null;
 
     return (
         <>
             <div className="px-3 py-2 bg-gray-900/50 border-b border-gray-800">
                 <div className="flex gap-2 overflow-x-auto">
-                    {visibleImages.map(img => {
+                    {images.map(img => {
                         const isLocked = userStage < img.requiredLevel;
                         const reqStageName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
                         const videoCount = img._count?.videos ?? 0;
@@ -82,12 +77,6 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                         <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-gray-900/60">
                                             <Icon name="Lock" size={14} className="text-gray-400" />
                                             <span className="text-[9px] text-gray-400 mt-0.5">{img.requiredLevel}단계</span>
-                                        </div>
-                                    )}
-                                    {/* 설명 오버레이 (hover 시) */}
-                                    {!isLocked && img.description && (
-                                        <div className="absolute bottom-0 left-0 right-0 rounded-b-lg bg-black/75 text-[8px] text-gray-200 px-1 py-0.5 truncate opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                            {img.description}
                                         </div>
                                     )}
                                 </button>
@@ -130,18 +119,12 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/85"
                     onClick={() => setPreviewImage(null)}
                 >
-                    <div className="relative" onClick={e => e.stopPropagation()}>
                     <img
                         src={previewImage.imageUrl}
                         alt={previewImage.description || ''}
-                        className="max-w-[92vw] max-h-[88vh] rounded-2xl object-contain shadow-2xl block"
+                        className="max-w-[92vw] max-h-[88vh] rounded-2xl object-contain shadow-2xl"
+                        onClick={e => e.stopPropagation()}
                     />
-                    {previewImage.description && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-sm text-gray-200 px-4 py-2.5 rounded-b-2xl text-center">
-                            {previewImage.description}
-                        </div>
-                    )}
-                </div>
                     <button
                         className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2"
                         onClick={() => setPreviewImage(null)}

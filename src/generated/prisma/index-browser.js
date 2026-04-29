@@ -128,7 +128,6 @@ exports.Prisma.UserScalarFieldEnum = {
   role: 'role',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
-  personaQuota: 'personaQuota',
   createdAt: 'createdAt'
 };
 
@@ -159,7 +158,6 @@ exports.Prisma.PersonaScalarFieldEnum = {
   imageUrl: 'imageUrl',
   isDefault: 'isDefault',
   isVisible: 'isVisible',
-  status: 'status',
   createdBy: 'createdBy',
   createdAt: 'createdAt'
 };
@@ -172,7 +170,6 @@ exports.Prisma.PersonaImageScalarFieldEnum = {
   isMain: 'isMain',
   order: 'order',
   requiredLevel: 'requiredLevel',
-  status: 'status',
   createdAt: 'createdAt'
 };
 
@@ -183,17 +180,7 @@ exports.Prisma.PersonaVideoScalarFieldEnum = {
   title: 'title',
   order: 'order',
   requiredLevel: 'requiredLevel',
-  status: 'status',
   createdAt: 'createdAt'
-};
-
-exports.Prisma.PersonaQuotaRequestScalarFieldEnum = {
-  id: 'id',
-  userId: 'userId',
-  status: 'status',
-  note: 'note',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.ChatSessionScalarFieldEnum = {
@@ -260,7 +247,6 @@ exports.Prisma.ModelName = {
   Persona: 'Persona',
   PersonaImage: 'PersonaImage',
   PersonaVideo: 'PersonaVideo',
-  PersonaQuotaRequest: 'PersonaQuotaRequest',
   ChatSession: 'ChatSession',
   Message: 'Message',
   ConversationSummary: 'ConversationSummary',

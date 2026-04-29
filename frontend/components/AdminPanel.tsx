@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Persona, PersonaImage, PersonaVideo, PersonaQuotaRequest } from '../types';
-import { personaApi, personaImageApi, personaVideoApi, settingsApi, knowledgeApi, quotaRequestApi } from '../services/apiService';
+import { Persona, PersonaImage, PersonaVideo } from '../types';
+import { personaImageApi, personaVideoApi, settingsApi, knowledgeApi } from '../services/apiService';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 
 interface AdminPanelProps {
     personas: Persona[];
-    onSave: (persona: Partial<Persona>) => Promise<Persona>;
+    onSave: (persona: Persona) => Promise<void>;
     onDelete: (id: string) => void;
     onClose: () => void;
     onImagesChanged?: (personaId: string) => void;
@@ -51,7 +51,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
-    const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'approvals'>('info');
+    const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge'>('info');
     const [showGlobalSettings, setShowGlobalSettings] = useState(false);
     const [commonInstruction, setCommonInstruction] = useState('');
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
@@ -84,10 +84,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [knowledgeTitle, setKnowledgeTitle] = useState('');
     const [knowledgeText, setKnowledgeText] = useState('');
     const [isUploadingKnowledge, setIsUploadingKnowledge] = useState(false);
-
-    // 승인대기 상태
-    const [quotaRequests, setQuotaRequests] = useState<PersonaQuotaRequest[]>([]);
-    const [approvalsLoaded, setApprovalsLoaded] = useState(false);
 
     // 동영상 상태
     const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
@@ -122,84 +118,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             knowledgeApi.getAll(selectedId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
         }
     }, [selectedId, personas]);
-
-    useEffect(() => {
-        if (activeTab === 'approvals' && !approvalsLoaded) {
-            quotaRequestApi.getAll().then(setQuotaRequests).catch(() => {});
-            setApprovalsLoaded(true);
-        }
-    }, [activeTab, approvalsLoaded]);
-
-    const handleApprovePersona = async (id: string) => {
-        try {
-            await personaApi.approve(id);
-            localStorage.removeItem('personas_cache');
-            alert('승인 완료');
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleRejectPersona = async (id: string) => {
-        const reason = prompt('거부 사유 (선택 사항)');
-        if (reason === null) return;
-        try {
-            await personaApi.reject(id);
-            alert('거부 처리 완료');
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleSuspendPersona = async (id: string) => {
-        if (!window.confirm('페르소나를 정지하시겠습니까? 모든 사용자에게 비공개 처리됩니다.')) return;
-        try {
-            await personaApi.suspend(id);
-            localStorage.removeItem('personas_cache');
-            alert('정지 완료');
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleUnsuspendPersona = async (id: string) => {
-        try {
-            await personaApi.unsuspend(id);
-            localStorage.removeItem('personas_cache');
-            alert('정지 해제 완료');
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleRestorePersona = async (id: string) => {
-        try {
-            await personaApi.restore(id);
-            localStorage.removeItem('personas_cache');
-            alert('복원 완료');
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleApproveImage = async (imageId: number) => {
-        try {
-            await personaImageApi.approveImage(selectedId, imageId);
-            setImages(prev => prev.map(img => img.id === imageId ? { ...img, status: 'approved' } : img));
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleApproveVideo = async (videoId: number) => {
-        try {
-            await personaVideoApi.update(videoId, { status: 'approved' });
-            setVideos(prev => prev.map(v => v.id === videoId ? { ...v, status: 'approved' } : v));
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleApproveQuota = async (id: number) => {
-        try {
-            const res = await quotaRequestApi.approve(id);
-            setQuotaRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
-            alert(`승인 완료 — 슬롯 ${res.personaQuota}개`);
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
-
-    const handleRejectQuota = async (id: number) => {
-        try {
-            await quotaRequestApi.reject(id);
-            setQuotaRequests(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
-        } catch (e: any) { alert('실패: ' + e.message); }
-    };
 
     const handleSaveGlobal = async () => {
         setIsSavingGlobal(true);
@@ -346,17 +264,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const handleSave = async () => {
         if (!name.trim() || !instruction.trim()) { alert('이름과 시스템 프롬프트를 입력해주세요.'); return; }
         const isNew = selectedId === 'new';
+        const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
         setIsSaving(true);
         try {
-            const data: Partial<Persona> = { name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible };
-            if (!isNew) data.id = selectedId;
-            const saved = await onSave(data);
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible });
             localStorage.removeItem('personas_cache');
-            if (isNew) setSelectedId(saved.id);
+            if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
-        } catch (e: any) {
-            alert(e.message || '저장에 실패했습니다.');
         } finally {
             setIsSaving(false);
         }
@@ -547,170 +462,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {!showGlobalSettings && <>
 
                     {/* 탭 바 */}
-                    <div className="border-b border-gray-800 px-6 flex shrink-0">
-                        {/* 승인대기 탭 — 항상 표시 */}
-                        <button
-                            onClick={() => setActiveTab('approvals')}
-                            className={`px-5 py-3.5 text-sm font-medium border-b-2 transition-all
-                                ${activeTab === 'approvals'
-                                    ? 'border-yellow-500 text-white'
-                                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
-                                }`}
-                        >
-                            승인 관리
-                            {personas.filter(p => p.status === 'pending').length + quotaRequests.filter(r => r.status === 'pending').length > 0 && (
-                                <span className="ml-2 bg-yellow-500 text-gray-900 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
-                                    {personas.filter(p => p.status === 'pending').length + quotaRequests.filter(r => r.status === 'pending').length}
-                                </span>
-                            )}
-                        </button>
-                        {selectedId !== 'new' && (['info', 'gallery', 'knowledge'] as const).map(tab => (
-                            <button
-                                key={tab}
-                                onClick={() => setActiveTab(tab)}
-                                className={`px-5 py-3.5 text-sm font-medium border-b-2 transition-all
-                                    ${activeTab === tab
-                                        ? 'border-blue-500 text-white'
-                                        : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
-                                    }`}
-                            >
-                                {tab === 'info' ? '기본 정보' : tab === 'gallery' ? '이미지 / 동영상' : '지식 창고'}
-                                {tab === 'gallery' && images.length > 0 && (
-                                    <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{images.length}</span>
-                                )}
-                                {tab === 'knowledge' && knowledgeList.length > 0 && (
-                                    <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{knowledgeList.length}</span>
-                                )}
-                            </button>
-                        ))}
-                    </div>
+                    {selectedId !== 'new' && (
+                        <div className="border-b border-gray-800 px-6 flex shrink-0">
+                            {(['info', 'gallery', 'knowledge'] as const).map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setActiveTab(tab)}
+                                    className={`px-5 py-3.5 text-sm font-medium border-b-2 transition-all
+                                        ${activeTab === tab
+                                            ? 'border-blue-500 text-white'
+                                            : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
+                                        }`}
+                                >
+                                    {tab === 'info' ? '기본 정보' : tab === 'gallery' ? '이미지 / 동영상' : '지식 창고'}
+                                    {tab === 'gallery' && images.length > 0 && (
+                                        <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{images.length}</span>
+                                    )}
+                                    {tab === 'knowledge' && knowledgeList.length > 0 && (
+                                        <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{knowledgeList.length}</span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
                     {/* 콘텐츠 영역 */}
                     <div className="flex-1 overflow-y-auto">
-
-                        {/* ── 승인 관리 탭 ── */}
-                        {activeTab === 'approvals' && (
-                            <div className="p-6 space-y-8 max-w-3xl mx-auto">
-
-                                {/* 페르소나 승인 */}
-                                <div>
-                                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                        <Icon name="Bot" size={15} className="text-yellow-400" />
-                                        페르소나 승인 대기
-                                        {personas.filter(p => p.status === 'pending').length > 0 && (
-                                            <span className="bg-yellow-500/20 text-yellow-400 text-[10px] px-2 py-0.5 rounded-full">
-                                                {personas.filter(p => p.status === 'pending').length}건
-                                            </span>
-                                        )}
-                                    </h3>
-                                    {personas.filter(p => p.status === 'pending').length === 0 ? (
-                                        <p className="text-sm text-gray-600">대기 중인 페르소나가 없습니다.</p>
-                                    ) : personas.filter(p => p.status === 'pending').map(p => (
-                                        <div key={p.id} className="bg-gray-800/50 border border-yellow-600/30 rounded-xl p-4 mb-3 flex items-center gap-4">
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <p className="text-sm font-semibold text-white">{p.name}</p>
-                                                    {p.jobTitle && <p className="text-xs text-gray-400">{p.jobTitle}</p>}
-                                                </div>
-                                                <p className="text-xs text-gray-500 line-clamp-1">{p.description || p.systemInstruction.slice(0, 60)}</p>
-                                                <p className="text-[10px] text-gray-600 mt-0.5">{p.createdAt ? new Date(p.createdAt).toLocaleDateString('ko-KR') : ''}</p>
-                                            </div>
-                                            <div className="flex gap-2 shrink-0">
-                                                <button onClick={() => handleApprovePersona(p.id)}
-                                                    className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
-                                                    승인
-                                                </button>
-                                                <button onClick={() => handleRejectPersona(p.id)}
-                                                    className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
-                                                    거부
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* 정지/아카이브된 페르소나 */}
-                                {personas.filter(p => p.status === 'suspended' || p.status === 'archived').length > 0 && (
-                                    <div>
-                                        <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                            <Icon name="Lock" size={15} className="text-red-400" />
-                                            정지 / 아카이브
-                                        </h3>
-                                        {personas.filter(p => p.status === 'suspended' || p.status === 'archived').map(p => (
-                                            <div key={p.id} className="bg-gray-800/50 border border-gray-700 rounded-xl p-4 mb-3 flex items-center gap-4">
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-0.5">
-                                                        <p className="text-sm font-semibold text-white">{p.name}</p>
-                                                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${p.status === 'suspended' ? 'bg-red-500/20 text-red-400' : 'bg-gray-600/50 text-gray-400'}`}>
-                                                            {p.status === 'suspended' ? '정지' : '아카이브'}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-xs text-gray-500 line-clamp-1">{p.description || ''}</p>
-                                                </div>
-                                                <div className="flex gap-2 shrink-0">
-                                                    {p.status === 'suspended' && (
-                                                        <button onClick={() => handleUnsuspendPersona(p.id)}
-                                                            className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
-                                                            정지 해제
-                                                        </button>
-                                                    )}
-                                                    {p.status === 'archived' && (
-                                                        <button onClick={() => handleRestorePersona(p.id)}
-                                                            className="bg-gray-600 hover:bg-gray-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
-                                                            복원
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {/* 슬롯 요청 */}
-                                <div>
-                                    <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                                        <Icon name="Plus" size={15} className="text-blue-400" />
-                                        슬롯 추가 요청
-                                        {quotaRequests.filter(r => r.status === 'pending').length > 0 && (
-                                            <span className="bg-blue-500/20 text-blue-400 text-[10px] px-2 py-0.5 rounded-full">
-                                                {quotaRequests.filter(r => r.status === 'pending').length}건
-                                            </span>
-                                        )}
-                                    </h3>
-                                    {quotaRequests.length === 0 ? (
-                                        <p className="text-sm text-gray-600">슬롯 요청이 없습니다.</p>
-                                    ) : quotaRequests.map(r => (
-                                        <div key={r.id} className={`bg-gray-800/50 border rounded-xl p-4 mb-3 flex items-center gap-4 ${r.status === 'pending' ? 'border-blue-600/30' : 'border-gray-700'}`}>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center gap-2 mb-0.5">
-                                                    <p className="text-sm font-semibold text-white">{r.user?.username || r.user?.email}</p>
-                                                    <span className="text-[10px] text-gray-500">현재 {r.user?.personaQuota ?? '?'}개 슬롯</span>
-                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                                                        r.status === 'pending' ? 'bg-yellow-500/20 text-yellow-400' :
-                                                        r.status === 'approved' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                        'bg-red-500/20 text-red-400'
-                                                    }`}>{r.status === 'pending' ? '대기' : r.status === 'approved' ? '승인' : '거부'}</span>
-                                                </div>
-                                                {r.note && <p className="text-xs text-gray-400">"{r.note}"</p>}
-                                                <p className="text-[10px] text-gray-600">{new Date(r.createdAt).toLocaleDateString('ko-KR')}</p>
-                                            </div>
-                                            {r.status === 'pending' && (
-                                                <div className="flex gap-2 shrink-0">
-                                                    <button onClick={() => handleApproveQuota(r.id)}
-                                                        className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
-                                                        승인
-                                                    </button>
-                                                    <button onClick={() => handleRejectQuota(r.id)}
-                                                        className="bg-red-600/80 hover:bg-red-600 text-white text-xs px-3 py-1.5 rounded-lg transition-colors">
-                                                        거부
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         {/* ── 기본 정보 탭 ── */}
                         {(activeTab === 'info' || selectedId === 'new') && (
@@ -921,25 +698,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                     <div key={img.id} onClick={() => handleSelectImage(img.id)}
                                                         className={`relative group rounded-xl overflow-hidden border-2 cursor-pointer transition-all ${
                                                             selectedImageId === img.id ? 'border-blue-400 ring-2 ring-blue-400/30'
-                                                            : img.status === 'draft' ? 'border-gray-600'
-                                                            : img.status === 'pending' ? 'border-yellow-500'
                                                             : img.isMain ? 'border-yellow-400' : 'border-gray-700 hover:border-gray-500'
                                                         }`}>
-                                                        <img src={img.imageUrl} alt={img.description || ''} className={`w-full aspect-square object-cover ${img.status !== 'approved' ? 'opacity-60' : ''}`} />
-                                                        {img.isMain && img.status === 'approved' && (
+                                                        <img src={img.imageUrl} alt={img.description || ''} className="w-full aspect-square object-cover" />
+                                                        {img.isMain && (
                                                             <span className="absolute top-1 left-1 bg-yellow-400 text-gray-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full">대표</span>
-                                                        )}
-                                                        {img.status === 'draft' && (
-                                                            <span className="absolute top-1 left-1 bg-gray-500 text-gray-100 text-[9px] font-bold px-1.5 py-0.5 rounded-full">작성 중</span>
-                                                        )}
-                                                        {img.status === 'pending' && (
-                                                            <span className="absolute top-1 left-1 bg-yellow-500 text-gray-900 text-[9px] font-bold px-1.5 py-0.5 rounded-full">검토 중</span>
-                                                        )}
-                                                        {img.status === 'pending' && (
-                                                            <button onClick={e => { e.stopPropagation(); handleApproveImage(img.id); }}
-                                                                className="absolute bottom-1 left-1 right-1 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold px-1 py-0.5 rounded-lg text-center transition-colors">
-                                                                승인
-                                                            </button>
                                                         )}
                                                         {selectedImageId === img.id && (
                                                             <span className="absolute top-1 right-1 bg-blue-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">선택</span>
@@ -965,7 +728,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                             </div>
                                                         </div>
                                                         {img.description && (
-                                                            <div className="absolute bottom-0 left-0 right-0 z-10 bg-black/75 text-[9px] text-gray-200 px-1.5 py-1 truncate pointer-events-none">
+                                                            <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-[9px] text-gray-300 px-1.5 py-1 truncate">
                                                                 {img.description}
                                                             </div>
                                                         )}
@@ -1036,34 +799,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                     {videos.length === 0 ? (
                                                         <p className="text-[11px] text-gray-600 text-center py-3">동영상 없음</p>
                                                     ) : videos.map(v => (
-                                                        <div key={v.id} className={`flex flex-col rounded-xl px-2.5 py-2 gap-1.5 group ${
-                                                            v.status === 'draft' ? 'bg-gray-700/40 border border-gray-600/60'
-                                                            : v.status === 'pending' ? 'bg-yellow-900/20 border border-yellow-600/30'
-                                                            : 'bg-gray-700/60'
-                                                        }`}>
+                                                        <div key={v.id} className="flex flex-col bg-gray-700/60 rounded-xl px-2.5 py-2 gap-1.5 group">
                                                             <div className="flex items-center gap-1.5">
                                                                 <button
                                                                     onClick={() => setPlayingVideo({ url: v.videoUrl, title: v.title || v.videoUrl.split('/').pop() })}
                                                                     className="flex items-center gap-1.5 flex-1 min-w-0 hover:text-blue-300 transition-colors text-left"
                                                                 >
-                                                                    <Icon name="Play" size={11} className={v.status === 'draft' ? 'text-gray-400' : v.status === 'pending' ? 'text-yellow-400' : 'text-blue-400'} />
+                                                                    <Icon name="Play" size={11} className="text-blue-400 shrink-0" />
                                                                     <span className="text-[11px] text-gray-300 flex-1 truncate" title={v.title || v.videoUrl}>
                                                                         {v.title || v.videoUrl.split('/').pop()}
                                                                     </span>
-                                                                    {v.status === 'draft' && <span className="text-[9px] bg-gray-500 text-gray-100 px-1 py-0.5 rounded font-bold shrink-0">작성중</span>}
-                                                                    {v.status === 'pending' && <span className="text-[9px] bg-yellow-500 text-gray-900 px-1 py-0.5 rounded font-bold shrink-0">검토중</span>}
                                                                 </button>
                                                                 <button onClick={() => handleDeleteVideo(v.id)}
                                                                     className="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all shrink-0">
                                                                     <Icon name="X" size={11} />
                                                                 </button>
                                                             </div>
-                                                            {v.status === 'pending' && (
-                                                                <button onClick={() => handleApproveVideo(v.id)}
-                                                                    className="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold py-0.5 rounded-lg transition-colors">
-                                                                    동영상 승인
-                                                                </button>
-                                                            )}
                                                             <select value={v.requiredLevel ?? 1}
                                                                 onChange={async e => {
                                                                     const lv = Number(e.target.value);

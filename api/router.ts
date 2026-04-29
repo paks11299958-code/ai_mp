@@ -30,35 +30,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const seg1 = req.query.s1 as string | undefined;
     const seg2 = req.query.s2 as string | undefined;
 
-    // ── Shared Auth Helpers ───────────────────────────────────
-    type AuthInfo = { userId: number; role: string; personaQuota: number };
-
-    const getAuthInfo = async (): Promise<AuthInfo | null> => {
-        const token = getTokenFromRequest(req);
-        if (!token) return null;
-        try {
-            const { userId } = verifyToken(token);
-            const user = await prisma.user.findUnique({
-                where: { id: userId },
-                select: { id: true, role: true, personaQuota: true },
-            });
-            return user ? { userId: user.id, role: user.role, personaQuota: user.personaQuota } : null;
-        } catch { return null; }
-    };
-
-    const requireAuth = async (): Promise<AuthInfo | null> => {
-        const info = await getAuthInfo();
-        if (!info) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
-        return info;
-    };
-
-    const requireAdmin = async (): Promise<number | null> => {
-        const info = await getAuthInfo();
-        if (!info) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
-        if (info.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
-        return info.userId;
-    };
-
     // ── Auth ──────────────────────────────────────────────────
 
     if (domain === 'auth') {
@@ -78,7 +49,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const token = signToken(user.id);
                 res.setHeader('Set-Cookie', setTokenCookie(token));
                 const personaXp = Object.fromEntries(user.personaXps.map(p => [p.personaId, p.xp]));
-                return res.status(200).json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaQuota: user.personaQuota, personaXp }, token });
+                return res.status(200).json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaXp }, token });
             } catch (e: any) {
                 console.error('[login]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -95,7 +66,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const hashed = await bcrypt.hash(password, 10);
                 const user = await prisma.user.create({
                     data: { email, password: hashed, username },
-                    select: { id: true, email: true, username: true, role: true, personaQuota: true },
+                    select: { id: true, email: true, username: true, role: true },
                 });
                 const token = signToken(user.id);
                 res.setHeader('Set-Cookie', setTokenCookie(token));
@@ -124,7 +95,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 });
                 if (!user) return res.status(404).json({ error: '사용자를 찾을 수 없습니다.' });
                 const personaXp = Object.fromEntries(user.personaXps.map(p => [p.personaId, p.xp]));
-                return res.status(200).json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaQuota: user.personaQuota, personaXp } });
+                return res.status(200).json({ user: { id: user.id, email: user.email, username: user.username, role: user.role, personaXp } });
             } catch {
                 return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
             }
@@ -208,14 +179,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Personas ──────────────────────────────────────────────
 
     if (domain === 'personas') {
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user || user.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
 
-        // GET /api/personas → approved+visible (public)
+        // GET /api/personas (public)
         if (!seg1 && req.method === 'GET') {
             try {
-                const personas = await prisma.persona.findMany({
-                    where: { status: 'approved', isVisible: true },
-                    orderBy: { order: 'asc' },
-                });
+                const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
                 return res.status(200).json(personas);
             } catch (e: any) {
                 console.error('[personas GET]', e);
@@ -223,64 +199,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // GET /api/personas/mine → user's own personas (any status)
-        if (seg1 === 'mine' && req.method === 'GET') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const personas = await prisma.persona.findMany({
-                    where: { createdBy: auth.userId },
-                    orderBy: { createdAt: 'desc' },
-                });
-                return res.status(200).json(personas);
-            } catch (e: any) {
-                console.error('[personas/mine GET]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // GET /api/personas/all → admin: all personas
-        if (seg1 === 'all' && req.method === 'GET') {
+        // POST /api/personas
+        if (!seg1 && req.method === 'POST') {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const personas = await prisma.persona.findMany({
-                    orderBy: { order: 'asc' },
-                    include: { user: { select: { id: true, username: true, email: true } } },
-                });
-                return res.status(200).json(personas);
-            } catch (e: any) {
-                console.error('[personas/all GET]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // POST /api/personas → create (admin: approved, user: pending with quota check)
-        if (!seg1 && req.method === 'POST') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
                 const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, order } = req.body;
                 if (!name || !systemInstruction) return res.status(400).json({ error: '이름과 시스템 프롬프트는 필수입니다.' });
-
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const existingCount = await prisma.persona.count({
-                        where: { createdBy: auth.userId, status: { not: 'archived' } },
-                    });
-                    if (existingCount >= auth.personaQuota) {
-                        return res.status(400).json({ error: `페르소나 슬롯이 부족합니다. (${existingCount}/${auth.personaQuota})` });
-                    }
-                }
-
                 const count = await prisma.persona.count();
                 const persona = await prisma.persona.create({
-                    data: {
-                        name, jobTitle: jobTitle || null, description, systemInstruction,
-                        iconName: iconName || 'Bot', colorClass: colorClass || 'from-blue-500 to-cyan-500',
-                        imageUrl, order: order ?? count, isDefault: false,
-                        createdBy: auth.userId, status: isAdmin ? 'approved' : 'pending',
-                    },
+                    data: { name, jobTitle: jobTitle || null, description, systemInstruction, iconName: iconName || 'Bot', colorClass: colorClass || 'from-blue-500 to-cyan-500', imageUrl, order: order ?? count, isDefault: false, createdBy: userId },
                 });
                 return res.status(201).json(persona);
             } catch (e: any) {
@@ -289,131 +217,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/personas/:id/approve|reject|suspend|unsuspend|archive|restore
-        const STATUS_ACTIONS = ['approve', 'reject', 'suspend', 'unsuspend', 'archive', 'restore'];
-        if (seg1 && seg2 && STATUS_ACTIONS.includes(seg2) && req.method === 'POST') {
+        // PUT /api/personas/:id
+        if (seg1 && req.method === 'PUT') {
             try {
-                const auth = await getAuthInfo();
-                if (!auth) return res.status(401).json({ error: '인증이 필요합니다.' });
-
-                const persona = await prisma.persona.findUnique({ where: { id: seg1 } });
-                if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-
-                const isAdmin = auth.role === 'ADMIN';
-                const isOwner = auth.userId === persona.createdBy;
-
-                let newStatus: string;
-                const extraData: Record<string, any> = {};
-
-                if (seg2 === 'approve') {
-                    if (!isAdmin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-                    newStatus = 'approved';
-                } else if (seg2 === 'reject') {
-                    if (!isAdmin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-                    newStatus = 'rejected';
-                } else if (seg2 === 'suspend') {
-                    if (!isAdmin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-                    newStatus = 'suspended';
-                    extraData.isVisible = false;
-                } else if (seg2 === 'unsuspend') {
-                    if (!isAdmin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-                    newStatus = 'approved';
-                    extraData.isVisible = true;
-                } else if (seg2 === 'archive') {
-                    if (!isAdmin && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
-                    newStatus = 'archived';
-                } else { // restore
-                    if (!isAdmin) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-                    newStatus = 'approved';
-                }
-
-                const updated = await prisma.persona.update({
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, order, isVisible } = req.body;
+                const persona = await prisma.persona.update({
                     where: { id: seg1 },
-                    data: { status: newStatus, ...extraData },
+                    data: { name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass, imageUrl, order, ...(isVisible !== undefined && { isVisible }) },
                 });
-                return res.status(200).json(updated);
-            } catch (e: any) {
-                console.error(`[personas/${seg2}]`, e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // PUT /api/personas/:id (admin any; owner only if pending/rejected)
-        if (seg1 && !seg2 && req.method === 'PUT') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
-
-                const persona = await prisma.persona.findUnique({ where: { id: seg1 } });
-                if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-
-                const isAdmin = auth.role === 'ADMIN';
-                const isOwner = auth.userId === persona.createdBy;
-
-                if (!isAdmin && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
-
-                const { name, jobTitle, description, systemInstruction, identityPrompt, iconName, colorClass, imageUrl, order, isVisible } = req.body;
-                const data: Record<string, any> = {};
-                if (name !== undefined) data.name = name;
-                if (jobTitle !== undefined) data.jobTitle = jobTitle ?? null;
-                if (description !== undefined) data.description = description;
-                if (systemInstruction !== undefined) data.systemInstruction = systemInstruction;
-                if (identityPrompt !== undefined) data.identityPrompt = identityPrompt ?? null;
-                if (iconName !== undefined) data.iconName = iconName;
-                if (colorClass !== undefined) data.colorClass = colorClass;
-                if (imageUrl !== undefined) data.imageUrl = imageUrl;
-                if (order !== undefined) data.order = order;
-                if (isVisible !== undefined && isAdmin) data.isVisible = isVisible;
-
-                // 소유자가 핵심 콘텐츠 필드를 수정하면 재심사(pending)로 되돌림
-                const contentChanged = systemInstruction !== undefined || identityPrompt !== undefined;
-                if (!isAdmin && isOwner && persona.status === 'approved' && contentChanged) {
-                    data.status = 'pending';
-                }
-
-                const updated = await prisma.persona.update({ where: { id: seg1 }, data });
-                return res.status(200).json(updated);
+                return res.status(200).json(persona);
             } catch (e: any) {
                 console.error('[personas PUT]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }
 
-        // DELETE /api/personas/:id → archive (admin or owner)
+        // DELETE /api/personas/:id
         if (seg1 && !seg2 && req.method === 'DELETE') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-
+                const userId = await requireAdmin();
+                if (!userId) return;
                 const persona = await prisma.persona.findUnique({ where: { id: seg1 } });
                 if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-
-                const isAdmin = auth.role === 'ADMIN';
-                const isOwner = auth.userId === persona.createdBy;
-                if (!isAdmin && !isOwner) return res.status(403).json({ error: '권한이 없습니다.' });
-
-                await prisma.persona.update({ where: { id: seg1 }, data: { status: 'archived' } });
-                return res.status(200).json({ message: '아카이브 완료' });
+                if (persona.isDefault) return res.status(400).json({ error: '기본 페르소나는 삭제할 수 없습니다.' });
+                await prisma.persona.delete({ where: { id: seg1 } });
+                return res.status(200).json({ message: '삭제 완료' });
             } catch (e: any) {
                 console.error('[personas DELETE]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }
 
-        // GET /api/personas/:id/images (admin/owner: all; others: approved only)
+        // GET /api/personas/:id/images
         if (seg1 && seg2 === 'images' && req.method === 'GET') {
             try {
-                const authInfo = await getAuthInfo();
-                const isAdmin = authInfo?.role === 'ADMIN';
-                let isOwner = false;
-                if (authInfo && !isAdmin) {
-                    const p = await prisma.persona.findUnique({ where: { id: seg1 }, select: { createdBy: true } });
-                    isOwner = p?.createdBy === authInfo.userId;
-                }
-                const where: any = { personaId: seg1 };
-                if (!isAdmin && !isOwner) where.status = 'approved';
                 const images = await prisma.personaImage.findMany({
-                    where,
+                    where: { personaId: seg1 },
                     orderBy: [{ isMain: 'desc' }, { order: 'asc' }, { createdAt: 'asc' }],
                     include: { _count: { select: { videos: true } } },
                 });
@@ -424,16 +265,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/personas/:id/images/signed-url (admin or owner)
+        // POST /api/personas/:id/images/signed-url
         if (seg1 && seg2 === 'images' && req.query.action === 'signed-url' && req.method === 'POST') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const p = await prisma.persona.findUnique({ where: { id: seg1 }, select: { createdBy: true } });
-                    if (p?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
+                const userId = await requireAdmin();
+                if (!userId) return;
                 const { mimeType, filename } = req.body;
                 if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
                 const ext = mimeType.split('/')[1] || 'jpg';
@@ -446,48 +282,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/personas/:id/submit-review (owner submits all draft → pending)
-        if (seg1 && seg2 === 'submit-review' && req.method === 'POST') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                const persona = await prisma.persona.findUnique({ where: { id: seg1 } });
-                if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
-                if (!isAdmin && persona.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-
-                const allImages = await prisma.personaImage.findMany({ where: { personaId: seg1 }, select: { id: true } });
-                const allImageIds = allImages.map((img: { id: number }) => img.id);
-
-                const { count: imgCount } = await prisma.personaImage.updateMany({
-                    where: { personaId: seg1, status: 'draft' },
-                    data: { status: 'pending' },
-                });
-                const { count: vidCount } = await prisma.personaVideo.updateMany({
-                    where: { imageId: { in: allImageIds }, status: 'draft' },
-                    data: { status: 'pending' },
-                });
-                return res.status(200).json({ imageCount: imgCount, videoCount: vidCount });
-            } catch (e: any) {
-                console.error('[submit-review POST]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // POST /api/personas/:id/images (admin: approved; owner: draft)
+        // POST /api/personas/:id/images
         if (seg1 && seg2 === 'images' && req.method === 'POST') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const p = await prisma.persona.findUnique({ where: { id: seg1 }, select: { createdBy: true } });
-                    if (p?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
+                const userId = await requireAdmin();
+                if (!userId) return;
                 const { imageUrl, description, isMain } = req.body;
                 if (!imageUrl) return res.status(400).json({ error: 'imageUrl은 필수입니다.' });
 
                 let finalUrl = imageUrl;
+                // base64 이미지이면 GCS에 업로드
                 if (imageUrl.startsWith('data:')) {
                     const mimeType = imageUrl.split(';')[0].split(':')[1] || 'image/jpeg';
                     const ext = mimeType.split('/')[1] || 'jpg';
@@ -502,11 +306,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 }
                 const count = await prisma.personaImage.count({ where: { personaId: seg1 } });
                 const image = await prisma.personaImage.create({
-                    data: {
-                        personaId: seg1, imageUrl: finalUrl, description,
-                        isMain: isMain ?? count === 0, order: count,
-                        status: isAdmin ? 'approved' : 'draft',
-                    },
+                    data: { personaId: seg1, imageUrl: finalUrl, description, isMain: isMain ?? count === 0, order: count },
                 });
                 return res.status(201).json(image);
             } catch (e: any) {
@@ -515,29 +315,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // PUT /api/personas/:id/images (admin: can set status; owner: cannot)
+        // PUT /api/personas/:id/images  (body: { imageId, isMain?, description? })
         if (seg1 && seg2 === 'images' && req.method === 'PUT') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const p = await prisma.persona.findUnique({ where: { id: seg1 }, select: { createdBy: true } });
-                    if (p?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
-                const { imageId, isMain, description, requiredLevel, order, status } = req.body;
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { imageId, isMain, description, requiredLevel, order } = req.body;
                 if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
                 if (isMain) {
                     await prisma.personaImage.updateMany({ where: { personaId: seg1 }, data: { isMain: false } });
                 }
-                const updateData: Record<string, any> = {};
-                if (isMain !== undefined) updateData.isMain = isMain;
-                if (description !== undefined) updateData.description = description;
-                if (requiredLevel !== undefined) updateData.requiredLevel = Number(requiredLevel);
-                if (order !== undefined) updateData.order = Number(order);
-                if (status !== undefined && isAdmin) updateData.status = status;
-
-                const image = await prisma.personaImage.update({ where: { id: Number(imageId) }, data: updateData });
+                const image = await prisma.personaImage.update({
+                    where: { id: Number(imageId) },
+                    data: {
+                        ...(isMain !== undefined && { isMain }),
+                        ...(description !== undefined && { description }),
+                        ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
+                        ...(order !== undefined && { order: Number(order) }),
+                    },
+                });
                 return res.status(200).json(image);
             } catch (e: any) {
                 console.error('[persona images PUT]', e);
@@ -545,22 +341,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // DELETE /api/personas/:id/images (admin or owner)
+        // DELETE /api/personas/:id/images  (body: { imageId })
         if (seg1 && seg2 === 'images' && req.method === 'DELETE') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const p = await prisma.persona.findUnique({ where: { id: seg1 }, select: { createdBy: true } });
-                    if (p?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
+                const userId = await requireAdmin();
+                if (!userId) return;
                 const { imageId } = req.body;
                 if (!imageId) return res.status(400).json({ error: 'imageId는 필수입니다.' });
                 const deleted = await prisma.personaImage.delete({ where: { id: Number(imageId) } });
+                // GCS 파일 삭제
                 await deleteFromGCS(deleted.imageUrl);
+                // 삭제된 이미지가 대표였으면 첫 번째 이미지를 대표로 설정
                 if (deleted.isMain) {
-                    const first = await prisma.personaImage.findFirst({ where: { personaId: seg1 }, orderBy: { order: 'asc' } });
+                    const first = await prisma.personaImage.findFirst({
+                        where: { personaId: seg1 },
+                        orderBy: { order: 'asc' },
+                    });
                     if (first) await prisma.personaImage.update({ where: { id: first.id }, data: { isMain: true } });
                 }
                 return res.status(200).json({ message: '삭제 완료' });
@@ -723,6 +519,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     update: { summary: summaryText, messageCount: messages.length, updatedAt: new Date() },
                     create: { sessionId, summary: summaryText, messageCount: messages.length },
                 });
+                // 요약에서 기억 추출
                 const memories = await extractMemories(summaryText, '');
                 for (const content of memories) {
                     const embedding = await generateEmbedding(content);
@@ -750,6 +547,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (!role || !text) return res.status(400).json({ error: 'role과 text는 필수입니다.' });
                 const message = await prisma.message.create({ data: { sessionId, role, text } });
                 await prisma.chatSession.update({ where: { id: sessionId }, data: { updatedAt: new Date() } });
+                // 사용자 메시지 1개 = 해당 페르소나 1 XP
                 let updatedXp: number | undefined;
                 if (role === 'user') {
                     const upserted = await prisma.userPersonaXp.upsert({
@@ -779,7 +577,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
         }
 
-        // POST /api/memory
+        // POST /api/memory — 기억 저장 (임베딩 생성 후 저장)
         if (req.method === 'POST' && !seg1) {
             try {
                 const { content, category } = req.body;
@@ -799,7 +597,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // GET /api/memory
+        // GET /api/memory — 전체 기억 조회
         if (req.method === 'GET' && !seg1) {
             try {
                 const memories = await prisma.$queryRawUnsafe<any[]>(
@@ -815,7 +613,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/memory/search
+        // POST /api/memory/search — 유사도 검색
         if (req.method === 'POST' && seg1 === 'search') {
             try {
                 const { query } = req.body;
@@ -856,25 +654,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // ── Persona Videos ────────────────────────────────────────
+    // GET    /api/persona-videos/:imageId  → 이미지에 연결된 동영상 목록
+    // POST   /api/persona-videos           → 동영상 추가 (body: { imageId, videoUrl, title })
+    // PUT    /api/persona-videos/:videoId  → 동영상 수정 (body: { title, order })
+    // DELETE /api/persona-videos/:videoId  → 동영상 삭제
 
     if (domain === 'persona-videos') {
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user || user.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
 
-        // GET /api/persona-videos/:imageId (admin/owner: all; others: approved only)
+        // GET /api/persona-videos/:imageId
         if (seg1 && req.method === 'GET') {
             try {
-                const authInfo = await getAuthInfo();
-                const isAdmin = authInfo?.role === 'ADMIN';
-                const where: any = { imageId: Number(seg1) };
-                if (!isAdmin) {
-                    const isOwner = authInfo?.userId
-                        ? !!(await prisma.personaImage.findFirst({
-                            where: { id: Number(seg1), persona: { createdBy: authInfo.userId } },
-                          }))
-                        : false;
-                    if (!isOwner) where.status = 'approved';
-                }
                 const videos = await prisma.personaVideo.findMany({
-                    where,
+                    where: { imageId: Number(seg1) },
                     orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
                 });
                 return res.status(200).json(videos);
@@ -884,21 +683,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/persona-videos/signed-url (admin or owner)
+        // POST /api/persona-videos/signed-url
         if (seg1 === 'signed-url' && req.method === 'POST') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const { imageId } = req.body;
-                    if (!imageId) return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-                    const image = await prisma.personaImage.findUnique({
-                        where: { id: Number(imageId) },
-                        include: { persona: { select: { createdBy: true } } },
-                    });
-                    if (image?.persona?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
+                const token = getTokenFromRequest(req);
+                if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
+                const { userId } = verifyToken(token);
+                const user = await prisma.user.findUnique({ where: { id: userId } });
+                if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
                 const { mimeType, filename } = req.body;
                 if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
                 const ext = mimeType.split('/')[1] || 'mp4';
@@ -911,24 +703,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/persona-videos (admin: approved; owner: draft)
+        // POST /api/persona-videos
         if (!seg1 && req.method === 'POST') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
+                const userId = await requireAdmin();
+                if (!userId) return;
                 const { imageId, videoUrl, videoBase64, mimeType, title } = req.body;
                 if (!imageId || (!videoUrl && !videoBase64)) return res.status(400).json({ error: 'imageId와 videoUrl 또는 videoBase64는 필수입니다.' });
 
-                if (!isAdmin) {
-                    const image = await prisma.personaImage.findUnique({
-                        where: { id: Number(imageId) },
-                        include: { persona: { select: { createdBy: true } } },
-                    });
-                    if (image?.persona?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
-
                 let finalUrl = videoUrl || '';
+                // base64 동영상이면 GCS에 업로드
                 if (videoBase64) {
                     const type = mimeType || 'video/mp4';
                     const ext = type.split('/')[1] || 'mp4';
@@ -939,10 +723,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
                 const count = await prisma.personaVideo.count({ where: { imageId: Number(imageId) } });
                 const video = await prisma.personaVideo.create({
-                    data: {
-                        imageId: Number(imageId), videoUrl: finalUrl, title: title || null, order: count,
-                        status: isAdmin ? 'approved' : 'draft',
-                    },
+                    data: { imageId: Number(imageId), videoUrl: finalUrl, title: title || null, order: count },
                 });
                 return res.status(201).json(video);
             } catch (e: any) {
@@ -951,27 +732,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // PUT /api/persona-videos/:videoId (admin: full; owner: title/order/requiredLevel only)
+        // PUT /api/persona-videos/:videoId
         if (seg1 && req.method === 'PUT') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const video = await prisma.personaVideo.findUnique({
-                        where: { id: Number(seg1) },
-                        include: { image: { include: { persona: { select: { createdBy: true } } } } },
-                    });
-                    if (video?.image?.persona?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
-                const { title, order, requiredLevel, status } = req.body;
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { title, order, requiredLevel } = req.body;
                 const video = await prisma.personaVideo.update({
                     where: { id: Number(seg1) },
                     data: {
                         ...(title !== undefined && { title }),
                         ...(order !== undefined && { order }),
                         ...(requiredLevel !== undefined && { requiredLevel: Number(requiredLevel) }),
-                        ...(status !== undefined && isAdmin && { status }),
                     },
                 });
                 return res.status(200).json(video);
@@ -981,19 +753,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // DELETE /api/persona-videos/:videoId (admin or owner)
+        // DELETE /api/persona-videos/:videoId
         if (seg1 && req.method === 'DELETE') {
             try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const isAdmin = auth.role === 'ADMIN';
-                if (!isAdmin) {
-                    const video = await prisma.personaVideo.findUnique({
-                        where: { id: Number(seg1) },
-                        include: { image: { include: { persona: { select: { createdBy: true } } } } },
-                    });
-                    if (video?.image?.persona?.createdBy !== auth.userId) return res.status(403).json({ error: '권한이 없습니다.' });
-                }
+                const userId = await requireAdmin();
+                if (!userId) return;
                 const deleted = await prisma.personaVideo.delete({ where: { id: Number(seg1) } });
                 await deleteFromGCS(deleted.videoUrl);
                 return res.status(200).json({ message: '삭제 완료' });
@@ -1007,7 +771,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // ── Knowledge ─────────────────────────────────────────────
     if (domain === 'knowledge') {
 
-        // POST /api/knowledge
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user || user.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
+
+        // POST /api/knowledge — 텍스트 업로드 → 청크 분할 → 임베딩 → 저장
         if (req.method === 'POST' && !seg1) {
             try {
                 const userId = await requireAdmin();
@@ -1034,7 +807,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // GET /api/knowledge/:personaId
+        // GET /api/knowledge/:personaId — 문서 단위 목록 (sourceId 기준 그룹)
         if (req.method === 'GET' && seg1) {
             try {
                 const token = getTokenFromRequest(req);
@@ -1060,7 +833,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // DELETE /api/knowledge/source/:sourceId
+        // DELETE /api/knowledge/source/:sourceId — 문서 단위 전체 삭제
         if (req.method === 'DELETE' && seg1 === 'source' && seg2) {
             try {
                 const userId = await requireAdmin();
@@ -1073,7 +846,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // DELETE /api/knowledge/:id
+        // DELETE /api/knowledge/:id — 청크 단건 삭제 (하위 호환)
         if (req.method === 'DELETE' && seg1) {
             try {
                 const userId = await requireAdmin();
@@ -1086,7 +859,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/knowledge/search
+        // POST /api/knowledge/search — 채팅 시 관련 지식 검색
         if (req.method === 'POST' && seg1 === 'search') {
             try {
                 const token = getTokenFromRequest(req);
@@ -1110,114 +883,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json(results);
             } catch (e: any) {
                 console.error('[knowledge search]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-    }
-
-    // ── Quota Requests ────────────────────────────────────────
-
-    if (domain === 'quota-requests') {
-
-        // GET /api/quota-requests/dashboard (user's persona XP summary)
-        if (seg1 === 'dashboard' && req.method === 'GET') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const personas = await prisma.persona.findMany({
-                    where: { createdBy: auth.userId },
-                    include: {
-                        personaXps: { select: { xp: true } },
-                        _count: { select: { sessions: true } },
-                    },
-                    orderBy: { createdAt: 'desc' },
-                });
-                const dashboard = personas.map(p => ({
-                    id: p.id, name: p.name, status: p.status, createdAt: p.createdAt,
-                    totalXp: p.personaXps.reduce((s: number, x: any) => s + x.xp, 0),
-                    totalUsers: p.personaXps.length,
-                    totalSessions: p._count.sessions,
-                }));
-                return res.status(200).json(dashboard);
-            } catch (e: any) {
-                console.error('[quota-requests dashboard]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // GET /api/quota-requests (admin: all; user: own)
-        if (!seg1 && req.method === 'GET') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                if (auth.role === 'ADMIN') {
-                    const requests = await prisma.personaQuotaRequest.findMany({
-                        include: { user: { select: { id: true, username: true, email: true, personaQuota: true } } },
-                        orderBy: { createdAt: 'desc' },
-                    });
-                    return res.status(200).json(requests);
-                }
-                const requests = await prisma.personaQuotaRequest.findMany({
-                    where: { userId: auth.userId },
-                    orderBy: { createdAt: 'desc' },
-                });
-                return res.status(200).json(requests);
-            } catch (e: any) {
-                console.error('[quota-requests GET]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // POST /api/quota-requests (create slot request)
-        if (!seg1 && req.method === 'POST') {
-            try {
-                const auth = await requireAuth();
-                if (!auth) return;
-                const existing = await prisma.personaQuotaRequest.findFirst({
-                    where: { userId: auth.userId, status: 'pending' },
-                });
-                if (existing) return res.status(400).json({ error: '이미 대기 중인 요청이 있습니다.' });
-                const { note } = req.body;
-                const request = await prisma.personaQuotaRequest.create({
-                    data: { userId: auth.userId, note: note || null },
-                });
-                return res.status(201).json(request);
-            } catch (e: any) {
-                console.error('[quota-requests POST]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // POST /api/quota-requests/:id/approve (admin: approve + increment personaQuota)
-        if (seg1 && seg2 === 'approve' && req.method === 'POST') {
-            try {
-                const userId = await requireAdmin();
-                if (!userId) return;
-                const qr = await prisma.personaQuotaRequest.findUnique({ where: { id: Number(seg1) } });
-                if (!qr) return res.status(404).json({ error: '요청을 찾을 수 없습니다.' });
-                if (qr.status !== 'pending') return res.status(400).json({ error: '대기 중인 요청이 아닙니다.' });
-                await prisma.personaQuotaRequest.update({ where: { id: Number(seg1) }, data: { status: 'approved' } });
-                const updated = await prisma.user.update({
-                    where: { id: qr.userId },
-                    data: { personaQuota: { increment: 1 } },
-                    select: { personaQuota: true },
-                });
-                return res.status(200).json({ message: '승인 완료', personaQuota: updated.personaQuota });
-            } catch (e: any) {
-                console.error('[quota-requests approve]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
-            }
-        }
-
-        // POST /api/quota-requests/:id/reject (admin)
-        if (seg1 && seg2 === 'reject' && req.method === 'POST') {
-            try {
-                const userId = await requireAdmin();
-                if (!userId) return;
-                await prisma.personaQuotaRequest.update({ where: { id: Number(seg1) }, data: { status: 'rejected' } });
-                return res.status(200).json({ message: '거부 완료' });
-            } catch (e: any) {
-                console.error('[quota-requests reject]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }

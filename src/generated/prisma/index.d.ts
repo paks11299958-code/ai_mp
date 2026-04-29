@@ -44,11 +44,6 @@ export type PersonaImage = $Result.DefaultSelection<Prisma.$PersonaImagePayload>
  */
 export type PersonaVideo = $Result.DefaultSelection<Prisma.$PersonaVideoPayload>
 /**
- * Model PersonaQuotaRequest
- * 
- */
-export type PersonaQuotaRequest = $Result.DefaultSelection<Prisma.$PersonaQuotaRequestPayload>
-/**
  * Model ChatSession
  * 
  */
@@ -254,16 +249,6 @@ export class PrismaClient<
     * ```
     */
   get personaVideo(): Prisma.PersonaVideoDelegate<ExtArgs, ClientOptions>;
-
-  /**
-   * `prisma.personaQuotaRequest`: Exposes CRUD operations for the **PersonaQuotaRequest** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more PersonaQuotaRequests
-    * const personaQuotaRequests = await prisma.personaQuotaRequest.findMany()
-    * ```
-    */
-  get personaQuotaRequest(): Prisma.PersonaQuotaRequestDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.chatSession`: Exposes CRUD operations for the **ChatSession** model.
@@ -754,7 +739,6 @@ export namespace Prisma {
     Persona: 'Persona',
     PersonaImage: 'PersonaImage',
     PersonaVideo: 'PersonaVideo',
-    PersonaQuotaRequest: 'PersonaQuotaRequest',
     ChatSession: 'ChatSession',
     Message: 'Message',
     ConversationSummary: 'ConversationSummary',
@@ -775,7 +759,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "personaQuotaRequest" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1220,80 +1204,6 @@ export namespace Prisma {
           count: {
             args: Prisma.PersonaVideoCountArgs<ExtArgs>
             result: $Utils.Optional<PersonaVideoCountAggregateOutputType> | number
-          }
-        }
-      }
-      PersonaQuotaRequest: {
-        payload: Prisma.$PersonaQuotaRequestPayload<ExtArgs>
-        fields: Prisma.PersonaQuotaRequestFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.PersonaQuotaRequestFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.PersonaQuotaRequestFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>
-          }
-          findFirst: {
-            args: Prisma.PersonaQuotaRequestFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.PersonaQuotaRequestFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>
-          }
-          findMany: {
-            args: Prisma.PersonaQuotaRequestFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>[]
-          }
-          create: {
-            args: Prisma.PersonaQuotaRequestCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>
-          }
-          createMany: {
-            args: Prisma.PersonaQuotaRequestCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.PersonaQuotaRequestCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>[]
-          }
-          delete: {
-            args: Prisma.PersonaQuotaRequestDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>
-          }
-          update: {
-            args: Prisma.PersonaQuotaRequestUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>
-          }
-          deleteMany: {
-            args: Prisma.PersonaQuotaRequestDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.PersonaQuotaRequestUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateManyAndReturn: {
-            args: Prisma.PersonaQuotaRequestUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>[]
-          }
-          upsert: {
-            args: Prisma.PersonaQuotaRequestUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$PersonaQuotaRequestPayload>
-          }
-          aggregate: {
-            args: Prisma.PersonaQuotaRequestAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregatePersonaQuotaRequest>
-          }
-          groupBy: {
-            args: Prisma.PersonaQuotaRequestGroupByArgs<ExtArgs>
-            result: $Utils.Optional<PersonaQuotaRequestGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.PersonaQuotaRequestCountArgs<ExtArgs>
-            result: $Utils.Optional<PersonaQuotaRequestCountAggregateOutputType> | number
           }
         }
       }
@@ -1781,7 +1691,6 @@ export namespace Prisma {
     persona?: PersonaOmit
     personaImage?: PersonaImageOmit
     personaVideo?: PersonaVideoOmit
-    personaQuotaRequest?: PersonaQuotaRequestOmit
     chatSession?: ChatSessionOmit
     message?: MessageOmit
     conversationSummary?: ConversationSummaryOmit
@@ -1871,7 +1780,6 @@ export namespace Prisma {
     sessions: number
     memories: number
     personaXps: number
-    quotaRequests: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1879,7 +1787,6 @@ export namespace Prisma {
     sessions?: boolean | UserCountOutputTypeCountSessionsArgs
     memories?: boolean | UserCountOutputTypeCountMemoriesArgs
     personaXps?: boolean | UserCountOutputTypeCountPersonaXpsArgs
-    quotaRequests?: boolean | UserCountOutputTypeCountQuotaRequestsArgs
   }
 
   // Custom InputTypes
@@ -1919,13 +1826,6 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountPersonaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserPersonaXpWhereInput
-  }
-
-  /**
-   * UserCountOutputType without action
-   */
-  export type UserCountOutputTypeCountQuotaRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: PersonaQuotaRequestWhereInput
   }
 
 
@@ -2067,12 +1967,10 @@ export namespace Prisma {
 
   export type UserAvgAggregateOutputType = {
     id: number | null
-    personaQuota: number | null
   }
 
   export type UserSumAggregateOutputType = {
     id: number | null
-    personaQuota: number | null
   }
 
   export type UserMinAggregateOutputType = {
@@ -2083,7 +1981,6 @@ export namespace Prisma {
     role: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
-    personaQuota: number | null
     createdAt: Date | null
   }
 
@@ -2095,7 +1992,6 @@ export namespace Prisma {
     role: string | null
     resetToken: string | null
     resetTokenExpiry: Date | null
-    personaQuota: number | null
     createdAt: Date | null
   }
 
@@ -2107,7 +2003,6 @@ export namespace Prisma {
     role: number
     resetToken: number
     resetTokenExpiry: number
-    personaQuota: number
     createdAt: number
     _all: number
   }
@@ -2115,12 +2010,10 @@ export namespace Prisma {
 
   export type UserAvgAggregateInputType = {
     id?: true
-    personaQuota?: true
   }
 
   export type UserSumAggregateInputType = {
     id?: true
-    personaQuota?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -2131,7 +2024,6 @@ export namespace Prisma {
     role?: true
     resetToken?: true
     resetTokenExpiry?: true
-    personaQuota?: true
     createdAt?: true
   }
 
@@ -2143,7 +2035,6 @@ export namespace Prisma {
     role?: true
     resetToken?: true
     resetTokenExpiry?: true
-    personaQuota?: true
     createdAt?: true
   }
 
@@ -2155,7 +2046,6 @@ export namespace Prisma {
     role?: true
     resetToken?: true
     resetTokenExpiry?: true
-    personaQuota?: true
     createdAt?: true
     _all?: true
   }
@@ -2254,7 +2144,6 @@ export namespace Prisma {
     role: string
     resetToken: string | null
     resetTokenExpiry: Date | null
-    personaQuota: number
     createdAt: Date
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
@@ -2285,13 +2174,11 @@ export namespace Prisma {
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
-    personaQuota?: boolean
     createdAt?: boolean
     personas?: boolean | User$personasArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     memories?: boolean | User$memoriesArgs<ExtArgs>
     personaXps?: boolean | User$personaXpsArgs<ExtArgs>
-    quotaRequests?: boolean | User$quotaRequestsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2303,7 +2190,6 @@ export namespace Prisma {
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
-    personaQuota?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -2315,7 +2201,6 @@ export namespace Prisma {
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
-    personaQuota?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -2327,17 +2212,15 @@ export namespace Prisma {
     role?: boolean
     resetToken?: boolean
     resetTokenExpiry?: boolean
-    personaQuota?: boolean
     createdAt?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "username" | "role" | "resetToken" | "resetTokenExpiry" | "personaQuota" | "createdAt", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "email" | "password" | "username" | "role" | "resetToken" | "resetTokenExpiry" | "createdAt", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     personas?: boolean | User$personasArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     memories?: boolean | User$memoriesArgs<ExtArgs>
     personaXps?: boolean | User$personaXpsArgs<ExtArgs>
-    quotaRequests?: boolean | User$quotaRequestsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2350,7 +2233,6 @@ export namespace Prisma {
       sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
       memories: Prisma.$UserMemoryPayload<ExtArgs>[]
       personaXps: Prisma.$UserPersonaXpPayload<ExtArgs>[]
-      quotaRequests: Prisma.$PersonaQuotaRequestPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2360,7 +2242,6 @@ export namespace Prisma {
       role: string
       resetToken: string | null
       resetTokenExpiry: Date | null
-      personaQuota: number
       createdAt: Date
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -2760,7 +2641,6 @@ export namespace Prisma {
     sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     memories<T extends User$memoriesArgs<ExtArgs> = {}>(args?: Subset<T, User$memoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserMemoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     personaXps<T extends User$personaXpsArgs<ExtArgs> = {}>(args?: Subset<T, User$personaXpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-    quotaRequests<T extends User$quotaRequestsArgs<ExtArgs> = {}>(args?: Subset<T, User$quotaRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2797,7 +2677,6 @@ export namespace Prisma {
     readonly role: FieldRef<"User", 'String'>
     readonly resetToken: FieldRef<"User", 'String'>
     readonly resetTokenExpiry: FieldRef<"User", 'DateTime'>
-    readonly personaQuota: FieldRef<"User", 'Int'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
   }
     
@@ -3285,30 +3164,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
-  }
-
-  /**
-   * User.quotaRequests
-   */
-  export type User$quotaRequestsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    where?: PersonaQuotaRequestWhereInput
-    orderBy?: PersonaQuotaRequestOrderByWithRelationInput | PersonaQuotaRequestOrderByWithRelationInput[]
-    cursor?: PersonaQuotaRequestWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: PersonaQuotaRequestScalarFieldEnum | PersonaQuotaRequestScalarFieldEnum[]
   }
 
   /**
@@ -5549,7 +5404,6 @@ export namespace Prisma {
     imageUrl: string | null
     isDefault: boolean | null
     isVisible: boolean | null
-    status: string | null
     createdBy: number | null
     createdAt: Date | null
   }
@@ -5567,7 +5421,6 @@ export namespace Prisma {
     imageUrl: string | null
     isDefault: boolean | null
     isVisible: boolean | null
-    status: string | null
     createdBy: number | null
     createdAt: Date | null
   }
@@ -5585,7 +5438,6 @@ export namespace Prisma {
     imageUrl: number
     isDefault: number
     isVisible: number
-    status: number
     createdBy: number
     createdAt: number
     _all: number
@@ -5615,7 +5467,6 @@ export namespace Prisma {
     imageUrl?: true
     isDefault?: true
     isVisible?: true
-    status?: true
     createdBy?: true
     createdAt?: true
   }
@@ -5633,7 +5484,6 @@ export namespace Prisma {
     imageUrl?: true
     isDefault?: true
     isVisible?: true
-    status?: true
     createdBy?: true
     createdAt?: true
   }
@@ -5651,7 +5501,6 @@ export namespace Prisma {
     imageUrl?: true
     isDefault?: true
     isVisible?: true
-    status?: true
     createdBy?: true
     createdAt?: true
     _all?: true
@@ -5756,7 +5605,6 @@ export namespace Prisma {
     imageUrl: string | null
     isDefault: boolean
     isVisible: boolean
-    status: string
     createdBy: number | null
     createdAt: Date
     _count: PersonaCountAggregateOutputType | null
@@ -5793,7 +5641,6 @@ export namespace Prisma {
     imageUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
-    status?: boolean
     createdBy?: boolean
     createdAt?: boolean
     user?: boolean | Persona$userArgs<ExtArgs>
@@ -5817,7 +5664,6 @@ export namespace Prisma {
     imageUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
-    status?: boolean
     createdBy?: boolean
     createdAt?: boolean
     user?: boolean | Persona$userArgs<ExtArgs>
@@ -5836,7 +5682,6 @@ export namespace Prisma {
     imageUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
-    status?: boolean
     createdBy?: boolean
     createdAt?: boolean
     user?: boolean | Persona$userArgs<ExtArgs>
@@ -5855,12 +5700,11 @@ export namespace Prisma {
     imageUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
-    status?: boolean
     createdBy?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "status" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
+  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
@@ -5898,7 +5742,6 @@ export namespace Prisma {
       imageUrl: string | null
       isDefault: boolean
       isVisible: boolean
-      status: string
       createdBy: number | null
       createdAt: Date
     }, ExtArgs["result"]["persona"]>
@@ -6341,7 +6184,6 @@ export namespace Prisma {
     readonly imageUrl: FieldRef<"Persona", 'String'>
     readonly isDefault: FieldRef<"Persona", 'Boolean'>
     readonly isVisible: FieldRef<"Persona", 'Boolean'>
-    readonly status: FieldRef<"Persona", 'String'>
     readonly createdBy: FieldRef<"Persona", 'Int'>
     readonly createdAt: FieldRef<"Persona", 'DateTime'>
   }
@@ -6910,7 +6752,6 @@ export namespace Prisma {
     isMain: boolean | null
     order: number | null
     requiredLevel: number | null
-    status: string | null
     createdAt: Date | null
   }
 
@@ -6922,7 +6763,6 @@ export namespace Prisma {
     isMain: boolean | null
     order: number | null
     requiredLevel: number | null
-    status: string | null
     createdAt: Date | null
   }
 
@@ -6934,7 +6774,6 @@ export namespace Prisma {
     isMain: number
     order: number
     requiredLevel: number
-    status: number
     createdAt: number
     _all: number
   }
@@ -6960,7 +6799,6 @@ export namespace Prisma {
     isMain?: true
     order?: true
     requiredLevel?: true
-    status?: true
     createdAt?: true
   }
 
@@ -6972,7 +6810,6 @@ export namespace Prisma {
     isMain?: true
     order?: true
     requiredLevel?: true
-    status?: true
     createdAt?: true
   }
 
@@ -6984,7 +6821,6 @@ export namespace Prisma {
     isMain?: true
     order?: true
     requiredLevel?: true
-    status?: true
     createdAt?: true
     _all?: true
   }
@@ -7083,7 +6919,6 @@ export namespace Prisma {
     isMain: boolean
     order: number
     requiredLevel: number
-    status: string
     createdAt: Date
     _count: PersonaImageCountAggregateOutputType | null
     _avg: PersonaImageAvgAggregateOutputType | null
@@ -7114,7 +6949,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
     videos?: boolean | PersonaImage$videosArgs<ExtArgs>
@@ -7129,7 +6963,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaImage"]>
@@ -7142,7 +6975,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaImage"]>
@@ -7155,11 +6987,10 @@ export namespace Prisma {
     isMain?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "imageUrl" | "description" | "isMain" | "order" | "requiredLevel" | "status" | "createdAt", ExtArgs["result"]["personaImage"]>
+  export type PersonaImageOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "personaId" | "imageUrl" | "description" | "isMain" | "order" | "requiredLevel" | "createdAt", ExtArgs["result"]["personaImage"]>
   export type PersonaImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     persona?: boolean | PersonaDefaultArgs<ExtArgs>
     videos?: boolean | PersonaImage$videosArgs<ExtArgs>
@@ -7186,7 +7017,6 @@ export namespace Prisma {
       isMain: boolean
       order: number
       requiredLevel: number
-      status: string
       createdAt: Date
     }, ExtArgs["result"]["personaImage"]>
     composites: {}
@@ -7620,7 +7450,6 @@ export namespace Prisma {
     readonly isMain: FieldRef<"PersonaImage", 'Boolean'>
     readonly order: FieldRef<"PersonaImage", 'Int'>
     readonly requiredLevel: FieldRef<"PersonaImage", 'Int'>
-    readonly status: FieldRef<"PersonaImage", 'String'>
     readonly createdAt: FieldRef<"PersonaImage", 'DateTime'>
   }
     
@@ -8098,7 +7927,6 @@ export namespace Prisma {
     title: string | null
     order: number | null
     requiredLevel: number | null
-    status: string | null
     createdAt: Date | null
   }
 
@@ -8109,7 +7937,6 @@ export namespace Prisma {
     title: string | null
     order: number | null
     requiredLevel: number | null
-    status: string | null
     createdAt: Date | null
   }
 
@@ -8120,7 +7947,6 @@ export namespace Prisma {
     title: number
     order: number
     requiredLevel: number
-    status: number
     createdAt: number
     _all: number
   }
@@ -8147,7 +7973,6 @@ export namespace Prisma {
     title?: true
     order?: true
     requiredLevel?: true
-    status?: true
     createdAt?: true
   }
 
@@ -8158,7 +7983,6 @@ export namespace Prisma {
     title?: true
     order?: true
     requiredLevel?: true
-    status?: true
     createdAt?: true
   }
 
@@ -8169,7 +7993,6 @@ export namespace Prisma {
     title?: true
     order?: true
     requiredLevel?: true
-    status?: true
     createdAt?: true
     _all?: true
   }
@@ -8267,7 +8090,6 @@ export namespace Prisma {
     title: string | null
     order: number
     requiredLevel: number
-    status: string
     createdAt: Date
     _count: PersonaVideoCountAggregateOutputType | null
     _avg: PersonaVideoAvgAggregateOutputType | null
@@ -8297,7 +8119,6 @@ export namespace Prisma {
     title?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaVideo"]>
@@ -8309,7 +8130,6 @@ export namespace Prisma {
     title?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaVideo"]>
@@ -8321,7 +8141,6 @@ export namespace Prisma {
     title?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["personaVideo"]>
@@ -8333,11 +8152,10 @@ export namespace Prisma {
     title?: boolean
     order?: boolean
     requiredLevel?: boolean
-    status?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaVideoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "imageId" | "videoUrl" | "title" | "order" | "requiredLevel" | "status" | "createdAt", ExtArgs["result"]["personaVideo"]>
+  export type PersonaVideoOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "imageId" | "videoUrl" | "title" | "order" | "requiredLevel" | "createdAt", ExtArgs["result"]["personaVideo"]>
   export type PersonaVideoInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     image?: boolean | PersonaImageDefaultArgs<ExtArgs>
   }
@@ -8360,7 +8178,6 @@ export namespace Prisma {
       title: string | null
       order: number
       requiredLevel: number
-      status: string
       createdAt: Date
     }, ExtArgs["result"]["personaVideo"]>
     composites: {}
@@ -8792,7 +8609,6 @@ export namespace Prisma {
     readonly title: FieldRef<"PersonaVideo", 'String'>
     readonly order: FieldRef<"PersonaVideo", 'Int'>
     readonly requiredLevel: FieldRef<"PersonaVideo", 'Int'>
-    readonly status: FieldRef<"PersonaVideo", 'String'>
     readonly createdAt: FieldRef<"PersonaVideo", 'DateTime'>
   }
     
@@ -9210,1120 +9026,6 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: PersonaVideoInclude<ExtArgs> | null
-  }
-
-
-  /**
-   * Model PersonaQuotaRequest
-   */
-
-  export type AggregatePersonaQuotaRequest = {
-    _count: PersonaQuotaRequestCountAggregateOutputType | null
-    _avg: PersonaQuotaRequestAvgAggregateOutputType | null
-    _sum: PersonaQuotaRequestSumAggregateOutputType | null
-    _min: PersonaQuotaRequestMinAggregateOutputType | null
-    _max: PersonaQuotaRequestMaxAggregateOutputType | null
-  }
-
-  export type PersonaQuotaRequestAvgAggregateOutputType = {
-    id: number | null
-    userId: number | null
-  }
-
-  export type PersonaQuotaRequestSumAggregateOutputType = {
-    id: number | null
-    userId: number | null
-  }
-
-  export type PersonaQuotaRequestMinAggregateOutputType = {
-    id: number | null
-    userId: number | null
-    status: string | null
-    note: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
-  }
-
-  export type PersonaQuotaRequestMaxAggregateOutputType = {
-    id: number | null
-    userId: number | null
-    status: string | null
-    note: string | null
-    createdAt: Date | null
-    updatedAt: Date | null
-  }
-
-  export type PersonaQuotaRequestCountAggregateOutputType = {
-    id: number
-    userId: number
-    status: number
-    note: number
-    createdAt: number
-    updatedAt: number
-    _all: number
-  }
-
-
-  export type PersonaQuotaRequestAvgAggregateInputType = {
-    id?: true
-    userId?: true
-  }
-
-  export type PersonaQuotaRequestSumAggregateInputType = {
-    id?: true
-    userId?: true
-  }
-
-  export type PersonaQuotaRequestMinAggregateInputType = {
-    id?: true
-    userId?: true
-    status?: true
-    note?: true
-    createdAt?: true
-    updatedAt?: true
-  }
-
-  export type PersonaQuotaRequestMaxAggregateInputType = {
-    id?: true
-    userId?: true
-    status?: true
-    note?: true
-    createdAt?: true
-    updatedAt?: true
-  }
-
-  export type PersonaQuotaRequestCountAggregateInputType = {
-    id?: true
-    userId?: true
-    status?: true
-    note?: true
-    createdAt?: true
-    updatedAt?: true
-    _all?: true
-  }
-
-  export type PersonaQuotaRequestAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which PersonaQuotaRequest to aggregate.
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of PersonaQuotaRequests to fetch.
-     */
-    orderBy?: PersonaQuotaRequestOrderByWithRelationInput | PersonaQuotaRequestOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: PersonaQuotaRequestWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` PersonaQuotaRequests from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` PersonaQuotaRequests.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned PersonaQuotaRequests
-    **/
-    _count?: true | PersonaQuotaRequestCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to average
-    **/
-    _avg?: PersonaQuotaRequestAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: PersonaQuotaRequestSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: PersonaQuotaRequestMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: PersonaQuotaRequestMaxAggregateInputType
-  }
-
-  export type GetPersonaQuotaRequestAggregateType<T extends PersonaQuotaRequestAggregateArgs> = {
-        [P in keyof T & keyof AggregatePersonaQuotaRequest]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregatePersonaQuotaRequest[P]>
-      : GetScalarType<T[P], AggregatePersonaQuotaRequest[P]>
-  }
-
-
-
-
-  export type PersonaQuotaRequestGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: PersonaQuotaRequestWhereInput
-    orderBy?: PersonaQuotaRequestOrderByWithAggregationInput | PersonaQuotaRequestOrderByWithAggregationInput[]
-    by: PersonaQuotaRequestScalarFieldEnum[] | PersonaQuotaRequestScalarFieldEnum
-    having?: PersonaQuotaRequestScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: PersonaQuotaRequestCountAggregateInputType | true
-    _avg?: PersonaQuotaRequestAvgAggregateInputType
-    _sum?: PersonaQuotaRequestSumAggregateInputType
-    _min?: PersonaQuotaRequestMinAggregateInputType
-    _max?: PersonaQuotaRequestMaxAggregateInputType
-  }
-
-  export type PersonaQuotaRequestGroupByOutputType = {
-    id: number
-    userId: number
-    status: string
-    note: string | null
-    createdAt: Date
-    updatedAt: Date
-    _count: PersonaQuotaRequestCountAggregateOutputType | null
-    _avg: PersonaQuotaRequestAvgAggregateOutputType | null
-    _sum: PersonaQuotaRequestSumAggregateOutputType | null
-    _min: PersonaQuotaRequestMinAggregateOutputType | null
-    _max: PersonaQuotaRequestMaxAggregateOutputType | null
-  }
-
-  type GetPersonaQuotaRequestGroupByPayload<T extends PersonaQuotaRequestGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<PersonaQuotaRequestGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof PersonaQuotaRequestGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], PersonaQuotaRequestGroupByOutputType[P]>
-            : GetScalarType<T[P], PersonaQuotaRequestGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type PersonaQuotaRequestSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    userId?: boolean
-    status?: boolean
-    note?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["personaQuotaRequest"]>
-
-  export type PersonaQuotaRequestSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    userId?: boolean
-    status?: boolean
-    note?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["personaQuotaRequest"]>
-
-  export type PersonaQuotaRequestSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    userId?: boolean
-    status?: boolean
-    note?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["personaQuotaRequest"]>
-
-  export type PersonaQuotaRequestSelectScalar = {
-    id?: boolean
-    userId?: boolean
-    status?: boolean
-    note?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
-  }
-
-  export type PersonaQuotaRequestOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "status" | "note" | "createdAt" | "updatedAt", ExtArgs["result"]["personaQuotaRequest"]>
-  export type PersonaQuotaRequestInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }
-  export type PersonaQuotaRequestIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }
-  export type PersonaQuotaRequestIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
-  }
-
-  export type $PersonaQuotaRequestPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "PersonaQuotaRequest"
-    objects: {
-      user: Prisma.$UserPayload<ExtArgs>
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      id: number
-      userId: number
-      status: string
-      note: string | null
-      createdAt: Date
-      updatedAt: Date
-    }, ExtArgs["result"]["personaQuotaRequest"]>
-    composites: {}
-  }
-
-  type PersonaQuotaRequestGetPayload<S extends boolean | null | undefined | PersonaQuotaRequestDefaultArgs> = $Result.GetResult<Prisma.$PersonaQuotaRequestPayload, S>
-
-  type PersonaQuotaRequestCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<PersonaQuotaRequestFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: PersonaQuotaRequestCountAggregateInputType | true
-    }
-
-  export interface PersonaQuotaRequestDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PersonaQuotaRequest'], meta: { name: 'PersonaQuotaRequest' } }
-    /**
-     * Find zero or one PersonaQuotaRequest that matches the filter.
-     * @param {PersonaQuotaRequestFindUniqueArgs} args - Arguments to find a PersonaQuotaRequest
-     * @example
-     * // Get one PersonaQuotaRequest
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends PersonaQuotaRequestFindUniqueArgs>(args: SelectSubset<T, PersonaQuotaRequestFindUniqueArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find one PersonaQuotaRequest that matches the filter or throw an error with `error.code='P2025'`
-     * if no matches were found.
-     * @param {PersonaQuotaRequestFindUniqueOrThrowArgs} args - Arguments to find a PersonaQuotaRequest
-     * @example
-     * // Get one PersonaQuotaRequest
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends PersonaQuotaRequestFindUniqueOrThrowArgs>(args: SelectSubset<T, PersonaQuotaRequestFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first PersonaQuotaRequest that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestFindFirstArgs} args - Arguments to find a PersonaQuotaRequest
-     * @example
-     * // Get one PersonaQuotaRequest
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends PersonaQuotaRequestFindFirstArgs>(args?: SelectSubset<T, PersonaQuotaRequestFindFirstArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first PersonaQuotaRequest that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestFindFirstOrThrowArgs} args - Arguments to find a PersonaQuotaRequest
-     * @example
-     * // Get one PersonaQuotaRequest
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends PersonaQuotaRequestFindFirstOrThrowArgs>(args?: SelectSubset<T, PersonaQuotaRequestFindFirstOrThrowArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find zero or more PersonaQuotaRequests that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all PersonaQuotaRequests
-     * const personaQuotaRequests = await prisma.personaQuotaRequest.findMany()
-     * 
-     * // Get first 10 PersonaQuotaRequests
-     * const personaQuotaRequests = await prisma.personaQuotaRequest.findMany({ take: 10 })
-     * 
-     * // Only select the `id`
-     * const personaQuotaRequestWithIdOnly = await prisma.personaQuotaRequest.findMany({ select: { id: true } })
-     * 
-     */
-    findMany<T extends PersonaQuotaRequestFindManyArgs>(args?: SelectSubset<T, PersonaQuotaRequestFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
-
-    /**
-     * Create a PersonaQuotaRequest.
-     * @param {PersonaQuotaRequestCreateArgs} args - Arguments to create a PersonaQuotaRequest.
-     * @example
-     * // Create one PersonaQuotaRequest
-     * const PersonaQuotaRequest = await prisma.personaQuotaRequest.create({
-     *   data: {
-     *     // ... data to create a PersonaQuotaRequest
-     *   }
-     * })
-     * 
-     */
-    create<T extends PersonaQuotaRequestCreateArgs>(args: SelectSubset<T, PersonaQuotaRequestCreateArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Create many PersonaQuotaRequests.
-     * @param {PersonaQuotaRequestCreateManyArgs} args - Arguments to create many PersonaQuotaRequests.
-     * @example
-     * // Create many PersonaQuotaRequests
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends PersonaQuotaRequestCreateManyArgs>(args?: SelectSubset<T, PersonaQuotaRequestCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many PersonaQuotaRequests and returns the data saved in the database.
-     * @param {PersonaQuotaRequestCreateManyAndReturnArgs} args - Arguments to create many PersonaQuotaRequests.
-     * @example
-     * // Create many PersonaQuotaRequests
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many PersonaQuotaRequests and only return the `id`
-     * const personaQuotaRequestWithIdOnly = await prisma.personaQuotaRequest.createManyAndReturn({
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends PersonaQuotaRequestCreateManyAndReturnArgs>(args?: SelectSubset<T, PersonaQuotaRequestCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Delete a PersonaQuotaRequest.
-     * @param {PersonaQuotaRequestDeleteArgs} args - Arguments to delete one PersonaQuotaRequest.
-     * @example
-     * // Delete one PersonaQuotaRequest
-     * const PersonaQuotaRequest = await prisma.personaQuotaRequest.delete({
-     *   where: {
-     *     // ... filter to delete one PersonaQuotaRequest
-     *   }
-     * })
-     * 
-     */
-    delete<T extends PersonaQuotaRequestDeleteArgs>(args: SelectSubset<T, PersonaQuotaRequestDeleteArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Update one PersonaQuotaRequest.
-     * @param {PersonaQuotaRequestUpdateArgs} args - Arguments to update one PersonaQuotaRequest.
-     * @example
-     * // Update one PersonaQuotaRequest
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends PersonaQuotaRequestUpdateArgs>(args: SelectSubset<T, PersonaQuotaRequestUpdateArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Delete zero or more PersonaQuotaRequests.
-     * @param {PersonaQuotaRequestDeleteManyArgs} args - Arguments to filter PersonaQuotaRequests to delete.
-     * @example
-     * // Delete a few PersonaQuotaRequests
-     * const { count } = await prisma.personaQuotaRequest.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends PersonaQuotaRequestDeleteManyArgs>(args?: SelectSubset<T, PersonaQuotaRequestDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more PersonaQuotaRequests.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many PersonaQuotaRequests
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends PersonaQuotaRequestUpdateManyArgs>(args: SelectSubset<T, PersonaQuotaRequestUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more PersonaQuotaRequests and returns the data updated in the database.
-     * @param {PersonaQuotaRequestUpdateManyAndReturnArgs} args - Arguments to update many PersonaQuotaRequests.
-     * @example
-     * // Update many PersonaQuotaRequests
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more PersonaQuotaRequests and only return the `id`
-     * const personaQuotaRequestWithIdOnly = await prisma.personaQuotaRequest.updateManyAndReturn({
-     *   select: { id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends PersonaQuotaRequestUpdateManyAndReturnArgs>(args: SelectSubset<T, PersonaQuotaRequestUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Create or update one PersonaQuotaRequest.
-     * @param {PersonaQuotaRequestUpsertArgs} args - Arguments to update or create a PersonaQuotaRequest.
-     * @example
-     * // Update or create a PersonaQuotaRequest
-     * const personaQuotaRequest = await prisma.personaQuotaRequest.upsert({
-     *   create: {
-     *     // ... data to create a PersonaQuotaRequest
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the PersonaQuotaRequest we want to update
-     *   }
-     * })
-     */
-    upsert<T extends PersonaQuotaRequestUpsertArgs>(args: SelectSubset<T, PersonaQuotaRequestUpsertArgs<ExtArgs>>): Prisma__PersonaQuotaRequestClient<$Result.GetResult<Prisma.$PersonaQuotaRequestPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-
-    /**
-     * Count the number of PersonaQuotaRequests.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestCountArgs} args - Arguments to filter PersonaQuotaRequests to count.
-     * @example
-     * // Count the number of PersonaQuotaRequests
-     * const count = await prisma.personaQuotaRequest.count({
-     *   where: {
-     *     // ... the filter for the PersonaQuotaRequests we want to count
-     *   }
-     * })
-    **/
-    count<T extends PersonaQuotaRequestCountArgs>(
-      args?: Subset<T, PersonaQuotaRequestCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], PersonaQuotaRequestCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a PersonaQuotaRequest.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends PersonaQuotaRequestAggregateArgs>(args: Subset<T, PersonaQuotaRequestAggregateArgs>): Prisma.PrismaPromise<GetPersonaQuotaRequestAggregateType<T>>
-
-    /**
-     * Group by PersonaQuotaRequest.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PersonaQuotaRequestGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends PersonaQuotaRequestGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: PersonaQuotaRequestGroupByArgs['orderBy'] }
-        : { orderBy?: PersonaQuotaRequestGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, PersonaQuotaRequestGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPersonaQuotaRequestGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the PersonaQuotaRequest model
-   */
-  readonly fields: PersonaQuotaRequestFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for PersonaQuotaRequest.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__PersonaQuotaRequestClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the PersonaQuotaRequest model
-   */
-  interface PersonaQuotaRequestFieldRefs {
-    readonly id: FieldRef<"PersonaQuotaRequest", 'Int'>
-    readonly userId: FieldRef<"PersonaQuotaRequest", 'Int'>
-    readonly status: FieldRef<"PersonaQuotaRequest", 'String'>
-    readonly note: FieldRef<"PersonaQuotaRequest", 'String'>
-    readonly createdAt: FieldRef<"PersonaQuotaRequest", 'DateTime'>
-    readonly updatedAt: FieldRef<"PersonaQuotaRequest", 'DateTime'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * PersonaQuotaRequest findUnique
-   */
-  export type PersonaQuotaRequestFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * Filter, which PersonaQuotaRequest to fetch.
-     */
-    where: PersonaQuotaRequestWhereUniqueInput
-  }
-
-  /**
-   * PersonaQuotaRequest findUniqueOrThrow
-   */
-  export type PersonaQuotaRequestFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * Filter, which PersonaQuotaRequest to fetch.
-     */
-    where: PersonaQuotaRequestWhereUniqueInput
-  }
-
-  /**
-   * PersonaQuotaRequest findFirst
-   */
-  export type PersonaQuotaRequestFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * Filter, which PersonaQuotaRequest to fetch.
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of PersonaQuotaRequests to fetch.
-     */
-    orderBy?: PersonaQuotaRequestOrderByWithRelationInput | PersonaQuotaRequestOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for PersonaQuotaRequests.
-     */
-    cursor?: PersonaQuotaRequestWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` PersonaQuotaRequests from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` PersonaQuotaRequests.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of PersonaQuotaRequests.
-     */
-    distinct?: PersonaQuotaRequestScalarFieldEnum | PersonaQuotaRequestScalarFieldEnum[]
-  }
-
-  /**
-   * PersonaQuotaRequest findFirstOrThrow
-   */
-  export type PersonaQuotaRequestFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * Filter, which PersonaQuotaRequest to fetch.
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of PersonaQuotaRequests to fetch.
-     */
-    orderBy?: PersonaQuotaRequestOrderByWithRelationInput | PersonaQuotaRequestOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for PersonaQuotaRequests.
-     */
-    cursor?: PersonaQuotaRequestWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` PersonaQuotaRequests from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` PersonaQuotaRequests.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of PersonaQuotaRequests.
-     */
-    distinct?: PersonaQuotaRequestScalarFieldEnum | PersonaQuotaRequestScalarFieldEnum[]
-  }
-
-  /**
-   * PersonaQuotaRequest findMany
-   */
-  export type PersonaQuotaRequestFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * Filter, which PersonaQuotaRequests to fetch.
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of PersonaQuotaRequests to fetch.
-     */
-    orderBy?: PersonaQuotaRequestOrderByWithRelationInput | PersonaQuotaRequestOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing PersonaQuotaRequests.
-     */
-    cursor?: PersonaQuotaRequestWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` PersonaQuotaRequests from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` PersonaQuotaRequests.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of PersonaQuotaRequests.
-     */
-    distinct?: PersonaQuotaRequestScalarFieldEnum | PersonaQuotaRequestScalarFieldEnum[]
-  }
-
-  /**
-   * PersonaQuotaRequest create
-   */
-  export type PersonaQuotaRequestCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * The data needed to create a PersonaQuotaRequest.
-     */
-    data: XOR<PersonaQuotaRequestCreateInput, PersonaQuotaRequestUncheckedCreateInput>
-  }
-
-  /**
-   * PersonaQuotaRequest createMany
-   */
-  export type PersonaQuotaRequestCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many PersonaQuotaRequests.
-     */
-    data: PersonaQuotaRequestCreateManyInput | PersonaQuotaRequestCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * PersonaQuotaRequest createManyAndReturn
-   */
-  export type PersonaQuotaRequestCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * The data used to create many PersonaQuotaRequests.
-     */
-    data: PersonaQuotaRequestCreateManyInput | PersonaQuotaRequestCreateManyInput[]
-    skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * PersonaQuotaRequest update
-   */
-  export type PersonaQuotaRequestUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * The data needed to update a PersonaQuotaRequest.
-     */
-    data: XOR<PersonaQuotaRequestUpdateInput, PersonaQuotaRequestUncheckedUpdateInput>
-    /**
-     * Choose, which PersonaQuotaRequest to update.
-     */
-    where: PersonaQuotaRequestWhereUniqueInput
-  }
-
-  /**
-   * PersonaQuotaRequest updateMany
-   */
-  export type PersonaQuotaRequestUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update PersonaQuotaRequests.
-     */
-    data: XOR<PersonaQuotaRequestUpdateManyMutationInput, PersonaQuotaRequestUncheckedUpdateManyInput>
-    /**
-     * Filter which PersonaQuotaRequests to update
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * Limit how many PersonaQuotaRequests to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * PersonaQuotaRequest updateManyAndReturn
-   */
-  export type PersonaQuotaRequestUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * The data used to update PersonaQuotaRequests.
-     */
-    data: XOR<PersonaQuotaRequestUpdateManyMutationInput, PersonaQuotaRequestUncheckedUpdateManyInput>
-    /**
-     * Filter which PersonaQuotaRequests to update
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * Limit how many PersonaQuotaRequests to update.
-     */
-    limit?: number
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestIncludeUpdateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * PersonaQuotaRequest upsert
-   */
-  export type PersonaQuotaRequestUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * The filter to search for the PersonaQuotaRequest to update in case it exists.
-     */
-    where: PersonaQuotaRequestWhereUniqueInput
-    /**
-     * In case the PersonaQuotaRequest found by the `where` argument doesn't exist, create a new PersonaQuotaRequest with this data.
-     */
-    create: XOR<PersonaQuotaRequestCreateInput, PersonaQuotaRequestUncheckedCreateInput>
-    /**
-     * In case the PersonaQuotaRequest was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<PersonaQuotaRequestUpdateInput, PersonaQuotaRequestUncheckedUpdateInput>
-  }
-
-  /**
-   * PersonaQuotaRequest delete
-   */
-  export type PersonaQuotaRequestDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
-    /**
-     * Filter which PersonaQuotaRequest to delete.
-     */
-    where: PersonaQuotaRequestWhereUniqueInput
-  }
-
-  /**
-   * PersonaQuotaRequest deleteMany
-   */
-  export type PersonaQuotaRequestDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which PersonaQuotaRequests to delete
-     */
-    where?: PersonaQuotaRequestWhereInput
-    /**
-     * Limit how many PersonaQuotaRequests to delete.
-     */
-    limit?: number
-  }
-
-  /**
-   * PersonaQuotaRequest without action
-   */
-  export type PersonaQuotaRequestDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the PersonaQuotaRequest
-     */
-    select?: PersonaQuotaRequestSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the PersonaQuotaRequest
-     */
-    omit?: PersonaQuotaRequestOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: PersonaQuotaRequestInclude<ExtArgs> | null
   }
 
 
@@ -15827,7 +14529,6 @@ export namespace Prisma {
     role: 'role',
     resetToken: 'resetToken',
     resetTokenExpiry: 'resetTokenExpiry',
-    personaQuota: 'personaQuota',
     createdAt: 'createdAt'
   };
 
@@ -15867,7 +14568,6 @@ export namespace Prisma {
     imageUrl: 'imageUrl',
     isDefault: 'isDefault',
     isVisible: 'isVisible',
-    status: 'status',
     createdBy: 'createdBy',
     createdAt: 'createdAt'
   };
@@ -15883,7 +14583,6 @@ export namespace Prisma {
     isMain: 'isMain',
     order: 'order',
     requiredLevel: 'requiredLevel',
-    status: 'status',
     createdAt: 'createdAt'
   };
 
@@ -15897,23 +14596,10 @@ export namespace Prisma {
     title: 'title',
     order: 'order',
     requiredLevel: 'requiredLevel',
-    status: 'status',
     createdAt: 'createdAt'
   };
 
   export type PersonaVideoScalarFieldEnum = (typeof PersonaVideoScalarFieldEnum)[keyof typeof PersonaVideoScalarFieldEnum]
-
-
-  export const PersonaQuotaRequestScalarFieldEnum: {
-    id: 'id',
-    userId: 'userId',
-    status: 'status',
-    note: 'note',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
-  };
-
-  export type PersonaQuotaRequestScalarFieldEnum = (typeof PersonaQuotaRequestScalarFieldEnum)[keyof typeof PersonaQuotaRequestScalarFieldEnum]
 
 
   export const ChatSessionScalarFieldEnum: {
@@ -16078,13 +14764,11 @@ export namespace Prisma {
     role?: StringFilter<"User"> | string
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
-    personaQuota?: IntFilter<"User"> | number
     createdAt?: DateTimeFilter<"User"> | Date | string
     personas?: PersonaListRelationFilter
     sessions?: ChatSessionListRelationFilter
     memories?: UserMemoryListRelationFilter
     personaXps?: UserPersonaXpListRelationFilter
-    quotaRequests?: PersonaQuotaRequestListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -16095,13 +14779,11 @@ export namespace Prisma {
     role?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
-    personaQuota?: SortOrder
     createdAt?: SortOrder
     personas?: PersonaOrderByRelationAggregateInput
     sessions?: ChatSessionOrderByRelationAggregateInput
     memories?: UserMemoryOrderByRelationAggregateInput
     personaXps?: UserPersonaXpOrderByRelationAggregateInput
-    quotaRequests?: PersonaQuotaRequestOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -16115,13 +14797,11 @@ export namespace Prisma {
     role?: StringFilter<"User"> | string
     resetToken?: StringNullableFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableFilter<"User"> | Date | string | null
-    personaQuota?: IntFilter<"User"> | number
     createdAt?: DateTimeFilter<"User"> | Date | string
     personas?: PersonaListRelationFilter
     sessions?: ChatSessionListRelationFilter
     memories?: UserMemoryListRelationFilter
     personaXps?: UserPersonaXpListRelationFilter
-    quotaRequests?: PersonaQuotaRequestListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -16132,7 +14812,6 @@ export namespace Prisma {
     role?: SortOrder
     resetToken?: SortOrderInput | SortOrder
     resetTokenExpiry?: SortOrderInput | SortOrder
-    personaQuota?: SortOrder
     createdAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
@@ -16152,7 +14831,6 @@ export namespace Prisma {
     role?: StringWithAggregatesFilter<"User"> | string
     resetToken?: StringNullableWithAggregatesFilter<"User"> | string | null
     resetTokenExpiry?: DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
-    personaQuota?: IntWithAggregatesFilter<"User"> | number
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
 
@@ -16280,7 +14958,6 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
-    status?: StringFilter<"Persona"> | string
     createdBy?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
@@ -16303,7 +14980,6 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
-    status?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -16329,7 +15005,6 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
-    status?: StringFilter<"Persona"> | string
     createdBy?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
     user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
@@ -16352,7 +15027,6 @@ export namespace Prisma {
     imageUrl?: SortOrderInput | SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
-    status?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: PersonaCountOrderByAggregateInput
@@ -16378,7 +15052,6 @@ export namespace Prisma {
     imageUrl?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     isDefault?: BoolWithAggregatesFilter<"Persona"> | boolean
     isVisible?: BoolWithAggregatesFilter<"Persona"> | boolean
-    status?: StringWithAggregatesFilter<"Persona"> | string
     createdBy?: IntNullableWithAggregatesFilter<"Persona"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Persona"> | Date | string
   }
@@ -16394,7 +15067,6 @@ export namespace Prisma {
     isMain?: BoolFilter<"PersonaImage"> | boolean
     order?: IntFilter<"PersonaImage"> | number
     requiredLevel?: IntFilter<"PersonaImage"> | number
-    status?: StringFilter<"PersonaImage"> | string
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
     persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
     videos?: PersonaVideoListRelationFilter
@@ -16408,7 +15080,6 @@ export namespace Prisma {
     isMain?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     persona?: PersonaOrderByWithRelationInput
     videos?: PersonaVideoOrderByRelationAggregateInput
@@ -16425,7 +15096,6 @@ export namespace Prisma {
     isMain?: BoolFilter<"PersonaImage"> | boolean
     order?: IntFilter<"PersonaImage"> | number
     requiredLevel?: IntFilter<"PersonaImage"> | number
-    status?: StringFilter<"PersonaImage"> | string
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
     persona?: XOR<PersonaScalarRelationFilter, PersonaWhereInput>
     videos?: PersonaVideoListRelationFilter
@@ -16439,7 +15109,6 @@ export namespace Prisma {
     isMain?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     _count?: PersonaImageCountOrderByAggregateInput
     _avg?: PersonaImageAvgOrderByAggregateInput
@@ -16459,7 +15128,6 @@ export namespace Prisma {
     isMain?: BoolWithAggregatesFilter<"PersonaImage"> | boolean
     order?: IntWithAggregatesFilter<"PersonaImage"> | number
     requiredLevel?: IntWithAggregatesFilter<"PersonaImage"> | number
-    status?: StringWithAggregatesFilter<"PersonaImage"> | string
     createdAt?: DateTimeWithAggregatesFilter<"PersonaImage"> | Date | string
   }
 
@@ -16473,7 +15141,6 @@ export namespace Prisma {
     title?: StringNullableFilter<"PersonaVideo"> | string | null
     order?: IntFilter<"PersonaVideo"> | number
     requiredLevel?: IntFilter<"PersonaVideo"> | number
-    status?: StringFilter<"PersonaVideo"> | string
     createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
     image?: XOR<PersonaImageScalarRelationFilter, PersonaImageWhereInput>
   }
@@ -16485,7 +15152,6 @@ export namespace Prisma {
     title?: SortOrderInput | SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     image?: PersonaImageOrderByWithRelationInput
   }
@@ -16500,7 +15166,6 @@ export namespace Prisma {
     title?: StringNullableFilter<"PersonaVideo"> | string | null
     order?: IntFilter<"PersonaVideo"> | number
     requiredLevel?: IntFilter<"PersonaVideo"> | number
-    status?: StringFilter<"PersonaVideo"> | string
     createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
     image?: XOR<PersonaImageScalarRelationFilter, PersonaImageWhereInput>
   }, "id">
@@ -16512,7 +15177,6 @@ export namespace Prisma {
     title?: SortOrderInput | SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
     _count?: PersonaVideoCountOrderByAggregateInput
     _avg?: PersonaVideoAvgOrderByAggregateInput
@@ -16531,70 +15195,7 @@ export namespace Prisma {
     title?: StringNullableWithAggregatesFilter<"PersonaVideo"> | string | null
     order?: IntWithAggregatesFilter<"PersonaVideo"> | number
     requiredLevel?: IntWithAggregatesFilter<"PersonaVideo"> | number
-    status?: StringWithAggregatesFilter<"PersonaVideo"> | string
     createdAt?: DateTimeWithAggregatesFilter<"PersonaVideo"> | Date | string
-  }
-
-  export type PersonaQuotaRequestWhereInput = {
-    AND?: PersonaQuotaRequestWhereInput | PersonaQuotaRequestWhereInput[]
-    OR?: PersonaQuotaRequestWhereInput[]
-    NOT?: PersonaQuotaRequestWhereInput | PersonaQuotaRequestWhereInput[]
-    id?: IntFilter<"PersonaQuotaRequest"> | number
-    userId?: IntFilter<"PersonaQuotaRequest"> | number
-    status?: StringFilter<"PersonaQuotaRequest"> | string
-    note?: StringNullableFilter<"PersonaQuotaRequest"> | string | null
-    createdAt?: DateTimeFilter<"PersonaQuotaRequest"> | Date | string
-    updatedAt?: DateTimeFilter<"PersonaQuotaRequest"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }
-
-  export type PersonaQuotaRequestOrderByWithRelationInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    status?: SortOrder
-    note?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-    user?: UserOrderByWithRelationInput
-  }
-
-  export type PersonaQuotaRequestWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
-    AND?: PersonaQuotaRequestWhereInput | PersonaQuotaRequestWhereInput[]
-    OR?: PersonaQuotaRequestWhereInput[]
-    NOT?: PersonaQuotaRequestWhereInput | PersonaQuotaRequestWhereInput[]
-    userId?: IntFilter<"PersonaQuotaRequest"> | number
-    status?: StringFilter<"PersonaQuotaRequest"> | string
-    note?: StringNullableFilter<"PersonaQuotaRequest"> | string | null
-    createdAt?: DateTimeFilter<"PersonaQuotaRequest"> | Date | string
-    updatedAt?: DateTimeFilter<"PersonaQuotaRequest"> | Date | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "id">
-
-  export type PersonaQuotaRequestOrderByWithAggregationInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    status?: SortOrder
-    note?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-    _count?: PersonaQuotaRequestCountOrderByAggregateInput
-    _avg?: PersonaQuotaRequestAvgOrderByAggregateInput
-    _max?: PersonaQuotaRequestMaxOrderByAggregateInput
-    _min?: PersonaQuotaRequestMinOrderByAggregateInput
-    _sum?: PersonaQuotaRequestSumOrderByAggregateInput
-  }
-
-  export type PersonaQuotaRequestScalarWhereWithAggregatesInput = {
-    AND?: PersonaQuotaRequestScalarWhereWithAggregatesInput | PersonaQuotaRequestScalarWhereWithAggregatesInput[]
-    OR?: PersonaQuotaRequestScalarWhereWithAggregatesInput[]
-    NOT?: PersonaQuotaRequestScalarWhereWithAggregatesInput | PersonaQuotaRequestScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"PersonaQuotaRequest"> | number
-    userId?: IntWithAggregatesFilter<"PersonaQuotaRequest"> | number
-    status?: StringWithAggregatesFilter<"PersonaQuotaRequest"> | string
-    note?: StringNullableWithAggregatesFilter<"PersonaQuotaRequest"> | string | null
-    createdAt?: DateTimeWithAggregatesFilter<"PersonaQuotaRequest"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"PersonaQuotaRequest"> | Date | string
   }
 
   export type ChatSessionWhereInput = {
@@ -16898,13 +15499,11 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -16915,13 +15514,11 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -16931,13 +15528,11 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -16948,13 +15543,11 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -16965,7 +15558,6 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
   }
 
@@ -16976,7 +15568,6 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -16988,7 +15579,6 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17097,7 +15687,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -17119,7 +15708,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -17141,7 +15729,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -17163,7 +15750,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -17185,7 +15771,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdBy?: number | null
     createdAt?: Date | string
   }
@@ -17203,7 +15788,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17220,7 +15804,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -17231,7 +15814,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
     persona: PersonaCreateNestedOneWithoutImagesInput
     videos?: PersonaVideoCreateNestedManyWithoutImageInput
@@ -17245,7 +15827,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
     videos?: PersonaVideoUncheckedCreateNestedManyWithoutImageInput
   }
@@ -17256,7 +15837,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
     videos?: PersonaVideoUpdateManyWithoutImageNestedInput
@@ -17270,7 +15850,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     videos?: PersonaVideoUncheckedUpdateManyWithoutImageNestedInput
   }
@@ -17283,7 +15862,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -17293,7 +15871,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17305,7 +15882,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17314,7 +15890,6 @@ export namespace Prisma {
     title?: string | null
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
     image: PersonaImageCreateNestedOneWithoutVideosInput
   }
@@ -17326,7 +15901,6 @@ export namespace Prisma {
     title?: string | null
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -17335,7 +15909,6 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     image?: PersonaImageUpdateOneRequiredWithoutVideosNestedInput
   }
@@ -17347,7 +15920,6 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17358,7 +15930,6 @@ export namespace Prisma {
     title?: string | null
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -17367,7 +15938,6 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -17378,67 +15948,7 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type PersonaQuotaRequestCreateInput = {
-    status?: string
-    note?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-    user: UserCreateNestedOneWithoutQuotaRequestsInput
-  }
-
-  export type PersonaQuotaRequestUncheckedCreateInput = {
-    id?: number
-    userId: number
-    status?: string
-    note?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type PersonaQuotaRequestUpdateInput = {
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    user?: UserUpdateOneRequiredWithoutQuotaRequestsNestedInput
-  }
-
-  export type PersonaQuotaRequestUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type PersonaQuotaRequestCreateManyInput = {
-    id?: number
-    userId: number
-    status?: string
-    note?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type PersonaQuotaRequestUpdateManyMutationInput = {
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type PersonaQuotaRequestUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    userId?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ChatSessionCreateInput = {
@@ -17806,12 +16316,6 @@ export namespace Prisma {
     none?: UserPersonaXpWhereInput
   }
 
-  export type PersonaQuotaRequestListRelationFilter = {
-    every?: PersonaQuotaRequestWhereInput
-    some?: PersonaQuotaRequestWhereInput
-    none?: PersonaQuotaRequestWhereInput
-  }
-
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -17833,10 +16337,6 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
-  export type PersonaQuotaRequestOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
@@ -17845,13 +16345,11 @@ export namespace Prisma {
     role?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
-    personaQuota?: SortOrder
     createdAt?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
     id?: SortOrder
-    personaQuota?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -17862,7 +16360,6 @@ export namespace Prisma {
     role?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
-    personaQuota?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -17874,13 +16371,11 @@ export namespace Prisma {
     role?: SortOrder
     resetToken?: SortOrder
     resetTokenExpiry?: SortOrder
-    personaQuota?: SortOrder
     createdAt?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
     id?: SortOrder
-    personaQuota?: SortOrder
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -18094,7 +16589,6 @@ export namespace Prisma {
     imageUrl?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
-    status?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
   }
@@ -18117,7 +16611,6 @@ export namespace Prisma {
     imageUrl?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
-    status?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
   }
@@ -18135,7 +16628,6 @@ export namespace Prisma {
     imageUrl?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
-    status?: SortOrder
     createdBy?: SortOrder
     createdAt?: SortOrder
   }
@@ -18187,7 +16679,6 @@ export namespace Prisma {
     isMain?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -18205,7 +16696,6 @@ export namespace Prisma {
     isMain?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -18217,7 +16707,6 @@ export namespace Prisma {
     isMain?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -18239,7 +16728,6 @@ export namespace Prisma {
     title?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -18257,7 +16745,6 @@ export namespace Prisma {
     title?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -18268,7 +16755,6 @@ export namespace Prisma {
     title?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-    status?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -18277,43 +16763,6 @@ export namespace Prisma {
     imageId?: SortOrder
     order?: SortOrder
     requiredLevel?: SortOrder
-  }
-
-  export type PersonaQuotaRequestCountOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    status?: SortOrder
-    note?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type PersonaQuotaRequestAvgOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-  }
-
-  export type PersonaQuotaRequestMaxOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    status?: SortOrder
-    note?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type PersonaQuotaRequestMinOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
-    status?: SortOrder
-    note?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
-  }
-
-  export type PersonaQuotaRequestSumOrderByAggregateInput = {
-    id?: SortOrder
-    userId?: SortOrder
   }
 
   export type MessageListRelationFilter = {
@@ -18527,13 +16976,6 @@ export namespace Prisma {
     connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
   }
 
-  export type PersonaQuotaRequestCreateNestedManyWithoutUserInput = {
-    create?: XOR<PersonaQuotaRequestCreateWithoutUserInput, PersonaQuotaRequestUncheckedCreateWithoutUserInput> | PersonaQuotaRequestCreateWithoutUserInput[] | PersonaQuotaRequestUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PersonaQuotaRequestCreateOrConnectWithoutUserInput | PersonaQuotaRequestCreateOrConnectWithoutUserInput[]
-    createMany?: PersonaQuotaRequestCreateManyUserInputEnvelope
-    connect?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-  }
-
   export type PersonaUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -18562,13 +17004,6 @@ export namespace Prisma {
     connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
   }
 
-  export type PersonaQuotaRequestUncheckedCreateNestedManyWithoutUserInput = {
-    create?: XOR<PersonaQuotaRequestCreateWithoutUserInput, PersonaQuotaRequestUncheckedCreateWithoutUserInput> | PersonaQuotaRequestCreateWithoutUserInput[] | PersonaQuotaRequestUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PersonaQuotaRequestCreateOrConnectWithoutUserInput | PersonaQuotaRequestCreateOrConnectWithoutUserInput[]
-    createMany?: PersonaQuotaRequestCreateManyUserInputEnvelope
-    connect?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-  }
-
   export type StringFieldUpdateOperationsInput = {
     set?: string
   }
@@ -18579,14 +17014,6 @@ export namespace Prisma {
 
   export type NullableDateTimeFieldUpdateOperationsInput = {
     set?: Date | string | null
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
@@ -18649,18 +17076,12 @@ export namespace Prisma {
     deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
   }
 
-  export type PersonaQuotaRequestUpdateManyWithoutUserNestedInput = {
-    create?: XOR<PersonaQuotaRequestCreateWithoutUserInput, PersonaQuotaRequestUncheckedCreateWithoutUserInput> | PersonaQuotaRequestCreateWithoutUserInput[] | PersonaQuotaRequestUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PersonaQuotaRequestCreateOrConnectWithoutUserInput | PersonaQuotaRequestCreateOrConnectWithoutUserInput[]
-    upsert?: PersonaQuotaRequestUpsertWithWhereUniqueWithoutUserInput | PersonaQuotaRequestUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: PersonaQuotaRequestCreateManyUserInputEnvelope
-    set?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    disconnect?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    delete?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    connect?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    update?: PersonaQuotaRequestUpdateWithWhereUniqueWithoutUserInput | PersonaQuotaRequestUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: PersonaQuotaRequestUpdateManyWithWhereWithoutUserInput | PersonaQuotaRequestUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: PersonaQuotaRequestScalarWhereInput | PersonaQuotaRequestScalarWhereInput[]
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserNestedInput = {
@@ -18717,20 +17138,6 @@ export namespace Prisma {
     update?: UserPersonaXpUpdateWithWhereUniqueWithoutUserInput | UserPersonaXpUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: UserPersonaXpUpdateManyWithWhereWithoutUserInput | UserPersonaXpUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
-  }
-
-  export type PersonaQuotaRequestUncheckedUpdateManyWithoutUserNestedInput = {
-    create?: XOR<PersonaQuotaRequestCreateWithoutUserInput, PersonaQuotaRequestUncheckedCreateWithoutUserInput> | PersonaQuotaRequestCreateWithoutUserInput[] | PersonaQuotaRequestUncheckedCreateWithoutUserInput[]
-    connectOrCreate?: PersonaQuotaRequestCreateOrConnectWithoutUserInput | PersonaQuotaRequestCreateOrConnectWithoutUserInput[]
-    upsert?: PersonaQuotaRequestUpsertWithWhereUniqueWithoutUserInput | PersonaQuotaRequestUpsertWithWhereUniqueWithoutUserInput[]
-    createMany?: PersonaQuotaRequestCreateManyUserInputEnvelope
-    set?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    disconnect?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    delete?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    connect?: PersonaQuotaRequestWhereUniqueInput | PersonaQuotaRequestWhereUniqueInput[]
-    update?: PersonaQuotaRequestUpdateWithWhereUniqueWithoutUserInput | PersonaQuotaRequestUpdateWithWhereUniqueWithoutUserInput[]
-    updateMany?: PersonaQuotaRequestUpdateManyWithWhereWithoutUserInput | PersonaQuotaRequestUpdateManyWithWhereWithoutUserInput[]
-    deleteMany?: PersonaQuotaRequestScalarWhereInput | PersonaQuotaRequestScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutPersonaXpsInput = {
@@ -19039,20 +17446,6 @@ export namespace Prisma {
     upsert?: PersonaImageUpsertWithoutVideosInput
     connect?: PersonaImageWhereUniqueInput
     update?: XOR<XOR<PersonaImageUpdateToOneWithWhereWithoutVideosInput, PersonaImageUpdateWithoutVideosInput>, PersonaImageUncheckedUpdateWithoutVideosInput>
-  }
-
-  export type UserCreateNestedOneWithoutQuotaRequestsInput = {
-    create?: XOR<UserCreateWithoutQuotaRequestsInput, UserUncheckedCreateWithoutQuotaRequestsInput>
-    connectOrCreate?: UserCreateOrConnectWithoutQuotaRequestsInput
-    connect?: UserWhereUniqueInput
-  }
-
-  export type UserUpdateOneRequiredWithoutQuotaRequestsNestedInput = {
-    create?: XOR<UserCreateWithoutQuotaRequestsInput, UserUncheckedCreateWithoutQuotaRequestsInput>
-    connectOrCreate?: UserCreateOrConnectWithoutQuotaRequestsInput
-    upsert?: UserUpsertWithoutQuotaRequestsInput
-    connect?: UserWhereUniqueInput
-    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutQuotaRequestsInput, UserUpdateWithoutQuotaRequestsInput>, UserUncheckedUpdateWithoutQuotaRequestsInput>
   }
 
   export type UserCreateNestedOneWithoutSessionsInput = {
@@ -19413,7 +17806,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
@@ -19434,7 +17826,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
@@ -19524,31 +17915,6 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
-  export type PersonaQuotaRequestCreateWithoutUserInput = {
-    status?: string
-    note?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type PersonaQuotaRequestUncheckedCreateWithoutUserInput = {
-    id?: number
-    status?: string
-    note?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
-  export type PersonaQuotaRequestCreateOrConnectWithoutUserInput = {
-    where: PersonaQuotaRequestWhereUniqueInput
-    create: XOR<PersonaQuotaRequestCreateWithoutUserInput, PersonaQuotaRequestUncheckedCreateWithoutUserInput>
-  }
-
-  export type PersonaQuotaRequestCreateManyUserInputEnvelope = {
-    data: PersonaQuotaRequestCreateManyUserInput | PersonaQuotaRequestCreateManyUserInput[]
-    skipDuplicates?: boolean
-  }
-
   export type PersonaUpsertWithWhereUniqueWithoutUserInput = {
     where: PersonaWhereUniqueInput
     update: XOR<PersonaUpdateWithoutUserInput, PersonaUncheckedUpdateWithoutUserInput>
@@ -19581,7 +17947,6 @@ export namespace Prisma {
     imageUrl?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
-    status?: StringFilter<"Persona"> | string
     createdBy?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
   }
@@ -19666,34 +18031,6 @@ export namespace Prisma {
     xp?: IntFilter<"UserPersonaXp"> | number
   }
 
-  export type PersonaQuotaRequestUpsertWithWhereUniqueWithoutUserInput = {
-    where: PersonaQuotaRequestWhereUniqueInput
-    update: XOR<PersonaQuotaRequestUpdateWithoutUserInput, PersonaQuotaRequestUncheckedUpdateWithoutUserInput>
-    create: XOR<PersonaQuotaRequestCreateWithoutUserInput, PersonaQuotaRequestUncheckedCreateWithoutUserInput>
-  }
-
-  export type PersonaQuotaRequestUpdateWithWhereUniqueWithoutUserInput = {
-    where: PersonaQuotaRequestWhereUniqueInput
-    data: XOR<PersonaQuotaRequestUpdateWithoutUserInput, PersonaQuotaRequestUncheckedUpdateWithoutUserInput>
-  }
-
-  export type PersonaQuotaRequestUpdateManyWithWhereWithoutUserInput = {
-    where: PersonaQuotaRequestScalarWhereInput
-    data: XOR<PersonaQuotaRequestUpdateManyMutationInput, PersonaQuotaRequestUncheckedUpdateManyWithoutUserInput>
-  }
-
-  export type PersonaQuotaRequestScalarWhereInput = {
-    AND?: PersonaQuotaRequestScalarWhereInput | PersonaQuotaRequestScalarWhereInput[]
-    OR?: PersonaQuotaRequestScalarWhereInput[]
-    NOT?: PersonaQuotaRequestScalarWhereInput | PersonaQuotaRequestScalarWhereInput[]
-    id?: IntFilter<"PersonaQuotaRequest"> | number
-    userId?: IntFilter<"PersonaQuotaRequest"> | number
-    status?: StringFilter<"PersonaQuotaRequest"> | string
-    note?: StringNullableFilter<"PersonaQuotaRequest"> | string | null
-    createdAt?: DateTimeFilter<"PersonaQuotaRequest"> | Date | string
-    updatedAt?: DateTimeFilter<"PersonaQuotaRequest"> | Date | string
-  }
-
   export type UserCreateWithoutPersonaXpsInput = {
     email: string
     password: string
@@ -19701,12 +18038,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonaXpsInput = {
@@ -19717,12 +18052,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonaXpsInput = {
@@ -19743,7 +18076,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -19764,7 +18096,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -19795,12 +18126,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonaXpsInput = {
@@ -19811,12 +18140,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutPersonaXpsInput = {
@@ -19843,7 +18170,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -19864,7 +18190,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -19879,12 +18204,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMemoriesInput = {
@@ -19895,12 +18218,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMemoriesInput = {
@@ -19926,12 +18247,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMemoriesInput = {
@@ -19942,12 +18261,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutPersonasInput = {
@@ -19957,12 +18274,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonasInput = {
@@ -19973,12 +18288,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonasInput = {
@@ -20021,7 +18334,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
     videos?: PersonaVideoCreateNestedManyWithoutImageInput
   }
@@ -20033,7 +18345,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
     videos?: PersonaVideoUncheckedCreateNestedManyWithoutImageInput
   }
@@ -20111,12 +18422,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonasInput = {
@@ -20127,12 +18436,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChatSessionUpsertWithWhereUniqueWithoutPersonaInput = {
@@ -20178,7 +18485,6 @@ export namespace Prisma {
     isMain?: BoolFilter<"PersonaImage"> | boolean
     order?: IntFilter<"PersonaImage"> | number
     requiredLevel?: IntFilter<"PersonaImage"> | number
-    status?: StringFilter<"PersonaImage"> | string
     createdAt?: DateTimeFilter<"PersonaImage"> | Date | string
   }
 
@@ -20239,7 +18545,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -20260,7 +18565,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -20278,7 +18582,6 @@ export namespace Prisma {
     title?: string | null
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -20288,7 +18591,6 @@ export namespace Prisma {
     title?: string | null
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -20326,7 +18628,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -20347,7 +18648,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -20381,7 +18681,6 @@ export namespace Prisma {
     title?: StringNullableFilter<"PersonaVideo"> | string | null
     order?: IntFilter<"PersonaVideo"> | number
     requiredLevel?: IntFilter<"PersonaVideo"> | number
-    status?: StringFilter<"PersonaVideo"> | string
     createdAt?: DateTimeFilter<"PersonaVideo"> | Date | string
   }
 
@@ -20391,7 +18690,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
     persona: PersonaCreateNestedOneWithoutImagesInput
   }
@@ -20404,7 +18702,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -20430,7 +18727,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneRequiredWithoutImagesNestedInput
   }
@@ -20443,86 +18739,7 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type UserCreateWithoutQuotaRequestsInput = {
-    email: string
-    password: string
-    username?: string | null
-    role?: string
-    resetToken?: string | null
-    resetTokenExpiry?: Date | string | null
-    personaQuota?: number
-    createdAt?: Date | string
-    personas?: PersonaCreateNestedManyWithoutUserInput
-    sessions?: ChatSessionCreateNestedManyWithoutUserInput
-    memories?: UserMemoryCreateNestedManyWithoutUserInput
-    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
-  }
-
-  export type UserUncheckedCreateWithoutQuotaRequestsInput = {
-    id?: number
-    email: string
-    password: string
-    username?: string | null
-    role?: string
-    resetToken?: string | null
-    resetTokenExpiry?: Date | string | null
-    personaQuota?: number
-    createdAt?: Date | string
-    personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
-    sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
-    memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
-    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
-  }
-
-  export type UserCreateOrConnectWithoutQuotaRequestsInput = {
-    where: UserWhereUniqueInput
-    create: XOR<UserCreateWithoutQuotaRequestsInput, UserUncheckedCreateWithoutQuotaRequestsInput>
-  }
-
-  export type UserUpsertWithoutQuotaRequestsInput = {
-    update: XOR<UserUpdateWithoutQuotaRequestsInput, UserUncheckedUpdateWithoutQuotaRequestsInput>
-    create: XOR<UserCreateWithoutQuotaRequestsInput, UserUncheckedCreateWithoutQuotaRequestsInput>
-    where?: UserWhereInput
-  }
-
-  export type UserUpdateToOneWithWhereWithoutQuotaRequestsInput = {
-    where?: UserWhereInput
-    data: XOR<UserUpdateWithoutQuotaRequestsInput, UserUncheckedUpdateWithoutQuotaRequestsInput>
-  }
-
-  export type UserUpdateWithoutQuotaRequestsInput = {
-    email?: StringFieldUpdateOperationsInput | string
-    password?: StringFieldUpdateOperationsInput | string
-    username?: NullableStringFieldUpdateOperationsInput | string | null
-    role?: StringFieldUpdateOperationsInput | string
-    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
-    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    personas?: PersonaUpdateManyWithoutUserNestedInput
-    sessions?: ChatSessionUpdateManyWithoutUserNestedInput
-    memories?: UserMemoryUpdateManyWithoutUserNestedInput
-    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
-  }
-
-  export type UserUncheckedUpdateWithoutQuotaRequestsInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    email?: StringFieldUpdateOperationsInput | string
-    password?: StringFieldUpdateOperationsInput | string
-    username?: NullableStringFieldUpdateOperationsInput | string | null
-    role?: StringFieldUpdateOperationsInput | string
-    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
-    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
-    sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
-    memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
-    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutSessionsInput = {
@@ -20532,12 +18749,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -20548,12 +18763,10 @@ export namespace Prisma {
     role?: string
     resetToken?: string | null
     resetTokenExpiry?: Date | string | null
-    personaQuota?: number
     createdAt?: Date | string
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
-    quotaRequests?: PersonaQuotaRequestUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -20574,7 +18787,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     images?: PersonaImageCreateNestedManyWithoutPersonaInput
@@ -20595,7 +18807,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdBy?: number | null
     createdAt?: Date | string
     images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
@@ -20669,12 +18880,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -20685,12 +18894,10 @@ export namespace Prisma {
     role?: StringFieldUpdateOperationsInput | string
     resetToken?: NullableStringFieldUpdateOperationsInput | string | null
     resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    personaQuota?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
-    quotaRequests?: PersonaQuotaRequestUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutSessionsInput = {
@@ -20717,7 +18924,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
@@ -20738,7 +18944,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
@@ -20920,7 +19125,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -20941,7 +19145,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -20978,7 +19181,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -20999,7 +19201,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -21020,7 +19221,6 @@ export namespace Prisma {
     imageUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
-    status?: string
     createdAt?: Date | string
   }
 
@@ -21044,14 +19244,6 @@ export namespace Prisma {
     xp?: number
   }
 
-  export type PersonaQuotaRequestCreateManyUserInput = {
-    id?: number
-    status?: string
-    note?: string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
-  }
-
   export type PersonaUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -21065,7 +19257,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUpdateManyWithoutPersonaNestedInput
@@ -21086,7 +19277,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
     images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
@@ -21107,7 +19297,6 @@ export namespace Prisma {
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -21173,29 +19362,6 @@ export namespace Prisma {
     xp?: IntFieldUpdateOperationsInput | number
   }
 
-  export type PersonaQuotaRequestUpdateWithoutUserInput = {
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type PersonaQuotaRequestUncheckedUpdateWithoutUserInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type PersonaQuotaRequestUncheckedUpdateManyWithoutUserInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
-    note?: NullableStringFieldUpdateOperationsInput | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
   export type ChatSessionCreateManyPersonaInput = {
     id?: number
     userId: number
@@ -21211,7 +19377,6 @@ export namespace Prisma {
     isMain?: boolean
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -21261,7 +19426,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     videos?: PersonaVideoUpdateManyWithoutImageNestedInput
   }
@@ -21273,7 +19437,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     videos?: PersonaVideoUncheckedUpdateManyWithoutImageNestedInput
   }
@@ -21285,7 +19448,6 @@ export namespace Prisma {
     isMain?: BoolFieldUpdateOperationsInput | boolean
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -21333,7 +19495,6 @@ export namespace Prisma {
     title?: string | null
     order?: number
     requiredLevel?: number
-    status?: string
     createdAt?: Date | string
   }
 
@@ -21342,7 +19503,6 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -21352,7 +19512,6 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -21362,7 +19521,6 @@ export namespace Prisma {
     title?: NullableStringFieldUpdateOperationsInput | string | null
     order?: IntFieldUpdateOperationsInput | number
     requiredLevel?: IntFieldUpdateOperationsInput | number
-    status?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
