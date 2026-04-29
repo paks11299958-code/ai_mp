@@ -39,6 +39,18 @@ const App: React.FC = () => {
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
     const [triggerVideoPopup, setTriggerVideoPopup] = useState<TriggerVideo | null>(null);
+    const [disabledTriggers, setDisabledTriggers] = useState<Set<number>>(() => {
+        try { return new Set(JSON.parse(localStorage.getItem('disabledTriggers') || '[]')); } catch { return new Set(); }
+    });
+
+    const toggleTrigger = (id: number) => {
+        setDisabledTriggers(prev => {
+            const next = new Set(prev);
+            next.has(id) ? next.delete(id) : next.add(id);
+            localStorage.setItem('disabledTriggers', JSON.stringify([...next]));
+            return next;
+        });
+    };
     const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
         try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
     });
@@ -421,7 +433,7 @@ const App: React.FC = () => {
             // 트리거 영상 키워드 매칭 (AI 응답 완료 후)
             const normalize = (s: string) => s.replace(/\s+/g, '').replace(/[?!.,~ㅋㅎㅠㅜ。、！？]+/g, '').toLowerCase();
             const normalizedInput = normalize(text);
-            const activeTriggers = triggerVideos[activePersonaId] || [];
+            const activeTriggers = (triggerVideos[activePersonaId] || []).filter(tv => !disabledTriggers.has(tv.id));
             const matched = activeTriggers.filter(tv =>
                 tv.keywords.split(',').map(k => k.trim()).filter(Boolean).some(kw => normalizedInput.includes(normalize(kw)))
             );
@@ -809,28 +821,32 @@ const App: React.FC = () => {
                         {(triggerVideos[activePersonaId]?.length ?? 0) > 0 && (
                             <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
                                 <div className="max-w-4xl mx-auto">
-                                    <div className="flex items-start gap-3">
-                                        <span className="text-[10px] text-purple-400 font-semibold shrink-0 mt-0.5 flex items-center gap-1">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <span className="text-[10px] text-purple-400 font-semibold shrink-0 flex items-center gap-1">
                                             <Icon name="Zap" size={10} />
                                             영상 키워드
                                         </span>
-                                        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                                            {triggerVideos[activePersonaId].map(tv => (
-                                                <div key={tv.id} className="flex items-center gap-1.5 flex-wrap">
-                                                    <span className="text-[10px] text-gray-500 shrink-0">
-                                                        {tv.tag || tv.title || ''}
+                                        {triggerVideos[activePersonaId].map(tv => {
+                                            const firstKw = tv.keywords.split(',').map(k => k.trim()).find(k => k) || '';
+                                            const enabled = !disabledTriggers.has(tv.id);
+                                            return (
+                                                <label key={tv.id} className="flex items-center gap-1.5 cursor-pointer group">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={enabled}
+                                                        onChange={() => toggleTrigger(tv.id)}
+                                                        className="w-3 h-3 accent-purple-500 cursor-pointer"
+                                                    />
+                                                    <span className={`text-[10px] border px-1.5 py-0.5 rounded-md whitespace-nowrap transition-colors ${
+                                                        enabled
+                                                            ? 'text-purple-300 border-purple-700/60 bg-purple-900/20'
+                                                            : 'text-gray-600 border-gray-700/40 bg-gray-800/30 line-through'
+                                                    }`}>
+                                                        {tv.tag ? `${tv.tag} ` : ''}{firstKw}
                                                     </span>
-                                                    {tv.keywords.split(',').map(k => k.trim()).filter(Boolean).map((kw, i) => (
-                                                        <span
-                                                            key={i}
-                                                            className="text-[10px] text-purple-300 border border-purple-700/60 bg-purple-900/20 px-1.5 py-0.5 rounded-md whitespace-nowrap"
-                                                        >
-                                                            {kw}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            ))}
-                                        </div>
+                                                </label>
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             </div>
