@@ -801,6 +801,37 @@ const App: React.FC = () => {
                             <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} />
                         )}
 
+                        {/* 트리거 키워드 안내 */}
+                        {(triggerVideos[activePersonaId]?.length ?? 0) > 0 && (
+                            <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
+                                <div className="max-w-4xl mx-auto">
+                                    <div className="flex items-start gap-3">
+                                        <span className="text-[10px] text-purple-400 font-semibold shrink-0 mt-0.5 flex items-center gap-1">
+                                            <Icon name="Zap" size={10} />
+                                            영상 키워드
+                                        </span>
+                                        <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                                            {triggerVideos[activePersonaId].map(tv => (
+                                                <div key={tv.id} className="flex items-center gap-1.5 flex-wrap">
+                                                    <span className="text-[10px] text-gray-500 shrink-0">
+                                                        {tv.tag || tv.title || ''}
+                                                    </span>
+                                                    {tv.keywords.split(',').map(k => k.trim()).filter(Boolean).map((kw, i) => (
+                                                        <span
+                                                            key={i}
+                                                            className="text-[10px] text-purple-300 border border-purple-700/60 bg-purple-900/20 px-1.5 py-0.5 rounded-md whitespace-nowrap"
+                                                        >
+                                                            {kw}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth">
                             {currentSession.messages.length === 0 && activePersona ? (
                                 <div className="h-full flex flex-col items-center justify-center text-center opacity-80 px-4">

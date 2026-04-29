@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Code2, PenTool, Languages, Send, Menu, X, Trash2, AlertCircle, Settings, Save, Plus, ChevronUp, ChevronDown, Image as ImageIcon, Upload, LogOut, Brain, Play, Search, Lock } from 'lucide-react';
+import { Bot, Code2, PenTool, Languages, Send, Menu, X, Trash2, AlertCircle, Settings, Save, Plus, ChevronUp, ChevronDown, Image as ImageIcon, Upload, LogOut, Brain, Play, Search, Lock, Zap } from 'lucide-react';
 
 interface IconProps {
     name: string;
@@ -30,6 +30,7 @@ export const Icon: React.FC<IconProps> = ({ name, className, size = 24 }) => {
         Play,
         Search,
         Lock,
+        Zap,
     };
 
     const SelectedIcon = icons[name] || Bot;
