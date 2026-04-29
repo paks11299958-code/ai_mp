@@ -124,6 +124,15 @@ const App: React.FC = () => {
         }
     }, [personas, activePersonaId]);
 
+    // activePersonaId 변경 시 트리거 영상 로드
+    useEffect(() => {
+        if (!activePersonaId) return;
+        if (triggerVideos[activePersonaId]) return;
+        triggerVideoApi.getAll(activePersonaId)
+            .then(vids => setTriggerVideos(prev => ({ ...prev, [activePersonaId]: vids })))
+            .catch(() => {});
+    }, [activePersonaId]);
+
     // 페르소나 선택 시 DB에서 이전 세션/메시지 로드 (최근 50개)
     const handleSelectPersona = useCallback(async (personaId: string) => {
         setActivePersonaId(personaId);
@@ -134,11 +143,6 @@ const App: React.FC = () => {
             // 이미지 로드 (아직 없을 경우)
             if (!personaImages[personaId]) {
                 refreshPersonaImages(personaId);
-            }
-            if (!triggerVideos[personaId]) {
-                triggerVideoApi.getAll(personaId)
-                    .then(vids => setTriggerVideos(prev => ({ ...prev, [personaId]: vids })))
-                    .catch(() => {});
             }
 
 
