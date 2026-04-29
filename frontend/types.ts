@@ -87,3 +87,25 @@ export interface DbSession {
     updatedAt: string;
     persona: Pick<Persona, 'id' | 'name' | 'iconName' | 'colorClass'>;
 }
+
+export interface BoardReply {
+    id: number;
+    postId: number;
+    userId: number;
+    isAdminReply: boolean;
+    content: string;
+    createdAt: string;
+    user: { username?: string; email: string };
+}
+
+export interface BoardPost {
+    id: number;
+    userId: number;
+    title: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+    user: { username?: string; email: string };
+    replies: BoardReply[];
+    _count?: { replies: number };
+}

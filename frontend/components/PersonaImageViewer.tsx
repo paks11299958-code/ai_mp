@@ -15,6 +15,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
+    const loadedImageIdsRef = useRef<Set<number>>(new Set());
 
     const userStage = getStage(userXp).stage;
     const mainImage = images.find(img => img.isMain) || images[0];
@@ -23,10 +24,11 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     useEffect(() => {
         const unlockedImages = images.filter(img => userStage >= img.requiredLevel && (img._count?.videos ?? 0) > 0);
         unlockedImages.forEach(img => {
-            if (!videosByImage[img.id]) {
+            if (!loadedImageIdsRef.current.has(img.id)) {
+                loadedImageIdsRef.current.add(img.id);
                 personaVideoApi.getAll(img.id)
                     .then(vids => setVideosByImage(prev => ({ ...prev, [img.id]: vids })))
-                    .catch(() => {});
+                    .catch(() => loadedImageIdsRef.current.delete(img.id));
             }
         });
     }, [images, userStage]);
@@ -81,7 +83,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                 {/* 동영상 숫자 동그라미 */}
                                 {!isLocked && videoCount > 0 && (
                                     <div className="flex gap-1">
-                                        {(videosByImage[img.id] ?? Array.from({ length: videoCount }, (_, i) => ({ id: i, requiredLevel: 1 } as any))).map((v: PersonaVideo, i: number) => {
+                                        {(videosByImage[img.id] ?? Array.from({ length: videoCount }, (_, i) => ({ id: `ph-${img.id}-${i}`, requiredLevel: 1 } as any))).map((v: PersonaVideo, i: number) => {
                                             const videoLocked = userStage < v.requiredLevel;
                                             return videoLocked ? (
                                                 <div

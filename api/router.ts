@@ -29,6 +29,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const domain = req.query.d as string;
     const seg1 = req.query.s1 as string | undefined;
     const seg2 = req.query.s2 as string | undefined;
+    const seg3 = req.query.s3 as string | undefined;
 
     // ── Auth ──────────────────────────────────────────────────
 
@@ -884,6 +885,162 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             } catch (e: any) {
                 console.error('[knowledge search]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+    }
+
+    // ── Board ─────────────────────────────────────────────────
+
+    if (domain === 'board') {
+        const token = getTokenFromRequest(req);
+        if (!token) return res.status(401).json({ error: '로그인이 필요합니다.' });
+        const payload = verifyToken(token);
+        const me = await prisma.user.findUnique({ where: { id: payload.userId }, select: { id: true, role: true } });
+        if (!me) return res.status(401).json({ error: '사용자를 찾을 수 없습니다.' });
+        const isAdmin = me.role === 'ADMIN';
+
+        // GET /api/board — 목록 (제목만, 비밀글)
+        if (!seg1 && req.method === 'GET') {
+            try {
+                const posts = await prisma.boardPost.findMany({
+                    orderBy: { createdAt: 'desc' },
+                    select: {
+                        id: true, title: true, createdAt: true, userId: true,
+                        user: { select: { username: true, email: true } },
+                        _count: { select: { replies: true } },
+                    },
+                });
+                return res.status(200).json(posts);
+            } catch (e: any) {
+                console.error('[board GET]', e);
+                return res.status(500).json({ error: '목록 조회 실패' });
+            }
+        }
+
+        // POST /api/board — 게시글 작성
+        if (!seg1 && req.method === 'POST') {
+            try {
+                const { title, content } = req.body;
+                if (!title?.trim() || !content?.trim())
+                    return res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+                const post = await prisma.boardPost.create({
+                    data: { userId: me.id, title: title.trim(), content: content.trim() },
+                });
+                try {
+                    const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { email: true } });
+                    for (const admin of admins) {
+                        await sendEmail(admin.email, '[AI 페르소나] 소통게시판 새 글이 등록되었습니다',
+                            `<div style="font-family:sans-serif;padding:24px;"><h2>새 문의글이 등록되었습니다</h2><p>제목: <strong>${title.trim()}</strong></p></div>`
+                        ).catch(() => {});
+                    }
+                } catch {}
+                return res.status(200).json({ id: post.id });
+            } catch (e: any) {
+                console.error('[board POST]', e);
+                return res.status(500).json({ error: '게시글 등록 실패' });
+            }
+        }
+
+        // GET /api/board/:id — 상세 (작성자 또는 관리자)
+        if (seg1 && !seg2 && req.method === 'GET') {
+            try {
+                const post = await prisma.boardPost.findUnique({
+                    where: { id: parseInt(seg1) },
+                    include: {
+                        user: { select: { username: true, email: true } },
+                        replies: {
+                            include: { user: { select: { username: true, email: true } } },
+                            orderBy: { createdAt: 'asc' },
+                        },
+                    },
+                });
+                if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+                if (post.userId !== me.id && !isAdmin)
+                    return res.status(403).json({ error: '열람 권한이 없습니다.' });
+                return res.status(200).json(post);
+            } catch (e: any) {
+                console.error('[board GET detail]', e);
+                return res.status(500).json({ error: '불러오기 실패' });
+            }
+        }
+
+        // PUT /api/board/:id — 수정 (작성자 또는 관리자)
+        if (seg1 && !seg2 && req.method === 'PUT') {
+            try {
+                const post = await prisma.boardPost.findUnique({ where: { id: parseInt(seg1) } });
+                if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+                if (post.userId !== me.id && !isAdmin)
+                    return res.status(403).json({ error: '수정 권한이 없습니다.' });
+                const { title, content } = req.body;
+                if (!title?.trim() || !content?.trim())
+                    return res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+                await prisma.boardPost.update({
+                    where: { id: parseInt(seg1) },
+                    data: { title: title.trim(), content: content.trim() },
+                });
+                return res.status(200).json({ ok: true });
+            } catch (e: any) {
+                console.error('[board PUT]', e);
+                return res.status(500).json({ error: '수정 실패' });
+            }
+        }
+
+        // DELETE /api/board/:id — 삭제 (작성자 또는 관리자)
+        if (seg1 && !seg2 && req.method === 'DELETE') {
+            try {
+                const post = await prisma.boardPost.findUnique({ where: { id: parseInt(seg1) } });
+                if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+                if (post.userId !== me.id && !isAdmin)
+                    return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+                await prisma.boardPost.delete({ where: { id: parseInt(seg1) } });
+                return res.status(200).json({ ok: true });
+            } catch (e: any) {
+                console.error('[board DELETE]', e);
+                return res.status(500).json({ error: '삭제 실패' });
+            }
+        }
+
+        // POST /api/board/:id/reply — 답글 작성 (작성자 또는 관리자)
+        if (seg1 && seg2 === 'reply' && !seg3 && req.method === 'POST') {
+            try {
+                const postId = parseInt(seg1);
+                const { content } = req.body;
+                if (!content?.trim()) return res.status(400).json({ error: '내용을 입력해주세요.' });
+                const post = await prisma.boardPost.findUnique({
+                    where: { id: postId },
+                    include: { user: { select: { email: true, username: true } } },
+                });
+                if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+                const isAuthor = post.userId === me.id;
+                if (!isAdmin && !isAuthor)
+                    return res.status(403).json({ error: '댓글 작성 권한이 없습니다.' });
+                const reply = await prisma.boardReply.create({
+                    data: { postId, userId: me.id, isAdminReply: isAdmin, content: content.trim() },
+                });
+                if (isAdmin && !isAuthor) {
+                    sendEmail(post.user.email, '[AI 페르소나] 소통게시판 답글이 등록되었습니다',
+                        `<div style="font-family:sans-serif;padding:24px;"><h2>관리자 답글이 등록되었습니다</h2><p>게시글: <strong>${post.title}</strong></p></div>`
+                    ).catch(() => {});
+                }
+                return res.status(200).json({ id: reply.id });
+            } catch (e: any) {
+                console.error('[board reply POST]', e);
+                return res.status(500).json({ error: '답글 등록 실패' });
+            }
+        }
+
+        // DELETE /api/board/:id/reply/:replyId — 답글 삭제 (작성자 또는 관리자)
+        if (seg1 && seg2 === 'reply' && seg3 && req.method === 'DELETE') {
+            try {
+                const reply = await prisma.boardReply.findUnique({ where: { id: parseInt(seg3) } });
+                if (!reply) return res.status(404).json({ error: '답글을 찾을 수 없습니다.' });
+                if (reply.userId !== me.id && !isAdmin)
+                    return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+                await prisma.boardReply.delete({ where: { id: parseInt(seg3) } });
+                return res.status(200).json({ ok: true });
+            } catch (e: any) {
+                console.error('[board reply DELETE]', e);
+                return res.status(500).json({ error: '답글 삭제 실패' });
             }
         }
     }
