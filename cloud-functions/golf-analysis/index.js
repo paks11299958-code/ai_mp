@@ -29,18 +29,9 @@ const GOLF_PROMPT = `당신은 전문 골프 티칭 프로입니다. 이 골프 
   "recommendedDrills": ["추천 드릴1", "추천 드릴2", "추천 드릴3"]
 }`;
 
-const ALLOWED_ORIGINS = [
-  'https://aichat.dbzone.kr',
-  'https://ai-mp.vercel.app',
-  'http://localhost:5173',
-];
-
 exports.analyzeGolfSwing = async (req, res) => {
-  // CORS
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.includes(origin)) {
-    res.set('Access-Control-Allow-Origin', origin);
-  }
+  // CORS — JWT 인증으로 보호하므로 오리진 제한 불필요
+  res.set('Access-Control-Allow-Origin', '*');
   res.set('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.set('Access-Control-Max-Age', '3600');
