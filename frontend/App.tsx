@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
-import { Message, Persona, PersonaImage, ChatSessionState, User } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi } from './services/apiService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -37,6 +37,8 @@ const App: React.FC = () => {
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
+    const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
+    const [triggerVideoPopup, setTriggerVideoPopup] = useState<TriggerVideo | null>(null);
     const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
         try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
     });
@@ -132,6 +134,11 @@ const App: React.FC = () => {
             // 이미지 로드 (아직 없을 경우)
             if (!personaImages[personaId]) {
                 refreshPersonaImages(personaId);
+            }
+            if (!triggerVideos[personaId]) {
+                triggerVideoApi.getAll(personaId)
+                    .then(vids => setTriggerVideos(prev => ({ ...prev, [personaId]: vids })))
+                    .catch(() => {});
             }
 
 
@@ -407,6 +414,18 @@ const App: React.FC = () => {
             }
             updateMessageInSession(activePersonaId, modelMsgId, { isStreaming: false });
 
+            // 트리거 영상 키워드 매칭 (AI 응답 완료 후)
+            const normalize = (s: string) => s.replace(/\s+/g, '').replace(/[?!.,~ㅋㅎㅠㅜ。、！？]+/g, '').toLowerCase();
+            const normalizedInput = normalize(text);
+            const activeTriggers = triggerVideos[activePersonaId] || [];
+            const matched = activeTriggers.filter(tv =>
+                tv.keywords.split(',').map(k => k.trim()).filter(Boolean).some(kw => normalizedInput.includes(normalize(kw)))
+            );
+            if (matched.length > 0) {
+                const picked = matched[Math.floor(Math.random() * matched.length)];
+                setTriggerVideoPopup(picked);
+            }
+
             // AI 응답 DB 저장
             if (dbSessionId && fullResponse) {
                 sessionApi.saveMessage(dbSessionId, 'model', fullResponse).catch(console.error);
@@ -594,6 +613,29 @@ const App: React.FC = () => {
                 onLogout={handleLogout}
                 onGoHome={() => setShowMain(true)}
             />
+
+            {/* 트리거 영상 팝업 */}
+            {triggerVideoPopup && (
+                <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4"
+                    onClick={() => setTriggerVideoPopup(null)}>
+                    <div className="relative w-full max-w-lg bg-gray-900 rounded-2xl overflow-hidden shadow-2xl"
+                        onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
+                            <span className="text-sm font-medium text-white">{triggerVideoPopup.title || '영상'}</span>
+                            <button onClick={() => setTriggerVideoPopup(null)} className="text-gray-400 hover:text-white transition-colors">
+                                <Icon name="X" size={20} />
+                            </button>
+                        </div>
+                        <video
+                            src={triggerVideoPopup.videoUrl}
+                            controls
+                            autoPlay
+                            className="w-full max-h-[70vh] bg-black"
+                            onEnded={() => setTriggerVideoPopup(null)}
+                        />
+                    </div>
+                </div>
+            )}
 
             {showBoard ? (
                 <BoardPanel user={user} personaId={activePersonaId} onClose={() => setShowBoard(false)} />

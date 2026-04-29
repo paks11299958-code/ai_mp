@@ -264,6 +264,39 @@ export const knowledgeApi = {
         }),
 };
 
+// Trigger Videos
+export const triggerVideoApi = {
+    getAll: (personaId: string) =>
+        request<import('../types').TriggerVideo[]>(`/trigger-videos/${personaId}`),
+
+    getSignedUrl: (mimeType: string, filename: string) =>
+        request<{ signedUrl: string; publicUrl: string }>('/trigger-videos/signed-url', {
+            method: 'POST',
+            body: JSON.stringify({ mimeType, filename }),
+        }),
+
+    extractKeywords: (title: string, description: string) =>
+        request<{ keywords: string[] }>('/trigger-videos/extract-keywords', {
+            method: 'POST',
+            body: JSON.stringify({ title, description }),
+        }),
+
+    create: (data: { personaId: string; videoUrl: string; title?: string; description?: string; keywords: string; tag?: string }) =>
+        request<import('../types').TriggerVideo>('/trigger-videos', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    update: (id: number, data: { title?: string; description?: string; keywords?: string; tag?: string }) =>
+        request<import('../types').TriggerVideo>(`/trigger-videos/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+
+    delete: (id: number) =>
+        request<{ ok: boolean }>(`/trigger-videos/${id}`, { method: 'DELETE' }),
+};
+
 // Board
 export const boardApi = {
     getList: (personaId: string) =>

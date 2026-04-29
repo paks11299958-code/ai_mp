@@ -58,6 +58,36 @@ ${content}
     }
 }
 
+export async function extractTriggerKeywords(title: string, description: string): Promise<string[]> {
+    const ai = getAI();
+    const prompt = `다음 영상의 제목과 설명을 보고, 채팅에서 이 영상을 재생할 때 사용할 트리거 키워드를 추출하세요.
+
+제목: ${title}
+설명: ${description || '(없음)'}
+
+[추출 규칙]
+- 사용자가 채팅에서 실제로 입력할 법한 짧은 단어/표현으로 추출
+- 비슷한 표현을 여러 개 포함 (예: "안녕", "안녕하세요", "반가워", "방가워")
+- 한국어 구어체 위주
+- 10~20개 사이로 추출
+- 쉼표 없이 JSON 배열로만 반환
+
+반환 형식: ["키워드1", "키워드2", "키워드3"]`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: MODEL_NAME,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        });
+        const text = response.text?.trim() || '[]';
+        const match = text.match(/\[[\s\S]*\]/);
+        if (!match) return [];
+        return JSON.parse(match[0]) as string[];
+    } catch {
+        return [];
+    }
+}
+
 export async function generateSummary(messages: { role: string; text: string }[]): Promise<string | null> {
     if (messages.length < 2) return null;
     const ai = getAI();

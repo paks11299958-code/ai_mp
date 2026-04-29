@@ -88,6 +88,18 @@ export interface DbSession {
     persona: Pick<Persona, 'id' | 'name' | 'iconName' | 'colorClass'>;
 }
 
+export interface TriggerVideo {
+    id: number;
+    personaId: string;
+    videoUrl: string;
+    title?: string;
+    description?: string;
+    keywords: string;
+    tag?: string;
+    order: number;
+    createdAt: string;
+}
+
 export interface BoardReply {
     id: number;
     postId: number;

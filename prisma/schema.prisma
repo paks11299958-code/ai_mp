@@ -64,6 +64,7 @@ model Persona {
   personaXps        UserPersonaXp[]
   knowledge         PersonaKnowledge[]
   boardPosts        BoardPost[]
+  triggerVideos     PersonaTriggerVideo[]
 }
 
 model PersonaImage {
@@ -137,6 +138,19 @@ model PersonaKnowledge {
   embedding Unsupported("vector(768)")?
   createdAt DateTime                  @default(now())
   persona   Persona                   @relation(fields: [personaId], references: [id], onDelete: Cascade)
+}
+
+model PersonaTriggerVideo {
+  id          Int      @id @default(autoincrement())
+  personaId   String
+  videoUrl    String
+  title       String?
+  description String?
+  keywords    String
+  tag         String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  persona     Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
 }
 
 model BoardPost {

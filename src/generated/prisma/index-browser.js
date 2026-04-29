@@ -224,9 +224,22 @@ exports.Prisma.PersonaKnowledgeScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PersonaTriggerVideoScalarFieldEnum = {
+  id: 'id',
+  personaId: 'personaId',
+  videoUrl: 'videoUrl',
+  title: 'title',
+  description: 'description',
+  keywords: 'keywords',
+  tag: 'tag',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.BoardPostScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  personaId: 'personaId',
   title: 'title',
   content: 'content',
   createdAt: 'createdAt',
@@ -270,6 +283,7 @@ exports.Prisma.ModelName = {
   ConversationSummary: 'ConversationSummary',
   AppConfig: 'AppConfig',
   PersonaKnowledge: 'PersonaKnowledge',
+  PersonaTriggerVideo: 'PersonaTriggerVideo',
   BoardPost: 'BoardPost',
   BoardReply: 'BoardReply'
 };

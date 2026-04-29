@@ -5,7 +5,7 @@ import { prisma } from './_lib/prisma.js';
 import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verifyToken } from './_lib/auth.js';
 import { sendEmail } from './_lib/email.js';
 import { generateEmbedding } from './_lib/embedding.js';
-import { extractMemories, generateSummary } from './_lib/gemini.js';
+import { extractMemories, generateSummary, extractTriggerKeywords } from './_lib/gemini.js';
 import { uploadToGCS, deleteFromGCS, generateSignedUrl } from './_lib/storage.js';
 
 function chunkText(text: string): string[] {
@@ -1045,6 +1045,113 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             } catch (e: any) {
                 console.error('[board reply DELETE]', e);
                 return res.status(500).json({ error: '답글 삭제 실패' });
+            }
+        }
+    }
+
+    // ── Trigger Videos ────────────────────────────────────────
+    if (domain === 'trigger-videos') {
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user || user.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
+
+        // GET /api/trigger-videos/:personaId
+        if (seg1 && !seg2 && req.method === 'GET') {
+            try {
+                const list = await prisma.personaTriggerVideo.findMany({
+                    where: { personaId: seg1 },
+                    orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+                });
+                return res.status(200).json(list);
+            } catch (e: any) {
+                return res.status(500).json({ error: '조회 실패' });
+            }
+        }
+
+        // POST /api/trigger-videos/signed-url
+        if (seg1 === 'signed-url' && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { mimeType, filename } = req.body;
+                if (!mimeType) return res.status(400).json({ error: 'mimeType은 필수입니다.' });
+                const ext = mimeType.split('/')[1] || 'mp4';
+                const destPath = `personas/triggers/${Date.now()}_${filename || 'video'}.${ext}`;
+                const result = await generateSignedUrl(destPath, mimeType);
+                return res.status(200).json(result);
+            } catch (e: any) {
+                return res.status(500).json({ error: '서명 URL 생성 실패' });
+            }
+        }
+
+        // POST /api/trigger-videos/extract-keywords
+        if (seg1 === 'extract-keywords' && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { title, description } = req.body;
+                if (!title) return res.status(400).json({ error: 'title은 필수입니다.' });
+                const keywords = await extractTriggerKeywords(title, description || '');
+                return res.status(200).json({ keywords });
+            } catch (e: any) {
+                return res.status(500).json({ error: '키워드 추출 실패' });
+            }
+        }
+
+        // POST /api/trigger-videos
+        if (!seg1 && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { personaId, videoUrl, title, description, keywords, tag } = req.body;
+                if (!personaId || !videoUrl || !keywords)
+                    return res.status(400).json({ error: 'personaId, videoUrl, keywords는 필수입니다.' });
+                const count = await prisma.personaTriggerVideo.count({ where: { personaId } });
+                const video = await prisma.personaTriggerVideo.create({
+                    data: { personaId, videoUrl, title: title || null, description: description || null, keywords, tag: tag || null, order: count },
+                });
+                return res.status(201).json(video);
+            } catch (e: any) {
+                return res.status(500).json({ error: '저장 실패' });
+            }
+        }
+
+        // PUT /api/trigger-videos/:id
+        if (seg1 && !seg2 && req.method === 'PUT') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { title, description, keywords, tag } = req.body;
+                const video = await prisma.personaTriggerVideo.update({
+                    where: { id: Number(seg1) },
+                    data: {
+                        ...(title !== undefined && { title }),
+                        ...(description !== undefined && { description }),
+                        ...(keywords !== undefined && { keywords }),
+                        ...(tag !== undefined && { tag }),
+                    },
+                });
+                return res.status(200).json(video);
+            } catch (e: any) {
+                return res.status(500).json({ error: '수정 실패' });
+            }
+        }
+
+        // DELETE /api/trigger-videos/:id
+        if (seg1 && !seg2 && req.method === 'DELETE') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const deleted = await prisma.personaTriggerVideo.delete({ where: { id: Number(seg1) } });
+                await deleteFromGCS(deleted.videoUrl);
+                return res.status(200).json({ ok: true });
+            } catch (e: any) {
+                return res.status(500).json({ error: '삭제 실패' });
             }
         }
     }

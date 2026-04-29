@@ -1217,6 +1217,129 @@ app.delete('/api/board/:id/reply/:replyId', async (req, res) => {
   }
 });
 
+// ── Trigger Videos ────────────────────────────────────────────
+
+async function extractTriggerKeywordsLocal(title, description) {
+  const prompt = `다음 영상의 제목과 설명을 보고, 채팅에서 이 영상을 재생할 때 사용할 트리거 키워드를 추출하세요.
+제목: ${title}
+설명: ${description || '(없음)'}
+[추출 규칙]
+- 사용자가 채팅에서 실제로 입력할 법한 짧은 단어/표현
+- 비슷한 표현 여러 개 포함 (예: "안녕", "안녕하세요", "반가워")
+- 한국어 구어체 위주, 10~20개 추출
+JSON 배열로만 반환. 형식: ["키워드1", "키워드2"]`;
+  const text = await callGeminiText(prompt);
+  if (!text) return [];
+  const match = text.match(/\[[\s\S]*\]/);
+  if (!match) return [];
+  try { return JSON.parse(match[0]); } catch { return []; }
+}
+
+// GET /api/trigger-videos/:personaId
+app.get('/api/trigger-videos/:personaId', async (req, res) => {
+  try {
+    const list = await prisma.personaTriggerVideo.findMany({
+      where: { personaId: req.params.personaId },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+    });
+    return res.json(list);
+  } catch (e) {
+    return res.status(500).json({ error: '조회 실패' });
+  }
+});
+
+// POST /api/trigger-videos/signed-url
+app.post('/api/trigger-videos/signed-url', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+  try {
+    const { mimeType, filename } = req.body;
+    const ext = (mimeType || 'video/mp4').split('/')[1] || 'mp4';
+    const destPath = `personas/triggers/${Date.now()}_${filename || 'video'}.${ext}`;
+    const gcs = getGCSStorage();
+    const file = gcs.bucket(BUCKET_NAME).file(destPath);
+    const [signedUrl] = await file.getSignedUrl({ version: 'v4', action: 'write', expires: Date.now() + 15 * 60 * 1000, contentType: mimeType });
+    return res.json({ signedUrl, publicUrl: `https://storage.googleapis.com/${BUCKET_NAME}/${destPath}` });
+  } catch (e) {
+    return res.status(500).json({ error: '서명 URL 생성 실패' });
+  }
+});
+
+// POST /api/trigger-videos/extract-keywords
+app.post('/api/trigger-videos/extract-keywords', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+  try {
+    const { title, description } = req.body;
+    if (!title) return res.status(400).json({ error: 'title은 필수입니다.' });
+    const keywords = await extractTriggerKeywordsLocal(title, description || '');
+    return res.json({ keywords });
+  } catch (e) {
+    return res.status(500).json({ error: '키워드 추출 실패' });
+  }
+});
+
+// POST /api/trigger-videos
+app.post('/api/trigger-videos', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+  try {
+    const { personaId, videoUrl, title, description, keywords, tag } = req.body;
+    if (!personaId || !videoUrl || !keywords) return res.status(400).json({ error: '필수 항목 누락' });
+    const count = await prisma.personaTriggerVideo.count({ where: { personaId } });
+    const video = await prisma.personaTriggerVideo.create({
+      data: { personaId, videoUrl, title: title || null, description: description || null, keywords, tag: tag || null, order: count },
+    });
+    return res.status(201).json(video);
+  } catch (e) {
+    return res.status(500).json({ error: '저장 실패' });
+  }
+});
+
+// PUT /api/trigger-videos/:id
+app.put('/api/trigger-videos/:id', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+  try {
+    const { title, description, keywords, tag } = req.body;
+    const video = await prisma.personaTriggerVideo.update({
+      where: { id: Number(req.params.id) },
+      data: {
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(keywords !== undefined && { keywords }),
+        ...(tag !== undefined && { tag }),
+      },
+    });
+    return res.json(video);
+  } catch (e) {
+    return res.status(500).json({ error: '수정 실패' });
+  }
+});
+
+// DELETE /api/trigger-videos/:id
+app.delete('/api/trigger-videos/:id', async (req, res) => {
+  const payload = verifyToken(req);
+  if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+  const user = await prisma.user.findUnique({ where: { id: payload.userId } });
+  if (!user || user.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+  try {
+    const deleted = await prisma.personaTriggerVideo.delete({ where: { id: Number(req.params.id) } });
+    await deleteFromGCS(deleted.videoUrl);
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: '삭제 실패' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\n✅ Local API server: http://localhost:${PORT}`);
 });
