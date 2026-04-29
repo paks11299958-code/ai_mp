@@ -90,7 +90,16 @@ export async function extractTriggerKeywords(title: string, description: string)
 
 export async function analyzeGolfSwing(videoGcsUri: string, mimeType: string): Promise<object> {
     const ai = getAI();
-    const prompt = `당신은 전문 골프 티칭 프로입니다. 이 골프 스윙 영상을 분석하고 아래 JSON 형식으로만 응답하세요. JSON 외 다른 텍스트는 절대 포함하지 마세요.
+    const prompt = `당신은 엄격한 기준을 가진 전문 골프 티칭 프로입니다. 이 골프 스윙 영상을 분석하고 아래 JSON 형식으로만 응답하세요. JSON 외 다른 텍스트는 절대 포함하지 마세요.
+
+채점 기준 (반드시 엄격하게 적용):
+- 90~100: 투어 프로 수준 (극히 드묾)
+- 80~89: 싱글 핸디캡, 상위 5% 아마추어
+- 65~79: 보기 플레이어 수준 (평균 아마추어)
+- 50~64: 기초는 있으나 다수 개선 필요
+- 35~49: 기본기부터 전면 교정 필요
+- 35 미만: 전반적 재교육 필요
+대부분의 일반 아마추어는 50~68점대입니다. 점수에 인색하게 채점하여 개선 동기를 부여하세요.
 
 {
   "overallScore": 0~100 사이 정수,

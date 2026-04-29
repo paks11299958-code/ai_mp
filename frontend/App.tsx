@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
-import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, UserSwingAnalysis } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi } from './services/apiService';
 import { getStage, STAGES } from './utils/level';
@@ -14,6 +14,50 @@ import { MainPage } from './components/MainPage';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { Icon } from './components/Icons';
+
+const PentagonChart: React.FC<{ sections: SwingAnalysisSection[] }> = ({ sections }) => {
+    const cx = 120, cy = 120, maxR = 78, labelR = 103;
+    const n = 5;
+    const ang = (i: number) => (-90 + i * 72) * Math.PI / 180;
+    const pt = (i: number, r: number) => ({ x: cx + r * Math.cos(ang(i)), y: cy + r * Math.sin(ang(i)) });
+    const grids = [0.25, 0.5, 0.75, 1];
+    const dataPath = sections.map((sec, i) => {
+        const p = pt(i, (sec.score / 100) * maxR);
+        return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    }).join(' ') + 'Z';
+    const getAnchor = (i: number): 'start' | 'end' | 'middle' => {
+        const cos = Math.cos(ang(i));
+        return cos > 0.2 ? 'start' : cos < -0.2 ? 'end' : 'middle';
+    };
+    const labelLines = (name: string) => name.includes('어드레스') ? ['어드레스', '& 셋업'] : [name];
+    return (
+        <svg viewBox="0 0 240 240" className="w-44 h-44">
+            {grids.map((f, gi) => (
+                <polygon key={gi}
+                    points={Array.from({ length: n }, (_, i) => { const p = pt(i, f * maxR); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`; }).join(' ')}
+                    fill="none" stroke={gi === 3 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'} strokeWidth={gi === 3 ? 0.8 : 0.5}
+                />
+            ))}
+            {Array.from({ length: n }, (_, i) => { const o = pt(i, maxR); return <line key={i} x1={cx} y1={cy} x2={o.x} y2={o.y} stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />; })}
+            <path d={dataPath} fill="rgba(74,222,128,0.18)" stroke="rgb(74,222,128)" strokeWidth="1.5" strokeLinejoin="round" />
+            {sections.map((sec, i) => { const p = pt(i, (sec.score / 100) * maxR); return <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="rgb(74,222,128)" />; })}
+            {sections.map((sec, i) => {
+                const lp = pt(i, labelR);
+                const lines = labelLines(sec.name);
+                const anchor = getAnchor(i);
+                const sinA = Math.sin(ang(i));
+                const baselineDy = lines.length > 1 ? '-0.55em' : sinA > 0.3 ? '1em' : sinA < -0.3 ? '-0.2em' : '0.35em';
+                return (
+                    <text key={i} x={lp.x.toFixed(1)} y={lp.y.toFixed(1)} textAnchor={anchor} fontSize="7.5" fill="rgb(156,163,175)">
+                        {lines.map((line, li) => (
+                            <tspan key={li} x={lp.x.toFixed(1)} dy={li === 0 ? baselineDy : '1.15em'}>{line}</tspan>
+                        ))}
+                    </text>
+                );
+            })}
+        </svg>
+    );
+};
 
 const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
@@ -760,6 +804,11 @@ const App: React.FC = () => {
                                 <span className="text-5xl font-black text-green-400">{swingResult.analysis.overallScore}</span>
                                 <span className="text-sm text-gray-400 mt-1">/ 100점</span>
                                 <p className="mt-3 text-sm text-gray-300 text-center leading-relaxed">{swingResult.analysis.overallComment}</p>
+                            </div>
+
+                            {/* 레이더 차트 */}
+                            <div className="flex justify-center">
+                                <PentagonChart sections={swingResult.analysis.sections} />
                             </div>
 
                             {/* 섹션별 점수 */}
