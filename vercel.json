@@ -8,6 +8,7 @@
   },
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
+    { "source": "/api/:d/:s1/:s2/:s3", "destination": "/api/router?d=:d&s1=:s1&s2=:s2&s3=:s3" },
     { "source": "/api/:d/:s1/:s2", "destination": "/api/router?d=:d&s1=:s1&s2=:s2" },
     { "source": "/api/:d/:s1", "destination": "/api/router?d=:d&s1=:s1" },
     { "source": "/api/:d", "destination": "/api/router?d=:d" }

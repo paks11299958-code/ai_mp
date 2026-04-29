@@ -20,6 +20,8 @@ model User {
   sessions         ChatSession[]
   memories         UserMemory[]
   personaXps       UserPersonaXp[]
+  boardPosts       BoardPost[]
+  boardReplies     BoardReply[]
 }
 
 model UserPersonaXp {
@@ -134,4 +136,26 @@ model PersonaKnowledge {
   embedding Unsupported("vector(768)")?
   createdAt DateTime                  @default(now())
   persona   Persona                   @relation(fields: [personaId], references: [id], onDelete: Cascade)
+}
+
+model BoardPost {
+  id        Int          @id @default(autoincrement())
+  userId    Int
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  replies   BoardReply[]
+}
+
+model BoardReply {
+  id           Int       @id @default(autoincrement())
+  postId       Int
+  post         BoardPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId       Int
+  user         User      @relation(fields: [userId], references: [id])
+  isAdminReply Boolean   @default(false)
+  content      String
+  createdAt    DateTime  @default(now())
 }

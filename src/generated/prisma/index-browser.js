@@ -224,6 +224,24 @@ exports.Prisma.PersonaKnowledgeScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.BoardPostScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  content: 'content',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.BoardReplyScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  userId: 'userId',
+  isAdminReply: 'isAdminReply',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -251,7 +269,9 @@ exports.Prisma.ModelName = {
   Message: 'Message',
   ConversationSummary: 'ConversationSummary',
   AppConfig: 'AppConfig',
-  PersonaKnowledge: 'PersonaKnowledge'
+  PersonaKnowledge: 'PersonaKnowledge',
+  BoardPost: 'BoardPost',
+  BoardReply: 'BoardReply'
 };
 
 /**

@@ -1027,6 +1027,192 @@ app.post('/api-proxy', async (req, res) => {
   }
 });
 
+// ── Board ─────────────────────────────────────────────────
+
+async function sendEmailLocal(to, subject, htmlContent) {
+  const apiKey = process.env.BREVO_API_KEY;
+  if (!apiKey) { console.log(`[email] BREVO_API_KEY 없음 — to: ${to}, subject: ${subject}`); return; }
+  const senderEmail = process.env.BREVO_SENDER_EMAIL || 'noreply@dbzone.kr';
+  await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'api-key': apiKey },
+    body: JSON.stringify({
+      sender: { name: 'AI 페르소나', email: senderEmail },
+      to: [{ email: to }],
+      subject,
+      htmlContent,
+    }),
+  }).catch(e => console.error('[email] 전송 실패:', e.message));
+}
+
+async function getBoardUser(req, res) {
+  const token = req.headers.authorization?.replace('Bearer ', '');
+  if (!token) { res.status(401).json({ error: '로그인이 필요합니다.' }); return null; }
+  try {
+    const payload = jwt.verify(token, JWT_SECRET);
+    const me = await prisma.user.findUnique({ where: { id: payload.userId }, select: { id: true, role: true } });
+    if (!me) { res.status(401).json({ error: '사용자를 찾을 수 없습니다.' }); return null; }
+    return me;
+  } catch { res.status(401).json({ error: '인증 오류' }); return null; }
+}
+
+// GET /api/board — 목록
+app.get('/api/board', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  try {
+    const posts = await prisma.boardPost.findMany({
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, title: true, createdAt: true, userId: true,
+        user: { select: { username: true, email: true } },
+        _count: { select: { replies: true } },
+      },
+    });
+    return res.json(posts);
+  } catch (e) {
+    console.error('[board GET]', e.message);
+    return res.status(500).json({ error: '목록 조회 실패' });
+  }
+});
+
+// POST /api/board — 작성
+app.post('/api/board', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  try {
+    const { title, content } = req.body;
+    if (!title?.trim() || !content?.trim())
+      return res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+    const post = await prisma.boardPost.create({
+      data: { userId: me.id, title: title.trim(), content: content.trim() },
+    });
+    const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { email: true } });
+    for (const admin of admins) {
+      await sendEmailLocal(admin.email, '[AI 페르소나] 소통게시판 새 글이 등록되었습니다',
+        `<div style="font-family:sans-serif;padding:24px;"><h2>새 문의글이 등록되었습니다</h2><p>제목: <strong>${title.trim()}</strong></p></div>`
+      ).catch(() => {});
+    }
+    return res.json({ id: post.id });
+  } catch (e) {
+    console.error('[board POST]', e.message);
+    return res.status(500).json({ error: '게시글 등록 실패' });
+  }
+});
+
+// GET /api/board/:id — 상세
+app.get('/api/board/:id', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  const isAdmin = me.role === 'ADMIN';
+  try {
+    const post = await prisma.boardPost.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        user: { select: { username: true, email: true } },
+        replies: {
+          include: { user: { select: { username: true, email: true } } },
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+    });
+    if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+    if (post.userId !== me.id && !isAdmin) return res.status(403).json({ error: '열람 권한이 없습니다.' });
+    return res.json(post);
+  } catch (e) {
+    console.error('[board GET detail]', e.message);
+    return res.status(500).json({ error: '불러오기 실패' });
+  }
+});
+
+// PUT /api/board/:id — 수정 (작성자 또는 관리자)
+app.put('/api/board/:id', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  const isAdmin = me.role === 'ADMIN';
+  try {
+    const post = await prisma.boardPost.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+    if (post.userId !== me.id && !isAdmin) return res.status(403).json({ error: '수정 권한이 없습니다.' });
+    const { title, content } = req.body;
+    if (!title?.trim() || !content?.trim())
+      return res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+    await prisma.boardPost.update({
+      where: { id: parseInt(req.params.id) },
+      data: { title: title.trim(), content: content.trim() },
+    });
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[board PUT]', e.message);
+    return res.status(500).json({ error: '수정 실패' });
+  }
+});
+
+// DELETE /api/board/:id — 삭제 (작성자 또는 관리자)
+app.delete('/api/board/:id', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  const isAdmin = me.role === 'ADMIN';
+  try {
+    const post = await prisma.boardPost.findUnique({ where: { id: parseInt(req.params.id) } });
+    if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+    if (post.userId !== me.id && !isAdmin) return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+    await prisma.boardPost.delete({ where: { id: parseInt(req.params.id) } });
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[board DELETE]', e.message);
+    return res.status(500).json({ error: '삭제 실패' });
+  }
+});
+
+// POST /api/board/:id/reply — 답글 작성 (작성자 또는 관리자)
+app.post('/api/board/:id/reply', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  const isAdmin = me.role === 'ADMIN';
+  try {
+    const postId = parseInt(req.params.id);
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ error: '내용을 입력해주세요.' });
+    const post = await prisma.boardPost.findUnique({
+      where: { id: postId },
+      include: { user: { select: { email: true, username: true } } },
+    });
+    if (!post) return res.status(404).json({ error: '게시글을 찾을 수 없습니다.' });
+    const isAuthor = post.userId === me.id;
+    if (!isAdmin && !isAuthor) return res.status(403).json({ error: '댓글 작성 권한이 없습니다.' });
+    const reply = await prisma.boardReply.create({
+      data: { postId, userId: me.id, isAdminReply: isAdmin, content: content.trim() },
+    });
+    if (isAdmin && !isAuthor) {
+      sendEmailLocal(post.user.email, '[AI 페르소나] 소통게시판 답글이 등록되었습니다',
+        `<div style="font-family:sans-serif;padding:24px;"><h2>관리자 답글이 등록되었습니다</h2><p>게시글: <strong>${post.title}</strong></p></div>`
+      ).catch(() => {});
+    }
+    return res.json({ id: reply.id });
+  } catch (e) {
+    console.error('[board reply POST]', e.message);
+    return res.status(500).json({ error: '답글 등록 실패' });
+  }
+});
+
+// DELETE /api/board/:id/reply/:replyId — 답글 삭제 (작성자 또는 관리자)
+app.delete('/api/board/:id/reply/:replyId', async (req, res) => {
+  const me = await getBoardUser(req, res);
+  if (!me) return;
+  const isAdmin = me.role === 'ADMIN';
+  try {
+    const reply = await prisma.boardReply.findUnique({ where: { id: parseInt(req.params.replyId) } });
+    if (!reply) return res.status(404).json({ error: '답글을 찾을 수 없습니다.' });
+    if (reply.userId !== me.id && !isAdmin) return res.status(403).json({ error: '삭제 권한이 없습니다.' });
+    await prisma.boardReply.delete({ where: { id: parseInt(req.params.replyId) } });
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error('[board reply DELETE]', e.message);
+    return res.status(500).json({ error: '답글 삭제 실패' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`\n✅ Local API server: http://localhost:${PORT}`);
 });

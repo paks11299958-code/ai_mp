@@ -263,3 +263,27 @@ export const knowledgeApi = {
             body: JSON.stringify({ personaId, query }),
         }),
 };
+
+// Board
+export const boardApi = {
+    getList: () =>
+        request<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>('/board'),
+
+    getPost: (id: number) =>
+        request<import('../types').BoardPost>(`/board/${id}`),
+
+    create: (title: string, content: string) =>
+        request<{ id: number }>('/board', { method: 'POST', body: JSON.stringify({ title, content }) }),
+
+    update: (id: number, title: string, content: string) =>
+        request<{ ok: boolean }>(`/board/${id}`, { method: 'PUT', body: JSON.stringify({ title, content }) }),
+
+    delete: (id: number) =>
+        request<{ ok: boolean }>(`/board/${id}`, { method: 'DELETE' }),
+
+    addReply: (postId: number, content: string) =>
+        request<{ id: number }>(`/board/${postId}/reply`, { method: 'POST', body: JSON.stringify({ content }) }),
+
+    deleteReply: (postId: number, replyId: number) =>
+        request<{ ok: boolean }>(`/board/${postId}/reply/${replyId}`, { method: 'DELETE' }),
+};

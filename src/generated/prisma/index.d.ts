@@ -68,6 +68,16 @@ export type AppConfig = $Result.DefaultSelection<Prisma.$AppConfigPayload>
  * 
  */
 export type PersonaKnowledge = $Result.DefaultSelection<Prisma.$PersonaKnowledgePayload>
+/**
+ * Model BoardPost
+ * 
+ */
+export type BoardPost = $Result.DefaultSelection<Prisma.$BoardPostPayload>
+/**
+ * Model BoardReply
+ * 
+ */
+export type BoardReply = $Result.DefaultSelection<Prisma.$BoardReplyPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -299,6 +309,26 @@ export class PrismaClient<
     * ```
     */
   get personaKnowledge(): Prisma.PersonaKnowledgeDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.boardPost`: Exposes CRUD operations for the **BoardPost** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BoardPosts
+    * const boardPosts = await prisma.boardPost.findMany()
+    * ```
+    */
+  get boardPost(): Prisma.BoardPostDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.boardReply`: Exposes CRUD operations for the **BoardReply** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more BoardReplies
+    * const boardReplies = await prisma.boardReply.findMany()
+    * ```
+    */
+  get boardReply(): Prisma.BoardReplyDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -743,7 +773,9 @@ export namespace Prisma {
     Message: 'Message',
     ConversationSummary: 'ConversationSummary',
     AppConfig: 'AppConfig',
-    PersonaKnowledge: 'PersonaKnowledge'
+    PersonaKnowledge: 'PersonaKnowledge',
+    BoardPost: 'BoardPost',
+    BoardReply: 'BoardReply'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -759,7 +791,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "boardPost" | "boardReply"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1577,6 +1609,154 @@ export namespace Prisma {
           }
         }
       }
+      BoardPost: {
+        payload: Prisma.$BoardPostPayload<ExtArgs>
+        fields: Prisma.BoardPostFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BoardPostFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BoardPostFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>
+          }
+          findFirst: {
+            args: Prisma.BoardPostFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BoardPostFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>
+          }
+          findMany: {
+            args: Prisma.BoardPostFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>[]
+          }
+          create: {
+            args: Prisma.BoardPostCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>
+          }
+          createMany: {
+            args: Prisma.BoardPostCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BoardPostCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>[]
+          }
+          delete: {
+            args: Prisma.BoardPostDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>
+          }
+          update: {
+            args: Prisma.BoardPostUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>
+          }
+          deleteMany: {
+            args: Prisma.BoardPostDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BoardPostUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BoardPostUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>[]
+          }
+          upsert: {
+            args: Prisma.BoardPostUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardPostPayload>
+          }
+          aggregate: {
+            args: Prisma.BoardPostAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBoardPost>
+          }
+          groupBy: {
+            args: Prisma.BoardPostGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BoardPostGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BoardPostCountArgs<ExtArgs>
+            result: $Utils.Optional<BoardPostCountAggregateOutputType> | number
+          }
+        }
+      }
+      BoardReply: {
+        payload: Prisma.$BoardReplyPayload<ExtArgs>
+        fields: Prisma.BoardReplyFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.BoardReplyFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BoardReplyFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>
+          }
+          findFirst: {
+            args: Prisma.BoardReplyFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BoardReplyFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>
+          }
+          findMany: {
+            args: Prisma.BoardReplyFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>[]
+          }
+          create: {
+            args: Prisma.BoardReplyCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>
+          }
+          createMany: {
+            args: Prisma.BoardReplyCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.BoardReplyCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>[]
+          }
+          delete: {
+            args: Prisma.BoardReplyDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>
+          }
+          update: {
+            args: Prisma.BoardReplyUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>
+          }
+          deleteMany: {
+            args: Prisma.BoardReplyDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BoardReplyUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.BoardReplyUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>[]
+          }
+          upsert: {
+            args: Prisma.BoardReplyUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$BoardReplyPayload>
+          }
+          aggregate: {
+            args: Prisma.BoardReplyAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateBoardReply>
+          }
+          groupBy: {
+            args: Prisma.BoardReplyGroupByArgs<ExtArgs>
+            result: $Utils.Optional<BoardReplyGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BoardReplyCountArgs<ExtArgs>
+            result: $Utils.Optional<BoardReplyCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1696,6 +1876,8 @@ export namespace Prisma {
     conversationSummary?: ConversationSummaryOmit
     appConfig?: AppConfigOmit
     personaKnowledge?: PersonaKnowledgeOmit
+    boardPost?: BoardPostOmit
+    boardReply?: BoardReplyOmit
   }
 
   /* Types for Logging */
@@ -1780,6 +1962,8 @@ export namespace Prisma {
     sessions: number
     memories: number
     personaXps: number
+    boardPosts: number
+    boardReplies: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1787,6 +1971,8 @@ export namespace Prisma {
     sessions?: boolean | UserCountOutputTypeCountSessionsArgs
     memories?: boolean | UserCountOutputTypeCountMemoriesArgs
     personaXps?: boolean | UserCountOutputTypeCountPersonaXpsArgs
+    boardPosts?: boolean | UserCountOutputTypeCountBoardPostsArgs
+    boardReplies?: boolean | UserCountOutputTypeCountBoardRepliesArgs
   }
 
   // Custom InputTypes
@@ -1826,6 +2012,20 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountPersonaXpsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserPersonaXpWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountBoardPostsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BoardPostWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountBoardRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BoardReplyWhereInput
   }
 
 
@@ -1946,6 +2146,37 @@ export namespace Prisma {
    */
   export type ChatSessionCountOutputTypeCountMessagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: MessageWhereInput
+  }
+
+
+  /**
+   * Count Type BoardPostCountOutputType
+   */
+
+  export type BoardPostCountOutputType = {
+    replies: number
+  }
+
+  export type BoardPostCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    replies?: boolean | BoardPostCountOutputTypeCountRepliesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * BoardPostCountOutputType without action
+   */
+  export type BoardPostCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPostCountOutputType
+     */
+    select?: BoardPostCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * BoardPostCountOutputType without action
+   */
+  export type BoardPostCountOutputTypeCountRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BoardReplyWhereInput
   }
 
 
@@ -2179,6 +2410,8 @@ export namespace Prisma {
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     memories?: boolean | User$memoriesArgs<ExtArgs>
     personaXps?: boolean | User$personaXpsArgs<ExtArgs>
+    boardPosts?: boolean | User$boardPostsArgs<ExtArgs>
+    boardReplies?: boolean | User$boardRepliesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -2221,6 +2454,8 @@ export namespace Prisma {
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     memories?: boolean | User$memoriesArgs<ExtArgs>
     personaXps?: boolean | User$personaXpsArgs<ExtArgs>
+    boardPosts?: boolean | User$boardPostsArgs<ExtArgs>
+    boardReplies?: boolean | User$boardRepliesArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -2233,6 +2468,8 @@ export namespace Prisma {
       sessions: Prisma.$ChatSessionPayload<ExtArgs>[]
       memories: Prisma.$UserMemoryPayload<ExtArgs>[]
       personaXps: Prisma.$UserPersonaXpPayload<ExtArgs>[]
+      boardPosts: Prisma.$BoardPostPayload<ExtArgs>[]
+      boardReplies: Prisma.$BoardReplyPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -2641,6 +2878,8 @@ export namespace Prisma {
     sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ChatSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     memories<T extends User$memoriesArgs<ExtArgs> = {}>(args?: Subset<T, User$memoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserMemoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     personaXps<T extends User$personaXpsArgs<ExtArgs> = {}>(args?: Subset<T, User$personaXpsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserPersonaXpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    boardPosts<T extends User$boardPostsArgs<ExtArgs> = {}>(args?: Subset<T, User$boardPostsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    boardReplies<T extends User$boardRepliesArgs<ExtArgs> = {}>(args?: Subset<T, User$boardRepliesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -3164,6 +3403,54 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserPersonaXpScalarFieldEnum | UserPersonaXpScalarFieldEnum[]
+  }
+
+  /**
+   * User.boardPosts
+   */
+  export type User$boardPostsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    where?: BoardPostWhereInput
+    orderBy?: BoardPostOrderByWithRelationInput | BoardPostOrderByWithRelationInput[]
+    cursor?: BoardPostWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BoardPostScalarFieldEnum | BoardPostScalarFieldEnum[]
+  }
+
+  /**
+   * User.boardReplies
+   */
+  export type User$boardRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    where?: BoardReplyWhereInput
+    orderBy?: BoardReplyOrderByWithRelationInput | BoardReplyOrderByWithRelationInput[]
+    cursor?: BoardReplyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BoardReplyScalarFieldEnum | BoardReplyScalarFieldEnum[]
   }
 
   /**
@@ -14508,6 +14795,2276 @@ export namespace Prisma {
 
 
   /**
+   * Model BoardPost
+   */
+
+  export type AggregateBoardPost = {
+    _count: BoardPostCountAggregateOutputType | null
+    _avg: BoardPostAvgAggregateOutputType | null
+    _sum: BoardPostSumAggregateOutputType | null
+    _min: BoardPostMinAggregateOutputType | null
+    _max: BoardPostMaxAggregateOutputType | null
+  }
+
+  export type BoardPostAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type BoardPostSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type BoardPostMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    title: string | null
+    content: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BoardPostMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    title: string | null
+    content: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type BoardPostCountAggregateOutputType = {
+    id: number
+    userId: number
+    title: number
+    content: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type BoardPostAvgAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type BoardPostSumAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type BoardPostMinAggregateInputType = {
+    id?: true
+    userId?: true
+    title?: true
+    content?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BoardPostMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    title?: true
+    content?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type BoardPostCountAggregateInputType = {
+    id?: true
+    userId?: true
+    title?: true
+    content?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type BoardPostAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BoardPost to aggregate.
+     */
+    where?: BoardPostWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardPosts to fetch.
+     */
+    orderBy?: BoardPostOrderByWithRelationInput | BoardPostOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BoardPostWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardPosts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardPosts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BoardPosts
+    **/
+    _count?: true | BoardPostCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BoardPostAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BoardPostSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BoardPostMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BoardPostMaxAggregateInputType
+  }
+
+  export type GetBoardPostAggregateType<T extends BoardPostAggregateArgs> = {
+        [P in keyof T & keyof AggregateBoardPost]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBoardPost[P]>
+      : GetScalarType<T[P], AggregateBoardPost[P]>
+  }
+
+
+
+
+  export type BoardPostGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BoardPostWhereInput
+    orderBy?: BoardPostOrderByWithAggregationInput | BoardPostOrderByWithAggregationInput[]
+    by: BoardPostScalarFieldEnum[] | BoardPostScalarFieldEnum
+    having?: BoardPostScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BoardPostCountAggregateInputType | true
+    _avg?: BoardPostAvgAggregateInputType
+    _sum?: BoardPostSumAggregateInputType
+    _min?: BoardPostMinAggregateInputType
+    _max?: BoardPostMaxAggregateInputType
+  }
+
+  export type BoardPostGroupByOutputType = {
+    id: number
+    userId: number
+    title: string
+    content: string
+    createdAt: Date
+    updatedAt: Date
+    _count: BoardPostCountAggregateOutputType | null
+    _avg: BoardPostAvgAggregateOutputType | null
+    _sum: BoardPostSumAggregateOutputType | null
+    _min: BoardPostMinAggregateOutputType | null
+    _max: BoardPostMaxAggregateOutputType | null
+  }
+
+  type GetBoardPostGroupByPayload<T extends BoardPostGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BoardPostGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BoardPostGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BoardPostGroupByOutputType[P]>
+            : GetScalarType<T[P], BoardPostGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BoardPostSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    replies?: boolean | BoardPost$repliesArgs<ExtArgs>
+    _count?: boolean | BoardPostCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["boardPost"]>
+
+  export type BoardPostSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["boardPost"]>
+
+  export type BoardPostSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["boardPost"]>
+
+  export type BoardPostSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    title?: boolean
+    content?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type BoardPostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "title" | "content" | "createdAt" | "updatedAt", ExtArgs["result"]["boardPost"]>
+  export type BoardPostInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    replies?: boolean | BoardPost$repliesArgs<ExtArgs>
+    _count?: boolean | BoardPostCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type BoardPostIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BoardPostIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $BoardPostPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BoardPost"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      replies: Prisma.$BoardReplyPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      title: string
+      content: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["boardPost"]>
+    composites: {}
+  }
+
+  type BoardPostGetPayload<S extends boolean | null | undefined | BoardPostDefaultArgs> = $Result.GetResult<Prisma.$BoardPostPayload, S>
+
+  type BoardPostCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BoardPostFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BoardPostCountAggregateInputType | true
+    }
+
+  export interface BoardPostDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BoardPost'], meta: { name: 'BoardPost' } }
+    /**
+     * Find zero or one BoardPost that matches the filter.
+     * @param {BoardPostFindUniqueArgs} args - Arguments to find a BoardPost
+     * @example
+     * // Get one BoardPost
+     * const boardPost = await prisma.boardPost.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BoardPostFindUniqueArgs>(args: SelectSubset<T, BoardPostFindUniqueArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BoardPost that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BoardPostFindUniqueOrThrowArgs} args - Arguments to find a BoardPost
+     * @example
+     * // Get one BoardPost
+     * const boardPost = await prisma.boardPost.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BoardPostFindUniqueOrThrowArgs>(args: SelectSubset<T, BoardPostFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BoardPost that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostFindFirstArgs} args - Arguments to find a BoardPost
+     * @example
+     * // Get one BoardPost
+     * const boardPost = await prisma.boardPost.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BoardPostFindFirstArgs>(args?: SelectSubset<T, BoardPostFindFirstArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BoardPost that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostFindFirstOrThrowArgs} args - Arguments to find a BoardPost
+     * @example
+     * // Get one BoardPost
+     * const boardPost = await prisma.boardPost.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BoardPostFindFirstOrThrowArgs>(args?: SelectSubset<T, BoardPostFindFirstOrThrowArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BoardPosts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BoardPosts
+     * const boardPosts = await prisma.boardPost.findMany()
+     * 
+     * // Get first 10 BoardPosts
+     * const boardPosts = await prisma.boardPost.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const boardPostWithIdOnly = await prisma.boardPost.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BoardPostFindManyArgs>(args?: SelectSubset<T, BoardPostFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BoardPost.
+     * @param {BoardPostCreateArgs} args - Arguments to create a BoardPost.
+     * @example
+     * // Create one BoardPost
+     * const BoardPost = await prisma.boardPost.create({
+     *   data: {
+     *     // ... data to create a BoardPost
+     *   }
+     * })
+     * 
+     */
+    create<T extends BoardPostCreateArgs>(args: SelectSubset<T, BoardPostCreateArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BoardPosts.
+     * @param {BoardPostCreateManyArgs} args - Arguments to create many BoardPosts.
+     * @example
+     * // Create many BoardPosts
+     * const boardPost = await prisma.boardPost.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BoardPostCreateManyArgs>(args?: SelectSubset<T, BoardPostCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BoardPosts and returns the data saved in the database.
+     * @param {BoardPostCreateManyAndReturnArgs} args - Arguments to create many BoardPosts.
+     * @example
+     * // Create many BoardPosts
+     * const boardPost = await prisma.boardPost.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BoardPosts and only return the `id`
+     * const boardPostWithIdOnly = await prisma.boardPost.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BoardPostCreateManyAndReturnArgs>(args?: SelectSubset<T, BoardPostCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BoardPost.
+     * @param {BoardPostDeleteArgs} args - Arguments to delete one BoardPost.
+     * @example
+     * // Delete one BoardPost
+     * const BoardPost = await prisma.boardPost.delete({
+     *   where: {
+     *     // ... filter to delete one BoardPost
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BoardPostDeleteArgs>(args: SelectSubset<T, BoardPostDeleteArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BoardPost.
+     * @param {BoardPostUpdateArgs} args - Arguments to update one BoardPost.
+     * @example
+     * // Update one BoardPost
+     * const boardPost = await prisma.boardPost.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BoardPostUpdateArgs>(args: SelectSubset<T, BoardPostUpdateArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BoardPosts.
+     * @param {BoardPostDeleteManyArgs} args - Arguments to filter BoardPosts to delete.
+     * @example
+     * // Delete a few BoardPosts
+     * const { count } = await prisma.boardPost.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BoardPostDeleteManyArgs>(args?: SelectSubset<T, BoardPostDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BoardPosts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BoardPosts
+     * const boardPost = await prisma.boardPost.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BoardPostUpdateManyArgs>(args: SelectSubset<T, BoardPostUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BoardPosts and returns the data updated in the database.
+     * @param {BoardPostUpdateManyAndReturnArgs} args - Arguments to update many BoardPosts.
+     * @example
+     * // Update many BoardPosts
+     * const boardPost = await prisma.boardPost.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BoardPosts and only return the `id`
+     * const boardPostWithIdOnly = await prisma.boardPost.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BoardPostUpdateManyAndReturnArgs>(args: SelectSubset<T, BoardPostUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BoardPost.
+     * @param {BoardPostUpsertArgs} args - Arguments to update or create a BoardPost.
+     * @example
+     * // Update or create a BoardPost
+     * const boardPost = await prisma.boardPost.upsert({
+     *   create: {
+     *     // ... data to create a BoardPost
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BoardPost we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BoardPostUpsertArgs>(args: SelectSubset<T, BoardPostUpsertArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BoardPosts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostCountArgs} args - Arguments to filter BoardPosts to count.
+     * @example
+     * // Count the number of BoardPosts
+     * const count = await prisma.boardPost.count({
+     *   where: {
+     *     // ... the filter for the BoardPosts we want to count
+     *   }
+     * })
+    **/
+    count<T extends BoardPostCountArgs>(
+      args?: Subset<T, BoardPostCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BoardPostCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BoardPost.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BoardPostAggregateArgs>(args: Subset<T, BoardPostAggregateArgs>): Prisma.PrismaPromise<GetBoardPostAggregateType<T>>
+
+    /**
+     * Group by BoardPost.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardPostGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BoardPostGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BoardPostGroupByArgs['orderBy'] }
+        : { orderBy?: BoardPostGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BoardPostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBoardPostGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BoardPost model
+   */
+  readonly fields: BoardPostFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BoardPost.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BoardPostClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    replies<T extends BoardPost$repliesArgs<ExtArgs> = {}>(args?: Subset<T, BoardPost$repliesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BoardPost model
+   */
+  interface BoardPostFieldRefs {
+    readonly id: FieldRef<"BoardPost", 'Int'>
+    readonly userId: FieldRef<"BoardPost", 'Int'>
+    readonly title: FieldRef<"BoardPost", 'String'>
+    readonly content: FieldRef<"BoardPost", 'String'>
+    readonly createdAt: FieldRef<"BoardPost", 'DateTime'>
+    readonly updatedAt: FieldRef<"BoardPost", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BoardPost findUnique
+   */
+  export type BoardPostFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardPost to fetch.
+     */
+    where: BoardPostWhereUniqueInput
+  }
+
+  /**
+   * BoardPost findUniqueOrThrow
+   */
+  export type BoardPostFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardPost to fetch.
+     */
+    where: BoardPostWhereUniqueInput
+  }
+
+  /**
+   * BoardPost findFirst
+   */
+  export type BoardPostFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardPost to fetch.
+     */
+    where?: BoardPostWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardPosts to fetch.
+     */
+    orderBy?: BoardPostOrderByWithRelationInput | BoardPostOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BoardPosts.
+     */
+    cursor?: BoardPostWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardPosts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardPosts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BoardPosts.
+     */
+    distinct?: BoardPostScalarFieldEnum | BoardPostScalarFieldEnum[]
+  }
+
+  /**
+   * BoardPost findFirstOrThrow
+   */
+  export type BoardPostFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardPost to fetch.
+     */
+    where?: BoardPostWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardPosts to fetch.
+     */
+    orderBy?: BoardPostOrderByWithRelationInput | BoardPostOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BoardPosts.
+     */
+    cursor?: BoardPostWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardPosts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardPosts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BoardPosts.
+     */
+    distinct?: BoardPostScalarFieldEnum | BoardPostScalarFieldEnum[]
+  }
+
+  /**
+   * BoardPost findMany
+   */
+  export type BoardPostFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardPosts to fetch.
+     */
+    where?: BoardPostWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardPosts to fetch.
+     */
+    orderBy?: BoardPostOrderByWithRelationInput | BoardPostOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BoardPosts.
+     */
+    cursor?: BoardPostWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardPosts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardPosts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BoardPosts.
+     */
+    distinct?: BoardPostScalarFieldEnum | BoardPostScalarFieldEnum[]
+  }
+
+  /**
+   * BoardPost create
+   */
+  export type BoardPostCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BoardPost.
+     */
+    data: XOR<BoardPostCreateInput, BoardPostUncheckedCreateInput>
+  }
+
+  /**
+   * BoardPost createMany
+   */
+  export type BoardPostCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BoardPosts.
+     */
+    data: BoardPostCreateManyInput | BoardPostCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BoardPost createManyAndReturn
+   */
+  export type BoardPostCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * The data used to create many BoardPosts.
+     */
+    data: BoardPostCreateManyInput | BoardPostCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BoardPost update
+   */
+  export type BoardPostUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BoardPost.
+     */
+    data: XOR<BoardPostUpdateInput, BoardPostUncheckedUpdateInput>
+    /**
+     * Choose, which BoardPost to update.
+     */
+    where: BoardPostWhereUniqueInput
+  }
+
+  /**
+   * BoardPost updateMany
+   */
+  export type BoardPostUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BoardPosts.
+     */
+    data: XOR<BoardPostUpdateManyMutationInput, BoardPostUncheckedUpdateManyInput>
+    /**
+     * Filter which BoardPosts to update
+     */
+    where?: BoardPostWhereInput
+    /**
+     * Limit how many BoardPosts to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BoardPost updateManyAndReturn
+   */
+  export type BoardPostUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * The data used to update BoardPosts.
+     */
+    data: XOR<BoardPostUpdateManyMutationInput, BoardPostUncheckedUpdateManyInput>
+    /**
+     * Filter which BoardPosts to update
+     */
+    where?: BoardPostWhereInput
+    /**
+     * Limit how many BoardPosts to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BoardPost upsert
+   */
+  export type BoardPostUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BoardPost to update in case it exists.
+     */
+    where: BoardPostWhereUniqueInput
+    /**
+     * In case the BoardPost found by the `where` argument doesn't exist, create a new BoardPost with this data.
+     */
+    create: XOR<BoardPostCreateInput, BoardPostUncheckedCreateInput>
+    /**
+     * In case the BoardPost was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BoardPostUpdateInput, BoardPostUncheckedUpdateInput>
+  }
+
+  /**
+   * BoardPost delete
+   */
+  export type BoardPostDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+    /**
+     * Filter which BoardPost to delete.
+     */
+    where: BoardPostWhereUniqueInput
+  }
+
+  /**
+   * BoardPost deleteMany
+   */
+  export type BoardPostDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BoardPosts to delete
+     */
+    where?: BoardPostWhereInput
+    /**
+     * Limit how many BoardPosts to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BoardPost.replies
+   */
+  export type BoardPost$repliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    where?: BoardReplyWhereInput
+    orderBy?: BoardReplyOrderByWithRelationInput | BoardReplyOrderByWithRelationInput[]
+    cursor?: BoardReplyWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: BoardReplyScalarFieldEnum | BoardReplyScalarFieldEnum[]
+  }
+
+  /**
+   * BoardPost without action
+   */
+  export type BoardPostDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardPost
+     */
+    select?: BoardPostSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardPost
+     */
+    omit?: BoardPostOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardPostInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model BoardReply
+   */
+
+  export type AggregateBoardReply = {
+    _count: BoardReplyCountAggregateOutputType | null
+    _avg: BoardReplyAvgAggregateOutputType | null
+    _sum: BoardReplySumAggregateOutputType | null
+    _min: BoardReplyMinAggregateOutputType | null
+    _max: BoardReplyMaxAggregateOutputType | null
+  }
+
+  export type BoardReplyAvgAggregateOutputType = {
+    id: number | null
+    postId: number | null
+    userId: number | null
+  }
+
+  export type BoardReplySumAggregateOutputType = {
+    id: number | null
+    postId: number | null
+    userId: number | null
+  }
+
+  export type BoardReplyMinAggregateOutputType = {
+    id: number | null
+    postId: number | null
+    userId: number | null
+    isAdminReply: boolean | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type BoardReplyMaxAggregateOutputType = {
+    id: number | null
+    postId: number | null
+    userId: number | null
+    isAdminReply: boolean | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type BoardReplyCountAggregateOutputType = {
+    id: number
+    postId: number
+    userId: number
+    isAdminReply: number
+    content: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type BoardReplyAvgAggregateInputType = {
+    id?: true
+    postId?: true
+    userId?: true
+  }
+
+  export type BoardReplySumAggregateInputType = {
+    id?: true
+    postId?: true
+    userId?: true
+  }
+
+  export type BoardReplyMinAggregateInputType = {
+    id?: true
+    postId?: true
+    userId?: true
+    isAdminReply?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type BoardReplyMaxAggregateInputType = {
+    id?: true
+    postId?: true
+    userId?: true
+    isAdminReply?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type BoardReplyCountAggregateInputType = {
+    id?: true
+    postId?: true
+    userId?: true
+    isAdminReply?: true
+    content?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type BoardReplyAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BoardReply to aggregate.
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardReplies to fetch.
+     */
+    orderBy?: BoardReplyOrderByWithRelationInput | BoardReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: BoardReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned BoardReplies
+    **/
+    _count?: true | BoardReplyCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: BoardReplyAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: BoardReplySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: BoardReplyMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: BoardReplyMaxAggregateInputType
+  }
+
+  export type GetBoardReplyAggregateType<T extends BoardReplyAggregateArgs> = {
+        [P in keyof T & keyof AggregateBoardReply]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateBoardReply[P]>
+      : GetScalarType<T[P], AggregateBoardReply[P]>
+  }
+
+
+
+
+  export type BoardReplyGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: BoardReplyWhereInput
+    orderBy?: BoardReplyOrderByWithAggregationInput | BoardReplyOrderByWithAggregationInput[]
+    by: BoardReplyScalarFieldEnum[] | BoardReplyScalarFieldEnum
+    having?: BoardReplyScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: BoardReplyCountAggregateInputType | true
+    _avg?: BoardReplyAvgAggregateInputType
+    _sum?: BoardReplySumAggregateInputType
+    _min?: BoardReplyMinAggregateInputType
+    _max?: BoardReplyMaxAggregateInputType
+  }
+
+  export type BoardReplyGroupByOutputType = {
+    id: number
+    postId: number
+    userId: number
+    isAdminReply: boolean
+    content: string
+    createdAt: Date
+    _count: BoardReplyCountAggregateOutputType | null
+    _avg: BoardReplyAvgAggregateOutputType | null
+    _sum: BoardReplySumAggregateOutputType | null
+    _min: BoardReplyMinAggregateOutputType | null
+    _max: BoardReplyMaxAggregateOutputType | null
+  }
+
+  type GetBoardReplyGroupByPayload<T extends BoardReplyGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<BoardReplyGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof BoardReplyGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BoardReplyGroupByOutputType[P]>
+            : GetScalarType<T[P], BoardReplyGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type BoardReplySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    postId?: boolean
+    userId?: boolean
+    isAdminReply?: boolean
+    content?: boolean
+    createdAt?: boolean
+    post?: boolean | BoardPostDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["boardReply"]>
+
+  export type BoardReplySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    postId?: boolean
+    userId?: boolean
+    isAdminReply?: boolean
+    content?: boolean
+    createdAt?: boolean
+    post?: boolean | BoardPostDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["boardReply"]>
+
+  export type BoardReplySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    postId?: boolean
+    userId?: boolean
+    isAdminReply?: boolean
+    content?: boolean
+    createdAt?: boolean
+    post?: boolean | BoardPostDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["boardReply"]>
+
+  export type BoardReplySelectScalar = {
+    id?: boolean
+    postId?: boolean
+    userId?: boolean
+    isAdminReply?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }
+
+  export type BoardReplyOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "postId" | "userId" | "isAdminReply" | "content" | "createdAt", ExtArgs["result"]["boardReply"]>
+  export type BoardReplyInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    post?: boolean | BoardPostDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BoardReplyIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    post?: boolean | BoardPostDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type BoardReplyIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    post?: boolean | BoardPostDefaultArgs<ExtArgs>
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $BoardReplyPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "BoardReply"
+    objects: {
+      post: Prisma.$BoardPostPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      postId: number
+      userId: number
+      isAdminReply: boolean
+      content: string
+      createdAt: Date
+    }, ExtArgs["result"]["boardReply"]>
+    composites: {}
+  }
+
+  type BoardReplyGetPayload<S extends boolean | null | undefined | BoardReplyDefaultArgs> = $Result.GetResult<Prisma.$BoardReplyPayload, S>
+
+  type BoardReplyCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<BoardReplyFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: BoardReplyCountAggregateInputType | true
+    }
+
+  export interface BoardReplyDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['BoardReply'], meta: { name: 'BoardReply' } }
+    /**
+     * Find zero or one BoardReply that matches the filter.
+     * @param {BoardReplyFindUniqueArgs} args - Arguments to find a BoardReply
+     * @example
+     * // Get one BoardReply
+     * const boardReply = await prisma.boardReply.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends BoardReplyFindUniqueArgs>(args: SelectSubset<T, BoardReplyFindUniqueArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one BoardReply that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {BoardReplyFindUniqueOrThrowArgs} args - Arguments to find a BoardReply
+     * @example
+     * // Get one BoardReply
+     * const boardReply = await prisma.boardReply.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends BoardReplyFindUniqueOrThrowArgs>(args: SelectSubset<T, BoardReplyFindUniqueOrThrowArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BoardReply that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyFindFirstArgs} args - Arguments to find a BoardReply
+     * @example
+     * // Get one BoardReply
+     * const boardReply = await prisma.boardReply.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends BoardReplyFindFirstArgs>(args?: SelectSubset<T, BoardReplyFindFirstArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first BoardReply that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyFindFirstOrThrowArgs} args - Arguments to find a BoardReply
+     * @example
+     * // Get one BoardReply
+     * const boardReply = await prisma.boardReply.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends BoardReplyFindFirstOrThrowArgs>(args?: SelectSubset<T, BoardReplyFindFirstOrThrowArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more BoardReplies that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all BoardReplies
+     * const boardReplies = await prisma.boardReply.findMany()
+     * 
+     * // Get first 10 BoardReplies
+     * const boardReplies = await prisma.boardReply.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const boardReplyWithIdOnly = await prisma.boardReply.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends BoardReplyFindManyArgs>(args?: SelectSubset<T, BoardReplyFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a BoardReply.
+     * @param {BoardReplyCreateArgs} args - Arguments to create a BoardReply.
+     * @example
+     * // Create one BoardReply
+     * const BoardReply = await prisma.boardReply.create({
+     *   data: {
+     *     // ... data to create a BoardReply
+     *   }
+     * })
+     * 
+     */
+    create<T extends BoardReplyCreateArgs>(args: SelectSubset<T, BoardReplyCreateArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many BoardReplies.
+     * @param {BoardReplyCreateManyArgs} args - Arguments to create many BoardReplies.
+     * @example
+     * // Create many BoardReplies
+     * const boardReply = await prisma.boardReply.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends BoardReplyCreateManyArgs>(args?: SelectSubset<T, BoardReplyCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many BoardReplies and returns the data saved in the database.
+     * @param {BoardReplyCreateManyAndReturnArgs} args - Arguments to create many BoardReplies.
+     * @example
+     * // Create many BoardReplies
+     * const boardReply = await prisma.boardReply.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many BoardReplies and only return the `id`
+     * const boardReplyWithIdOnly = await prisma.boardReply.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends BoardReplyCreateManyAndReturnArgs>(args?: SelectSubset<T, BoardReplyCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a BoardReply.
+     * @param {BoardReplyDeleteArgs} args - Arguments to delete one BoardReply.
+     * @example
+     * // Delete one BoardReply
+     * const BoardReply = await prisma.boardReply.delete({
+     *   where: {
+     *     // ... filter to delete one BoardReply
+     *   }
+     * })
+     * 
+     */
+    delete<T extends BoardReplyDeleteArgs>(args: SelectSubset<T, BoardReplyDeleteArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one BoardReply.
+     * @param {BoardReplyUpdateArgs} args - Arguments to update one BoardReply.
+     * @example
+     * // Update one BoardReply
+     * const boardReply = await prisma.boardReply.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends BoardReplyUpdateArgs>(args: SelectSubset<T, BoardReplyUpdateArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more BoardReplies.
+     * @param {BoardReplyDeleteManyArgs} args - Arguments to filter BoardReplies to delete.
+     * @example
+     * // Delete a few BoardReplies
+     * const { count } = await prisma.boardReply.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends BoardReplyDeleteManyArgs>(args?: SelectSubset<T, BoardReplyDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BoardReplies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many BoardReplies
+     * const boardReply = await prisma.boardReply.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends BoardReplyUpdateManyArgs>(args: SelectSubset<T, BoardReplyUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more BoardReplies and returns the data updated in the database.
+     * @param {BoardReplyUpdateManyAndReturnArgs} args - Arguments to update many BoardReplies.
+     * @example
+     * // Update many BoardReplies
+     * const boardReply = await prisma.boardReply.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more BoardReplies and only return the `id`
+     * const boardReplyWithIdOnly = await prisma.boardReply.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends BoardReplyUpdateManyAndReturnArgs>(args: SelectSubset<T, BoardReplyUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one BoardReply.
+     * @param {BoardReplyUpsertArgs} args - Arguments to update or create a BoardReply.
+     * @example
+     * // Update or create a BoardReply
+     * const boardReply = await prisma.boardReply.upsert({
+     *   create: {
+     *     // ... data to create a BoardReply
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the BoardReply we want to update
+     *   }
+     * })
+     */
+    upsert<T extends BoardReplyUpsertArgs>(args: SelectSubset<T, BoardReplyUpsertArgs<ExtArgs>>): Prisma__BoardReplyClient<$Result.GetResult<Prisma.$BoardReplyPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of BoardReplies.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyCountArgs} args - Arguments to filter BoardReplies to count.
+     * @example
+     * // Count the number of BoardReplies
+     * const count = await prisma.boardReply.count({
+     *   where: {
+     *     // ... the filter for the BoardReplies we want to count
+     *   }
+     * })
+    **/
+    count<T extends BoardReplyCountArgs>(
+      args?: Subset<T, BoardReplyCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], BoardReplyCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a BoardReply.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends BoardReplyAggregateArgs>(args: Subset<T, BoardReplyAggregateArgs>): Prisma.PrismaPromise<GetBoardReplyAggregateType<T>>
+
+    /**
+     * Group by BoardReply.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BoardReplyGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends BoardReplyGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: BoardReplyGroupByArgs['orderBy'] }
+        : { orderBy?: BoardReplyGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, BoardReplyGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBoardReplyGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the BoardReply model
+   */
+  readonly fields: BoardReplyFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for BoardReply.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__BoardReplyClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    post<T extends BoardPostDefaultArgs<ExtArgs> = {}>(args?: Subset<T, BoardPostDefaultArgs<ExtArgs>>): Prisma__BoardPostClient<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the BoardReply model
+   */
+  interface BoardReplyFieldRefs {
+    readonly id: FieldRef<"BoardReply", 'Int'>
+    readonly postId: FieldRef<"BoardReply", 'Int'>
+    readonly userId: FieldRef<"BoardReply", 'Int'>
+    readonly isAdminReply: FieldRef<"BoardReply", 'Boolean'>
+    readonly content: FieldRef<"BoardReply", 'String'>
+    readonly createdAt: FieldRef<"BoardReply", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * BoardReply findUnique
+   */
+  export type BoardReplyFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardReply to fetch.
+     */
+    where: BoardReplyWhereUniqueInput
+  }
+
+  /**
+   * BoardReply findUniqueOrThrow
+   */
+  export type BoardReplyFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardReply to fetch.
+     */
+    where: BoardReplyWhereUniqueInput
+  }
+
+  /**
+   * BoardReply findFirst
+   */
+  export type BoardReplyFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardReply to fetch.
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardReplies to fetch.
+     */
+    orderBy?: BoardReplyOrderByWithRelationInput | BoardReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BoardReplies.
+     */
+    cursor?: BoardReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BoardReplies.
+     */
+    distinct?: BoardReplyScalarFieldEnum | BoardReplyScalarFieldEnum[]
+  }
+
+  /**
+   * BoardReply findFirstOrThrow
+   */
+  export type BoardReplyFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardReply to fetch.
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardReplies to fetch.
+     */
+    orderBy?: BoardReplyOrderByWithRelationInput | BoardReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BoardReplies.
+     */
+    cursor?: BoardReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BoardReplies.
+     */
+    distinct?: BoardReplyScalarFieldEnum | BoardReplyScalarFieldEnum[]
+  }
+
+  /**
+   * BoardReply findMany
+   */
+  export type BoardReplyFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * Filter, which BoardReplies to fetch.
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BoardReplies to fetch.
+     */
+    orderBy?: BoardReplyOrderByWithRelationInput | BoardReplyOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing BoardReplies.
+     */
+    cursor?: BoardReplyWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` BoardReplies from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` BoardReplies.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BoardReplies.
+     */
+    distinct?: BoardReplyScalarFieldEnum | BoardReplyScalarFieldEnum[]
+  }
+
+  /**
+   * BoardReply create
+   */
+  export type BoardReplyCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * The data needed to create a BoardReply.
+     */
+    data: XOR<BoardReplyCreateInput, BoardReplyUncheckedCreateInput>
+  }
+
+  /**
+   * BoardReply createMany
+   */
+  export type BoardReplyCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many BoardReplies.
+     */
+    data: BoardReplyCreateManyInput | BoardReplyCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * BoardReply createManyAndReturn
+   */
+  export type BoardReplyCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * The data used to create many BoardReplies.
+     */
+    data: BoardReplyCreateManyInput | BoardReplyCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BoardReply update
+   */
+  export type BoardReplyUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * The data needed to update a BoardReply.
+     */
+    data: XOR<BoardReplyUpdateInput, BoardReplyUncheckedUpdateInput>
+    /**
+     * Choose, which BoardReply to update.
+     */
+    where: BoardReplyWhereUniqueInput
+  }
+
+  /**
+   * BoardReply updateMany
+   */
+  export type BoardReplyUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update BoardReplies.
+     */
+    data: XOR<BoardReplyUpdateManyMutationInput, BoardReplyUncheckedUpdateManyInput>
+    /**
+     * Filter which BoardReplies to update
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * Limit how many BoardReplies to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * BoardReply updateManyAndReturn
+   */
+  export type BoardReplyUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * The data used to update BoardReplies.
+     */
+    data: XOR<BoardReplyUpdateManyMutationInput, BoardReplyUncheckedUpdateManyInput>
+    /**
+     * Filter which BoardReplies to update
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * Limit how many BoardReplies to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * BoardReply upsert
+   */
+  export type BoardReplyUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * The filter to search for the BoardReply to update in case it exists.
+     */
+    where: BoardReplyWhereUniqueInput
+    /**
+     * In case the BoardReply found by the `where` argument doesn't exist, create a new BoardReply with this data.
+     */
+    create: XOR<BoardReplyCreateInput, BoardReplyUncheckedCreateInput>
+    /**
+     * In case the BoardReply was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<BoardReplyUpdateInput, BoardReplyUncheckedUpdateInput>
+  }
+
+  /**
+   * BoardReply delete
+   */
+  export type BoardReplyDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+    /**
+     * Filter which BoardReply to delete.
+     */
+    where: BoardReplyWhereUniqueInput
+  }
+
+  /**
+   * BoardReply deleteMany
+   */
+  export type BoardReplyDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which BoardReplies to delete
+     */
+    where?: BoardReplyWhereInput
+    /**
+     * Limit how many BoardReplies to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * BoardReply without action
+   */
+  export type BoardReplyDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the BoardReply
+     */
+    select?: BoardReplySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the BoardReply
+     */
+    omit?: BoardReplyOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: BoardReplyInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -14658,6 +17215,30 @@ export namespace Prisma {
   export type PersonaKnowledgeScalarFieldEnum = (typeof PersonaKnowledgeScalarFieldEnum)[keyof typeof PersonaKnowledgeScalarFieldEnum]
 
 
+  export const BoardPostScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    title: 'title',
+    content: 'content',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type BoardPostScalarFieldEnum = (typeof BoardPostScalarFieldEnum)[keyof typeof BoardPostScalarFieldEnum]
+
+
+  export const BoardReplyScalarFieldEnum: {
+    id: 'id',
+    postId: 'postId',
+    userId: 'userId',
+    isAdminReply: 'isAdminReply',
+    content: 'content',
+    createdAt: 'createdAt'
+  };
+
+  export type BoardReplyScalarFieldEnum = (typeof BoardReplyScalarFieldEnum)[keyof typeof BoardReplyScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -14769,6 +17350,8 @@ export namespace Prisma {
     sessions?: ChatSessionListRelationFilter
     memories?: UserMemoryListRelationFilter
     personaXps?: UserPersonaXpListRelationFilter
+    boardPosts?: BoardPostListRelationFilter
+    boardReplies?: BoardReplyListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -14784,6 +17367,8 @@ export namespace Prisma {
     sessions?: ChatSessionOrderByRelationAggregateInput
     memories?: UserMemoryOrderByRelationAggregateInput
     personaXps?: UserPersonaXpOrderByRelationAggregateInput
+    boardPosts?: BoardPostOrderByRelationAggregateInput
+    boardReplies?: BoardReplyOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -14802,6 +17387,8 @@ export namespace Prisma {
     sessions?: ChatSessionListRelationFilter
     memories?: UserMemoryListRelationFilter
     personaXps?: UserPersonaXpListRelationFilter
+    boardPosts?: BoardPostListRelationFilter
+    boardReplies?: BoardReplyListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -15492,6 +18079,136 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"PersonaKnowledge"> | Date | string
   }
 
+  export type BoardPostWhereInput = {
+    AND?: BoardPostWhereInput | BoardPostWhereInput[]
+    OR?: BoardPostWhereInput[]
+    NOT?: BoardPostWhereInput | BoardPostWhereInput[]
+    id?: IntFilter<"BoardPost"> | number
+    userId?: IntFilter<"BoardPost"> | number
+    title?: StringFilter<"BoardPost"> | string
+    content?: StringFilter<"BoardPost"> | string
+    createdAt?: DateTimeFilter<"BoardPost"> | Date | string
+    updatedAt?: DateTimeFilter<"BoardPost"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    replies?: BoardReplyListRelationFilter
+  }
+
+  export type BoardPostOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    replies?: BoardReplyOrderByRelationAggregateInput
+  }
+
+  export type BoardPostWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: BoardPostWhereInput | BoardPostWhereInput[]
+    OR?: BoardPostWhereInput[]
+    NOT?: BoardPostWhereInput | BoardPostWhereInput[]
+    userId?: IntFilter<"BoardPost"> | number
+    title?: StringFilter<"BoardPost"> | string
+    content?: StringFilter<"BoardPost"> | string
+    createdAt?: DateTimeFilter<"BoardPost"> | Date | string
+    updatedAt?: DateTimeFilter<"BoardPost"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    replies?: BoardReplyListRelationFilter
+  }, "id">
+
+  export type BoardPostOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: BoardPostCountOrderByAggregateInput
+    _avg?: BoardPostAvgOrderByAggregateInput
+    _max?: BoardPostMaxOrderByAggregateInput
+    _min?: BoardPostMinOrderByAggregateInput
+    _sum?: BoardPostSumOrderByAggregateInput
+  }
+
+  export type BoardPostScalarWhereWithAggregatesInput = {
+    AND?: BoardPostScalarWhereWithAggregatesInput | BoardPostScalarWhereWithAggregatesInput[]
+    OR?: BoardPostScalarWhereWithAggregatesInput[]
+    NOT?: BoardPostScalarWhereWithAggregatesInput | BoardPostScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"BoardPost"> | number
+    userId?: IntWithAggregatesFilter<"BoardPost"> | number
+    title?: StringWithAggregatesFilter<"BoardPost"> | string
+    content?: StringWithAggregatesFilter<"BoardPost"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"BoardPost"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"BoardPost"> | Date | string
+  }
+
+  export type BoardReplyWhereInput = {
+    AND?: BoardReplyWhereInput | BoardReplyWhereInput[]
+    OR?: BoardReplyWhereInput[]
+    NOT?: BoardReplyWhereInput | BoardReplyWhereInput[]
+    id?: IntFilter<"BoardReply"> | number
+    postId?: IntFilter<"BoardReply"> | number
+    userId?: IntFilter<"BoardReply"> | number
+    isAdminReply?: BoolFilter<"BoardReply"> | boolean
+    content?: StringFilter<"BoardReply"> | string
+    createdAt?: DateTimeFilter<"BoardReply"> | Date | string
+    post?: XOR<BoardPostScalarRelationFilter, BoardPostWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type BoardReplyOrderByWithRelationInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+    isAdminReply?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    post?: BoardPostOrderByWithRelationInput
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type BoardReplyWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: BoardReplyWhereInput | BoardReplyWhereInput[]
+    OR?: BoardReplyWhereInput[]
+    NOT?: BoardReplyWhereInput | BoardReplyWhereInput[]
+    postId?: IntFilter<"BoardReply"> | number
+    userId?: IntFilter<"BoardReply"> | number
+    isAdminReply?: BoolFilter<"BoardReply"> | boolean
+    content?: StringFilter<"BoardReply"> | string
+    createdAt?: DateTimeFilter<"BoardReply"> | Date | string
+    post?: XOR<BoardPostScalarRelationFilter, BoardPostWhereInput>
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type BoardReplyOrderByWithAggregationInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+    isAdminReply?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    _count?: BoardReplyCountOrderByAggregateInput
+    _avg?: BoardReplyAvgOrderByAggregateInput
+    _max?: BoardReplyMaxOrderByAggregateInput
+    _min?: BoardReplyMinOrderByAggregateInput
+    _sum?: BoardReplySumOrderByAggregateInput
+  }
+
+  export type BoardReplyScalarWhereWithAggregatesInput = {
+    AND?: BoardReplyScalarWhereWithAggregatesInput | BoardReplyScalarWhereWithAggregatesInput[]
+    OR?: BoardReplyScalarWhereWithAggregatesInput[]
+    NOT?: BoardReplyScalarWhereWithAggregatesInput | BoardReplyScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"BoardReply"> | number
+    postId?: IntWithAggregatesFilter<"BoardReply"> | number
+    userId?: IntWithAggregatesFilter<"BoardReply"> | number
+    isAdminReply?: BoolWithAggregatesFilter<"BoardReply"> | boolean
+    content?: StringWithAggregatesFilter<"BoardReply"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"BoardReply"> | Date | string
+  }
+
   export type UserCreateInput = {
     email: string
     password: string
@@ -15504,6 +18221,8 @@ export namespace Prisma {
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -15519,6 +18238,8 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -15533,6 +18254,8 @@ export namespace Prisma {
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -15548,6 +18271,8 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -16229,6 +18954,127 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type BoardPostCreateInput = {
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutBoardPostsInput
+    replies?: BoardReplyCreateNestedManyWithoutPostInput
+  }
+
+  export type BoardPostUncheckedCreateInput = {
+    id?: number
+    userId: number
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    replies?: BoardReplyUncheckedCreateNestedManyWithoutPostInput
+  }
+
+  export type BoardPostUpdateInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBoardPostsNestedInput
+    replies?: BoardReplyUpdateManyWithoutPostNestedInput
+  }
+
+  export type BoardPostUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: BoardReplyUncheckedUpdateManyWithoutPostNestedInput
+  }
+
+  export type BoardPostCreateManyInput = {
+    id?: number
+    userId: number
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BoardPostUpdateManyMutationInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardPostUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyCreateInput = {
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+    post: BoardPostCreateNestedOneWithoutRepliesInput
+    user: UserCreateNestedOneWithoutBoardRepliesInput
+  }
+
+  export type BoardReplyUncheckedCreateInput = {
+    id?: number
+    postId: number
+    userId: number
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type BoardReplyUpdateInput = {
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    post?: BoardPostUpdateOneRequiredWithoutRepliesNestedInput
+    user?: UserUpdateOneRequiredWithoutBoardRepliesNestedInput
+  }
+
+  export type BoardReplyUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    postId?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyCreateManyInput = {
+    id?: number
+    postId: number
+    userId: number
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type BoardReplyUpdateManyMutationInput = {
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    postId?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -16316,6 +19162,18 @@ export namespace Prisma {
     none?: UserPersonaXpWhereInput
   }
 
+  export type BoardPostListRelationFilter = {
+    every?: BoardPostWhereInput
+    some?: BoardPostWhereInput
+    none?: BoardPostWhereInput
+  }
+
+  export type BoardReplyListRelationFilter = {
+    every?: BoardReplyWhereInput
+    some?: BoardReplyWhereInput
+    none?: BoardReplyWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -16334,6 +19192,14 @@ export namespace Prisma {
   }
 
   export type UserPersonaXpOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BoardPostOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type BoardReplyOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -16948,6 +19814,87 @@ export namespace Prisma {
     id?: SortOrder
   }
 
+  export type BoardPostCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BoardPostAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type BoardPostMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BoardPostMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type BoardPostSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type BoardPostScalarRelationFilter = {
+    is?: BoardPostWhereInput
+    isNot?: BoardPostWhereInput
+  }
+
+  export type BoardReplyCountOrderByAggregateInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+    isAdminReply?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BoardReplyAvgOrderByAggregateInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type BoardReplyMaxOrderByAggregateInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+    isAdminReply?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BoardReplyMinOrderByAggregateInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+    isAdminReply?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BoardReplySumOrderByAggregateInput = {
+    id?: SortOrder
+    postId?: SortOrder
+    userId?: SortOrder
+  }
+
   export type PersonaCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -16976,6 +19923,20 @@ export namespace Prisma {
     connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
   }
 
+  export type BoardPostCreateNestedManyWithoutUserInput = {
+    create?: XOR<BoardPostCreateWithoutUserInput, BoardPostUncheckedCreateWithoutUserInput> | BoardPostCreateWithoutUserInput[] | BoardPostUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardPostCreateOrConnectWithoutUserInput | BoardPostCreateOrConnectWithoutUserInput[]
+    createMany?: BoardPostCreateManyUserInputEnvelope
+    connect?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+  }
+
+  export type BoardReplyCreateNestedManyWithoutUserInput = {
+    create?: XOR<BoardReplyCreateWithoutUserInput, BoardReplyUncheckedCreateWithoutUserInput> | BoardReplyCreateWithoutUserInput[] | BoardReplyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutUserInput | BoardReplyCreateOrConnectWithoutUserInput[]
+    createMany?: BoardReplyCreateManyUserInputEnvelope
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+  }
+
   export type PersonaUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -17002,6 +19963,20 @@ export namespace Prisma {
     connectOrCreate?: UserPersonaXpCreateOrConnectWithoutUserInput | UserPersonaXpCreateOrConnectWithoutUserInput[]
     createMany?: UserPersonaXpCreateManyUserInputEnvelope
     connect?: UserPersonaXpWhereUniqueInput | UserPersonaXpWhereUniqueInput[]
+  }
+
+  export type BoardPostUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<BoardPostCreateWithoutUserInput, BoardPostUncheckedCreateWithoutUserInput> | BoardPostCreateWithoutUserInput[] | BoardPostUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardPostCreateOrConnectWithoutUserInput | BoardPostCreateOrConnectWithoutUserInput[]
+    createMany?: BoardPostCreateManyUserInputEnvelope
+    connect?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+  }
+
+  export type BoardReplyUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<BoardReplyCreateWithoutUserInput, BoardReplyUncheckedCreateWithoutUserInput> | BoardReplyCreateWithoutUserInput[] | BoardReplyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutUserInput | BoardReplyCreateOrConnectWithoutUserInput[]
+    createMany?: BoardReplyCreateManyUserInputEnvelope
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -17076,6 +20051,34 @@ export namespace Prisma {
     deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
   }
 
+  export type BoardPostUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BoardPostCreateWithoutUserInput, BoardPostUncheckedCreateWithoutUserInput> | BoardPostCreateWithoutUserInput[] | BoardPostUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardPostCreateOrConnectWithoutUserInput | BoardPostCreateOrConnectWithoutUserInput[]
+    upsert?: BoardPostUpsertWithWhereUniqueWithoutUserInput | BoardPostUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BoardPostCreateManyUserInputEnvelope
+    set?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    disconnect?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    delete?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    connect?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    update?: BoardPostUpdateWithWhereUniqueWithoutUserInput | BoardPostUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BoardPostUpdateManyWithWhereWithoutUserInput | BoardPostUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BoardPostScalarWhereInput | BoardPostScalarWhereInput[]
+  }
+
+  export type BoardReplyUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BoardReplyCreateWithoutUserInput, BoardReplyUncheckedCreateWithoutUserInput> | BoardReplyCreateWithoutUserInput[] | BoardReplyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutUserInput | BoardReplyCreateOrConnectWithoutUserInput[]
+    upsert?: BoardReplyUpsertWithWhereUniqueWithoutUserInput | BoardReplyUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BoardReplyCreateManyUserInputEnvelope
+    set?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    disconnect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    delete?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    update?: BoardReplyUpdateWithWhereUniqueWithoutUserInput | BoardReplyUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BoardReplyUpdateManyWithWhereWithoutUserInput | BoardReplyUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
+  }
+
   export type IntFieldUpdateOperationsInput = {
     set?: number
     increment?: number
@@ -17138,6 +20141,34 @@ export namespace Prisma {
     update?: UserPersonaXpUpdateWithWhereUniqueWithoutUserInput | UserPersonaXpUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: UserPersonaXpUpdateManyWithWhereWithoutUserInput | UserPersonaXpUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: UserPersonaXpScalarWhereInput | UserPersonaXpScalarWhereInput[]
+  }
+
+  export type BoardPostUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BoardPostCreateWithoutUserInput, BoardPostUncheckedCreateWithoutUserInput> | BoardPostCreateWithoutUserInput[] | BoardPostUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardPostCreateOrConnectWithoutUserInput | BoardPostCreateOrConnectWithoutUserInput[]
+    upsert?: BoardPostUpsertWithWhereUniqueWithoutUserInput | BoardPostUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BoardPostCreateManyUserInputEnvelope
+    set?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    disconnect?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    delete?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    connect?: BoardPostWhereUniqueInput | BoardPostWhereUniqueInput[]
+    update?: BoardPostUpdateWithWhereUniqueWithoutUserInput | BoardPostUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BoardPostUpdateManyWithWhereWithoutUserInput | BoardPostUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BoardPostScalarWhereInput | BoardPostScalarWhereInput[]
+  }
+
+  export type BoardReplyUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<BoardReplyCreateWithoutUserInput, BoardReplyUncheckedCreateWithoutUserInput> | BoardReplyCreateWithoutUserInput[] | BoardReplyUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutUserInput | BoardReplyCreateOrConnectWithoutUserInput[]
+    upsert?: BoardReplyUpsertWithWhereUniqueWithoutUserInput | BoardReplyUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: BoardReplyCreateManyUserInputEnvelope
+    set?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    disconnect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    delete?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    update?: BoardReplyUpdateWithWhereUniqueWithoutUserInput | BoardReplyUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: BoardReplyUpdateManyWithWhereWithoutUserInput | BoardReplyUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutPersonaXpsInput = {
@@ -17592,6 +20623,90 @@ export namespace Prisma {
     update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutKnowledgeInput, PersonaUpdateWithoutKnowledgeInput>, PersonaUncheckedUpdateWithoutKnowledgeInput>
   }
 
+  export type UserCreateNestedOneWithoutBoardPostsInput = {
+    create?: XOR<UserCreateWithoutBoardPostsInput, UserUncheckedCreateWithoutBoardPostsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBoardPostsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type BoardReplyCreateNestedManyWithoutPostInput = {
+    create?: XOR<BoardReplyCreateWithoutPostInput, BoardReplyUncheckedCreateWithoutPostInput> | BoardReplyCreateWithoutPostInput[] | BoardReplyUncheckedCreateWithoutPostInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutPostInput | BoardReplyCreateOrConnectWithoutPostInput[]
+    createMany?: BoardReplyCreateManyPostInputEnvelope
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+  }
+
+  export type BoardReplyUncheckedCreateNestedManyWithoutPostInput = {
+    create?: XOR<BoardReplyCreateWithoutPostInput, BoardReplyUncheckedCreateWithoutPostInput> | BoardReplyCreateWithoutPostInput[] | BoardReplyUncheckedCreateWithoutPostInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutPostInput | BoardReplyCreateOrConnectWithoutPostInput[]
+    createMany?: BoardReplyCreateManyPostInputEnvelope
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+  }
+
+  export type UserUpdateOneRequiredWithoutBoardPostsNestedInput = {
+    create?: XOR<UserCreateWithoutBoardPostsInput, UserUncheckedCreateWithoutBoardPostsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBoardPostsInput
+    upsert?: UserUpsertWithoutBoardPostsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBoardPostsInput, UserUpdateWithoutBoardPostsInput>, UserUncheckedUpdateWithoutBoardPostsInput>
+  }
+
+  export type BoardReplyUpdateManyWithoutPostNestedInput = {
+    create?: XOR<BoardReplyCreateWithoutPostInput, BoardReplyUncheckedCreateWithoutPostInput> | BoardReplyCreateWithoutPostInput[] | BoardReplyUncheckedCreateWithoutPostInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutPostInput | BoardReplyCreateOrConnectWithoutPostInput[]
+    upsert?: BoardReplyUpsertWithWhereUniqueWithoutPostInput | BoardReplyUpsertWithWhereUniqueWithoutPostInput[]
+    createMany?: BoardReplyCreateManyPostInputEnvelope
+    set?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    disconnect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    delete?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    update?: BoardReplyUpdateWithWhereUniqueWithoutPostInput | BoardReplyUpdateWithWhereUniqueWithoutPostInput[]
+    updateMany?: BoardReplyUpdateManyWithWhereWithoutPostInput | BoardReplyUpdateManyWithWhereWithoutPostInput[]
+    deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
+  }
+
+  export type BoardReplyUncheckedUpdateManyWithoutPostNestedInput = {
+    create?: XOR<BoardReplyCreateWithoutPostInput, BoardReplyUncheckedCreateWithoutPostInput> | BoardReplyCreateWithoutPostInput[] | BoardReplyUncheckedCreateWithoutPostInput[]
+    connectOrCreate?: BoardReplyCreateOrConnectWithoutPostInput | BoardReplyCreateOrConnectWithoutPostInput[]
+    upsert?: BoardReplyUpsertWithWhereUniqueWithoutPostInput | BoardReplyUpsertWithWhereUniqueWithoutPostInput[]
+    createMany?: BoardReplyCreateManyPostInputEnvelope
+    set?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    disconnect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    delete?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    connect?: BoardReplyWhereUniqueInput | BoardReplyWhereUniqueInput[]
+    update?: BoardReplyUpdateWithWhereUniqueWithoutPostInput | BoardReplyUpdateWithWhereUniqueWithoutPostInput[]
+    updateMany?: BoardReplyUpdateManyWithWhereWithoutPostInput | BoardReplyUpdateManyWithWhereWithoutPostInput[]
+    deleteMany?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
+  }
+
+  export type BoardPostCreateNestedOneWithoutRepliesInput = {
+    create?: XOR<BoardPostCreateWithoutRepliesInput, BoardPostUncheckedCreateWithoutRepliesInput>
+    connectOrCreate?: BoardPostCreateOrConnectWithoutRepliesInput
+    connect?: BoardPostWhereUniqueInput
+  }
+
+  export type UserCreateNestedOneWithoutBoardRepliesInput = {
+    create?: XOR<UserCreateWithoutBoardRepliesInput, UserUncheckedCreateWithoutBoardRepliesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBoardRepliesInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type BoardPostUpdateOneRequiredWithoutRepliesNestedInput = {
+    create?: XOR<BoardPostCreateWithoutRepliesInput, BoardPostUncheckedCreateWithoutRepliesInput>
+    connectOrCreate?: BoardPostCreateOrConnectWithoutRepliesInput
+    upsert?: BoardPostUpsertWithoutRepliesInput
+    connect?: BoardPostWhereUniqueInput
+    update?: XOR<XOR<BoardPostUpdateToOneWithWhereWithoutRepliesInput, BoardPostUpdateWithoutRepliesInput>, BoardPostUncheckedUpdateWithoutRepliesInput>
+  }
+
+  export type UserUpdateOneRequiredWithoutBoardRepliesNestedInput = {
+    create?: XOR<UserCreateWithoutBoardRepliesInput, UserUncheckedCreateWithoutBoardRepliesInput>
+    connectOrCreate?: UserCreateOrConnectWithoutBoardRepliesInput
+    upsert?: UserUpsertWithoutBoardRepliesInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBoardRepliesInput, UserUpdateWithoutBoardRepliesInput>, UserUncheckedUpdateWithoutBoardRepliesInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -17915,6 +21030,58 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type BoardPostCreateWithoutUserInput = {
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    replies?: BoardReplyCreateNestedManyWithoutPostInput
+  }
+
+  export type BoardPostUncheckedCreateWithoutUserInput = {
+    id?: number
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    replies?: BoardReplyUncheckedCreateNestedManyWithoutPostInput
+  }
+
+  export type BoardPostCreateOrConnectWithoutUserInput = {
+    where: BoardPostWhereUniqueInput
+    create: XOR<BoardPostCreateWithoutUserInput, BoardPostUncheckedCreateWithoutUserInput>
+  }
+
+  export type BoardPostCreateManyUserInputEnvelope = {
+    data: BoardPostCreateManyUserInput | BoardPostCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type BoardReplyCreateWithoutUserInput = {
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+    post: BoardPostCreateNestedOneWithoutRepliesInput
+  }
+
+  export type BoardReplyUncheckedCreateWithoutUserInput = {
+    id?: number
+    postId: number
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type BoardReplyCreateOrConnectWithoutUserInput = {
+    where: BoardReplyWhereUniqueInput
+    create: XOR<BoardReplyCreateWithoutUserInput, BoardReplyUncheckedCreateWithoutUserInput>
+  }
+
+  export type BoardReplyCreateManyUserInputEnvelope = {
+    data: BoardReplyCreateManyUserInput | BoardReplyCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PersonaUpsertWithWhereUniqueWithoutUserInput = {
     where: PersonaWhereUniqueInput
     update: XOR<PersonaUpdateWithoutUserInput, PersonaUncheckedUpdateWithoutUserInput>
@@ -18031,6 +21198,62 @@ export namespace Prisma {
     xp?: IntFilter<"UserPersonaXp"> | number
   }
 
+  export type BoardPostUpsertWithWhereUniqueWithoutUserInput = {
+    where: BoardPostWhereUniqueInput
+    update: XOR<BoardPostUpdateWithoutUserInput, BoardPostUncheckedUpdateWithoutUserInput>
+    create: XOR<BoardPostCreateWithoutUserInput, BoardPostUncheckedCreateWithoutUserInput>
+  }
+
+  export type BoardPostUpdateWithWhereUniqueWithoutUserInput = {
+    where: BoardPostWhereUniqueInput
+    data: XOR<BoardPostUpdateWithoutUserInput, BoardPostUncheckedUpdateWithoutUserInput>
+  }
+
+  export type BoardPostUpdateManyWithWhereWithoutUserInput = {
+    where: BoardPostScalarWhereInput
+    data: XOR<BoardPostUpdateManyMutationInput, BoardPostUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type BoardPostScalarWhereInput = {
+    AND?: BoardPostScalarWhereInput | BoardPostScalarWhereInput[]
+    OR?: BoardPostScalarWhereInput[]
+    NOT?: BoardPostScalarWhereInput | BoardPostScalarWhereInput[]
+    id?: IntFilter<"BoardPost"> | number
+    userId?: IntFilter<"BoardPost"> | number
+    title?: StringFilter<"BoardPost"> | string
+    content?: StringFilter<"BoardPost"> | string
+    createdAt?: DateTimeFilter<"BoardPost"> | Date | string
+    updatedAt?: DateTimeFilter<"BoardPost"> | Date | string
+  }
+
+  export type BoardReplyUpsertWithWhereUniqueWithoutUserInput = {
+    where: BoardReplyWhereUniqueInput
+    update: XOR<BoardReplyUpdateWithoutUserInput, BoardReplyUncheckedUpdateWithoutUserInput>
+    create: XOR<BoardReplyCreateWithoutUserInput, BoardReplyUncheckedCreateWithoutUserInput>
+  }
+
+  export type BoardReplyUpdateWithWhereUniqueWithoutUserInput = {
+    where: BoardReplyWhereUniqueInput
+    data: XOR<BoardReplyUpdateWithoutUserInput, BoardReplyUncheckedUpdateWithoutUserInput>
+  }
+
+  export type BoardReplyUpdateManyWithWhereWithoutUserInput = {
+    where: BoardReplyScalarWhereInput
+    data: XOR<BoardReplyUpdateManyMutationInput, BoardReplyUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type BoardReplyScalarWhereInput = {
+    AND?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
+    OR?: BoardReplyScalarWhereInput[]
+    NOT?: BoardReplyScalarWhereInput | BoardReplyScalarWhereInput[]
+    id?: IntFilter<"BoardReply"> | number
+    postId?: IntFilter<"BoardReply"> | number
+    userId?: IntFilter<"BoardReply"> | number
+    isAdminReply?: BoolFilter<"BoardReply"> | boolean
+    content?: StringFilter<"BoardReply"> | string
+    createdAt?: DateTimeFilter<"BoardReply"> | Date | string
+  }
+
   export type UserCreateWithoutPersonaXpsInput = {
     email: string
     password: string
@@ -18042,6 +21265,8 @@ export namespace Prisma {
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonaXpsInput = {
@@ -18056,6 +21281,8 @@ export namespace Prisma {
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonaXpsInput = {
@@ -18130,6 +21357,8 @@ export namespace Prisma {
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonaXpsInput = {
@@ -18144,6 +21373,8 @@ export namespace Prisma {
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutPersonaXpsInput = {
@@ -18208,6 +21439,8 @@ export namespace Prisma {
     personas?: PersonaCreateNestedManyWithoutUserInput
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMemoriesInput = {
@@ -18222,6 +21455,8 @@ export namespace Prisma {
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMemoriesInput = {
@@ -18251,6 +21486,8 @@ export namespace Prisma {
     personas?: PersonaUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMemoriesInput = {
@@ -18265,6 +21502,8 @@ export namespace Prisma {
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutPersonasInput = {
@@ -18278,6 +21517,8 @@ export namespace Prisma {
     sessions?: ChatSessionCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonasInput = {
@@ -18292,6 +21533,8 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonasInput = {
@@ -18426,6 +21669,8 @@ export namespace Prisma {
     sessions?: ChatSessionUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonasInput = {
@@ -18440,6 +21685,8 @@ export namespace Prisma {
     sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChatSessionUpsertWithWhereUniqueWithoutPersonaInput = {
@@ -18753,6 +22000,8 @@ export namespace Prisma {
     personas?: PersonaCreateNestedManyWithoutUserInput
     memories?: UserMemoryCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -18767,6 +22016,8 @@ export namespace Prisma {
     personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
     memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
     personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -18884,6 +22135,8 @@ export namespace Prisma {
     personas?: PersonaUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -18898,6 +22151,8 @@ export namespace Prisma {
     personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
     memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutSessionsInput = {
@@ -19208,6 +22463,253 @@ export namespace Prisma {
     personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
+  export type UserCreateWithoutBoardPostsInput = {
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionCreateNestedManyWithoutUserInput
+    memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutBoardPostsInput = {
+    id?: number
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
+    memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutBoardPostsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutBoardPostsInput, UserUncheckedCreateWithoutBoardPostsInput>
+  }
+
+  export type BoardReplyCreateWithoutPostInput = {
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutBoardRepliesInput
+  }
+
+  export type BoardReplyUncheckedCreateWithoutPostInput = {
+    id?: number
+    userId: number
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type BoardReplyCreateOrConnectWithoutPostInput = {
+    where: BoardReplyWhereUniqueInput
+    create: XOR<BoardReplyCreateWithoutPostInput, BoardReplyUncheckedCreateWithoutPostInput>
+  }
+
+  export type BoardReplyCreateManyPostInputEnvelope = {
+    data: BoardReplyCreateManyPostInput | BoardReplyCreateManyPostInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type UserUpsertWithoutBoardPostsInput = {
+    update: XOR<UserUpdateWithoutBoardPostsInput, UserUncheckedUpdateWithoutBoardPostsInput>
+    create: XOR<UserCreateWithoutBoardPostsInput, UserUncheckedCreateWithoutBoardPostsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutBoardPostsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutBoardPostsInput, UserUncheckedUpdateWithoutBoardPostsInput>
+  }
+
+  export type UserUpdateWithoutBoardPostsInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutBoardPostsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type BoardReplyUpsertWithWhereUniqueWithoutPostInput = {
+    where: BoardReplyWhereUniqueInput
+    update: XOR<BoardReplyUpdateWithoutPostInput, BoardReplyUncheckedUpdateWithoutPostInput>
+    create: XOR<BoardReplyCreateWithoutPostInput, BoardReplyUncheckedCreateWithoutPostInput>
+  }
+
+  export type BoardReplyUpdateWithWhereUniqueWithoutPostInput = {
+    where: BoardReplyWhereUniqueInput
+    data: XOR<BoardReplyUpdateWithoutPostInput, BoardReplyUncheckedUpdateWithoutPostInput>
+  }
+
+  export type BoardReplyUpdateManyWithWhereWithoutPostInput = {
+    where: BoardReplyScalarWhereInput
+    data: XOR<BoardReplyUpdateManyMutationInput, BoardReplyUncheckedUpdateManyWithoutPostInput>
+  }
+
+  export type BoardPostCreateWithoutRepliesInput = {
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutBoardPostsInput
+  }
+
+  export type BoardPostUncheckedCreateWithoutRepliesInput = {
+    id?: number
+    userId: number
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BoardPostCreateOrConnectWithoutRepliesInput = {
+    where: BoardPostWhereUniqueInput
+    create: XOR<BoardPostCreateWithoutRepliesInput, BoardPostUncheckedCreateWithoutRepliesInput>
+  }
+
+  export type UserCreateWithoutBoardRepliesInput = {
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionCreateNestedManyWithoutUserInput
+    memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutBoardRepliesInput = {
+    id?: number
+    email: string
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    createdAt?: Date | string
+    personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
+    memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutBoardRepliesInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutBoardRepliesInput, UserUncheckedCreateWithoutBoardRepliesInput>
+  }
+
+  export type BoardPostUpsertWithoutRepliesInput = {
+    update: XOR<BoardPostUpdateWithoutRepliesInput, BoardPostUncheckedUpdateWithoutRepliesInput>
+    create: XOR<BoardPostCreateWithoutRepliesInput, BoardPostUncheckedCreateWithoutRepliesInput>
+    where?: BoardPostWhereInput
+  }
+
+  export type BoardPostUpdateToOneWithWhereWithoutRepliesInput = {
+    where?: BoardPostWhereInput
+    data: XOR<BoardPostUpdateWithoutRepliesInput, BoardPostUncheckedUpdateWithoutRepliesInput>
+  }
+
+  export type BoardPostUpdateWithoutRepliesInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBoardPostsNestedInput
+  }
+
+  export type BoardPostUncheckedUpdateWithoutRepliesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type UserUpsertWithoutBoardRepliesInput = {
+    update: XOR<UserUpdateWithoutBoardRepliesInput, UserUncheckedUpdateWithoutBoardRepliesInput>
+    create: XOR<UserCreateWithoutBoardRepliesInput, UserUncheckedCreateWithoutBoardRepliesInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutBoardRepliesInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutBoardRepliesInput, UserUncheckedUpdateWithoutBoardRepliesInput>
+  }
+
+  export type UserUpdateWithoutBoardRepliesInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutBoardRepliesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: StringFieldUpdateOperationsInput | string
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type PersonaCreateManyUserInput = {
     id?: string
     name: string
@@ -19242,6 +22744,22 @@ export namespace Prisma {
   export type UserPersonaXpCreateManyUserInput = {
     personaId: string
     xp?: number
+  }
+
+  export type BoardPostCreateManyUserInput = {
+    id?: number
+    title: string
+    content: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type BoardReplyCreateManyUserInput = {
+    id?: number
+    postId: number
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
   }
 
   export type PersonaUpdateWithoutUserInput = {
@@ -19360,6 +22878,54 @@ export namespace Prisma {
   export type UserPersonaXpUncheckedUpdateManyWithoutUserInput = {
     personaId?: StringFieldUpdateOperationsInput | string
     xp?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type BoardPostUpdateWithoutUserInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: BoardReplyUpdateManyWithoutPostNestedInput
+  }
+
+  export type BoardPostUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    replies?: BoardReplyUncheckedUpdateManyWithoutPostNestedInput
+  }
+
+  export type BoardPostUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyUpdateWithoutUserInput = {
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    post?: BoardPostUpdateOneRequiredWithoutRepliesNestedInput
+  }
+
+  export type BoardReplyUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    postId?: IntFieldUpdateOperationsInput | number
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    postId?: IntFieldUpdateOperationsInput | number
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ChatSessionCreateManyPersonaInput = {
@@ -19548,6 +23114,37 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     role?: StringFieldUpdateOperationsInput | string
     text?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyCreateManyPostInput = {
+    id?: number
+    userId: number
+    isAdminReply?: boolean
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type BoardReplyUpdateWithoutPostInput = {
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutBoardRepliesNestedInput
+  }
+
+  export type BoardReplyUncheckedUpdateWithoutPostInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type BoardReplyUncheckedUpdateManyWithoutPostInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    isAdminReply?: BoolFieldUpdateOperationsInput | boolean
+    content?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

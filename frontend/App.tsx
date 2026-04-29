@@ -12,6 +12,7 @@ import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPage } from './components/LandingPage';
 import { MainPage } from './components/MainPage';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
+import { BoardPanel } from './components/BoardPanel';
 import { Icon } from './components/Icons';
 
 const App: React.FC = () => {
@@ -30,6 +31,7 @@ const App: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [inputText, setInputText] = useState('');
     const [isAdminMode, setIsAdminMode] = useState(false);
+    const [showBoard, setShowBoard] = useState(false);
 
     const [commonInstruction, setCommonInstruction] = useState('');
     const [headerImageModal, setHeaderImageModal] = useState(false);
@@ -240,8 +242,12 @@ const App: React.FC = () => {
     const handleAuthSuccess = (loggedInUser: User, token: string) => {
         localStorage.setItem('token', token);
         setShowAuthModal(false);
-        setUser(loggedInUser);
-        setShowMain(true);
+        setIsAuthChecking(true);
+        setTimeout(() => {
+            setUser(loggedInUser);
+            setShowMain(true);
+            setIsAuthChecking(false);
+        }, 0);
     };
 
     const handleLogout = async () => {
@@ -589,7 +595,9 @@ const App: React.FC = () => {
                 onGoHome={() => setShowMain(true)}
             />
 
-            {isAdminMode ? (
+            {showBoard ? (
+                <BoardPanel user={user} onClose={() => setShowBoard(false)} />
+            ) : isAdminMode ? (
                 <AdminPanel
                     personas={personas}
                     onSave={handleSavePersona}
@@ -721,6 +729,14 @@ const App: React.FC = () => {
                                         </div>
                                     );
                                 })()}
+                                <button
+                                    onClick={() => setShowBoard(true)}
+                                    title="소통게시판"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200 transition-all"
+                                >
+                                    <Icon name="MessageSquare" size={14} />
+                                    <span className="hidden sm:inline">게시판</span>
+                                </button>
                                 {activePersona && (
                                     <button
                                         onClick={() => handleToggleMemory(activePersonaId)}
