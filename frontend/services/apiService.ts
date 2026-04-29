@@ -266,14 +266,14 @@ export const knowledgeApi = {
 
 // Board
 export const boardApi = {
-    getList: () =>
-        request<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>('/board'),
+    getList: (personaId: string) =>
+        request<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>(`/board?personaId=${encodeURIComponent(personaId)}`),
 
     getPost: (id: number) =>
         request<import('../types').BoardPost>(`/board/${id}`),
 
-    create: (title: string, content: string) =>
-        request<{ id: number }>('/board', { method: 'POST', body: JSON.stringify({ title, content }) }),
+    create: (title: string, content: string, personaId: string) =>
+        request<{ id: number }>('/board', { method: 'POST', body: JSON.stringify({ title, content, personaId }) }),
 
     update: (id: number, title: string, content: string) =>
         request<{ ok: boolean }>(`/board/${id}`, { method: 'PUT', body: JSON.stringify({ title, content }) }),

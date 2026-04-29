@@ -902,7 +902,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // GET /api/board — 목록 (제목만, 비밀글)
         if (!seg1 && req.method === 'GET') {
             try {
+                const personaIdFilter = req.query.personaId as string | undefined;
                 const posts = await prisma.boardPost.findMany({
+                    where: personaIdFilter ? { personaId: personaIdFilter } : undefined,
                     orderBy: { createdAt: 'desc' },
                     select: {
                         id: true, title: true, createdAt: true, userId: true,
@@ -920,11 +922,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // POST /api/board — 게시글 작성
         if (!seg1 && req.method === 'POST') {
             try {
-                const { title, content } = req.body;
+                const { title, content, personaId: postPersonaId } = req.body;
                 if (!title?.trim() || !content?.trim())
                     return res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+                if (!postPersonaId)
+                    return res.status(400).json({ error: 'personaId는 필수입니다.' });
                 const post = await prisma.boardPost.create({
-                    data: { userId: me.id, title: title.trim(), content: content.trim() },
+                    data: { userId: me.id, personaId: postPersonaId, title: title.trim(), content: content.trim() },
                 });
                 try {
                     const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { email: true } });

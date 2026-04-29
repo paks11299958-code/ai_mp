@@ -5,6 +5,7 @@ import { Icon } from './Icons';
 
 interface Props {
     user: User;
+    personaId: string;
     onClose: () => void;
 }
 
@@ -13,7 +14,7 @@ type View = 'list' | 'detail' | 'write' | 'edit';
 const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
 
-export const BoardPanel: React.FC<Props> = ({ user, onClose }) => {
+export const BoardPanel: React.FC<Props> = ({ user, personaId, onClose }) => {
     const [view, setView] = useState<View>('list');
     const [posts, setPosts] = useState<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>([]);
     const [onlyMine, setOnlyMine] = useState(false);
@@ -31,7 +32,7 @@ export const BoardPanel: React.FC<Props> = ({ user, onClose }) => {
     const loadList = () => {
         setLoading(true);
         setError('');
-        boardApi.getList()
+        boardApi.getList(personaId)
             .then(setPosts)
             .catch(() => setError('목록을 불러오지 못했습니다.'))
             .finally(() => setLoading(false));
@@ -58,7 +59,7 @@ export const BoardPanel: React.FC<Props> = ({ user, onClose }) => {
         if (!formTitle.trim() || !formContent.trim()) return;
         setSubmitting(true);
         try {
-            await boardApi.create(formTitle, formContent);
+            await boardApi.create(formTitle, formContent, personaId);
             setFormTitle(''); setFormContent('');
             setView('list');
             loadList();

@@ -1061,7 +1061,9 @@ app.get('/api/board', async (req, res) => {
   const me = await getBoardUser(req, res);
   if (!me) return;
   try {
+    const personaIdFilter = req.query.personaId;
     const posts = await prisma.boardPost.findMany({
+      where: personaIdFilter ? { personaId: personaIdFilter } : undefined,
       orderBy: { createdAt: 'desc' },
       select: {
         id: true, title: true, createdAt: true, userId: true,
@@ -1081,11 +1083,13 @@ app.post('/api/board', async (req, res) => {
   const me = await getBoardUser(req, res);
   if (!me) return;
   try {
-    const { title, content } = req.body;
+    const { title, content, personaId } = req.body;
     if (!title?.trim() || !content?.trim())
       return res.status(400).json({ error: '제목과 내용을 입력해주세요.' });
+    if (!personaId)
+      return res.status(400).json({ error: 'personaId는 필수입니다.' });
     const post = await prisma.boardPost.create({
-      data: { userId: me.id, title: title.trim(), content: content.trim() },
+      data: { userId: me.id, personaId, title: title.trim(), content: content.trim() },
     });
     const admins = await prisma.user.findMany({ where: { role: 'ADMIN' }, select: { email: true } });
     for (const admin of admins) {

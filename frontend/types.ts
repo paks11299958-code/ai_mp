@@ -101,6 +101,7 @@ export interface BoardReply {
 export interface BoardPost {
     id: number;
     userId: number;
+    personaId: string;
     title: string;
     content: string;
     createdAt: string;

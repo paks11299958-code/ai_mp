@@ -596,7 +596,7 @@ const App: React.FC = () => {
             />
 
             {showBoard ? (
-                <BoardPanel user={user} onClose={() => setShowBoard(false)} />
+                <BoardPanel user={user} personaId={activePersonaId} onClose={() => setShowBoard(false)} />
             ) : isAdminMode ? (
                 <AdminPanel
                     personas={personas}

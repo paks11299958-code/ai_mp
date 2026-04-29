@@ -63,6 +63,7 @@ model Persona {
   images            PersonaImage[]
   personaXps        UserPersonaXp[]
   knowledge         PersonaKnowledge[]
+  boardPosts        BoardPost[]
 }
 
 model PersonaImage {
@@ -141,7 +142,9 @@ model PersonaKnowledge {
 model BoardPost {
   id        Int          @id @default(autoincrement())
   userId    Int
+  personaId String
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona   Persona      @relation(fields: [personaId], references: [id], onDelete: Cascade)
   title     String
   content   String
   createdAt DateTime     @default(now())
