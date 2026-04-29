@@ -82,10 +82,7 @@ exports.analyzeGolfSwing = async (req, res) => {
     await storage.bucket(BUCKET).file(filePath).delete().catch(() => {});
 
     // DB 저장 (raw SQL)
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-    });
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     const result = await pool.query(
       `INSERT INTO "UserSwingAnalysis" ("userId", "personaId", "fileName", "analysisJson", "createdAt")
        VALUES ($1, $2, $3, $4, NOW()) RETURNING id, "createdAt"`,
