@@ -1192,6 +1192,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const record = await prisma.userSwingAnalysis.create({
                     data: { userId, personaId, fileName: fileName || null, analysisJson: JSON.stringify(analysis) },
                 });
+
+                // UserMemory에 최신 스윙 분석 요약 upsert
+                try {
+                    const a = analysis as any;
+                    const date = new Date().toISOString().slice(0, 10);
+                    const secs: any[] = a.sections || [];
+                    const scoresStr = secs.map((s: any) => `${s.name.replace(' & 셋업', '')} ${s.score}점`).join(' / ');
+                    const priorities = (a.topPriorities || []).slice(0, 3).join(' / ');
+                    const memContent = `[골프 스윙 분석 - ${date}] 종합 ${a.overallScore}점\n구간: ${scoresStr}\n주요 개선점: ${priorities}`;
+                    const embedding = await generateEmbedding(memContent);
+                    const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+                    await prisma.$executeRawUnsafe(
+                        `DELETE FROM "UserMemory" WHERE "userId" = $1 AND "category" = 'swing_analysis'`,
+                        userId
+                    );
+                    await prisma.$executeRawUnsafe(
+                        `INSERT INTO "UserMemory" ("userId","content","embedding","category","createdAt") VALUES ($1,$2,$3::vector,'swing_analysis',NOW())`,
+                        userId, memContent, vectorStr
+                    );
+                } catch (memErr: any) {
+                    console.warn('[swing memory upsert]', memErr.message);
+                }
+
                 return res.status(200).json({ id: record.id, analysis, createdAt: record.createdAt });
             } catch (e: any) {
                 console.error('[swing analyze]', e);

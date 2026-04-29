@@ -97,6 +97,39 @@ exports.analyzeGolfSwing = async (req, res) => {
        VALUES ($1, $2, $3, $4, NOW()) RETURNING id, "createdAt"`,
       [userId, personaId, fileName || null, JSON.stringify(analysis)]
     );
+
+    // UserMemory에 최신 스윙 분석 요약 upsert (기존 swing_analysis 삭제 후 재삽입)
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      const secs = analysis.sections || [];
+      const scoresStr = secs.map(s => `${s.name.replace(' & 셋업', '')} ${s.score}점`).join(' / ');
+      const priorities = (analysis.topPriorities || []).slice(0, 3).join(' / ');
+      const memContent = `[골프 스윙 분석 - ${date}] 종합 ${analysis.overallScore}점\n구간: ${scoresStr}\n주요 개선점: ${priorities}`;
+
+      await pool.query(
+        `DELETE FROM "UserMemory" WHERE "userId" = $1 AND "category" = 'swing_analysis'`,
+        [userId]
+      );
+
+      // 임베딩 생성 (Vertex AI 동일 인스턴스 사용)
+      let vectorStr = null;
+      try {
+        const embRes = await ai.models.embedContent({ model: 'text-embedding-004', contents: memContent });
+        const emb = embRes.embeddings?.[0]?.values;
+        if (emb) vectorStr = `[${emb.join(',')}]`;
+      } catch (embErr) {
+        console.warn('[swing memory embedding]', embErr.message);
+      }
+
+      await pool.query(
+        `INSERT INTO "UserMemory" ("userId", "content", "embedding", "category", "createdAt")
+         VALUES ($1, $2, $3::vector, 'swing_analysis', NOW())`,
+        [userId, memContent, vectorStr]
+      );
+    } catch (memErr) {
+      console.warn('[swing memory upsert]', memErr.message);
+    }
+
     await pool.end();
 
     return res.status(200).json({

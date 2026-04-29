@@ -1441,6 +1441,28 @@ app.post('/api/swing-analysis/analyze', async (req, res) => {
     const record = await prisma.userSwingAnalysis.create({
       data: { userId: payload.userId, personaId, fileName: fileName || null, analysisJson: JSON.stringify(analysis) },
     });
+
+    // UserMemory에 최신 스윙 분석 요약 upsert
+    try {
+      const date = new Date().toISOString().slice(0, 10);
+      const secs = analysis.sections || [];
+      const scoresStr = secs.map(s => `${s.name.replace(' & 셋업', '')} ${s.score}점`).join(' / ');
+      const priorities = (analysis.topPriorities || []).slice(0, 3).join(' / ');
+      const memContent = `[골프 스윙 분석 - ${date}] 종합 ${analysis.overallScore}점\n구간: ${scoresStr}\n주요 개선점: ${priorities}`;
+      const embedding = await getEmbedding(memContent);
+      const vectorStr = embedding ? `[${embedding.join(',')}]` : null;
+      await prisma.$executeRawUnsafe(
+        `DELETE FROM "UserMemory" WHERE "userId" = $1 AND "category" = 'swing_analysis'`,
+        payload.userId
+      );
+      await prisma.$executeRawUnsafe(
+        `INSERT INTO "UserMemory" ("userId","content","embedding","category","createdAt") VALUES ($1,$2,$3::vector,'swing_analysis',NOW())`,
+        payload.userId, memContent, vectorStr
+      );
+    } catch (memErr) {
+      console.warn('[swing memory upsert]', memErr.message);
+    }
+
     return res.json({ id: record.id, analysis, createdAt: record.createdAt });
   } catch (e) {
     console.error('[swing analyze]', e.message);
