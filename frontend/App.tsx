@@ -1203,10 +1203,28 @@ const App: React.FC = () => {
                             <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
                                 <div className="max-w-4xl mx-auto">
                                     <div className="flex items-center gap-3 flex-wrap">
-                                        <span className="text-[10px] text-purple-400 font-semibold shrink-0 flex items-center gap-1">
-                                            <Icon name="Zap" size={10} />
-                                            영상 키워드
-                                        </span>
+                                        {(() => {
+                                            const tvs = triggerVideos[activePersonaId] || [];
+                                            const allEnabled = tvs.length > 0 && tvs.every(tv => !disabledTriggers.has(tv.id));
+                                            const toggleAll = () => {
+                                                setDisabledTriggers(prev => {
+                                                    const next = new Set(prev);
+                                                    if (allEnabled) {
+                                                        tvs.forEach(tv => next.add(tv.id));
+                                                    } else {
+                                                        tvs.forEach(tv => next.delete(tv.id));
+                                                    }
+                                                    localStorage.setItem('disabledTriggers', JSON.stringify([...next]));
+                                                    return next;
+                                                });
+                                            };
+                                            return (
+                                                <button onClick={toggleAll} className={`text-[10px] font-semibold shrink-0 flex items-center gap-1 transition-colors ${allEnabled ? 'text-purple-400' : 'text-gray-600'}`}>
+                                                    <Icon name="Zap" size={10} />
+                                                    영상 키워드
+                                                </button>
+                                            );
+                                        })()}
                                         {triggerVideos[activePersonaId].map(tv => {
                                             const firstKw = tv.keywords.split(',').map(k => k.trim()).find(k => k) || '';
                                             const label = tv.tag || firstKw;
