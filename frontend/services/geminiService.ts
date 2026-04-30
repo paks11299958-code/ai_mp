@@ -18,7 +18,11 @@ export const createChatSession = (systemInstruction: string): Chat | null => {
     try {
         return aiInstance.chats.create({
             model: MODEL_NAME,
-            config: { systemInstruction },
+            config: {
+                systemInstruction,
+                maxOutputTokens: 8192,
+                thinkingConfig: { thinkingBudget: 512 },
+            },
         });
     } catch (error) {
         console.error("Error creating chat session:", error);
