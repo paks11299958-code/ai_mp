@@ -859,18 +859,40 @@ app.post('/api/memory/search', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const { query } = req.body;
     if (!query) return res.status(400).json({ error: 'query는 필수입니다.' });
-    const embedding = await getEmbedding(query);
-    if (!embedding) return res.json([]);
-    const vectorStr = `[${embedding.join(',')}]`;
-    const memories = await prisma.$queryRawUnsafe(
-      `SELECT "id", "content", "category",
-              1 - ("embedding" <=> $2::vector) AS similarity
+    const ANALYSIS_CATEGORIES = ['swing_analysis', 'saju_analysis'];
+
+    // 분석 카테고리는 유사도 무관 항상 포함
+    const analysisMemories = await prisma.$queryRawUnsafe(
+      `SELECT "id", "content", "category", 1.0 AS similarity
        FROM "UserMemory"
-       WHERE "userId" = $1 AND "embedding" IS NOT NULL
-       ORDER BY "embedding" <=> $2::vector
-       LIMIT 5`,
-      payload.userId, vectorStr
+       WHERE "userId" = $1 AND "category" = ANY($2::text[])`,
+      payload.userId, ANALYSIS_CATEGORIES
     );
+
+    // 일반 메모리: 벡터 유사도 검색
+    let vectorMemories = [];
+    const embedding = await getEmbedding(query);
+    if (embedding) {
+      const vectorStr = `[${embedding.join(',')}]`;
+      vectorMemories = await prisma.$queryRawUnsafe(
+        `SELECT "id", "content", "category",
+                1 - ("embedding" <=> $2::vector) AS similarity
+         FROM "UserMemory"
+         WHERE "userId" = $1 AND "embedding" IS NOT NULL
+           AND "category" != ALL($3::text[])
+           AND 1 - ("embedding" <=> $2::vector) > 0.72
+         ORDER BY "embedding" <=> $2::vector
+         LIMIT 4`,
+        payload.userId, vectorStr, ANALYSIS_CATEGORIES
+      );
+    }
+
+    const seen = new Set();
+    const memories = [...analysisMemories, ...vectorMemories].filter(r => {
+      if (seen.has(r.id)) return false;
+      seen.add(r.id);
+      return true;
+    });
     return res.json(memories);
   } catch (e) {
     console.error('[memory search]', e.message);

@@ -620,18 +620,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const { query } = req.body;
                 if (!query) return res.status(400).json({ error: 'query는 필수입니다.' });
                 const embedding = await generateEmbedding(query);
-                if (!embedding) return res.status(200).json([]);
-                const vectorStr = `[${embedding.join(',')}]`;
-                const memories = await prisma.$queryRawUnsafe<any[]>(
-                    `SELECT "id", "content", "category",
-                            1 - ("embedding" <=> $2::vector) AS similarity
+                const ANALYSIS_CATEGORIES = ['swing_analysis', 'saju_analysis'];
+
+                // 분석 카테고리는 유사도 무관 항상 포함 (임베딩 실패해도 누락 방지)
+                const analysisMemories = await prisma.$queryRawUnsafe<any[]>(
+                    `SELECT "id", "content", "category", 1.0 AS similarity
                      FROM "UserMemory"
-                     WHERE "userId" = $1 AND "embedding" IS NOT NULL
-                       AND 1 - ("embedding" <=> $2::vector) > 0.75
-                     ORDER BY "embedding" <=> $2::vector
-                     LIMIT 5`,
-                    userId, vectorStr
+                     WHERE "userId" = $1 AND "category" = ANY($2::text[])`,
+                    userId, ANALYSIS_CATEGORIES
                 );
+
+                // 일반 메모리: 벡터 유사도 검색
+                let vectorMemories: any[] = [];
+                if (embedding) {
+                    const vectorStr = `[${embedding.join(',')}]`;
+                    vectorMemories = await prisma.$queryRawUnsafe<any[]>(
+                        `SELECT "id", "content", "category",
+                                1 - ("embedding" <=> $2::vector) AS similarity
+                         FROM "UserMemory"
+                         WHERE "userId" = $1 AND "embedding" IS NOT NULL
+                           AND "category" != ALL($3::text[])
+                           AND 1 - ("embedding" <=> $2::vector) > 0.72
+                         ORDER BY "embedding" <=> $2::vector
+                         LIMIT 4`,
+                        userId, vectorStr, ANALYSIS_CATEGORIES
+                    );
+                }
+
+                // 합쳐서 반환 (분석 카테고리 우선)
+                const seen = new Set<number>();
+                const memories = [...analysisMemories, ...vectorMemories].filter(r => {
+                    if (seen.has(r.id)) return false;
+                    seen.add(r.id);
+                    return true;
+                });
                 return res.status(200).json(memories);
             } catch (e: any) {
                 console.error('[memory search]', e);
