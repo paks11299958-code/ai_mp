@@ -117,11 +117,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         settingsApi.get().then(s => setCommonInstruction(s.commonInstruction || '')).catch(() => {});
     }, []);
 
+    // 이미지 선택 변경 시: pendingLevel·savedLevel 모두 리셋
     useEffect(() => {
         const lv = images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1;
         setPendingLevel(lv);
         setSavedLevel(false);
-    }, [selectedImageId, images]);
+    }, [selectedImageId]);
+
+    // 이미지 목록 변경 시(저장 후 등): pendingLevel만 동기화 (savedLevel은 건드리지 않음)
+    useEffect(() => {
+        if (!selectedImageId) return;
+        const lv = images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1;
+        setPendingLevel(lv);
+    }, [images]);
 
     useEffect(() => {
         setActiveTab('info');
