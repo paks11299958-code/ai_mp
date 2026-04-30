@@ -154,24 +154,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'GET') {
             const configs = await prisma.appConfig.findMany();
             const result: Record<string, string> = {};
-            configs.forEach((c: any) => { result[c.key] = c.value; });
+            configs.forEach((c: any) => {
+                if (!c.key.startsWith('memory_enabled_')) result[c.key] = c.value;
+            });
+            // 로그인된 유저라면 자신의 memory_enabled 읽기
+            try {
+                const token = getTokenFromRequest(req);
+                if (token) {
+                    const { userId } = verifyToken(token);
+                    const userCfg = await prisma.appConfig.findUnique({ where: { key: `memory_enabled_${userId}` } });
+                    if (userCfg) result.memory_enabled = userCfg.value;
+                }
+            } catch {}
             return res.json(result);
         }
         if (req.method === 'PUT') {
             const token = getTokenFromRequest(req);
             if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
-            const { userId } = verifyToken(token);
-            const user = await prisma.user.findUnique({ where: { id: userId } });
-            if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+            let userId: number;
+            let isAdmin = false;
+            try {
+                const payload = verifyToken(token);
+                userId = payload.userId;
+                const user = await prisma.user.findUnique({ where: { id: userId } });
+                isAdmin = user?.role === 'ADMIN';
+            } catch {
+                return res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+            }
             const updates = req.body as Record<string, string>;
             await Promise.all(
-                Object.entries(updates).map(([key, value]) =>
-                    prisma.appConfig.upsert({
+                Object.entries(updates).map(([key, value]) => {
+                    if (key === 'memory_enabled') {
+                        // 유저별 독립 저장
+                        const userKey = `memory_enabled_${userId}`;
+                        return prisma.appConfig.upsert({
+                            where: { key: userKey },
+                            update: { value: String(value), updatedAt: new Date() },
+                            create: { key: userKey, value: String(value) },
+                        });
+                    }
+                    if (!isAdmin) return Promise.resolve();
+                    return prisma.appConfig.upsert({
                         where: { key },
                         update: { value: String(value), updatedAt: new Date() },
                         create: { key, value: String(value) },
-                    })
-                )
+                    });
+                })
             );
             return res.json({ message: '저장 완료' });
         }

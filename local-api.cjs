@@ -273,7 +273,15 @@ app.get('/api/settings', async (req, res) => {
   try {
     const configs = await prisma.appConfig.findMany();
     const result = {};
-    configs.forEach(c => { result[c.key] = c.value; });
+    configs.forEach(c => { if (!c.key.startsWith('memory_enabled_')) result[c.key] = c.value; });
+    // 로그인된 유저라면 자신의 memory_enabled 읽기
+    try {
+      const payload = verifyToken(req);
+      if (payload) {
+        const userCfg = await prisma.appConfig.findUnique({ where: { key: `memory_enabled_${payload.userId}` } });
+        if (userCfg) result.memory_enabled = userCfg.value;
+      }
+    } catch {}
     return res.json(result);
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -285,16 +293,26 @@ app.put('/api/settings', async (req, res) => {
     const payload = verifyToken(req);
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const isAdmin = user?.role === 'ADMIN';
     const updates = req.body;
     await Promise.all(
-      Object.entries(updates).map(([key, value]) =>
-        prisma.appConfig.upsert({
+      Object.entries(updates).map(([key, value]) => {
+        if (key === 'memory_enabled') {
+          // 유저별 독립 저장
+          const userKey = `memory_enabled_${payload.userId}`;
+          return prisma.appConfig.upsert({
+            where: { key: userKey },
+            update: { value: String(value), updatedAt: new Date() },
+            create: { key: userKey, value: String(value) },
+          });
+        }
+        if (!isAdmin) return Promise.resolve();
+        return prisma.appConfig.upsert({
           where: { key },
           update: { value: String(value), updatedAt: new Date() },
           create: { key, value: String(value) },
-        })
-      )
+        });
+      })
     );
     return res.json({ message: '저장 완료' });
   } catch (e) {
