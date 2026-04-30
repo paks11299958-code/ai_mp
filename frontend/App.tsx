@@ -111,6 +111,8 @@ const App: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const swingVideoRef = useRef<HTMLInputElement>(null);
+    const skillsMenuRef = useRef<HTMLDivElement>(null);
+    const [showSkillsMenu, setShowSkillsMenu] = useState(false);
 
     const refreshPersonaImages = useCallback((personaId: string) => {
         personaImageApi.getAll(personaId)
@@ -328,6 +330,17 @@ const App: React.FC = () => {
             textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
         }
     }, [inputText, isAdminMode]);
+
+    useEffect(() => {
+        if (!showSkillsMenu) return;
+        const handler = (e: MouseEvent) => {
+            if (skillsMenuRef.current && !skillsMenuRef.current.contains(e.target as Node)) {
+                setShowSkillsMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [showSkillsMenu]);
 
     const handleAuthSuccess = (loggedInUser: User, token: string) => {
         localStorage.setItem('token', token);
@@ -1109,6 +1122,42 @@ const App: React.FC = () => {
                                     <span className="hidden sm:inline">게시판</span>
                                 </button>
                                 {isGolfPersona && user && (
+                                    <div ref={skillsMenuRef} className="relative">
+                                        <button
+                                            onClick={() => setShowSkillsMenu(v => !v)}
+                                            title="기술 목록"
+                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                                                showSkillsMenu
+                                                    ? 'bg-purple-700/40 border-purple-500/60 text-purple-300'
+                                                    : 'bg-purple-900/20 border-purple-700/40 text-purple-400 hover:bg-purple-900/40 hover:text-purple-300'
+                                            }`}
+                                        >
+                                            <Icon name="Zap" size={14} />
+                                            <span className="hidden sm:inline">기술 목록</span>
+                                        </button>
+                                        {showSkillsMenu && (
+                                            <div className="absolute right-0 top-full mt-2 w-44 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                                <div className="px-3 py-2 border-b border-gray-800">
+                                                    <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">기술 목록</span>
+                                                </div>
+                                                <button
+                                                    onClick={() => { setShowSkillsMenu(false); swingVideoRef.current?.click(); }}
+                                                    disabled={swingUploading || currentSession.isTyping}
+                                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-200 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                >
+                                                    <span className="w-7 h-7 rounded-lg bg-green-900/50 border border-green-700/40 flex items-center justify-center shrink-0">
+                                                        <Icon name="Upload" size={13} className="text-green-400" />
+                                                    </span>
+                                                    <div className="text-left">
+                                                        <p className="text-xs font-medium text-white">스윙 분석</p>
+                                                        <p className="text-[10px] text-gray-500">동영상 업로드</p>
+                                                    </div>
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                {isGolfPersona && user && (
                                     <button
                                         onClick={handleOpenSwingHistory}
                                         title="스윙 분석 기록"
@@ -1209,23 +1258,13 @@ const App: React.FC = () => {
                         <div className="p-4 bg-gray-900 border-t border-gray-800 shrink-0">
                             <div className="max-w-4xl mx-auto relative flex items-end bg-gray-800 rounded-2xl border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-all">
                                 {isGolfPersona && user && (
-                                    <>
-                                        <input
-                                            ref={swingVideoRef}
-                                            type="file"
-                                            accept="video/*"
-                                            className="hidden"
-                                            onChange={handleSwingVideoSelect}
-                                        />
-                                        <button
-                                            onClick={() => swingVideoRef.current?.click()}
-                                            disabled={swingUploading || currentSession.isTyping}
-                                            title="골프 스윙 영상 분석"
-                                            className="absolute left-2 bottom-2 p-2 rounded-xl bg-green-900/40 text-green-400 hover:bg-green-900/60 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                        >
-                                            <Icon name="Upload" size={18} />
-                                        </button>
-                                    </>
+                                    <input
+                                        ref={swingVideoRef}
+                                        type="file"
+                                        accept="video/*"
+                                        className="hidden"
+                                        onChange={handleSwingVideoSelect}
+                                    />
                                 )}
                                 <textarea
                                     ref={textareaRef}
@@ -1233,7 +1272,7 @@ const App: React.FC = () => {
                                     onChange={e => setInputText(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     placeholder={activePersona ? `${activePersona.name}에게 메시지 보내기...` : '메시지를 입력하세요...'}
-                                    className={`w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl ${isGolfPersona ? 'pl-12' : ''}`}
+                                    className="w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl"
                                     rows={1}
                                     disabled={!activePersona}
                                 />
