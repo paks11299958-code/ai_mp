@@ -572,9 +572,18 @@ const App: React.FC = () => {
             const normalize = (s: string) => s.replace(/\s+/g, '').replace(/[?!.,~ㅋㅎㅠㅜ。、！？]+/g, '').toLowerCase();
             const normalizedInput = normalize(text);
             const activeTriggers = (triggerVideos[activePersonaId] || []).filter(tv => !disabledTriggers.has(tv.id));
-            const matched = activeTriggers.filter(tv =>
-                tv.keywords.split(',').map(k => k.trim()).filter(Boolean).some(kw => normalizedInput.includes(normalize(kw)))
-            );
+            const matched = activeTriggers.filter(tv => {
+                // keywords + tag 모두 후보에 포함
+                const kwList = [
+                    ...tv.keywords.split(',').map(k => k.trim()).filter(Boolean),
+                    ...(tv.tag ? [tv.tag] : []),
+                ];
+                return kwList.some(kw => {
+                    const normKw = normalize(kw);
+                    // 양방향 매칭: 입력이 키워드를 포함하거나, 키워드가 입력을 포함
+                    return normalizedInput.includes(normKw) || normKw.includes(normalizedInput);
+                });
+            });
             if (matched.length > 0) {
                 const picked = matched[Math.floor(Math.random() * matched.length)];
                 setTriggerVideoPopup(picked);
