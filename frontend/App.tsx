@@ -295,9 +295,12 @@ const App: React.FC = () => {
     const activeImages = personaImages[activePersonaId] || [];
     const isGolfPersona = !!(activePersona?.jobTitle?.includes('골프') || activePersona?.name?.includes('골프'));
 
+    // undefined(미설정) = ON 기본값, false만 OFF
+    const isMemoryOn = (personaId: string) => memoryEnabled[personaId] !== false;
+
     const handleToggleMemory = (personaId: string) => {
         setMemoryEnabled(prev => {
-            const next = { ...prev, [personaId]: !prev[personaId] };
+            const next = { ...prev, [personaId]: !isMemoryOn(personaId) };
             const json = JSON.stringify(next);
             localStorage.setItem('memoryEnabled', json);
             settingsApi.update({ memory_enabled: json }).catch(() => {});
@@ -478,7 +481,7 @@ const App: React.FC = () => {
             // 매 메시지마다 지식 + 기억 검색 (동적 RAG)
             const [knowledgeResults, memories] = await Promise.all([
                 knowledgeApi.search(activePersonaId, text).catch(() => []),
-                memoryEnabled[activePersonaId] ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
+                isMemoryOn(activePersonaId) ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
             ]);
 
             let chat = chatInstancesRef.current[activePersonaId];
@@ -1118,16 +1121,16 @@ const App: React.FC = () => {
                                 {activePersona && (
                                     <button
                                         onClick={() => handleToggleMemory(activePersonaId)}
-                                        title={memoryEnabled[activePersonaId] ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
+                                        title={isMemoryOn(activePersonaId) ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
                                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                                            memoryEnabled[activePersonaId]
+                                            isMemoryOn(activePersonaId)
                                                 ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
                                                 : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
                                         }`}
                                     >
                                         <Icon name="Brain" size={14} />
                                         <span className="hidden sm:inline">기억 공유</span>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${memoryEnabled[activePersonaId] ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                        <span className={`w-1.5 h-1.5 rounded-full ${isMemoryOn(activePersonaId) ? 'bg-blue-400' : 'bg-gray-600'}`} />
                                     </button>
                                 )}
                             </div>
