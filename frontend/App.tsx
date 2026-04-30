@@ -161,6 +161,14 @@ const App: React.FC = () => {
         settingsApi.get()
             .then(s => {
                 setCommonInstruction(s.commonInstruction || '');
+                // 서버에 저장된 기억 공유 설정 복원 (localStorage보다 우선)
+                if (s.memory_enabled) {
+                    try {
+                        const parsed = JSON.parse(s.memory_enabled);
+                        setMemoryEnabled(parsed);
+                        localStorage.setItem('memoryEnabled', s.memory_enabled);
+                    } catch {}
+                }
                 localStorage.setItem('settings_cache', JSON.stringify({ data: s, ts: Date.now() }));
             })
             .catch(() => {});
@@ -290,7 +298,9 @@ const App: React.FC = () => {
     const handleToggleMemory = (personaId: string) => {
         setMemoryEnabled(prev => {
             const next = { ...prev, [personaId]: !prev[personaId] };
-            localStorage.setItem('memoryEnabled', JSON.stringify(next));
+            const json = JSON.stringify(next);
+            localStorage.setItem('memoryEnabled', json);
+            settingsApi.update({ memory_enabled: json }).catch(() => {});
             delete chatInstancesRef.current[personaId]; // 시스템 프롬프트 재생성
             return next;
         });
