@@ -804,6 +804,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                             const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, pendingLevel);
                                                             setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
                                                             setSavedLevel(true);
+                                                            onImagesChanged?.(selectedId);
                                                             setTimeout(() => setSavedLevel(false), 2000);
                                                         } catch (e: any) {
                                                             alert('저장 실패: ' + e.message);
