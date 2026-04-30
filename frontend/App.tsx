@@ -1200,6 +1200,7 @@ const App: React.FC = () => {
                                         </span>
                                         {triggerVideos[activePersonaId].map(tv => {
                                             const firstKw = tv.keywords.split(',').map(k => k.trim()).find(k => k) || '';
+                                            const label = tv.tag || firstKw;
                                             const enabled = !disabledTriggers.has(tv.id);
                                             return (
                                                 <label key={tv.id} className="flex items-center gap-1.5 cursor-pointer group">
@@ -1214,7 +1215,7 @@ const App: React.FC = () => {
                                                             ? 'text-purple-300 border-purple-700/60 bg-purple-900/20'
                                                             : 'text-gray-600 border-gray-700/40 bg-gray-800/30 line-through'
                                                     }`}>
-                                                        {tv.tag ? `${tv.tag} ` : ''}{firstKw}
+                                                        {label}
                                                     </span>
                                                 </label>
                                             );
