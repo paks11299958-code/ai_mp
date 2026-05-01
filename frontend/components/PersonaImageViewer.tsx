@@ -122,8 +122,8 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                     <img
                         src={previewImage.imageUrl}
                         alt={previewImage.description || ''}
-                        className="max-w-[92vw] max-h-[88vh] rounded-2xl object-contain shadow-2xl"
-                        onClick={e => e.stopPropagation()}
+                        className="max-w-[92vw] max-h-[88vh] rounded-2xl object-contain shadow-2xl cursor-pointer"
+                        onClick={() => setPreviewImage(null)}
                     />
                     <button
                         className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2"
