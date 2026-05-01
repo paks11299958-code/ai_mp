@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo, Announcement } from '../types';
-import { personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi, sessionApi } from '../services/apiService';
+import { personaApi, personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi, sessionApi } from '../services/apiService';
 import { TriggerVideo } from '../types';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
@@ -86,6 +86,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [colorClass, setColorClass] = useState(AVAILABLE_COLORS[0].value);
     const [imageUrl, setImageUrl] = useState('');
     const [introVideoUrl, setIntroVideoUrl] = useState('');
+    const [isUploadingIntroVideo, setIsUploadingIntroVideo] = useState(false);
+    const introVideoInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -396,6 +398,38 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (window.confirm(`'${name}' AI를 정말 삭제하시겠습니까?`)) {
             onDelete(selectedId);
             setSelectedId(personas[0]?.id || 'new');
+        }
+    };
+
+    const handleIntroVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 200 * 1024 * 1024) { alert('영상 크기는 200MB 이하로 업로드해주세요.'); return; }
+        if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 영상을 업로드해주세요.'); return; }
+        setIsUploadingIntroVideo(true);
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+            try {
+                const dataUrl = reader.result as string;
+                const base64 = dataUrl.split(',')[1];
+                const saved = await personaApi.uploadIntroVideo(selectedId, base64, file.type);
+                setIntroVideoUrl(saved.introVideoUrl || '');
+            } catch {
+                alert('영상 업로드에 실패했습니다.');
+            } finally {
+                setIsUploadingIntroVideo(false);
+            }
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveIntroVideo = async () => {
+        if (!window.confirm('인트로 영상을 삭제하시겠습니까?')) return;
+        try {
+            await personaApi.deleteIntroVideo(selectedId);
+            setIntroVideoUrl('');
+        } catch {
+            alert('삭제에 실패했습니다.');
         }
     };
 
@@ -844,15 +878,36 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                                     {/* 인트로 영상 */}
                                     <div>
-                                        <label className="block text-xs font-semibold text-gray-400 mb-2">인트로 영상 URL</label>
-                                        <input
-                                            type="text"
-                                            value={introVideoUrl}
-                                            onChange={e => setIntroVideoUrl(e.target.value)}
-                                            placeholder="https://example.com/intro.mp4"
-                                            className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
-                                        />
-                                        <p className="text-[11px] text-gray-500 mt-1">입력 시 채팅 진입 전 영상이 먼저 표시됩니다.</p>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-2">인트로 영상</label>
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-900 overflow-hidden relative group cursor-pointer shrink-0"
+                                                onClick={() => !isUploadingIntroVideo && introVideoInputRef.current?.click()}
+                                            >
+                                                {isUploadingIntroVideo ? (
+                                                    <Icon name="Loader" size={20} className="text-gray-400 animate-spin" />
+                                                ) : introVideoUrl ? (
+                                                    <>
+                                                        <Icon name="Video" size={20} className="text-blue-400" />
+                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Icon name="Upload" size={16} className="text-white" />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="flex flex-col items-center text-gray-500">
+                                                        <Icon name="Video" size={20} className="mb-0.5" />
+                                                        <span className="text-[9px]">업로드</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <input type="file" accept="video/*" className="hidden" ref={introVideoInputRef} onChange={handleIntroVideoUpload} />
+                                                <p className="text-[11px] text-gray-500 mb-1">채팅 진입 전 영상이 먼저 표시됩니다. (200MB 이하)</p>
+                                                {introVideoUrl && (
+                                                    <button onClick={handleRemoveIntroVideo} className="text-[11px] text-red-400 hover:text-red-300">영상 제거</button>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* 프로필 이미지 */}

@@ -101,6 +101,15 @@ export const personaApi = {
 
     delete: (id: string) =>
         request<{ message: string }>(`/personas/${id}`, { method: 'DELETE' }),
+
+    uploadIntroVideo: (id: string, videoBase64: string, mimeType: string) =>
+        request<Persona>(`/personas/${id}/intro-video`, {
+            method: 'POST',
+            body: JSON.stringify({ videoBase64, mimeType }),
+        }),
+
+    deleteIntroVideo: (id: string) =>
+        request<Persona>(`/personas/${id}/intro-video`, { method: 'DELETE' }),
 };
 
 // Persona Images

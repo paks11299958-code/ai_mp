@@ -6026,6 +6026,7 @@ export namespace Prisma {
     colorClass: string | null
     order: number | null
     imageUrl: string | null
+    introVideoUrl: string | null
     isDefault: boolean | null
     isVisible: boolean | null
     createdBy: number | null
@@ -6043,6 +6044,7 @@ export namespace Prisma {
     colorClass: string | null
     order: number | null
     imageUrl: string | null
+    introVideoUrl: string | null
     isDefault: boolean | null
     isVisible: boolean | null
     createdBy: number | null
@@ -6060,6 +6062,7 @@ export namespace Prisma {
     colorClass: number
     order: number
     imageUrl: number
+    introVideoUrl: number
     isDefault: number
     isVisible: number
     createdBy: number
@@ -6089,6 +6092,7 @@ export namespace Prisma {
     colorClass?: true
     order?: true
     imageUrl?: true
+    introVideoUrl?: true
     isDefault?: true
     isVisible?: true
     createdBy?: true
@@ -6106,6 +6110,7 @@ export namespace Prisma {
     colorClass?: true
     order?: true
     imageUrl?: true
+    introVideoUrl?: true
     isDefault?: true
     isVisible?: true
     createdBy?: true
@@ -6123,6 +6128,7 @@ export namespace Prisma {
     colorClass?: true
     order?: true
     imageUrl?: true
+    introVideoUrl?: true
     isDefault?: true
     isVisible?: true
     createdBy?: true
@@ -6227,6 +6233,7 @@ export namespace Prisma {
     colorClass: string
     order: number
     imageUrl: string | null
+    introVideoUrl: string | null
     isDefault: boolean
     isVisible: boolean
     createdBy: number | null
@@ -6263,6 +6270,7 @@ export namespace Prisma {
     colorClass?: boolean
     order?: boolean
     imageUrl?: boolean
+    introVideoUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: boolean
@@ -6289,6 +6297,7 @@ export namespace Prisma {
     colorClass?: boolean
     order?: boolean
     imageUrl?: boolean
+    introVideoUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: boolean
@@ -6307,6 +6316,7 @@ export namespace Prisma {
     colorClass?: boolean
     order?: boolean
     imageUrl?: boolean
+    introVideoUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: boolean
@@ -6325,13 +6335,14 @@ export namespace Prisma {
     colorClass?: boolean
     order?: boolean
     imageUrl?: boolean
+    introVideoUrl?: boolean
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
+  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "introVideoUrl" | "isDefault" | "isVisible" | "createdBy" | "createdAt", ExtArgs["result"]["persona"]>
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     sessions?: boolean | Persona$sessionsArgs<ExtArgs>
@@ -6373,6 +6384,7 @@ export namespace Prisma {
       colorClass: string
       order: number
       imageUrl: string | null
+      introVideoUrl: string | null
       isDefault: boolean
       isVisible: boolean
       createdBy: number | null
@@ -6818,6 +6830,7 @@ export namespace Prisma {
     readonly colorClass: FieldRef<"Persona", 'String'>
     readonly order: FieldRef<"Persona", 'Int'>
     readonly imageUrl: FieldRef<"Persona", 'String'>
+    readonly introVideoUrl: FieldRef<"Persona", 'String'>
     readonly isDefault: FieldRef<"Persona", 'Boolean'>
     readonly isVisible: FieldRef<"Persona", 'Boolean'>
     readonly createdBy: FieldRef<"Persona", 'Int'>
@@ -20913,6 +20926,7 @@ export namespace Prisma {
     colorClass: 'colorClass',
     order: 'order',
     imageUrl: 'imageUrl',
+    introVideoUrl: 'introVideoUrl',
     isDefault: 'isDefault',
     isVisible: 'isVisible',
     createdBy: 'createdBy',
@@ -21378,6 +21392,7 @@ export namespace Prisma {
     colorClass?: StringFilter<"Persona"> | string
     order?: IntFilter<"Persona"> | number
     imageUrl?: StringNullableFilter<"Persona"> | string | null
+    introVideoUrl?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
@@ -21403,6 +21418,7 @@ export namespace Prisma {
     colorClass?: SortOrder
     order?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
+    introVideoUrl?: SortOrderInput | SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
     createdBy?: SortOrderInput | SortOrder
@@ -21431,6 +21447,7 @@ export namespace Prisma {
     colorClass?: StringFilter<"Persona"> | string
     order?: IntFilter<"Persona"> | number
     imageUrl?: StringNullableFilter<"Persona"> | string | null
+    introVideoUrl?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
@@ -21456,6 +21473,7 @@ export namespace Prisma {
     colorClass?: SortOrder
     order?: SortOrder
     imageUrl?: SortOrderInput | SortOrder
+    introVideoUrl?: SortOrderInput | SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
     createdBy?: SortOrderInput | SortOrder
@@ -21481,6 +21499,7 @@ export namespace Prisma {
     colorClass?: StringWithAggregatesFilter<"Persona"> | string
     order?: IntWithAggregatesFilter<"Persona"> | number
     imageUrl?: StringNullableWithAggregatesFilter<"Persona"> | string | null
+    introVideoUrl?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     isDefault?: BoolWithAggregatesFilter<"Persona"> | boolean
     isVisible?: BoolWithAggregatesFilter<"Persona"> | boolean
     createdBy?: IntNullableWithAggregatesFilter<"Persona"> | number | null
@@ -22477,6 +22496,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -22501,6 +22521,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -22525,6 +22546,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22549,6 +22571,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -22573,6 +22596,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -22590,6 +22614,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22606,6 +22631,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -23770,6 +23796,7 @@ export namespace Prisma {
     colorClass?: SortOrder
     order?: SortOrder
     imageUrl?: SortOrder
+    introVideoUrl?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
     createdBy?: SortOrder
@@ -23792,6 +23819,7 @@ export namespace Prisma {
     colorClass?: SortOrder
     order?: SortOrder
     imageUrl?: SortOrder
+    introVideoUrl?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
     createdBy?: SortOrder
@@ -23809,6 +23837,7 @@ export namespace Prisma {
     colorClass?: SortOrder
     order?: SortOrder
     imageUrl?: SortOrder
+    introVideoUrl?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
     createdBy?: SortOrder
@@ -25587,6 +25616,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -25610,6 +25640,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -25813,6 +25844,7 @@ export namespace Prisma {
     colorClass?: StringFilter<"Persona"> | string
     order?: IntFilter<"Persona"> | number
     imageUrl?: StringNullableFilter<"Persona"> | string | null
+    introVideoUrl?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
@@ -26033,6 +26065,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -26056,6 +26089,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -26139,6 +26173,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -26162,6 +26197,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -26692,6 +26728,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -26715,6 +26752,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -26781,6 +26819,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -26804,6 +26843,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -26952,6 +26992,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -26975,6 +27016,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -27101,6 +27143,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27124,6 +27167,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -27308,6 +27352,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -27331,6 +27376,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -27370,6 +27416,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27393,6 +27440,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -27416,6 +27464,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -27439,6 +27488,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -27478,6 +27528,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27501,6 +27552,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -27562,6 +27614,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -27585,6 +27638,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -27693,6 +27747,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27716,6 +27771,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -27793,6 +27849,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -27816,6 +27873,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdBy?: number | null
@@ -27899,6 +27957,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -27922,6 +27981,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
@@ -28081,6 +28141,7 @@ export namespace Prisma {
     colorClass?: string
     order?: number
     imageUrl?: string | null
+    introVideoUrl?: string | null
     isDefault?: boolean
     isVisible?: boolean
     createdAt?: Date | string
@@ -28142,6 +28203,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28165,6 +28227,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -28188,6 +28251,7 @@ export namespace Prisma {
     colorClass?: StringFieldUpdateOperationsInput | string
     order?: IntFieldUpdateOperationsInput | number
     imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

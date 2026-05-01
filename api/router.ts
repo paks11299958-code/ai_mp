@@ -394,6 +394,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }
+
+        // POST /api/personas/:id/intro-video
+        if (seg1 && seg2 === 'intro-video' && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { videoBase64, mimeType } = req.body;
+                if (!videoBase64) return res.status(400).json({ error: 'videoBase64는 필수입니다.' });
+                const type = mimeType || 'video/mp4';
+                const ext = type.split('/')[1] || 'mp4';
+                const buffer = Buffer.from(videoBase64, 'base64');
+                const destPath = `personas/${seg1}/intro/${Date.now()}.${ext}`;
+                const videoUrl = await uploadToGCS(buffer, destPath, type);
+                const persona = await prisma.persona.update({
+                    where: { id: seg1 },
+                    data: { introVideoUrl: videoUrl },
+                });
+                return res.status(200).json(persona);
+            } catch (e: any) {
+                console.error('[personas intro-video POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // DELETE /api/personas/:id/intro-video
+        if (seg1 && seg2 === 'intro-video' && req.method === 'DELETE') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const persona = await prisma.persona.findUnique({ where: { id: seg1 } });
+                if (persona?.introVideoUrl) {
+                    await deleteFromGCS(persona.introVideoUrl).catch(() => {});
+                }
+                const updated = await prisma.persona.update({
+                    where: { id: seg1 },
+                    data: { introVideoUrl: null },
+                });
+                return res.status(200).json(updated);
+            } catch (e: any) {
+                console.error('[personas intro-video DELETE]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
     }
 
     // ── Sessions ──────────────────────────────────────────────

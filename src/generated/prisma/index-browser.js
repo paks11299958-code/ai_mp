@@ -156,6 +156,7 @@ exports.Prisma.PersonaScalarFieldEnum = {
   colorClass: 'colorClass',
   order: 'order',
   imageUrl: 'imageUrl',
+  introVideoUrl: 'introVideoUrl',
   isDefault: 'isDefault',
   isVisible: 'isVisible',
   createdBy: 'createdBy',
