@@ -247,7 +247,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
 
         // PUT /api/personas/:id
-        if (seg1 && req.method === 'PUT') {
+        if (seg1 && !seg2 && req.method === 'PUT') {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
