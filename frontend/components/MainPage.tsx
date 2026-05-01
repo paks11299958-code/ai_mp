@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, LogOut, Settings, Menu, X } from 'lucide-react';
+import { Bot, LogOut, Settings, Menu, X, Bell } from 'lucide-react';
 import { Persona, User } from '../types';
 import { Icon } from './Icons';
 
@@ -10,10 +10,13 @@ interface MainPageProps {
     onSelectPersona: (personaId: string) => void;
     onLogout: () => void;
     onAdminClick: () => void;
+    onAnnouncementClick?: () => void;
+    unreadAnnouncementCount?: number;
 }
 
 export const MainPage: React.FC<MainPageProps> = ({
     personas, isLoading, user, onSelectPersona, onLogout, onAdminClick,
+    onAnnouncementClick, unreadAnnouncementCount = 0,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -33,6 +36,16 @@ export const MainPage: React.FC<MainPageProps> = ({
                     {/* 데스크톱 메뉴 */}
                     <div className="hidden sm:flex items-center gap-2">
                         <span className="text-sm text-gray-400">{user.username || user.email}</span>
+                        {onAnnouncementClick && (
+                            <button onClick={onAnnouncementClick} className="relative p-2 text-gray-400 hover:text-white transition-colors" title="공지사항">
+                                <Bell size={18} />
+                                {unreadAnnouncementCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                                        {unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                         {user.role === 'ADMIN' && (
                             <button onClick={onAdminClick} className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded-lg hover:bg-gray-800 transition-colors">
                                 <Settings size={16} />관리

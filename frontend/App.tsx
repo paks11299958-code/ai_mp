@@ -792,14 +792,26 @@ const App: React.FC = () => {
 
     if (showMain) {
         return (
-            <MainPage
-                personas={visiblePersonas}
-                isLoading={isPersonasLoading}
-                user={user}
-                onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
-                onLogout={handleLogout}
-                onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
-            />
+            <>
+                <MainPage
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    user={user}
+                    onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
+                    onLogout={handleLogout}
+                    onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                    unreadAnnouncementCount={unreadAnnouncementCount}
+                />
+                {showAnnouncementModal && (
+                    <AnnouncementModal
+                        announcements={announcements}
+                        readIds={readAnnouncementIds}
+                        onRead={handleReadAnnouncements}
+                        onClose={() => setShowAnnouncementModal(false)}
+                    />
+                )}
+            </>
         );
     }
 
