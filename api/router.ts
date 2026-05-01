@@ -1427,5 +1427,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
     }
 
+    // ── Cron Cleanup ───────────────────────────────────────────
+    if (domain === 'cron-cleanup') {
+        const cronSecret = process.env.CRON_SECRET;
+        if (cronSecret && req.headers.authorization !== `Bearer ${cronSecret}`) {
+            return res.status(401).json({ error: '인증 실패' });
+        }
+        try {
+            const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+            const staleSessions = await prisma.chatSession.findMany({
+                where: { updatedAt: { lt: cutoff }, summary: { isNot: null } },
+                select: { id: true },
+            });
+            let deletedMessages = 0, cleanedSessions = 0;
+            for (const s of staleSessions) {
+                const keep = await prisma.message.findMany({
+                    where: { sessionId: s.id },
+                    orderBy: { createdAt: 'desc' },
+                    take: 10,
+                    select: { id: true },
+                });
+                const keepIds = keep.map(m => m.id);
+                const result = await prisma.message.deleteMany({
+                    where: { sessionId: s.id, ...(keepIds.length > 0 ? { id: { notIn: keepIds } } : {}) },
+                });
+                if (result.count > 0) {
+                    deletedMessages += result.count;
+                    cleanedSessions++;
+                    await prisma.conversationSummary.update({
+                        where: { sessionId: s.id },
+                        data: { messageCount: keep.length },
+                    });
+                }
+            }
+            console.log(`[cron-cleanup] ${cleanedSessions}개 세션, ${deletedMessages}개 메시지 삭제`);
+            return res.status(200).json({ cleanedSessions, deletedMessages });
+        } catch (e: any) {
+            console.error('[cron-cleanup]', e);
+            return res.status(500).json({ error: '서버 오류' });
+        }
+    }
+
     return res.status(404).json({ error: 'Not found' });
 }

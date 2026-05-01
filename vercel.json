@@ -1,6 +1,12 @@
 {
   "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
+  "crons": [
+    {
+      "path": "/api/cron-cleanup",
+      "schedule": "0 18 * * *"
+    }
+  ],
   "functions": {
     "api/router.ts": {
       "includeFiles": "src/generated/prisma/**",
