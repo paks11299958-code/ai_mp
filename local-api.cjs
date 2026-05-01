@@ -785,7 +785,7 @@ app.post('/api/sessions/:id/summarize', async (req, res) => {
     const sessionId = Number(req.params.id);
     const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId: payload.userId } });
     if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
-    const messages = await prisma.message.findMany({ where: { sessionId }, orderBy: { createdAt: 'asc' }, take: 30 });
+    const messages = (await prisma.message.findMany({ where: { sessionId }, orderBy: { createdAt: 'desc' }, take: 30 })).reverse();
     if (messages.length < 2) return res.json({ summary: null });
     const conversation = messages.map(m => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.text}`).join('\n');
     const prompt = `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
