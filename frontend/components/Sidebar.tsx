@@ -128,7 +128,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                                 <h3 className={`font-medium shrink-0 ${isActive ? 'text-white' : 'text-gray-300'}`}>{persona.name}</h3>
                                                 {persona.jobTitle && <span className="text-[11px] text-gray-400 truncate">[{persona.jobTitle}]</span>}
                                             </div>
-                                            <p className="text-xs text-gray-400 truncate mt-0.5">{persona.description}</p>
                                         </div>
                                     </div>
 
