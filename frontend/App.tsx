@@ -112,8 +112,8 @@ const App: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const swingVideoRef = useRef<HTMLInputElement>(null);
-    const skillsMenuRef = useRef<HTMLDivElement>(null);
-    const [showSkillsMenu, setShowSkillsMenu] = useState(false);
+    const headerMenuRef = useRef<HTMLDivElement>(null);
+    const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
     // 공지사항
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -359,15 +359,15 @@ const App: React.FC = () => {
     }, [inputText, isAdminMode]);
 
     useEffect(() => {
-        if (!showSkillsMenu) return;
+        if (!showHeaderMenu) return;
         const handler = (e: MouseEvent) => {
-            if (skillsMenuRef.current && !skillsMenuRef.current.contains(e.target as Node)) {
-                setShowSkillsMenu(false);
+            if (headerMenuRef.current && !headerMenuRef.current.contains(e.target as Node)) {
+                setShowHeaderMenu(false);
             }
         };
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
-    }, [showSkillsMenu]);
+    }, [showHeaderMenu]);
 
     const handleAuthSuccess = (loggedInUser: User, token: string) => {
         localStorage.setItem('token', token);
@@ -1180,81 +1180,66 @@ const App: React.FC = () => {
                                 {user && (() => {
                                     const stage = getStage(user.personaXp?.[activePersonaId] ?? 0);
                                     return (
-                                        <div className={`md:hidden flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${stage.color} bg-opacity-20`}>
+                                        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg bg-gradient-to-r ${stage.color} bg-opacity-20`}>
                                             <span className="text-[10px] font-bold text-white drop-shadow">{stage.stage}단계</span>
-                                            <span className="text-[10px] text-white/80 hidden xs:inline">{stage.name}</span>
+                                            <span className="text-[10px] text-white/80 hidden sm:inline">{stage.name}</span>
                                         </div>
                                     );
                                 })()}
-                                <button
-                                    onClick={() => setShowBoard(true)}
-                                    title="소통게시판"
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500 hover:text-gray-200 transition-all"
-                                >
-                                    <Icon name="MessageSquare" size={14} />
-                                    <span className="hidden sm:inline">게시판</span>
-                                </button>
-                                {isGolfPersona && user && (
-                                    <div ref={skillsMenuRef} className="relative">
-                                        <button
-                                            onClick={() => setShowSkillsMenu(v => !v)}
-                                            title="기술 목록"
-                                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                                                showSkillsMenu
-                                                    ? 'bg-purple-700/40 border-purple-500/60 text-purple-300'
-                                                    : 'bg-purple-900/20 border-purple-700/40 text-purple-400 hover:bg-purple-900/40 hover:text-purple-300'
-                                            }`}
-                                        >
-                                            <Icon name="Zap" size={14} />
-                                            <span className="hidden sm:inline">기술 목록</span>
-                                        </button>
-                                        {showSkillsMenu && (
-                                            <div className="absolute right-0 top-full mt-2 w-44 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
-                                                <div className="px-3 py-2 border-b border-gray-800">
-                                                    <span className="text-[10px] text-gray-500 font-semibold uppercase tracking-wider">기술 목록</span>
-                                                </div>
+                                {/* ⋮ 드롭다운 메뉴 */}
+                                <div ref={headerMenuRef} className="relative">
+                                    <button
+                                        onClick={() => setShowHeaderMenu(v => !v)}
+                                        className={`p-2 rounded-xl border transition-all ${showHeaderMenu ? 'bg-gray-700 border-gray-600 text-white' : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white hover:border-gray-600'}`}
+                                        title="메뉴"
+                                    >
+                                        <Icon name="MoreVertical" size={16} />
+                                    </button>
+                                    {showHeaderMenu && (
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                            {/* 게시판 */}
+                                            <button
+                                                onClick={() => { setShowHeaderMenu(false); setShowBoard(true); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                                            >
+                                                <Icon name="MessageSquare" size={15} className="text-gray-400" />
+                                                게시판
+                                            </button>
+                                            {/* 스윙 분석 (골프 페르소나만) */}
+                                            {isGolfPersona && user && (
                                                 <button
-                                                    onClick={() => { setShowSkillsMenu(false); swingVideoRef.current?.click(); }}
+                                                    onClick={() => { setShowHeaderMenu(false); swingVideoRef.current?.click(); }}
                                                     disabled={swingUploading || currentSession.isTyping}
-                                                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-gray-200 hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                                                 >
-                                                    <span className="w-7 h-7 rounded-lg bg-green-900/50 border border-green-700/40 flex items-center justify-center shrink-0">
-                                                        <Icon name="Upload" size={13} className="text-green-400" />
-                                                    </span>
-                                                    <div className="text-left">
-                                                        <p className="text-xs font-medium text-white">스윙 분석</p>
-                                                        <p className="text-[10px] text-gray-500">동영상 업로드</p>
-                                                    </div>
+                                                    <Icon name="Upload" size={15} className="text-green-400" />
+                                                    스윙 분석
                                                 </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                {isGolfPersona && user && (
-                                    <button
-                                        onClick={handleOpenSwingHistory}
-                                        title="스윙 분석 기록"
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border bg-green-900/30 border-green-700/50 text-green-400 hover:bg-green-900/50 hover:text-green-300 transition-all"
-                                    >
-                                        <Icon name="Play" size={14} />
-                                        <span className="hidden sm:inline">스윙 기록</span>
-                                    </button>
-                                )}
-                                {activePersona && (
-                                    <button
-                                        onClick={() => handleToggleMemory(activePersonaId)}
-                                        title={isMemoryOn(activePersonaId) ? '기억 공유 ON — 클릭하면 OFF' : '기억 공유 OFF — 클릭하면 ON'}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
-                                            isMemoryOn(activePersonaId)
-                                                ? 'bg-blue-600/20 border-blue-500/50 text-blue-400 hover:bg-blue-600/30'
-                                                : 'bg-gray-800 border-gray-700 text-gray-500 hover:border-gray-500 hover:text-gray-400'
-                                        }`}
-                                    >
-                                        <Icon name="Brain" size={14} />
-                                        <span className="hidden sm:inline">기억 공유</span>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${isMemoryOn(activePersonaId) ? 'bg-blue-400' : 'bg-gray-600'}`} />
-                                    </button>
-                                )}
+                                            )}
+                                            {/* 스윙 기록 (골프 페르소나만) */}
+                                            {isGolfPersona && user && (
+                                                <button
+                                                    onClick={() => { setShowHeaderMenu(false); handleOpenSwingHistory(); }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                                                >
+                                                    <Icon name="Play" size={15} className="text-green-400" />
+                                                    스윙 기록
+                                                </button>
+                                            )}
+                                            {/* 기억 공유 */}
+                                            {activePersona && (
+                                                <button
+                                                    onClick={() => { setShowHeaderMenu(false); handleToggleMemory(activePersonaId); }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-800 transition-colors border-t border-gray-800"
+                                                >
+                                                    <Icon name="Brain" size={15} className={isMemoryOn(activePersonaId) ? 'text-blue-400' : 'text-gray-500'} />
+                                                    <span className={isMemoryOn(activePersonaId) ? 'text-blue-400' : 'text-gray-400'}>기억 공유</span>
+                                                    <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isMemoryOn(activePersonaId) ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </header>
 
