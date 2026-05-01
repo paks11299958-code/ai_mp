@@ -9,15 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "react": "latest",
-    "react-dom": "latest",
     "@google/genai": "latest",
     "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
     "react-markdown": "latest"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.2.4",
     "@types/node": "latest",
     "@vitejs/plugin-react": "latest",
+    "tailwindcss": "^4.2.4",
     "typescript": "latest",
     "vite": "latest"
   }
