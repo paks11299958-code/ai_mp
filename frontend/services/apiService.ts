@@ -33,6 +33,22 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return data;
 }
 
+async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 1500): Promise<T> {
+    for (let i = 0; i <= retries; i++) {
+        try {
+            return await fn();
+        } catch (e: any) {
+            const is5xx = e.message?.includes('500') || e.message?.includes('502') || e.message?.includes('503') || e.message?.includes('서버 오류');
+            if (i < retries && is5xx) {
+                await new Promise(r => setTimeout(r, delayMs * (i + 1)));
+            } else {
+                throw e;
+            }
+        }
+    }
+    throw new Error('재시도 실패');
+}
+
 // Auth
 export const authApi = {
     register: (email: string, password: string, username?: string) =>
@@ -69,7 +85,7 @@ export const authApi = {
 // Personas
 export const personaApi = {
     getAll: () =>
-        request<Persona[]>('/personas'),
+        withRetry(() => request<Persona[]>('/personas')),
 
     create: (data: Omit<Persona, 'id'>) =>
         request<Persona>('/personas', {
