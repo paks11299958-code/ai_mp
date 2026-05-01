@@ -338,6 +338,27 @@ export const swingAnalysisApi = {
         request<{ ok: boolean }>(`/swing-analysis/${id}`, { method: 'DELETE' }),
 };
 
+// Announcements
+export const announcementApi = {
+    getAll: (all?: boolean) =>
+        request<import('../types').Announcement[]>(`/announcements${all ? '?all=true' : ''}`),
+
+    create: (data: { title: string; content: string; category: string; isPinned?: boolean; isVisible?: boolean }) =>
+        request<import('../types').Announcement>('/announcements', {
+            method: 'POST',
+            body: JSON.stringify(data),
+        }),
+
+    update: (id: number, data: Partial<{ title: string; content: string; category: string; isPinned: boolean; isVisible: boolean }>) =>
+        request<import('../types').Announcement>(`/announcements/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+
+    delete: (id: number) =>
+        request<{ ok: boolean }>(`/announcements/${id}`, { method: 'DELETE' }),
+};
+
 // Board
 export const boardApi = {
     getList: (personaId: string) =>

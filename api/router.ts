@@ -1309,5 +1309,81 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
     }
 
+    // ── Announcements ─────────────────────────────────────────
+    if (domain === 'announcements') {
+        // GET /api/announcements  → 공개: visible만 / 어드민: ?all=true 로 전체
+        if (!seg1 && req.method === 'GET') {
+            try {
+                let isAdmin = false;
+                try {
+                    const token = getTokenFromRequest(req);
+                    if (token) {
+                        const { userId } = verifyToken(token);
+                        const u = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+                        isAdmin = u?.role === 'ADMIN';
+                    }
+                } catch {}
+                const showAll = isAdmin && req.query.all === 'true';
+                const list = await prisma.announcement.findMany({
+                    where: showAll ? {} : { isVisible: true },
+                    orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+                });
+                return res.status(200).json(list);
+            } catch (e: any) {
+                return res.status(500).json({ error: '조회 실패' });
+            }
+        }
+
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const u = await prisma.user.findUnique({ where: { id: userId } });
+            if (!u || u.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
+
+        // POST /api/announcements
+        if (!seg1 && req.method === 'POST') {
+            try {
+                if (!await requireAdmin()) return;
+                const { title, content, category, isPinned, isVisible } = req.body;
+                if (!title || !content) return res.status(400).json({ error: '제목과 내용은 필수입니다.' });
+                const item = await prisma.announcement.create({
+                    data: { title, content, category: category || 'update', isPinned: isPinned ?? false, isVisible: isVisible ?? true },
+                });
+                return res.status(201).json(item);
+            } catch (e: any) { return res.status(500).json({ error: '저장 실패' }); }
+        }
+
+        // PUT /api/announcements/:id
+        if (seg1 && req.method === 'PUT') {
+            try {
+                if (!await requireAdmin()) return;
+                const { title, content, category, isPinned, isVisible } = req.body;
+                const item = await prisma.announcement.update({
+                    where: { id: Number(seg1) },
+                    data: {
+                        ...(title !== undefined && { title }),
+                        ...(content !== undefined && { content }),
+                        ...(category !== undefined && { category }),
+                        ...(isPinned !== undefined && { isPinned }),
+                        ...(isVisible !== undefined && { isVisible }),
+                    },
+                });
+                return res.status(200).json(item);
+            } catch (e: any) { return res.status(500).json({ error: '수정 실패' }); }
+        }
+
+        // DELETE /api/announcements/:id
+        if (seg1 && req.method === 'DELETE') {
+            try {
+                if (!await requireAdmin()) return;
+                await prisma.announcement.delete({ where: { id: Number(seg1) } });
+                return res.status(200).json({ ok: true });
+            } catch (e: any) { return res.status(500).json({ error: '삭제 실패' }); }
+        }
+    }
+
     return res.status(404).json({ error: 'Not found' });
 }

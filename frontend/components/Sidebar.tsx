@@ -10,6 +10,8 @@ interface SidebarProps {
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
     onAdminClick: () => void;
+    onAnnouncementClick: () => void;
+    unreadAnnouncementCount: number;
     onReorder: (index: number, direction: 'up' | 'down') => void;
     user: User | null;
     onLogout: () => void;
@@ -18,7 +20,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
     personas, activePersonaId, onSelectPersona,
-    isOpen, setIsOpen, onAdminClick, onReorder,
+    isOpen, setIsOpen, onAdminClick, onAnnouncementClick, unreadAnnouncementCount, onReorder,
     user, onLogout, onGoHome,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -213,15 +215,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     })()}
                     <div className="flex justify-between items-center text-xs text-gray-500">
                         <span>Gemini 2.5 Flash 기반</span>
-                        {user?.role === 'ADMIN' && (
+                        <div className="flex items-center gap-1">
+                            {/* 공지사항 벨 */}
                             <button
-                                onClick={onAdminClick}
-                                className="p-1.5 rounded-md hover:bg-gray-800 hover:text-gray-300 transition-colors"
-                                title="관리자 설정"
+                                onClick={onAnnouncementClick}
+                                className="relative p-1.5 rounded-md hover:bg-gray-800 hover:text-gray-300 transition-colors"
+                                title="공지사항"
                             >
-                                <Icon name="Settings" size={16} />
+                                <Icon name="Bell" size={16} />
+                                {unreadAnnouncementCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                                        {unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount}
+                                    </span>
+                                )}
                             </button>
-                        )}
+                            {user?.role === 'ADMIN' && (
+                                <button
+                                    onClick={onAdminClick}
+                                    className="p-1.5 rounded-md hover:bg-gray-800 hover:text-gray-300 transition-colors"
+                                    title="관리자 설정"
+                                >
+                                    <Icon name="Settings" size={16} />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

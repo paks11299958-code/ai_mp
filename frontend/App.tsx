@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
-import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis, Announcement } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi, announcementApi } from './services/apiService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -13,6 +13,7 @@ import { LandingPage } from './components/LandingPage';
 import { MainPage } from './components/MainPage';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
+import { AnnouncementModal } from './components/AnnouncementModal';
 import { Icon } from './components/Icons';
 
 const PentagonChart: React.FC<{ sections: SwingAnalysisSection[] }> = ({ sections }) => {
@@ -113,6 +114,32 @@ const App: React.FC = () => {
     const swingVideoRef = useRef<HTMLInputElement>(null);
     const skillsMenuRef = useRef<HTMLDivElement>(null);
     const [showSkillsMenu, setShowSkillsMenu] = useState(false);
+
+    // 공지사항
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
+    const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<number>>(() => {
+        try { return new Set(JSON.parse(localStorage.getItem('readAnnouncements') || '[]')); } catch { return new Set(); }
+    });
+
+    useEffect(() => {
+        announcementApi.getAll().then(list => {
+            setAnnouncements(list);
+            // 새 공지 있으면 자동 팝업
+            const unread = list.filter(a => !readAnnouncementIds.has(a.id));
+            if (unread.length > 0) setShowAnnouncementModal(true);
+        }).catch(() => {});
+    }, []);
+
+    const handleReadAnnouncements = (ids: number[]) => {
+        setReadAnnouncementIds(prev => {
+            const next = new Set([...prev, ...ids]);
+            localStorage.setItem('readAnnouncements', JSON.stringify([...next]));
+            return next;
+        });
+    };
+
+    const unreadAnnouncementCount = announcements.filter(a => !readAnnouncementIds.has(a.id)).length;
 
     const refreshPersonaImages = useCallback((personaId: string) => {
         personaImageApi.getAll(personaId)
@@ -771,11 +798,22 @@ const App: React.FC = () => {
                 isOpen={isSidebarOpen}
                 setIsOpen={setIsSidebarOpen}
                 onAdminClick={handleAdminLogin}
+                onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                unreadAnnouncementCount={unreadAnnouncementCount}
                 onReorder={handleReorderPersona}
                 user={user}
                 onLogout={handleLogout}
                 onGoHome={() => setShowMain(true)}
             />
+
+            {showAnnouncementModal && (
+                <AnnouncementModal
+                    announcements={announcements}
+                    readIds={readAnnouncementIds}
+                    onRead={handleReadAnnouncements}
+                    onClose={() => setShowAnnouncementModal(false)}
+                />
+            )}
 
             {/* 스윙 분석 기록 패널 */}
             {showSwingHistory && (

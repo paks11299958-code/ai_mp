@@ -133,6 +133,17 @@ export interface BoardReply {
     user: { username?: string; email: string };
 }
 
+export interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    category: 'persona' | 'update' | 'news';
+    isPinned: boolean;
+    isVisible: boolean;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface BoardPost {
     id: number;
     userId: number;

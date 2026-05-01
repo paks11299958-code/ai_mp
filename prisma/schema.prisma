@@ -189,3 +189,14 @@ model BoardReply {
   content      String
   createdAt    DateTime  @default(now())
 }
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  category  String   @default("update")
+  isPinned  Boolean  @default(false)
+  isVisible Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

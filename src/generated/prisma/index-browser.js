@@ -264,6 +264,17 @@ exports.Prisma.BoardReplyScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AnnouncementScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  category: 'category',
+  isPinned: 'isPinned',
+  isVisible: 'isVisible',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -295,7 +306,8 @@ exports.Prisma.ModelName = {
   PersonaTriggerVideo: 'PersonaTriggerVideo',
   BoardPost: 'BoardPost',
   UserSwingAnalysis: 'UserSwingAnalysis',
-  BoardReply: 'BoardReply'
+  BoardReply: 'BoardReply',
+  Announcement: 'Announcement'
 };
 
 /**
