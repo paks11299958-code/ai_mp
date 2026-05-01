@@ -55,6 +55,7 @@ model Persona {
   colorClass        String          @default("from-blue-500 to-cyan-500")
   order             Int             @default(0)
   imageUrl          String?
+  introVideoUrl     String?
   isDefault         Boolean         @default(false)
   isVisible         Boolean         @default(true)
   createdBy         Int?

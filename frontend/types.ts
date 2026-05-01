@@ -19,6 +19,7 @@ export interface Persona {
     colorClass: string;
     order?: number;
     imageUrl?: string;
+    introVideoUrl?: string;
     isDefault?: boolean;
     isVisible?: boolean;
 }

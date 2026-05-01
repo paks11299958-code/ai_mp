@@ -84,6 +84,7 @@ const App: React.FC = () => {
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
     const [triggerVideoPopup, setTriggerVideoPopup] = useState<TriggerVideo | null>(null);
+    const [introVideoModal, setIntroVideoModal] = useState<{ personaId: string; videoUrl: string } | null>(null);
     const [disabledTriggers, setDisabledTriggers] = useState<Set<number>>(() => {
         try { return new Set(JSON.parse(localStorage.getItem('disabledTriggers') || '[]')); } catch { return new Set(); }
     });
@@ -271,6 +272,16 @@ const App: React.FC = () => {
             console.error('세션 로드 실패:', error);
         }
     }, [sessions]);
+
+    // 인트로 영상 확인 후 채팅 진입 (인트로 없으면 바로 진입)
+    const handlePersonaClick = useCallback((personaId: string) => {
+        const persona = personas.find(p => p.id === personaId);
+        if (persona?.introVideoUrl) {
+            setIntroVideoModal({ personaId, videoUrl: persona.introVideoUrl });
+        } else {
+            handleSelectPersona(personaId);
+        }
+    }, [personas, handleSelectPersona]);
 
     // 이전 메시지 더 불러오기
     const handleLoadMoreMessages = useCallback(async () => {
@@ -795,7 +806,7 @@ const App: React.FC = () => {
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
                     user={user}
-                    onSelectPersona={(id) => { setShowMain(false); handleSelectPersona(id); }}
+                    onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
                     onLogout={handleLogout}
                     onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
@@ -818,7 +829,7 @@ const App: React.FC = () => {
             <Sidebar
                 personas={visiblePersonas}
                 activePersonaId={activePersonaId}
-                onSelectPersona={handleSelectPersona}
+                onSelectPersona={handlePersonaClick}
                 isOpen={isSidebarOpen}
                 setIsOpen={setIsSidebarOpen}
                 onAdminClick={handleAdminLogin}
@@ -1023,6 +1034,35 @@ const App: React.FC = () => {
 
                             <p className="text-center text-[10px] text-gray-600">{new Date(swingResult.createdAt).toLocaleString('ko-KR')}</p>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 인트로 영상 모달 */}
+            {introVideoModal && (
+                <div className="fixed inset-0 z-[70] bg-black/90 flex flex-col items-center justify-center p-4">
+                    <video
+                        src={introVideoModal.videoUrl}
+                        autoPlay
+                        className="w-full max-w-lg max-h-[70vh] bg-black rounded-xl"
+                    />
+                    <div className="flex gap-3 mt-5">
+                        <button
+                            onClick={() => {
+                                const id = introVideoModal.personaId;
+                                setIntroVideoModal(null);
+                                handleSelectPersona(id);
+                            }}
+                            className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-colors"
+                        >
+                            확인
+                        </button>
+                        <button
+                            onClick={() => setIntroVideoModal(null)}
+                            className="px-8 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-colors"
+                        >
+                            취소
+                        </button>
                     </div>
                 </div>
             )}

@@ -85,6 +85,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [iconName, setIconName] = useState('Bot');
     const [colorClass, setColorClass] = useState(AVAILABLE_COLORS[0].value);
     const [imageUrl, setImageUrl] = useState('');
+    const [introVideoUrl, setIntroVideoUrl] = useState('');
     const [isVisible, setIsVisible] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -218,14 +219,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (selectedId === 'new') {
             setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
-            setImageUrl(''); setIsVisible(true); setShowSuccess(false); setImages([]);
+            setImageUrl(''); setIntroVideoUrl(''); setIsVisible(true); setShowSuccess(false); setImages([]);
         } else {
             const p = personas.find(p => p.id === selectedId);
             if (p) {
                 setName(p.name); setJobTitle(p.jobTitle || ''); setDescription(p.description || '');
                 setInstruction(p.systemInstruction); setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
-                setImageUrl(p.imageUrl || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
+                setImageUrl(p.imageUrl || ''); setIntroVideoUrl(p.introVideoUrl || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
             }
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
             knowledgeApi.getAll(selectedId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
@@ -381,7 +382,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
         setIsSaving(true);
         try {
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, isVisible });
             localStorage.removeItem('personas_cache');
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
@@ -839,6 +840,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* 인트로 영상 */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-2">인트로 영상 URL</label>
+                                        <input
+                                            type="text"
+                                            value={introVideoUrl}
+                                            onChange={e => setIntroVideoUrl(e.target.value)}
+                                            placeholder="https://example.com/intro.mp4"
+                                            className="w-full bg-gray-900 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+                                        />
+                                        <p className="text-[11px] text-gray-500 mt-1">입력 시 채팅 진입 전 영상이 먼저 표시됩니다.</p>
                                     </div>
 
                                     {/* 프로필 이미지 */}

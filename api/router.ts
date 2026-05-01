@@ -233,11 +233,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, order } = req.body;
+                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, order } = req.body;
                 if (!name || !systemInstruction) return res.status(400).json({ error: '이름과 시스템 프롬프트는 필수입니다.' });
                 const count = await prisma.persona.count();
                 const persona = await prisma.persona.create({
-                    data: { name, jobTitle: jobTitle || null, description, systemInstruction, iconName: iconName || 'Bot', colorClass: colorClass || 'from-blue-500 to-cyan-500', imageUrl, order: order ?? count, isDefault: false, createdBy: userId },
+                    data: { name, jobTitle: jobTitle || null, description, systemInstruction, iconName: iconName || 'Bot', colorClass: colorClass || 'from-blue-500 to-cyan-500', imageUrl, introVideoUrl: introVideoUrl || null, order: order ?? count, isDefault: false, createdBy: userId },
                 });
                 return res.status(201).json(persona);
             } catch (e: any) {
@@ -251,10 +251,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, order, isVisible } = req.body;
+                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, order, isVisible } = req.body;
                 const persona = await prisma.persona.update({
                     where: { id: seg1 },
-                    data: { name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass, imageUrl, order, ...(isVisible !== undefined && { isVisible }) },
+                    data: { name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl ?? null, order, ...(isVisible !== undefined && { isVisible }) },
                 });
                 return res.status(200).json(persona);
             } catch (e: any) {
