@@ -1128,8 +1128,8 @@ const App: React.FC = () => {
                                 <img
                                     src={mainImg}
                                     alt={activePersona.name}
-                                    className="max-w-[90vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl"
-                                    onClick={e => e.stopPropagation()}
+                                    className="max-w-[90vw] max-h-[85vh] rounded-2xl object-contain shadow-2xl cursor-pointer"
+                                    onClick={() => setHeaderImageModal(false)}
                                 />
                                 <button
                                     className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2"
