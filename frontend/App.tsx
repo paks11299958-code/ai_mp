@@ -149,23 +149,23 @@ const App: React.FC = () => {
 
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
-        const CACHE_TTL = 5 * 60 * 1000; // 5분
-
-        // 페르소나 캐시 즉시 표시
+        // 캐시가 있으면 나이와 상관없이 즉시 표시 (로딩 화면 스킵)
+        let hasCachedPersonas = false;
         try {
             const cached = localStorage.getItem('personas_cache');
             if (cached) {
-                const { data, ts } = JSON.parse(cached);
-                if (Date.now() - ts < CACHE_TTL) {
+                const { data } = JSON.parse(cached);
+                if (Array.isArray(data) && data.length > 0) {
                     setPersonas(data);
                     const first = data.find((p: any) => p.isVisible !== false);
                     if (first) setActivePersonaId(first.id);
                     setIsPersonasLoading(false);
+                    hasCachedPersonas = true;
                 }
             }
         } catch {}
 
-        // 백그라운드에서 최신 데이터 갱신
+        // 항상 최신 데이터로 백그라운드 갱신
         personaApi.getAll()
             .then(data => {
                 setPersonas(data);
@@ -176,14 +176,12 @@ const App: React.FC = () => {
             .catch(() => {})
             .finally(() => setIsPersonasLoading(false));
 
-        // 설정 캐시 즉시 표시
+        // 설정 캐시 즉시 표시 (나이 무관)
         try {
             const cachedSettings = localStorage.getItem('settings_cache');
             if (cachedSettings) {
-                const { data, ts } = JSON.parse(cachedSettings);
-                if (Date.now() - ts < CACHE_TTL) {
-                    setCommonInstruction(data.commonInstruction || '');
-                }
+                const { data } = JSON.parse(cachedSettings);
+                setCommonInstruction(data.commonInstruction || '');
             }
         } catch {}
 
