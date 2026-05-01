@@ -512,6 +512,27 @@ const App: React.FC = () => {
                 .catch(console.error);
         }
 
+        // 트리거 영상 키워드 매칭 (AI 응답 전에 먼저 확인)
+        const normalize = (s: string) => s.replace(/\s+/g, '').replace(/[?!.,~ㅋㅎㅠㅜ。、！？]+/g, '').toLowerCase();
+        const normalizedInput = normalize(text);
+        const activeTriggers = (triggerVideos[activePersonaId] || []).filter(tv => !disabledTriggers.has(tv.id));
+        const matched = activeTriggers.filter(tv => {
+            const kwList = [
+                ...tv.keywords.split(',').map(k => k.trim()).filter(Boolean),
+                ...(tv.tag ? [tv.tag] : []),
+            ];
+            return kwList.some(kw => {
+                const normKw = normalize(kw);
+                return normalizedInput.includes(normKw) || normKw.includes(normalizedInput);
+            });
+        });
+        if (matched.length > 0) {
+            const picked = matched[Math.floor(Math.random() * matched.length)];
+            setTriggerVideoPopup(picked);
+            setSessionTyping(activePersonaId, false);
+            return;
+        }
+
         const modelMsgId = (Date.now() + 1).toString();
         addMessageToSession(activePersonaId, { id: modelMsgId, role: 'model', text: '', isStreaming: true });
 
@@ -592,27 +613,6 @@ const App: React.FC = () => {
                 }
             }
             updateMessageInSession(activePersonaId, modelMsgId, { isStreaming: false });
-
-            // 트리거 영상 키워드 매칭 (AI 응답 완료 후)
-            const normalize = (s: string) => s.replace(/\s+/g, '').replace(/[?!.,~ㅋㅎㅠㅜ。、！？]+/g, '').toLowerCase();
-            const normalizedInput = normalize(text);
-            const activeTriggers = (triggerVideos[activePersonaId] || []).filter(tv => !disabledTriggers.has(tv.id));
-            const matched = activeTriggers.filter(tv => {
-                // keywords + tag 모두 후보에 포함
-                const kwList = [
-                    ...tv.keywords.split(',').map(k => k.trim()).filter(Boolean),
-                    ...(tv.tag ? [tv.tag] : []),
-                ];
-                return kwList.some(kw => {
-                    const normKw = normalize(kw);
-                    // 양방향 매칭: 입력이 키워드를 포함하거나, 키워드가 입력을 포함
-                    return normalizedInput.includes(normKw) || normKw.includes(normalizedInput);
-                });
-            });
-            if (matched.length > 0) {
-                const picked = matched[Math.floor(Math.random() * matched.length)];
-                setTriggerVideoPopup(picked);
-            }
 
             // AI 응답 DB 저장
             if (dbSessionId && fullResponse) {
