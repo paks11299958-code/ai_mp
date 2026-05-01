@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bot, Menu, X } from 'lucide-react';
+import { Bot, Menu, X, Bell } from 'lucide-react';
 import { Persona } from '../types';
 import { Icon } from './Icons';
 
@@ -7,9 +7,11 @@ interface LandingPageProps {
     personas: Persona[];
     isLoading: boolean;
     onStart: () => void;
+    onAnnouncementClick?: () => void;
+    unreadAnnouncementCount?: number;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ personas, isLoading, onStart }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ personas, isLoading, onStart, onAnnouncementClick, unreadAnnouncementCount = 0 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
@@ -27,6 +29,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ personas, isLoading, o
 
                     {/* 데스크톱 버튼 */}
                     <div className="hidden sm:flex items-center gap-3">
+                        {onAnnouncementClick && (
+                            <button
+                                onClick={onAnnouncementClick}
+                                className="relative p-2 text-gray-400 hover:text-white transition-colors"
+                                title="공지사항"
+                            >
+                                <Bell size={18} />
+                                {unreadAnnouncementCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                                        {unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount}
+                                    </span>
+                                )}
+                            </button>
+                        )}
                         <button onClick={onStart} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">로그인</button>
                         <button onClick={onStart} className="bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold px-4 py-2 rounded-full transition-all">무료 시작</button>
                     </div>

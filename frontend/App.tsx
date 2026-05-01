@@ -764,12 +764,26 @@ const App: React.FC = () => {
     if (!user) {
         return (
             <>
-                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => setShowAuthModal(true)} />
+                <LandingPage
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    onStart={() => setShowAuthModal(true)}
+                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                    unreadAnnouncementCount={unreadAnnouncementCount}
+                />
                 {showAuthModal && (
                     <AuthModal
                         onSuccess={handleAuthSuccess}
                         onClose={() => setShowAuthModal(false)}
                         defaultMode="login"
+                    />
+                )}
+                {showAnnouncementModal && (
+                    <AnnouncementModal
+                        announcements={announcements}
+                        readIds={readAnnouncementIds}
+                        onRead={handleReadAnnouncements}
+                        onClose={() => setShowAnnouncementModal(false)}
                     />
                 )}
             </>
