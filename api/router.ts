@@ -536,12 +536,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (isNaN(sessionId)) return res.status(400).json({ error: '유효하지 않은 세션 ID입니다.' });
                 const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId } });
                 if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+                const existingSummary = await prisma.conversationSummary.findUnique({ where: { sessionId } });
                 const messages = (await prisma.message.findMany({
                     where: { sessionId },
                     orderBy: { createdAt: 'desc' },
                     take: 30,
                 })).reverse();
-                const summaryText = await generateSummary(messages.map(m => ({ role: m.role, text: m.text })));
+                const previousSummary = (existingSummary && messages.length < 20) ? existingSummary.summary : undefined;
+                const summaryText = await generateSummary(messages.map(m => ({ role: m.role, text: m.text })), previousSummary);
                 if (!summaryText) return res.status(200).json({ summary: null });
                 const saved = await prisma.conversationSummary.upsert({
                     where: { sessionId },
@@ -590,6 +592,46 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(201).json({ ...message, personaId: session.personaId, xp: updatedXp });
             } catch (e: any) {
                 console.error('[messages POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/sessions/cleanup (admin only)
+        if (seg1 === 'cleanup' && req.method === 'POST') {
+            try {
+                const user = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+                if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+                const { days = 30, keepCount = 10 } = req.body;
+                const cutoff = new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000);
+                const staleSessions = await prisma.chatSession.findMany({
+                    where: { updatedAt: { lt: cutoff }, summary: { isNot: null } },
+                    select: { id: true },
+                });
+                let deletedMessages = 0;
+                let cleanedSessions = 0;
+                for (const s of staleSessions) {
+                    const keep = await prisma.message.findMany({
+                        where: { sessionId: s.id },
+                        orderBy: { createdAt: 'desc' },
+                        take: Number(keepCount),
+                        select: { id: true },
+                    });
+                    const keepIds = keep.map(m => m.id);
+                    const result = await prisma.message.deleteMany({
+                        where: { sessionId: s.id, ...(keepIds.length > 0 ? { id: { notIn: keepIds } } : {}) },
+                    });
+                    if (result.count > 0) {
+                        deletedMessages += result.count;
+                        cleanedSessions++;
+                        await prisma.conversationSummary.update({
+                            where: { sessionId: s.id },
+                            data: { messageCount: keep.length },
+                        });
+                    }
+                }
+                return res.status(200).json({ cleanedSessions, deletedMessages });
+            } catch (e: any) {
+                console.error('[sessions cleanup]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }

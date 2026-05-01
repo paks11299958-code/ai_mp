@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, PersonaImage, PersonaVideo, Announcement } from '../types';
-import { personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi } from '../services/apiService';
+import { personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi, sessionApi } from '../services/apiService';
 import { TriggerVideo } from '../types';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
@@ -57,6 +57,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [commonInstruction, setCommonInstruction] = useState('');
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
     const [showSavedModal, setShowSavedModal] = useState(false);
+
+    // 메시지 정리 상태
+    const [showCleanup, setShowCleanup] = useState(false);
+    const [cleanupDays, setCleanupDays] = useState(30);
+    const [cleanupKeepCount, setCleanupKeepCount] = useState(10);
+    const [isCleaning, setIsCleaning] = useState(false);
+    const [cleanupResult, setCleanupResult] = useState<{ cleanedSessions: number; deletedMessages: number } | null>(null);
 
     // 공지사항 관리 상태
     const [showAnnouncements, setShowAnnouncements] = useState(false);
@@ -137,6 +144,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const resetAnnForm = () => {
         setAnnTitle(''); setAnnContent(''); setAnnCategory('update');
         setAnnIsPinned(false); setAnnIsVisible(true); setAnnEditingId(null);
+    };
+
+    const handleCleanup = async () => {
+        if (!window.confirm(`${cleanupDays}일 이상 비활성 세션의 오래된 메시지를 삭제합니다. 계속하시겠습니까?`)) return;
+        setIsCleaning(true);
+        setCleanupResult(null);
+        try {
+            const result = await sessionApi.cleanup(cleanupDays, cleanupKeepCount);
+            setCleanupResult(result);
+        } catch {
+            alert('메시지 정리 중 오류가 발생했습니다.');
+        } finally {
+            setIsCleaning(false);
+        }
     };
 
     const handleAnnSave = async () => {
@@ -499,7 +520,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             새 AI 추가
                         </button>
                         <button
-                            onClick={() => { setShowGlobalSettings(v => !v); setShowAnnouncements(false); }}
+                            onClick={() => { setShowGlobalSettings(v => !v); setShowAnnouncements(false); setShowCleanup(false); }}
                             className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
                                 ${showGlobalSettings
                                     ? 'bg-purple-600/20 text-purple-400 border border-purple-600/40'
@@ -510,7 +531,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             공통 설정
                         </button>
                         <button
-                            onClick={() => { setShowAnnouncements(v => !v); setShowGlobalSettings(false); }}
+                            onClick={() => { setShowAnnouncements(v => !v); setShowGlobalSettings(false); setShowCleanup(false); }}
                             className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
                                 ${showAnnouncements
                                     ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/40'
@@ -519,6 +540,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         >
                             <Icon name="Megaphone" size={13} />
                             공지사항
+                        </button>
+                        <button
+                            onClick={() => { setShowCleanup(v => !v); setShowGlobalSettings(false); setShowAnnouncements(false); setCleanupResult(null); }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
+                                ${showCleanup
+                                    ? 'bg-red-600/20 text-red-400 border border-red-600/40'
+                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
+                                }`}
+                        >
+                            <Icon name="Trash2" size={13} />
+                            메시지 정리
                         </button>
                     </div>
                 </aside>
@@ -559,6 +591,59 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     </button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 메시지 정리 패널 */}
+                {showCleanup && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <div className="max-w-md mx-auto space-y-5">
+                            <div className="flex items-center gap-2">
+                                <Icon name="Trash2" size={16} className="text-red-400" />
+                                <h3 className="text-sm font-bold text-white">오래된 메시지 정리</h3>
+                            </div>
+                            <div className="bg-red-900/10 border border-red-800/30 rounded-xl px-4 py-3 text-xs text-red-300 leading-relaxed">
+                                요약이 생성된 세션 중 <span className="font-semibold">X일 이상 비활성</span> 세션의 오래된 메시지를 삭제합니다.<br />
+                                최근 N개 메시지는 보존되며, 요약 및 세션은 유지됩니다.
+                            </div>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">비활성 기준 (일)</label>
+                                    <input
+                                        type="number"
+                                        value={cleanupDays}
+                                        onChange={e => setCleanupDays(Number(e.target.value))}
+                                        min={1}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500"
+                                    />
+                                    <p className="text-[10px] text-gray-600 mt-1">마지막 활동 후 이 기간이 지난 세션 대상</p>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">보존할 최근 메시지 수</label>
+                                    <input
+                                        type="number"
+                                        value={cleanupKeepCount}
+                                        onChange={e => setCleanupKeepCount(Number(e.target.value))}
+                                        min={0}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500"
+                                    />
+                                    <p className="text-[10px] text-gray-600 mt-1">0 입력 시 전체 삭제</p>
+                                </div>
+                            </div>
+                            {cleanupResult && (
+                                <div className="bg-green-900/20 border border-green-700/40 rounded-xl px-4 py-3 text-xs text-green-300">
+                                    ✓ 완료: {cleanupResult.cleanedSessions}개 세션, {cleanupResult.deletedMessages}개 메시지 삭제
+                                </div>
+                            )}
+                            <button
+                                onClick={handleCleanup}
+                                disabled={isCleaning}
+                                className="w-full bg-red-700 hover:bg-red-600 disabled:opacity-60 text-white font-medium py-2 px-5 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <Icon name="Trash2" size={14} />
+                                {isCleaning ? '정리 중...' : '메시지 정리 실행'}
+                            </button>
                         </div>
                     </div>
                 )}

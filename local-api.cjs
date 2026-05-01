@@ -785,10 +785,14 @@ app.post('/api/sessions/:id/summarize', async (req, res) => {
     const sessionId = Number(req.params.id);
     const session = await prisma.chatSession.findFirst({ where: { id: sessionId, userId: payload.userId } });
     if (!session) return res.status(404).json({ error: '세션을 찾을 수 없습니다.' });
+    const existingSummary = await prisma.conversationSummary.findUnique({ where: { sessionId } });
     const messages = (await prisma.message.findMany({ where: { sessionId }, orderBy: { createdAt: 'desc' }, take: 30 })).reverse();
-    if (messages.length < 2) return res.json({ summary: null });
+    if (messages.length < 2 && !existingSummary) return res.json({ summary: null });
     const conversation = messages.map(m => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.text}`).join('\n');
-    const prompt = `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
+    const usePrevSummary = existingSummary && messages.length < 20;
+    const prompt = usePrevSummary
+      ? `다음은 이전 대화 요약과 최근 대화입니다. 두 내용을 통합하여 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[이전 요약]\n${existingSummary.summary}\n\n[최근 대화]\n${conversation}\n\n[통합 요약]`
+      : `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
     const summaryText = await callGeminiText(prompt);
     if (!summaryText) return res.json({ summary: null });
     const saved = await prisma.conversationSummary.upsert({
@@ -809,6 +813,46 @@ app.post('/api/sessions/:id/summarize', async (req, res) => {
     return res.json(saved);
   } catch (e) {
     console.error('[summarize]', e.message);
+    return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/sessions/cleanup', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const user = await prisma.user.findUnique({ where: { id: payload.userId }, select: { role: true } });
+    if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { days = 30, keepCount = 10 } = req.body;
+    const cutoff = new Date(Date.now() - Number(days) * 24 * 60 * 60 * 1000);
+    const staleSessions = await prisma.chatSession.findMany({
+      where: { updatedAt: { lt: cutoff }, summary: { isNot: null } },
+      select: { id: true },
+    });
+    let deletedMessages = 0, cleanedSessions = 0;
+    for (const s of staleSessions) {
+      const keep = await prisma.message.findMany({
+        where: { sessionId: s.id },
+        orderBy: { createdAt: 'desc' },
+        take: Number(keepCount),
+        select: { id: true },
+      });
+      const keepIds = keep.map(m => m.id);
+      const result = await prisma.message.deleteMany({
+        where: { sessionId: s.id, ...(keepIds.length > 0 ? { id: { notIn: keepIds } } : {}) },
+      });
+      if (result.count > 0) {
+        deletedMessages += result.count;
+        cleanedSessions++;
+        await prisma.conversationSummary.update({
+          where: { sessionId: s.id },
+          data: { messageCount: keep.length },
+        });
+      }
+    }
+    return res.json({ cleanedSessions, deletedMessages });
+  } catch (e) {
+    console.error('[sessions cleanup]', e.message);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
   }
 });

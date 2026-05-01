@@ -203,6 +203,12 @@ export const sessionApi = {
         request<ConversationSummary | null>(`/sessions/${sessionId}/summarize`, {
             method: 'POST',
         }),
+
+    cleanup: (days: number = 30, keepCount: number = 10) =>
+        request<{ cleanedSessions: number; deletedMessages: number }>('/sessions/cleanup', {
+            method: 'POST',
+            body: JSON.stringify({ days, keepCount }),
+        }),
 };
 
 // Settings

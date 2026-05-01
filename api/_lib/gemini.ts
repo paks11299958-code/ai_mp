@@ -137,8 +137,11 @@ export async function analyzeGolfSwing(videoGcsUri: string, mimeType: string): P
     return JSON.parse(match[0]);
 }
 
-export async function generateSummary(messages: { role: string; text: string }[]): Promise<string | null> {
-    if (messages.length < 2) return null;
+export async function generateSummary(
+    messages: { role: string; text: string }[],
+    previousSummary?: string
+): Promise<string | null> {
+    if (messages.length < 2 && !previousSummary) return null;
     const ai = getAI();
 
     const recent = messages.slice(-30);
@@ -146,7 +149,9 @@ export async function generateSummary(messages: { role: string; text: string }[]
         .map(m => `${m.role === 'user' ? '사용자' : 'AI'}: ${m.text}`)
         .join('\n');
 
-    const prompt = `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
+    const prompt = previousSummary
+        ? `다음은 이전 대화 요약과 최근 대화입니다. 두 내용을 통합하여 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[이전 요약]\n${previousSummary}\n\n[최근 대화]\n${conversation}\n\n[통합 요약]`
+        : `다음은 사용자와 AI의 대화입니다. 핵심 내용, 사용자의 주요 관심사, 중요한 결정사항을 4~6문장으로 간결하게 요약하세요. 한국어로 작성하세요.\n\n[대화]\n${conversation}\n\n[요약]`;
 
     try {
         const response = await ai.models.generateContent({
