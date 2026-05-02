@@ -22,6 +22,7 @@ export interface Persona {
     introVideoUrl?: string;
     isDefault?: boolean;
     isVisible?: boolean;
+    createdAt?: string;
 }
 
 export interface UserMemory {
