@@ -9,7 +9,7 @@ import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
-import { LandingPage } from './components/LandingPage';
+import { LandingPage, Theme } from './components/LandingPage';
 import { MainPage } from './components/MainPage';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
@@ -65,6 +65,8 @@ const App: React.FC = () => {
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showMain, setShowMain] = useState(false);
+    const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('ui_theme') as Theme) || 'lavender');
+    const handleThemeChange = (t: Theme) => { setTheme(t); localStorage.setItem('ui_theme', t); };
     const [resetToken, setResetToken] = useState<string | null>(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('token');
@@ -752,7 +754,7 @@ const App: React.FC = () => {
     if (resetToken) {
         return (
             <>
-                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} />
+                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} theme={theme} onThemeChange={handleThemeChange} />
                 <ResetPasswordModal
                     token={resetToken}
                     onClose={() => setResetToken(null)}
@@ -781,6 +783,8 @@ const App: React.FC = () => {
                     onStart={() => setShowAuthModal(true)}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
+                    theme={theme}
+                    onThemeChange={handleThemeChange}
                 />
                 {showAuthModal && (
                     <AuthModal
@@ -813,6 +817,8 @@ const App: React.FC = () => {
                     onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
+                    theme={theme}
+                    onThemeChange={handleThemeChange}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
@@ -1221,7 +1227,6 @@ const App: React.FC = () => {
                                         <div>
                                             <h2 className="font-semibold text-gray-100">
                                                 {activePersona.name}
-                                                {activePersona.jobTitle && <span className="ml-1.5 text-xs font-normal text-gray-500">[{activePersona.jobTitle}]</span>}
                                             </h2>
                                             <p className="text-xs text-gray-400 hidden sm:block">{activePersona.description}</p>
                                         </div>
