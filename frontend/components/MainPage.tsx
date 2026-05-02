@@ -31,6 +31,9 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
             <div className="relative" style={{ width: '560px', height: '380px' }}>
                 {cards.map((persona, i) => {
                     const cfg = configs[i];
+                    const isNew = persona.createdAt
+                        ? Date.now() - new Date(persona.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+                        : false;
                     return (
                         <div
                             key={persona.id}
@@ -56,6 +59,12 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
                                     <div className={`w-full h-full bg-gradient-to-br ${persona.colorClass} flex items-center justify-center`}>
                                         <Icon name={persona.iconName} size={64} className="text-white/80" />
                                     </div>
+                                )}
+                                {isNew && (
+                                    <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                                        style={{ backgroundColor: `${accent}33`, color: accentLight, borderColor: `${accent}66` }}>
+                                        NEW
+                                    </span>
                                 )}
                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
                                     <p className="text-white font-bold text-sm">{persona.name}</p>
