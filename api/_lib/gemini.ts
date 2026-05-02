@@ -139,16 +139,22 @@ export async function analyzeGolfSwing(videoGcsUri: string, mimeType: string): P
 
 export async function compareDocuments(oldText: string, newText: string): Promise<'OLD' | 'NEW'> {
     const ai = getAI();
-    const snip = (t: string) => t.slice(0, 1500) + (t.length > 1500 ? '...(이하 생략)' : '');
+    const sample = (t: string) => {
+        if (t.length <= 1500) return t;
+        const front = t.slice(0, 500);
+        const mid = t.slice(Math.floor(t.length / 2) - 250, Math.floor(t.length / 2) + 250);
+        const end = t.slice(-500);
+        return `${front}\n...(중략)...\n${mid}\n...(중략)...\n${end}`;
+    };
     const prompt = `AI 페르소나 지식 데이터베이스에 저장할 두 문서 중 더 품질이 높은 것을 선택하세요.
 
 품질 기준: 정보의 완성도, 구체성, 상세함, AI 챗봇 대화 활용 가치
 
 [기존 문서] (총 ${oldText.length}자)
-${snip(oldText)}
+${sample(oldText)}
 
 [새 문서] (총 ${newText.length}자)
-${snip(newText)}
+${sample(newText)}
 
 "OLD" 또는 "NEW" 중 하나만 응답하세요. 새 문서가 더 낫거나 비슷하면 "NEW", 기존이 더 나으면 "OLD".`;
     try {
