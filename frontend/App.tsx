@@ -84,7 +84,7 @@ const App: React.FC = () => {
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
     const [triggerVideoPopup, setTriggerVideoPopup] = useState<TriggerVideo | null>(null);
-    const [introVideoModal, setIntroVideoModal] = useState<{ personaId: string; videoUrl: string } | null>(null);
+    const [introVideoModal, setIntroVideoModal] = useState<{ personaId: string; type: 'video' | 'image'; url: string } | null>(null);
     const [disabledTriggers, setDisabledTriggers] = useState<Set<number>>(() => {
         try { return new Set(JSON.parse(localStorage.getItem('disabledTriggers') || '[]')); } catch { return new Set(); }
     });
@@ -273,11 +273,13 @@ const App: React.FC = () => {
         }
     }, [sessions]);
 
-    // 인트로 영상 확인 후 채팅 진입 (인트로 없으면 바로 진입)
+    // 인트로 영상/이미지 확인 후 채팅 진입 (없으면 바로 진입)
     const handlePersonaClick = useCallback((personaId: string) => {
         const persona = personas.find(p => p.id === personaId);
         if (persona?.introVideoUrl) {
-            setIntroVideoModal({ personaId, videoUrl: persona.introVideoUrl });
+            setIntroVideoModal({ personaId, type: 'video', url: persona.introVideoUrl });
+        } else if (persona?.imageUrl) {
+            setIntroVideoModal({ personaId, type: 'image', url: persona.imageUrl });
         } else {
             handleSelectPersona(personaId);
         }
@@ -1038,27 +1040,39 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* 인트로 영상 모달 */}
+            {/* 인트로 영상/이미지 모달 */}
             {introVideoModal && (
                 <div className="fixed inset-0 z-[70] bg-black/90 flex flex-col items-center justify-center p-4">
-                    <video
-                        src={introVideoModal.videoUrl}
-                        autoPlay
-                        className="w-full max-w-lg max-h-[70vh] bg-black rounded-xl"
-                    />
+                    {introVideoModal.type === 'video' ? (
+                        <video
+                            src={introVideoModal.url}
+                            autoPlay
+                            className="w-auto max-w-sm max-h-[60vh] bg-black rounded-xl"
+                        />
+                    ) : (
+                        <img
+                            src={introVideoModal.url}
+                            alt="프로필"
+                            className="w-auto max-w-sm max-h-[60vh] rounded-xl object-contain"
+                        />
+                    )}
                     <div className="flex gap-3 mt-5">
                         <button
                             onClick={() => {
                                 const id = introVideoModal.personaId;
                                 setIntroVideoModal(null);
+                                setShowMain(false);
                                 handleSelectPersona(id);
                             }}
                             className="px-8 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl transition-colors"
                         >
-                            확인
+                            입장
                         </button>
                         <button
-                            onClick={() => setIntroVideoModal(null)}
+                            onClick={() => {
+                                setIntroVideoModal(null);
+                                setShowMain(true);
+                            }}
                             className="px-8 py-2.5 bg-gray-700 hover:bg-gray-600 text-white font-semibold rounded-xl transition-colors"
                         >
                             취소
