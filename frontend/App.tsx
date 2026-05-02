@@ -572,6 +572,13 @@ const App: React.FC = () => {
                 isMemoryOn(activePersonaId) ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
             ]);
 
+            // SDK 내부 history가 너무 커지면 Vertex AI 요청이 느려짐 → 30메시지마다 리셋
+            const sentMsgCount = (sessions[activePersonaId]?.messages || [])
+                .filter(m => !m.isStreaming && !m.error).length;
+            if (sentMsgCount > 0 && sentMsgCount % 30 === 0) {
+                delete chatInstancesRef.current[activePersonaId];
+            }
+
             let chat = chatInstancesRef.current[activePersonaId];
             if (!chat) {
                 const summaryText = currentSession.summary?.summary;
@@ -635,11 +642,19 @@ const App: React.FC = () => {
 
             const responseStream = await chat.sendMessageStream({ message: messageWithTime });
             let fullResponse = '';
-            for await (const chunk of responseStream) {
-                if (chunk.text) {
-                    fullResponse += chunk.text;
-                    updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse });
+            // 90초 타임아웃: Vertex AI가 응답 없으면 isTyping stuck 방지
+            const streamTimeout = setTimeout(() => {
+                delete chatInstancesRef.current[activePersonaId];
+            }, 90_000);
+            try {
+                for await (const chunk of responseStream) {
+                    if (chunk.text) {
+                        fullResponse += chunk.text;
+                        updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse });
+                    }
                 }
+            } finally {
+                clearTimeout(streamTimeout);
             }
             updateMessageInSession(activePersonaId, modelMsgId, { isStreaming: false });
 

@@ -143,11 +143,20 @@ export default async function handler(req, res) {
       'Content-Type': 'application/json',
     };
 
-    const apiResponse = await fetch(apiUrl, {
-      method: method || 'POST',
-      headers: { ...apiHeaders, ...headers },
-      body: body || undefined,
-    });
+    const fetchController = new AbortController();
+    const fetchTimeout = setTimeout(() => fetchController.abort(), 90_000);
+
+    let apiResponse;
+    try {
+      apiResponse = await fetch(apiUrl, {
+        method: method || 'POST',
+        headers: { ...apiHeaders, ...headers },
+        body: body || undefined,
+        signal: fetchController.signal,
+      });
+    } finally {
+      clearTimeout(fetchTimeout);
+    }
 
     if (apiClient.isStreaming) {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -157,28 +166,36 @@ export default async function handler(req, res) {
       const reader = apiResponse.body.getReader();
       const decoder = new TextDecoder();
 
-      if (apiClient.useJsonScanner) {
-        // Vertex AI returns a JSON array — scan for complete objects and convert to SSE
-        let buffer = '';
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-          let extracted;
-          while ((extracted = extractFirstJsonObject(buffer)) !== null) {
-            try {
-              res.write(Buffer.from(`data: ${JSON.stringify(JSON.parse(extracted.json))}\n\n`));
-            } catch (_) { /* skip malformed chunk */ }
-            buffer = buffer.substring(extracted.endIndex);
+      const streamController = new AbortController();
+      const streamTimeout = setTimeout(() => {
+        streamController.abort();
+        try { res.end(); } catch (_) {}
+      }, 90_000);
+
+      try {
+        if (apiClient.useJsonScanner) {
+          let buffer = '';
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let extracted;
+            while ((extracted = extractFirstJsonObject(buffer)) !== null) {
+              try {
+                res.write(Buffer.from(`data: ${JSON.stringify(JSON.parse(extracted.json))}\n\n`));
+              } catch (_) { /* skip malformed chunk */ }
+              buffer = buffer.substring(extracted.endIndex);
+            }
+          }
+        } else {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            res.write(Buffer.from(value));
           }
         }
-      } else {
-        // Direct pass-through (ReasoningEngine etc.)
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          res.write(Buffer.from(value));
-        }
+      } finally {
+        clearTimeout(streamTimeout);
       }
       res.end();
     } else {
