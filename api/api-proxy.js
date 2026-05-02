@@ -34,6 +34,24 @@ function extractParams(patternInfo, url) {
   return params;
 }
 
+// Vertex AI streams a JSON array. This scans for the first complete JSON object
+// using brace-depth tracking (string-aware), avoiding the endsWith('}') false positive.
+function extractFirstJsonObject(str) {
+  let i = 0;
+  while (i < str.length && '[, \n\r\t'.includes(str[i])) i++;
+  if (i >= str.length || str[i] !== '{') return null;
+  let depth = 0, inString = false, escaped = false;
+  for (let j = i; j < str.length; j++) {
+    const c = str[j];
+    if (escaped) { escaped = false; continue; }
+    if (inString) { if (c === '\\') escaped = true; else if (c === '"') inString = false; continue; }
+    if (c === '"') { inString = true; continue; }
+    if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) return { json: str.substring(i, j + 1), endIndex: j + 1 };
+  }
+  return null;
+}
+
 const API_CLIENT_MAP = [
   {
     name: 'VertexGenAi:generateContent',
@@ -54,18 +72,8 @@ const API_CLIENT_MAP = [
     patternForProxy: 'https://aiplatform.googleapis.com/{{version}}/publishers/google/models/{{model}}:streamGenerateContent',
     getApiEndpoint: (ctx, p) => `https://aiplatform.clients6.google.com/${p.version}/projects/${ctx.projectId}/locations/${ctx.region}/publishers/google/models/${p.model}:streamGenerateContent`,
     isStreaming: true,
-    transformFn: (response) => {
-      let normalized = response.trim();
-      while (normalized.startsWith(',') || normalized.startsWith('[')) normalized = normalized.substring(1).trim();
-      while (normalized.endsWith(',') || normalized.endsWith(']')) normalized = normalized.substring(0, normalized.length - 1).trim();
-      if (!normalized.length) return { result: null, inProgress: false };
-      if (!normalized.endsWith('}')) return { result: normalized, inProgress: true };
-      try {
-        return { result: `data: ${JSON.stringify(JSON.parse(normalized))}\n\n`, inProgress: false };
-      } catch (e) {
-        throw new Error(`Failed to parse response: ${e}`);
-      }
-    },
+    transformFn: null,
+    useJsonScanner: true,
   },
   {
     name: 'ReasoningEngine:query',
@@ -148,20 +156,28 @@ export default async function handler(req, res) {
 
       const reader = apiResponse.body.getReader();
       const decoder = new TextDecoder();
-      let deltaChunk = '';
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        if (!apiClient.transformFn) {
-          res.write(Buffer.from(value));
-        } else {
-          deltaChunk += decoder.decode(value, { stream: true });
-          const { result, inProgress } = apiClient.transformFn(deltaChunk);
-          if (result && !inProgress) {
-            deltaChunk = '';
-            res.write(Buffer.from(result));
+      if (apiClient.useJsonScanner) {
+        // Vertex AI returns a JSON array — scan for complete objects and convert to SSE
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          let extracted;
+          while ((extracted = extractFirstJsonObject(buffer)) !== null) {
+            try {
+              res.write(Buffer.from(`data: ${JSON.stringify(JSON.parse(extracted.json))}\n\n`));
+            } catch (_) { /* skip malformed chunk */ }
+            buffer = buffer.substring(extracted.endIndex);
           }
+        }
+      } else {
+        // Direct pass-through (ReasoningEngine etc.)
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          res.write(Buffer.from(value));
         }
       }
       res.end();
