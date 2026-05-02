@@ -51,40 +51,56 @@ interface LandingPageProps {
     onThemeChange: (theme: Theme) => void;
 }
 
-const FanCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string }> = ({ personas, accent, accentLight }) => {
-    const cards = personas.slice(0, 3);
-    const transforms = [
-        'rotate(-13deg) translateX(-100px)',
-        'rotate(0deg) translateY(-12px)',
-        'rotate(13deg) translateX(100px)',
+const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string }> = ({ personas, accent, accentLight }) => {
+    const cards = personas.slice(0, 5);
+    const W = 118, H = 177;
+    const configs = [
+        { x: -200, y: -35, rotate: -4, z: 1, delay: '0s' },
+        { x: -100, y:  35, rotate:  2, z: 3, delay: '0.4s' },
+        { x:    0, y: -30, rotate: -2, z: 5, delay: '0.8s' },
+        { x:  100, y:  35, rotate:  3, z: 4, delay: '0.2s' },
+        { x:  200, y: -35, rotate: -3, z: 2, delay: '0.6s' },
     ];
-    const zIndexes = [1, 3, 2];
-    const W = 200, H = 300;
 
     return (
         <div className="hidden lg:flex justify-center items-center" style={{ height: '380px' }}>
             <div className="relative" style={{ width: '460px', height: '340px' }}>
-                {cards.map((persona, i) => (
-                    <div
-                        key={persona.id}
-                        className="absolute rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
-                        style={{ width: W, height: H, transform: transforms[i], zIndex: zIndexes[i], left: '50%', marginLeft: -W / 2, top: '20px' }}
-                    >
-                        {persona.imageUrl ? (
-                            <img src={persona.imageUrl} alt={persona.name} className="w-full h-full object-cover object-top" />
-                        ) : (
-                            <div className={`w-full h-full bg-gradient-to-br ${persona.colorClass} flex items-center justify-center`}>
-                                <Icon name={persona.iconName} size={64} className="text-white/80" />
+                {cards.map((persona, i) => {
+                    const cfg = configs[i];
+                    return (
+                        <div
+                            key={persona.id}
+                            className="absolute"
+                            style={{
+                                width: W, height: H,
+                                left: '50%', top: '50%',
+                                marginLeft: -W / 2 + cfg.x,
+                                marginTop: -H / 2 + cfg.y,
+                                transform: `rotate(${cfg.rotate}deg)`,
+                                zIndex: cfg.z,
+                            }}
+                        >
+                            <div
+                                className="w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+                                style={{ animation: `card-float 2.8s ease-in-out ${cfg.delay} infinite` }}
+                            >
+                                {persona.imageUrl ? (
+                                    <img src={persona.imageUrl} alt={persona.name} className="w-full h-full object-cover object-top" />
+                                ) : (
+                                    <div className={`w-full h-full bg-gradient-to-br ${persona.colorClass} flex items-center justify-center`}>
+                                        <Icon name={persona.iconName} size={40} className="text-white/80" />
+                                    </div>
+                                )}
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
+                                    <p className="text-white font-bold text-sm">{persona.name}</p>
+                                    {persona.jobTitle && <p className="text-xs" style={{ color: accentLight }}>{persona.jobTitle}</p>}
+                                </div>
                             </div>
-                        )}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3">
-                            <p className="text-white font-bold text-sm">{persona.name}</p>
-                            {persona.jobTitle && <p className="text-xs" style={{ color: accentLight }}>{persona.jobTitle}</p>}
                         </div>
-                    </div>
-                ))}
-                <div className="absolute rounded-full blur-3xl opacity-25 pointer-events-none"
-                    style={{ width: '200px', height: '200px', backgroundColor: accent, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }} />
+                    );
+                })}
+                <div className="absolute rounded-full blur-3xl opacity-20 pointer-events-none"
+                    style={{ width: '220px', height: '220px', backgroundColor: accent, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }} />
             </div>
         </div>
     );
@@ -214,7 +230,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ backgroundColor: t.accentLight }} />
 
                 <div className="max-w-6xl mx-auto relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid lg:grid-cols-2 gap-0 items-center">
                         <div>
                             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: t.accentLight }}>DIALOGUE WITH AI</p>
                             <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
@@ -256,9 +272,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             </div>
                         )}
 
-                        {/* 데스크톱: 부채꼴 카드 */}
+                        {/* 데스크톱: 지그재그 카드 */}
                         {!isLoading && sorted.length > 0 && (
-                            <FanCards personas={sorted} accent={t.accent} accentLight={t.accentLight} />
+                            <ZigzagCards personas={sorted} accent={t.accent} accentLight={t.accentLight} />
                         )}
                     </div>
                 </div>

@@ -72,9 +72,39 @@ const App: React.FC = () => {
         return params.get('token');
     });
 
-    const [personas, setPersonas] = useState<Persona[]>([]);
-    const [isPersonasLoading, setIsPersonasLoading] = useState(true);
-    const [activePersonaId, setActivePersonaId] = useState<string>('');
+    const [personas, setPersonas] = useState<Persona[]>(() => {
+        try {
+            const cached = localStorage.getItem('personas_cache');
+            if (cached) {
+                const { data } = JSON.parse(cached);
+                if (Array.isArray(data) && data.length > 0) return data;
+            }
+        } catch {}
+        return [];
+    });
+    const [isPersonasLoading, setIsPersonasLoading] = useState<boolean>(() => {
+        try {
+            const cached = localStorage.getItem('personas_cache');
+            if (cached) {
+                const { data } = JSON.parse(cached);
+                if (Array.isArray(data) && data.length > 0) return false;
+            }
+        } catch {}
+        return true;
+    });
+    const [activePersonaId, setActivePersonaId] = useState<string>(() => {
+        try {
+            const cached = localStorage.getItem('personas_cache');
+            if (cached) {
+                const { data } = JSON.parse(cached);
+                if (Array.isArray(data) && data.length > 0) {
+                    const first = data.find((p: any) => p.isVisible !== false);
+                    return first?.id || '';
+                }
+            }
+        } catch {}
+        return '';
+    });
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [inputText, setInputText] = useState('');
     const [isAdminMode, setIsAdminMode] = useState(false);
@@ -152,23 +182,7 @@ const App: React.FC = () => {
 
     // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
     useEffect(() => {
-        // 캐시가 있으면 나이와 상관없이 즉시 표시 (로딩 화면 스킵)
-        let hasCachedPersonas = false;
-        try {
-            const cached = localStorage.getItem('personas_cache');
-            if (cached) {
-                const { data } = JSON.parse(cached);
-                if (Array.isArray(data) && data.length > 0) {
-                    setPersonas(data);
-                    const first = data.find((p: any) => p.isVisible !== false);
-                    if (first) setActivePersonaId(first.id);
-                    setIsPersonasLoading(false);
-                    hasCachedPersonas = true;
-                }
-            }
-        } catch {}
-
-        // 항상 최신 데이터로 백그라운드 갱신
+        // 항상 최신 데이터로 백그라운드 갱신 (초기값은 useState lazy init에서 캐시로 처리)
         personaApi.getAll()
             .then(data => {
                 setPersonas(data);
