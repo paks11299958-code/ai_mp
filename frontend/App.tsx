@@ -805,6 +805,7 @@ const App: React.FC = () => {
                         onSuccess={handleAuthSuccess}
                         onClose={() => setShowAuthModal(false)}
                         defaultMode="login"
+                        personas={personas}
                     />
                 )}
                 {showAnnouncementModal && (

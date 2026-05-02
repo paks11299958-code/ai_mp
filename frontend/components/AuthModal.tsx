@@ -7,6 +7,7 @@ interface AuthModalProps {
     onSuccess: (user: User, token: string) => void;
     onClose?: () => void;
     defaultMode?: 'login' | 'register';
+    personas?: any[];
 }
 
 type Mode = 'login' | 'register' | 'forgot';

@@ -52,19 +52,17 @@ interface LandingPageProps {
 }
 
 const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string }> = ({ personas, accent, accentLight }) => {
-    const cards = personas.slice(0, 5);
-    const W = 118, H = 177;
+    const cards = personas.slice(0, 3);
+    const W = 160, H = 240;
     const configs = [
-        { x: -200, y: -35, rotate: -4, z: 1, delay: '0s' },
-        { x: -100, y:  35, rotate:  2, z: 3, delay: '0.4s' },
-        { x:    0, y: -30, rotate: -2, z: 5, delay: '0.8s' },
-        { x:  100, y:  35, rotate:  3, z: 4, delay: '0.2s' },
-        { x:  200, y: -35, rotate: -3, z: 2, delay: '0.6s' },
+        { x: -185, y: -45, rotate: -6, z: 1, delay: '0s' },
+        { x:    0, y:  45, rotate:  3, z: 3, delay: '0.5s' },
+        { x:  185, y: -45, rotate: -4, z: 2, delay: '1s' },
     ];
 
     return (
         <div className="hidden lg:flex justify-center items-center" style={{ height: '380px' }}>
-            <div className="relative" style={{ width: '460px', height: '340px' }}>
+            <div className="relative" style={{ width: '560px', height: '380px' }}>
                 {cards.map((persona, i) => {
                     const cfg = configs[i];
                     return (
