@@ -52,7 +52,11 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
                                 style={{ animation: `card-float 2.8s ease-in-out ${cfg.delay} infinite` }}
                                 onClick={() => onSelect(persona.id)}
                             >
-                            <div className="w-full h-full rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+                            <div className="w-full h-full rounded-2xl overflow-hidden shadow-2xl"
+                                style={{
+                                    border: isNew ? '1.5px solid rgba(251,191,36,0.7)' : '1px solid rgba(255,255,255,0.1)',
+                                    boxShadow: isNew ? '0 0 18px rgba(251,191,36,0.25), 0 8px 32px rgba(0,0,0,0.5)' : undefined,
+                                }}>
                                 {persona.imageUrl ? (
                                     <img src={persona.imageUrl} alt={persona.name} className="w-full h-full object-cover object-top" />
                                 ) : (
@@ -61,8 +65,8 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
                                     </div>
                                 )}
                                 {isNew && (
-                                    <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                                        style={{ backgroundColor: `${accent}33`, color: accentLight, borderColor: `${accent}66` }}>
+                                    <span className="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse"
+                                        style={{ background: 'linear-gradient(135deg, #fbbf24, #f97316)', color: '#000' }}>
                                         NEW
                                     </span>
                                 )}
@@ -309,8 +313,12 @@ export const MainPage: React.FC<MainPageProps> = ({
                                         <button
                                             key={persona.id}
                                             onClick={() => onSelectPersona(persona.id)}
-                                            className="relative flex-shrink-0 bg-gray-900 border border-gray-800 rounded-2xl text-left hover:scale-[1.02] transition-all group overflow-hidden"
-                                            style={{ width: `calc(${100 / visibleCount}% - ${16 * (visibleCount - 1) / visibleCount}px)` }}
+                                            className="relative flex-shrink-0 bg-gray-900 rounded-2xl text-left hover:scale-[1.02] transition-all group overflow-hidden"
+                                            style={{
+                                                width: `calc(${100 / visibleCount}% - ${16 * (visibleCount - 1) / visibleCount}px)`,
+                                                border: isNew ? '1.5px solid rgba(251,191,36,0.6)' : '1px solid #1f2937',
+                                                boxShadow: isNew ? '0 0 16px rgba(251,191,36,0.2)' : undefined,
+                                            }}
                                         >
                                             <div className="relative h-64 overflow-hidden">
                                                 {persona.imageUrl ? (
@@ -322,8 +330,8 @@ export const MainPage: React.FC<MainPageProps> = ({
                                                 )}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-transparent to-transparent" />
                                                 {isNew && (
-                                                    <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full border"
-                                                        style={{ backgroundColor: `${t.accent}33`, color: t.accentLight, borderColor: `${t.accent}66` }}>
+                                                    <span className="absolute top-3 right-3 text-xs font-bold px-2.5 py-0.5 rounded-full animate-pulse"
+                                                        style={{ background: 'linear-gradient(135deg, #fbbf24, #f97316)', color: '#000' }}>
                                                         NEW
                                                     </span>
                                                 )}
