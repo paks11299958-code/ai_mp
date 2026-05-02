@@ -10,6 +10,23 @@ const fs = require('fs');
 const path = require('path');
 
 const BUCKET_NAME = 'ai-mp-media';
+
+// @google/genai is ESM-only — lazy import, singleton
+let _geminiAI = null;
+async function getGeminiAI() {
+  if (_geminiAI) return _geminiAI;
+  const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+  if (!credsJson) return null;
+  const creds = JSON.parse(credsJson);
+  const { GoogleGenAI } = await import('@google/genai');
+  _geminiAI = new GoogleGenAI({
+    vertexai: true,
+    project: creds.project_id,
+    location: 'us-central1',
+    googleAuthOptions: { credentials: creds },
+  });
+  return _geminiAI;
+}
 let _gcsStorage = null;
 function getGCSStorage() {
     if (_gcsStorage) return _gcsStorage;
@@ -715,16 +732,8 @@ app.post('/api/sessions/:id/messages', async (req, res) => {
 // ── Background Tasks (Gemini 호출 — 백엔드 처리) ──────────────
 async function callGeminiText(prompt) {
   try {
-    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-    if (!credsJson) return null;
-    const creds = JSON.parse(credsJson);
-    const { GoogleGenAI } = require('@google/genai');
-    const ai = new GoogleGenAI({
-      vertexai: true,
-      project: creds.project_id,
-      location: 'us-central1',
-      googleAuthOptions: { credentials: creds },
-    });
+    const ai = await getGeminiAI();
+    if (!ai) return null;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
@@ -860,16 +869,8 @@ app.post('/api/sessions/cleanup', async (req, res) => {
 // ── Memory ────────────────────────────────────────────────────
 async function getEmbedding(text) {
   try {
-    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-    if (!credsJson) return null;
-    const creds = JSON.parse(credsJson);
-    const { GoogleGenAI } = require('@google/genai');
-    const ai = new GoogleGenAI({
-      vertexai: true,
-      project: creds.project_id,
-      location: 'us-central1',
-      googleAuthOptions: { credentials: creds },
-    });
+    const ai = await getGeminiAI();
+    if (!ai) return null;
     const response = await ai.models.embedContent({ model: 'text-embedding-004', contents: text });
     return response.embeddings?.[0]?.values ?? null;
   } catch (e) {
@@ -1103,7 +1104,7 @@ app.post('/api/knowledge/search', async (req, res) => {
 // ── AI Proxy ──────────────────────────────────────────────────
 app.post('/api-proxy', async (req, res) => {
   try {
-    const handler = require('./api/api-proxy.js');
+    const { default: handler } = await import('./api/api-proxy.js');
     await handler(req, res);
   } catch (e) {
     console.error('[api-proxy]', e.message);
@@ -1305,16 +1306,8 @@ app.delete('/api/board/:id/reply/:replyId', async (req, res) => {
 
 async function callGeminiVideo(videoGcsUri, mimeType, promptText) {
   try {
-    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-    if (!credsJson) return null;
-    const creds = JSON.parse(credsJson);
-    const { GoogleGenAI } = require('@google/genai');
-    const ai = new GoogleGenAI({
-      vertexai: true,
-      project: creds.project_id,
-      location: 'us-central1',
-      googleAuthOptions: { credentials: creds },
-    });
+    const ai = await getGeminiAI();
+    if (!ai) return null;
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [{
