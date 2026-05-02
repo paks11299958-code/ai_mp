@@ -404,7 +404,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const handleIntroVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 200 * 1024 * 1024) { alert('영상 크기는 200MB 이하로 업로드해주세요.'); return; }
+        if (file.size > 50 * 1024 * 1024) { alert('영상 크기는 50MB 이하로 업로드해주세요.'); return; }
         if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 영상을 업로드해주세요.'); return; }
         setIsUploadingIntroVideo(true);
         const reader = new FileReader();
@@ -902,7 +902,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                             </div>
                                             <div>
                                                 <input type="file" accept="video/*" className="hidden" ref={introVideoInputRef} onChange={handleIntroVideoUpload} />
-                                                <p className="text-[11px] text-gray-500 mb-1">채팅 진입 전 영상이 먼저 표시됩니다. (200MB 이하)</p>
+                                                <p className="text-[11px] text-gray-500 mb-1">채팅 진입 전 영상이 먼저 표시됩니다. (50MB 이하)</p>
                                                 {introVideoUrl && (
                                                     <button onClick={handleRemoveIntroVideo} className="text-[11px] text-red-400 hover:text-red-300">영상 제거</button>
                                                 )}
