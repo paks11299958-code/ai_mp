@@ -85,26 +85,45 @@ export const LandingPage: React.FC<LandingPageProps> = ({ personas, isLoading, o
                         </div>
                     ) : (
                         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {personas.map((persona) => (
-                                <button
-                                    key={persona.id}
-                                    onClick={onStart}
-                                    className="bg-gray-900 border border-gray-800 rounded-2xl p-6 text-left hover:border-gray-600 hover:bg-gray-800/50 hover:scale-[1.02] transition-all group"
-                                >
-                                    {persona.imageUrl ? (
-                                        <img src={persona.imageUrl} alt={persona.name} className="w-[72px] h-[72px] rounded-xl object-cover mb-4 shadow-lg" />
-                                    ) : (
-                                        <div className={`w-[72px] h-[72px] rounded-xl bg-gradient-to-br ${persona.colorClass} text-white flex items-center justify-center mb-4 shadow-lg`}>
-                                            <Icon name={persona.iconName} size={36} />
-                                        </div>
-                                    )}
-                                    <div className="flex items-baseline gap-2 mb-2">
-                                        <h3 className="text-lg font-bold text-gray-100 group-hover:text-white">{persona.name}</h3>
-                                        {persona.jobTitle && <span className="text-xs text-gray-400 shrink-0">[{persona.jobTitle}]</span>}
-                                    </div>
-                                    <p className="text-sm text-gray-400 leading-relaxed">{persona.description}</p>
-                                </button>
-                            ))}
+                            {personas
+                                .filter(p => p.isVisible !== false)
+                                .slice()
+                                .sort((a, b) => {
+                                    const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                                    const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                                    return tb - ta;
+                                })
+                                .map((persona) => {
+                                    const isNew = persona.createdAt
+                                        ? Date.now() - new Date(persona.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+                                        : false;
+                                    return (
+                                        <button
+                                            key={persona.id}
+                                            onClick={onStart}
+                                            className="relative bg-gray-900 border border-gray-800 rounded-2xl p-6 text-left hover:border-gray-600 hover:bg-gray-800/50 hover:scale-[1.02] transition-all group"
+                                        >
+                                            {isNew && (
+                                                <span className="absolute top-3 right-3 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/40">
+                                                    NEW
+                                                </span>
+                                            )}
+                                            {persona.imageUrl ? (
+                                                <img src={persona.imageUrl} alt={persona.name} className="w-[72px] h-[72px] rounded-xl object-cover mb-4 shadow-lg" />
+                                            ) : (
+                                                <div className={`w-[72px] h-[72px] rounded-xl bg-gradient-to-br ${persona.colorClass} text-white flex items-center justify-center mb-4 shadow-lg`}>
+                                                    <Icon name={persona.iconName} size={36} />
+                                                </div>
+                                            )}
+                                            <div className="flex items-baseline gap-2 mb-2">
+                                                <h3 className="text-lg font-bold text-gray-100 group-hover:text-white">{persona.name}</h3>
+                                                {persona.jobTitle && <span className="text-xs text-gray-400 shrink-0">[{persona.jobTitle}]</span>}
+                                            </div>
+                                            <p className="text-sm text-gray-400 leading-relaxed">{persona.description}</p>
+                                        </button>
+                                    );
+                                })
+                            }
                         </div>
                     )}
                 </div>
