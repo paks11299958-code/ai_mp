@@ -5,7 +5,7 @@ import { prisma } from './_lib/prisma.js';
 import { signToken, setTokenCookie, clearTokenCookie, getTokenFromRequest, verifyToken } from './_lib/auth.js';
 import { sendEmail } from './_lib/email.js';
 import { generateEmbedding } from './_lib/embedding.js';
-import { extractMemories, generateSummary, extractTriggerKeywords, analyzeGolfSwing } from './_lib/gemini.js';
+import { extractMemories, generateSummary, extractTriggerKeywords, analyzeGolfSwing, compareDocuments } from './_lib/gemini.js';
 import { uploadToGCS, deleteFromGCS, generateSignedUrl } from './_lib/storage.js';
 
 function chunkText(text: string): string[] {
@@ -916,13 +916,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return userId;
         };
 
-        // POST /api/knowledge — 텍스트 업로드 → 청크 분할 → 임베딩 → 저장
+        // POST /api/knowledge — 텍스트 업로드 → 중복 제목 비교 → 청크 분할 → 임베딩 → 저장
         if (req.method === 'POST' && !seg1) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
                 const { personaId, title, text } = req.body;
                 if (!personaId || !text) return res.status(400).json({ error: 'personaId와 text는 필수입니다.' });
+
+                let isReplaced = false;
+                // 같은 제목의 문서가 이미 있으면 Gemini로 품질 비교
+                if (title) {
+                    const existing = await prisma.$queryRawUnsafe<{ sourceId: string; fullText: string }[]>(
+                        `SELECT "sourceId", STRING_AGG("content", E'\n\n' ORDER BY "id") AS "fullText"
+                         FROM "PersonaKnowledge"
+                         WHERE "personaId" = $1 AND "title" = $2
+                         GROUP BY "sourceId" LIMIT 1`,
+                        personaId, title
+                    );
+                    if (existing.length > 0) {
+                        const winner = await compareDocuments(existing[0].fullText, text);
+                        if (winner === 'OLD') {
+                            return res.status(200).json({ saved: 0, total: 0, action: 'kept_existing', message: '기존 문서가 더 품질이 높아 유지했습니다.' });
+                        }
+                        // 새 문서가 더 나음 → 기존 삭제 후 교체
+                        await prisma.personaKnowledge.deleteMany({ where: { sourceId: existing[0].sourceId } });
+                        isReplaced = true;
+                    }
+                }
+
                 const sourceId = crypto.randomUUID();
                 const chunks = chunkText(text);
                 let saved = 0;
@@ -936,7 +958,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     );
                     saved++;
                 }
-                return res.status(201).json({ saved, total: chunks.length, sourceId });
+                return res.status(201).json({ saved, total: chunks.length, sourceId, action: isReplaced ? 'replaced' : 'created' });
             } catch (e: any) {
                 console.error('[knowledge POST]', e);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });

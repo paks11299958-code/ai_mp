@@ -995,6 +995,25 @@ function chunkText(text) {
   return chunks;
 }
 
+async function compareDocumentsLocal(oldText, newText) {
+  const snip = (t) => t.slice(0, 1500) + (t.length > 1500 ? '...(이하 생략)' : '');
+  const prompt = `AI 페르소나 지식 데이터베이스에 저장할 두 문서 중 더 품질이 높은 것을 선택하세요.
+
+품질 기준: 정보의 완성도, 구체성, 상세함, AI 챗봇 대화 활용 가치
+
+[기존 문서] (총 ${oldText.length}자)
+${snip(oldText)}
+
+[새 문서] (총 ${newText.length}자)
+${snip(newText)}
+
+"OLD" 또는 "NEW" 중 하나만 응답하세요. 새 문서가 더 낫거나 비슷하면 "NEW", 기존이 더 나으면 "OLD".`;
+  try {
+    const result = await callGeminiText(prompt);
+    return result?.trim().startsWith('NEW') ? 'NEW' : 'OLD';
+  } catch { return 'NEW'; }
+}
+
 app.post('/api/knowledge', async (req, res) => {
   try {
     const payload = verifyToken(req);
@@ -1003,6 +1022,28 @@ app.post('/api/knowledge', async (req, res) => {
     if (caller?.role !== 'ADMIN') return res.status(403).json({ error: '권한이 없습니다.' });
     const { personaId, title, text } = req.body;
     if (!personaId || !text) return res.status(400).json({ error: 'personaId, text는 필수입니다.' });
+
+    let isReplaced = false;
+    // 같은 제목의 문서가 있으면 Gemini로 품질 비교
+    if (title) {
+      const existing = await prisma.$queryRawUnsafe(
+        `SELECT "sourceId", STRING_AGG("content", E'\\n\\n' ORDER BY "id") AS "fullText"
+         FROM "PersonaKnowledge"
+         WHERE "personaId" = $1 AND "title" = $2
+         GROUP BY "sourceId" LIMIT 1`,
+        personaId, title
+      );
+      if (existing.length > 0) {
+        const winner = await compareDocumentsLocal(existing[0].fullText, text);
+        if (winner === 'OLD') {
+          return res.json({ saved: 0, total: 0, action: 'kept_existing', message: '기존 문서가 더 품질이 높아 유지했습니다.' });
+        }
+        // 새 문서가 더 나음 → 기존 삭제 후 교체
+        await prisma.personaKnowledge.deleteMany({ where: { sourceId: existing[0].sourceId } });
+        isReplaced = true;
+      }
+    }
+
     const sourceId = crypto.randomUUID();
     const chunks = chunkText(text);
     let saved = 0;
@@ -1020,7 +1061,7 @@ app.post('/api/knowledge', async (req, res) => {
       }
       saved++;
     }
-    return res.json({ saved, total: chunks.length, sourceId });
+    return res.json({ saved, total: chunks.length, sourceId, action: isReplaced ? 'replaced' : 'created' });
   } catch (e) {
     console.error('[knowledge upload]', e.message);
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });

@@ -1270,7 +1270,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                 setKnowledgeText('');
                                                 const updated = await knowledgeApi.getAll(selectedId);
                                                 setKnowledgeList(updated);
-                                                alert(`저장 완료 — ${result.total}개 청크 생성`);
+                                                if (result.action === 'kept_existing') {
+                                                    alert(`📋 기존 문서가 더 품질이 높아 유지했습니다.\n새 문서는 저장하지 않았습니다.`);
+                                                } else if (result.action === 'replaced') {
+                                                    alert(`🔄 새 문서가 더 품질이 높아 기존 문서를 교체했습니다.\n✅ ${result.total}개 청크 저장`);
+                                                } else {
+                                                    alert(`✅ 저장 완료 — ${result.total}개 청크 생성`);
+                                                }
                                             } catch (e: any) {
                                                 alert('저장 실패: ' + e.message);
                                             } finally {
