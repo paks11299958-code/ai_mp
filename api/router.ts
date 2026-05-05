@@ -407,18 +407,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
-        // POST /api/personas/:id/intro-video
-        if (seg1 && seg2 === 'intro-video' && req.method === 'POST') {
+        // GET /api/personas/:id/intro-video/upload-url
+        if (seg1 && seg2 === 'intro-video' && seg3 === 'upload-url' && req.method === 'GET') {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { videoBase64, mimeType } = req.body;
-                if (!videoBase64) return res.status(400).json({ error: 'videoBase64는 필수입니다.' });
-                const type = mimeType || 'video/mp4';
-                const ext = type.split('/')[1] || 'mp4';
-                const buffer = Buffer.from(videoBase64, 'base64');
+                const mimeType = (req.query.mimeType as string) || 'video/mp4';
+                const ext = mimeType.split('/')[1]?.split(';')[0] || 'mp4';
                 const destPath = `personas/${seg1}/intro/${Date.now()}.${ext}`;
-                const videoUrl = await uploadToGCS(buffer, destPath, type);
+                const { signedUrl, publicUrl } = await generateSignedUrl(destPath, mimeType);
+                return res.status(200).json({ signedUrl, publicUrl });
+            } catch (e: any) {
+                console.error('[personas intro-video upload-url]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/personas/:id/intro-video — GCS 직접 업로드 후 publicUrl 저장
+        if (seg1 && seg2 === 'intro-video' && !seg3 && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { videoUrl } = req.body;
+                if (!videoUrl) return res.status(400).json({ error: 'videoUrl은 필수입니다.' });
                 const persona = await prisma.persona.update({
                     where: { id: seg1 },
                     data: { introVideoUrl: videoUrl },

@@ -406,26 +406,26 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         }
     };
 
-    const handleIntroVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleIntroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        if (file.size > 50 * 1024 * 1024) { alert('영상 크기는 50MB 이하로 업로드해주세요.'); return; }
+        if (file.size > 200 * 1024 * 1024) { alert('영상 크기는 200MB 이하로 업로드해주세요.'); return; }
         if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 영상을 업로드해주세요.'); return; }
         setIsUploadingIntroVideo(true);
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-            try {
-                const dataUrl = reader.result as string;
-                const base64 = dataUrl.split(',')[1];
-                const saved = await personaApi.uploadIntroVideo(selectedId, base64, file.type);
-                setIntroVideoUrl(saved.introVideoUrl || '');
-            } catch {
-                alert('영상 업로드에 실패했습니다.');
-            } finally {
-                setIsUploadingIntroVideo(false);
-            }
-        };
-        reader.readAsDataURL(file);
+        try {
+            const { signedUrl, publicUrl } = await personaApi.getIntroVideoUploadUrl(selectedId, file.type);
+            await fetch(signedUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+            const saved = await personaApi.saveIntroVideoUrl(selectedId, publicUrl);
+            setIntroVideoUrl(saved.introVideoUrl || '');
+        } catch {
+            alert('영상 업로드에 실패했습니다.');
+        } finally {
+            setIsUploadingIntroVideo(false);
+        }
     };
 
     const handleRemoveIntroVideo = async () => {

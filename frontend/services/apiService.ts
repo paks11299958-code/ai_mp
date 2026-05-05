@@ -102,10 +102,13 @@ export const personaApi = {
     delete: (id: string) =>
         request<{ message: string }>(`/personas/${id}`, { method: 'DELETE' }),
 
-    uploadIntroVideo: (id: string, videoBase64: string, mimeType: string) =>
+    getIntroVideoUploadUrl: (id: string, mimeType: string) =>
+        request<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/intro-video/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
+
+    saveIntroVideoUrl: (id: string, videoUrl: string) =>
         request<Persona>(`/personas/${id}/intro-video`, {
             method: 'POST',
-            body: JSON.stringify({ videoBase64, mimeType }),
+            body: JSON.stringify({ videoUrl }),
         }),
 
     deleteIntroVideo: (id: string) =>
