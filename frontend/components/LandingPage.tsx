@@ -45,6 +45,7 @@ interface LandingPageProps {
     personas: Persona[];
     isLoading: boolean;
     onStart: () => void;
+    onPersonaClick?: (personaId: string) => void;
     onAnnouncementClick?: () => void;
     unreadAnnouncementCount?: number;
     theme: Theme;
@@ -124,7 +125,7 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
 };
 
 export const LandingPage: React.FC<LandingPageProps> = ({
-    personas, isLoading, onStart, onAnnouncementClick, unreadAnnouncementCount = 0,
+    personas, isLoading, onStart, onPersonaClick, onAnnouncementClick, unreadAnnouncementCount = 0,
     theme, onThemeChange, heroImageUrl,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -359,7 +360,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                                     return (
                                         <button
                                             key={persona.id}
-                                            onClick={() => { if (dragDistRef.current > 5) return; onStart(); }}
+                                            onClick={() => { if (dragDistRef.current > 5) return; onPersonaClick ? onPersonaClick(persona.id) : onStart(); }}
                                             className="relative flex-shrink-0 bg-gray-900 rounded-2xl text-left hover:scale-[1.02] transition-all group overflow-hidden"
                                             style={{
                                                 width: `calc(${100 / visibleCount}% - ${16 * (visibleCount - 1) / visibleCount}px)`,
