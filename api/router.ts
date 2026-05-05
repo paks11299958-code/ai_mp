@@ -183,7 +183,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
             const updates = req.body as Record<string, string>;
             await Promise.all(
-                Object.entries(updates).map(([key, value]) => {
+                Object.entries(updates).map(async ([key, value]) => {
                     if (key === 'memory_enabled') {
                         // 유저별 독립 저장
                         const userKey = `memory_enabled_${userId}`;
@@ -194,6 +194,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         });
                     }
                     if (!isAdmin) return Promise.resolve();
+                    if (key === 'heroImageUrl' && String(value).startsWith('data:')) {
+                        const mimeType = String(value).split(';')[0].split(':')[1] || 'image/jpeg';
+                        const ext = mimeType.split('/')[1] || 'jpg';
+                        const base64Data = String(value).split(',')[1];
+                        const buffer = Buffer.from(base64Data, 'base64');
+                        const gcsUrl = await uploadToGCS(buffer, `hero/hero-image.${ext}`, mimeType);
+                        return prisma.appConfig.upsert({
+                            where: { key },
+                            update: { value: gcsUrl, updatedAt: new Date() },
+                            create: { key, value: gcsUrl },
+                        });
+                    }
                     return prisma.appConfig.upsert({
                         where: { key },
                         update: { value: String(value), updatedAt: new Date() },

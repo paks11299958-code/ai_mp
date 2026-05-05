@@ -111,6 +111,7 @@ const App: React.FC = () => {
     const [showBoard, setShowBoard] = useState(false);
 
     const [commonInstruction, setCommonInstruction] = useState('');
+    const [heroImageUrl, setHeroImageUrl] = useState('');
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
@@ -205,6 +206,7 @@ const App: React.FC = () => {
         settingsApi.get()
             .then(s => {
                 setCommonInstruction(s.commonInstruction || '');
+                setHeroImageUrl(s.heroImageUrl || '');
                 // 서버에 저장된 기억 공유 설정 복원 (localStorage보다 우선)
                 if (s.memory_enabled) {
                     try {
@@ -783,7 +785,7 @@ const App: React.FC = () => {
     if (resetToken) {
         return (
             <>
-                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} theme={theme} onThemeChange={handleThemeChange} />
+                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} theme={theme} onThemeChange={handleThemeChange} heroImageUrl={heroImageUrl} />
                 <ResetPasswordModal
                     token={resetToken}
                     onClose={() => setResetToken(null)}
@@ -814,6 +816,7 @@ const App: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     theme={theme}
                     onThemeChange={handleThemeChange}
+                    heroImageUrl={heroImageUrl}
                 />
                 {showAuthModal && (
                     <AuthModal

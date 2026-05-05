@@ -55,6 +55,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
     const [showGlobalSettings, setShowGlobalSettings] = useState(false);
     const [commonInstruction, setCommonInstruction] = useState('');
+    const [heroImagePreview, setHeroImagePreview] = useState('');
+    const [isSavingHeroImage, setIsSavingHeroImage] = useState(false);
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
     const [showSavedModal, setShowSavedModal] = useState(false);
 
@@ -135,7 +137,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [playingVideo, setPlayingVideo] = useState<{ url: string; title?: string } | null>(null);
 
     useEffect(() => {
-        settingsApi.get().then(s => setCommonInstruction(s.commonInstruction || '')).catch(() => {});
+        settingsApi.get().then(s => {
+            setCommonInstruction(s.commonInstruction || '');
+            setHeroImagePreview(s.heroImageUrl || '');
+        }).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -625,6 +630,52 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                         {isSavingGlobal ? '저장 중...' : '저장'}
                                     </button>
                                 </div>
+                            </div>
+
+                            {/* 히어로 이미지 */}
+                            <div className="pt-4 border-t border-gray-700/50 space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="Image" size={16} className="text-blue-400" />
+                                    <h3 className="text-sm font-bold text-white">랜딩 히어로 이미지</h3>
+                                    <span className="text-xs text-gray-500">— 히어로 섹션 오른쪽에 표시</span>
+                                </div>
+                                <div className="flex gap-3 items-start">
+                                    {heroImagePreview && (
+                                        <div className="relative w-40 h-28 rounded-xl overflow-hidden border border-gray-700 flex-shrink-0">
+                                            <img src={heroImagePreview} alt="hero preview" className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={async () => {
+                                                    await settingsApi.update({ heroImageUrl: '' });
+                                                    setHeroImagePreview('');
+                                                }}
+                                                className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs transition-colors"
+                                            >×</button>
+                                        </div>
+                                    )}
+                                    <label className="flex flex-col items-center justify-center w-40 h-28 border-2 border-dashed border-gray-600 hover:border-blue-500 rounded-xl cursor-pointer transition-colors text-gray-500 hover:text-blue-400 text-xs gap-1">
+                                        <Icon name="Upload" size={20} />
+                                        <span>{isSavingHeroImage ? '업로드 중...' : '이미지 선택'}</span>
+                                        <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            setIsSavingHeroImage(true);
+                                            const reader = new FileReader();
+                                            reader.onload = async ev => {
+                                                const base64 = ev.target?.result as string;
+                                                try {
+                                                    await settingsApi.update({ heroImageUrl: base64 });
+                                                    const s = await settingsApi.get();
+                                                    setHeroImagePreview(s.heroImageUrl || base64);
+                                                } finally {
+                                                    setIsSavingHeroImage(false);
+                                                }
+                                            };
+                                            reader.readAsDataURL(file);
+                                            e.target.value = '';
+                                        }} />
+                                    </label>
+                                </div>
+                                <p className="text-xs text-gray-600">권장: 가로형 이미지 (예: 페르소나 카드 합성 이미지)</p>
                             </div>
                         </div>
                     </div>

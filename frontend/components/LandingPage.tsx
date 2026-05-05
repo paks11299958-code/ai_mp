@@ -49,6 +49,7 @@ interface LandingPageProps {
     unreadAnnouncementCount?: number;
     theme: Theme;
     onThemeChange: (theme: Theme) => void;
+    heroImageUrl?: string;
 }
 
 const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string }> = ({ personas, accent, accentLight }) => {
@@ -124,7 +125,7 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
 
 export const LandingPage: React.FC<LandingPageProps> = ({
     personas, isLoading, onStart, onAnnouncementClick, unreadAnnouncementCount = 0,
-    theme, onThemeChange,
+    theme, onThemeChange, heroImageUrl,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [themeOpen, setThemeOpen] = useState(false);
@@ -294,27 +295,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             </div>
                         </div>
 
-                        {/* 모바일: 대표 이미지 1장 */}
-                        {!isLoading && sorted[0] && (
-                            <div className="flex lg:hidden justify-center mt-6">
-                                <div className="relative w-36 h-48 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                                    {sorted[0].imageUrl ? (
-                                        <img src={sorted[0].imageUrl} alt={sorted[0].name} className="w-full h-full object-cover object-top" />
-                                    ) : (
-                                        <div className={`w-full h-full bg-gradient-to-br ${sorted[0].colorClass} flex items-center justify-center`}>
-                                            <Icon name={sorted[0].iconName} size={48} className="text-white/80" />
-                                        </div>
-                                    )}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                                        <p className="text-white font-bold text-xs">{sorted[0].name}</p>
-                                    </div>
-                                </div>
+                        {/* 히어로 이미지 */}
+                        {heroImageUrl && (
+                            <div className="flex justify-center items-center mt-6 lg:mt-0">
+                                <img
+                                    src={heroImageUrl}
+                                    alt="hero"
+                                    className="w-full max-w-xl object-contain drop-shadow-2xl"
+                                    style={{ maxHeight: '420px' }}
+                                />
                             </div>
-                        )}
-
-                        {/* 데스크톱: 지그재그 카드 */}
-                        {!isLoading && sorted.length > 0 && (
-                            <ZigzagCards personas={sorted} accent={t.accent} accentLight={t.accentLight} />
                         )}
                     </div>
                 </div>
