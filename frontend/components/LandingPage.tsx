@@ -302,7 +302,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                                     src={heroImageUrl}
                                     alt="hero"
                                     className="w-full max-w-xl object-contain drop-shadow-2xl"
-                                    style={{ maxHeight: '420px' }}
+                                    style={{ maxHeight: '420px', mixBlendMode: 'multiply' }}
                                 />
                             </div>
                         )}

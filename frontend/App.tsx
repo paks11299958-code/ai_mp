@@ -852,6 +852,7 @@ const App: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     theme={theme}
                     onThemeChange={handleThemeChange}
+                    heroImageUrl={heroImageUrl}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal

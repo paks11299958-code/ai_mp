@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bot, LogOut, Settings, Menu, X, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Persona, User } from '../types';
 import { Icon } from './Icons';
@@ -15,6 +15,7 @@ interface MainPageProps {
     unreadAnnouncementCount?: number;
     theme: Theme;
     onThemeChange: (theme: Theme) => void;
+    heroImageUrl?: string;
 }
 
 const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string; onSelect: (id: string) => void }> = ({ personas, accent, accentLight, onSelect }) => {
@@ -88,13 +89,37 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
 
 export const MainPage: React.FC<MainPageProps> = ({
     personas, isLoading, user, onSelectPersona, onLogout, onAdminClick,
-    onAnnouncementClick, unreadAnnouncementCount = 0, theme, onThemeChange,
+    onAnnouncementClick, unreadAnnouncementCount = 0, theme, onThemeChange, heroImageUrl,
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [themeOpen, setThemeOpen] = useState(false);
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [visibleCount, setVisibleCount] = useState(3);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStartX, setDragStartX] = useState(0);
+    const [dragOffset, setDragOffset] = useState(0);
+    const dragDistRef = useRef(0);
     const t = THEMES[theme];
+
+    const onDragStart = (clientX: number) => {
+        dragDistRef.current = 0;
+        setIsDragging(true);
+        setDragStartX(clientX);
+        setDragOffset(0);
+    };
+    const onDragMove = (clientX: number) => {
+        if (!isDragging) return;
+        const offset = clientX - dragStartX;
+        dragDistRef.current = Math.abs(offset);
+        setDragOffset(offset);
+    };
+    const onDragEnd = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
+        if (dragOffset < -60) setCarouselIndex(i => Math.min(maxIndex, i + 1));
+        else if (dragOffset > 60) setCarouselIndex(i => Math.max(0, i - 1));
+        setDragOffset(0);
+    };
 
     useEffect(() => {
         const update = () => {
@@ -222,14 +247,14 @@ export const MainPage: React.FC<MainPageProps> = ({
                 <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ backgroundColor: t.accentLight }} />
 
                 <div className="max-w-6xl mx-auto relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
+                    <div className="grid lg:grid-cols-[5fr_7fr] gap-0 items-center">
                         <div>
                             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: t.accentLight }}>DIALOGUE WITH AI</p>
-                            <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+                            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-5 leading-tight">
                                 어떤 AI와<br />
                                 <span style={{ color: t.accentLight }}>대화할까요?</span>
                             </h1>
-                            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                            <p className="text-gray-400 text-base mb-7 leading-relaxed">
                                 AI와 나누는 특별한 대화,<br />
                                 당신만을 위한 페르소나와 시작하세요.
                             </p>
@@ -250,27 +275,16 @@ export const MainPage: React.FC<MainPageProps> = ({
                             </div>
                         </div>
 
-                        {/* 모바일: 대표 이미지 1장 */}
-                        {!isLoading && sorted[0] && (
-                            <button onClick={() => onSelectPersona(sorted[0].id)} className="flex lg:hidden justify-center mt-6 w-full">
-                                <div className="relative w-36 h-48 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-                                    {sorted[0].imageUrl ? (
-                                        <img src={sorted[0].imageUrl} alt={sorted[0].name} className="w-full h-full object-cover object-top" />
-                                    ) : (
-                                        <div className={`w-full h-full bg-gradient-to-br ${sorted[0].colorClass} flex items-center justify-center`}>
-                                            <Icon name={sorted[0].iconName} size={48} className="text-white/80" />
-                                        </div>
-                                    )}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                                        <p className="text-white font-bold text-xs">{sorted[0].name}</p>
-                                    </div>
-                                </div>
-                            </button>
-                        )}
-
-                        {/* 데스크톱: 부채꼴 카드 */}
-                        {!isLoading && sorted.length > 0 && (
-                            <ZigzagCards personas={sorted} accent={t.accent} accentLight={t.accentLight} onSelect={onSelectPersona} />
+                        {/* 히어로 이미지 */}
+                        {heroImageUrl && (
+                            <div className="flex justify-center items-center mt-6 lg:mt-0">
+                                <img
+                                    src={heroImageUrl}
+                                    alt="hero"
+                                    className="w-full max-w-xl object-contain drop-shadow-2xl"
+                                    style={{ maxHeight: '420px', mixBlendMode: 'multiply' }}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
@@ -300,10 +314,23 @@ export const MainPage: React.FC<MainPageProps> = ({
                             <p className="text-gray-400 text-sm">AI 페르소나를 불러오는 중입니다...</p>
                         </div>
                     ) : (
-                        <div className="overflow-hidden">
+                        <div
+                            className="overflow-hidden select-none"
+                            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+                            onMouseDown={e => onDragStart(e.clientX)}
+                            onMouseMove={e => onDragMove(e.clientX)}
+                            onMouseUp={onDragEnd}
+                            onMouseLeave={onDragEnd}
+                            onTouchStart={e => onDragStart(e.touches[0].clientX)}
+                            onTouchMove={e => onDragMove(e.touches[0].clientX)}
+                            onTouchEnd={onDragEnd}
+                        >
                             <div
-                                className="flex gap-4 transition-transform duration-500 ease-in-out"
-                                style={{ transform: `translateX(calc(-${carouselIndex} * (100% / ${visibleCount} + 5.33px)))` }}
+                                className="flex gap-4"
+                                style={{
+                                    transform: `translateX(calc(-${carouselIndex} * (100% / ${visibleCount} + 5.33px) + ${dragOffset}px))`,
+                                    transition: isDragging ? 'none' : 'transform 500ms ease-in-out',
+                                }}
                             >
                                 {sorted.map((persona) => {
                                     const isNew = persona.createdAt
@@ -312,7 +339,7 @@ export const MainPage: React.FC<MainPageProps> = ({
                                     return (
                                         <button
                                             key={persona.id}
-                                            onClick={() => onSelectPersona(persona.id)}
+                                            onClick={() => { if (dragDistRef.current > 5) return; onSelectPersona(persona.id); }}
                                             className="relative flex-shrink-0 bg-gray-900 rounded-2xl text-left hover:scale-[1.02] transition-all group overflow-hidden"
                                             style={{
                                                 width: `calc(${100 / visibleCount}% - ${16 * (visibleCount - 1) / visibleCount}px)`,
@@ -322,7 +349,7 @@ export const MainPage: React.FC<MainPageProps> = ({
                                         >
                                             <div className="relative h-64 overflow-hidden">
                                                 {persona.imageUrl ? (
-                                                    <img src={persona.imageUrl} alt={persona.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
+                                                    <img src={persona.imageUrl} alt={persona.name} draggable={false} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
                                                 ) : (
                                                     <div className={`w-full h-full bg-gradient-to-br ${persona.colorClass} flex items-center justify-center`}>
                                                         <Icon name={persona.iconName} size={64} className="text-white/80" />
