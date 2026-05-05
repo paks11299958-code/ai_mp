@@ -64,6 +64,7 @@ const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [showAuthPage, setShowAuthPage] = useState(false);
     const [showMain, setShowMain] = useState(false);
     const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('ui_theme') as Theme) || 'lavender');
     const handleThemeChange = (t: Theme) => { setTheme(t); localStorage.setItem('ui_theme', t); };
@@ -401,6 +402,7 @@ const App: React.FC = () => {
     const handleAuthSuccess = (loggedInUser: User, token: string) => {
         localStorage.setItem('token', token);
         setShowAuthModal(false);
+        setShowAuthPage(false);
         setIsAuthChecking(true);
         setTimeout(() => {
             setUser(loggedInUser);
@@ -806,12 +808,22 @@ const App: React.FC = () => {
     }
 
     if (!user) {
+        if (showAuthPage) {
+            return (
+                <AuthModal
+                    onSuccess={handleAuthSuccess}
+                    onBack={() => setShowAuthPage(false)}
+                    defaultMode="register"
+                    fullScreen
+                />
+            );
+        }
         return (
             <>
                 <LandingPage
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    onStart={() => setShowAuthModal(true)}
+                    onStart={() => setShowAuthPage(true)}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     theme={theme}

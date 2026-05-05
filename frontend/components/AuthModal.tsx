@@ -6,13 +6,15 @@ import { Icon } from './Icons';
 interface AuthModalProps {
     onSuccess: (user: User, token: string) => void;
     onClose?: () => void;
+    onBack?: () => void;
     defaultMode?: 'login' | 'register';
+    fullScreen?: boolean;
     personas?: any[];
 }
 
 type Mode = 'login' | 'register' | 'forgot';
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, defaultMode = 'login' }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack, defaultMode = 'login', fullScreen = false }) => {
     const [mode, setMode] = useState<Mode>(defaultMode);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -52,14 +54,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, defaul
         }
     };
 
-    return (
-        <div
-            className="fixed inset-0 bg-gray-950/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-            onClick={onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
-        >
-            <div className="w-full max-w-sm bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
-
-                {onClose && (
+    const formCard = (
+        <div className="w-full max-w-sm bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
+                {onClose && !fullScreen && (
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 text-gray-500 hover:text-gray-300 transition-colors z-10"
@@ -221,7 +218,36 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, defaul
                         </button>
                     </form>
                 )}
+        </div>
+    );
+
+    if (fullScreen) {
+        return (
+            <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 55%, #1e1035 100%)' }}>
+                {/* 상단 네비 */}
+                <div className="flex items-center px-6 py-4">
+                    <button
+                        onClick={onBack}
+                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                    >
+                        <Icon name="ChevronLeft" size={18} />
+                        돌아가기
+                    </button>
+                </div>
+                {/* 중앙 폼 */}
+                <div className="flex-1 flex items-center justify-center px-4 pb-16">
+                    {formCard}
+                </div>
             </div>
+        );
+    }
+
+    return (
+        <div
+            className="fixed inset-0 bg-gray-950/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            onClick={onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
+        >
+            {formCard}
         </div>
     );
 };
