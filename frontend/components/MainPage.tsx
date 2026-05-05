@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Bot, LogOut, Settings, Menu, X, Bell, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Persona, User, Category } from '../types';
 import { Icon } from './Icons';
-import { Theme, THEMES, ThemeConfig } from './LandingPage';
+import { Theme, THEMES, ThemeConfig } from './themes';
 
 interface MainPageProps {
     personas: Persona[];
