@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Persona, PersonaImage, PersonaVideo, Announcement } from '../types';
-import { personaApi, personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi, sessionApi } from '../services/apiService';
+import { Persona, PersonaImage, PersonaVideo, Announcement, Category } from '../types';
+import { personaApi, personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi, sessionApi, categoryApi } from '../services/apiService';
 import { TriggerVideo } from '../types';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
@@ -91,6 +91,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [isUploadingIntroVideo, setIsUploadingIntroVideo] = useState(false);
     const introVideoInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+
+    // 카테고리 관리 상태
+    const [showCategories, setShowCategories] = useState(false);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [isSavingCategory, setIsSavingCategory] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [showInstructionExample, setShowInstructionExample] = useState(false);
@@ -141,6 +148,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             setCommonInstruction(s.commonInstruction || '');
             setHeroImagePreview(s.heroImageUrl || '');
         }).catch(() => {});
+        categoryApi.getAll().then(setCategories).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -227,6 +235,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl(''); setIntroVideoUrl(''); setIsVisible(true); setShowSuccess(false); setImages([]);
+            setSelectedCategoryId(null);
         } else {
             const p = personas.find(p => p.id === selectedId);
             if (p) {
@@ -234,6 +243,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setInstruction(p.systemInstruction); setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
                 setImageUrl(p.imageUrl || ''); setIntroVideoUrl(p.introVideoUrl || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
+                setSelectedCategoryId(p.categoryId ?? null);
             }
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
             knowledgeApi.getAll(selectedId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
@@ -389,7 +399,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
         setIsSaving(true);
         try {
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, isVisible });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, isVisible, categoryId: selectedCategoryId });
             localStorage.removeItem('personas_cache');
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
@@ -571,7 +581,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             공통 설정
                         </button>
                         <button
-                            onClick={() => { setShowAnnouncements(v => !v); setShowGlobalSettings(false); setShowCleanup(false); }}
+                            onClick={() => { setShowCategories(v => !v); setShowAnnouncements(false); setShowGlobalSettings(false); setShowCleanup(false); }}
+                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
+                                ${showCategories
+                                    ? 'bg-blue-600/20 text-blue-400 border border-blue-600/40'
+                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
+                                }`}
+                        >
+                            <Icon name="Tag" size={13} />
+                            카테고리 관리
+                        </button>
+                        <button
+                            onClick={() => { setShowAnnouncements(v => !v); setShowGlobalSettings(false); setShowCleanup(false); setShowCategories(false); }}
                             className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
                                 ${showAnnouncements
                                     ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/40'
@@ -734,6 +755,72 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                     </div>
                 )}
 
+                {/* 카테고리 관리 패널 */}
+                {showCategories && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <h3 className="text-sm font-bold text-white mb-4">카테고리 관리</h3>
+                        <div className="flex gap-2 mb-4">
+                            <input
+                                type="text"
+                                value={newCategoryName}
+                                onChange={e => setNewCategoryName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && !isSavingCategory && newCategoryName.trim() && (async () => {
+                                    setIsSavingCategory(true);
+                                    try {
+                                        const cat = await categoryApi.create(newCategoryName.trim());
+                                        setCategories(prev => [...prev, cat]);
+                                        setNewCategoryName('');
+                                    } catch (e: any) { alert(e.message); }
+                                    finally { setIsSavingCategory(false); }
+                                })()}
+                                placeholder="새 카테고리 이름"
+                                className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <button
+                                disabled={isSavingCategory || !newCategoryName.trim()}
+                                onClick={async () => {
+                                    if (!newCategoryName.trim()) return;
+                                    setIsSavingCategory(true);
+                                    try {
+                                        const cat = await categoryApi.create(newCategoryName.trim());
+                                        setCategories(prev => [...prev, cat]);
+                                        setNewCategoryName('');
+                                    } catch (e: any) { alert(e.message); }
+                                    finally { setIsSavingCategory(false); }
+                                }}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
+                            >
+                                추가
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {categories.length === 0 && (
+                                <p className="text-gray-500 text-sm text-center py-8">카테고리가 없습니다.</p>
+                            )}
+                            {categories.map(cat => (
+                                <div key={cat.id} className="flex items-center justify-between bg-gray-800 rounded-xl px-4 py-3">
+                                    <div>
+                                        <span className="text-sm font-medium text-white">{cat.name}</span>
+                                        <span className="ml-2 text-xs text-gray-500">({cat._count?.personas ?? 0}개)</span>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (!window.confirm(`'${cat.name}' 카테고리를 삭제하시겠습니까?\n해당 카테고리의 페르소나는 미분류로 변경됩니다.`)) return;
+                                            try {
+                                                await categoryApi.delete(cat.id);
+                                                setCategories(prev => prev.filter(c => c.id !== cat.id));
+                                            } catch (e: any) { alert(e.message); }
+                                        }}
+                                        className="text-gray-500 hover:text-red-400 transition-colors"
+                                    >
+                                        <Icon name="Trash2" size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* 공지사항 관리 패널 */}
                 {showAnnouncements && (
                     <div className="flex-1 overflow-y-auto p-6">
@@ -891,6 +978,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                             placeholder="예: 전문 번역가"
                                         />
                                     </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 mb-1.5">카테고리</label>
+                                    <select
+                                        value={selectedCategoryId ?? ''}
+                                        onChange={e => setSelectedCategoryId(e.target.value ? Number(e.target.value) : null)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
+                                    >
+                                        <option value="">미분류</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-semibold text-gray-400 mb-1.5">짧은 설명</label>

@@ -1,4 +1,4 @@
-import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, SwingAnalysis, UserSwingAnalysis } from '../types';
+import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, SwingAnalysis, UserSwingAnalysis, Category } from '../types';
 
 const BASE = '/api';
 
@@ -113,6 +113,27 @@ export const personaApi = {
 
     deleteIntroVideo: (id: string) =>
         request<Persona>(`/personas/${id}/intro-video`, { method: 'DELETE' }),
+};
+
+// Categories
+export const categoryApi = {
+    getAll: () =>
+        request<Category[]>('/categories'),
+
+    create: (name: string, order?: number) =>
+        request<Category>('/categories', {
+            method: 'POST',
+            body: JSON.stringify({ name, order }),
+        }),
+
+    update: (id: number, data: { name?: string; order?: number }) =>
+        request<Category>(`/categories/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(data),
+        }),
+
+    delete: (id: number) =>
+        request<{ message: string }>(`/categories/${id}`, { method: 'DELETE' }),
 };
 
 // Persona Images

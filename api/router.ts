@@ -149,6 +149,74 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
     }
 
+    // ── Categories ────────────────────────────────────────────
+    if (domain === 'categories') {
+        // GET /api/categories (public)
+        if (!seg1 && req.method === 'GET') {
+            try {
+                const categories = await prisma.category.findMany({
+                    orderBy: { order: 'asc' },
+                    include: { _count: { select: { personas: { where: { isVisible: true } } } } },
+                });
+                return res.status(200).json(categories);
+            } catch (e: any) {
+                console.error('[categories GET]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // POST /api/categories
+        if (!seg1 && req.method === 'POST') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { name, order } = req.body;
+                if (!name?.trim()) return res.status(400).json({ error: '카테고리 이름은 필수입니다.' });
+                const count = await prisma.category.count();
+                const category = await prisma.category.create({
+                    data: { name: name.trim(), order: order ?? count },
+                    include: { _count: { select: { personas: { where: { isVisible: true } } } } },
+                });
+                return res.status(201).json(category);
+            } catch (e: any) {
+                if (e.code === 'P2002') return res.status(400).json({ error: '이미 존재하는 카테고리 이름입니다.' });
+                console.error('[categories POST]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // PUT /api/categories/:id
+        if (seg1 && req.method === 'PUT') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                const { name, order } = req.body;
+                const category = await prisma.category.update({
+                    where: { id: Number(seg1) },
+                    data: { ...(name !== undefined && { name: name.trim() }), ...(order !== undefined && { order }) },
+                    include: { _count: { select: { personas: { where: { isVisible: true } } } } },
+                });
+                return res.status(200).json(category);
+            } catch (e: any) {
+                console.error('[categories PUT]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+
+        // DELETE /api/categories/:id
+        if (seg1 && req.method === 'DELETE') {
+            try {
+                const userId = await requireAdmin();
+                if (!userId) return;
+                await prisma.category.delete({ where: { id: Number(seg1) } });
+                return res.status(200).json({ message: '삭제되었습니다.' });
+            } catch (e: any) {
+                console.error('[categories DELETE]', e);
+                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+            }
+        }
+    }
+
     // ── App Settings ──────────────────────────────────────────
     if (domain === 'settings') {
         if (req.method === 'GET') {
@@ -232,7 +300,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // GET /api/personas (public)
         if (!seg1 && req.method === 'GET') {
             try {
-                const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
+                const personas = await prisma.persona.findMany({
+                    orderBy: { order: 'asc' },
+                    include: { category: true },
+                });
                 return res.status(200).json(personas);
             } catch (e: any) {
                 console.error('[personas GET]', e);
@@ -263,10 +334,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, order, isVisible } = req.body;
+                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, order, isVisible, categoryId } = req.body;
                 const persona = await prisma.persona.update({
                     where: { id: seg1 },
-                    data: { name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl ?? null, order, ...(isVisible !== undefined && { isVisible }) },
+                    data: {
+                        name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass,
+                        imageUrl, introVideoUrl: introVideoUrl ?? null, order,
+                        ...(isVisible !== undefined && { isVisible }),
+                        categoryId: categoryId !== undefined ? (categoryId || null) : undefined,
+                    },
+                    include: { category: true },
                 });
                 return res.status(200).json(persona);
             } catch (e: any) {

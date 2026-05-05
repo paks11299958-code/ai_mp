@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, LogOut, Settings, Menu, X, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Persona, User } from '../types';
+import { Bot, LogOut, Settings, Menu, X, Bell, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Persona, User, Category } from '../types';
 import { Icon } from './Icons';
 import { Theme, THEMES, ThemeConfig } from './LandingPage';
 
@@ -16,6 +16,7 @@ interface MainPageProps {
     theme: Theme;
     onThemeChange: (theme: Theme) => void;
     heroImageUrl?: string;
+    categories?: Category[];
 }
 
 const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string; onSelect: (id: string) => void }> = ({ personas, accent, accentLight, onSelect }) => {
@@ -89,7 +90,7 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
 
 export const MainPage: React.FC<MainPageProps> = ({
     personas, isLoading, user, onSelectPersona, onLogout, onAdminClick,
-    onAnnouncementClick, unreadAnnouncementCount = 0, theme, onThemeChange, heroImageUrl,
+    onAnnouncementClick, unreadAnnouncementCount = 0, theme, onThemeChange, heroImageUrl, categories = [],
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [themeOpen, setThemeOpen] = useState(false);
@@ -98,6 +99,8 @@ export const MainPage: React.FC<MainPageProps> = ({
     const [isDragging, setIsDragging] = useState(false);
     const [dragStartX, setDragStartX] = useState(0);
     const [dragOffset, setDragOffset] = useState(0);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const dragDistRef = useRef(0);
     const t = THEMES[theme];
 
@@ -136,12 +139,23 @@ export const MainPage: React.FC<MainPageProps> = ({
 
     const sorted = personas
         .filter(p => p.isVisible !== false)
+        .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId)
+        .filter(p => {
+            if (!searchQuery.trim()) return true;
+            const q = searchQuery.toLowerCase();
+            return p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q);
+        })
         .slice()
         .sort((a, b) => {
             const ta = a.createdAt ? new Date(a.createdAt).getTime() : 0;
             const tb = b.createdAt ? new Date(b.createdAt).getTime() : 0;
             return tb - ta;
         });
+
+    const handleCategorySelect = (id: number | null) => {
+        setSelectedCategoryId(id);
+        setCarouselIndex(0);
+    };
 
     const maxIndex = Math.max(0, sorted.length - visibleCount);
     const prev = () => setCarouselIndex(i => Math.max(0, i - 1));
@@ -293,7 +307,7 @@ export const MainPage: React.FC<MainPageProps> = ({
             {/* Carousel Section */}
             <section id="carousel" className="py-16 px-4 bg-gray-950">
                 <div className="max-w-6xl mx-auto">
-                    <div className="flex items-end justify-between mb-8">
+                    <div className="flex items-end justify-between mb-5">
                         <div>
                             <p className="text-xs font-bold tracking-widest uppercase mb-2" style={{ color: t.accentLight }}>AI PERSONAS</p>
                             <h2 className="text-2xl font-extrabold text-white">각 AI들을 선택하고 대화를 시작하세요.</h2>
@@ -305,6 +319,54 @@ export const MainPage: React.FC<MainPageProps> = ({
                             <button onClick={next} disabled={carouselIndex >= maxIndex} className="w-10 h-10 rounded-full border border-gray-700 flex items-center justify-center text-gray-400 hover:text-white hover:border-gray-500 disabled:opacity-30 transition-all">
                                 <ChevronRight size={18} />
                             </button>
+                        </div>
+                    </div>
+
+                    {/* 카테고리 필터 탭 + 검색창 */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                        <div className="flex gap-2 flex-wrap flex-1">
+                            <button
+                                onClick={() => handleCategorySelect(null)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
+                                style={selectedCategoryId === null
+                                    ? { backgroundColor: t.accent, color: '#fff' }
+                                    : { backgroundColor: '#1f2937', color: '#9ca3af' }
+                                }
+                            >
+                                전체
+                                <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                                    {personas.filter(p => p.isVisible !== false).length}
+                                </span>
+                            </button>
+                            {categories.map(cat => {
+                                const count = personas.filter(p => p.isVisible !== false && p.categoryId === cat.id).length;
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => handleCategorySelect(cat.id)}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-all"
+                                        style={selectedCategoryId === cat.id
+                                            ? { backgroundColor: t.accent, color: '#fff' }
+                                            : { backgroundColor: '#1f2937', color: '#9ca3af' }
+                                        }
+                                    >
+                                        {cat.name}
+                                        <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}>
+                                            {count}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <div className="relative flex-shrink-0">
+                            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={e => { setSearchQuery(e.target.value); setCarouselIndex(0); }}
+                                placeholder="AI 검색..."
+                                className="w-full sm:w-48 pl-8 pr-3 py-1.5 bg-gray-900 border border-gray-700 rounded-full text-sm text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition-colors"
+                            />
                         </div>
                     </div>
 

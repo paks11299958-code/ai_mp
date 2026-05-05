@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Chat } from '@google/genai';
-import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis, Announcement } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis, Announcement, Category } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi, announcementApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi, announcementApi, categoryApi } from './services/apiService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
@@ -113,6 +113,7 @@ const App: React.FC = () => {
 
     const [commonInstruction, setCommonInstruction] = useState('');
     const [heroImageUrl, setHeroImageUrl] = useState('');
+    const [categories, setCategories] = useState<Category[]>([]);
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
@@ -203,6 +204,8 @@ const App: React.FC = () => {
                 setCommonInstruction(data.commonInstruction || '');
             }
         } catch {}
+
+        categoryApi.getAll().then(setCategories).catch(() => {});
 
         settingsApi.get()
             .then(s => {
@@ -799,7 +802,7 @@ const App: React.FC = () => {
     if (resetToken) {
         return (
             <>
-                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} theme={theme} onThemeChange={handleThemeChange} heroImageUrl={heroImageUrl} />
+                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} theme={theme} onThemeChange={handleThemeChange} heroImageUrl={heroImageUrl} categories={categories} />
                 <ResetPasswordModal
                     token={resetToken}
                     onClose={() => setResetToken(null)}
@@ -842,6 +845,7 @@ const App: React.FC = () => {
                     theme={theme}
                     onThemeChange={handleThemeChange}
                     heroImageUrl={heroImageUrl}
+                    categories={categories}
                 />
                 {showAuthModal && (
                     <AuthModal
@@ -912,6 +916,7 @@ const App: React.FC = () => {
                     theme={theme}
                     onThemeChange={handleThemeChange}
                     heroImageUrl={heroImageUrl}
+                    categories={categories}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal

@@ -1,5 +1,13 @@
 export type Role = 'user' | 'model';
 
+export interface Category {
+    id: number;
+    name: string;
+    order: number;
+    createdAt: string;
+    _count?: { personas: number };
+}
+
 export interface Message {
     id: string;
     role: Role;
@@ -22,6 +30,8 @@ export interface Persona {
     introVideoUrl?: string;
     isDefault?: boolean;
     isVisible?: boolean;
+    categoryId?: number | null;
+    category?: Category | null;
     createdAt?: string;
 }
 
