@@ -340,7 +340,10 @@ app.put('/api/settings', async (req, res) => {
 // ── Personas ──────────────────────────────────────────────────
 app.get('/api/personas', async (req, res) => {
   try {
-    const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
+    const personas = await prisma.persona.findMany({
+      orderBy: { order: 'asc' },
+      include: { category: true },
+    });
     return res.json(personas);
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -366,8 +369,13 @@ app.put('/api/personas/:id', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const user = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (user?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { id, isDefault, createdAt, user: _u, sessions: _s, ...data } = req.body;
-    const updated = await prisma.persona.update({ where: { id: req.params.id }, data });
+    const { id, isDefault, createdAt, user: _u, sessions: _s, category: _cat, ...data } = req.body;
+    if (data.categoryId !== undefined) data.categoryId = data.categoryId || null;
+    const updated = await prisma.persona.update({
+      where: { id: req.params.id },
+      data,
+      include: { category: true },
+    });
     return res.json(updated);
   } catch (e) {
     return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
@@ -1693,6 +1701,64 @@ app.delete('/api/announcements/:id', async (req, res) => {
     if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
     await prisma.announcement.delete({ where: { id: Number(req.params.id) } });
     return res.json({ ok: true });
+  } catch (e) { return res.status(500).json({ error: '삭제 실패' }); }
+});
+
+// ── Categories ────────────────────────────────────────────────
+app.get('/api/categories', async (req, res) => {
+  try {
+    const categories = await prisma.category.findMany({
+      orderBy: { order: 'asc' },
+      include: { _count: { select: { personas: { where: { isVisible: true } } } } },
+    });
+    return res.json(categories);
+  } catch (e) { return res.status(500).json({ error: '서버 오류' }); }
+});
+
+app.post('/api/categories', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const u = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { name, order } = req.body;
+    if (!name?.trim()) return res.status(400).json({ error: '카테고리 이름은 필수입니다.' });
+    const count = await prisma.category.count();
+    const category = await prisma.category.create({
+      data: { name: name.trim(), order: order ?? count },
+      include: { _count: { select: { personas: { where: { isVisible: true } } } } },
+    });
+    return res.status(201).json(category);
+  } catch (e) {
+    if (e.code === 'P2002') return res.status(400).json({ error: '이미 존재하는 카테고리 이름입니다.' });
+    return res.status(500).json({ error: '서버 오류' });
+  }
+});
+
+app.put('/api/categories/:id', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const u = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    const { name, order } = req.body;
+    const category = await prisma.category.update({
+      where: { id: Number(req.params.id) },
+      data: { ...(name !== undefined && { name: name.trim() }), ...(order !== undefined && { order }) },
+      include: { _count: { select: { personas: { where: { isVisible: true } } } } },
+    });
+    return res.json(category);
+  } catch (e) { return res.status(500).json({ error: '서버 오류' }); }
+});
+
+app.delete('/api/categories/:id', async (req, res) => {
+  try {
+    const payload = verifyToken(req);
+    if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
+    const u = await prisma.user.findUnique({ where: { id: payload.userId } });
+    if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
+    await prisma.category.delete({ where: { id: Number(req.params.id) } });
+    return res.json({ message: '삭제되었습니다.' });
   } catch (e) { return res.status(500).json({ error: '삭제 실패' }); }
 });
 
