@@ -145,6 +145,13 @@ exports.Prisma.UserMemoryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.PersonaScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -160,6 +167,7 @@ exports.Prisma.PersonaScalarFieldEnum = {
   isDefault: 'isDefault',
   isVisible: 'isVisible',
   createdBy: 'createdBy',
+  categoryId: 'categoryId',
   createdAt: 'createdAt'
 };
 
@@ -296,6 +304,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   UserPersonaXp: 'UserPersonaXp',
   UserMemory: 'UserMemory',
+  Category: 'Category',
   Persona: 'Persona',
   PersonaImage: 'PersonaImage',
   PersonaVideo: 'PersonaVideo',

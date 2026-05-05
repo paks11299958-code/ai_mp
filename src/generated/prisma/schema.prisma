@@ -45,6 +45,14 @@ model UserMemory {
   user      User                        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+  personas  Persona[]
+}
+
 model Persona {
   id                String                @id @default(cuid())
   name              String
@@ -60,7 +68,9 @@ model Persona {
   isDefault         Boolean               @default(false)
   isVisible         Boolean               @default(true)
   createdBy         Int?
+  categoryId        Int?
   user              User?                 @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  category          Category?             @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt         DateTime              @default(now())
   sessions          ChatSession[]
   images            PersonaImage[]
