@@ -1534,6 +1534,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const list = await prisma.announcement.findMany({
                     where: showAll ? {} : { isVisible: true },
                     orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+                    include: { persona: { select: { id: true, name: true, introVideoUrl: true, imageUrl: true } } },
                 });
                 return res.status(200).json(list);
             } catch (e: any) {
@@ -1554,10 +1555,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!seg1 && req.method === 'POST') {
             try {
                 if (!await requireAdmin()) return;
-                const { title, content, category, isPinned, isVisible } = req.body;
+                const { title, content, category, isPinned, isVisible, personaId } = req.body;
                 if (!title || !content) return res.status(400).json({ error: '제목과 내용은 필수입니다.' });
                 const item = await prisma.announcement.create({
-                    data: { title, content, category: category || 'update', isPinned: isPinned ?? false, isVisible: isVisible ?? true },
+                    data: { title, content, category: category || 'update', isPinned: isPinned ?? false, isVisible: isVisible ?? true, personaId: personaId || null },
+                    include: { persona: { select: { id: true, name: true, introVideoUrl: true, imageUrl: true } } },
                 });
                 return res.status(201).json(item);
             } catch (e: any) { return res.status(500).json({ error: '저장 실패' }); }
@@ -1567,7 +1569,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (seg1 && req.method === 'PUT') {
             try {
                 if (!await requireAdmin()) return;
-                const { title, content, category, isPinned, isVisible } = req.body;
+                const { title, content, category, isPinned, isVisible, personaId } = req.body;
                 const item = await prisma.announcement.update({
                     where: { id: Number(seg1) },
                     data: {
@@ -1576,7 +1578,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         ...(category !== undefined && { category }),
                         ...(isPinned !== undefined && { isPinned }),
                         ...(isVisible !== undefined && { isVisible }),
+                        ...(personaId !== undefined && { personaId: personaId || null }),
                     },
+                    include: { persona: { select: { id: true, name: true, introVideoUrl: true, imageUrl: true } } },
                 });
                 return res.status(200).json(item);
             } catch (e: any) { return res.status(500).json({ error: '수정 실패' }); }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, LogOut, Settings, Menu, X, Bell, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Bot, LogOut, Settings, Menu, X, Megaphone, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Persona, User, Category } from '../types';
 import { Icon } from './Icons';
 import { Theme, THEMES, ThemeConfig } from './themes';
@@ -216,8 +216,9 @@ export const MainPage: React.FC<MainPageProps> = ({
 
                         <span className="text-sm text-gray-400">{user.username || user.email}</span>
                         {onAnnouncementClick && (
-                            <button onClick={onAnnouncementClick} className="relative p-2 text-gray-400 hover:text-white transition-colors">
-                                <Bell size={18} />
+                            <button onClick={onAnnouncementClick} className="relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-gray-800 transition-colors">
+                                <Megaphone size={16} className="text-yellow-400" />
+                                <span className="text-sm font-medium text-yellow-400">공지</span>
                                 {unreadAnnouncementCount > 0 && (
                                     <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
                                         {unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount}

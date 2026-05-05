@@ -280,6 +280,7 @@ exports.Prisma.AnnouncementScalarFieldEnum = {
   category: 'category',
   isPinned: 'isPinned',
   isVisible: 'isVisible',
+  personaId: 'personaId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

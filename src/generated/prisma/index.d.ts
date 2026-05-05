@@ -2445,6 +2445,7 @@ export namespace Prisma {
     boardPosts: number
     triggerVideos: number
     swingAnalyses: number
+    announcements: number
   }
 
   export type PersonaCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2455,6 +2456,7 @@ export namespace Prisma {
     boardPosts?: boolean | PersonaCountOutputTypeCountBoardPostsArgs
     triggerVideos?: boolean | PersonaCountOutputTypeCountTriggerVideosArgs
     swingAnalyses?: boolean | PersonaCountOutputTypeCountSwingAnalysesArgs
+    announcements?: boolean | PersonaCountOutputTypeCountAnnouncementsArgs
   }
 
   // Custom InputTypes
@@ -2515,6 +2517,13 @@ export namespace Prisma {
    */
   export type PersonaCountOutputTypeCountSwingAnalysesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: UserSwingAnalysisWhereInput
+  }
+
+  /**
+   * PersonaCountOutputType without action
+   */
+  export type PersonaCountOutputTypeCountAnnouncementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AnnouncementWhereInput
   }
 
 
@@ -7518,6 +7527,7 @@ export namespace Prisma {
     boardPosts?: boolean | Persona$boardPostsArgs<ExtArgs>
     triggerVideos?: boolean | Persona$triggerVideosArgs<ExtArgs>
     swingAnalyses?: boolean | Persona$swingAnalysesArgs<ExtArgs>
+    announcements?: boolean | Persona$announcementsArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["persona"]>
 
@@ -7593,6 +7603,7 @@ export namespace Prisma {
     boardPosts?: boolean | Persona$boardPostsArgs<ExtArgs>
     triggerVideos?: boolean | Persona$triggerVideosArgs<ExtArgs>
     swingAnalyses?: boolean | Persona$swingAnalysesArgs<ExtArgs>
+    announcements?: boolean | Persona$announcementsArgs<ExtArgs>
     _count?: boolean | PersonaCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PersonaIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7616,6 +7627,7 @@ export namespace Prisma {
       boardPosts: Prisma.$BoardPostPayload<ExtArgs>[]
       triggerVideos: Prisma.$PersonaTriggerVideoPayload<ExtArgs>[]
       swingAnalyses: Prisma.$UserSwingAnalysisPayload<ExtArgs>[]
+      announcements: Prisma.$AnnouncementPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -8037,6 +8049,7 @@ export namespace Prisma {
     boardPosts<T extends Persona$boardPostsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$boardPostsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BoardPostPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     triggerVideos<T extends Persona$triggerVideosArgs<ExtArgs> = {}>(args?: Subset<T, Persona$triggerVideosArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PersonaTriggerVideoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     swingAnalyses<T extends Persona$swingAnalysesArgs<ExtArgs> = {}>(args?: Subset<T, Persona$swingAnalysesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UserSwingAnalysisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    announcements<T extends Persona$announcementsArgs<ExtArgs> = {}>(args?: Subset<T, Persona$announcementsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AnnouncementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -8686,6 +8699,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: UserSwingAnalysisScalarFieldEnum | UserSwingAnalysisScalarFieldEnum[]
+  }
+
+  /**
+   * Persona.announcements
+   */
+  export type Persona$announcementsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Announcement
+     */
+    select?: AnnouncementSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Announcement
+     */
+    omit?: AnnouncementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
+    where?: AnnouncementWhereInput
+    orderBy?: AnnouncementOrderByWithRelationInput | AnnouncementOrderByWithRelationInput[]
+    cursor?: AnnouncementWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AnnouncementScalarFieldEnum | AnnouncementScalarFieldEnum[]
   }
 
   /**
@@ -21087,6 +21124,7 @@ export namespace Prisma {
     category: string | null
     isPinned: boolean | null
     isVisible: boolean | null
+    personaId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -21098,6 +21136,7 @@ export namespace Prisma {
     category: string | null
     isPinned: boolean | null
     isVisible: boolean | null
+    personaId: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -21109,6 +21148,7 @@ export namespace Prisma {
     category: number
     isPinned: number
     isVisible: number
+    personaId: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -21130,6 +21170,7 @@ export namespace Prisma {
     category?: true
     isPinned?: true
     isVisible?: true
+    personaId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -21141,6 +21182,7 @@ export namespace Prisma {
     category?: true
     isPinned?: true
     isVisible?: true
+    personaId?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -21152,6 +21194,7 @@ export namespace Prisma {
     category?: true
     isPinned?: true
     isVisible?: true
+    personaId?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -21250,6 +21293,7 @@ export namespace Prisma {
     category: string
     isPinned: boolean
     isVisible: boolean
+    personaId: string | null
     createdAt: Date
     updatedAt: Date
     _count: AnnouncementCountAggregateOutputType | null
@@ -21280,8 +21324,10 @@ export namespace Prisma {
     category?: boolean
     isPinned?: boolean
     isVisible?: boolean
+    personaId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    persona?: boolean | Announcement$personaArgs<ExtArgs>
   }, ExtArgs["result"]["announcement"]>
 
   export type AnnouncementSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -21291,8 +21337,10 @@ export namespace Prisma {
     category?: boolean
     isPinned?: boolean
     isVisible?: boolean
+    personaId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    persona?: boolean | Announcement$personaArgs<ExtArgs>
   }, ExtArgs["result"]["announcement"]>
 
   export type AnnouncementSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -21302,8 +21350,10 @@ export namespace Prisma {
     category?: boolean
     isPinned?: boolean
     isVisible?: boolean
+    personaId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    persona?: boolean | Announcement$personaArgs<ExtArgs>
   }, ExtArgs["result"]["announcement"]>
 
   export type AnnouncementSelectScalar = {
@@ -21313,15 +21363,27 @@ export namespace Prisma {
     category?: boolean
     isPinned?: boolean
     isVisible?: boolean
+    personaId?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type AnnouncementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "content" | "category" | "isPinned" | "isVisible" | "createdAt" | "updatedAt", ExtArgs["result"]["announcement"]>
+  export type AnnouncementOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "content" | "category" | "isPinned" | "isVisible" | "personaId" | "createdAt" | "updatedAt", ExtArgs["result"]["announcement"]>
+  export type AnnouncementInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | Announcement$personaArgs<ExtArgs>
+  }
+  export type AnnouncementIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | Announcement$personaArgs<ExtArgs>
+  }
+  export type AnnouncementIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    persona?: boolean | Announcement$personaArgs<ExtArgs>
+  }
 
   export type $AnnouncementPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Announcement"
-    objects: {}
+    objects: {
+      persona: Prisma.$PersonaPayload<ExtArgs> | null
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       title: string
@@ -21329,6 +21391,7 @@ export namespace Prisma {
       category: string
       isPinned: boolean
       isVisible: boolean
+      personaId: string | null
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["announcement"]>
@@ -21725,6 +21788,7 @@ export namespace Prisma {
    */
   export interface Prisma__AnnouncementClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    persona<T extends Announcement$personaArgs<ExtArgs> = {}>(args?: Subset<T, Announcement$personaArgs<ExtArgs>>): Prisma__PersonaClient<$Result.GetResult<Prisma.$PersonaPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -21760,6 +21824,7 @@ export namespace Prisma {
     readonly category: FieldRef<"Announcement", 'String'>
     readonly isPinned: FieldRef<"Announcement", 'Boolean'>
     readonly isVisible: FieldRef<"Announcement", 'Boolean'>
+    readonly personaId: FieldRef<"Announcement", 'String'>
     readonly createdAt: FieldRef<"Announcement", 'DateTime'>
     readonly updatedAt: FieldRef<"Announcement", 'DateTime'>
   }
@@ -21779,6 +21844,10 @@ export namespace Prisma {
      */
     omit?: AnnouncementOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
+    /**
      * Filter, which Announcement to fetch.
      */
     where: AnnouncementWhereUniqueInput
@@ -21797,6 +21866,10 @@ export namespace Prisma {
      */
     omit?: AnnouncementOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
+    /**
      * Filter, which Announcement to fetch.
      */
     where: AnnouncementWhereUniqueInput
@@ -21814,6 +21887,10 @@ export namespace Prisma {
      * Omit specific fields from the Announcement
      */
     omit?: AnnouncementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
     /**
      * Filter, which Announcement to fetch.
      */
@@ -21863,6 +21940,10 @@ export namespace Prisma {
      */
     omit?: AnnouncementOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
+    /**
      * Filter, which Announcement to fetch.
      */
     where?: AnnouncementWhereInput
@@ -21910,6 +21991,10 @@ export namespace Prisma {
      * Omit specific fields from the Announcement
      */
     omit?: AnnouncementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
     /**
      * Filter, which Announcements to fetch.
      */
@@ -21959,6 +22044,10 @@ export namespace Prisma {
      */
     omit?: AnnouncementOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
+    /**
      * The data needed to create a Announcement.
      */
     data: XOR<AnnouncementCreateInput, AnnouncementUncheckedCreateInput>
@@ -21992,6 +22081,10 @@ export namespace Prisma {
      */
     data: AnnouncementCreateManyInput | AnnouncementCreateManyInput[]
     skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementIncludeCreateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -22006,6 +22099,10 @@ export namespace Prisma {
      * Omit specific fields from the Announcement
      */
     omit?: AnnouncementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
     /**
      * The data needed to update a Announcement.
      */
@@ -22058,6 +22155,10 @@ export namespace Prisma {
      * Limit how many Announcements to update.
      */
     limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementIncludeUpdateManyAndReturn<ExtArgs> | null
   }
 
   /**
@@ -22072,6 +22173,10 @@ export namespace Prisma {
      * Omit specific fields from the Announcement
      */
     omit?: AnnouncementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
     /**
      * The filter to search for the Announcement to update in case it exists.
      */
@@ -22099,6 +22204,10 @@ export namespace Prisma {
      */
     omit?: AnnouncementOmit<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
+    /**
      * Filter which Announcement to delete.
      */
     where: AnnouncementWhereUniqueInput
@@ -22119,6 +22228,25 @@ export namespace Prisma {
   }
 
   /**
+   * Announcement.persona
+   */
+  export type Announcement$personaArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Persona
+     */
+    select?: PersonaSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Persona
+     */
+    omit?: PersonaOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PersonaInclude<ExtArgs> | null
+    where?: PersonaWhereInput
+  }
+
+  /**
    * Announcement without action
    */
   export type AnnouncementDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -22130,6 +22258,10 @@ export namespace Prisma {
      * Omit specific fields from the Announcement
      */
     omit?: AnnouncementOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AnnouncementInclude<ExtArgs> | null
   }
 
 
@@ -22355,6 +22487,7 @@ export namespace Prisma {
     category: 'category',
     isPinned: 'isPinned',
     isVisible: 'isVisible',
+    personaId: 'personaId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -22736,6 +22869,7 @@ export namespace Prisma {
     boardPosts?: BoardPostListRelationFilter
     triggerVideos?: PersonaTriggerVideoListRelationFilter
     swingAnalyses?: UserSwingAnalysisListRelationFilter
+    announcements?: AnnouncementListRelationFilter
   }
 
   export type PersonaOrderByWithRelationInput = {
@@ -22764,6 +22898,7 @@ export namespace Prisma {
     boardPosts?: BoardPostOrderByRelationAggregateInput
     triggerVideos?: PersonaTriggerVideoOrderByRelationAggregateInput
     swingAnalyses?: UserSwingAnalysisOrderByRelationAggregateInput
+    announcements?: AnnouncementOrderByRelationAggregateInput
   }
 
   export type PersonaWhereUniqueInput = Prisma.AtLeast<{
@@ -22795,6 +22930,7 @@ export namespace Prisma {
     boardPosts?: BoardPostListRelationFilter
     triggerVideos?: PersonaTriggerVideoListRelationFilter
     swingAnalyses?: UserSwingAnalysisListRelationFilter
+    announcements?: AnnouncementListRelationFilter
   }, "id">
 
   export type PersonaOrderByWithAggregationInput = {
@@ -23569,8 +23705,10 @@ export namespace Prisma {
     category?: StringFilter<"Announcement"> | string
     isPinned?: BoolFilter<"Announcement"> | boolean
     isVisible?: BoolFilter<"Announcement"> | boolean
+    personaId?: StringNullableFilter<"Announcement"> | string | null
     createdAt?: DateTimeFilter<"Announcement"> | Date | string
     updatedAt?: DateTimeFilter<"Announcement"> | Date | string
+    persona?: XOR<PersonaNullableScalarRelationFilter, PersonaWhereInput> | null
   }
 
   export type AnnouncementOrderByWithRelationInput = {
@@ -23580,8 +23718,10 @@ export namespace Prisma {
     category?: SortOrder
     isPinned?: SortOrder
     isVisible?: SortOrder
+    personaId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    persona?: PersonaOrderByWithRelationInput
   }
 
   export type AnnouncementWhereUniqueInput = Prisma.AtLeast<{
@@ -23594,8 +23734,10 @@ export namespace Prisma {
     category?: StringFilter<"Announcement"> | string
     isPinned?: BoolFilter<"Announcement"> | boolean
     isVisible?: BoolFilter<"Announcement"> | boolean
+    personaId?: StringNullableFilter<"Announcement"> | string | null
     createdAt?: DateTimeFilter<"Announcement"> | Date | string
     updatedAt?: DateTimeFilter<"Announcement"> | Date | string
+    persona?: XOR<PersonaNullableScalarRelationFilter, PersonaWhereInput> | null
   }, "id">
 
   export type AnnouncementOrderByWithAggregationInput = {
@@ -23605,6 +23747,7 @@ export namespace Prisma {
     category?: SortOrder
     isPinned?: SortOrder
     isVisible?: SortOrder
+    personaId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: AnnouncementCountOrderByAggregateInput
@@ -23624,6 +23767,7 @@ export namespace Prisma {
     category?: StringWithAggregatesFilter<"Announcement"> | string
     isPinned?: BoolWithAggregatesFilter<"Announcement"> | boolean
     isVisible?: BoolWithAggregatesFilter<"Announcement"> | boolean
+    personaId?: StringNullableWithAggregatesFilter<"Announcement"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"Announcement"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Announcement"> | Date | string
   }
@@ -23896,6 +24040,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateInput = {
@@ -23922,6 +24067,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUpdateInput = {
@@ -23948,6 +24094,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateInput = {
@@ -23974,6 +24121,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateManyInput = {
@@ -24725,6 +24873,7 @@ export namespace Prisma {
     isVisible?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    persona?: PersonaCreateNestedOneWithoutAnnouncementsInput
   }
 
   export type AnnouncementUncheckedCreateInput = {
@@ -24734,6 +24883,7 @@ export namespace Prisma {
     category?: string
     isPinned?: boolean
     isVisible?: boolean
+    personaId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -24746,6 +24896,7 @@ export namespace Prisma {
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    persona?: PersonaUpdateOneWithoutAnnouncementsNestedInput
   }
 
   export type AnnouncementUncheckedUpdateInput = {
@@ -24755,6 +24906,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    personaId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -24766,6 +24918,7 @@ export namespace Prisma {
     category?: string
     isPinned?: boolean
     isVisible?: boolean
+    personaId?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -24787,6 +24940,7 @@ export namespace Prisma {
     category?: StringFieldUpdateOperationsInput | string
     isPinned?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    personaId?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -25202,6 +25356,12 @@ export namespace Prisma {
     none?: PersonaTriggerVideoWhereInput
   }
 
+  export type AnnouncementListRelationFilter = {
+    every?: AnnouncementWhereInput
+    some?: AnnouncementWhereInput
+    none?: AnnouncementWhereInput
+  }
+
   export type PersonaImageOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -25211,6 +25371,10 @@ export namespace Prisma {
   }
 
   export type PersonaTriggerVideoOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AnnouncementOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -25761,6 +25925,11 @@ export namespace Prisma {
     userId?: SortOrder
   }
 
+  export type PersonaNullableScalarRelationFilter = {
+    is?: PersonaWhereInput | null
+    isNot?: PersonaWhereInput | null
+  }
+
   export type AnnouncementCountOrderByAggregateInput = {
     id?: SortOrder
     title?: SortOrder
@@ -25768,6 +25937,7 @@ export namespace Prisma {
     category?: SortOrder
     isPinned?: SortOrder
     isVisible?: SortOrder
+    personaId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -25783,6 +25953,7 @@ export namespace Prisma {
     category?: SortOrder
     isPinned?: SortOrder
     isVisible?: SortOrder
+    personaId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -25794,6 +25965,7 @@ export namespace Prisma {
     category?: SortOrder
     isPinned?: SortOrder
     isVisible?: SortOrder
+    personaId?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -26265,6 +26437,13 @@ export namespace Prisma {
     connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
   }
 
+  export type AnnouncementCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<AnnouncementCreateWithoutPersonaInput, AnnouncementUncheckedCreateWithoutPersonaInput> | AnnouncementCreateWithoutPersonaInput[] | AnnouncementUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: AnnouncementCreateOrConnectWithoutPersonaInput | AnnouncementCreateOrConnectWithoutPersonaInput[]
+    createMany?: AnnouncementCreateManyPersonaInputEnvelope
+    connect?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+  }
+
   export type ChatSessionUncheckedCreateNestedManyWithoutPersonaInput = {
     create?: XOR<ChatSessionCreateWithoutPersonaInput, ChatSessionUncheckedCreateWithoutPersonaInput> | ChatSessionCreateWithoutPersonaInput[] | ChatSessionUncheckedCreateWithoutPersonaInput[]
     connectOrCreate?: ChatSessionCreateOrConnectWithoutPersonaInput | ChatSessionCreateOrConnectWithoutPersonaInput[]
@@ -26312,6 +26491,13 @@ export namespace Prisma {
     connectOrCreate?: UserSwingAnalysisCreateOrConnectWithoutPersonaInput | UserSwingAnalysisCreateOrConnectWithoutPersonaInput[]
     createMany?: UserSwingAnalysisCreateManyPersonaInputEnvelope
     connect?: UserSwingAnalysisWhereUniqueInput | UserSwingAnalysisWhereUniqueInput[]
+  }
+
+  export type AnnouncementUncheckedCreateNestedManyWithoutPersonaInput = {
+    create?: XOR<AnnouncementCreateWithoutPersonaInput, AnnouncementUncheckedCreateWithoutPersonaInput> | AnnouncementCreateWithoutPersonaInput[] | AnnouncementUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: AnnouncementCreateOrConnectWithoutPersonaInput | AnnouncementCreateOrConnectWithoutPersonaInput[]
+    createMany?: AnnouncementCreateManyPersonaInputEnvelope
+    connect?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -26436,6 +26622,20 @@ export namespace Prisma {
     deleteMany?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
   }
 
+  export type AnnouncementUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<AnnouncementCreateWithoutPersonaInput, AnnouncementUncheckedCreateWithoutPersonaInput> | AnnouncementCreateWithoutPersonaInput[] | AnnouncementUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: AnnouncementCreateOrConnectWithoutPersonaInput | AnnouncementCreateOrConnectWithoutPersonaInput[]
+    upsert?: AnnouncementUpsertWithWhereUniqueWithoutPersonaInput | AnnouncementUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: AnnouncementCreateManyPersonaInputEnvelope
+    set?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    disconnect?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    delete?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    connect?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    update?: AnnouncementUpdateWithWhereUniqueWithoutPersonaInput | AnnouncementUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: AnnouncementUpdateManyWithWhereWithoutPersonaInput | AnnouncementUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: AnnouncementScalarWhereInput | AnnouncementScalarWhereInput[]
+  }
+
   export type NullableIntFieldUpdateOperationsInput = {
     set?: number | null
     increment?: number
@@ -26540,6 +26740,20 @@ export namespace Prisma {
     update?: UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput | UserSwingAnalysisUpdateWithWhereUniqueWithoutPersonaInput[]
     updateMany?: UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput | UserSwingAnalysisUpdateManyWithWhereWithoutPersonaInput[]
     deleteMany?: UserSwingAnalysisScalarWhereInput | UserSwingAnalysisScalarWhereInput[]
+  }
+
+  export type AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput = {
+    create?: XOR<AnnouncementCreateWithoutPersonaInput, AnnouncementUncheckedCreateWithoutPersonaInput> | AnnouncementCreateWithoutPersonaInput[] | AnnouncementUncheckedCreateWithoutPersonaInput[]
+    connectOrCreate?: AnnouncementCreateOrConnectWithoutPersonaInput | AnnouncementCreateOrConnectWithoutPersonaInput[]
+    upsert?: AnnouncementUpsertWithWhereUniqueWithoutPersonaInput | AnnouncementUpsertWithWhereUniqueWithoutPersonaInput[]
+    createMany?: AnnouncementCreateManyPersonaInputEnvelope
+    set?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    disconnect?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    delete?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    connect?: AnnouncementWhereUniqueInput | AnnouncementWhereUniqueInput[]
+    update?: AnnouncementUpdateWithWhereUniqueWithoutPersonaInput | AnnouncementUpdateWithWhereUniqueWithoutPersonaInput[]
+    updateMany?: AnnouncementUpdateManyWithWhereWithoutPersonaInput | AnnouncementUpdateManyWithWhereWithoutPersonaInput[]
+    deleteMany?: AnnouncementScalarWhereInput | AnnouncementScalarWhereInput[]
   }
 
   export type PersonaCreateNestedOneWithoutImagesInput = {
@@ -26896,6 +27110,22 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutBoardRepliesInput, UserUpdateWithoutBoardRepliesInput>, UserUncheckedUpdateWithoutBoardRepliesInput>
   }
 
+  export type PersonaCreateNestedOneWithoutAnnouncementsInput = {
+    create?: XOR<PersonaCreateWithoutAnnouncementsInput, PersonaUncheckedCreateWithoutAnnouncementsInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutAnnouncementsInput
+    connect?: PersonaWhereUniqueInput
+  }
+
+  export type PersonaUpdateOneWithoutAnnouncementsNestedInput = {
+    create?: XOR<PersonaCreateWithoutAnnouncementsInput, PersonaUncheckedCreateWithoutAnnouncementsInput>
+    connectOrCreate?: PersonaCreateOrConnectWithoutAnnouncementsInput
+    upsert?: PersonaUpsertWithoutAnnouncementsInput
+    disconnect?: PersonaWhereInput | boolean
+    delete?: PersonaWhereInput | boolean
+    connect?: PersonaWhereUniqueInput
+    update?: XOR<XOR<PersonaUpdateToOneWithWhereWithoutAnnouncementsInput, PersonaUpdateWithoutAnnouncementsInput>, PersonaUncheckedUpdateWithoutAnnouncementsInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -27120,6 +27350,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutUserInput = {
@@ -27145,6 +27376,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutUserInput = {
@@ -27572,6 +27804,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutPersonaXpsInput = {
@@ -27597,6 +27830,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutPersonaXpsInput = {
@@ -27682,6 +27916,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutPersonaXpsInput = {
@@ -27707,6 +27942,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type UserCreateWithoutMemoriesInput = {
@@ -27814,6 +28050,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutCategoryInput = {
@@ -27839,6 +28076,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutCategoryInput = {
@@ -28113,6 +28351,37 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type AnnouncementCreateWithoutPersonaInput = {
+    title: string
+    content: string
+    category?: string
+    isPinned?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AnnouncementUncheckedCreateWithoutPersonaInput = {
+    id?: number
+    title: string
+    content: string
+    category?: string
+    isPinned?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AnnouncementCreateOrConnectWithoutPersonaInput = {
+    where: AnnouncementWhereUniqueInput
+    create: XOR<AnnouncementCreateWithoutPersonaInput, AnnouncementUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type AnnouncementCreateManyPersonaInputEnvelope = {
+    data: AnnouncementCreateManyPersonaInput | AnnouncementCreateManyPersonaInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserUpsertWithoutPersonasInput = {
     update: XOR<UserUpdateWithoutPersonasInput, UserUncheckedUpdateWithoutPersonasInput>
     create: XOR<UserCreateWithoutPersonasInput, UserUncheckedCreateWithoutPersonasInput>
@@ -28334,6 +28603,37 @@ export namespace Prisma {
     data: XOR<UserSwingAnalysisUpdateManyMutationInput, UserSwingAnalysisUncheckedUpdateManyWithoutPersonaInput>
   }
 
+  export type AnnouncementUpsertWithWhereUniqueWithoutPersonaInput = {
+    where: AnnouncementWhereUniqueInput
+    update: XOR<AnnouncementUpdateWithoutPersonaInput, AnnouncementUncheckedUpdateWithoutPersonaInput>
+    create: XOR<AnnouncementCreateWithoutPersonaInput, AnnouncementUncheckedCreateWithoutPersonaInput>
+  }
+
+  export type AnnouncementUpdateWithWhereUniqueWithoutPersonaInput = {
+    where: AnnouncementWhereUniqueInput
+    data: XOR<AnnouncementUpdateWithoutPersonaInput, AnnouncementUncheckedUpdateWithoutPersonaInput>
+  }
+
+  export type AnnouncementUpdateManyWithWhereWithoutPersonaInput = {
+    where: AnnouncementScalarWhereInput
+    data: XOR<AnnouncementUpdateManyMutationInput, AnnouncementUncheckedUpdateManyWithoutPersonaInput>
+  }
+
+  export type AnnouncementScalarWhereInput = {
+    AND?: AnnouncementScalarWhereInput | AnnouncementScalarWhereInput[]
+    OR?: AnnouncementScalarWhereInput[]
+    NOT?: AnnouncementScalarWhereInput | AnnouncementScalarWhereInput[]
+    id?: IntFilter<"Announcement"> | number
+    title?: StringFilter<"Announcement"> | string
+    content?: StringFilter<"Announcement"> | string
+    category?: StringFilter<"Announcement"> | string
+    isPinned?: BoolFilter<"Announcement"> | boolean
+    isVisible?: BoolFilter<"Announcement"> | boolean
+    personaId?: StringNullableFilter<"Announcement"> | string | null
+    createdAt?: DateTimeFilter<"Announcement"> | Date | string
+    updatedAt?: DateTimeFilter<"Announcement"> | Date | string
+  }
+
   export type PersonaCreateWithoutImagesInput = {
     id?: string
     name: string
@@ -28357,6 +28657,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutImagesInput = {
@@ -28382,6 +28683,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutImagesInput = {
@@ -28450,6 +28752,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutImagesInput = {
@@ -28475,6 +28778,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaVideoUpsertWithWhereUniqueWithoutImageInput = {
@@ -28625,6 +28929,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutSessionsInput = {
@@ -28650,6 +28955,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutSessionsInput = {
@@ -28778,6 +29084,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutSessionsInput = {
@@ -28803,6 +29110,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type MessageUpsertWithWhereUniqueWithoutSessionInput = {
@@ -28989,6 +29297,7 @@ export namespace Prisma {
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutKnowledgeInput = {
@@ -29014,6 +29323,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutKnowledgeInput = {
@@ -29055,6 +29365,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutKnowledgeInput = {
@@ -29080,6 +29391,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaCreateWithoutTriggerVideosInput = {
@@ -29105,6 +29417,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutTriggerVideosInput = {
@@ -29130,6 +29443,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutTriggerVideosInput = {
@@ -29171,6 +29485,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutTriggerVideosInput = {
@@ -29196,6 +29511,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type UserCreateWithoutBoardPostsInput = {
@@ -29259,6 +29575,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutBoardPostsInput = {
@@ -29284,6 +29601,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
     swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutBoardPostsInput = {
@@ -29394,6 +29712,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutBoardPostsInput = {
@@ -29419,6 +29738,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type BoardReplyUpsertWithWhereUniqueWithoutPostInput = {
@@ -29498,6 +29818,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaUncheckedCreateWithoutSwingAnalysesInput = {
@@ -29523,6 +29844,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
     boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
     triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    announcements?: AnnouncementUncheckedCreateNestedManyWithoutPersonaInput
   }
 
   export type PersonaCreateOrConnectWithoutSwingAnalysesInput = {
@@ -29608,6 +29930,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutSwingAnalysesInput = {
@@ -29633,6 +29956,7 @@ export namespace Prisma {
     knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type BoardPostCreateWithoutRepliesInput = {
@@ -29771,6 +30095,126 @@ export namespace Prisma {
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
   }
 
+  export type PersonaCreateWithoutAnnouncementsInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    introVideoUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    user?: UserCreateNestedOneWithoutPersonasInput
+    category?: CategoryCreateNestedOneWithoutPersonasInput
+    sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeCreateNestedManyWithoutPersonaInput
+    boardPosts?: BoardPostCreateNestedManyWithoutPersonaInput
+    triggerVideos?: PersonaTriggerVideoCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaUncheckedCreateWithoutAnnouncementsInput = {
+    id?: string
+    name: string
+    jobTitle?: string | null
+    description?: string | null
+    systemInstruction: string
+    identityPrompt?: string | null
+    iconName?: string
+    colorClass?: string
+    order?: number
+    imageUrl?: string | null
+    introVideoUrl?: string | null
+    isDefault?: boolean
+    isVisible?: boolean
+    createdBy?: number | null
+    categoryId?: number | null
+    createdAt?: Date | string
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
+    images?: PersonaImageUncheckedCreateNestedManyWithoutPersonaInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutPersonaInput
+    knowledge?: PersonaKnowledgeUncheckedCreateNestedManyWithoutPersonaInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutPersonaInput
+    triggerVideos?: PersonaTriggerVideoUncheckedCreateNestedManyWithoutPersonaInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutPersonaInput
+  }
+
+  export type PersonaCreateOrConnectWithoutAnnouncementsInput = {
+    where: PersonaWhereUniqueInput
+    create: XOR<PersonaCreateWithoutAnnouncementsInput, PersonaUncheckedCreateWithoutAnnouncementsInput>
+  }
+
+  export type PersonaUpsertWithoutAnnouncementsInput = {
+    update: XOR<PersonaUpdateWithoutAnnouncementsInput, PersonaUncheckedUpdateWithoutAnnouncementsInput>
+    create: XOR<PersonaCreateWithoutAnnouncementsInput, PersonaUncheckedCreateWithoutAnnouncementsInput>
+    where?: PersonaWhereInput
+  }
+
+  export type PersonaUpdateToOneWithWhereWithoutAnnouncementsInput = {
+    where?: PersonaWhereInput
+    data: XOR<PersonaUpdateWithoutAnnouncementsInput, PersonaUncheckedUpdateWithoutAnnouncementsInput>
+  }
+
+  export type PersonaUpdateWithoutAnnouncementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneWithoutPersonasNestedInput
+    category?: CategoryUpdateOneWithoutPersonasNestedInput
+    sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUpdateManyWithoutPersonaNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
+    triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+  }
+
+  export type PersonaUncheckedUpdateWithoutAnnouncementsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    jobTitle?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    systemInstruction?: StringFieldUpdateOperationsInput | string
+    identityPrompt?: NullableStringFieldUpdateOperationsInput | string | null
+    iconName?: StringFieldUpdateOperationsInput | string
+    colorClass?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+    imageUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    introVideoUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isDefault?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdBy?: NullableIntFieldUpdateOperationsInput | number | null
+    categoryId?: NullableIntFieldUpdateOperationsInput | number | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
+    images?: PersonaImageUncheckedUpdateManyWithoutPersonaNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutPersonaNestedInput
+    knowledge?: PersonaKnowledgeUncheckedUpdateManyWithoutPersonaNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
+    triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+  }
+
   export type PersonaCreateManyUserInput = {
     id?: string
     name: string
@@ -29857,6 +30301,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutUserInput = {
@@ -29882,6 +30327,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateManyWithoutUserInput = {
@@ -30079,6 +30525,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateWithoutCategoryInput = {
@@ -30104,6 +30551,7 @@ export namespace Prisma {
     boardPosts?: BoardPostUncheckedUpdateManyWithoutPersonaNestedInput
     triggerVideos?: PersonaTriggerVideoUncheckedUpdateManyWithoutPersonaNestedInput
     swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutPersonaNestedInput
+    announcements?: AnnouncementUncheckedUpdateManyWithoutPersonaNestedInput
   }
 
   export type PersonaUncheckedUpdateManyWithoutCategoryInput = {
@@ -30181,6 +30629,17 @@ export namespace Prisma {
     fileName?: string | null
     analysisJson: string
     createdAt?: Date | string
+  }
+
+  export type AnnouncementCreateManyPersonaInput = {
+    id?: number
+    title: string
+    content: string
+    category?: string
+    isPinned?: boolean
+    isVisible?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type ChatSessionUpdateWithoutPersonaInput = {
@@ -30360,6 +30819,38 @@ export namespace Prisma {
     fileName?: NullableStringFieldUpdateOperationsInput | string | null
     analysisJson?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AnnouncementUpdateWithoutPersonaInput = {
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    isPinned?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AnnouncementUncheckedUpdateWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    isPinned?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AnnouncementUncheckedUpdateManyWithoutPersonaInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    title?: StringFieldUpdateOperationsInput | string
+    content?: StringFieldUpdateOperationsInput | string
+    category?: StringFieldUpdateOperationsInput | string
+    isPinned?: BoolFieldUpdateOperationsInput | boolean
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PersonaVideoCreateManyImageInput = {

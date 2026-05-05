@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Announcement } from '../types';
 import { Icon } from './Icons';
+import { Play } from 'lucide-react';
 
 interface AnnouncementModalProps {
     announcements: Announcement[];
@@ -19,6 +20,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
     const [expandedId, setExpandedId] = useState<number | null>(
         announcements.length > 0 ? announcements[0].id : null
     );
+    const [playingVideoId, setPlayingVideoId] = useState<number | null>(null);
 
     const handleExpand = (id: number) => {
         setExpandedId(prev => prev === id ? null : id);
@@ -114,6 +116,36 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
                                             <div className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap bg-gray-800/60 rounded-xl p-3">
                                                 {a.content}
                                             </div>
+                                            {a.category === 'persona' && a.persona && (a.persona.introVideoUrl || a.persona.imageUrl) && (
+                                                <div className="mt-3">
+                                                    {playingVideoId === a.id ? (
+                                                        <div className="rounded-xl overflow-hidden bg-black">
+                                                            {a.persona.introVideoUrl ? (
+                                                                <video
+                                                                    src={a.persona.introVideoUrl}
+                                                                    autoPlay
+                                                                    controls
+                                                                    className="w-full max-h-60 object-contain"
+                                                                />
+                                                            ) : (
+                                                                <img
+                                                                    src={a.persona.imageUrl!}
+                                                                    alt={a.persona.name}
+                                                                    className="w-full max-h-60 object-contain"
+                                                                />
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={e => { e.stopPropagation(); setPlayingVideoId(a.id); }}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-semibold rounded-xl transition-colors"
+                                                        >
+                                                            <Play size={14} />
+                                                            소개영상
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

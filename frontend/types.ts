@@ -152,6 +152,8 @@ export interface Announcement {
     category: 'persona' | 'update' | 'news';
     isPinned: boolean;
     isVisible: boolean;
+    personaId?: string | null;
+    persona?: { id: string; name: string; introVideoUrl?: string | null; imageUrl?: string | null } | null;
     createdAt: string;
     updatedAt: string;
 }

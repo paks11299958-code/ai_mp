@@ -78,6 +78,7 @@ model Persona {
   boardPosts        BoardPost[]
   triggerVideos     PersonaTriggerVideo[]
   swingAnalyses     UserSwingAnalysis[]
+  announcements     Announcement[]
 }
 
 model PersonaImage {
@@ -208,6 +209,8 @@ model Announcement {
   category  String   @default("update")
   isPinned  Boolean  @default(false)
   isVisible Boolean  @default(true)
+  personaId String?
+  persona   Persona? @relation(fields: [personaId], references: [id], onDelete: SetNull)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

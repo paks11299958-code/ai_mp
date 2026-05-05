@@ -73,6 +73,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [annTitle, setAnnTitle] = useState('');
     const [annContent, setAnnContent] = useState('');
     const [annCategory, setAnnCategory] = useState<'persona' | 'update' | 'news'>('update');
+    const [annPersonaId, setAnnPersonaId] = useState<string>('');
     const [annIsPinned, setAnnIsPinned] = useState(false);
     const [annIsVisible, setAnnIsVisible] = useState(true);
     const [annSaving, setAnnSaving] = useState(false);
@@ -159,7 +160,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
     const resetAnnForm = () => {
         setAnnTitle(''); setAnnContent(''); setAnnCategory('update');
-        setAnnIsPinned(false); setAnnIsVisible(true); setAnnEditingId(null);
+        setAnnPersonaId(''); setAnnIsPinned(false); setAnnIsVisible(true); setAnnEditingId(null);
     };
 
     const handleCleanup = async () => {
@@ -181,10 +182,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setAnnSaving(true);
         try {
             if (annEditingId) {
-                const updated = await announcementApi.update(annEditingId, { title: annTitle, content: annContent, category: annCategory, isPinned: annIsPinned, isVisible: annIsVisible });
+                const updated = await announcementApi.update(annEditingId, { title: annTitle, content: annContent, category: annCategory, isPinned: annIsPinned, isVisible: annIsVisible, personaId: annPersonaId || null });
                 setAnnouncements(prev => prev.map(a => a.id === annEditingId ? updated : a));
             } else {
-                const created = await announcementApi.create({ title: annTitle, content: annContent, category: annCategory, isPinned: annIsPinned, isVisible: annIsVisible });
+                const created = await announcementApi.create({ title: annTitle, content: annContent, category: annCategory, isPinned: annIsPinned, isVisible: annIsVisible, personaId: annPersonaId || null });
                 setAnnouncements(prev => [created, ...prev]);
             }
             resetAnnForm();
@@ -194,7 +195,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
     const handleAnnEdit = (a: Announcement) => {
         setAnnEditingId(a.id); setAnnTitle(a.title); setAnnContent(a.content);
-        setAnnCategory(a.category); setAnnIsPinned(a.isPinned); setAnnIsVisible(a.isVisible);
+        setAnnCategory(a.category); setAnnPersonaId(a.personaId || ''); setAnnIsPinned(a.isPinned); setAnnIsVisible(a.isVisible);
     };
 
     const handleAnnDelete = async (id: number) => {
@@ -849,13 +850,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                 <div className="flex items-center gap-3 flex-wrap">
                                     <select
                                         value={annCategory}
-                                        onChange={e => setAnnCategory(e.target.value as any)}
+                                        onChange={e => { setAnnCategory(e.target.value as any); setAnnPersonaId(''); }}
                                         className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
                                     >
                                         <option value="update">업데이트</option>
                                         <option value="persona">신규 페르소나</option>
                                         <option value="news">뉴스</option>
                                     </select>
+                                    {annCategory === 'persona' && (
+                                        <select
+                                            value={annPersonaId}
+                                            onChange={e => setAnnPersonaId(e.target.value)}
+                                            className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        >
+                                            <option value="">페르소나 선택 (선택사항)</option>
+                                            {personas.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
                                     <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
                                         <input type="checkbox" checked={annIsPinned} onChange={e => setAnnIsPinned(e.target.checked)} className="accent-yellow-500" />
                                         고정

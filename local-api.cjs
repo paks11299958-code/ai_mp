@@ -1652,6 +1652,7 @@ app.get('/api/announcements', async (req, res) => {
     const list = await prisma.announcement.findMany({
       where: showAll ? {} : { isVisible: true },
       orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+      include: { persona: { select: { id: true, name: true, introVideoUrl: true, imageUrl: true } } },
     });
     return res.json(list);
   } catch (e) { return res.status(500).json({ error: '조회 실패' }); }
@@ -1663,10 +1664,11 @@ app.post('/api/announcements', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const u = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { title, content, category, isPinned, isVisible } = req.body;
+    const { title, content, category, isPinned, isVisible, personaId } = req.body;
     if (!title || !content) return res.status(400).json({ error: '제목과 내용은 필수입니다.' });
     const item = await prisma.announcement.create({
-      data: { title, content, category: category || 'update', isPinned: isPinned ?? false, isVisible: isVisible ?? true },
+      data: { title, content, category: category || 'update', isPinned: isPinned ?? false, isVisible: isVisible ?? true, personaId: personaId || null },
+      include: { persona: { select: { id: true, name: true, introVideoUrl: true, imageUrl: true } } },
     });
     return res.status(201).json(item);
   } catch (e) { return res.status(500).json({ error: '저장 실패' }); }
@@ -1678,7 +1680,7 @@ app.put('/api/announcements/:id', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const u = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    const { title, content, category, isPinned, isVisible } = req.body;
+    const { title, content, category, isPinned, isVisible, personaId } = req.body;
     const item = await prisma.announcement.update({
       where: { id: Number(req.params.id) },
       data: {
@@ -1687,7 +1689,9 @@ app.put('/api/announcements/:id', async (req, res) => {
         ...(category !== undefined && { category }),
         ...(isPinned !== undefined && { isPinned }),
         ...(isVisible !== undefined && { isVisible }),
+        ...(personaId !== undefined && { personaId: personaId || null }),
       },
+      include: { persona: { select: { id: true, name: true, introVideoUrl: true, imageUrl: true } } },
     });
     return res.json(item);
   } catch (e) { return res.status(500).json({ error: '수정 실패' }); }
