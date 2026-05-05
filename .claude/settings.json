@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); file=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\" 2>/dev/null || true); if echo \"$file\" | grep -qE '\\.(ts|tsx)$'; then cd \"c:/Users/Park/ai_mp\" && npx tsc --noEmit --skipLibCheck 2>&1 | head -30; fi"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "input=$(cat); file=$(echo \"$input\" | python3 -c \"import sys,json; d=json.load(sys.stdin); print(d.get('file_path',''))\" 2>/dev/null || true); if echo \"$file\" | grep -qE '(\\.env|\\.env\\.)'; then echo 'BLOCKED: .env 파일은 직접 수정하지 마세요. Vercel 환경변수를 사용하거나 유저에게 확인하세요.'; exit 2; fi"
+          }
+        ]
+      }
+    ]
+  }
+}

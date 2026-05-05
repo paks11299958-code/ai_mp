@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Bot, Menu, X, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Persona } from '../types';
 import { Icon } from './Icons';
@@ -52,17 +52,20 @@ interface LandingPageProps {
 }
 
 const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: string }> = ({ personas, accent, accentLight }) => {
-    const cards = personas.slice(0, 3);
-    const W = 160, H = 240;
+    const cards = personas.slice(0, 6);
+    const W = 148, H = 218;
     const configs = [
-        { x: -185, y: -45, rotate: -6, z: 1, delay: '0s' },
-        { x:    0, y:  45, rotate:  3, z: 3, delay: '0.5s' },
-        { x:  185, y: -45, rotate: -4, z: 2, delay: '1s' },
+        { x: -220, y: 25,  rotate: -14, z: 1, scale: 0.80, delay: '0s' },
+        { x: -130, y: -25, rotate: -7,  z: 2, scale: 0.88, delay: '0.35s' },
+        { x: -38,  y: 28,  rotate: -1,  z: 3, scale: 0.95, delay: '0.7s' },
+        { x:  62,  y: -22, rotate:  6,  z: 5, scale: 1.00, delay: '1.05s' },
+        { x: 160,  y: 18,  rotate: 12,  z: 4, scale: 0.90, delay: '1.4s' },
+        { x: 248,  y: -18, rotate: 17,  z: 2, scale: 0.82, delay: '1.75s' },
     ];
 
     return (
-        <div className="hidden lg:flex justify-center items-center" style={{ height: '380px' }}>
-            <div className="relative" style={{ width: '560px', height: '380px' }}>
+        <div className="hidden lg:flex justify-center items-center" style={{ height: '410px' }}>
+            <div className="relative" style={{ width: '640px', height: '410px' }}>
                 {cards.map((persona, i) => {
                     const cfg = configs[i];
                     const isNew = persona.createdAt
@@ -77,16 +80,18 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
                                 left: '50%', top: '50%',
                                 marginLeft: -W / 2 + cfg.x,
                                 marginTop: -H / 2 + cfg.y,
-                                transform: `rotate(${cfg.rotate}deg)`,
+                                transform: `rotate(${cfg.rotate}deg) scale(${cfg.scale})`,
                                 zIndex: cfg.z,
                             }}
                         >
                             <div
-                                className="w-full h-full rounded-2xl overflow-hidden shadow-2xl"
+                                className="w-full h-full rounded-2xl overflow-hidden"
                                 style={{
                                     animation: `card-float 2.8s ease-in-out ${cfg.delay} infinite`,
                                     border: isNew ? '1.5px solid rgba(251,191,36,0.7)' : '1px solid rgba(255,255,255,0.1)',
-                                    boxShadow: isNew ? '0 0 18px rgba(251,191,36,0.25), 0 8px 32px rgba(0,0,0,0.5)' : undefined,
+                                    boxShadow: isNew
+                                        ? '0 0 18px rgba(251,191,36,0.25), 0 8px 32px rgba(0,0,0,0.6)'
+                                        : '0 8px 32px rgba(0,0,0,0.6)',
                                 }}
                             >
                                 {persona.imageUrl ? (
@@ -111,7 +116,7 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
                     );
                 })}
                 <div className="absolute rounded-full blur-3xl opacity-20 pointer-events-none"
-                    style={{ width: '220px', height: '220px', backgroundColor: accent, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }} />
+                    style={{ width: '260px', height: '260px', backgroundColor: accent, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 0 }} />
             </div>
         </div>
     );
@@ -125,7 +130,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     const [themeOpen, setThemeOpen] = useState(false);
     const [carouselIndex, setCarouselIndex] = useState(0);
     const [visibleCount, setVisibleCount] = useState(3);
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStartX, setDragStartX] = useState(0);
+    const [dragOffset, setDragOffset] = useState(0);
+    const dragDistRef = useRef(0);
     const t = THEMES[theme];
+
+    const onDragStart = (clientX: number) => {
+        dragDistRef.current = 0;
+        setIsDragging(true);
+        setDragStartX(clientX);
+        setDragOffset(0);
+    };
+    const onDragMove = (clientX: number) => {
+        if (!isDragging) return;
+        const offset = clientX - dragStartX;
+        dragDistRef.current = Math.abs(offset);
+        setDragOffset(offset);
+    };
+    const onDragEnd = () => {
+        if (!isDragging) return;
+        setIsDragging(false);
+        if (dragOffset < -60) setCarouselIndex(i => Math.min(maxIndex, i + 1));
+        else if (dragOffset > 60) setCarouselIndex(i => Math.max(0, i - 1));
+        setDragOffset(0);
+    };
 
     useEffect(() => {
         const update = () => {
@@ -241,14 +270,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full blur-3xl opacity-10 pointer-events-none" style={{ backgroundColor: t.accentLight }} />
 
                 <div className="max-w-6xl mx-auto relative z-10">
-                    <div className="grid lg:grid-cols-2 gap-0 items-center">
+                    <div className="grid lg:grid-cols-[5fr_7fr] gap-0 items-center">
                         <div>
                             <p className="text-xs font-bold tracking-widest uppercase mb-4" style={{ color: t.accentLight }}>DIALOGUE WITH AI</p>
-                            <h1 className="text-5xl sm:text-6xl font-extrabold tracking-tight mb-6 leading-tight">
+                            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-5 leading-tight">
                                 어떤 AI와<br />
                                 <span style={{ color: t.accentLight }}>대화할까요?</span>
                             </h1>
-                            <p className="text-gray-400 text-lg mb-8 leading-relaxed">
+                            <p className="text-gray-400 text-base mb-7 leading-relaxed">
                                 AI와 나누는 특별한 대화,<br />
                                 당신만을 위한 페르소나와 시작하세요.
                             </p>
@@ -315,10 +344,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             <p className="text-gray-400 text-sm">AI 페르소나를 불러오는 중입니다...</p>
                         </div>
                     ) : (
-                        <div className="overflow-hidden">
+                        <div
+                            className="overflow-hidden select-none"
+                            style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
+                            onMouseDown={e => onDragStart(e.clientX)}
+                            onMouseMove={e => onDragMove(e.clientX)}
+                            onMouseUp={onDragEnd}
+                            onMouseLeave={onDragEnd}
+                            onTouchStart={e => onDragStart(e.touches[0].clientX)}
+                            onTouchMove={e => onDragMove(e.touches[0].clientX)}
+                            onTouchEnd={onDragEnd}
+                        >
                             <div
-                                className="flex gap-4 transition-transform duration-500 ease-in-out"
-                                style={{ transform: `translateX(calc(-${carouselIndex} * (100% / ${visibleCount} + 5.33px)))` }}
+                                className="flex gap-4"
+                                style={{
+                                    transform: `translateX(calc(-${carouselIndex} * (100% / ${visibleCount} + 5.33px) + ${dragOffset}px))`,
+                                    transition: isDragging ? 'none' : 'transform 500ms ease-in-out',
+                                }}
                             >
                                 {sorted.map((persona) => {
                                     const isNew = persona.createdAt
@@ -327,7 +369,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                                     return (
                                         <button
                                             key={persona.id}
-                                            onClick={onStart}
+                                            onClick={() => { if (dragDistRef.current > 5) return; onStart(); }}
                                             className="relative flex-shrink-0 bg-gray-900 rounded-2xl text-left hover:scale-[1.02] transition-all group overflow-hidden"
                                             style={{
                                                 width: `calc(${100 / visibleCount}% - ${16 * (visibleCount - 1) / visibleCount}px)`,
@@ -337,7 +379,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                                         >
                                             <div className="relative h-64 overflow-hidden">
                                                 {persona.imageUrl ? (
-                                                    <img src={persona.imageUrl} alt={persona.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
+                                                    <img src={persona.imageUrl} alt={persona.name} draggable={false} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" />
                                                 ) : (
                                                     <div className={`w-full h-full bg-gradient-to-br ${persona.colorClass} flex items-center justify-center`}>
                                                         <Icon name={persona.iconName} size={64} className="text-white/80" />
