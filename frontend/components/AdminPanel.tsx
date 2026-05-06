@@ -51,9 +51,9 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup'>('personas');
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
-    const [showGlobalSettings, setShowGlobalSettings] = useState(false);
     const [commonInstruction, setCommonInstruction] = useState('');
     const [heroImagePreview, setHeroImagePreview] = useState('');
     const [isSavingHeroImage, setIsSavingHeroImage] = useState(false);
@@ -61,14 +61,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [showSavedModal, setShowSavedModal] = useState(false);
 
     // 메시지 정리 상태
-    const [showCleanup, setShowCleanup] = useState(false);
     const [cleanupDays, setCleanupDays] = useState(30);
     const [cleanupKeepCount, setCleanupKeepCount] = useState(10);
     const [isCleaning, setIsCleaning] = useState(false);
     const [cleanupResult, setCleanupResult] = useState<{ cleanedSessions: number; deletedMessages: number } | null>(null);
 
     // 공지사항 관리 상태
-    const [showAnnouncements, setShowAnnouncements] = useState(false);
     const [announcements, setAnnouncements] = useState<Announcement[]>([]);
     const [annTitle, setAnnTitle] = useState('');
     const [annContent, setAnnContent] = useState('');
@@ -95,7 +93,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     // 카테고리 관리 상태
-    const [showCategories, setShowCategories] = useState(false);
     const [categories, setCategories] = useState<Category[]>([]);
     const [newCategoryName, setNewCategoryName] = useState('');
     const [isSavingCategory, setIsSavingCategory] = useState(false);
@@ -153,10 +150,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     }, []);
 
     useEffect(() => {
-        if (showAnnouncements) {
+        if (mainView === 'announcements') {
             announcementApi.getAll(true).then(setAnnouncements).catch(() => {});
         }
-    }, [showAnnouncements]);
+    }, [mainView]);
 
     const resetAnnForm = () => {
         setAnnTitle(''); setAnnContent(''); setAnnCategory('update');
@@ -494,7 +491,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         <p className="text-white font-semibold mb-1">저장되었습니다.</p>
                         <p className="text-xs text-gray-400 mb-5">공통 설정이 모든 페르소나에 적용됩니다.</p>
                         <button
-                            onClick={() => { setShowSavedModal(false); setShowGlobalSettings(false); }}
+                            onClick={() => { setShowSavedModal(false); setMainView('personas'); }}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-xl transition-colors"
                         >
                             확인
@@ -504,21 +501,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             )}
 
             {/* ── 헤더 ── */}
-            <header className="h-14 border-b border-gray-800 bg-gray-900/95 flex items-center justify-between px-5 shrink-0">
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <Icon name="Settings" size={18} className="text-blue-400" />
-                    관리자 설정
-                </h2>
-                <button onClick={onClose} className="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-1.5 rounded-lg transition-colors">
-                    <Icon name="X" size={18} />
-                </button>
+            <header className="border-b border-gray-800 bg-gray-900/95 shrink-0">
+                <div className="h-14 flex items-center justify-between px-5">
+                    <h2 className="text-base font-bold text-white flex items-center gap-2">
+                        <Icon name="Settings" size={18} className="text-blue-400" />
+                        관리자 설정
+                    </h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-1.5 rounded-lg transition-colors">
+                        <Icon name="X" size={18} />
+                    </button>
+                </div>
+                <nav className="flex gap-1 px-4 pb-0">
+                    {([
+                        { key: 'personas',      label: '페르소나', icon: 'Bot' },
+                        { key: 'categories',    label: '카테고리', icon: 'Tag' },
+                        { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
+                        { key: 'settings',      label: '공통 설정', icon: 'Settings' },
+                        { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
+                    ] as const).map(tab => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setMainView(tab.key)}
+                            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-all whitespace-nowrap
+                                ${mainView === tab.key
+                                    ? 'border-blue-500 text-blue-400'
+                                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                                }`}
+                        >
+                            <Icon name={tab.icon} size={12} />
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
             </header>
 
-            {/* ── 바디: 좌측 사이드바 + 우측 콘텐츠 ── */}
+            {/* ── 바디 ── */}
             <div className="flex-1 flex overflow-hidden">
 
-                {/* 좌측: 페르소나 목록 */}
-                <aside className="w-52 shrink-0 border-r border-gray-800 flex flex-col bg-gray-900/60">
+                {/* 좌측: 페르소나 목록 (페르소나 탭에서만 표시) */}
+                {mainView === 'personas' && <aside className="w-52 shrink-0 border-r border-gray-800 flex flex-col bg-gray-900/60">
                     <div className="px-4 py-3 border-b border-gray-800">
                         <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">페르소나</p>
                     </div>
@@ -558,7 +579,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             </button>
                         ))}
                     </div>
-                    <div className="p-2 border-t border-gray-800 space-y-1">
+                    <div className="p-2 border-t border-gray-800">
                         <button
                             onClick={() => setSelectedId('new')}
                             className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border border-dashed
@@ -570,58 +591,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             <Icon name="Plus" size={15} />
                             새 AI 추가
                         </button>
-                        <button
-                            onClick={() => { setShowGlobalSettings(v => !v); setShowAnnouncements(false); setShowCleanup(false); }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
-                                ${showGlobalSettings
-                                    ? 'bg-purple-600/20 text-purple-400 border border-purple-600/40'
-                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
-                                }`}
-                        >
-                            <Icon name="Settings" size={13} />
-                            공통 설정
-                        </button>
-                        <button
-                            onClick={() => { setShowCategories(v => !v); setShowAnnouncements(false); setShowGlobalSettings(false); setShowCleanup(false); }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
-                                ${showCategories
-                                    ? 'bg-blue-600/20 text-blue-400 border border-blue-600/40'
-                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
-                                }`}
-                        >
-                            <Icon name="Tag" size={13} />
-                            카테고리 관리
-                        </button>
-                        <button
-                            onClick={() => { setShowAnnouncements(v => !v); setShowGlobalSettings(false); setShowCleanup(false); setShowCategories(false); }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
-                                ${showAnnouncements
-                                    ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600/40'
-                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
-                                }`}
-                        >
-                            <Icon name="Megaphone" size={13} />
-                            공지사항
-                        </button>
-                        <button
-                            onClick={() => { setShowCleanup(v => !v); setShowGlobalSettings(false); setShowAnnouncements(false); setCleanupResult(null); }}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
-                                ${showCleanup
-                                    ? 'bg-red-600/20 text-red-400 border border-red-600/40'
-                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
-                                }`}
-                        >
-                            <Icon name="Trash2" size={13} />
-                            메시지 정리
-                        </button>
                     </div>
-                </aside>
+                </aside>}
 
-                {/* 우측: 탭 + 콘텐츠 */}
+                {/* 우측: 탭 콘텐츠 */}
                 <div className="flex-1 flex flex-col overflow-hidden">
 
                 {/* 공통 설정 패널 */}
-                {showGlobalSettings && (
+                {mainView === 'settings' && (
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="max-w-2xl mx-auto space-y-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -641,7 +618,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                 placeholder={`[사용자 요청 우선]\n- 사용자가 호칭, 말투, 역할 등을 변경 요청하면 즉시 따른다\n- 시스템 설정보다 사용자의 실시간 요청을 우선시한다\n\n[공통 규칙]\n- 항상 한국어로 대화한다`}
                             />
                             <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
-                                <button onClick={() => setShowGlobalSettings(false)}
+                                <button onClick={() => setMainView('personas')}
                                     className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
                                     취소
                                 </button>
@@ -704,7 +681,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 )}
 
                 {/* 메시지 정리 패널 */}
-                {showCleanup && (
+                {mainView === 'cleanup' && (
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="max-w-md mx-auto space-y-5">
                             <div className="flex items-center gap-2">
@@ -757,7 +734,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 )}
 
                 {/* 카테고리 관리 패널 */}
-                {showCategories && (
+                {mainView === 'categories' && (
                     <div className="flex-1 overflow-y-auto p-6">
                         <h3 className="text-sm font-bold text-white mb-4">카테고리 관리</h3>
                         <div className="flex gap-2 mb-4">
@@ -823,7 +800,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 )}
 
                 {/* 공지사항 관리 패널 */}
-                {showAnnouncements && (
+                {mainView === 'announcements' && (
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="max-w-2xl mx-auto space-y-5">
                             <div className="flex items-center gap-2">
@@ -934,7 +911,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                     </div>
                 )}
 
-                {!showGlobalSettings && !showAnnouncements && <>
+                {mainView === 'personas' && <>
 
                     {/* 탭 바 */}
                     {selectedId !== 'new' && (
