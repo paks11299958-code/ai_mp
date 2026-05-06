@@ -33,10 +33,15 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
 
     const unreadCount = announcements.filter(a => !readIds.has(a.id)).length;
 
+    const isPlaying = playingVideoId !== null;
+
     return (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4" onClick={onClose}>
+        <div
+            className={`fixed inset-0 z-50 flex justify-center px-4 transition-all duration-300 ${isPlaying ? 'items-center' : 'items-start pt-16'}`}
+            onClick={onClose}
+        >
             <div
-                className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden"
+                className={`w-full bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden transition-all duration-300 ${isPlaying ? 'max-w-xl' : 'max-w-md'}`}
                 onClick={e => e.stopPropagation()}
             >
                 {/* 헤더 */}
@@ -66,7 +71,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
                 </div>
 
                 {/* 목록 */}
-                <div className="overflow-y-auto max-h-[60vh]">
+                <div className={`overflow-y-auto transition-all duration-300 ${isPlaying ? 'max-h-[80vh]' : 'max-h-[60vh]'}`}>
                     {announcements.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 text-gray-600">
                             <Icon name="Megaphone" size={32} className="mb-3 opacity-30" />
@@ -125,13 +130,13 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
                                                                     src={a.persona.introVideoUrl}
                                                                     autoPlay
                                                                     controls
-                                                                    className="w-full max-h-60 object-contain"
+                                                                    className="w-full max-h-96 object-contain"
                                                                 />
                                                             ) : (
                                                                 <img
                                                                     src={a.persona.imageUrl!}
                                                                     alt={a.persona.name}
-                                                                    className="w-full max-h-60 object-contain"
+                                                                    className="w-full max-h-96 object-contain"
                                                                 />
                                                             )}
                                                         </div>
