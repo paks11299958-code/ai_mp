@@ -224,8 +224,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 await prisma.category.delete({ where: { id: catId } });
                 return res.status(200).json({ message: '삭제되었습니다.' });
             } catch (e: any) {
-                console.error('[categories DELETE]', e);
-                return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
+                console.error('[categories DELETE]', e?.message, e?.code);
+                return res.status(500).json({ error: e?.message || '서버 오류가 발생했습니다.' });
             }
         }
     }
