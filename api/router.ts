@@ -153,6 +153,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── Categories ────────────────────────────────────────────
     if (domain === 'categories') {
+        const requireAdmin = async (): Promise<number | null> => {
+            const token = getTokenFromRequest(req);
+            if (!token) { res.status(401).json({ error: '인증이 필요합니다.' }); return null; }
+            const { userId } = verifyToken(token);
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user || user.role !== 'ADMIN') { res.status(403).json({ error: '관리자 권한이 필요합니다.' }); return null; }
+            return userId;
+        };
+
         // GET /api/categories (public)
         if (!seg1 && req.method === 'GET') {
             try {
