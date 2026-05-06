@@ -8,6 +8,7 @@ interface LandingPageProps {
     personas: Persona[];
     isLoading: boolean;
     onStart: () => void;
+    onLoginClick?: () => void;
     onPersonaClick?: (personaId: string) => void;
     onAnnouncementClick?: () => void;
     unreadAnnouncementCount?: number;
@@ -89,7 +90,7 @@ const ZigzagCards: React.FC<{ personas: Persona[]; accent: string; accentLight: 
 };
 
 export const LandingPage: React.FC<LandingPageProps> = ({
-    personas, isLoading, onStart, onPersonaClick, onAnnouncementClick, unreadAnnouncementCount = 0,
+    personas, isLoading, onStart, onLoginClick, onPersonaClick, onAnnouncementClick, unreadAnnouncementCount = 0,
     theme, onThemeChange, heroImageUrl, categories = [],
 }) => {
     const [menuOpen, setMenuOpen] = useState(false);
@@ -224,7 +225,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                                 )}
                             </button>
                         )}
-                        <button onClick={onStart} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">로그인</button>
+                        <button onClick={onLoginClick ?? onStart} className="text-gray-400 hover:text-white text-sm font-medium transition-colors">로그인</button>
                         <button onClick={onStart} className="text-white text-sm font-semibold px-4 py-2 rounded-full transition-all hover:opacity-90" style={{ backgroundColor: t.accent }}>
                             무료 시작
                         </button>
@@ -237,7 +238,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 {menuOpen && (
                     <div className="sm:hidden border-t border-gray-800 bg-gray-950 px-4 py-3 flex flex-col gap-2">
-                        <button onClick={() => { setMenuOpen(false); onStart(); }} className="w-full text-left text-gray-300 hover:text-white py-2 px-3 rounded-lg hover:bg-gray-800 text-sm">로그인</button>
+                        <button onClick={() => { setMenuOpen(false); (onLoginClick ?? onStart)(); }} className="w-full text-left text-gray-300 hover:text-white py-2 px-3 rounded-lg hover:bg-gray-800 text-sm">로그인</button>
                         <button onClick={() => { setMenuOpen(false); onStart(); }} className="w-full text-white text-sm font-semibold py-2 px-3 rounded-lg" style={{ backgroundColor: t.accent }}>무료 시작</button>
                     </div>
                 )}

@@ -840,6 +840,7 @@ const App: React.FC = () => {
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
                     onStart={() => setShowAuthPage(true)}
+                    onLoginClick={() => setShowAuthModal(true)}
                     onPersonaClick={handleGuestPersonaClick}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
