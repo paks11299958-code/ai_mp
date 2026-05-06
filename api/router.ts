@@ -110,8 +110,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const user = await prisma.user.findUnique({ where: { email } });
                 if (user) {
                     const token = crypto.randomBytes(32).toString('hex');
+                    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
                     const expiry = new Date(Date.now() + 30 * 60 * 1000);
-                    await prisma.user.update({ where: { email }, data: { resetToken: token, resetTokenExpiry: expiry } });
+                    await prisma.user.update({ where: { email }, data: { resetToken: tokenHash, resetTokenExpiry: expiry } });
                     const baseUrl = process.env.APP_BASE_URL || 'https://ai-mp.vercel.app';
                     await sendEmail(
                         email,
@@ -132,8 +133,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (!token || !password) return res.status(400).json({ error: '토큰과 새 비밀번호를 입력해주세요.' });
             if (password.length < 6) return res.status(400).json({ error: '비밀번호는 6자 이상이어야 합니다.' });
             try {
+                const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
                 const user = await prisma.user.findFirst({
-                    where: { resetToken: token, resetTokenExpiry: { gt: new Date() } },
+                    where: { resetToken: tokenHash, resetTokenExpiry: { gt: new Date() } },
                 });
                 if (!user) return res.status(400).json({ error: '유효하지 않거나 만료된 링크입니다.' });
                 const hashed = await bcrypt.hash(password, 10);
@@ -1208,9 +1210,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 const post = await prisma.boardPost.findUnique({
                     where: { id: parseInt(seg1) },
                     include: {
-                        user: { select: { username: true, email: true } },
+                        user: { select: { username: true } },
                         replies: {
-                            include: { user: { select: { username: true, email: true } } },
+                            include: { user: { select: { username: true } } },
                             orderBy: { createdAt: 'asc' },
                         },
                     },

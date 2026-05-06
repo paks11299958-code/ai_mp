@@ -32,9 +32,9 @@ function parseCookies(cookieStr: string): Record<string, string> {
 }
 
 export function setTokenCookie(token: string) {
-  return `token=${token}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Strict`;
+  return `token=${token}; HttpOnly; Secure; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Strict`;
 }
 
 export function clearTokenCookie() {
-  return `token=; HttpOnly; Path=/; Max-Age=0; SameSite=Strict`;
+  return `token=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Strict`;
 }
