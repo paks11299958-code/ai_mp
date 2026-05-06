@@ -210,7 +210,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                await prisma.category.delete({ where: { id: Number(seg1) } });
+                const catId = Number(seg1);
+                await prisma.persona.updateMany({ where: { categoryId: catId }, data: { categoryId: null } });
+                await prisma.category.delete({ where: { id: catId } });
                 return res.status(200).json({ message: '삭제되었습니다.' });
             } catch (e: any) {
                 console.error('[categories DELETE]', e);
