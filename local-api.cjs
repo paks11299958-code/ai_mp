@@ -1761,7 +1761,9 @@ app.delete('/api/categories/:id', async (req, res) => {
     if (!payload) return res.status(401).json({ error: '인증이 필요합니다.' });
     const u = await prisma.user.findUnique({ where: { id: payload.userId } });
     if (u?.role !== 'ADMIN') return res.status(403).json({ error: '관리자 권한이 필요합니다.' });
-    await prisma.category.delete({ where: { id: Number(req.params.id) } });
+    const catId = Number(req.params.id);
+    await prisma.persona.updateMany({ where: { categoryId: catId }, data: { categoryId: null } });
+    await prisma.category.delete({ where: { id: catId } });
     return res.json({ message: '삭제되었습니다.' });
   } catch (e) { return res.status(500).json({ error: '삭제 실패' }); }
 });
