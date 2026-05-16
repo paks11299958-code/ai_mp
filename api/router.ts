@@ -86,8 +86,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const seg2 = req.query.s2 as string | undefined;
     const seg3 = req.query.s3 as string | undefined;
 
-    if (domain === 'ping') return res.status(200).json({ v: 'DEPLOY-TEST-v5', t: Date.now() });
-
     // ── Auth ──────────────────────────────────────────────────
 
     if (domain === 'auth') {
@@ -3107,7 +3105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     where: { userId, createdAt: { gte: todayStart } },
                 });
                 if (todayCount >= 1)
-                    return res.status(429).json({ error: `[DEPLOY-TEST] 오늘 감정 횟수(1회) 초과. role=${reqUser?.role}, uid=${userId}` });
+                    return res.status(429).json({ error: '오늘 감정 횟수(1회)를 초과했습니다. 내일 다시 시도해주세요.' });
             }
             if (!isLuxuryAdmin) {
                 const { deductMenuPoints } = await import('./_lib/points.js');
