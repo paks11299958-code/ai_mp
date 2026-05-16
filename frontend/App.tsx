@@ -238,17 +238,7 @@ const App: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => {
-                setUser(user);
-                setShowMain(true);
-                // 인증 후 역할 기반으로 페르소나 재fetch (ADMIN이면 adminOnly 포함 전체)
-                personaApi.getAll()
-                    .then(data => {
-                        setPersonas(data);
-                        localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
-                    })
-                    .catch(() => {});
-            })
+            .then(({ user }) => { setUser(user); setShowMain(true); })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -575,13 +565,6 @@ const App: React.FC = () => {
             setUser(loggedInUser);
             setShowMain(true);
             setIsAuthChecking(false);
-            // 로그인 후 역할 기반으로 페르소나 재fetch (ADMIN이면 adminOnly 포함)
-            personaApi.getAll()
-                .then(data => {
-                    setPersonas(data);
-                    localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
-                })
-                .catch(() => {});
         }, 0);
     };
 
