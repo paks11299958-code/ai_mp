@@ -6,20 +6,24 @@ import { Icon } from './Icons';
 interface MessageBubbleProps {
     message: Message;
     personaName: string;
+    personaImageUrl?: string;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaName }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaName, personaImageUrl }) => {
     const isUser = message.role === 'user';
+    const userGradient = 'bg-gradient-to-br from-violet-600 to-purple-500';
 
     return (
         <div className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-                
+
                 {/* Avatar */}
-                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 
-                    ${isUser ? 'ml-3 bg-blue-600' : 'mr-3 bg-gray-700'}`}>
+                <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1
+                    ${isUser ? `ml-3 ${userGradient}` : 'mr-3 bg-gray-700'}`}>
                     {isUser ? (
-                        <span className="text-xs font-bold">나</span>
+                        <span className="text-xs font-bold text-white">나</span>
+                    ) : personaImageUrl ? (
+                        <img src={personaImageUrl} alt={personaName} className="w-full h-full object-cover object-top rounded-full" />
                     ) : (
                         <Icon name="Bot" size={16} className="text-gray-300" />
                     )}
@@ -30,11 +34,11 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaNa
                     <span className="text-xs text-gray-400 mb-1 px-1">
                         {isUser ? '나' : personaName}
                     </span>
-                    
-                    <div className={`relative px-4 py-3 rounded-2xl shadow-sm
-                        ${isUser 
-                            ? 'bg-blue-600 text-white rounded-tr-sm' 
-                            : 'bg-gray-800 text-gray-100 rounded-tl-sm border border-gray-700'
+
+                    <div className={`relative px-4 py-3 shadow-sm
+                        ${isUser
+                            ? `${userGradient} text-white rounded-2xl rounded-tr-sm`
+                            : 'bg-gray-800/90 text-gray-100 rounded-2xl rounded-tl-sm border border-gray-700/60'
                         }
                         ${message.error ? 'border-red-500 bg-red-900/20' : ''}
                     `}>
@@ -44,14 +48,13 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaNa
                                 {message.text}
                             </div>
                         ) : message.isStreaming && !message.text ? (
-                            /* 응답 대기 중 — 세 점 바운스 애니메이션 */
                             <div className="flex items-end gap-1.5 py-1 px-1 h-8">
                                 <span className="w-3 h-3 bg-blue-400 rounded-full animate-bounce [animation-delay:0ms]"></span>
                                 <span className="w-3 h-3 bg-purple-400 rounded-full animate-bounce [animation-delay:150ms]"></span>
                                 <span className="w-3 h-3 bg-pink-400 rounded-full animate-bounce [animation-delay:300ms]"></span>
                             </div>
                         ) : (
-                            <div className="markdown-body text-sm md:text-base leading-relaxed break-words">
+                            <div className={`markdown-body text-sm md:text-base break-words ${isUser ? 'leading-relaxed' : 'leading-loose'}`}>
                                 <ReactMarkdown>{message.text}</ReactMarkdown>
                                 {message.isStreaming && (
                                     <span className="inline-block w-1.5 h-4 bg-gray-400 rounded-sm animate-pulse ml-0.5 align-middle"></span>

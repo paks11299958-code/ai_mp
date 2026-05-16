@@ -1,9 +1,40 @@
 {
   "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend",
   "outputDirectory": "frontend/dist",
+  "crons": [
+    {
+      "path": "/api/cron-cleanup",
+      "schedule": "0 21 * * *"
+    },
+    {
+      "path": "/api/cron-stock-worker",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron-used-item-worker",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron-luxury-worker",
+      "schedule": "* * * * *"
+    }
+  ],
   "functions": {
     "api/router.ts": {
-      "includeFiles": "src/generated/prisma/**"
+      "includeFiles": "src/generated/prisma/**",
+      "maxDuration": 300
+    },
+    "api/cron-stock-worker.ts": {
+      "includeFiles": "src/generated/prisma/**",
+      "maxDuration": 300
+    },
+    "api/cron-used-item-worker.ts": {
+      "includeFiles": "src/generated/prisma/**",
+      "maxDuration": 300
+    },
+    "api/cron-luxury-worker.ts": {
+      "includeFiles": "src/generated/prisma/**",
+      "maxDuration": 300
     }
   },
   "rewrites": [

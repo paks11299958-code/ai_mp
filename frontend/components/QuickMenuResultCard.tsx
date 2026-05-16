@@ -1,0 +1,184 @@
+import React, { useRef, useState } from 'react';
+import { toPng } from 'html-to-image';
+
+interface QuickMenuResultCardProps {
+    title: string;
+    result: string;
+    personaName: string;
+    bgUrl?: string;
+    onClose: () => void;
+}
+
+const TITLE_META: Record<string, { hanja: string; subtitle: string; icon: string }> = {
+    '📅 시운의 흐름': { hanja: '時運流勢', subtitle: '운의 흐름과 때의 기운', icon: '🌊' },
+    '💰 성취와 재물': { hanja: '成就財物', subtitle: '성취운 · 재물운 · 사업운', icon: '💎' },
+    '❤️ 인연의 결': { hanja: '因緣之結', subtitle: '인연 · 관계 · 연분', icon: '🪢' },
+};
+
+export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title, result, personaName, bgUrl, onClose }) => {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [saving, setSaving] = useState(false);
+    const hasBg = !!bgUrl;
+
+    const meta = TITLE_META[title] ?? { hanja: '', subtitle: '', icon: '✨' };
+
+    const handleSave = async () => {
+        if (!cardRef.current) return;
+        setSaving(true);
+        try {
+            const dataUrl = await toPng(cardRef.current, { pixelRatio: 2 });
+            const link = document.createElement('a');
+            link.download = `${title}_${new Date().toLocaleDateString('ko-KR').replace(/[\s.]/g, '')}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (e) {
+            console.error('[QuickMenuResultCard save]', e);
+            alert('이미지 저장에 실패했습니다.');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const withBg = {
+        cardBg: 'transparent',
+        overlay: 'rgba(252,245,220,0.15)',
+        headerTitle: '#2c0f00',
+        headerSub: '#6b3a1f',
+        divider: '#8b5e3c',
+        sectionBg: 'rgba(255,250,235,0.82)',
+        sectionBorder: 'rgba(139,94,60,0.8)',
+        sectionTitle: '#2c0f00',
+        sectionSubtitle: '#4a2010',
+        sectionText: '#2c1500',
+        adviceAccent: '#8b5e3c',
+        signText: '#8b5e3c',
+    };
+
+    const noBg = {
+        cardBg: 'rgba(18,10,3,0.97)',
+        overlay: 'transparent',
+        headerTitle: '#fde68a',
+        headerSub: '#b89060',
+        divider: '#7a5530',
+        sectionBg: 'rgba(40,22,8,0.9)',
+        sectionBorder: 'rgba(180,120,60,0.85)',
+        sectionTitle: '#fde68a',
+        sectionSubtitle: '#d4a86a',
+        sectionText: '#e8d5b0',
+        adviceAccent: '#c8943c',
+        signText: '#b89060',
+    };
+
+    const c = hasBg ? withBg : noBg;
+
+    return (
+        <div className="fixed inset-0 z-[75] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <div className="w-full max-w-lg my-auto">
+
+                <div
+                    ref={cardRef}
+                    style={{
+                        ...(hasBg ? {
+                            backgroundImage: `url(${bgUrl})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                        } : {
+                            background: c.cardBg,
+                        }),
+                        borderRadius: '10px',
+                        border: hasBg ? 'none' : '1px solid rgba(139,94,60,0.4)',
+                        position: 'relative',
+                        padding: '36px 32px 32px',
+                        fontFamily: '"Noto Serif KR", Georgia, serif',
+                        boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+                    }}
+                >
+                    {hasBg && (
+                        <div style={{
+                            position: 'absolute', inset: 0, borderRadius: '10px',
+                            background: 'rgba(252,245,220,0.15)',
+                            pointerEvents: 'none',
+                        }} />
+                    )}
+
+                    {/* 헤더 */}
+                    <div style={{ position: 'relative', textAlign: 'center', marginBottom: '24px' }}>
+                        <p style={{ fontSize: '11px', color: c.headerSub, letterSpacing: '0.25em', marginBottom: '6px', fontWeight: 700, fontFamily: '"Nanum Myeongjo", serif' }}>
+                            {meta.hanja || '四柱命理 鑑定書'}
+                        </p>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '18px' }}>{meta.icon}</span>
+                            <h2 style={{ fontSize: '24px', fontWeight: '800', color: c.headerTitle, letterSpacing: '0.1em', fontFamily: '"Nanum Myeongjo", serif' }}>
+                                {title}
+                            </h2>
+                        </div>
+                        {meta.subtitle && (
+                            <p style={{ fontSize: '11px', color: c.sectionSubtitle, marginTop: '4px', letterSpacing: '0.05em' }}>
+                                {meta.subtitle}
+                            </p>
+                        )}
+                        <div style={{ width: '56px', height: '1.5px', background: c.divider, margin: '10px auto 0' }} />
+                        <p style={{ fontSize: '11px', color: c.headerSub, marginTop: '8px' }}>
+                            {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                        </p>
+                    </div>
+
+                    {/* 본문 */}
+                    <div style={{ position: 'relative' }}>
+                        <div style={{
+                            background: c.sectionBg,
+                            border: `1.5px solid ${c.sectionBorder}`,
+                            borderLeft: `3px solid ${c.adviceAccent}`,
+                            borderRadius: '7px',
+                            padding: '18px 20px',
+                        }}>
+                            <p style={{
+                                fontSize: '14px',
+                                lineHeight: '2.0',
+                                color: c.sectionText,
+                                whiteSpace: 'pre-wrap',
+                                fontWeight: 400,
+                            }}>
+                                {result}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* 서명 */}
+                    <div style={{ position: 'relative', textAlign: 'center', marginTop: '20px' }}>
+                        <p style={{ fontSize: '13px', color: c.signText, letterSpacing: '0.18em', fontWeight: 700, fontFamily: '"Nanum Myeongjo", serif' }}>
+                            {personaName} 識
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-4 px-1">
+                    <button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-60"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(139,94,60,0.9), rgba(101,67,33,0.9))',
+                            color: '#fde8c0',
+                            border: '1px solid rgba(139,94,60,0.5)',
+                        }}
+                    >
+                        {saving ? '저장 중...' : '🖼️ 이미지로 저장'}
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all"
+                        style={{
+                            background: 'rgba(255,255,255,0.06)',
+                            color: '#d1d5db',
+                            border: '1px solid rgba(255,255,255,0.12)',
+                        }}
+                    >
+                        닫기
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};

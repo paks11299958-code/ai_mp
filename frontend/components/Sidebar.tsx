@@ -9,17 +9,23 @@ interface SidebarProps {
     onSelectPersona: (id: string) => void;
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
+    isCollapsed: boolean;
+    onToggleCollapse: () => void;
     onAdminClick: () => void;
+    onAnnouncementClick: () => void;
+    unreadAnnouncementCount: number;
     onReorder: (index: number, direction: 'up' | 'down') => void;
     user: User | null;
     onLogout: () => void;
     onGoHome: () => void;
+    onProfileClick?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
     personas, activePersonaId, onSelectPersona,
-    isOpen, setIsOpen, onAdminClick, onReorder,
-    user, onLogout, onGoHome,
+    isOpen, setIsOpen, isCollapsed, onToggleCollapse,
+    onAdminClick, onAnnouncementClick, unreadAnnouncementCount, onReorder,
+    user, onLogout, onGoHome, onProfileClick,
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const filteredPersonas = searchQuery.trim()
@@ -29,6 +35,69 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )
         : personas;
 
+    // 접힌 상태 렌더링
+    if (isCollapsed) {
+        return (
+            <div className="hidden md:flex flex-col w-16 bg-gray-900 border-r border-gray-800 shrink-0 h-full">
+                {/* 펼치기 버튼 */}
+                <div className="h-14 flex items-center justify-center border-b border-gray-800 shrink-0">
+                    <button
+                        onClick={onToggleCollapse}
+                        className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                        title="사이드바 펼치기"
+                    >
+                        <Icon name="Menu" size={18} />
+                    </button>
+                </div>
+
+                {/* 아이콘만 목록 */}
+                <div className="flex-1 overflow-y-auto py-2 flex flex-col items-center gap-1.5">
+                    {personas.map(persona => {
+                        const isActive = persona.id === activePersonaId;
+                        return (
+                            <button
+                                key={persona.id}
+                                onClick={() => onSelectPersona(persona.id)}
+                                title={persona.name}
+                                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all overflow-hidden shrink-0
+                                    ${isActive ? 'ring-2 ring-white/30 shadow-lg' : 'opacity-60 hover:opacity-100'}`}
+                            >
+                                {persona.imageUrl ? (
+                                    <img src={persona.imageUrl} alt={persona.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className={`w-full h-full flex items-center justify-center bg-gradient-to-br ${persona.colorClass} text-white`}>
+                                        <Icon name={persona.iconName} size={18} />
+                                    </div>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+
+                {/* 하단 아이콘들 */}
+                <div className="border-t border-gray-800 py-3 flex flex-col items-center gap-2 shrink-0">
+                    <button onClick={onAnnouncementClick} className="relative p-2 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors" title="공지사항">
+                        <Icon name="Bell" size={16} />
+                        {unreadAnnouncementCount > 0 && (
+                            <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                                {unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount}
+                            </span>
+                        )}
+                    </button>
+                    {user?.role === 'ADMIN' && (
+                        <button onClick={onAdminClick} className="p-2 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors" title="관리자 설정">
+                            <Icon name="Settings" size={16} />
+                        </button>
+                    )}
+                    <button onClick={onLogout} className="p-2 rounded-lg text-gray-500 hover:text-red-400 hover:bg-gray-800 transition-colors" title="로그아웃">
+                        <Icon name="LogOut" size={16} />
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // 펼쳐진 상태 렌더링
     return (
         <>
             {isOpen && (
@@ -39,26 +108,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
             )}
 
             <div className={`
-                fixed md:static inset-y-0 left-0 z-30 w-72 bg-gray-900 border-r border-gray-800
+                fixed md:static inset-y-0 left-0 z-30 w-64 bg-gray-900 border-r border-gray-800
                 transform transition-transform duration-300 ease-in-out flex flex-col
                 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
             `}>
-                <div className="p-5 border-b border-gray-800 flex justify-between items-center shrink-0">
+                <div className="h-14 px-4 border-b border-gray-800 flex justify-between items-center shrink-0">
                     <button
                         onClick={onGoHome}
-                        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                        className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
                         title="메인 페이지로"
                     >
-                        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
+                        <h1 className="text-base font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 truncate">
                             AI 페르소나
                         </h1>
-                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-800 text-gray-300 rounded-full border border-gray-700">
+                        <span className="px-1.5 py-0.5 text-[10px] font-medium bg-gray-800 text-gray-400 rounded-full border border-gray-700 shrink-0">
                             {personas.length}개
                         </span>
                     </button>
-                    <button className="md:hidden text-gray-400 hover:text-white" onClick={() => setIsOpen(false)}>
-                        <Icon name="X" size={24} />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                        {/* 접기 버튼 (데스크탑) */}
+                        <button
+                            onClick={onToggleCollapse}
+                            className="hidden md:flex p-1.5 rounded-lg text-gray-500 hover:text-white hover:bg-gray-800 transition-colors"
+                            title="사이드바 접기"
+                        >
+                            <Icon name="ArrowLeftToLine" size={16} />
+                        </button>
+                        <button className="md:hidden text-gray-400 hover:text-white p-1" onClick={() => setIsOpen(false)}>
+                            <Icon name="X" size={20} />
+                        </button>
+                    </div>
                 </div>
 
                 {personas.length > 4 && (
@@ -84,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
                 )}
 
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                <div className="flex-1 overflow-y-auto p-2 space-y-1">
                     {filteredPersonas.length === 0 && searchQuery ? (
                         <p className="text-xs text-gray-600 text-center py-8">검색 결과 없음</p>
                     ) : filteredPersonas.map((persona, index) => {
@@ -101,7 +180,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                 )}
                                 <div className="flex items-center w-full p-2">
                                     <div
-                                        className="flex-1 flex items-center cursor-pointer pl-1"
+                                        className="flex-1 flex items-center cursor-pointer pl-1 min-w-0"
                                         onClick={() => {
                                             onSelectPersona(persona.id);
                                             if (window.innerWidth < 768) setIsOpen(false);
@@ -118,15 +197,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                         ) : (
                                             <div className={`p-2 rounded-lg mr-3 shrink-0 transition-colors
                                                 ${isActive ? `bg-gradient-to-br ${persona.colorClass} text-white` : 'bg-gray-800 text-gray-400 group-hover:text-gray-200'}`}>
-                                                <Icon name={persona.iconName} size={20} />
+                                                <Icon name={persona.iconName} size={18} />
                                             </div>
                                         )}
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-baseline gap-1.5 truncate">
-                                                <h3 className={`font-medium shrink-0 ${isActive ? 'text-white' : 'text-gray-300'}`}>{persona.name}</h3>
-                                                {persona.jobTitle && <span className="text-[11px] text-gray-400 truncate">[{persona.jobTitle}]</span>}
+                                                <h3 className={`font-medium shrink-0 text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>{persona.name}</h3>
+                                                {persona.jobTitle && <span className="text-[10px] text-gray-500 truncate">[{persona.jobTitle}]</span>}
                                             </div>
-                                            <p className="text-xs text-gray-400 truncate mt-0.5">{persona.description}</p>
                                         </div>
                                     </div>
 
@@ -137,14 +215,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                                 disabled={originalIndex === 0}
                                                 className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
                                             >
-                                                <Icon name="ChevronUp" size={16} />
+                                                <Icon name="ChevronUp" size={14} />
                                             </button>
                                             <button
                                                 onClick={e => { e.stopPropagation(); onReorder(originalIndex, 'down'); }}
                                                 disabled={originalIndex === personas.length - 1}
                                                 className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
                                             >
-                                                <Icon name="ChevronDown" size={16} />
+                                                <Icon name="ChevronDown" size={14} />
                                             </button>
                                         </div>
                                     )}
@@ -154,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     })}
                 </div>
 
-                <div className="p-4 border-t border-gray-800 shrink-0">
+                <div className="p-3 border-t border-gray-800 shrink-0">
                     {user && (() => {
                         const xp = user.personaXp?.[activePersonaId] ?? 0;
                         const stage = getStage(xp);
@@ -172,27 +250,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                             {user.username || user.email}
                                         </span>
                                     </div>
-                                    <button
-                                        onClick={onLogout}
-                                        className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-red-400 transition-colors shrink-0 ml-2"
-                                        title="로그아웃"
-                                    >
-                                        <Icon name="LogOut" size={16} />
-                                    </button>
+                                <div className="flex items-center gap-0.5 shrink-0 ml-2">
+                                        {onProfileClick && (
+                                            <button
+                                                onClick={onProfileClick}
+                                                className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-blue-400 transition-colors"
+                                                title="내정보"
+                                            >
+                                                <Icon name="UserCircle" size={16} />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={onLogout}
+                                            className="p-1.5 rounded-md hover:bg-gray-800 text-gray-500 hover:text-red-400 transition-colors"
+                                            title="로그아웃"
+                                        >
+                                            <Icon name="LogOut" size={16} />
+                                        </button>
+                                    </div>
                                 </div>
 
-                                {/* 단계 이름 + 설명 */}
                                 <div className="mt-2 bg-gray-800/60 rounded-xl px-3 py-2">
                                     <div className="flex items-center justify-between mb-1">
                                         <span className={`text-xs font-bold bg-gradient-to-r ${stage.color} bg-clip-text text-transparent`}>
-                                            {stage.stage}단계 · {stage.name}
+                                            {stage.stage}Lv · {stage.name}
                                         </span>
                                         <span className="text-[10px] text-gray-600">{xp} XP</span>
                                     </div>
                                     <p className="text-[10px] text-gray-500 leading-relaxed mb-2">
                                         {stage.description}
                                     </p>
-                                    {/* 진행 바 */}
                                     <div className="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
                                         <div
                                             className={`h-full bg-gradient-to-r ${stage.color} rounded-full transition-all duration-500`}
@@ -201,7 +288,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                                     </div>
                                     {!isMax && (
                                         <p className="text-[10px] text-gray-600 mt-1">
-                                            다음 단계까지 <span className="text-gray-400">{toNext}개</span> 더
+                                            다음 Lv까지 <span className="text-gray-400">{toNext}개</span> 더
                                         </p>
                                     )}
                                     {isMax && (
@@ -212,16 +299,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         );
                     })()}
                     <div className="flex justify-between items-center text-xs text-gray-500">
-                        <span>Gemini 2.5 Flash 기반</span>
-                        {user?.role === 'ADMIN' && (
+                        <span className="text-[10px]">Gemini 2.5 Flash</span>
+                        <div className="flex items-center gap-1">
                             <button
-                                onClick={onAdminClick}
-                                className="p-1.5 rounded-md hover:bg-gray-800 hover:text-gray-300 transition-colors"
-                                title="관리자 설정"
+                                onClick={onAnnouncementClick}
+                                className="relative p-1.5 rounded-md hover:bg-gray-800 hover:text-gray-300 transition-colors"
+                                title="공지사항"
                             >
-                                <Icon name="Settings" size={16} />
+                                <Icon name="Bell" size={16} />
+                                {unreadAnnouncementCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5">
+                                        {unreadAnnouncementCount > 9 ? '9+' : unreadAnnouncementCount}
+                                    </span>
+                                )}
                             </button>
-                        )}
+                            {user?.role === 'ADMIN' && (
+                                <button
+                                    onClick={onAdminClick}
+                                    className="p-1.5 rounded-md hover:bg-gray-800 hover:text-gray-300 transition-colors"
+                                    title="관리자 설정"
+                                >
+                                    <Icon name="Settings" size={16} />
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

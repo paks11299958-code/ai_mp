@@ -1,5 +1,13 @@
 export type Role = 'user' | 'model';
 
+export interface Category {
+    id: number;
+    name: string;
+    order: number;
+    createdAt: string;
+    _count?: { personas: number };
+}
+
 export interface Message {
     id: string;
     role: Role;
@@ -19,9 +27,16 @@ export interface Persona {
     colorClass: string;
     order?: number;
     imageUrl?: string;
+    introVideoUrl?: string;
+    starVideoUrl?: string;
+    faceReadingBgUrl?: string;
+    chatBgUrl?: string;
+    quickMenuJson?: string;
     isDefault?: boolean;
     isVisible?: boolean;
-    adminOnly?: boolean;
+    categoryId?: number | null;
+    category?: Category | null;
+    createdAt?: string;
 }
 
 export interface UserMemory {
@@ -75,10 +90,23 @@ export interface ChatSessionState {
 
 export interface User {
     id: number;
-    email: string;
+    email?: string;
+    phone?: string;
     username?: string;
     role: string;
+    paidPoints: number;
+    bonusPoints: number;
     personaXp: Record<string, number>;
+}
+
+export interface PointsInfo {
+    balance: number;
+    paidBalance: number;
+    bonusBalance: number;
+    cost: number;
+    leveledUp: boolean;
+    newStage: number;
+    levelupBonus: number;
 }
 
 export interface DbSession {
@@ -87,6 +115,41 @@ export interface DbSession {
     title: string;
     updatedAt: string;
     persona: Pick<Persona, 'id' | 'name' | 'iconName' | 'colorClass'>;
+}
+
+export interface TriggerVideo {
+    id: number;
+    personaId: string;
+    videoUrl: string;
+    title?: string;
+    description?: string;
+    keywords: string;
+    tag?: string;
+    order: number;
+    createdAt: string;
+}
+
+export interface SwingAnalysisSection {
+    name: string;
+    score: number;
+    comment: string;
+    good: string[];
+    improve: string[];
+}
+
+export interface SwingAnalysis {
+    overallScore: number;
+    overallComment: string;
+    sections: SwingAnalysisSection[];
+    topPriorities: string[];
+    recommendedDrills: string[];
+}
+
+export interface UserSwingAnalysis {
+    id: number;
+    fileName?: string;
+    createdAt: string;
+    analysis: SwingAnalysis;
 }
 
 export interface BoardReply {
@@ -99,14 +162,51 @@ export interface BoardReply {
     user: { username?: string; email: string };
 }
 
+export interface Announcement {
+    id: number;
+    title: string;
+    content: string;
+    category: 'persona' | 'update' | 'news';
+    isPinned: boolean;
+    isVisible: boolean;
+    personaId?: string | null;
+    persona?: { id: string; name: string; introVideoUrl?: string | null; imageUrl?: string | null } | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface BoardPost {
     id: number;
     userId: number;
+    personaId: string;
     title: string;
     content: string;
     createdAt: string;
     updatedAt: string;
     user: { username?: string; email: string };
     replies: BoardReply[];
+    _count?: { replies: number };
+}
+
+export interface PartnerReply {
+    id: number;
+    postId: number;
+    userId: number;
+    isAdminReply: boolean;
+    content: string;
+    createdAt: string;
+    user: { username?: string; email: string };
+}
+
+export interface PartnerPost {
+    id: number;
+    userId: number;
+    title: string;
+    content: string;
+    contact?: string | null;
+    createdAt: string;
+    updatedAt: string;
+    user: { username?: string; email: string };
+    replies: PartnerReply[];
     _count?: { replies: number };
 }

@@ -123,11 +123,15 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  phone: 'phone',
   password: 'password',
   username: 'username',
   role: 'role',
   resetToken: 'resetToken',
   resetTokenExpiry: 'resetTokenExpiry',
+  paidPoints: 'paidPoints',
+  bonusPoints: 'bonusPoints',
+  birthInfoJson: 'birthInfoJson',
   createdAt: 'createdAt'
 };
 
@@ -145,6 +149,13 @@ exports.Prisma.UserMemoryScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.CategoryScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.PersonaScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -156,9 +167,15 @@ exports.Prisma.PersonaScalarFieldEnum = {
   colorClass: 'colorClass',
   order: 'order',
   imageUrl: 'imageUrl',
+  introVideoUrl: 'introVideoUrl',
+  starVideoUrl: 'starVideoUrl',
+  faceReadingBgUrl: 'faceReadingBgUrl',
+  chatBgUrl: 'chatBgUrl',
+  quickMenuJson: 'quickMenuJson',
   isDefault: 'isDefault',
   isVisible: 'isVisible',
   createdBy: 'createdBy',
+  categoryId: 'categoryId',
   createdAt: 'createdAt'
 };
 
@@ -224,13 +241,35 @@ exports.Prisma.PersonaKnowledgeScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.PersonaTriggerVideoScalarFieldEnum = {
+  id: 'id',
+  personaId: 'personaId',
+  videoUrl: 'videoUrl',
+  title: 'title',
+  description: 'description',
+  keywords: 'keywords',
+  tag: 'tag',
+  order: 'order',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.BoardPostScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
+  personaId: 'personaId',
   title: 'title',
   content: 'content',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserSwingAnalysisScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  personaId: 'personaId',
+  fileName: 'fileName',
+  analysisJson: 'analysisJson',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.BoardReplyScalarFieldEnum = {
@@ -240,6 +279,158 @@ exports.Prisma.BoardReplyScalarFieldEnum = {
   isAdminReply: 'isAdminReply',
   content: 'content',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.AnnouncementScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  content: 'content',
+  category: 'category',
+  isPinned: 'isPinned',
+  isVisible: 'isVisible',
+  personaId: 'personaId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PointTransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  amount: 'amount',
+  type: 'type',
+  description: 'description',
+  personaId: 'personaId',
+  balanceAfter: 'balanceAfter',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.StarScalarFieldEnum = {
+  id: 'id',
+  fromUserId: 'fromUserId',
+  personaId: 'personaId',
+  amount: 'amount',
+  pointsSpent: 'pointsSpent',
+  message: 'message',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PendingVerificationScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  identifier: 'identifier',
+  codeHash: 'codeHash',
+  expiresAt: 'expiresAt',
+  attempts: 'attempts',
+  sentCount: 'sentCount',
+  lastSentAt: 'lastSentAt',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.PartnerPostScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  content: 'content',
+  contact: 'contact',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PartnerReplyScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  userId: 'userId',
+  isAdminReply: 'isAdminReply',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CorpCodeScalarFieldEnum = {
+  corpCode: 'corpCode',
+  corpName: 'corpName',
+  stockCode: 'stockCode',
+  modifyDt: 'modifyDt'
+};
+
+exports.Prisma.StockAnalysisScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  stockName: 'stockName',
+  corpCode: 'corpCode',
+  yahooSymbol: 'yahooSymbol',
+  chartImageUrl: 'chartImageUrl',
+  status: 'status',
+  analysisReport: 'analysisReport',
+  claudeReport: 'claudeReport',
+  gptReport: 'gptReport',
+  sourceLinks: 'sourceLinks',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.LuxuryVerificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  imageUrls: 'imageUrls',
+  brandHint: 'brandHint',
+  status: 'status',
+  geminiBrand: 'geminiBrand',
+  geminiModel: 'geminiModel',
+  geminiScore: 'geminiScore',
+  geminiPoints: 'geminiPoints',
+  geminiVerdict: 'geminiVerdict',
+  geminiSummary: 'geminiSummary',
+  claudeBrand: 'claudeBrand',
+  claudeModel: 'claudeModel',
+  claudeScore: 'claudeScore',
+  claudePoints: 'claudePoints',
+  claudeVerdict: 'claudeVerdict',
+  claudeSummary: 'claudeSummary',
+  gptBrand: 'gptBrand',
+  gptModel: 'gptModel',
+  gptScore: 'gptScore',
+  gptPoints: 'gptPoints',
+  gptVerdict: 'gptVerdict',
+  gptSummary: 'gptSummary',
+  finalScore: 'finalScore',
+  finalVerdict: 'finalVerdict',
+  agreements: 'agreements',
+  disagreements: 'disagreements',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UsedItemListingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  imageUrls: 'imageUrls',
+  itemName: 'itemName',
+  status: 'status',
+  category: 'category',
+  brand: 'brand',
+  modelName: 'modelName',
+  condition: 'condition',
+  conditionDetail: 'conditionDetail',
+  visibleDamage: 'visibleDamage',
+  includedItems: 'includedItems',
+  confidence: 'confidence',
+  suggestedPrice: 'suggestedPrice',
+  claudePrice: 'claudePrice',
+  gptPrice: 'gptPrice',
+  minPrice: 'minPrice',
+  maxPrice: 'maxPrice',
+  priceReason: 'priceReason',
+  aiTitle: 'aiTitle',
+  aiDescription: 'aiDescription',
+  aiHashtags: 'aiHashtags',
+  finalTitle: 'finalTitle',
+  finalPrice: 'finalPrice',
+  finalDescription: 'finalDescription',
+  errorMessage: 'errorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -262,6 +453,7 @@ exports.Prisma.ModelName = {
   User: 'User',
   UserPersonaXp: 'UserPersonaXp',
   UserMemory: 'UserMemory',
+  Category: 'Category',
   Persona: 'Persona',
   PersonaImage: 'PersonaImage',
   PersonaVideo: 'PersonaVideo',
@@ -270,8 +462,20 @@ exports.Prisma.ModelName = {
   ConversationSummary: 'ConversationSummary',
   AppConfig: 'AppConfig',
   PersonaKnowledge: 'PersonaKnowledge',
+  PersonaTriggerVideo: 'PersonaTriggerVideo',
   BoardPost: 'BoardPost',
-  BoardReply: 'BoardReply'
+  UserSwingAnalysis: 'UserSwingAnalysis',
+  BoardReply: 'BoardReply',
+  Announcement: 'Announcement',
+  PointTransaction: 'PointTransaction',
+  Star: 'Star',
+  PendingVerification: 'PendingVerification',
+  PartnerPost: 'PartnerPost',
+  PartnerReply: 'PartnerReply',
+  CorpCode: 'CorpCode',
+  StockAnalysis: 'StockAnalysis',
+  LuxuryVerification: 'LuxuryVerification',
+  UsedItemListing: 'UsedItemListing'
 };
 
 /**

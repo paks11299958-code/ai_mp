@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Persona, PersonaImage, PersonaVideo } from '../types';
-import { personaImageApi, personaVideoApi, settingsApi, knowledgeApi } from '../services/apiService';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Persona, PersonaImage, PersonaVideo, Announcement, Category } from '../types';
+import { personaApi, personaImageApi, personaVideoApi, settingsApi, knowledgeApi, triggerVideoApi, announcementApi, sessionApi, categoryApi, adminApi, AdminUser } from '../services/apiService';
+import { TriggerVideo } from '../types';
 import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
+import { pointApi } from '../services/pointService';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -50,12 +52,47 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users'>('personas');
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
-    const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge'>('info');
-    const [showGlobalSettings, setShowGlobalSettings] = useState(false);
+    const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
     const [commonInstruction, setCommonInstruction] = useState('');
+    const [heroImagePreview, setHeroImagePreview] = useState('');
+    const [isSavingHeroImage, setIsSavingHeroImage] = useState(false);
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
     const [showSavedModal, setShowSavedModal] = useState(false);
+
+    // 회원 관리 상태
+    const [userList, setUserList] = useState<AdminUser[]>([]);
+    const [userListLoading, setUserListLoading] = useState(false);
+    const [userSearch, setUserSearch] = useState('');
+    const [grantTarget, setGrantTarget] = useState<AdminUser | null>(null);
+    const [grantAmount, setGrantAmount] = useState('');
+    const [grantDesc, setGrantDesc] = useState('');
+    const [granting, setGranting] = useState(false);
+    const [grantMsg, setGrantMsg] = useState<string | null>(null);
+    const [bulkAmount, setBulkAmount] = useState('');
+    const [bulkDesc, setBulkDesc] = useState('');
+    const [bulkGranting, setBulkGranting] = useState(false);
+    const [bulkMsg, setBulkMsg] = useState<string | null>(null);
+
+    // 메시지 정리 상태
+    const [cleanupDays, setCleanupDays] = useState(30);
+    const [cleanupKeepCount, setCleanupKeepCount] = useState(10);
+    const [isCleaning, setIsCleaning] = useState(false);
+    const [cleanupResult, setCleanupResult] = useState<{ cleanedSessions: number; deletedMessages: number } | null>(null);
+    const [isDartImporting, setIsDartImporting] = useState(false);
+    const [dartImportResult, setDartImportResult] = useState<{ count: number } | null>(null);
+
+    // 공지사항 관리 상태
+    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+    const [annTitle, setAnnTitle] = useState('');
+    const [annContent, setAnnContent] = useState('');
+    const [annCategory, setAnnCategory] = useState<'persona' | 'update' | 'news'>('update');
+    const [annPersonaId, setAnnPersonaId] = useState<string>('');
+    const [annIsPinned, setAnnIsPinned] = useState(false);
+    const [annIsVisible, setAnnIsVisible] = useState(true);
+    const [annSaving, setAnnSaving] = useState(false);
+    const [annEditingId, setAnnEditingId] = useState<number | null>(null);
 
     // Form states
     const [name, setName] = useState('');
@@ -63,13 +100,32 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [description, setDescription] = useState('');
     const [instruction, setInstruction] = useState('');
     const [identityPrompt, setIdentityPrompt] = useState('');
+    const [quickMenuJson, setQuickMenuJson] = useState('');
     const [iconName, setIconName] = useState('Bot');
     const [colorClass, setColorClass] = useState(AVAILABLE_COLORS[0].value);
     const [imageUrl, setImageUrl] = useState('');
+    const [introVideoUrl, setIntroVideoUrl] = useState('');
+    const [isUploadingIntroVideo, setIsUploadingIntroVideo] = useState(false);
+    const introVideoInputRef = useRef<HTMLInputElement>(null);
+    const [starVideoUrl, setStarVideoUrl] = useState('');
+    const [isUploadingStarVideo, setIsUploadingBalloonVideo] = useState(false);
+    const starVideoInputRef = useRef<HTMLInputElement>(null);
+    const [faceReadingBgUrl, setFaceReadingBgUrl] = useState('');
+    const [isUploadingFaceReadingBg, setIsUploadingFaceReadingBg] = useState(false);
+    const faceReadingBgInputRef = useRef<HTMLInputElement>(null);
+    const [chatBgUrls, setChatBgUrls] = useState<string[]>([]);
+    const [isUploadingChatBg, setIsUploadingChatBg] = useState(false);
+    const chatBgInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
-    const [adminOnly, setAdminOnly] = useState(false);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+
+    // 카테고리 관리 상태
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [isSavingCategory, setIsSavingCategory] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const [showInstructionExample, setShowInstructionExample] = useState(false);
     const [showIdentityExample, setShowIdentityExample] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +142,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [knowledgeText, setKnowledgeText] = useState('');
     const [isUploadingKnowledge, setIsUploadingKnowledge] = useState(false);
 
+    // 이미지 해제 단계 저장 상태
+    const [pendingLevel, setPendingLevel] = useState(1);
+    const [savingLevel, setSavingLevel] = useState(false);
+    const [savedLevel, setSavedLevel] = useState(false);
+
+    // 트리거 영상 상태
+    const [triggerVideos, setTriggerVideos] = useState<TriggerVideo[]>([]);
+    const [tvTitle, setTvTitle] = useState('');
+    const [tvDescription, setTvDescription] = useState('');
+    const [tvKeywords, setTvKeywords] = useState('');
+    const [tvTag, setTvTag] = useState('');
+    const [tvUploading, setTvUploading] = useState(false);
+    const [tvExtracting, setTvExtracting] = useState(false);
+    const [tvEditingId, setTvEditingId] = useState<number | null>(null);
+    const [tvEditKeywords, setTvEditKeywords] = useState('');
+    const [tvEditTag, setTvEditTag] = useState('');
+    const tvFileInputRef = useRef<HTMLInputElement>(null);
+
     // 동영상 상태
     const [selectedImageId, setSelectedImageId] = useState<number | null>(null);
     const [videos, setVideos] = useState<PersonaVideo[]>([]);
@@ -96,8 +170,92 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [playingVideo, setPlayingVideo] = useState<{ url: string; title?: string } | null>(null);
 
     useEffect(() => {
-        settingsApi.get().then(s => setCommonInstruction(s.commonInstruction || '')).catch(() => {});
+        settingsApi.get().then(s => {
+            setCommonInstruction(s.commonInstruction || '');
+            setHeroImagePreview(s.heroImageUrl || '');
+        }).catch(() => {});
+        categoryApi.getAll().then(setCategories).catch(() => {});
     }, []);
+
+    useEffect(() => {
+        if (mainView === 'announcements') {
+            announcementApi.getAll(true).then(setAnnouncements).catch(() => {});
+        }
+        if (mainView === 'users') {
+            setUserListLoading(true);
+            adminApi.getUsers().then(setUserList).catch(() => {}).finally(() => setUserListLoading(false));
+        }
+    }, [mainView]);
+
+    const resetAnnForm = () => {
+        setAnnTitle(''); setAnnContent(''); setAnnCategory('update');
+        setAnnPersonaId(''); setAnnIsPinned(false); setAnnIsVisible(true); setAnnEditingId(null);
+    };
+
+    const handleCleanup = async () => {
+        if (!window.confirm(`${cleanupDays}일 이상 비활성 세션의 오래된 메시지를 삭제합니다. 계속하시겠습니까?`)) return;
+        setIsCleaning(true);
+        setCleanupResult(null);
+        try {
+            const result = await sessionApi.cleanup(cleanupDays, cleanupKeepCount);
+            setCleanupResult(result);
+        } catch {
+            alert('메시지 정리 중 오류가 발생했습니다.');
+        } finally {
+            setIsCleaning(false);
+        }
+    };
+
+    const handleAnnSave = async () => {
+        if (!annTitle.trim() || !annContent.trim()) return alert('제목과 내용을 입력하세요.');
+        setAnnSaving(true);
+        try {
+            if (annEditingId) {
+                const updated = await announcementApi.update(annEditingId, { title: annTitle, content: annContent, category: annCategory, isPinned: annIsPinned, isVisible: annIsVisible, personaId: annPersonaId || null });
+                setAnnouncements(prev => prev.map(a => a.id === annEditingId ? updated : a));
+            } else {
+                const created = await announcementApi.create({ title: annTitle, content: annContent, category: annCategory, isPinned: annIsPinned, isVisible: annIsVisible, personaId: annPersonaId || null });
+                setAnnouncements(prev => [created, ...prev]);
+            }
+            resetAnnForm();
+        } catch (e: any) { alert('저장 실패: ' + e.message); }
+        finally { setAnnSaving(false); }
+    };
+
+    const handleAnnEdit = (a: Announcement) => {
+        setAnnEditingId(a.id); setAnnTitle(a.title); setAnnContent(a.content);
+        setAnnCategory(a.category); setAnnPersonaId(a.personaId || ''); setAnnIsPinned(a.isPinned); setAnnIsVisible(a.isVisible);
+    };
+
+    const handleAnnDelete = async (id: number) => {
+        if (!confirm('삭제하시겠습니까?')) return;
+        try {
+            await announcementApi.delete(id);
+            setAnnouncements(prev => prev.filter(a => a.id !== id));
+            if (annEditingId === id) resetAnnForm();
+        } catch (e: any) { alert('삭제 실패: ' + e.message); }
+    };
+
+    const handleAnnToggleVisible = async (a: Announcement) => {
+        try {
+            const updated = await announcementApi.update(a.id, { isVisible: !a.isVisible });
+            setAnnouncements(prev => prev.map(x => x.id === a.id ? updated : x));
+        } catch {}
+    };
+
+    // 이미지 선택 변경 시: pendingLevel·savedLevel 모두 리셋
+    useEffect(() => {
+        const lv = images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1;
+        setPendingLevel(lv);
+        setSavedLevel(false);
+    }, [selectedImageId]);
+
+    // 이미지 목록 변경 시(저장 후 등): pendingLevel만 동기화 (savedLevel은 건드리지 않음)
+    useEffect(() => {
+        if (!selectedImageId) return;
+        const lv = images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1;
+        setPendingLevel(lv);
+    }, [images]);
 
     useEffect(() => {
         setActiveTab('info');
@@ -106,17 +264,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (selectedId === 'new') {
             setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
-            setImageUrl(''); setIsVisible(true); setAdminOnly(false); setShowSuccess(false); setImages([]);
+            setImageUrl(''); setIntroVideoUrl(''); setStarVideoUrl(''); setIsVisible(true); setShowSuccess(false); setImages([]);
+            setSelectedCategoryId(null);
         } else {
             const p = personas.find(p => p.id === selectedId);
             if (p) {
                 setName(p.name); setJobTitle(p.jobTitle || ''); setDescription(p.description || '');
                 setInstruction(p.systemInstruction); setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
-                setImageUrl(p.imageUrl || ''); setIsVisible(p.isVisible !== false); setAdminOnly(p.adminOnly === true); setShowSuccess(false);
+                setImageUrl(p.imageUrl || ''); setIntroVideoUrl(p.introVideoUrl || ''); setStarVideoUrl(p.starVideoUrl || ''); setFaceReadingBgUrl(p.faceReadingBgUrl || '');
+                try { setChatBgUrls(p.chatBgUrl ? (p.chatBgUrl.startsWith('[') ? JSON.parse(p.chatBgUrl) : [p.chatBgUrl]) : []); } catch { setChatBgUrls(p.chatBgUrl ? [p.chatBgUrl] : []); }
+                setQuickMenuJson(p.quickMenuJson || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
+                setSelectedCategoryId(p.categoryId ?? null);
             }
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
             knowledgeApi.getAll(selectedId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
+            triggerVideoApi.getAll(selectedId).then(setTriggerVideos).catch(() => setTriggerVideos([]));
         }
     }, [selectedId, personas]);
 
@@ -267,12 +430,17 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         const isNew = selectedId === 'new';
         const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
         setIsSaving(true);
+        setSaveError(null);
         try {
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible, adminOnly });
+            const chatBgUrlValue = chatBgUrls.length ? JSON.stringify(chatBgUrls) : undefined;
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, categoryId: selectedCategoryId });
             localStorage.removeItem('personas_cache');
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 3000);
+        } catch (e: any) {
+            setSaveError(e.message || '저장 중 오류가 발생했습니다.');
+            setTimeout(() => setSaveError(null), 4000);
         } finally {
             setIsSaving(false);
         }
@@ -282,6 +450,133 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (window.confirm(`'${name}' AI를 정말 삭제하시겠습니까?`)) {
             onDelete(selectedId);
             setSelectedId(personas[0]?.id || 'new');
+        }
+    };
+
+    const handleIntroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 200 * 1024 * 1024) { alert('영상 크기는 200MB 이하로 업로드해주세요.'); return; }
+        if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 영상을 업로드해주세요.'); return; }
+        setIsUploadingIntroVideo(true);
+        try {
+            const { signedUrl, publicUrl } = await personaApi.getIntroVideoUploadUrl(selectedId, file.type);
+            const putRes = await fetch(signedUrl, {
+                method: 'PUT',
+                headers: { 'Content-Type': file.type },
+                body: file,
+            });
+            if (!putRes.ok) throw new Error(`GCS 업로드 실패 (${putRes.status})`);
+            const saved = await personaApi.saveIntroVideoUrl(selectedId, publicUrl);
+            setIntroVideoUrl(saved.introVideoUrl || '');
+            alert('영상 업로드가 완료됐습니다.');
+        } catch {
+            alert('영상 업로드에 실패했습니다.');
+        } finally {
+            setIsUploadingIntroVideo(false);
+        }
+    };
+
+    const handleRemoveIntroVideo = async () => {
+        if (!window.confirm('인트로 영상을 삭제하시겠습니까?')) return;
+        try {
+            await personaApi.deleteIntroVideo(selectedId);
+            setIntroVideoUrl('');
+        } catch {
+            alert('삭제에 실패했습니다.');
+        }
+    };
+
+    const handleStarVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 200 * 1024 * 1024) { alert('영상 크기는 200MB 이하로 업로드해주세요.'); return; }
+        if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 영상을 업로드해주세요.'); return; }
+        setIsUploadingBalloonVideo(true);
+        try {
+            const { signedUrl, publicUrl } = await personaApi.getStarVideoUploadUrl(selectedId, file.type);
+            const putRes = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+            if (!putRes.ok) throw new Error(`GCS 업로드 실패 (${putRes.status})`);
+            const saved = await personaApi.saveStarVideoUrl(selectedId, publicUrl);
+            setStarVideoUrl(saved.starVideoUrl || '');
+            alert('영상 업로드가 완료됐습니다.');
+        } catch {
+            alert('영상 업로드에 실패했습니다.');
+        } finally {
+            setIsUploadingBalloonVideo(false);
+        }
+    };
+
+    const handleRemoveStarVideo = async () => {
+        if (!window.confirm('별스타 감사 영상을 삭제하시겠습니까?')) return;
+        try {
+            await personaApi.deleteStarVideo(selectedId);
+            setStarVideoUrl('');
+        } catch {
+            alert('삭제에 실패했습니다.');
+        }
+    };
+
+    const handleFaceReadingBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) { alert('이미지 파일만 업로드할 수 있습니다.'); return; }
+        if (file.size > 10 * 1024 * 1024) { alert('배경 이미지는 10MB 이하로 업로드해주세요.'); return; }
+        if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 업로드해주세요.'); return; }
+        setIsUploadingFaceReadingBg(true);
+        try {
+            const { signedUrl, publicUrl } = await personaApi.getFaceReadingBgUploadUrl(selectedId, file.type);
+            const putRes = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+            if (!putRes.ok) throw new Error('업로드 실패');
+            const saved = await personaApi.saveFaceReadingBgUrl(selectedId, publicUrl);
+            setFaceReadingBgUrl(saved.faceReadingBgUrl || '');
+        } catch {
+            alert('업로드에 실패했습니다.');
+        } finally {
+            setIsUploadingFaceReadingBg(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleRemoveFaceReadingBg = async () => {
+        if (!window.confirm('관상 보고서 배경 이미지를 삭제하시겠습니까?')) return;
+        try {
+            await personaApi.deleteFaceReadingBg(selectedId);
+            setFaceReadingBgUrl('');
+        } catch {
+            alert('삭제에 실패했습니다.');
+        }
+    };
+
+    const handleChatBgUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) { alert('배경 이미지는 10MB 이하로 업로드해주세요.'); return; }
+        if (selectedId === 'new') { alert('먼저 페르소나를 저장한 후 업로드해주세요.'); return; }
+        if (chatBgUrls.length >= 5) { alert('배경 이미지는 최대 5개까지 등록할 수 있습니다.'); return; }
+        setIsUploadingChatBg(true);
+        try {
+            const { signedUrl, publicUrl } = await personaApi.getChatBgUploadUrl(selectedId, file.type);
+            const putRes = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+            if (!putRes.ok) throw new Error(`GCS 업로드 실패 (${putRes.status})`);
+            const newUrls = [...chatBgUrls, publicUrl];
+            await personaApi.saveChatBgUrl(selectedId, JSON.stringify(newUrls));
+            setChatBgUrls(newUrls);
+        } catch {
+            alert('배경 이미지 업로드에 실패했습니다.');
+        } finally {
+            setIsUploadingChatBg(false);
+            if (chatBgInputRef.current) chatBgInputRef.current.value = '';
+        }
+    };
+
+    const handleRemoveChatBgItem = async (url: string) => {
+        if (!window.confirm('이 배경 이미지를 삭제하시겠습니까?')) return;
+        try {
+            const updated = await personaApi.removeChatBgItem(selectedId, url);
+            try { setChatBgUrls(updated.chatBgUrl ? (updated.chatBgUrl.startsWith('[') ? JSON.parse(updated.chatBgUrl) : [updated.chatBgUrl]) : []); } catch { setChatBgUrls([]); }
+        } catch {
+            alert('삭제에 실패했습니다.');
         }
     };
 
@@ -320,6 +615,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 </div>
             )}
 
+            {/* 페르소나 저장 토스트 */}
+            {showSuccess && (
+                <div className="fixed top-5 right-5 z-[200] bg-gray-900 border border-emerald-600 rounded-xl px-4 py-3 flex items-center gap-2 shadow-2xl">
+                    <Icon name="CheckCircle" size={16} className="text-emerald-400" />
+                    <span className="text-white text-sm font-semibold">저장되었습니다!</span>
+                </div>
+            )}
+            {saveError && (
+                <div className="fixed top-5 right-5 z-[200] bg-gray-900 border border-red-500 rounded-xl px-4 py-3 flex items-center gap-2 shadow-2xl">
+                    <Icon name="AlertCircle" size={16} className="text-red-400" />
+                    <span className="text-white text-sm font-semibold">저장 실패: {saveError}</span>
+                </div>
+            )}
+
             {/* 저장 완료 모달 */}
             {showSavedModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -330,7 +639,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         <p className="text-white font-semibold mb-1">저장되었습니다.</p>
                         <p className="text-xs text-gray-400 mb-5">공통 설정이 모든 페르소나에 적용됩니다.</p>
                         <button
-                            onClick={() => { setShowSavedModal(false); setShowGlobalSettings(false); }}
+                            onClick={() => { setShowSavedModal(false); setMainView('personas'); }}
                             className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2 rounded-xl transition-colors"
                         >
                             확인
@@ -340,21 +649,47 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             )}
 
             {/* ── 헤더 ── */}
-            <header className="h-14 border-b border-gray-800 bg-gray-900/95 flex items-center justify-between px-5 shrink-0">
-                <h2 className="text-base font-bold text-white flex items-center gap-2">
-                    <Icon name="Settings" size={18} className="text-blue-400" />
-                    관리자 설정
-                </h2>
-                <button onClick={onClose} className="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-1.5 rounded-lg transition-colors">
-                    <Icon name="X" size={18} />
-                </button>
+            <header className="border-b border-gray-800 bg-gray-900/95 shrink-0">
+                <div className="h-14 flex items-center justify-between px-5">
+                    <h2 className="text-base font-bold text-white flex items-center gap-2">
+                        <Icon name="Settings" size={18} className="text-blue-400" />
+                        관리자 설정
+                    </h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white bg-gray-800 hover:bg-gray-700 p-1.5 rounded-lg transition-colors">
+                        <Icon name="X" size={18} />
+                    </button>
+                </div>
+                <nav className="flex gap-1 px-4 pb-0">
+                    {([
+                        { key: 'personas',      label: '페르소나', icon: 'Bot' },
+                        { key: 'categories',    label: '카테고리', icon: 'Tag' },
+                        { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
+                        { key: 'settings',      label: '공통 설정', icon: 'Settings' },
+                        { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
+                        { key: 'points',        label: '포인트 통계', icon: 'Coins' },
+                        { key: 'users',         label: '회원 관리',   icon: 'Users' },
+                    ] as const).map(tab => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setMainView(tab.key)}
+                            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-all whitespace-nowrap
+                                ${mainView === tab.key
+                                    ? 'border-blue-500 text-blue-400'
+                                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                                }`}
+                        >
+                            <Icon name={tab.icon} size={12} />
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
             </header>
 
-            {/* ── 바디: 좌측 사이드바 + 우측 콘텐츠 ── */}
+            {/* ── 바디 ── */}
             <div className="flex-1 flex overflow-hidden">
 
-                {/* 좌측: 페르소나 목록 */}
-                <aside className="w-52 shrink-0 border-r border-gray-800 flex flex-col bg-gray-900/60">
+                {/* 좌측: 페르소나 목록 (페르소나 탭에서만 표시) */}
+                {mainView === 'personas' && <aside className="w-52 shrink-0 border-r border-gray-800 flex flex-col bg-gray-900/60">
                     <div className="px-4 py-3 border-b border-gray-800">
                         <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">페르소나</p>
                     </div>
@@ -394,7 +729,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             </button>
                         ))}
                     </div>
-                    <div className="p-2 border-t border-gray-800 space-y-1">
+                    <div className="p-2 border-t border-gray-800">
                         <button
                             onClick={() => setSelectedId('new')}
                             className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border border-dashed
@@ -406,25 +741,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             <Icon name="Plus" size={15} />
                             새 AI 추가
                         </button>
-                        <button
-                            onClick={() => setShowGlobalSettings(v => !v)}
-                            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all
-                                ${showGlobalSettings
-                                    ? 'bg-purple-600/20 text-purple-400 border border-purple-600/40'
-                                    : 'text-gray-600 hover:bg-gray-800 hover:text-gray-400'
-                                }`}
-                        >
-                            <Icon name="Settings" size={13} />
-                            공통 설정
-                        </button>
                     </div>
-                </aside>
+                </aside>}
 
-                {/* 우측: 탭 + 콘텐츠 */}
+                {/* 우측: 탭 콘텐츠 */}
                 <div className="flex-1 flex flex-col overflow-hidden">
 
                 {/* 공통 설정 패널 */}
-                {showGlobalSettings && (
+                {mainView === 'settings' && (
                     <div className="flex-1 overflow-y-auto p-6">
                         <div className="max-w-2xl mx-auto space-y-4">
                             <div className="flex items-center gap-2 mb-2">
@@ -444,7 +768,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                 placeholder={`[사용자 요청 우선]\n- 사용자가 호칭, 말투, 역할 등을 변경 요청하면 즉시 따른다\n- 시스템 설정보다 사용자의 실시간 요청을 우선시한다\n\n[공통 규칙]\n- 항상 한국어로 대화한다`}
                             />
                             <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
-                                <button onClick={() => setShowGlobalSettings(false)}
+                                <button onClick={() => setMainView('personas')}
                                     className="text-sm text-gray-500 hover:text-gray-300 transition-colors">
                                     취소
                                 </button>
@@ -456,16 +780,497 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     </button>
                                 </div>
                             </div>
+
+                            {/* 히어로 이미지 */}
+                            <div className="pt-4 border-t border-gray-700/50 space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <Icon name="Image" size={16} className="text-blue-400" />
+                                    <h3 className="text-sm font-bold text-white">랜딩 히어로 이미지</h3>
+                                    <span className="text-xs text-gray-500">— 히어로 섹션 오른쪽에 표시</span>
+                                </div>
+                                <div className="flex gap-3 items-start">
+                                    {heroImagePreview && (
+                                        <div className="relative w-40 h-28 rounded-xl overflow-hidden border border-gray-700 flex-shrink-0">
+                                            <img src={heroImagePreview} alt="hero preview" className="w-full h-full object-cover" />
+                                            <button
+                                                onClick={async () => {
+                                                    await settingsApi.update({ heroImageUrl: '' });
+                                                    setHeroImagePreview('');
+                                                }}
+                                                className="absolute top-1 right-1 bg-black/60 hover:bg-red-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs transition-colors"
+                                            >×</button>
+                                        </div>
+                                    )}
+                                    <label className="flex flex-col items-center justify-center w-40 h-28 border-2 border-dashed border-gray-600 hover:border-blue-500 rounded-xl cursor-pointer transition-colors text-gray-500 hover:text-blue-400 text-xs gap-1">
+                                        <Icon name="Upload" size={20} />
+                                        <span>{isSavingHeroImage ? '업로드 중...' : '이미지 선택'}</span>
+                                        <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            setIsSavingHeroImage(true);
+                                            const reader = new FileReader();
+                                            reader.onload = async ev => {
+                                                const base64 = ev.target?.result as string;
+                                                try {
+                                                    await settingsApi.update({ heroImageUrl: base64 });
+                                                    const s = await settingsApi.get();
+                                                    setHeroImagePreview(s.heroImageUrl || base64);
+                                                } finally {
+                                                    setIsSavingHeroImage(false);
+                                                }
+                                            };
+                                            reader.readAsDataURL(file);
+                                            e.target.value = '';
+                                        }} />
+                                    </label>
+                                </div>
+                                <p className="text-xs text-gray-600">권장: 가로형 이미지 (예: 페르소나 카드 합성 이미지)</p>
+                            </div>
                         </div>
                     </div>
                 )}
 
-                {!showGlobalSettings && <>
+                {/* 메시지 정리 패널 */}
+                {mainView === 'cleanup' && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <div className="max-w-md mx-auto space-y-5">
+                            <div className="flex items-center gap-2">
+                                <Icon name="Trash2" size={16} className="text-red-400" />
+                                <h3 className="text-sm font-bold text-white">오래된 메시지 정리</h3>
+                            </div>
+                            <div className="bg-red-900/10 border border-red-800/30 rounded-xl px-4 py-3 text-xs text-red-300 leading-relaxed">
+                                요약이 생성된 세션 중 <span className="font-semibold">X일 이상 비활성</span> 세션의 오래된 메시지를 삭제합니다.<br />
+                                최근 N개 메시지는 보존되며, 요약 및 세션은 유지됩니다.
+                            </div>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">비활성 기준 (일)</label>
+                                    <input
+                                        type="number"
+                                        value={cleanupDays}
+                                        onChange={e => setCleanupDays(Number(e.target.value))}
+                                        min={1}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500"
+                                    />
+                                    <p className="text-[10px] text-gray-600 mt-1">마지막 활동 후 이 기간이 지난 세션 대상</p>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">보존할 최근 메시지 수</label>
+                                    <input
+                                        type="number"
+                                        value={cleanupKeepCount}
+                                        onChange={e => setCleanupKeepCount(Number(e.target.value))}
+                                        min={0}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-red-500"
+                                    />
+                                    <p className="text-[10px] text-gray-600 mt-1">0 입력 시 전체 삭제</p>
+                                </div>
+                            </div>
+                            {cleanupResult && (
+                                <div className="bg-green-900/20 border border-green-700/40 rounded-xl px-4 py-3 text-xs text-green-300">
+                                    ✓ 완료: {cleanupResult.cleanedSessions}개 세션, {cleanupResult.deletedMessages}개 메시지 삭제
+                                </div>
+                            )}
+                            <button
+                                onClick={handleCleanup}
+                                disabled={isCleaning}
+                                className="w-full bg-red-700 hover:bg-red-600 disabled:opacity-60 text-white font-medium py-2 px-5 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                            >
+                                <Icon name="Trash2" size={14} />
+                                {isCleaning ? '정리 중...' : '메시지 정리 실행'}
+                            </button>
+
+                            {/* DART 기업코드 갱신 */}
+                            <div className="pt-4 border-t border-gray-700/50">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Icon name="TrendingUp" size={16} className="text-green-400" />
+                                    <h3 className="text-sm font-bold text-white">DART 기업코드 갱신</h3>
+                                </div>
+                                <div className="bg-green-900/10 border border-green-800/30 rounded-xl px-4 py-3 text-xs text-green-300 leading-relaxed mb-3">
+                                    DART 전체 상장·비상장 기업 코드를 DB에 저장합니다.<br />
+                                    최초 1회 실행 필수. 이후 분기별 갱신 권장. 약 2~3분 소요.
+                                </div>
+                                {dartImportResult && (
+                                    <div className="bg-green-900/20 border border-green-700/40 rounded-xl px-4 py-3 text-xs text-green-300 mb-3">
+                                        ✓ 완료: 기업 코드 {dartImportResult.count.toLocaleString()}개 저장
+                                    </div>
+                                )}
+                                <button
+                                    onClick={async () => {
+                                        if (!window.confirm('DART에서 전체 기업코드를 다운받아 DB에 저장합니다. 2~3분 소요됩니다.')) return;
+                                        setIsDartImporting(true);
+                                        setDartImportResult(null);
+                                        try {
+                                            const res = await fetch('/api/dart-import', { method: 'POST', credentials: 'include' });
+                                            const data = await res.json();
+                                            if (data.ok) setDartImportResult({ count: data.count });
+                                            else alert(data.error || '오류 발생');
+                                        } catch { alert('요청 실패'); }
+                                        finally { setIsDartImporting(false); }
+                                    }}
+                                    disabled={isDartImporting}
+                                    className="w-full bg-green-700 hover:bg-green-600 disabled:opacity-60 text-white font-medium py-2 px-5 rounded-xl flex items-center justify-center gap-2 transition-colors"
+                                >
+                                    <Icon name="TrendingUp" size={14} />
+                                    {isDartImporting ? '갱신 중... (2~3분)' : 'DART 기업코드 갱신'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 포인트 통계 패널 */}
+                {mainView === 'points' && <AdminPointStats />}
+
+                {/* 회원 관리 패널 */}
+                {mainView === 'users' && (
+                    <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        {/* 일괄 포인트 지급 */}
+                        <div className="bg-gray-800 rounded-xl p-5 border border-gray-700">
+                            <h3 className="text-sm font-semibold text-gray-200 mb-4 flex items-center gap-2">
+                                <Icon name="Zap" size={15} className="text-yellow-400" />
+                                전체 회원 일괄 무료 포인트 지급
+                            </h3>
+                            <div className="flex gap-3 flex-wrap">
+                                <input
+                                    type="number"
+                                    placeholder="지급 포인트"
+                                    value={bulkAmount}
+                                    onChange={e => setBulkAmount(e.target.value)}
+                                    className="w-36 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:border-blue-500"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="지급 사유 (선택)"
+                                    value={bulkDesc}
+                                    onChange={e => setBulkDesc(e.target.value)}
+                                    className="flex-1 min-w-40 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:border-blue-500"
+                                />
+                                <button
+                                    disabled={bulkGranting || !bulkAmount || Number(bulkAmount) <= 0}
+                                    onClick={async () => {
+                                        if (!window.confirm(`전체 ${userList.length}명에게 ${bulkAmount}포인트를 지급합니다. 계속하시겠습니까?`)) return;
+                                        setBulkGranting(true); setBulkMsg(null);
+                                        try {
+                                            const r = await adminApi.bulkGrant(Number(bulkAmount), bulkDesc || undefined);
+                                            setBulkMsg(`✅ ${r.userCount}명에게 ${r.granted}포인트 지급 완료`);
+                                            setBulkAmount(''); setBulkDesc('');
+                                            adminApi.getUsers().then(setUserList).catch(() => {});
+                                        } catch { setBulkMsg('❌ 오류가 발생했습니다.'); }
+                                        finally { setBulkGranting(false); }
+                                    }}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-yellow-600 hover:bg-yellow-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    {bulkGranting ? '지급 중...' : '전체 지급'}
+                                </button>
+                            </div>
+                            {bulkMsg && <p className="mt-2 text-xs text-gray-300">{bulkMsg}</p>}
+                        </div>
+
+                        {/* 개인 포인트 지급 */}
+                        {grantTarget && (
+                            <div className="bg-gray-800 rounded-xl p-5 border border-blue-700">
+                                <h3 className="text-sm font-semibold text-gray-200 mb-3 flex items-center gap-2">
+                                    <Icon name="Gift" size={15} className="text-blue-400" />
+                                    개인 포인트 지급 — <span className="text-blue-300">{grantTarget.email ?? grantTarget.phone}</span>
+                                </h3>
+                                <div className="flex gap-3 flex-wrap">
+                                    <input
+                                        type="number"
+                                        placeholder="지급 포인트"
+                                        value={grantAmount}
+                                        onChange={e => setGrantAmount(e.target.value)}
+                                        className="w-36 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="지급 사유 (선택)"
+                                        value={grantDesc}
+                                        onChange={e => setGrantDesc(e.target.value)}
+                                        className="flex-1 min-w-40 px-3 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    />
+                                    <button
+                                        disabled={granting || !grantAmount || Number(grantAmount) <= 0}
+                                        onClick={async () => {
+                                            setGranting(true); setGrantMsg(null);
+                                            try {
+                                                const r = await adminApi.grantPoints(grantTarget.email ?? grantTarget.phone ?? '', Number(grantAmount), grantDesc || undefined);
+                                                setGrantMsg(`✅ ${r.email}에게 ${r.granted}포인트 지급 완료 (잔액: ${r.newBalance})`);
+                                                setGrantAmount(''); setGrantDesc(''); setGrantTarget(null);
+                                                adminApi.getUsers().then(setUserList).catch(() => {});
+                                            } catch { setGrantMsg('❌ 오류가 발생했습니다.'); }
+                                            finally { setGranting(false); }
+                                        }}
+                                        className="px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    >
+                                        {granting ? '지급 중...' : '지급'}
+                                    </button>
+                                    <button onClick={() => { setGrantTarget(null); setGrantMsg(null); }}
+                                        className="px-4 py-2 rounded-lg text-sm text-gray-400 hover:text-white transition-colors">
+                                        취소
+                                    </button>
+                                </div>
+                                {grantMsg && <p className="mt-2 text-xs text-gray-300">{grantMsg}</p>}
+                            </div>
+                        )}
+
+                        {/* 유저 목록 */}
+                        <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                            <div className="px-5 py-4 flex items-center justify-between border-b border-gray-700">
+                                <h3 className="text-sm font-semibold text-gray-200 flex items-center gap-2">
+                                    <Icon name="Users" size={15} className="text-gray-400" />
+                                    전체 회원 목록 ({userList.length}명)
+                                </h3>
+                                <input
+                                    type="text"
+                                    placeholder="이메일 / 이름 검색"
+                                    value={userSearch}
+                                    onChange={e => setUserSearch(e.target.value)}
+                                    className="w-48 px-3 py-1.5 rounded-lg bg-gray-700 border border-gray-600 text-white text-xs focus:outline-none focus:border-blue-500"
+                                />
+                            </div>
+                            {userListLoading ? (
+                                <div className="p-8 text-center text-sm text-gray-500">로딩 중...</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-xs">
+                                        <thead>
+                                            <tr className="border-b border-gray-700 text-gray-500 text-left">
+                                                <th className="px-4 py-3 font-medium">이메일</th>
+                                                <th className="px-4 py-3 font-medium">닉네임</th>
+                                                <th className="px-4 py-3 font-medium text-right">유료P</th>
+                                                <th className="px-4 py-3 font-medium text-right">무료P</th>
+                                                <th className="px-4 py-3 font-medium text-right">세션</th>
+                                                <th className="px-4 py-3 font-medium">가입일</th>
+                                                <th className="px-4 py-3 font-medium">역할</th>
+                                                <th className="px-4 py-3 font-medium"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {userList
+                                                .filter(u => {
+                                                    const q = userSearch.toLowerCase();
+                                                    const identifier = u.email ?? u.phone ?? '';
+                                                    return !q || identifier.toLowerCase().includes(q) || (u.username || '').toLowerCase().includes(q);
+                                                })
+                                                .map(u => (
+                                                    <tr key={u.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
+                                                        <td className="px-4 py-3 text-gray-200">{u.email ?? u.phone}</td>
+                                                        <td className="px-4 py-3 text-gray-400">{u.username || '—'}</td>
+                                                        <td className="px-4 py-3 text-right text-blue-300">{u.paidPoints.toLocaleString()}</td>
+                                                        <td className="px-4 py-3 text-right text-yellow-300">{u.bonusPoints.toLocaleString()}</td>
+                                                        <td className="px-4 py-3 text-right text-gray-400">{u.sessionCount}</td>
+                                                        <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
+                                                        <td className="px-4 py-3">
+                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'ADMIN' ? 'bg-red-900/50 text-red-300' : 'bg-gray-700 text-gray-400'}`}>
+                                                                {u.role}
+                                                            </span>
+                                                        </td>
+                                                        <td className="px-4 py-3">
+                                                            <button
+                                                                onClick={() => { setGrantTarget(u); setGrantMsg(null); setGrantAmount(''); setGrantDesc(''); }}
+                                                                className="px-3 py-1 rounded-lg bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 text-xs transition-colors"
+                                                            >
+                                                                포인트 지급
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                        </tbody>
+                                    </table>
+                                    {userList.length === 0 && (
+                                        <div className="p-8 text-center text-sm text-gray-500">회원이 없습니다.</div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* 카테고리 관리 패널 */}
+                {mainView === 'categories' && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <h3 className="text-sm font-bold text-white mb-4">카테고리 관리</h3>
+                        <div className="flex gap-2 mb-4">
+                            <input
+                                type="text"
+                                value={newCategoryName}
+                                onChange={e => setNewCategoryName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && !isSavingCategory && newCategoryName.trim() && (async () => {
+                                    setIsSavingCategory(true);
+                                    try {
+                                        const cat = await categoryApi.create(newCategoryName.trim());
+                                        setCategories(prev => [...prev, cat]);
+                                        setNewCategoryName('');
+                                    } catch (e: any) { alert(e.message); }
+                                    finally { setIsSavingCategory(false); }
+                                })()}
+                                placeholder="새 카테고리 이름"
+                                className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <button
+                                disabled={isSavingCategory || !newCategoryName.trim()}
+                                onClick={async () => {
+                                    if (!newCategoryName.trim()) return;
+                                    setIsSavingCategory(true);
+                                    try {
+                                        const cat = await categoryApi.create(newCategoryName.trim());
+                                        setCategories(prev => [...prev, cat]);
+                                        setNewCategoryName('');
+                                    } catch (e: any) { alert(e.message); }
+                                    finally { setIsSavingCategory(false); }
+                                }}
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
+                            >
+                                추가
+                            </button>
+                        </div>
+                        <div className="space-y-2">
+                            {categories.length === 0 && (
+                                <p className="text-gray-500 text-sm text-center py-8">카테고리가 없습니다.</p>
+                            )}
+                            {categories.map(cat => (
+                                <div key={cat.id} className="flex items-center justify-between bg-gray-800 rounded-xl px-4 py-3">
+                                    <div>
+                                        <span className="text-sm font-medium text-white">{cat.name}</span>
+                                        <span className="ml-2 text-xs text-gray-500">({cat._count?.personas ?? 0}개)</span>
+                                    </div>
+                                    <button
+                                        onClick={async () => {
+                                            if (!window.confirm(`'${cat.name}' 카테고리를 삭제하시겠습니까?\n해당 카테고리의 페르소나는 미분류로 변경됩니다.`)) return;
+                                            try {
+                                                await categoryApi.delete(cat.id);
+                                                setCategories(prev => prev.filter(c => c.id !== cat.id));
+                                            } catch (e: any) { alert(e.message); }
+                                        }}
+                                        className="text-gray-500 hover:text-red-400 transition-colors"
+                                    >
+                                        <Icon name="Trash2" size={14} />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 공지사항 관리 패널 */}
+                {mainView === 'announcements' && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <div className="max-w-2xl mx-auto space-y-5">
+                            <div className="flex items-center gap-2">
+                                <Icon name="Megaphone" size={16} className="text-yellow-400" />
+                                <h3 className="text-sm font-bold text-white">공지사항 관리</h3>
+                            </div>
+
+                            {/* 작성/수정 폼 */}
+                            <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 space-y-3">
+                                <p className="text-xs font-semibold text-gray-400">{annEditingId ? '공지 수정' : '새 공지 작성'}</p>
+                                <input
+                                    value={annTitle}
+                                    onChange={e => setAnnTitle(e.target.value)}
+                                    placeholder="제목"
+                                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-yellow-500 focus:outline-none"
+                                />
+                                <textarea
+                                    value={annContent}
+                                    onChange={e => setAnnContent(e.target.value)}
+                                    placeholder="내용"
+                                    rows={5}
+                                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:ring-1 focus:ring-yellow-500 focus:outline-none resize-y"
+                                />
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <select
+                                        value={annCategory}
+                                        onChange={e => { setAnnCategory(e.target.value as any); setAnnPersonaId(''); }}
+                                        className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
+                                    >
+                                        <option value="update">업데이트</option>
+                                        <option value="persona">신규 페르소나</option>
+                                        <option value="news">뉴스</option>
+                                    </select>
+                                    {annCategory === 'persona' && (
+                                        <select
+                                            value={annPersonaId}
+                                            onChange={e => setAnnPersonaId(e.target.value)}
+                                            className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
+                                        >
+                                            <option value="">페르소나 선택 (선택사항)</option>
+                                            {personas.map(p => (
+                                                <option key={p.id} value={p.id}>{p.name}</option>
+                                            ))}
+                                        </select>
+                                    )}
+                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+                                        <input type="checkbox" checked={annIsPinned} onChange={e => setAnnIsPinned(e.target.checked)} className="accent-yellow-500" />
+                                        고정
+                                    </label>
+                                    <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer">
+                                        <input type="checkbox" checked={annIsVisible} onChange={e => setAnnIsVisible(e.target.checked)} className="accent-yellow-500" />
+                                        공개
+                                    </label>
+                                    <div className="ml-auto flex gap-2">
+                                        {annEditingId && (
+                                            <button onClick={resetAnnForm} className="text-xs text-gray-500 hover:text-gray-300 px-3 py-1.5 rounded-lg transition-colors">
+                                                취소
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={handleAnnSave}
+                                            disabled={annSaving}
+                                            className="bg-yellow-600 hover:bg-yellow-500 disabled:opacity-60 text-white text-xs font-medium px-4 py-1.5 rounded-lg transition-colors"
+                                        >
+                                            {annSaving ? '저장 중...' : annEditingId ? '수정 저장' : '등록'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 공지 목록 */}
+                            <div className="space-y-2">
+                                {announcements.length === 0 && (
+                                    <p className="text-xs text-gray-600 text-center py-8">등록된 공지가 없습니다.</p>
+                                )}
+                                {announcements.map(a => {
+                                    const catLabel = a.category === 'persona' ? '신규 페르소나' : a.category === 'news' ? '뉴스' : '업데이트';
+                                    const catColor = a.category === 'persona' ? 'text-purple-400' : a.category === 'news' ? 'text-green-400' : 'text-blue-400';
+                                    return (
+                                        <div key={a.id} className={`bg-gray-800/50 border rounded-xl p-3 ${a.isVisible ? 'border-gray-700' : 'border-gray-800 opacity-50'}`}>
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                                                        {a.isPinned && <Icon name="Pin" size={10} className="text-yellow-400 shrink-0" />}
+                                                        <span className={`text-[10px] font-medium ${catColor}`}>{catLabel}</span>
+                                                        {!a.isVisible && <span className="text-[10px] text-gray-600">비공개</span>}
+                                                    </div>
+                                                    <p className="text-sm text-white font-medium truncate">{a.title}</p>
+                                                    <p className="text-[11px] text-gray-500 mt-0.5">{new Date(a.createdAt).toLocaleDateString('ko-KR')}</p>
+                                                </div>
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <button onClick={() => handleAnnToggleVisible(a)} className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors" title={a.isVisible ? '숨기기' : '공개'}>
+                                                        <Icon name={a.isVisible ? 'Eye' : 'EyeOff'} size={13} />
+                                                    </button>
+                                                    <button onClick={() => handleAnnEdit(a)} className="p-1.5 text-gray-500 hover:text-blue-400 transition-colors">
+                                                        <Icon name="Save" size={13} />
+                                                    </button>
+                                                    <button onClick={() => handleAnnDelete(a.id)} className="p-1.5 text-gray-500 hover:text-red-400 transition-colors">
+                                                        <Icon name="Trash2" size={13} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {mainView === 'personas' && <>
 
                     {/* 탭 바 */}
                     {selectedId !== 'new' && (
                         <div className="border-b border-gray-800 px-6 flex shrink-0">
-                            {(['info', 'gallery', 'knowledge'] as const).map(tab => (
+                            {(['info', 'gallery', 'knowledge', 'triggers'] as const).map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setActiveTab(tab)}
@@ -475,12 +1280,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                             : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
                                         }`}
                                 >
-                                    {tab === 'info' ? '기본 정보' : tab === 'gallery' ? '이미지 / 동영상' : '지식 창고'}
+                                    {tab === 'info' ? '기본 정보' : tab === 'gallery' ? '이미지 / 동영상' : tab === 'knowledge' ? '지식 창고' : '트리거 영상'}
                                     {tab === 'gallery' && images.length > 0 && (
                                         <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{images.length}</span>
                                     )}
                                     {tab === 'knowledge' && knowledgeList.length > 0 && (
                                         <span className="ml-2 bg-gray-700 text-gray-300 text-[10px] px-1.5 py-0.5 rounded-full">{knowledgeList.length}</span>
+                                    )}
+                                    {tab === 'triggers' && triggerVideos.length > 0 && (
+                                        <span className="ml-2 bg-purple-800 text-purple-300 text-[10px] px-1.5 py-0.5 rounded-full">{triggerVideos.length}</span>
                                     )}
                                 </button>
                             ))}
@@ -516,6 +1324,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     </div>
                                 </div>
                                 <div>
+                                    <label className="block text-xs font-semibold text-gray-400 mb-1.5">카테고리</label>
+                                    <select
+                                        value={selectedCategoryId ?? ''}
+                                        onChange={e => setSelectedCategoryId(e.target.value ? Number(e.target.value) : null)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
+                                    >
+                                        <option value="">미분류</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
                                     <label className="block text-xs font-semibold text-gray-400 mb-1.5">짧은 설명</label>
                                     <input
                                         type="text" value={description} onChange={e => setDescription(e.target.value)}
@@ -548,6 +1369,167 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                 ))}
                                             </div>
                                         </div>
+                                    </div>
+
+                                    {/* 인트로 영상 */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-2">인트로 영상</label>
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-900 overflow-hidden relative group cursor-pointer shrink-0"
+                                                onClick={() => !isUploadingIntroVideo && introVideoInputRef.current?.click()}
+                                            >
+                                                {isUploadingIntroVideo ? (
+                                                    <Icon name="Loader" size={20} className="text-gray-400 animate-spin" />
+                                                ) : introVideoUrl ? (
+                                                    <>
+                                                        <Icon name="Video" size={20} className="text-blue-400" />
+                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Icon name="Upload" size={16} className="text-white" />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="flex flex-col items-center text-gray-500">
+                                                        <Icon name="Video" size={20} className="mb-0.5" />
+                                                        <span className="text-[9px]">업로드</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <input type="file" accept="video/*" className="hidden" ref={introVideoInputRef} onChange={handleIntroVideoUpload} />
+                                                <p className="text-[11px] text-gray-500 mb-1">채팅 진입 전 영상이 먼저 표시됩니다. (50MB 이하)</p>
+                                                {introVideoUrl && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <a href={introVideoUrl} target="_blank" rel="noopener noreferrer"
+                                                            className="text-[10px] text-gray-500 hover:text-blue-400 break-all max-w-[200px] line-clamp-2 transition-colors"
+                                                            title={introVideoUrl}
+                                                        >
+                                                            {introVideoUrl}
+                                                        </a>
+                                                        <button onClick={handleRemoveIntroVideo} className="text-[11px] text-red-400 hover:text-red-300 text-left">영상 제거</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 별스타 감사 영상 */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-2">별스타 감사 영상 <span className="text-gray-600 font-normal">(100개 이상 전송 시 재생)</span></label>
+                                        <div className="flex items-center gap-4">
+                                            <div
+                                                className="w-16 h-16 rounded-xl border-2 border-dashed border-yellow-600/50 flex items-center justify-center bg-gray-900 overflow-hidden relative group cursor-pointer shrink-0"
+                                                onClick={() => !isUploadingStarVideo && starVideoInputRef.current?.click()}
+                                            >
+                                                {isUploadingStarVideo ? (
+                                                    <Icon name="Loader" size={20} className="text-gray-400 animate-spin" />
+                                                ) : starVideoUrl ? (
+                                                    <>
+                                                        <Icon name="Star" size={20} className="text-yellow-400" />
+                                                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <Icon name="Upload" size={16} className="text-white" />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <div className="flex flex-col items-center text-gray-500">
+                                                        <Icon name="Star" size={20} className="mb-0.5" />
+                                                        <span className="text-[9px]">업로드</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <input type="file" accept="video/*" className="hidden" ref={starVideoInputRef} onChange={handleStarVideoUpload} />
+                                                <p className="text-[11px] text-gray-500 mb-1">별스타 100개 이상 전송 시 전체화면으로 재생됩니다. (200MB 이하)</p>
+                                                {starVideoUrl && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <a href={starVideoUrl} target="_blank" rel="noopener noreferrer"
+                                                            className="text-[10px] text-gray-500 hover:text-yellow-400 break-all max-w-[200px] line-clamp-2 transition-colors"
+                                                            title={starVideoUrl}
+                                                        >
+                                                            {starVideoUrl}
+                                                        </a>
+                                                        <button onClick={handleRemoveStarVideo} className="text-[11px] text-red-400 hover:text-red-300 text-left">영상 제거</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 관상 보고서 배경 이미지 */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-2">
+                                            관상 보고서 배경 이미지 <span className="text-gray-600 font-normal">(관상 분석 결과 카드 배경)</span>
+                                        </label>
+                                        <div className="flex items-start gap-3">
+                                            <div
+                                                className="relative w-24 h-16 rounded-xl border border-gray-600 overflow-hidden cursor-pointer group flex items-center justify-center bg-gray-800"
+                                                style={faceReadingBgUrl ? { backgroundImage: `url(${faceReadingBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+                                                onClick={() => !isUploadingFaceReadingBg && faceReadingBgInputRef.current?.click()}
+                                            >
+                                                {isUploadingFaceReadingBg ? (
+                                                    <div className="w-4 h-4 border-2 border-amber-400/60 border-t-amber-400 rounded-full animate-spin" />
+                                                ) : faceReadingBgUrl ? (
+                                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Icon name="Upload" size={16} className="text-white" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center text-gray-500">
+                                                        <Icon name="Image" size={20} className="mb-0.5" />
+                                                        <span className="text-[9px]">업로드</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <input type="file" accept="image/*" className="hidden" ref={faceReadingBgInputRef} onChange={handleFaceReadingBgUpload} />
+                                                <p className="text-[11px] text-gray-500 mb-1">관상 분석 결과 카드의 배경으로 사용됩니다. (10MB 이하)</p>
+                                                {faceReadingBgUrl && (
+                                                    <div className="flex flex-col gap-1">
+                                                        <a href={faceReadingBgUrl} target="_blank" rel="noopener noreferrer"
+                                                            className="text-[10px] text-gray-500 hover:text-amber-400 break-all max-w-[200px] line-clamp-2 transition-colors"
+                                                            title={faceReadingBgUrl}
+                                                        >
+                                                            {faceReadingBgUrl}
+                                                        </a>
+                                                        <button onClick={handleRemoveFaceReadingBg} className="text-[11px] text-red-400 hover:text-red-300 text-left">배경 제거</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 채팅 배경 이미지 (최대 5개, 랜덤 적용) */}
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-2">
+                                            채팅 배경 이미지 <span className="text-gray-600 font-normal">({chatBgUrls.length}/5 · 채팅 진입 시 랜덤 적용)</span>
+                                        </label>
+                                        <div className="flex flex-wrap gap-3">
+                                            {chatBgUrls.map((url, idx) => (
+                                                <div key={idx} className="relative w-16 h-16 rounded-xl border border-gray-600 overflow-hidden group">
+                                                    <img src={url} alt={`bg-${idx + 1}`} className="w-full h-full object-cover" />
+                                                    <button
+                                                        onClick={() => handleRemoveChatBgItem(url)}
+                                                        className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                        title="제거">
+                                                        <Icon name="Trash2" size={16} className="text-red-400" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            {chatBgUrls.length < 5 && (
+                                                <div className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-600 flex items-center justify-center bg-gray-900 cursor-pointer hover:border-gray-400 transition-colors"
+                                                    onClick={() => !isUploadingChatBg && chatBgInputRef.current?.click()}>
+                                                    {isUploadingChatBg ? (
+                                                        <span className="w-5 h-5 rounded-full border-2 border-blue-400 border-t-transparent animate-spin" />
+                                                    ) : (
+                                                        <div className="flex flex-col items-center text-gray-500">
+                                                            <Icon name="Plus" size={20} />
+                                                            <span className="text-[9px] mt-0.5">추가</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <input type="file" accept="image/*" className="hidden" ref={chatBgInputRef} onChange={handleChatBgUpload} />
+                                        <p className="text-[10px] text-gray-600 mt-2">10MB 이하 · 이미지 위에 마우스를 올리면 제거 버튼이 표시됩니다.</p>
                                     </div>
 
                                     {/* 프로필 이미지 */}
@@ -641,20 +1623,24 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     />
                                 </div>
 
+                                {/* 퀵 메뉴 */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-400 mb-1.5">
+                                        퀵 메뉴 설정 <span className="text-gray-500 font-normal">— 채팅 입력창 위 버튼 (선택)</span>
+                                    </label>
+                                    <textarea value={quickMenuJson} onChange={e => setQuickMenuJson(e.target.value)} rows={6}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-3 text-xs text-gray-300 font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none resize-y leading-relaxed"
+                                        placeholder={`{\n  "menus": [\n    { "label": "💰 금전/사업", "prompt": "금전/사업 운을 봐주세요." },\n    { "label": "❤️ 연애/궁합", "prompt": "연애/궁합을 봐주세요." }\n  ],\n  "useBirthInfo": true\n}`}
+                                    />
+                                    <p className="text-[11px] text-gray-500 mt-1">useBirthInfo: true 이면 메뉴 클릭 시 이름/생년월일/태어난시 입력 폼이 표시됩니다.</p>
+                                </div>
+
                                 {/* 공개 여부 */}
                                 <div className="flex items-center gap-3 p-3.5 bg-gray-800/40 rounded-xl border border-gray-700/50">
                                     <input type="checkbox" id="isVisible" checked={isVisible} onChange={e => setIsVisible(e.target.checked)}
                                         className="w-4 h-4 accent-blue-500 cursor-pointer" />
                                     <label htmlFor="isVisible" className="text-sm text-gray-300 cursor-pointer select-none">페르소나 목록에 표시</label>
                                     {!isVisible && <span className="text-xs text-yellow-500 ml-1">숨김 — 데이터 보존됨</span>}
-                                </div>
-
-                                {/* 관리자 전용 */}
-                                <div className="flex items-center gap-3 p-3.5 bg-gray-800/40 rounded-xl border border-gray-700/50">
-                                    <input type="checkbox" id="adminOnly" checked={adminOnly} onChange={e => setAdminOnly(e.target.checked)}
-                                        className="w-4 h-4 accent-yellow-500 cursor-pointer" />
-                                    <label htmlFor="adminOnly" className="text-sm text-gray-300 cursor-pointer select-none">관리자 전용 (어드민 로그인 시에만 표시)</label>
-                                    {adminOnly && <span className="text-xs text-yellow-500 ml-1">관리자 전용</span>}
                                 </div>
 
                                 {/* 저장 / 삭제 */}
@@ -665,11 +1651,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                 className="text-red-400 hover:text-red-300 hover:bg-red-400/10 px-4 py-2 rounded-xl transition-colors flex items-center text-sm font-medium">
                                                 <Icon name="Trash2" size={15} className="mr-1.5" />삭제
                                             </button>
-                                        )}
-                                        {showSuccess && (
-                                            <span className="text-emerald-400 flex items-center text-sm animate-in fade-in">
-                                                <Icon name="Bot" size={15} className="mr-1.5" />저장되었습니다!
-                                            </span>
                                         )}
                                     </div>
                                     <button onClick={handleSave} disabled={isSaving}
@@ -762,18 +1743,33 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                             <div>
                                                 <label className="text-[11px] text-gray-500 block mb-1">이미지 해제 단계</label>
                                                 <select
-                                                    value={images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1}
-                                                    onChange={async e => {
-                                                        const lv = Number(e.target.value);
-                                                        try {
-                                                            const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, lv);
-                                                            setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
-                                                        } catch {}
-                                                    }}
+                                                    value={pendingLevel}
+                                                    onChange={e => { setPendingLevel(Number(e.target.value)); setSavedLevel(false); }}
                                                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                                 >
                                                     {STAGES.map(s => <option key={s.stage} value={s.stage}>{s.stage}단계 · {s.name}</option>)}
                                                 </select>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!selectedImageId) return;
+                                                        setSavingLevel(true);
+                                                        try {
+                                                            const updated = await personaImageApi.updateRequiredLevel(selectedId, selectedImageId, pendingLevel);
+                                                            setImages(prev => prev.map(img => img.id === selectedImageId ? { ...img, requiredLevel: updated.requiredLevel } : img));
+                                                            setSavedLevel(true);
+                                                            onImagesChanged?.(selectedId);
+                                                            setTimeout(() => setSavedLevel(false), 2000);
+                                                        } catch (e: any) {
+                                                            alert('저장 실패: ' + e.message);
+                                                        } finally {
+                                                            setSavingLevel(false);
+                                                        }
+                                                    }}
+                                                    disabled={savingLevel || pendingLevel === (images.find(i => i.id === selectedImageId)?.requiredLevel ?? 1)}
+                                                    className="mt-1.5 w-full text-xs py-1.5 rounded-lg font-medium transition-colors disabled:opacity-40 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 text-white"
+                                                >
+                                                    {savingLevel ? '저장 중...' : savedLevel ? '✓ 저장됨' : '단계 저장'}
+                                                </button>
                                             </div>
 
                                             <div className="border-t border-gray-700 pt-3">
@@ -903,7 +1899,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                 setKnowledgeText('');
                                                 const updated = await knowledgeApi.getAll(selectedId);
                                                 setKnowledgeList(updated);
-                                                alert(`저장 완료 — ${result.total}개 청크 생성`);
+                                                if (result.action === 'kept_existing') {
+                                                    alert(`📋 기존 문서가 더 품질이 높아 유지했습니다.\n새 문서는 저장하지 않았습니다.`);
+                                                } else if (result.action === 'replaced') {
+                                                    alert(`🔄 새 문서가 더 품질이 높아 기존 문서를 교체했습니다.\n✅ ${result.total}개 청크 저장`);
+                                                } else {
+                                                    alert(`✅ 저장 완료 — ${result.total}개 청크 생성`);
+                                                }
                                             } catch (e: any) {
                                                 alert('저장 실패: ' + e.message);
                                             } finally {
@@ -951,10 +1953,267 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             </div>
                         )}
 
+                        {/* ── 트리거 영상 탭 ── */}
+                        {activeTab === 'triggers' && selectedId !== 'new' && (
+                            <div className="p-6 max-w-2xl mx-auto space-y-6">
+
+                                {/* 업로드 폼 */}
+                                <div className="bg-gray-800/40 border border-gray-700/50 rounded-2xl p-5 space-y-4">
+                                    <h3 className="text-sm font-bold text-white">트리거 영상 추가</h3>
+                                    <p className="text-xs text-gray-500">채팅 중 키워드가 감지되면 자동으로 팝업 재생됩니다.</p>
+
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-400 mb-1.5">제목 <span className="text-red-400">*</span></label>
+                                            <input
+                                                type="text"
+                                                value={tvTitle}
+                                                onChange={e => setTvTitle(e.target.value)}
+                                                placeholder="예: 아침 인사 반응"
+                                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-semibold text-gray-400 mb-1.5">태그 (상황/감정)</label>
+                                            <input
+                                                type="text"
+                                                value={tvTag}
+                                                onChange={e => setTvTag(e.target.value)}
+                                                placeholder="예: 인사 / 밝음"
+                                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">설명 (AI 키워드 추출에 활용)</label>
+                                        <input
+                                            type="text"
+                                            value={tvDescription}
+                                            onChange={e => setTvDescription(e.target.value)}
+                                            placeholder="예: 아침 인사를 받았을 때 밝게 반응하는 영상"
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <label className="text-xs font-semibold text-gray-400">트리거 키워드 <span className="text-red-400">*</span></label>
+                                            <button
+                                                onClick={async () => {
+                                                    if (!tvTitle.trim()) { alert('제목을 먼저 입력해주세요.'); return; }
+                                                    setTvExtracting(true);
+                                                    try {
+                                                        const res = await triggerVideoApi.extractKeywords(tvTitle, tvDescription);
+                                                        setTvKeywords(res.keywords.join(', '));
+                                                    } catch (e: any) {
+                                                        alert('키워드 추출 실패: ' + e.message);
+                                                    } finally {
+                                                        setTvExtracting(false);
+                                                    }
+                                                }}
+                                                disabled={tvExtracting || !tvTitle.trim()}
+                                                className="flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 disabled:opacity-50 transition-colors"
+                                            >
+                                                <Icon name="Bot" size={12} />
+                                                {tvExtracting ? 'AI 추출 중...' : 'AI 자동 추출'}
+                                            </button>
+                                        </div>
+                                        <textarea
+                                            value={tvKeywords}
+                                            onChange={e => setTvKeywords(e.target.value)}
+                                            placeholder="안녕, 안녕하세요, 좋은아침, 방가워, 반가워&#10;쉼표로 구분. AI 자동 추출 후 수정 가능"
+                                            rows={3}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-purple-500 focus:outline-none resize-none"
+                                        />
+                                        <p className="text-[11px] text-gray-500 mt-1">쉼표(,)로 구분. 직접 입력하거나 AI 자동 추출 후 수정하세요.</p>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-400 mb-1.5">영상 파일 <span className="text-red-400">*</span></label>
+                                        <input ref={tvFileInputRef} type="file" accept="video/*" className="hidden"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file || !tvTitle.trim() || !tvKeywords.trim()) {
+                                                    alert('제목과 키워드를 먼저 입력해주세요.');
+                                                    e.target.value = '';
+                                                    return;
+                                                }
+                                                setTvUploading(true);
+                                                try {
+                                                    const { signedUrl, publicUrl } = await triggerVideoApi.getSignedUrl(file.type, file.name);
+                                                    await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+                                                    const created = await triggerVideoApi.create({
+                                                        personaId: selectedId,
+                                                        videoUrl: publicUrl,
+                                                        title: tvTitle.trim(),
+                                                        description: tvDescription.trim() || undefined,
+                                                        keywords: tvKeywords.trim(),
+                                                        tag: tvTag.trim() || undefined,
+                                                    });
+                                                    setTriggerVideos(prev => [...prev, created]);
+                                                    setTvTitle(''); setTvDescription(''); setTvKeywords(''); setTvTag('');
+                                                } catch (err: any) {
+                                                    alert('업로드 실패: ' + err.message);
+                                                } finally {
+                                                    setTvUploading(false);
+                                                    e.target.value = '';
+                                                }
+                                            }}
+                                        />
+                                        <button
+                                            onClick={() => tvFileInputRef.current?.click()}
+                                            disabled={tvUploading || !tvTitle.trim() || !tvKeywords.trim()}
+                                            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-colors"
+                                        >
+                                            <Icon name="Upload" size={14} />
+                                            {tvUploading ? '업로드 중...' : '영상 업로드 & 저장'}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 저장된 목록 */}
+                                {triggerVideos.length > 0 ? (
+                                    <div className="space-y-3">
+                                        <h3 className="text-sm font-bold text-white">등록된 트리거 영상 ({triggerVideos.length}개)</h3>
+                                        {triggerVideos.map(tv => (
+                                            <div key={tv.id} className="bg-gray-800/40 border border-gray-700/50 rounded-xl p-4 space-y-3">
+                                                <div className="flex gap-3">
+                                                    {/* 영상 미리보기 */}
+                                                    <video
+                                                        src={tv.videoUrl}
+                                                        className="w-28 h-20 object-cover rounded-lg bg-black shrink-0 cursor-pointer"
+                                                        onClick={e => { const v = e.currentTarget; v.paused ? v.play() : v.pause(); }}
+                                                        title="클릭하여 재생/정지"
+                                                        muted
+                                                        preload="metadata"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="text-sm font-semibold text-white">{tv.title || '(제목 없음)'}</span>
+                                                                    {tv.tag && <span className="text-[10px] bg-purple-900/50 text-purple-300 border border-purple-700/50 px-2 py-0.5 rounded-full">{tv.tag}</span>}
+                                                                </div>
+                                                                {tv.description && <p className="text-xs text-gray-500 mt-0.5">{tv.description}</p>}
+                                                                <p className="text-[10px] text-gray-600 mt-1 truncate">{tv.videoUrl.split('/').pop()}</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!confirm(`"${tv.title}" 트리거 영상을 삭제할까요?`)) return;
+                                                                    await triggerVideoApi.delete(tv.id);
+                                                                    setTriggerVideos(prev => prev.filter(x => x.id !== tv.id));
+                                                                }}
+                                                                className="shrink-0 text-gray-600 hover:text-red-400 transition-colors"
+                                                            >
+                                                                <Icon name="Trash2" size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* 키워드 편집 */}
+                                                {tvEditingId === tv.id ? (
+                                                    <div className="space-y-2">
+                                                        <input
+                                                            type="text"
+                                                            value={tvEditKeywords}
+                                                            onChange={e => setTvEditKeywords(e.target.value)}
+                                                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={tvEditTag}
+                                                            onChange={e => setTvEditTag(e.target.value)}
+                                                            placeholder="태그 (예: 인사 / 밝음)"
+                                                            className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-xs text-white focus:ring-2 focus:ring-purple-500 focus:outline-none"
+                                                        />
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={async () => {
+                                                                    await triggerVideoApi.update(tv.id, { keywords: tvEditKeywords, tag: tvEditTag });
+                                                                    setTriggerVideos(prev => prev.map(x => x.id === tv.id ? { ...x, keywords: tvEditKeywords, tag: tvEditTag } : x));
+                                                                    setTvEditingId(null);
+                                                                }}
+                                                                className="text-xs bg-purple-600 hover:bg-purple-500 text-white px-3 py-1.5 rounded-lg transition-colors"
+                                                            >저장</button>
+                                                            <button
+                                                                onClick={() => setTvEditingId(null)}
+                                                                className="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 transition-colors"
+                                                            >취소</button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="flex flex-wrap gap-1 flex-1">
+                                                            {tv.keywords.split(',').map(k => k.trim()).filter(Boolean).map((kw, i) => (
+                                                                <span key={i} className="text-[10px] bg-gray-700/80 text-gray-300 px-2 py-0.5 rounded-full">{kw}</span>
+                                                            ))}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => { setTvEditingId(tv.id); setTvEditKeywords(tv.keywords); setTvEditTag(tv.tag || ''); }}
+                                                            className="shrink-0 text-xs text-gray-500 hover:text-purple-400 transition-colors flex items-center gap-1"
+                                                        >
+                                                            <Icon name="PenLine" size={11} /> 수정
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-sm text-gray-600 text-center py-8">등록된 트리거 영상이 없습니다.</p>
+                                )}
+                            </div>
+                        )}
+
                     </div>
                 </>}
                 </div>
             </div>
+        </div>
+    );
+};
+
+const AdminPointStats: React.FC = () => {
+    const [stats, setStats] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        pointApi.getStats().then(setStats).catch(() => {}).finally(() => setLoading(false));
+    }, []);
+
+    if (loading) return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">불러오는 중...</div>;
+    if (!stats) return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">데이터 없음</div>;
+
+    return (
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gray-800 rounded-xl p-4">
+                    <p className="text-xs text-gray-400 mb-1">총 포인트 소비</p>
+                    <p className="text-2xl font-bold text-red-400">{(stats.totalSpent ?? 0).toLocaleString()}pt</p>
+                </div>
+                <div className="bg-gray-800 rounded-xl p-4">
+                    <p className="text-xs text-gray-400 mb-1">스타 선물 총계</p>
+                    <p className="text-2xl font-bold text-yellow-400">{stats.balloonsSent}개</p>
+                    <p className="text-xs text-gray-500">{stats.balloonsPointsSpent}pt 사용</p>
+                </div>
+            </div>
+
+            {stats.byPersona.length > 0 && (
+                <div>
+                    <p className="text-sm font-semibold text-gray-300 mb-3">페르소나별 포인트 소비</p>
+                    <div className="space-y-2">
+                        {stats.byPersona.map((b: any) => (
+                            <div key={b.personaId} className="flex items-center gap-2 bg-gray-800 rounded-lg px-3 py-2">
+                                {b.persona?.imageUrl && <img src={b.persona.imageUrl} className="w-7 h-7 rounded-full object-cover object-top" alt="" />}
+                                <span className="text-sm text-gray-300 flex-1 truncate">{b.persona?.name ?? '알 수 없음'}</span>
+                                <span className="text-sm font-semibold text-yellow-400">{(b.spent ?? 0).toLocaleString()}pt</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

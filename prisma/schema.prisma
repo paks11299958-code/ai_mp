@@ -8,20 +8,32 @@ datasource db {
 }
 
 model User {
-  id               Int              @id @default(autoincrement())
-  email            String           @unique
+  id               Int                 @id @default(autoincrement())
+  email            String?             @unique
+  phone            String?             @unique
   password         String
   username         String?
-  role             String           @default("USER")
+  role             String              @default("USER")
   resetToken       String?
   resetTokenExpiry DateTime?
-  createdAt        DateTime         @default(now())
+  paidPoints       Int                 @default(0)
+  bonusPoints      Int                 @default(0)
+  birthInfoJson    String?
+  createdAt        DateTime            @default(now())
   personas         Persona[]
   sessions         ChatSession[]
   memories         UserMemory[]
   personaXps       UserPersonaXp[]
   boardPosts       BoardPost[]
   boardReplies     BoardReply[]
+  swingAnalyses    UserSwingAnalysis[]
+  pointTransactions PointTransaction[]
+  starsGiven        Star[]             @relation("GivenBy")
+  partnerPosts      PartnerPost[]
+  partnerReplies    PartnerReply[]
+  stockAnalyses     StockAnalysis[]
+  usedItemListings    UsedItemListing[]
+  luxuryVerifications LuxuryVerification[]
 }
 
 model UserPersonaXp {
@@ -43,6 +55,14 @@ model UserMemory {
   user      User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Category {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+  personas  Persona[]
+}
+
 model Persona {
   id                String          @id @default(cuid())
   name              String
@@ -54,16 +74,28 @@ model Persona {
   colorClass        String          @default("from-blue-500 to-cyan-500")
   order             Int             @default(0)
   imageUrl          String?
+  introVideoUrl     String?
+  starVideoUrl      String?
+  faceReadingBgUrl  String?
+  chatBgUrl         String?
+  quickMenuJson     String?
   isDefault         Boolean         @default(false)
   isVisible         Boolean         @default(true)
-  adminOnly         Boolean         @default(false)
   createdBy         Int?
+  categoryId        Int?
   user              User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  category          Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   createdAt         DateTime        @default(now())
   sessions          ChatSession[]
   images            PersonaImage[]
   personaXps        UserPersonaXp[]
   knowledge         PersonaKnowledge[]
+  boardPosts        BoardPost[]
+  triggerVideos     PersonaTriggerVideo[]
+  swingAnalyses     UserSwingAnalysis[]
+  announcements     Announcement[]
+  stars             Star[]
+  pointTransactions PointTransaction[]
 }
 
 model PersonaImage {
@@ -139,15 +171,41 @@ model PersonaKnowledge {
   persona   Persona                   @relation(fields: [personaId], references: [id], onDelete: Cascade)
 }
 
+model PersonaTriggerVideo {
+  id          Int      @id @default(autoincrement())
+  personaId   String
+  videoUrl    String
+  title       String?
+  description String?
+  keywords    String
+  tag         String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  persona     Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
+}
+
 model BoardPost {
   id        Int          @id @default(autoincrement())
   userId    Int
+  personaId String
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona   Persona      @relation(fields: [personaId], references: [id], onDelete: Cascade)
   title     String
   content   String
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
   replies   BoardReply[]
+}
+
+model UserSwingAnalysis {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  personaId    String
+  fileName     String?
+  analysisJson String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona      Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
 }
 
 model BoardReply {
@@ -159,4 +217,176 @@ model BoardReply {
   isAdminReply Boolean   @default(false)
   content      String
   createdAt    DateTime  @default(now())
+}
+
+model Announcement {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String
+  category  String   @default("update")
+  isPinned  Boolean  @default(false)
+  isVisible Boolean  @default(true)
+  personaId String?
+  persona   Persona? @relation(fields: [personaId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PointTransaction {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  amount       Int
+  type         String
+  description  String?
+  personaId    String?
+  balanceAfter Int
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  persona      Persona? @relation(fields: [personaId], references: [id], onDelete: SetNull)
+}
+
+model Star {
+  id          Int      @id @default(autoincrement())
+  fromUserId  Int
+  personaId   String
+  amount      Int
+  pointsSpent Int
+  message     String?
+  createdAt   DateTime @default(now())
+  fromUser    User     @relation("GivenBy", fields: [fromUserId], references: [id], onDelete: Cascade)
+  persona     Persona  @relation(fields: [personaId], references: [id], onDelete: Cascade)
+
+  @@map("StarBalloon")
+}
+
+model PendingVerification {
+  id         Int      @id @default(autoincrement())
+  type       String
+  identifier String   @unique
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int      @default(0)
+  sentCount  Int      @default(1)
+  lastSentAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+}
+
+model PartnerPost {
+  id        Int           @id @default(autoincrement())
+  userId    Int
+  title     String
+  content   String
+  contact   String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replies   PartnerReply[]
+}
+
+model PartnerReply {
+  id           Int         @id @default(autoincrement())
+  postId       Int
+  post         PartnerPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId       Int
+  user         User        @relation(fields: [userId], references: [id])
+  isAdminReply Boolean     @default(false)
+  content      String
+  createdAt    DateTime    @default(now())
+}
+
+model CorpCode {
+  corpCode  String  @id
+  corpName  String
+  stockCode String?
+  modifyDt  String?
+
+  @@index([corpName])
+}
+
+model StockAnalysis {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  stockName      String
+  corpCode       String?
+  yahooSymbol    String?
+  chartImageUrl  String?
+  status         String   @default("pending")
+  analysisReport String?
+  claudeReport   String?
+  gptReport      String?
+  sourceLinks    String?
+  errorMessage   String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LuxuryVerification {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  imageUrls        String   @default("[]")
+  brandHint        String?
+  status           String   @default("pending")
+  // Gemini 분석
+  geminiBrand      String?
+  geminiModel      String?
+  geminiScore      Int?
+  geminiPoints     String?
+  geminiVerdict    String?
+  geminiSummary    String?
+  // Claude 분석
+  claudeBrand      String?
+  claudeModel      String?
+  claudeScore      Int?
+  claudePoints     String?
+  claudeVerdict    String?
+  claudeSummary    String?
+  // GPT-4o 분석
+  gptBrand         String?
+  gptModel         String?
+  gptScore         Int?
+  gptPoints        String?
+  gptVerdict       String?
+  gptSummary       String?
+  // 종합 결과
+  finalScore       Int?
+  finalVerdict     String?
+  agreements       String?
+  disagreements    String?
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UsedItemListing {
+  id               Int      @id @default(autoincrement())
+  userId           Int
+  imageUrls        String   @default("[]")
+  itemName         String?
+  status           String   @default("pending")
+  category         String?
+  brand            String?
+  modelName        String?
+  condition        String?
+  conditionDetail  String?
+  visibleDamage    String?
+  includedItems    String?
+  confidence       Float?
+  suggestedPrice   Int?
+  claudePrice      Int?
+  gptPrice         Int?
+  minPrice         Int?
+  maxPrice         Int?
+  priceReason      String?
+  aiTitle          String?
+  aiDescription    String?
+  aiHashtags       String?
+  finalTitle       String?
+  finalPrice       Int?
+  finalDescription String?
+  errorMessage     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
