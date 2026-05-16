@@ -3372,6 +3372,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             ).join('\n\n') + `\n\n- AI.MP 핫쇼핑키워드`;
 
             const payload = {
+                categories: top5Categories,
                 deliveryMethod,
                 email: email || null,
                 phone: phone || null,
@@ -3389,7 +3390,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 console.error('n8n webhook 오류:', errText);
                 return res.status(502).json({ error: '발송 요청 실패. 잠시 후 다시 시도해주세요.' });
             }
-            return res.status(200).json({ ok: true, message: '분석 요청이 접수되었습니다. 잠시 후 발송됩니다.' });
+            // n8n이 "Respond to Webhook" 노드로 응답할 경우 ok 필드 확인
+            let n8nBody: any = {};
+            try { n8nBody = await n8nRes.json(); } catch { /* 빈 응답 무시 */ }
+            if (n8nBody?.ok === false) {
+                const errMsg = n8nBody?.error || '발송 중 오류가 발생했습니다.';
+                console.error('n8n 워크플로우 오류:', errMsg);
+                return res.status(502).json({ error: errMsg });
+            }
+            return res.status(200).json({ ok: true, message: '발송이 완료되었습니다.' });
         }
     }
 
