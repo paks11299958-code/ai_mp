@@ -86,6 +86,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const seg2 = req.query.s2 as string | undefined;
     const seg3 = req.query.s3 as string | undefined;
 
+    if (domain === 'ping') return res.status(200).json({ v: 'DEPLOY-TEST-v5', t: Date.now() });
+
     // ── Auth ──────────────────────────────────────────────────
 
     if (domain === 'auth') {
