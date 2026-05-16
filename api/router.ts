@@ -1,3 +1,4 @@
+// build: 2026-05-16T14:00
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
