@@ -67,6 +67,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [colorClass, setColorClass] = useState(AVAILABLE_COLORS[0].value);
     const [imageUrl, setImageUrl] = useState('');
     const [isVisible, setIsVisible] = useState(true);
+    const [adminOnly, setAdminOnly] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [showInstructionExample, setShowInstructionExample] = useState(false);
@@ -105,14 +106,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         if (selectedId === 'new') {
             setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
-            setImageUrl(''); setIsVisible(true); setShowSuccess(false); setImages([]);
+            setImageUrl(''); setIsVisible(true); setAdminOnly(false); setShowSuccess(false); setImages([]);
         } else {
             const p = personas.find(p => p.id === selectedId);
             if (p) {
                 setName(p.name); setJobTitle(p.jobTitle || ''); setDescription(p.description || '');
                 setInstruction(p.systemInstruction); setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
-                setImageUrl(p.imageUrl || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
+                setImageUrl(p.imageUrl || ''); setIsVisible(p.isVisible !== false); setAdminOnly(p.adminOnly === true); setShowSuccess(false);
             }
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
             knowledgeApi.getAll(selectedId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
@@ -267,7 +268,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         const idToSave = isNew ? `custom-${Date.now()}` : selectedId;
         setIsSaving(true);
         try {
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, isVisible, adminOnly });
             localStorage.removeItem('personas_cache');
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
@@ -646,6 +647,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                         className="w-4 h-4 accent-blue-500 cursor-pointer" />
                                     <label htmlFor="isVisible" className="text-sm text-gray-300 cursor-pointer select-none">페르소나 목록에 표시</label>
                                     {!isVisible && <span className="text-xs text-yellow-500 ml-1">숨김 — 데이터 보존됨</span>}
+                                </div>
+
+                                {/* 관리자 전용 */}
+                                <div className="flex items-center gap-3 p-3.5 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                                    <input type="checkbox" id="adminOnly" checked={adminOnly} onChange={e => setAdminOnly(e.target.checked)}
+                                        className="w-4 h-4 accent-yellow-500 cursor-pointer" />
+                                    <label htmlFor="adminOnly" className="text-sm text-gray-300 cursor-pointer select-none">관리자 전용 (어드민 로그인 시에만 표시)</label>
+                                    {adminOnly && <span className="text-xs text-yellow-500 ml-1">관리자 전용</span>}
                                 </div>
 
                                 {/* 저장 / 삭제 */}

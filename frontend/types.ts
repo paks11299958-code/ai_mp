@@ -21,6 +21,7 @@ export interface Persona {
     imageUrl?: string;
     isDefault?: boolean;
     isVisible?: boolean;
+    adminOnly?: boolean;
 }
 
 export interface UserMemory {

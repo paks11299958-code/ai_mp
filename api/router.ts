@@ -189,10 +189,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return userId;
         };
 
-        // GET /api/personas (public)
+        // GET /api/personas (public, adminOnly 페르소나는 ADMIN에게만 노출)
         if (!seg1 && req.method === 'GET') {
             try {
-                const personas = await prisma.persona.findMany({ orderBy: { order: 'asc' } });
+                let isAdmin = false;
+                const token = getTokenFromRequest(req);
+                if (token) {
+                    try {
+                        const { userId } = verifyToken(token);
+                        const user = await prisma.user.findUnique({ where: { id: userId } });
+                        isAdmin = user?.role === 'ADMIN';
+                    } catch { /* 토큰 무효 시 일반 사용자로 처리 */ }
+                }
+                const where = isAdmin ? {} : { adminOnly: false };
+                const personas = await prisma.persona.findMany({ where, orderBy: { order: 'asc' } });
                 return res.status(200).json(personas);
             } catch (e: any) {
                 console.error('[personas GET]', e);
@@ -223,10 +233,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, order, isVisible } = req.body;
+                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, order, isVisible, adminOnly } = req.body;
                 const persona = await prisma.persona.update({
                     where: { id: seg1 },
-                    data: { name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass, imageUrl, order, ...(isVisible !== undefined && { isVisible }) },
+                    data: { name, jobTitle: jobTitle ?? null, description, systemInstruction, iconName, colorClass, imageUrl, order, ...(isVisible !== undefined && { isVisible }), ...(adminOnly !== undefined && { adminOnly }) },
                 });
                 return res.status(200).json(persona);
             } catch (e: any) {

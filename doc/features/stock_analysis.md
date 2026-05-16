@@ -1,0 +1,155 @@
+# 주식 분석 기능
+
+> 최종 업데이트: 2026-05-16  
+> 관련 파일: `api/cron-stock-worker.ts`, `api/_lib/dartService.ts`, `frontend/components/StockAnalysisBoard.tsx`, `api/router.ts`
+
+---
+
+## 개요
+
+사용자가 종목명을 입력하면 DART 공시 + Yahoo Finance 실시간 데이터를 수집해 **Gemini 2.5 Flash + Claude Sonnet + GPT-4o 3중 AI**로 전문 투자 분석 보고서를 생성하는 비동기 분석 기능.
+
+- **비용**: 50P / 1회
+- **일일 제한**: 1회 (어드민 `paks1012@naver.com` 예외)
+
+---
+
+## 아키텍처
+
+```
+사용자 요청 → StockAnalysis DB (status: pending)
+    ↓ (Vercel Cron * * * * *)
+cron-stock-worker.ts (maxDuration 300s)
+    ├─ dartService.findCorpCode()        ← CorpCode DB 조회 (118,033개)
+    ├─ dartService.getRecentFilings()    ← DART 최근 공시 6건
+    ├─ dartService.getFinancials()       ← 직전 연도 재무제표
+    ├─ dartService.getCorpInfo()         ← 기업 기본정보
+    └─ dartService.getYahooFinanceData() ← 실시간 주가/PER/PBR/ROE 등
+    ↓ (병렬 실행)
+    ├─ Gemini 2.5 Flash (Google Search 그라운딩) → 전체 보고서 (7섹션)
+    ├─ Claude Sonnet  (DART+Yahoo 데이터만)      → 투자의견 요약 섹션
+    └─ GPT-4o         (DART+Yahoo 데이터만)      → 투자의견 요약 섹션
+    ↓
+StockAnalysis DB (status: completed, analysisReport = 3개 합산, claudeReport, gptReport)
+```
+
+---
+
+## DB 모델
+
+### CorpCode
+- DART `corpCode.xml` ZIP에서 118,033개 기업 일괄 import
+- 어드민 패널 → DART 기업코드 갱신 버튼 (`POST /api/dart-import`)
+- `deleteMany + createMany(5000 배치)` — upsert 대비 10배 이상 빠름
+
+### StockAnalysis
+```
+id, userId, stockName
+corpCode        ← DART 기업 코드
+yahooSymbol     ← Yahoo Finance 심볼 (e.g. 005930.KS) — KRX 심볼 변환용
+chartImageUrl   ← GCS에 저장된 네이버 금융 차트 이미지 URL (분석 시 자동 저장)
+status          ← pending | processing | completed | failed
+analysisReport  ← Gemini 전체 보고서 + Claude/GPT 의견 합산 마크다운
+claudeReport    ← Claude Sonnet 투자 의견 (별도 저장)
+gptReport       ← GPT-4o 투자 의견 (별도 저장)
+sourceLinks     ← Gemini Google Search 그라운딩 URL JSON 배열
+errorMessage    ← 실패 시 오류 메시지
+```
+
+---
+
+## 데이터 수집
+
+### DART API (`opendart.fss.or.kr`)
+- `findCorpCode(stockName)`: DB에서 정확 일치 → 부분 일치 순서로 검색
+- `getRecentFilings(corpCode, 6)`: 2023-01-01 이후 공시 6건
+- `getFinancials(corpCode)`: 직전 연도 연간 재무제표 (매출/영업이익/순이익/부채/자본)
+- `getCorpInfo(corpCode)`: 업종코드, 설립일, 상장일
+
+### Yahoo Finance (비공식 API)
+- `query1.finance.yahoo.com/v10/finance/quoteSummary/{symbol}`
+- `.KS` (KOSPI) → `.KQ` (KOSDAQ) 순서로 자동 탐색
+- 수집 항목: 현재주가, 등락률, 시가총액, 52주 최고/최저, PER, PBR, ROE, EPS, 매출성장률
+
+---
+
+## 보고서 구조
+
+Gemini 2.5 Flash (Google Search 그라운딩) + Claude Sonnet + GPT-4o 3중 AI 합산:
+
+**Gemini 메인 보고서** (7섹션):
+1. `## 📊 투자 요약` — 투자의견(매수/중립/매도), 목표주가, 상승여력, 핵심 리스크 테이블
+2. `## 1. 기업 개요` — 사업 모델, 주요 제품, 경쟁 우위
+3. `## 2. 실적 & 재무 분석` — DART 수치 기반 + 업계 평균 비교
+4. `## 3. 최근 주요 공시 & 이슈`
+5. `## 4. 기술적 분석` — 52주 위치, 지지/저항 구간
+6. `## 5. 최신 뉴스 & 시장 동향` — 최근 1개월 뉴스 3~5건
+7. `## 6. 리스크 분석` — 시장/실적/업종/기타 리스크 테이블
+8. `## 7. 종합 의견`
+
+**Claude Sonnet 추가 의견** (DART+Yahoo 데이터 기반, 검색 없음):
+- 투자의견 / 목표주가 추정 / 핵심 강점 / 핵심 리스크 / 종합 코멘트
+
+**GPT-4o 추가 의견** (동일 형식):
+- 투자의견 / 목표주가 추정 / 핵심 강점 / 핵심 리스크 / 종합 코멘트
+
+투자 유의사항 면책 문구 자동 첨부 (모든 AI 공통)
+
+---
+
+## UI (`StockAnalysisBoard.tsx`)
+
+- **좌측 패널**: 종목 목록, 상태 아이콘 (pending/processing/completed/failed), 재시도/삭제/다운로드
+  - 종목명 입력 시 CorpCode DB 자동완성 (300ms 디바운스, 상장사 우선 정렬)
+  - 미등록 종목명 제출 시 서버에서 400 에러 → alert 안내
+- **우측 패널**:
+  - 딥 네이비 그라디언트 헤더 + 기업명 + `.md 다운로드` 버튼 (solid blue)
+  - 데이터 소스 카드: DART 공시 / AI 분석 뱃지 + KRX 심볼
+  - 네이버 금융 차트 이미지 (`chartImageUrl`, GCS 저장본) — 클릭 시 네이버 금융 새 탭
+  - 마크다운 렌더러: 실제 `<table>`, **굵게**, *이탤릭*, `코드`, DART 스타일 H2 섹션
+  - `last updated HH:MM` 타임스탬프 + 에메랄드 펄스 표시
+  - 참고 출처 링크 (Gemini 그라운딩 URL)
+- 자동 폴링: pending/processing 상태가 있으면 10초마다 목록 갱신
+- 모바일: 목록/상세 단일 패널 전환 (뒤로가기 버튼)
+
+---
+
+## API 엔드포인트
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/stock-analysis` | 분석 요청 (stockName, DB 미등록 시 400) |
+| GET | `/api/stock-analysis` | 내 분석 목록 |
+| GET | `/api/stock-analysis/suggest?q=` | 종목명 자동완성 (CorpCode DB, 상장사 우선) |
+| GET | `/api/stock-analysis/:id` | 상세 (보고서 + yahooSymbol + chartImageUrl) |
+| GET | `/api/stock-analysis/:id/download` | .md 파일 다운로드 |
+| POST | `/api/stock-analysis/:id/retry` | 재분석 (완료/실패 모두 가능, yahooSymbol 초기화) |
+| DELETE | `/api/stock-analysis/:id` | 삭제 |
+| POST | `/api/dart-import` | DART 기업코드 갱신 (어드민 전용) |
+
+---
+
+## 차트 이미지 저장 흐름
+
+```
+분석 완료 후 cron-stock-worker.ts
+  └─ fetch(ssl.pstatic.net/imgfinance/chart/mobile/candle/day/{stockCode}_end.png)
+       Referer: https://finance.naver.com/
+  └─ uploadToGCS(buf, stock-charts/{taskId}_{stockCode}.png)
+  └─ StockAnalysis.chartImageUrl = GCS public URL
+```
+
+- 이미지 저장 실패해도 분석 자체는 정상 완료 (warn 로그만 기록)
+- 기존 완료 분석은 `chartImageUrl = null` → 재분석 시 저장됨
+- 클릭 시 `https://finance.naver.com/item/main.naver?code={stockCode}` 새 탭
+
+---
+
+## 주의사항
+
+- Yahoo Finance는 비공식 API — Vercel US 서버에서 차단됨. `yahooSymbol`은 `stockCode.KS` fallback으로 저장
+- TradingView KRX 심볼은 라이선스 오류 → 제거, 네이버 금융 이미지로 대체
+- DART API는 한국 서버 → Vercel US 리전 간 레이턴시 있음 (기업코드 XML import 약 2~3분)
+- Vercel Cron 최소 주기 1분 (`* * * * *`) — 요청 후 최대 1분 대기 가능
+- 서아 페르소나 전용 기능 (pill 바에서만 접근 가능)
+- Claude/GPT 중 하나가 실패해도 나머지 AI 결과로 분석 완료 (safeAnalyze 래퍼)

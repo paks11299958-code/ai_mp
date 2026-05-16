@@ -56,6 +56,7 @@ model Persona {
   imageUrl          String?
   isDefault         Boolean         @default(false)
   isVisible         Boolean         @default(true)
+  adminOnly         Boolean         @default(false)
   createdBy         Int?
   user              User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)
   createdAt         DateTime        @default(now())
