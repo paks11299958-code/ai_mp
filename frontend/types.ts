@@ -34,6 +34,7 @@ export interface Persona {
     quickMenuJson?: string;
     isDefault?: boolean;
     isVisible?: boolean;
+    adminOnly?: boolean;
     categoryId?: number | null;
     category?: Category | null;
     createdAt?: string;

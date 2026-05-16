@@ -531,10 +531,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return userId;
         };
 
-        // GET /api/personas (public)
+        // GET /api/personas (public, adminOnly 페르소나는 ADMIN에게만 노출)
         if (!seg1 && req.method === 'GET') {
             try {
+                let isAdmin = false;
+                const token = getTokenFromRequest(req);
+                if (token) {
+                    try {
+                        const { userId } = verifyToken(token);
+                        const user = await prisma.user.findUnique({ where: { id: userId } });
+                        isAdmin = user?.role === 'ADMIN';
+                    } catch { /* 토큰 무효 시 일반 사용자로 처리 */ }
+                }
+                const where = isAdmin ? {} : { adminOnly: false };
                 const personas = await prisma.persona.findMany({
+                    where,
                     orderBy: { order: 'asc' },
                     include: { category: true },
                 });
@@ -569,7 +580,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const userId = await requireAdmin();
                 if (!userId) return;
-                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, starVideoUrl, faceReadingBgUrl, chatBgUrl, quickMenuJson, order, isVisible, categoryId } = req.body;
+                const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, starVideoUrl, faceReadingBgUrl, chatBgUrl, quickMenuJson, order, isVisible, adminOnly, categoryId } = req.body;
                 const persona = await prisma.persona.update({
                     where: { id: seg1 },
                     data: {
@@ -579,6 +590,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                         chatBgUrl: chatBgUrl ?? null,
                         quickMenuJson: quickMenuJson ?? null, order,
                         ...(isVisible !== undefined && { isVisible }),
+                        ...(adminOnly !== undefined && { adminOnly }),
                         categoryId: categoryId !== undefined ? (categoryId || null) : undefined,
                     },
                     include: { category: true },
