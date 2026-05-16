@@ -3073,6 +3073,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // ── Luxury Verification ───────────────────────────────────
     if (domain === 'luxury-verify') {
+        if (req.method === 'POST' && !req.query.s1) return res.status(200).json({ debug: 'NEW_CODE_v2026' });
         const token = getTokenFromRequest(req);
         if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
         const { userId } = verifyToken(token);
