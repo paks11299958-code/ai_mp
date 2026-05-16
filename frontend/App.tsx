@@ -241,15 +241,13 @@ const App: React.FC = () => {
             .then(({ user }) => {
                 setUser(user);
                 setShowMain(true);
-                // ADMIN은 로그인 후 adminOnly 포함 전체 페르소나 재fetch
-                if (user.role === 'ADMIN') {
-                    personaApi.getAll()
-                        .then(data => {
-                            setPersonas(data);
-                            localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
-                        })
-                        .catch(() => {});
-                }
+                // 인증 후 역할 기반으로 페르소나 재fetch (ADMIN이면 adminOnly 포함 전체)
+                personaApi.getAll()
+                    .then(data => {
+                        setPersonas(data);
+                        localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+                    })
+                    .catch(() => {});
             })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
@@ -577,6 +575,13 @@ const App: React.FC = () => {
             setUser(loggedInUser);
             setShowMain(true);
             setIsAuthChecking(false);
+            // 로그인 후 역할 기반으로 페르소나 재fetch (ADMIN이면 adminOnly 포함)
+            personaApi.getAll()
+                .then(data => {
+                    setPersonas(data);
+                    localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+                })
+                .catch(() => {});
         }, 0);
     };
 
