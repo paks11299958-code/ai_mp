@@ -515,7 +515,9 @@ const App: React.FC = () => {
     }, []);
 
     const isAdmin = user?.role === 'ADMIN';
-    const visiblePersonas = personas.filter(p => p.isVisible !== false && (!p.adminOnly || isAdmin));
+    const visiblePersonas = isAdmin
+        ? personas
+        : personas.filter(p => p.isVisible !== false && !p.adminOnly);
     const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
     const activeImages = personaImages[activePersonaId] || [];
