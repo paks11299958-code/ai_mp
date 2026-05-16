@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Mail, MessageSquare, CheckCircle, Loader, ChevronRight } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Category {
     code: string;
@@ -265,9 +266,22 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
                                 </div>
                             </div>
                             {resultContent && (
-                                <div className="w-full bg-slate-950/60 border border-slate-700 rounded-xl p-3.5">
+                                <div className="w-full bg-slate-950/60 border border-slate-700 rounded-xl p-3.5 max-h-72 overflow-y-auto">
                                     <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-2">발송된 내용</p>
-                                    <pre className="text-slate-200 text-xs leading-5 whitespace-pre-wrap font-sans">{resultContent}</pre>
+                                    <div className="prose prose-invert prose-sm max-w-none
+                                        [&_h2]:text-orange-400 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:mb-2 [&_h2]:mt-0
+                                        [&_h3]:text-slate-200 [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:mb-1.5 [&_h3]:mt-3
+                                        [&_table]:w-full [&_table]:text-xs [&_table]:border-collapse
+                                        [&_th]:text-slate-400 [&_th]:font-medium [&_th]:pb-1 [&_th]:border-b [&_th]:border-slate-700 [&_th]:px-1.5
+                                        [&_td]:py-1 [&_td]:px-1.5 [&_td]:text-slate-200 [&_td]:border-b [&_td]:border-slate-800
+                                        [&_tr:last-child_td]:border-0
+                                        [&_td:nth-child(1)]:text-center [&_td:nth-child(1)]:text-slate-400
+                                        [&_td:nth-child(3)]:text-right [&_td:nth-child(3)]:text-slate-300
+                                        [&_td:nth-child(4)]:text-right
+                                        [&_hr]:border-slate-700 [&_hr]:my-2
+                                        [&_em]:text-slate-500 [&_em]:text-[10px] [&_p]:text-slate-400 [&_p]:text-xs">
+                                        <ReactMarkdown>{resultContent}</ReactMarkdown>
+                                    </div>
                                 </div>
                             )}
                             <button
