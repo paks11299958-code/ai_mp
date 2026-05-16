@@ -26,6 +26,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
     const [phone, setPhone] = useState(userPhone || '');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [resultContent, setResultContent] = useState<string | null>(null);
 
     useEffect(() => {
         fetch('/api/hot-keyword/categories', { credentials: 'include' })
@@ -84,6 +85,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || '발송 실패');
+            setResultContent(data.content || null);
             setStep('done');
         } catch (e: any) {
             setError(e.message || '오류가 발생했습니다.');
@@ -250,27 +252,27 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
 
                     {/* Step 4: 완료 */}
                     {step === 'done' && (
-                        <div className="flex flex-col items-center py-8 gap-4">
-                            <CheckCircle size={40} className="text-green-400" />
-                            <div className="text-center">
-                                <p className="text-white font-semibold mb-1">발송 완료!</p>
-                                <p className="text-slate-400 text-xs">
-                                    {deliveryMethod === 'email' && `${email}로 이메일을 발송했습니다.`}
-                                    {deliveryMethod === 'sms' && `${phone}으로 문자를 발송했습니다.`}
-                                    {deliveryMethod === 'both' && `이메일과 문자를 모두 발송했습니다.`}
-                                </p>
-                                <p className="text-slate-500 text-xs mt-1">잠시 후 확인해보세요.</p>
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="flex items-center gap-2 pt-4">
+                                <CheckCircle size={22} className="text-green-400 flex-shrink-0" />
+                                <div>
+                                    <p className="text-white font-semibold text-sm">발송 완료!</p>
+                                    <p className="text-slate-400 text-xs">
+                                        {deliveryMethod === 'email' && `${email}로 이메일 발송`}
+                                        {deliveryMethod === 'sms' && `${phone}으로 문자 발송`}
+                                        {deliveryMethod === 'both' && `이메일 + 문자 발송`}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="flex flex-wrap justify-center gap-1.5 mt-2">
-                                {selected.map(cat => (
-                                    <span key={cat.code} className="text-[11px] bg-orange-500/20 text-orange-300 border border-orange-500/40 px-2 py-0.5 rounded-full">
-                                        {cat.emoji} {cat.name}
-                                    </span>
-                                ))}
-                            </div>
+                            {resultContent && (
+                                <div className="w-full bg-slate-950/60 border border-slate-700 rounded-xl p-3.5">
+                                    <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-2">발송된 내용</p>
+                                    <pre className="text-slate-200 text-xs leading-5 whitespace-pre-wrap font-sans">{resultContent}</pre>
+                                </div>
+                            )}
                             <button
                                 onClick={onClose}
-                                className="mt-2 px-6 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm transition-colors"
+                                className="w-full py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm transition-colors"
                             >
                                 닫기
                             </button>
