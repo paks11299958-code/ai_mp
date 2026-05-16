@@ -143,6 +143,11 @@ export type LuxuryVerification = $Result.DefaultSelection<Prisma.$LuxuryVerifica
  * 
  */
 export type UsedItemListing = $Result.DefaultSelection<Prisma.$UsedItemListingPayload>
+/**
+ * Model NaverShoppingCategory
+ * 
+ */
+export type NaverShoppingCategory = $Result.DefaultSelection<Prisma.$NaverShoppingCategoryPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -524,6 +529,16 @@ export class PrismaClient<
     * ```
     */
   get usedItemListing(): Prisma.UsedItemListingDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.naverShoppingCategory`: Exposes CRUD operations for the **NaverShoppingCategory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more NaverShoppingCategories
+    * const naverShoppingCategories = await prisma.naverShoppingCategory.findMany()
+    * ```
+    */
+  get naverShoppingCategory(): Prisma.NaverShoppingCategoryDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -983,7 +998,8 @@ export namespace Prisma {
     CorpCode: 'CorpCode',
     StockAnalysis: 'StockAnalysis',
     LuxuryVerification: 'LuxuryVerification',
-    UsedItemListing: 'UsedItemListing'
+    UsedItemListing: 'UsedItemListing',
+    NaverShoppingCategory: 'NaverShoppingCategory'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -999,7 +1015,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2927,6 +2943,80 @@ export namespace Prisma {
           }
         }
       }
+      NaverShoppingCategory: {
+        payload: Prisma.$NaverShoppingCategoryPayload<ExtArgs>
+        fields: Prisma.NaverShoppingCategoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NaverShoppingCategoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NaverShoppingCategoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>
+          }
+          findFirst: {
+            args: Prisma.NaverShoppingCategoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NaverShoppingCategoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>
+          }
+          findMany: {
+            args: Prisma.NaverShoppingCategoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>[]
+          }
+          create: {
+            args: Prisma.NaverShoppingCategoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>
+          }
+          createMany: {
+            args: Prisma.NaverShoppingCategoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NaverShoppingCategoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>[]
+          }
+          delete: {
+            args: Prisma.NaverShoppingCategoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>
+          }
+          update: {
+            args: Prisma.NaverShoppingCategoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.NaverShoppingCategoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NaverShoppingCategoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.NaverShoppingCategoryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>[]
+          }
+          upsert: {
+            args: Prisma.NaverShoppingCategoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NaverShoppingCategoryPayload>
+          }
+          aggregate: {
+            args: Prisma.NaverShoppingCategoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNaverShoppingCategory>
+          }
+          groupBy: {
+            args: Prisma.NaverShoppingCategoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NaverShoppingCategoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NaverShoppingCategoryCountArgs<ExtArgs>
+            result: $Utils.Optional<NaverShoppingCategoryCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3061,6 +3151,7 @@ export namespace Prisma {
     stockAnalysis?: StockAnalysisOmit
     luxuryVerification?: LuxuryVerificationOmit
     usedItemListing?: UsedItemListingOmit
+    naverShoppingCategory?: NaverShoppingCategoryOmit
   }
 
   /* Types for Logging */
@@ -8453,6 +8544,7 @@ export namespace Prisma {
     quickMenuJson: string | null
     isDefault: boolean | null
     isVisible: boolean | null
+    adminOnly: boolean | null
     createdBy: number | null
     categoryId: number | null
     createdAt: Date | null
@@ -8476,6 +8568,7 @@ export namespace Prisma {
     quickMenuJson: string | null
     isDefault: boolean | null
     isVisible: boolean | null
+    adminOnly: boolean | null
     createdBy: number | null
     categoryId: number | null
     createdAt: Date | null
@@ -8499,6 +8592,7 @@ export namespace Prisma {
     quickMenuJson: number
     isDefault: number
     isVisible: number
+    adminOnly: number
     createdBy: number
     categoryId: number
     createdAt: number
@@ -8536,6 +8630,7 @@ export namespace Prisma {
     quickMenuJson?: true
     isDefault?: true
     isVisible?: true
+    adminOnly?: true
     createdBy?: true
     categoryId?: true
     createdAt?: true
@@ -8559,6 +8654,7 @@ export namespace Prisma {
     quickMenuJson?: true
     isDefault?: true
     isVisible?: true
+    adminOnly?: true
     createdBy?: true
     categoryId?: true
     createdAt?: true
@@ -8582,6 +8678,7 @@ export namespace Prisma {
     quickMenuJson?: true
     isDefault?: true
     isVisible?: true
+    adminOnly?: true
     createdBy?: true
     categoryId?: true
     createdAt?: true
@@ -8692,6 +8789,7 @@ export namespace Prisma {
     quickMenuJson: string | null
     isDefault: boolean
     isVisible: boolean
+    adminOnly: boolean
     createdBy: number | null
     categoryId: number | null
     createdAt: Date
@@ -8734,6 +8832,7 @@ export namespace Prisma {
     quickMenuJson?: boolean
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
@@ -8770,6 +8869,7 @@ export namespace Prisma {
     quickMenuJson?: boolean
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
@@ -8795,6 +8895,7 @@ export namespace Prisma {
     quickMenuJson?: boolean
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
@@ -8820,12 +8921,13 @@ export namespace Prisma {
     quickMenuJson?: boolean
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "introVideoUrl" | "starVideoUrl" | "faceReadingBgUrl" | "chatBgUrl" | "quickMenuJson" | "isDefault" | "isVisible" | "createdBy" | "categoryId" | "createdAt", ExtArgs["result"]["persona"]>
+  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "introVideoUrl" | "starVideoUrl" | "faceReadingBgUrl" | "chatBgUrl" | "quickMenuJson" | "isDefault" | "isVisible" | "adminOnly" | "createdBy" | "categoryId" | "createdAt", ExtArgs["result"]["persona"]>
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     category?: boolean | Persona$categoryArgs<ExtArgs>
@@ -8884,6 +8986,7 @@ export namespace Prisma {
       quickMenuJson: string | null
       isDefault: boolean
       isVisible: boolean
+      adminOnly: boolean
       createdBy: number | null
       categoryId: number | null
       createdAt: Date
@@ -9339,6 +9442,7 @@ export namespace Prisma {
     readonly quickMenuJson: FieldRef<"Persona", 'String'>
     readonly isDefault: FieldRef<"Persona", 'Boolean'>
     readonly isVisible: FieldRef<"Persona", 'Boolean'>
+    readonly adminOnly: FieldRef<"Persona", 'Boolean'>
     readonly createdBy: FieldRef<"Persona", 'Int'>
     readonly categoryId: FieldRef<"Persona", 'Int'>
     readonly createdAt: FieldRef<"Persona", 'DateTime'>
@@ -34331,6 +34435,1057 @@ export namespace Prisma {
 
 
   /**
+   * Model NaverShoppingCategory
+   */
+
+  export type AggregateNaverShoppingCategory = {
+    _count: NaverShoppingCategoryCountAggregateOutputType | null
+    _avg: NaverShoppingCategoryAvgAggregateOutputType | null
+    _sum: NaverShoppingCategorySumAggregateOutputType | null
+    _min: NaverShoppingCategoryMinAggregateOutputType | null
+    _max: NaverShoppingCategoryMaxAggregateOutputType | null
+  }
+
+  export type NaverShoppingCategoryAvgAggregateOutputType = {
+    id: number | null
+    order: number | null
+  }
+
+  export type NaverShoppingCategorySumAggregateOutputType = {
+    id: number | null
+    order: number | null
+  }
+
+  export type NaverShoppingCategoryMinAggregateOutputType = {
+    id: number | null
+    code: string | null
+    name: string | null
+    emoji: string | null
+    keywords: string | null
+    order: number | null
+  }
+
+  export type NaverShoppingCategoryMaxAggregateOutputType = {
+    id: number | null
+    code: string | null
+    name: string | null
+    emoji: string | null
+    keywords: string | null
+    order: number | null
+  }
+
+  export type NaverShoppingCategoryCountAggregateOutputType = {
+    id: number
+    code: number
+    name: number
+    emoji: number
+    keywords: number
+    order: number
+    _all: number
+  }
+
+
+  export type NaverShoppingCategoryAvgAggregateInputType = {
+    id?: true
+    order?: true
+  }
+
+  export type NaverShoppingCategorySumAggregateInputType = {
+    id?: true
+    order?: true
+  }
+
+  export type NaverShoppingCategoryMinAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    emoji?: true
+    keywords?: true
+    order?: true
+  }
+
+  export type NaverShoppingCategoryMaxAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    emoji?: true
+    keywords?: true
+    order?: true
+  }
+
+  export type NaverShoppingCategoryCountAggregateInputType = {
+    id?: true
+    code?: true
+    name?: true
+    emoji?: true
+    keywords?: true
+    order?: true
+    _all?: true
+  }
+
+  export type NaverShoppingCategoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NaverShoppingCategory to aggregate.
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NaverShoppingCategories to fetch.
+     */
+    orderBy?: NaverShoppingCategoryOrderByWithRelationInput | NaverShoppingCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NaverShoppingCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NaverShoppingCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NaverShoppingCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned NaverShoppingCategories
+    **/
+    _count?: true | NaverShoppingCategoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: NaverShoppingCategoryAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: NaverShoppingCategorySumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NaverShoppingCategoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NaverShoppingCategoryMaxAggregateInputType
+  }
+
+  export type GetNaverShoppingCategoryAggregateType<T extends NaverShoppingCategoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateNaverShoppingCategory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNaverShoppingCategory[P]>
+      : GetScalarType<T[P], AggregateNaverShoppingCategory[P]>
+  }
+
+
+
+
+  export type NaverShoppingCategoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NaverShoppingCategoryWhereInput
+    orderBy?: NaverShoppingCategoryOrderByWithAggregationInput | NaverShoppingCategoryOrderByWithAggregationInput[]
+    by: NaverShoppingCategoryScalarFieldEnum[] | NaverShoppingCategoryScalarFieldEnum
+    having?: NaverShoppingCategoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NaverShoppingCategoryCountAggregateInputType | true
+    _avg?: NaverShoppingCategoryAvgAggregateInputType
+    _sum?: NaverShoppingCategorySumAggregateInputType
+    _min?: NaverShoppingCategoryMinAggregateInputType
+    _max?: NaverShoppingCategoryMaxAggregateInputType
+  }
+
+  export type NaverShoppingCategoryGroupByOutputType = {
+    id: number
+    code: string
+    name: string
+    emoji: string
+    keywords: string
+    order: number
+    _count: NaverShoppingCategoryCountAggregateOutputType | null
+    _avg: NaverShoppingCategoryAvgAggregateOutputType | null
+    _sum: NaverShoppingCategorySumAggregateOutputType | null
+    _min: NaverShoppingCategoryMinAggregateOutputType | null
+    _max: NaverShoppingCategoryMaxAggregateOutputType | null
+  }
+
+  type GetNaverShoppingCategoryGroupByPayload<T extends NaverShoppingCategoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NaverShoppingCategoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NaverShoppingCategoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NaverShoppingCategoryGroupByOutputType[P]>
+            : GetScalarType<T[P], NaverShoppingCategoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NaverShoppingCategorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    emoji?: boolean
+    keywords?: boolean
+    order?: boolean
+  }, ExtArgs["result"]["naverShoppingCategory"]>
+
+  export type NaverShoppingCategorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    emoji?: boolean
+    keywords?: boolean
+    order?: boolean
+  }, ExtArgs["result"]["naverShoppingCategory"]>
+
+  export type NaverShoppingCategorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    emoji?: boolean
+    keywords?: boolean
+    order?: boolean
+  }, ExtArgs["result"]["naverShoppingCategory"]>
+
+  export type NaverShoppingCategorySelectScalar = {
+    id?: boolean
+    code?: boolean
+    name?: boolean
+    emoji?: boolean
+    keywords?: boolean
+    order?: boolean
+  }
+
+  export type NaverShoppingCategoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "name" | "emoji" | "keywords" | "order", ExtArgs["result"]["naverShoppingCategory"]>
+
+  export type $NaverShoppingCategoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "NaverShoppingCategory"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      code: string
+      name: string
+      emoji: string
+      keywords: string
+      order: number
+    }, ExtArgs["result"]["naverShoppingCategory"]>
+    composites: {}
+  }
+
+  type NaverShoppingCategoryGetPayload<S extends boolean | null | undefined | NaverShoppingCategoryDefaultArgs> = $Result.GetResult<Prisma.$NaverShoppingCategoryPayload, S>
+
+  type NaverShoppingCategoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<NaverShoppingCategoryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: NaverShoppingCategoryCountAggregateInputType | true
+    }
+
+  export interface NaverShoppingCategoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['NaverShoppingCategory'], meta: { name: 'NaverShoppingCategory' } }
+    /**
+     * Find zero or one NaverShoppingCategory that matches the filter.
+     * @param {NaverShoppingCategoryFindUniqueArgs} args - Arguments to find a NaverShoppingCategory
+     * @example
+     * // Get one NaverShoppingCategory
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NaverShoppingCategoryFindUniqueArgs>(args: SelectSubset<T, NaverShoppingCategoryFindUniqueArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one NaverShoppingCategory that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {NaverShoppingCategoryFindUniqueOrThrowArgs} args - Arguments to find a NaverShoppingCategory
+     * @example
+     * // Get one NaverShoppingCategory
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NaverShoppingCategoryFindUniqueOrThrowArgs>(args: SelectSubset<T, NaverShoppingCategoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first NaverShoppingCategory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryFindFirstArgs} args - Arguments to find a NaverShoppingCategory
+     * @example
+     * // Get one NaverShoppingCategory
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NaverShoppingCategoryFindFirstArgs>(args?: SelectSubset<T, NaverShoppingCategoryFindFirstArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first NaverShoppingCategory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryFindFirstOrThrowArgs} args - Arguments to find a NaverShoppingCategory
+     * @example
+     * // Get one NaverShoppingCategory
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NaverShoppingCategoryFindFirstOrThrowArgs>(args?: SelectSubset<T, NaverShoppingCategoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more NaverShoppingCategories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all NaverShoppingCategories
+     * const naverShoppingCategories = await prisma.naverShoppingCategory.findMany()
+     * 
+     * // Get first 10 NaverShoppingCategories
+     * const naverShoppingCategories = await prisma.naverShoppingCategory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const naverShoppingCategoryWithIdOnly = await prisma.naverShoppingCategory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends NaverShoppingCategoryFindManyArgs>(args?: SelectSubset<T, NaverShoppingCategoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a NaverShoppingCategory.
+     * @param {NaverShoppingCategoryCreateArgs} args - Arguments to create a NaverShoppingCategory.
+     * @example
+     * // Create one NaverShoppingCategory
+     * const NaverShoppingCategory = await prisma.naverShoppingCategory.create({
+     *   data: {
+     *     // ... data to create a NaverShoppingCategory
+     *   }
+     * })
+     * 
+     */
+    create<T extends NaverShoppingCategoryCreateArgs>(args: SelectSubset<T, NaverShoppingCategoryCreateArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many NaverShoppingCategories.
+     * @param {NaverShoppingCategoryCreateManyArgs} args - Arguments to create many NaverShoppingCategories.
+     * @example
+     * // Create many NaverShoppingCategories
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NaverShoppingCategoryCreateManyArgs>(args?: SelectSubset<T, NaverShoppingCategoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many NaverShoppingCategories and returns the data saved in the database.
+     * @param {NaverShoppingCategoryCreateManyAndReturnArgs} args - Arguments to create many NaverShoppingCategories.
+     * @example
+     * // Create many NaverShoppingCategories
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many NaverShoppingCategories and only return the `id`
+     * const naverShoppingCategoryWithIdOnly = await prisma.naverShoppingCategory.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NaverShoppingCategoryCreateManyAndReturnArgs>(args?: SelectSubset<T, NaverShoppingCategoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a NaverShoppingCategory.
+     * @param {NaverShoppingCategoryDeleteArgs} args - Arguments to delete one NaverShoppingCategory.
+     * @example
+     * // Delete one NaverShoppingCategory
+     * const NaverShoppingCategory = await prisma.naverShoppingCategory.delete({
+     *   where: {
+     *     // ... filter to delete one NaverShoppingCategory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NaverShoppingCategoryDeleteArgs>(args: SelectSubset<T, NaverShoppingCategoryDeleteArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one NaverShoppingCategory.
+     * @param {NaverShoppingCategoryUpdateArgs} args - Arguments to update one NaverShoppingCategory.
+     * @example
+     * // Update one NaverShoppingCategory
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NaverShoppingCategoryUpdateArgs>(args: SelectSubset<T, NaverShoppingCategoryUpdateArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more NaverShoppingCategories.
+     * @param {NaverShoppingCategoryDeleteManyArgs} args - Arguments to filter NaverShoppingCategories to delete.
+     * @example
+     * // Delete a few NaverShoppingCategories
+     * const { count } = await prisma.naverShoppingCategory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NaverShoppingCategoryDeleteManyArgs>(args?: SelectSubset<T, NaverShoppingCategoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NaverShoppingCategories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many NaverShoppingCategories
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NaverShoppingCategoryUpdateManyArgs>(args: SelectSubset<T, NaverShoppingCategoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NaverShoppingCategories and returns the data updated in the database.
+     * @param {NaverShoppingCategoryUpdateManyAndReturnArgs} args - Arguments to update many NaverShoppingCategories.
+     * @example
+     * // Update many NaverShoppingCategories
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more NaverShoppingCategories and only return the `id`
+     * const naverShoppingCategoryWithIdOnly = await prisma.naverShoppingCategory.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends NaverShoppingCategoryUpdateManyAndReturnArgs>(args: SelectSubset<T, NaverShoppingCategoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one NaverShoppingCategory.
+     * @param {NaverShoppingCategoryUpsertArgs} args - Arguments to update or create a NaverShoppingCategory.
+     * @example
+     * // Update or create a NaverShoppingCategory
+     * const naverShoppingCategory = await prisma.naverShoppingCategory.upsert({
+     *   create: {
+     *     // ... data to create a NaverShoppingCategory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the NaverShoppingCategory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NaverShoppingCategoryUpsertArgs>(args: SelectSubset<T, NaverShoppingCategoryUpsertArgs<ExtArgs>>): Prisma__NaverShoppingCategoryClient<$Result.GetResult<Prisma.$NaverShoppingCategoryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of NaverShoppingCategories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryCountArgs} args - Arguments to filter NaverShoppingCategories to count.
+     * @example
+     * // Count the number of NaverShoppingCategories
+     * const count = await prisma.naverShoppingCategory.count({
+     *   where: {
+     *     // ... the filter for the NaverShoppingCategories we want to count
+     *   }
+     * })
+    **/
+    count<T extends NaverShoppingCategoryCountArgs>(
+      args?: Subset<T, NaverShoppingCategoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NaverShoppingCategoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a NaverShoppingCategory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NaverShoppingCategoryAggregateArgs>(args: Subset<T, NaverShoppingCategoryAggregateArgs>): Prisma.PrismaPromise<GetNaverShoppingCategoryAggregateType<T>>
+
+    /**
+     * Group by NaverShoppingCategory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NaverShoppingCategoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NaverShoppingCategoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NaverShoppingCategoryGroupByArgs['orderBy'] }
+        : { orderBy?: NaverShoppingCategoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NaverShoppingCategoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNaverShoppingCategoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the NaverShoppingCategory model
+   */
+  readonly fields: NaverShoppingCategoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for NaverShoppingCategory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NaverShoppingCategoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the NaverShoppingCategory model
+   */
+  interface NaverShoppingCategoryFieldRefs {
+    readonly id: FieldRef<"NaverShoppingCategory", 'Int'>
+    readonly code: FieldRef<"NaverShoppingCategory", 'String'>
+    readonly name: FieldRef<"NaverShoppingCategory", 'String'>
+    readonly emoji: FieldRef<"NaverShoppingCategory", 'String'>
+    readonly keywords: FieldRef<"NaverShoppingCategory", 'String'>
+    readonly order: FieldRef<"NaverShoppingCategory", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * NaverShoppingCategory findUnique
+   */
+  export type NaverShoppingCategoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * Filter, which NaverShoppingCategory to fetch.
+     */
+    where: NaverShoppingCategoryWhereUniqueInput
+  }
+
+  /**
+   * NaverShoppingCategory findUniqueOrThrow
+   */
+  export type NaverShoppingCategoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * Filter, which NaverShoppingCategory to fetch.
+     */
+    where: NaverShoppingCategoryWhereUniqueInput
+  }
+
+  /**
+   * NaverShoppingCategory findFirst
+   */
+  export type NaverShoppingCategoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * Filter, which NaverShoppingCategory to fetch.
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NaverShoppingCategories to fetch.
+     */
+    orderBy?: NaverShoppingCategoryOrderByWithRelationInput | NaverShoppingCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NaverShoppingCategories.
+     */
+    cursor?: NaverShoppingCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NaverShoppingCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NaverShoppingCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NaverShoppingCategories.
+     */
+    distinct?: NaverShoppingCategoryScalarFieldEnum | NaverShoppingCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * NaverShoppingCategory findFirstOrThrow
+   */
+  export type NaverShoppingCategoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * Filter, which NaverShoppingCategory to fetch.
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NaverShoppingCategories to fetch.
+     */
+    orderBy?: NaverShoppingCategoryOrderByWithRelationInput | NaverShoppingCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NaverShoppingCategories.
+     */
+    cursor?: NaverShoppingCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NaverShoppingCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NaverShoppingCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NaverShoppingCategories.
+     */
+    distinct?: NaverShoppingCategoryScalarFieldEnum | NaverShoppingCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * NaverShoppingCategory findMany
+   */
+  export type NaverShoppingCategoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * Filter, which NaverShoppingCategories to fetch.
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NaverShoppingCategories to fetch.
+     */
+    orderBy?: NaverShoppingCategoryOrderByWithRelationInput | NaverShoppingCategoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing NaverShoppingCategories.
+     */
+    cursor?: NaverShoppingCategoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NaverShoppingCategories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NaverShoppingCategories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NaverShoppingCategories.
+     */
+    distinct?: NaverShoppingCategoryScalarFieldEnum | NaverShoppingCategoryScalarFieldEnum[]
+  }
+
+  /**
+   * NaverShoppingCategory create
+   */
+  export type NaverShoppingCategoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * The data needed to create a NaverShoppingCategory.
+     */
+    data: XOR<NaverShoppingCategoryCreateInput, NaverShoppingCategoryUncheckedCreateInput>
+  }
+
+  /**
+   * NaverShoppingCategory createMany
+   */
+  export type NaverShoppingCategoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many NaverShoppingCategories.
+     */
+    data: NaverShoppingCategoryCreateManyInput | NaverShoppingCategoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * NaverShoppingCategory createManyAndReturn
+   */
+  export type NaverShoppingCategoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * The data used to create many NaverShoppingCategories.
+     */
+    data: NaverShoppingCategoryCreateManyInput | NaverShoppingCategoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * NaverShoppingCategory update
+   */
+  export type NaverShoppingCategoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * The data needed to update a NaverShoppingCategory.
+     */
+    data: XOR<NaverShoppingCategoryUpdateInput, NaverShoppingCategoryUncheckedUpdateInput>
+    /**
+     * Choose, which NaverShoppingCategory to update.
+     */
+    where: NaverShoppingCategoryWhereUniqueInput
+  }
+
+  /**
+   * NaverShoppingCategory updateMany
+   */
+  export type NaverShoppingCategoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update NaverShoppingCategories.
+     */
+    data: XOR<NaverShoppingCategoryUpdateManyMutationInput, NaverShoppingCategoryUncheckedUpdateManyInput>
+    /**
+     * Filter which NaverShoppingCategories to update
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * Limit how many NaverShoppingCategories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * NaverShoppingCategory updateManyAndReturn
+   */
+  export type NaverShoppingCategoryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * The data used to update NaverShoppingCategories.
+     */
+    data: XOR<NaverShoppingCategoryUpdateManyMutationInput, NaverShoppingCategoryUncheckedUpdateManyInput>
+    /**
+     * Filter which NaverShoppingCategories to update
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * Limit how many NaverShoppingCategories to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * NaverShoppingCategory upsert
+   */
+  export type NaverShoppingCategoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * The filter to search for the NaverShoppingCategory to update in case it exists.
+     */
+    where: NaverShoppingCategoryWhereUniqueInput
+    /**
+     * In case the NaverShoppingCategory found by the `where` argument doesn't exist, create a new NaverShoppingCategory with this data.
+     */
+    create: XOR<NaverShoppingCategoryCreateInput, NaverShoppingCategoryUncheckedCreateInput>
+    /**
+     * In case the NaverShoppingCategory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NaverShoppingCategoryUpdateInput, NaverShoppingCategoryUncheckedUpdateInput>
+  }
+
+  /**
+   * NaverShoppingCategory delete
+   */
+  export type NaverShoppingCategoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+    /**
+     * Filter which NaverShoppingCategory to delete.
+     */
+    where: NaverShoppingCategoryWhereUniqueInput
+  }
+
+  /**
+   * NaverShoppingCategory deleteMany
+   */
+  export type NaverShoppingCategoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NaverShoppingCategories to delete
+     */
+    where?: NaverShoppingCategoryWhereInput
+    /**
+     * Limit how many NaverShoppingCategories to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * NaverShoppingCategory without action
+   */
+  export type NaverShoppingCategoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NaverShoppingCategory
+     */
+    select?: NaverShoppingCategorySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the NaverShoppingCategory
+     */
+    omit?: NaverShoppingCategoryOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -34410,6 +35565,7 @@ export namespace Prisma {
     quickMenuJson: 'quickMenuJson',
     isDefault: 'isDefault',
     isVisible: 'isVisible',
+    adminOnly: 'adminOnly',
     createdBy: 'createdBy',
     categoryId: 'categoryId',
     createdAt: 'createdAt'
@@ -34733,6 +35889,18 @@ export namespace Prisma {
   };
 
   export type UsedItemListingScalarFieldEnum = (typeof UsedItemListingScalarFieldEnum)[keyof typeof UsedItemListingScalarFieldEnum]
+
+
+  export const NaverShoppingCategoryScalarFieldEnum: {
+    id: 'id',
+    code: 'code',
+    name: 'name',
+    emoji: 'emoji',
+    keywords: 'keywords',
+    order: 'order'
+  };
+
+  export type NaverShoppingCategoryScalarFieldEnum = (typeof NaverShoppingCategoryScalarFieldEnum)[keyof typeof NaverShoppingCategoryScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -35142,6 +36310,7 @@ export namespace Prisma {
     quickMenuJson?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
+    adminOnly?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
     categoryId?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
@@ -35177,6 +36346,7 @@ export namespace Prisma {
     quickMenuJson?: SortOrderInput | SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
+    adminOnly?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -35215,6 +36385,7 @@ export namespace Prisma {
     quickMenuJson?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
+    adminOnly?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
     categoryId?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
@@ -35250,6 +36421,7 @@ export namespace Prisma {
     quickMenuJson?: SortOrderInput | SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
+    adminOnly?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -35281,6 +36453,7 @@ export namespace Prisma {
     quickMenuJson?: StringNullableWithAggregatesFilter<"Persona"> | string | null
     isDefault?: BoolWithAggregatesFilter<"Persona"> | boolean
     isVisible?: BoolWithAggregatesFilter<"Persona"> | boolean
+    adminOnly?: BoolWithAggregatesFilter<"Persona"> | boolean
     createdBy?: IntNullableWithAggregatesFilter<"Persona"> | number | null
     categoryId?: IntNullableWithAggregatesFilter<"Persona"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Persona"> | Date | string
@@ -36936,6 +38109,65 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"UsedItemListing"> | Date | string
   }
 
+  export type NaverShoppingCategoryWhereInput = {
+    AND?: NaverShoppingCategoryWhereInput | NaverShoppingCategoryWhereInput[]
+    OR?: NaverShoppingCategoryWhereInput[]
+    NOT?: NaverShoppingCategoryWhereInput | NaverShoppingCategoryWhereInput[]
+    id?: IntFilter<"NaverShoppingCategory"> | number
+    code?: StringFilter<"NaverShoppingCategory"> | string
+    name?: StringFilter<"NaverShoppingCategory"> | string
+    emoji?: StringFilter<"NaverShoppingCategory"> | string
+    keywords?: StringFilter<"NaverShoppingCategory"> | string
+    order?: IntFilter<"NaverShoppingCategory"> | number
+  }
+
+  export type NaverShoppingCategoryOrderByWithRelationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    emoji?: SortOrder
+    keywords?: SortOrder
+    order?: SortOrder
+  }
+
+  export type NaverShoppingCategoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    code?: string
+    AND?: NaverShoppingCategoryWhereInput | NaverShoppingCategoryWhereInput[]
+    OR?: NaverShoppingCategoryWhereInput[]
+    NOT?: NaverShoppingCategoryWhereInput | NaverShoppingCategoryWhereInput[]
+    name?: StringFilter<"NaverShoppingCategory"> | string
+    emoji?: StringFilter<"NaverShoppingCategory"> | string
+    keywords?: StringFilter<"NaverShoppingCategory"> | string
+    order?: IntFilter<"NaverShoppingCategory"> | number
+  }, "id" | "code">
+
+  export type NaverShoppingCategoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    emoji?: SortOrder
+    keywords?: SortOrder
+    order?: SortOrder
+    _count?: NaverShoppingCategoryCountOrderByAggregateInput
+    _avg?: NaverShoppingCategoryAvgOrderByAggregateInput
+    _max?: NaverShoppingCategoryMaxOrderByAggregateInput
+    _min?: NaverShoppingCategoryMinOrderByAggregateInput
+    _sum?: NaverShoppingCategorySumOrderByAggregateInput
+  }
+
+  export type NaverShoppingCategoryScalarWhereWithAggregatesInput = {
+    AND?: NaverShoppingCategoryScalarWhereWithAggregatesInput | NaverShoppingCategoryScalarWhereWithAggregatesInput[]
+    OR?: NaverShoppingCategoryScalarWhereWithAggregatesInput[]
+    NOT?: NaverShoppingCategoryScalarWhereWithAggregatesInput | NaverShoppingCategoryScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"NaverShoppingCategory"> | number
+    code?: StringWithAggregatesFilter<"NaverShoppingCategory"> | string
+    name?: StringWithAggregatesFilter<"NaverShoppingCategory"> | string
+    emoji?: StringWithAggregatesFilter<"NaverShoppingCategory"> | string
+    keywords?: StringWithAggregatesFilter<"NaverShoppingCategory"> | string
+    order?: IntWithAggregatesFilter<"NaverShoppingCategory"> | number
+  }
+
   export type UserCreateInput = {
     email?: string | null
     phone?: string | null
@@ -37254,6 +38486,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -37287,6 +38520,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -37320,6 +38554,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -37353,6 +38588,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -37386,6 +38622,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -37409,6 +38646,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -37430,6 +38668,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39151,6 +40390,66 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type NaverShoppingCategoryCreateInput = {
+    code: string
+    name: string
+    emoji: string
+    keywords: string
+    order?: number
+  }
+
+  export type NaverShoppingCategoryUncheckedCreateInput = {
+    id?: number
+    code: string
+    name: string
+    emoji: string
+    keywords: string
+    order?: number
+  }
+
+  export type NaverShoppingCategoryUpdateInput = {
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    emoji?: StringFieldUpdateOperationsInput | string
+    keywords?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type NaverShoppingCategoryUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    emoji?: StringFieldUpdateOperationsInput | string
+    keywords?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type NaverShoppingCategoryCreateManyInput = {
+    id?: number
+    code: string
+    name: string
+    emoji: string
+    keywords: string
+    order?: number
+  }
+
+  export type NaverShoppingCategoryUpdateManyMutationInput = {
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    emoji?: StringFieldUpdateOperationsInput | string
+    keywords?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type NaverShoppingCategoryUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    code?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    emoji?: StringFieldUpdateOperationsInput | string
+    keywords?: StringFieldUpdateOperationsInput | string
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -39688,6 +40987,7 @@ export namespace Prisma {
     quickMenuJson?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
+    adminOnly?: SortOrder
     createdBy?: SortOrder
     categoryId?: SortOrder
     createdAt?: SortOrder
@@ -39717,6 +41017,7 @@ export namespace Prisma {
     quickMenuJson?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
+    adminOnly?: SortOrder
     createdBy?: SortOrder
     categoryId?: SortOrder
     createdAt?: SortOrder
@@ -39740,6 +41041,7 @@ export namespace Prisma {
     quickMenuJson?: SortOrder
     isDefault?: SortOrder
     isVisible?: SortOrder
+    adminOnly?: SortOrder
     createdBy?: SortOrder
     categoryId?: SortOrder
     createdAt?: SortOrder
@@ -40842,6 +42144,43 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type NaverShoppingCategoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    emoji?: SortOrder
+    keywords?: SortOrder
+    order?: SortOrder
+  }
+
+  export type NaverShoppingCategoryAvgOrderByAggregateInput = {
+    id?: SortOrder
+    order?: SortOrder
+  }
+
+  export type NaverShoppingCategoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    emoji?: SortOrder
+    keywords?: SortOrder
+    order?: SortOrder
+  }
+
+  export type NaverShoppingCategoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    code?: SortOrder
+    name?: SortOrder
+    emoji?: SortOrder
+    keywords?: SortOrder
+    order?: SortOrder
+  }
+
+  export type NaverShoppingCategorySumOrderByAggregateInput = {
+    id?: SortOrder
+    order?: SortOrder
   }
 
   export type PersonaCreateNestedManyWithoutUserInput = {
@@ -42801,6 +44140,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     category?: CategoryCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -42833,6 +44173,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     categoryId?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -43338,6 +44679,7 @@ export namespace Prisma {
     quickMenuJson?: StringNullableFilter<"Persona"> | string | null
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
+    adminOnly?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
     categoryId?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
@@ -43840,6 +45182,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -43872,6 +45215,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -43986,6 +45330,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -44018,6 +45363,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -44176,6 +45522,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -44208,6 +45555,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -44927,6 +46275,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -44959,6 +46308,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -45034,6 +46384,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -45066,6 +46417,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45245,6 +46597,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -45277,6 +46630,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -45434,6 +46788,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -45466,6 +46821,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45659,6 +47015,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -45691,6 +47048,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -45739,6 +47097,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -45771,6 +47130,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45803,6 +47163,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -45835,6 +47196,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -45883,6 +47245,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -45915,6 +47278,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46007,6 +47371,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -46039,6 +47404,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -46178,6 +47544,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -46210,6 +47577,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46318,6 +47686,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -46350,6 +47719,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -46464,6 +47834,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -46496,6 +47867,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46708,6 +48080,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -46740,6 +48113,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -46788,6 +48162,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -46820,6 +48195,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46912,6 +48288,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -46944,6 +48321,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -47058,6 +48436,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -47090,6 +48469,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -47182,6 +48562,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -47214,6 +48595,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -47328,6 +48710,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -47360,6 +48743,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48117,6 +49501,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     categoryId?: number | null
     createdAt?: Date | string
   }
@@ -48298,6 +49683,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -48330,6 +49716,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -48362,6 +49749,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48857,6 +50245,7 @@ export namespace Prisma {
     quickMenuJson?: string | null
     isDefault?: boolean
     isVisible?: boolean
+    adminOnly?: boolean
     createdBy?: number | null
     createdAt?: Date | string
   }
@@ -48879,6 +50268,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -48911,6 +50301,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -48943,6 +50334,7 @@ export namespace Prisma {
     quickMenuJson?: NullableStringFieldUpdateOperationsInput | string | null
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
+    adminOnly?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

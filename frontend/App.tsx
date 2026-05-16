@@ -19,6 +19,7 @@ import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
 import { StockAnalysisBoard } from './components/StockAnalysisBoard';
+import { HotKeywordBoard } from './components/HotKeywordBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
@@ -105,6 +106,7 @@ const App: React.FC = () => {
     const [showPartnerBoard, setShowPartnerBoard] = useState(false);
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showStockAnalysis, setShowStockAnalysis] = useState(false);
+    const [showHotKeyword, setShowHotKeyword] = useState(false);
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
@@ -1084,6 +1086,13 @@ const App: React.FC = () => {
                 {showStockAnalysis && (
                     <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} />
                 )}
+                {showHotKeyword && (
+                    <HotKeywordBoard
+                        onClose={() => setShowHotKeyword(false)}
+                        userEmail={user?.email}
+                        userPhone={user?.phone}
+                    />
+                )}
                 {showUsedItem && (
                     <UsedItemBoard onClose={() => setShowUsedItem(false)} />
                 )}
@@ -1130,6 +1139,13 @@ const App: React.FC = () => {
             )}
             {showStockAnalysis && (
                 <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} />
+            )}
+            {showHotKeyword && (
+                <HotKeywordBoard
+                    onClose={() => setShowHotKeyword(false)}
+                    userEmail={user?.email}
+                    userPhone={user?.phone}
+                />
             )}
             {showUsedItem && (
                 <UsedItemBoard onClose={() => setShowUsedItem(false)} />
@@ -1735,6 +1751,15 @@ const App: React.FC = () => {
                                             >
                                                 <Icon name="ShoppingBag" size={10} />
                                                 중고 판매
+                                            </button>
+                                        )}
+                                        {activePersona?.name === '왕주식' && user && (
+                                            <button
+                                                onClick={() => setShowHotKeyword(true)}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                            >
+                                                <Icon name="ShoppingBag" size={10} />
+                                                핫쇼핑키워드
                                             </button>
                                         )}
                                         {activePersona?.name === '신은비' && user && (

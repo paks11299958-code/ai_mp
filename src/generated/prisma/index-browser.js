@@ -174,6 +174,7 @@ exports.Prisma.PersonaScalarFieldEnum = {
   quickMenuJson: 'quickMenuJson',
   isDefault: 'isDefault',
   isVisible: 'isVisible',
+  adminOnly: 'adminOnly',
   createdBy: 'createdBy',
   categoryId: 'categoryId',
   createdAt: 'createdAt'
@@ -433,6 +434,15 @@ exports.Prisma.UsedItemListingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.NaverShoppingCategoryScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  name: 'name',
+  emoji: 'emoji',
+  keywords: 'keywords',
+  order: 'order'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -475,7 +485,8 @@ exports.Prisma.ModelName = {
   CorpCode: 'CorpCode',
   StockAnalysis: 'StockAnalysis',
   LuxuryVerification: 'LuxuryVerification',
-  UsedItemListing: 'UsedItemListing'
+  UsedItemListing: 'UsedItemListing',
+  NaverShoppingCategory: 'NaverShoppingCategory'
 };
 
 /**

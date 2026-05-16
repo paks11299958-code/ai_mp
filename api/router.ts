@@ -3271,5 +3271,52 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(200).json({ ok: true, count });
     }
 
+    // ── Hot Keyword ───────────────────────────────────────────
+    if (domain === 'hot-keyword') {
+        // GET /api/hot-keyword/categories — 네이버 쇼핑 카테고리 목록
+        if (seg1 === 'categories' && req.method === 'GET') {
+            const cats = await prisma.naverShoppingCategory.findMany({
+                orderBy: { order: 'asc' },
+                select: { code: true, name: true, emoji: true, keywords: true },
+            });
+            return res.status(200).json(cats);
+        }
+
+        // POST /api/hot-keyword/run — n8n webhook 호출 (일회성 발송)
+        if (seg1 === 'run' && req.method === 'POST') {
+            const token = getTokenFromRequest(req);
+            if (!token) return res.status(401).json({ error: '인증이 필요합니다.' });
+            const { userId } = verifyToken(token);
+
+            const { categories, deliveryMethod, email, phone } = req.body || {};
+            if (!categories || !Array.isArray(categories) || categories.length === 0)
+                return res.status(400).json({ error: '카테고리를 1개 이상 선택해주세요.' });
+            if (categories.length > 3)
+                return res.status(400).json({ error: '카테고리는 최대 3개까지 선택 가능합니다.' });
+            if (!deliveryMethod || !['email', 'sms', 'both'].includes(deliveryMethod))
+                return res.status(400).json({ error: '발송 방법을 선택해주세요.' });
+            if ((deliveryMethod === 'email' || deliveryMethod === 'both') && !email)
+                return res.status(400).json({ error: '이메일 주소를 입력해주세요.' });
+            if ((deliveryMethod === 'sms' || deliveryMethod === 'both') && !phone)
+                return res.status(400).json({ error: '전화번호를 입력해주세요.' });
+
+            const N8N_WEBHOOK_URL = process.env.N8N_HOT_KEYWORD_WEBHOOK_URL;
+            if (!N8N_WEBHOOK_URL) return res.status(500).json({ error: 'n8n webhook URL이 설정되지 않았습니다.' });
+
+            const payload = { categories, deliveryMethod, email: email || null, phone: phone || null };
+            const n8nRes = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (!n8nRes.ok) {
+                const errText = await n8nRes.text();
+                console.error('n8n webhook 오류:', errText);
+                return res.status(502).json({ error: '발송 요청 실패. 잠시 후 다시 시도해주세요.' });
+            }
+            return res.status(200).json({ ok: true, message: '분석 요청이 접수되었습니다. 잠시 후 발송됩니다.' });
+        }
+    }
+
     return res.status(404).json({ error: 'Not found' });
 }
