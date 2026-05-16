@@ -531,25 +531,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             return userId;
         };
 
-        // GET /api/personas (public, adminOnly 페르소나는 ADMIN에게만 노출)
+        // GET /api/personas — 전체 반환, 필터링은 프론트에서 처리
         if (!seg1 && req.method === 'GET') {
             try {
-                let isAdmin = false;
-                const token = getTokenFromRequest(req);
-                if (token) {
-                    try {
-                        const { userId } = verifyToken(token);
-                        const user = await prisma.user.findUnique({ where: { id: userId } });
-                        isAdmin = user?.role === 'ADMIN';
-                    } catch { /* 토큰 무효 시 일반 사용자로 처리 */ }
-                }
-                const where = isAdmin ? {} : { adminOnly: false };
                 const personas = await prisma.persona.findMany({
-                    where,
                     orderBy: { order: 'asc' },
                     include: { category: true },
                 });
-                res.setHeader('Cache-Control', 'private, no-store');
+                res.setHeader('Cache-Control', 'no-store');
                 return res.status(200).json(personas);
             } catch (e: any) {
                 console.error('[personas GET]', e);
