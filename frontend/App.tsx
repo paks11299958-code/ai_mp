@@ -1756,7 +1756,7 @@ const App: React.FC = () => {
                                                 중고 판매
                                             </button>
                                         )}
-                                        {activePersona?.name === '왕주식' && user && (
+                                        {(activePersona?.name === '왕주식' || activePersona?.name === '신은비') && user && (
                                             <button
                                                 onClick={() => setShowHotKeyword(true)}
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
