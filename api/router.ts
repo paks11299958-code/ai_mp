@@ -3330,7 +3330,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const N8N_WEBHOOK_URL = process.env.N8N_HOT_KEYWORD_WEBHOOK_URL;
             if (!N8N_WEBHOOK_URL) return res.status(500).json({ error: 'n8n webhook URL이 설정되지 않았습니다.' });
 
-            const payload = { categories, deliveryMethod, email: email || null, phone: phone || null };
+            // 카테고리별 TOP 5 키워드로 제한 후 이메일/SMS 내용 사전 포맷
+            const top5Categories = categories.map((cat: any) => ({
+                ...cat,
+                keywords: Array.isArray(cat.keywords) ? cat.keywords.slice(0, 5) : [],
+            }));
+
+            const todayStr = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+            const emailSubject = `[핫쇼핑키워드] ${todayStr} 네이버 쇼핑 인기 키워드 TOP 5`;
+
+            const categoryHtmlBlocks = top5Categories.map((cat: any) => {
+                const keywordRows = cat.keywords.map((kw: string, i: number) =>
+                    `<tr><td style="padding:6px 12px;color:#888;font-size:13px;">${i + 1}</td><td style="padding:6px 12px;font-size:14px;color:#1a1a1a;">${kw}</td></tr>`
+                ).join('');
+                return `
+<div style="margin-bottom:24px;">
+  <div style="font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:10px;">${cat.emoji} ${cat.name} TOP 5</div>
+  <table style="border-collapse:collapse;width:100%;background:#f9f9f9;border-radius:8px;overflow:hidden;">
+    <thead><tr style="background:#ff6b00;"><td style="padding:8px 12px;color:#fff;font-size:12px;font-weight:600;">순위</td><td style="padding:8px 12px;color:#fff;font-size:12px;font-weight:600;">키워드</td></tr></thead>
+    <tbody>${keywordRows}</tbody>
+  </table>
+</div>`;
+            }).join('');
+
+            const emailHtml = `
+<div style="font-family:'Apple SD Gothic Neo',Arial,sans-serif;max-width:480px;margin:0 auto;background:#fff;border:1px solid #eee;border-radius:12px;overflow:hidden;">
+  <div style="background:#ff6b00;padding:24px;text-align:center;">
+    <div style="font-size:22px;font-weight:800;color:#fff;">🛒 핫쇼핑키워드</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.85);margin-top:4px;">${todayStr} 기준 네이버 쇼핑 인기 키워드</div>
+  </div>
+  <div style="padding:24px;">
+    ${categoryHtmlBlocks}
+    <div style="margin-top:16px;padding:12px;background:#fff8f3;border-radius:8px;font-size:12px;color:#888;text-align:center;">
+      본 메일은 AI.MP 핫쇼핑키워드 서비스에서 발송되었습니다.
+    </div>
+  </div>
+</div>`;
+
+            const smsText = top5Categories.map((cat: any) =>
+                `[${cat.emoji}${cat.name} TOP5]\n${cat.keywords.map((kw: string, i: number) => `${i + 1}. ${kw}`).join('\n')}`
+            ).join('\n\n') + `\n\n- AI.MP 핫쇼핑키워드`;
+
+            const payload = {
+                deliveryMethod,
+                email: email || null,
+                phone: phone || null,
+                emailSubject,
+                emailHtml,
+                smsText,
+            };
             const n8nRes = await fetch(N8N_WEBHOOK_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

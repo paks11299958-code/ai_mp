@@ -7,13 +7,14 @@
 
 ## User
 ```
-id, email(nullable), phone(nullable, unique), username, password, role(USER/ADMIN)
+id, email(nullable), phone(nullable, unique), username, password, role(USER/ADMIN/MANAGE)
 paidPoints(default:0), bonusPoints(default:0)
 birthInfoJson(String?)          ← 명부 JSON 문자열
 resetToken, resetTokenExpiry    ← 비밀번호 재설정 토큰 (SMS 코드도 재사용)
 ```
 - email, phone 둘 다 nullable — 둘 중 하나만 있어도 가입 가능
 - 전화번호 저장 형식: `01012345678` (숫자만)
+- role 종류: `USER`(일반), `MANAGE`(무제한, 어드민패널 없음), `ADMIN`(모든 권한+어드민패널)
 
 ## Persona
 ```
