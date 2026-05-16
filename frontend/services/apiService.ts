@@ -649,4 +649,10 @@ export const adminApi = {
             method: 'POST',
             body: JSON.stringify({ amount, description }),
         }),
+
+    changeRole: (userId: number, role: string) =>
+        request<{ id: number; role: string }>('/admin/change-role', {
+            method: 'POST',
+            body: JSON.stringify({ userId, role }),
+        }),
 };

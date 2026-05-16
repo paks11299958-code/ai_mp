@@ -2859,6 +2859,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
+        // POST /api/admin/change-role — 유저 역할 변경
+        if (req.method === 'POST' && seg1 === 'change-role') {
+            const { userId, role } = req.body as { userId: number; role: string };
+            if (!userId || !role) return res.status(400).json({ error: 'userId, role 필수' });
+            if (!['USER', 'ADMIN'].includes(role)) return res.status(400).json({ error: '유효하지 않은 역할입니다.' });
+            const updated = await prisma.user.update({ where: { id: userId }, data: { role } });
+            return res.json({ id: updated.id, role: updated.role });
+        }
+
         // POST /api/admin/bulk-grant — 전체 유저 일괄 포인트 지급
         if (req.method === 'POST' && seg1 === 'bulk-grant') {
             try {

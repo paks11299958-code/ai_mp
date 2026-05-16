@@ -1063,9 +1063,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                         <td className="px-4 py-3 text-right text-gray-400">{u.sessionCount}</td>
                                                         <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
                                                         <td className="px-4 py-3">
-                                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'ADMIN' ? 'bg-red-900/50 text-red-300' : 'bg-gray-700 text-gray-400'}`}>
-                                                                {u.role}
-                                                            </span>
+                                                            <select
+                                                                value={u.role}
+                                                                onChange={async (e) => {
+                                                                    const newRole = e.target.value;
+                                                                    if (!window.confirm(`${u.email ?? u.phone} 의 등급을 ${newRole}로 변경하시겠습니까?`)) return;
+                                                                    try {
+                                                                        await adminApi.changeRole(u.id, newRole);
+                                                                        adminApi.getUsers().then(setUserList).catch(() => {});
+                                                                    } catch { alert('역할 변경 실패'); }
+                                                                }}
+                                                                className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${u.role === 'ADMIN' ? 'bg-red-900/50 text-red-300' : 'bg-gray-700 text-gray-400'}`}
+                                                            >
+                                                                <option value="USER">USER</option>
+                                                                <option value="ADMIN">ADMIN</option>
+                                                            </select>
                                                         </td>
                                                         <td className="px-4 py-3">
                                                             <button
