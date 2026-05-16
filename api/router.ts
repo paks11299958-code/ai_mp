@@ -1158,20 +1158,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 let pointsInfo: { balance: number; paidBalance: number; bonusBalance: number; cost: number; leveledUp: boolean; newStage: number; levelupBonus: number } | undefined;
                 let updatedXp: number | undefined;
                 if (role === 'user') {
-                    const { deductPointsForMessage } = await import('./_lib/points.js');
-                    try {
-                        const result = await deductPointsForMessage(prisma, userId, session.personaId);
-                        pointsInfo = { balance: result.newBalance, paidBalance: result.paidBalance, bonusBalance: result.bonusBalance, cost: result.cost, leveledUp: result.leveledUp, newStage: result.newStage, levelupBonus: result.levelupBonus };
-                        // XP는 deductPointsForMessage 안에서 처리됨
-                        const xpRecord = await prisma.userPersonaXp.findUnique({
-                            where: { userId_personaId: { userId, personaId: session.personaId } },
-                        });
-                        updatedXp = xpRecord?.xp;
-                    } catch (e: any) {
-                        if (e.message === 'INSUFFICIENT_POINTS') {
-                            return res.status(402).json({ error: 'INSUFFICIENT_POINTS', message: '포인트가 부족합니다.' });
+                    const msgUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+                    const isManage = msgUser?.role === 'MANAGE' || msgUser?.role === 'ADMIN';
+                    if (!isManage) {
+                        const { deductPointsForMessage } = await import('./_lib/points.js');
+                        try {
+                            const result = await deductPointsForMessage(prisma, userId, session.personaId);
+                            pointsInfo = { balance: result.newBalance, paidBalance: result.paidBalance, bonusBalance: result.bonusBalance, cost: result.cost, leveledUp: result.leveledUp, newStage: result.newStage, levelupBonus: result.levelupBonus };
+                            const xpRecord = await prisma.userPersonaXp.findUnique({
+                                where: { userId_personaId: { userId, personaId: session.personaId } },
+                            });
+                            updatedXp = xpRecord?.xp;
+                        } catch (e: any) {
+                            if (e.message === 'INSUFFICIENT_POINTS') {
+                                return res.status(402).json({ error: 'INSUFFICIENT_POINTS', message: '포인트가 부족합니다.' });
+                            }
+                            throw e;
                         }
-                        throw e;
                     }
                 }
 
@@ -2243,8 +2246,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             try {
                 const { videoUrl, personaId, mimeType, fileName } = req.body;
                 if (!videoUrl || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
-                const { deductMenuPoints } = await import('./_lib/points.js');
-                await deductMenuPoints(prisma, userId, 50, '스윙 분석');
+                const swingUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
+                if (swingUser?.role !== 'MANAGE' && swingUser?.role !== 'ADMIN') {
+                    const { deductMenuPoints } = await import('./_lib/points.js');
+                    await deductMenuPoints(prisma, userId, 50, '스윙 분석');
+                }
                 const gcsUri = videoUrl.replace(
                     'https://storage.googleapis.com/ai-mp-media/',
                     'gs://ai-mp-media/'
@@ -2863,7 +2869,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (req.method === 'POST' && seg1 === 'change-role') {
             const { userId, role } = req.body as { userId: number; role: string };
             if (!userId || !role) return res.status(400).json({ error: 'userId, role 필수' });
-            if (!['USER', 'ADMIN'].includes(role)) return res.status(400).json({ error: '유효하지 않은 역할입니다.' });
+            if (!['USER', 'ADMIN', 'MANAGE'].includes(role)) return res.status(400).json({ error: '유효하지 않은 역할입니다.' });
             const updated = await prisma.user.update({ where: { id: userId }, data: { role } });
             return res.json({ id: updated.id, role: updated.role });
         }
@@ -2901,8 +2907,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { imageBase64, mimeType, personaId } = req.body;
             if (!imageBase64 || !mimeType || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
 
-            const { deductMenuPoints } = await import('./_lib/points.js');
-            const { newBalance, paidBalance, bonusBalance } = await deductMenuPoints(prisma, userId, 50, '관상 분석');
+            const faceUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, paidPoints: true, bonusPoints: true } });
+            let newBalance = (faceUser?.paidPoints ?? 0) + (faceUser?.bonusPoints ?? 0);
+            let paidBalance = faceUser?.paidPoints ?? 0;
+            let bonusBalance = faceUser?.bonusPoints ?? 0;
+            if (faceUser?.role !== 'MANAGE' && faceUser?.role !== 'ADMIN') {
+                const { deductMenuPoints } = await import('./_lib/points.js');
+                ({ newBalance, paidBalance, bonusBalance } = await deductMenuPoints(prisma, userId, 50, '관상 분석'));
+            }
 
             const persona = await prisma.persona.findUnique({ where: { id: personaId }, select: { systemInstruction: true } });
             const sysInstruction = persona?.systemInstruction ?? '';
@@ -2926,8 +2938,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const persona = await prisma.persona.findUnique({ where: { id: personaId }, select: { systemInstruction: true } });
             if (!persona) return res.status(404).json({ error: '페르소나를 찾을 수 없습니다.' });
 
-            const { deductMenuPoints } = await import('./_lib/points.js');
-            const { newBalance, paidBalance, bonusBalance } = await deductMenuPoints(prisma, userId, 50, '퀵메뉴 분석');
+            const qmUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, paidPoints: true, bonusPoints: true } });
+            let newBalance = (qmUser?.paidPoints ?? 0) + (qmUser?.bonusPoints ?? 0);
+            let paidBalance = qmUser?.paidPoints ?? 0;
+            let bonusBalance = qmUser?.bonusPoints ?? 0;
+            if (qmUser?.role !== 'MANAGE' && qmUser?.role !== 'ADMIN') {
+                const { deductMenuPoints } = await import('./_lib/points.js');
+                ({ newBalance, paidBalance, bonusBalance } = await deductMenuPoints(prisma, userId, 50, '퀵메뉴 분석'));
+            }
 
             const result = await generateQuickMenuResult(persona.systemInstruction, prompt);
             return res.json({ result, newBalance, paidBalance, bonusBalance });
@@ -2947,6 +2965,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { cost, description } = req.body;
             if (!cost || cost <= 0) return res.status(400).json({ error: '잘못된 요청' });
 
+            const qaUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true, paidPoints: true, bonusPoints: true } });
+            if (qaUser?.role === 'MANAGE' || qaUser?.role === 'ADMIN') {
+                const newBalance = (qaUser.paidPoints) + (qaUser.bonusPoints);
+                return res.json({ newBalance, paidBalance: qaUser.paidPoints, bonusBalance: qaUser.bonusPoints });
+            }
             const { deductMenuPoints } = await import('./_lib/points.js');
             const { newBalance, paidBalance, bonusBalance } = await deductMenuPoints(prisma, userId, cost, description ?? '퀵메뉴');
             return res.json({ newBalance, paidBalance, bonusBalance });
@@ -2985,8 +3008,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             if (!stockName?.trim()) return res.status(400).json({ error: '종목명을 입력해주세요.' });
             const corp = await prisma.corpCode.findFirst({ where: { corpName: stockName.trim() } });
             if (!corp) return res.status(400).json({ error: `'${stockName.trim()}'은(는) 등록된 종목명이 아닙니다.\n정확한 종목명을 입력하거나 목록에서 선택해주세요.` });
-            const stockUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
-            const isStockAdmin = stockUser?.email === 'paks1012@naver.com';
+            const stockUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
+            const isStockAdmin = stockUser?.email === 'paks1012@naver.com' || stockUser?.role === 'MANAGE' || stockUser?.role === 'ADMIN';
             if (!isStockAdmin) {
                 const todayStart = new Date();
                 todayStart.setHours(0, 0, 0, 0);
@@ -2997,8 +3020,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     return res.status(429).json({ error: '오늘 분석 횟수(1회)를 초과했습니다. 내일 다시 시도해주세요.' });
             }
             try {
-                const { deductMenuPoints } = await import('./_lib/points.js');
-                await deductMenuPoints(prisma, userId, 50, '주식 분석');
+                if (!isStockAdmin) {
+                    const { deductMenuPoints } = await import('./_lib/points.js');
+                    await deductMenuPoints(prisma, userId, 50, '주식 분석');
+                }
                 const task = await prisma.stockAnalysis.create({
                     data: { userId, stockName: stockName.trim() },
                 });
@@ -3082,9 +3107,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { imageUrls, brandHint } = req.body || {};
             if (!Array.isArray(imageUrls) || !imageUrls.length)
                 return res.status(400).json({ error: '이미지가 필요합니다.' });
-            const reqUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
-            const isAdmin = reqUser?.email === 'paks1012@naver.com';
-            if (!isAdmin) {
+            const reqUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
+            const isLuxuryAdmin = reqUser?.email === 'paks1012@naver.com' || reqUser?.role === 'MANAGE' || reqUser?.role === 'ADMIN';
+            if (!isLuxuryAdmin) {
                 const todayStart = new Date();
                 todayStart.setHours(0, 0, 0, 0);
                 const todayCount = await prisma.luxuryVerification.count({
@@ -3093,12 +3118,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (todayCount >= 1)
                     return res.status(429).json({ error: '오늘 감정 횟수(1회)를 초과했습니다. 내일 다시 시도해주세요.' });
             }
-            const { deductMenuPoints } = await import('./_lib/points.js');
-            try {
-                await deductMenuPoints(prisma, userId, 50, '명품 감정');
-            } catch (e: any) {
-                if (e.message === 'INSUFFICIENT_POINTS') return res.status(402).json({ error: '포인트가 부족합니다.' });
-                throw e;
+            if (!isLuxuryAdmin) {
+                const { deductMenuPoints } = await import('./_lib/points.js');
+                try {
+                    await deductMenuPoints(prisma, userId, 50, '명품 감정');
+                } catch (e: any) {
+                    if (e.message === 'INSUFFICIENT_POINTS') return res.status(402).json({ error: '포인트가 부족합니다.' });
+                    throw e;
+                }
             }
             const task = await prisma.luxuryVerification.create({
                 data: { userId, imageUrls: JSON.stringify(imageUrls), brandHint: brandHint?.trim() || null },
@@ -3174,8 +3201,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { imageUrls, itemName } = req.body || {};
             if (!Array.isArray(imageUrls) || !imageUrls.length)
                 return res.status(400).json({ error: '이미지가 필요합니다.' });
-            const usedUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
-            const isUsedAdmin = usedUser?.email === 'paks1012@naver.com';
+            const usedUser = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
+            const isUsedAdmin = usedUser?.email === 'paks1012@naver.com' || usedUser?.role === 'MANAGE' || usedUser?.role === 'ADMIN';
             if (!isUsedAdmin) {
                 const todayStart = new Date();
                 todayStart.setHours(0, 0, 0, 0);
@@ -3185,12 +3212,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (todayCount >= 1)
                     return res.status(429).json({ error: '오늘 분석 횟수(1회)를 초과했습니다. 내일 다시 시도해주세요.' });
             }
-            const { deductMenuPoints } = await import('./_lib/points.js');
-            try {
-                await deductMenuPoints(prisma, userId, 50, '중고 판매 분석');
-            } catch (e: any) {
-                if (e.message === 'INSUFFICIENT_POINTS') return res.status(402).json({ error: '포인트가 부족합니다.' });
-                throw e;
+            if (!isUsedAdmin) {
+                const { deductMenuPoints } = await import('./_lib/points.js');
+                try {
+                    await deductMenuPoints(prisma, userId, 50, '중고 판매 분석');
+                } catch (e: any) {
+                    if (e.message === 'INSUFFICIENT_POINTS') return res.status(402).json({ error: '포인트가 부족합니다.' });
+                    throw e;
+                }
             }
             const task = await prisma.usedItemListing.create({
                 data: { userId, imageUrls: JSON.stringify(imageUrls), itemName: itemName?.trim() || null },

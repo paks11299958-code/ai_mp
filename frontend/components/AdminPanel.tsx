@@ -1073,9 +1073,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                                                         adminApi.getUsers().then(setUserList).catch(() => {});
                                                                     } catch { alert('역할 변경 실패'); }
                                                                 }}
-                                                                className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${u.role === 'ADMIN' ? 'bg-red-900/50 text-red-300' : 'bg-gray-700 text-gray-400'}`}
+                                                                className={`px-2 py-0.5 rounded-full text-xs font-medium cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-500 ${u.role === 'ADMIN' ? 'bg-red-900/50 text-red-300' : u.role === 'MANAGE' ? 'bg-yellow-900/50 text-yellow-300' : 'bg-gray-700 text-gray-400'}`}
                                                             >
                                                                 <option value="USER">USER</option>
+                                                                <option value="MANAGE">MANAGE</option>
                                                                 <option value="ADMIN">ADMIN</option>
                                                             </select>
                                                         </td>
