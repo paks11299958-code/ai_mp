@@ -140,7 +140,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     useEffect(() => { setCarouselIndex(0); }, [visibleCount]);
 
     const sorted = personas
-        .filter(p => p.isVisible !== false)
         .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId)
         .filter(p => {
             if (!searchQuery.trim()) return true;
@@ -367,11 +366,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                             >
                                 전체
                                 <span className="text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}>
-                                    {personas.filter(p => p.isVisible !== false).length}
+                                    {personas.length}
                                 </span>
                             </button>
                             {categories.map(cat => {
-                                const count = personas.filter(p => p.isVisible !== false && p.categoryId === cat.id).length;
+                                const count = personas.filter(p => p.categoryId === cat.id).length;
                                 const isSelected = selectedCategoryId === cat.id;
                                 return (
                                     <button

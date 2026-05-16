@@ -117,7 +117,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [isUploadingChatBg, setIsUploadingChatBg] = useState(false);
     const chatBgInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
-    const [adminOnly, setAdminOnly] = useState(false);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
 
     // 카테고리 관리 상태
@@ -275,7 +274,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
                 setImageUrl(p.imageUrl || ''); setIntroVideoUrl(p.introVideoUrl || ''); setStarVideoUrl(p.starVideoUrl || ''); setFaceReadingBgUrl(p.faceReadingBgUrl || '');
                 try { setChatBgUrls(p.chatBgUrl ? (p.chatBgUrl.startsWith('[') ? JSON.parse(p.chatBgUrl) : [p.chatBgUrl]) : []); } catch { setChatBgUrls(p.chatBgUrl ? [p.chatBgUrl] : []); }
-                setQuickMenuJson(p.quickMenuJson || ''); setIsVisible(p.isVisible !== false); setAdminOnly(p.adminOnly === true); setShowSuccess(false);
+                setQuickMenuJson(p.quickMenuJson || ''); setIsVisible(p.isVisible !== false); setShowSuccess(false);
                 setSelectedCategoryId(p.categoryId ?? null);
             }
             personaImageApi.getAll(selectedId).then(setImages).catch(() => setImages([]));
@@ -434,7 +433,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
         setSaveError(null);
         try {
             const chatBgUrlValue = chatBgUrls.length ? JSON.stringify(chatBgUrls) : undefined;
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, adminOnly, categoryId: selectedCategoryId });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, categoryId: selectedCategoryId });
             localStorage.removeItem('personas_cache');
             if (isNew) setSelectedId(idToSave);
             setShowSuccess(true);
@@ -1657,13 +1656,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     {!isVisible && <span className="text-xs text-yellow-500 ml-1">숨김 — 데이터 보존됨</span>}
                                 </div>
 
-                                {/* 관리자 전용 */}
-                                <div className="flex items-center gap-3 p-3.5 bg-gray-800/40 rounded-xl border border-gray-700/50">
-                                    <input type="checkbox" id="adminOnly" checked={adminOnly} onChange={e => setAdminOnly(e.target.checked)}
-                                        className="w-4 h-4 accent-yellow-500 cursor-pointer" />
-                                    <label htmlFor="adminOnly" className="text-sm text-gray-300 cursor-pointer select-none">관리자 전용 (어드민 로그인 시에만 표시)</label>
-                                    {adminOnly && <span className="text-xs text-yellow-500 ml-1">관리자 전용</span>}
-                                </div>
 
                                 {/* 저장 / 삭제 */}
                                 <div className="flex items-center justify-between pt-2 border-t border-gray-700/50">
