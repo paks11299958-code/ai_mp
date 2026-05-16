@@ -176,7 +176,6 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
                                 {([
                                     { value: 'email', label: '이메일', icon: Mail },
                                     { value: 'sms', label: '문자', icon: MessageSquare },
-                                    { value: 'both', label: '둘 다', icon: null },
                                 ] as const).map(opt => (
                                     <button
                                         key={opt.value}

@@ -3320,11 +3320,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(400).json({ error: '카테고리를 1개 이상 선택해주세요.' });
             if (categories.length > 3)
                 return res.status(400).json({ error: '카테고리는 최대 3개까지 선택 가능합니다.' });
-            if (!deliveryMethod || !['email', 'sms', 'both'].includes(deliveryMethod))
+            if (!deliveryMethod || !['email', 'sms'].includes(deliveryMethod))
                 return res.status(400).json({ error: '발송 방법을 선택해주세요.' });
-            if ((deliveryMethod === 'email' || deliveryMethod === 'both') && !email)
+            if (deliveryMethod === 'email' && !email)
                 return res.status(400).json({ error: '이메일 주소를 입력해주세요.' });
-            if ((deliveryMethod === 'sms' || deliveryMethod === 'both') && !phone)
+            if (deliveryMethod === 'sms' && !phone)
                 return res.status(400).json({ error: '전화번호를 입력해주세요.' });
 
             const N8N_WEBHOOK_URL = process.env.N8N_HOT_KEYWORD_WEBHOOK_URL;
