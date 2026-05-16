@@ -3105,7 +3105,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     where: { userId, createdAt: { gte: todayStart } },
                 });
                 if (todayCount >= 1)
-                    return res.status(429).json({ error: '오늘 감정 횟수(1회)를 초과했습니다. 내일 다시 시도해주세요.' });
+                    return res.status(429).json({ error: `오늘 감정 횟수(1회)를 초과했습니다. [uid:${userId}, role:${reqUser?.role}]` });
             }
             if (!isLuxuryAdmin) {
                 const { deductMenuPoints } = await import('./_lib/points.js');
