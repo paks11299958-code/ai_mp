@@ -549,7 +549,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     orderBy: { order: 'asc' },
                     include: { category: true },
                 });
-                res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
+                res.setHeader('Cache-Control', 'private, no-store');
                 return res.status(200).json(personas);
             } catch (e: any) {
                 console.error('[personas GET]', e);

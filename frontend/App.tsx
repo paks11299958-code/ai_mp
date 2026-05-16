@@ -238,7 +238,19 @@ const App: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); setShowMain(true); })
+            .then(({ user }) => {
+                setUser(user);
+                setShowMain(true);
+                // ADMIN은 로그인 후 adminOnly 포함 전체 페르소나 재fetch
+                if (user.role === 'ADMIN') {
+                    personaApi.getAll()
+                        .then(data => {
+                            setPersonas(data);
+                            localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+                        })
+                        .catch(() => {});
+                }
+            })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
