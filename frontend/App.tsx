@@ -502,7 +502,7 @@ const App: React.FC = () => {
         setTimeout(() => textareaRef.current?.focus(), 0);
     }, []);
 
-    const isAdmin = user?.role === 'ADMIN' || user?.email === 'paks1012@naver.com';
+    const isAdmin = user?.role === 'ADMIN' || user?.email === 'paks1012@naver.com' || user?.email === 'happyintel@nate.com';
     const visiblePersonas = personas.filter(p => p.isVisible !== false && (!p.adminOnly || isAdmin));
     const activePersona = personas.find(p => p.id === activePersonaId) || visiblePersonas[0];
     const currentSession = sessions[activePersonaId] || { messages: [], isTyping: false };
