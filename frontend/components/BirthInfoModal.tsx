@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 export interface BirthInfo {
     name: string;
@@ -53,12 +53,19 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
     const [lunar, setLunar] = useState(initialData?.lunar ?? false);
     const [showStamp, setShowStamp] = useState(false);
     const [showHandle, setShowHandle] = useState(false);
+    const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    useEffect(() => {
+        return () => { timersRef.current.forEach(clearTimeout); };
+    }, []);
 
     const handleComplete = () => {
         setStep('complete');
-        setTimeout(() => setShowHandle(true), 80);
-        setTimeout(() => setShowStamp(true), 480);
-        setTimeout(() => onComplete({ name, year, month, day, time, lunar }), 2000);
+        timersRef.current = [
+            setTimeout(() => setShowHandle(true), 80),
+            setTimeout(() => setShowStamp(true), 480),
+            setTimeout(() => onComplete({ name, year, month, day, time, lunar }), 2000),
+        ];
     };
 
     const labelStyle: React.CSSProperties = { color: '#92713a', fontSize: '0.72rem', letterSpacing: '0.08em', marginBottom: 4 };
