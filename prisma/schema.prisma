@@ -34,6 +34,7 @@ model User {
   stockAnalyses     StockAnalysis[]
   usedItemListings    UsedItemListing[]
   luxuryVerifications LuxuryVerification[]
+  menuUsageLogs     MenuUsageLog[]
 }
 
 model UserPersonaXp {
@@ -399,4 +400,25 @@ model NaverShoppingCategory {
   emoji    String
   keywords String
   order    Int    @default(0)
+}
+
+// 기능별·역할별 정책 테이블 (관리자가 DB에서 직접 수정 가능)
+model MenuLimit {
+  feature    String  // 'golf', 'stock', 'used-item', 'hot-keyword', 'face', 'quick-menu'
+  role       String  // 'USER', 'MANAGE', 'ADMIN'
+  dailyLimit Int?    // null = 무제한, 1 = 1일 1회
+  pointsCost Int     @default(50)
+
+  @@id([feature, role])
+}
+
+// 기능 사용 일별 추적 (dailyLimit 체크용)
+model MenuUsageLog {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  feature   String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, feature, createdAt])
 }
