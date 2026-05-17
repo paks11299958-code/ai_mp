@@ -226,6 +226,9 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                     {/* ── 설정 탭 ── */}
                     {tab === 'settings' && (
                         <div className="space-y-4">
+                            {msg && (
+                                <p className={`text-sm text-center font-medium py-2 px-3 rounded-lg ${msg.startsWith('✅') ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>{msg}</p>
+                            )}
                             <div className={`p-4 rounded-xl border ${cookieConnected ? 'bg-green-900/20 border-green-800' : 'bg-gray-800 border-gray-700'}`}>
                                 <div className="flex items-center justify-between">
                                     <div>
