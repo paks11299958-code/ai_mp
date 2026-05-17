@@ -243,6 +243,11 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                                 </div>
                             </div>
 
+                            <a href="https://accounts.google.com/signup" target="_blank" rel="noopener noreferrer"
+                                className="block w-full py-2 rounded-lg text-xs font-medium bg-gray-700 hover:bg-gray-600 text-gray-300 text-center transition-colors mt-2">
+                                + 리서치 전용 구글 계정 만들기
+                            </a>
+
                             {showCookieForm && (
                                 <div className="space-y-3">
                                     <div className="bg-blue-900/20 border border-blue-800 rounded-xl p-3 text-xs text-blue-300 space-y-1.5">
