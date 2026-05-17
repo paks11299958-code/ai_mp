@@ -39,6 +39,22 @@
   },
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
+
+    { "source": "/api/categories",           "destination": "http://34.50.27.95:3020/api/aimp/categories" },
+    { "source": "/api/categories/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/categories/:path*" },
+    { "source": "/api/announcements",        "destination": "http://34.50.27.95:3020/api/aimp/announcements" },
+    { "source": "/api/announcements/:path*", "destination": "http://34.50.27.95:3020/api/aimp/announcements/:path*" },
+    { "source": "/api/board",                "destination": "http://34.50.27.95:3020/api/aimp/board" },
+    { "source": "/api/board/:path*",         "destination": "http://34.50.27.95:3020/api/aimp/board/:path*" },
+    { "source": "/api/partner-board",        "destination": "http://34.50.27.95:3020/api/aimp/partner-board" },
+    { "source": "/api/partner-board/:path*", "destination": "http://34.50.27.95:3020/api/aimp/partner-board/:path*" },
+    { "source": "/api/user",                 "destination": "http://34.50.27.95:3020/api/aimp/user" },
+    { "source": "/api/user/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/user/:path*" },
+    { "source": "/api/points",               "destination": "http://34.50.27.95:3020/api/aimp/points" },
+    { "source": "/api/points/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/points/:path*" },
+    { "source": "/api/admin",                "destination": "http://34.50.27.95:3020/api/aimp/admin" },
+    { "source": "/api/admin/:path*",         "destination": "http://34.50.27.95:3020/api/aimp/admin/:path*" },
+
     { "source": "/api/:d/:s1/:s2/:s3", "destination": "/api/router?d=:d&s1=:s1&s2=:s2&s3=:s3" },
     { "source": "/api/:d/:s1/:s2", "destination": "/api/router?d=:d&s1=:s1&s2=:s2" },
     { "source": "/api/:d/:s1", "destination": "/api/router?d=:d&s1=:s1" },
