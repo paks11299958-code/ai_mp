@@ -39,6 +39,13 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
         return () => clearInterval(timer);
     }, []);
 
+    async function handleDeleteHistory(id: number) {
+        try {
+            await fetch(API(`/history/${id}`), { method: 'DELETE', headers });
+            setHistory(prev => prev.filter(h => h.id !== id));
+        } catch {}
+    }
+
     async function fetchHistory() {
         try {
             const res = await fetch(API('/history'), { headers });
@@ -204,6 +211,10 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                                                         <ExternalLink size={13} />
                                                     </a>
                                                 )}
+                                                <button onClick={() => handleDeleteHistory(h.id)}
+                                                    className="text-gray-600 hover:text-red-400 transition-colors">
+                                                    <Trash2 size={13} />
+                                                </button>
                                             </div>
                                         </div>
                                     ))}
