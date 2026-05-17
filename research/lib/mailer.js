@@ -5,7 +5,7 @@ require('dotenv').config({ path: '/home/paks11299958/shared-api/.env' });
 const fs = require('fs');
 
 const BREVO_API_KEY   = process.env.BREVO_API_KEY;
-const SENDER_EMAIL    = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
+const SENDER_EMAIL    = process.env.BREVO_SENDER_EMAIL || 'admin@aichat.dbzone.kr';
 
 async function sendResearchComplete({ to, topic, notebookName, notebookUrl, filePath, previewText }) {
   if (!BREVO_API_KEY) { console.warn('⚠️ BREVO_API_KEY 없음'); return; }
@@ -13,17 +13,17 @@ async function sendResearchComplete({ to, topic, notebookName, notebookUrl, file
   const attachments = [];
   if (filePath && fs.existsSync(filePath)) {
     const content = fs.readFileSync(filePath).toString('base64');
-    const fileName = require('path').basename(filePath);
-    attachments.push({ name: fileName, content });
+    const timestamp = require('path').basename(filePath).match(/(\d+)\.txt$/)?.[1] || Date.now();
+    attachments.push({ name: `research_${timestamp}.txt`, content });
   }
 
   const preview = previewText ? previewText.slice(0, 500).replace(/[<>]/g, '') : '';
   const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
 
   const body = JSON.stringify({
-    sender:  { name: 'AI 리서치 봇', email: SENDER_EMAIL },
+    sender:  { name: 'AI Research Bot', email: SENDER_EMAIL },
     to:      [{ email: to }],
-    subject: `✅ [리서치 완료] ${topic} — ${now}`,
+    subject: `[Research Done] ${now}`,
     htmlContent: `
       <h2 style="color:#16a34a">✅ 리서치가 완료됐습니다</h2>
       <table style="font-size:14px;line-height:2;border-collapse:collapse;width:100%;max-width:480px">
@@ -74,7 +74,7 @@ async function sendResearchError({ to, topic, errorMessage }) {
     body: JSON.stringify({
       sender: { name: 'AI 리서치 봇', email: SENDER_EMAIL },
       to:     [{ email: to }],
-      subject: `❌ [리서치 실패] ${topic} — ${now}`,
+      subject: `[리서치 실패] ${topic} (${now})`,
       htmlContent: `
         <h2 style="color:#dc2626">❌ 리서치 중 오류가 발생했습니다</h2>
         <p><b>주제:</b> ${topic}</p>
