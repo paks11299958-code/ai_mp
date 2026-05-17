@@ -40,6 +40,8 @@
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
 
+    { "source": "/api/auth",                  "destination": "http://34.50.27.95:3020/api/aimp/auth" },
+    { "source": "/api/auth/:path*",           "destination": "http://34.50.27.95:3020/api/aimp/auth/:path*" },
     { "source": "/api/categories",           "destination": "http://34.50.27.95:3020/api/aimp/categories" },
     { "source": "/api/categories/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/categories/:path*" },
     { "source": "/api/announcements",        "destination": "http://34.50.27.95:3020/api/aimp/announcements" },
