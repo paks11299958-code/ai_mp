@@ -2,7 +2,9 @@
  * notebooklm.js — Playwright로 NotebookLM 자동 업로드
  * 저장된 세션 쿠키로 로그인, 노트북 생성/소스 추가
  */
-const { chromium } = require('playwright');
+const { chromium } = require('playwright-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+chromium.use(StealthPlugin());
 const fs           = require('fs');
 const path         = require('path');
 
@@ -11,7 +13,9 @@ const TIMEOUT = 20_000;
 
 async function upload({ cookies, notebookName, filePath }) {
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  });
 
   // 쿠키 주입
   await context.addCookies(cookies);

@@ -1,10 +1,22 @@
 /**
- * crawler.js — Playwright 웹 리서치
+ * crawler.js — Playwright 웹 리서치 (DuckDuckGo + stealth)
  */
-const { chromium } = require('playwright');
+const { chromium } = require('playwright-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+chromium.use(StealthPlugin());
 
 const MAX_SOURCES  = 5;
-const PAGE_TIMEOUT = 15_000;
+const PAGE_TIMEOUT = 20_000;
+
+function extractRealUrl(href) {
+  try {
+    const u = new URL(href);
+    const uddg = u.searchParams.get('uddg');
+    return uddg ? decodeURIComponent(uddg) : href;
+  } catch {
+    return href;
+  }
+}
 
 async function crawl(topic) {
   const browser = await chromium.launch({ headless: true });
@@ -19,34 +31,34 @@ async function crawl(topic) {
 
     // 한국어 검색
     const koQuery = encodeURIComponent(`${topic} 설명 자료`);
-    await page.goto(`https://www.google.com/search?q=${koQuery}&hl=ko&num=10`, {
+    await page.goto(`https://html.duckduckgo.com/html/?q=${koQuery}&kl=kr-kr`, {
       timeout: PAGE_TIMEOUT, waitUntil: 'domcontentloaded',
     });
 
-    const koLinks = await page.$$eval('a[href^="http"]', as =>
-      as.map(a => a.href)
-        .filter(h => h && !h.includes('google.com') && !h.includes('youtube.com'))
-        .slice(0, 8)
+    const koLinks = await page.$$eval('a.result__a', as =>
+      as.map(a => a.href).filter(Boolean)
     );
+    const koUrls = koLinks.map(extractRealUrl).filter(u => u.startsWith('http'));
+    console.log(`🔍 한국어 검색 결과: ${koUrls.length}개 링크`);
 
-    for (const url of koLinks.slice(0, MAX_SOURCES)) {
+    for (const url of koUrls.slice(0, MAX_SOURCES)) {
       const text = await fetchPageText(context, url);
-      if (text) { sources.push({ url, text }); console.log(`✅ ${url.slice(0, 60)}...`); }
+      if (text) { sources.push({ url, text }); console.log(`✅ ${url.slice(0, 70)}`); }
     }
 
-    // 영문 검색 (추가 자료)
-    const enQuery = encodeURIComponent(`${topic} explained history`);
-    await page.goto(`https://www.google.com/search?q=${enQuery}&hl=en&num=5`, {
+    // 영문 검색
+    const enQuery = encodeURIComponent(`${topic} explained overview`);
+    await page.goto(`https://html.duckduckgo.com/html/?q=${enQuery}&kl=us-en`, {
       timeout: PAGE_TIMEOUT, waitUntil: 'domcontentloaded',
     });
 
-    const enLinks = await page.$$eval('a[href^="http"]', as =>
-      as.map(a => a.href)
-        .filter(h => h && !h.includes('google.com') && !h.includes('youtube.com'))
-        .slice(0, 3)
+    const enLinks = await page.$$eval('a.result__a', as =>
+      as.map(a => a.href).filter(Boolean)
     );
+    const enUrls = enLinks.map(extractRealUrl).filter(u => u.startsWith('http'));
+    console.log(`🔍 영문 검색 결과: ${enUrls.length}개 링크`);
 
-    for (const url of enLinks.slice(0, 3)) {
+    for (const url of enUrls.slice(0, 3)) {
       const text = await fetchPageText(context, url);
       if (text) sources.push({ url, text });
     }
