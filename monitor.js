@@ -1,6 +1,8 @@
 /**
  * Site Monitor — 3시간마다 crontab으로 실행
- * 성공/실패 결과를 Brevo 이메일로 발송 + 스크린샷 첨부
+ * 1. 사이트 열림 확인 (HTTP 상태)
+ * 2. 로그인 + 페르소나 목록 확인
+ * 결과를 Brevo 이메일로 발송 + 스크린샷 첨부
  *
  * 실행: node /home/paks11299958/ai_mp/monitor.js
  */
@@ -11,12 +13,14 @@ const fs = require('fs');
 const path = require('path');
 
 // ── 설정 ──────────────────────────────────────────────
-const TARGET_URL      = 'https://aichat.dbzone.kr';
-const SCREENSHOT_PATH = path.join(__dirname, 'site_status.png');
-const TIMEOUT_MS      = 10_000;
-const RECIPIENT_EMAIL = 'paks11299958@gmail.com';
-const BREVO_API_KEY   = process.env.BREVO_API_KEY;
-const SENDER_EMAIL    = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
+const TARGET_URL       = 'https://aichat.dbzone.kr';
+const SCREENSHOT_PATH  = path.join(__dirname, 'site_status.png');
+const TIMEOUT_MS       = 15_000;
+const RECIPIENT_EMAIL  = 'paks11299958@gmail.com';
+const BREVO_API_KEY    = process.env.BREVO_API_KEY;
+const SENDER_EMAIL     = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
+const MONITOR_EMAIL    = process.env.MONITOR_EMAIL;
+const MONITOR_PASSWORD = process.env.MONITOR_PASSWORD;
 // ──────────────────────────────────────────────────────
 
 async function sendEmail({ subject, htmlContent, screenshotPath }) {
@@ -32,8 +36,8 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
     }
 
     const body = JSON.stringify({
-        sender:  { name: '사이트 모니터', email: SENDER_EMAIL },
-        to:      [{ email: RECIPIENT_EMAIL }],
+        sender:     { name: '사이트 모니터', email: SENDER_EMAIL },
+        to:         [{ email: RECIPIENT_EMAIL }],
         subject,
         htmlContent,
         ...(attachments.length > 0 ? { attachment: attachments } : {}),
@@ -52,64 +56,121 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
 }
 
 (async () => {
-    const now      = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-    const browser  = await chromium.launch({ headless: true });
-    const page     = await browser.newPage();
+    const now     = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    const browser = await chromium.launch({ headless: true });
+    const page    = await browser.newPage();
+
+    const results = {
+        site:  { ok: false, detail: '' },
+        login: { ok: false, detail: '' },
+    };
 
     try {
-        const response = await page.goto(TARGET_URL, {
-            timeout:   TIMEOUT_MS,
-            waitUntil: 'networkidle',
-        });
+        // ── Check 1: 사이트 열림 ──────────────────────────────
+        try {
+            const response = await page.goto(TARGET_URL, {
+                timeout:   TIMEOUT_MS,
+                waitUntil: 'networkidle',
+            });
+            const status = response?.status() ?? 0;
+            if (status >= 400) throw new Error(`HTTP ${status}`);
+            results.site = { ok: true, detail: `HTTP ${status}` };
+            console.log(`✅ [사이트] ${TARGET_URL} — HTTP ${status}`);
+        } catch (err) {
+            results.site = { ok: false, detail: err.message };
+            console.error(`❌ [사이트] ${err.message}`);
+        }
 
-        const status = response?.status() ?? 0;
-        if (status >= 400) throw new Error(`HTTP ${status}`);
+        // ── Check 2: 로그인 + 페르소나 목록 ──────────────────
+        if (!results.site.ok) {
+            results.login = { ok: false, detail: '사이트 접속 실패로 로그인 점검 건너뜀' };
+        } else if (!MONITOR_EMAIL || !MONITOR_PASSWORD) {
+            results.login = { ok: false, detail: 'MONITOR_EMAIL/MONITOR_PASSWORD 환경변수 미설정' };
+        } else {
+            try {
+                // 로그인 버튼 클릭 (nav 상단 버튼)
+                await page.getByRole('button', { name: '로그인' }).first().click();
 
+                // 이메일 입력창 대기 후 입력
+                await page.waitForSelector('input[placeholder*="example@email.com"]', { timeout: 5_000 });
+                await page.fill('input[placeholder*="example@email.com"]', MONITOR_EMAIL);
+
+                // 비밀번호 입력
+                await page.fill('input[type="password"]', MONITOR_PASSWORD);
+
+                // 폼 제출 (Enter)
+                await page.keyboard.press('Enter');
+
+                // 모달 닫힘 대기 (비밀번호 input 사라짐 = 로그인 성공)
+                await page.waitForSelector('input[type="password"]', {
+                    state:   'hidden',
+                    timeout: TIMEOUT_MS,
+                });
+
+                // 페르소나 목록 노출 확인
+                await page.waitForSelector('text=모든 페르소나', { timeout: 10_000 });
+
+                results.login = { ok: true, detail: '페르소나 목록 표시 확인' };
+                console.log('✅ [로그인] 성공 — 페르소나 목록 확인');
+            } catch (err) {
+                results.login = { ok: false, detail: err.message };
+                console.error(`❌ [로그인] ${err.message}`);
+            }
+        }
+
+        // ── 스크린샷 ──────────────────────────────────────────
         await page.screenshot({ path: SCREENSHOT_PATH, fullPage: false });
-        console.log(`✅ [성공] ${now} — ${TARGET_URL} (HTTP ${status})`);
         console.log(`📸 스크린샷: ${SCREENSHOT_PATH}`);
 
+        // ── 이메일 발송 ───────────────────────────────────────
+        const allOk     = results.site.ok && results.login.ok;
+        const siteRow   = row('사이트 열림', results.site);
+        const loginRow  = row('로그인',     results.login);
+
         await sendEmail({
-            subject: `✅ [정상] aichat.dbzone.kr — ${now}`,
+            subject: allOk
+                ? `✅ [정상] aichat.dbzone.kr — ${now}`
+                : `🚨 [장애] aichat.dbzone.kr — ${now}`,
             htmlContent: `
-                <h2 style="color:#16a34a">✅ 사이트 정상 운영 중</h2>
-                <table style="font-size:14px;line-height:1.8">
-                    <tr><td><b>URL</b></td><td>${TARGET_URL}</td></tr>
-                    <tr><td><b>HTTP 상태</b></td><td>${status}</td></tr>
-                    <tr><td><b>점검 시각</b></td><td>${now}</td></tr>
+                <h2 style="color:${allOk ? '#16a34a' : '#dc2626'}">
+                    ${allOk ? '✅ 사이트 정상 운영 중' : '🚨 장애 감지'}
+                </h2>
+                <table style="font-size:14px;line-height:2;border-collapse:collapse;width:100%;max-width:480px">
+                    <thead>
+                        <tr style="background:#f3f4f6">
+                            <th style="padding:8px 14px;text-align:left">점검 항목</th>
+                            <th style="padding:8px 14px;text-align:left">결과</th>
+                            <th style="padding:8px 14px;text-align:left">상세</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${siteRow}
+                        ${loginRow}
+                    </tbody>
                 </table>
-                <p style="color:#6b7280;font-size:12px;margin-top:16px">스크린샷을 첨부파일에서 확인하세요.</p>
+                <p style="font-size:13px;color:#6b7280;margin-top:16px">점검 시각: ${now}</p>
+                ${!allOk ? '<p style="margin-top:12px;font-weight:bold;color:#dc2626">즉시 서버 상태를 확인해주세요.</p>' : ''}
+                <p style="color:#9ca3af;font-size:12px;margin-top:8px">스크린샷을 첨부파일에서 확인하세요.</p>
             `,
             screenshotPath: SCREENSHOT_PATH,
         });
 
-        console.log(`📧 성공 이메일 발송 → ${RECIPIENT_EMAIL}`);
+        console.log(`📧 이메일 발송 → ${RECIPIENT_EMAIL}`);
+        if (!allOk) process.exitCode = 1;
 
-    } catch (err) {
-        const now2 = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
-        console.error(`⚠️ [경고] 사이트 접속 실패! → ${err.message}`);
-
-        try {
-            await sendEmail({
-                subject: `🚨 [장애] aichat.dbzone.kr 접속 불가 — ${now2}`,
-                htmlContent: `
-                    <h2 style="color:#dc2626">🚨 사이트 접속 장애 감지</h2>
-                    <table style="font-size:14px;line-height:1.8">
-                        <tr><td><b>URL</b></td><td>${TARGET_URL}</td></tr>
-                        <tr><td><b>오류</b></td><td style="color:#dc2626">${err.message}</td></tr>
-                        <tr><td><b>감지 시각</b></td><td>${now2}</td></tr>
-                    </table>
-                    <p style="margin-top:16px;font-weight:bold;color:#dc2626">즉시 서버 상태를 확인해주세요.</p>
-                `,
-                screenshotPath: null,
-            });
-            console.error(`📧 장애 알림 이메일 발송 → ${RECIPIENT_EMAIL}`);
-        } catch (mailErr) {
-            console.error(`❌ 이메일 발송도 실패: ${mailErr.message}`);
-        }
-
-        process.exitCode = 1;
     } finally {
         await browser.close();
     }
 })();
+
+function row(label, { ok, detail }) {
+    const icon  = ok ? '✅' : '❌';
+    const color = ok ? '#16a34a' : '#dc2626';
+    return `
+        <tr style="border-top:1px solid #e5e7eb">
+            <td style="padding:8px 14px">${label}</td>
+            <td style="padding:8px 14px;color:${color};font-weight:bold">${icon} ${ok ? '정상' : '실패'}</td>
+            <td style="padding:8px 14px;color:#6b7280;font-size:13px">${detail}</td>
+        </tr>
+    `;
+}
