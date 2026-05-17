@@ -3398,7 +3398,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 console.error('n8n 워크플로우 오류:', errMsg);
                 return res.status(502).json({ error: errMsg });
             }
-            return res.status(200).json({ ok: true, message: '발송이 완료되었습니다.' });
+            return res.status(200).json({ ok: true, message: '발송이 완료되었습니다.', content: n8nBody?.content || null, subject: n8nBody?.subject || null });
         }
     }
 
