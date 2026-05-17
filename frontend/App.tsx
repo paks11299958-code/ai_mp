@@ -20,6 +20,7 @@ import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
 import { StockAnalysisBoard } from './components/StockAnalysisBoard';
 import { HotKeywordBoard } from './components/HotKeywordBoard';
+import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
@@ -107,6 +108,7 @@ const App: React.FC = () => {
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showStockAnalysis, setShowStockAnalysis] = useState(false);
     const [showHotKeyword, setShowHotKeyword] = useState(false);
+    const [showResearch, setShowResearch] = useState(false);
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
@@ -1096,6 +1098,9 @@ const App: React.FC = () => {
                         userPhone={user?.phone}
                     />
                 )}
+                {showResearch && (
+                    <ResearchBoard onClose={() => setShowResearch(false)} user={user} />
+                )}
                 {showUsedItem && (
                     <UsedItemBoard onClose={() => setShowUsedItem(false)} />
                 )}
@@ -1155,6 +1160,9 @@ const App: React.FC = () => {
             )}
             {showLuxuryBoard && (
                 <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
+            )}
+            {showResearch && (
+                <ResearchBoard onClose={() => setShowResearch(false)} user={user} />
             )}
 
             {/* 생년월일 명부 모달 */}
@@ -1763,6 +1771,15 @@ const App: React.FC = () => {
                                             >
                                                 <Icon name="ShoppingBag" size={10} />
                                                 핫쇼핑키워드
+                                            </button>
+                                        )}
+                                        {activePersona?.name === '왕주식' && user && (
+                                            <button
+                                                onClick={() => setShowResearch(true)}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-blue-700/60 bg-blue-900/20 text-blue-300 hover:bg-blue-800/40 hover:text-blue-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                            >
+                                                <Icon name="BookOpen" size={10} />
+                                                딥 리서치
                                             </button>
                                         )}
                                         {activePersona?.name === '신은비' && user && (
