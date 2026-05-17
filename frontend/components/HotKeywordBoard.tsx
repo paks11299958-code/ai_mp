@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Mail, MessageSquare, CheckCircle, Loader, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface Category {
     code: string;
@@ -280,7 +281,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
                                         [&_td:nth-child(4)]:text-right
                                         [&_hr]:border-slate-700 [&_hr]:my-2
                                         [&_em]:text-slate-500 [&_em]:text-[10px] [&_p]:text-slate-400 [&_p]:text-xs">
-                                        <ReactMarkdown>{resultContent}</ReactMarkdown>
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{resultContent}</ReactMarkdown>
                                     </div>
                                 </div>
                             )}
