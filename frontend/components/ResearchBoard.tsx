@@ -97,7 +97,7 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                 setCookieInput(''); setShowCookieForm(false);
                 fetchCookieStatus();
             } else { setMsg(`❌ ${d.error}`); }
-        } catch { setMsg('❌ 쿠키 형식이 올바르지 않습니다 (JSON 배열)'); }
+        } catch (e: any) { setMsg(`❌ ${e?.message || '쿠키 형식이 올바르지 않습니다 (JSON 배열)'}`); }
     }
 
     async function handleDeleteCookies() {
@@ -282,11 +282,10 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                                         className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 transition-colors">
                                         저장
                                     </button>
+                                    {msg && (
+                                        <p className={`text-sm text-center font-medium ${msg.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>
+                                    )}
                                 </div>
-                            )}
-
-                            {msg && (
-                                <p className={`text-sm ${msg.startsWith('✅') ? 'text-green-400' : 'text-red-400'}`}>{msg}</p>
                             )}
                         </div>
                     )}
