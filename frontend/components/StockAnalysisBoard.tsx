@@ -208,6 +208,10 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
     useEffect(() => { loadTasks(); }, [loadTasks]);
 
     useEffect(() => {
+        return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); };
+    }, []);
+
+    useEffect(() => {
         const hasActive = tasks.some(t => t.status === 'pending' || t.status === 'processing');
         if (!hasActive) return;
         const t = setTimeout(loadTasks, 10000);
