@@ -655,4 +655,15 @@ export const adminApi = {
             method: 'POST',
             body: JSON.stringify({ userId, role }),
         }),
+
+    getMonitorMetrics: () =>
+        request<any>('/admin/monitor/metrics'),
+
+    getLogDates: () =>
+        request<{ dates: string[] }>('/admin/monitor/logs'),
+
+    getLogs: (date: string, page = 1, level = '') =>
+        request<{ lines: string[]; total: number; page: number; pageSize: number }>(
+            `/admin/monitor/logs/${date}?page=${page}&level=${level}`
+        ),
 };

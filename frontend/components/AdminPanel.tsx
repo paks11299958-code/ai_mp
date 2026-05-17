@@ -52,7 +52,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor'>('personas');
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
     const [commonInstruction, setCommonInstruction] = useState('');
@@ -669,6 +669,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { key: 'points',        label: '포인트 통계', icon: 'Coins' },
                         { key: 'users',         label: '회원 관리',   icon: 'Users' },
                         { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
+                        { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
                     ] as const).map(tab => (
                         <button
                             key={tab.key}
@@ -1103,6 +1104,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 메뉴권한 패널 */}
                 {mainView === 'menu-limits' && <MenuLimitsPanel />}
+
+                {/* 서버 모니터링 패널 */}
+                {mainView === 'monitor' && <ServerMonitorPanel />}
 
                 {/* 카테고리 관리 패널 */}
                 {mainView === 'categories' && (
@@ -2405,6 +2409,187 @@ const AdminPointStats: React.FC = () => {
                     </div>
                 </div>
             )}
+        </div>
+    );
+};
+
+// ── 서버 모니터링 패널 ──────────────────────────────────────
+const ServerMonitorPanel: React.FC = () => {
+    const [metrics, setMetrics] = useState<any>(null);
+    const [logDates, setLogDates] = useState<string[]>([]);
+    const [selectedDate, setSelectedDate] = useState<string>('');
+    const [logs, setLogs] = useState<string[]>([]);
+    const [logTotal, setLogTotal] = useState(0);
+    const [logPage, setLogPage] = useState(1);
+    const [logLevel, setLogLevel] = useState('');
+    const [logLoading, setLogLoading] = useState(false);
+    const [metricsLoading, setMetricsLoading] = useState(true);
+
+    const fetchMetrics = useCallback(() => {
+        setMetricsLoading(true);
+        adminApi.getMonitorMetrics()
+            .then(setMetrics)
+            .catch(() => {})
+            .finally(() => setMetricsLoading(false));
+    }, []);
+
+    useEffect(() => {
+        fetchMetrics();
+        const timer = setInterval(fetchMetrics, 10000);
+        adminApi.getLogDates().then(d => {
+            setLogDates(d.dates);
+            if (d.dates.length) setSelectedDate(d.dates[0]);
+        }).catch(() => {});
+        return () => clearInterval(timer);
+    }, [fetchMetrics]);
+
+    useEffect(() => {
+        if (!selectedDate) return;
+        setLogLoading(true);
+        adminApi.getLogs(selectedDate, logPage, logLevel)
+            .then(r => { setLogs(r.lines); setLogTotal(r.total); })
+            .catch(() => {})
+            .finally(() => setLogLoading(false));
+    }, [selectedDate, logPage, logLevel]);
+
+    const totalPages = Math.ceil(logTotal / 200);
+
+    const logColor = (line: string) => {
+        if (line.includes(' ERROR ')) return 'text-red-400';
+        if (line.includes(' WARN ')) return 'text-yellow-400';
+        if (line.includes(' DEBUG ')) return 'text-gray-500';
+        return 'text-gray-300';
+    };
+
+    const fmtUptime = (s: number) => {
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        return `${h}h ${m}m`;
+    };
+
+    const Gauge: React.FC<{ label: string; value: number; color: string; sub?: string }> = ({ label, value, color, sub }) => (
+        <div className="bg-gray-800 rounded-xl p-4">
+            <p className="text-xs text-gray-400 mb-2">{label}</p>
+            <div className="flex items-end gap-2 mb-2">
+                <span className={`text-2xl font-bold ${color}`}>{value}%</span>
+                {sub && <span className="text-xs text-gray-500 mb-0.5">{sub}</span>}
+            </div>
+            <div className="w-full bg-gray-700 rounded-full h-1.5">
+                <div className={`h-1.5 rounded-full transition-all ${color.replace('text-', 'bg-')}`} style={{ width: `${Math.min(value, 100)}%` }} />
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {/* 시스템 지표 */}
+            <div>
+                <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm font-semibold text-white">시스템 현황</p>
+                    <div className="flex items-center gap-3">
+                        {metrics && (
+                            <span className="text-xs text-gray-500">
+                                서버 업타임 {fmtUptime(metrics.uptime)} / Node {fmtUptime(metrics.nodeUptime)}
+                            </span>
+                        )}
+                        <button onClick={fetchMetrics} className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1">
+                            <Icon name="RefreshCw" size={11} />새로고침
+                        </button>
+                    </div>
+                </div>
+                {metricsLoading && !metrics
+                    ? <div className="text-center text-gray-500 text-sm py-8">불러오는 중...</div>
+                    : metrics && (
+                        <>
+                            <div className="grid grid-cols-3 gap-3 mb-3">
+                                <Gauge label={`CPU (${metrics.cpu.cores}코어)`} value={metrics.cpu.loadPercent}
+                                    color={metrics.cpu.loadPercent >= 80 ? 'text-red-400' : metrics.cpu.loadPercent >= 50 ? 'text-yellow-400' : 'text-green-400'}
+                                    sub={metrics.cpu.model} />
+                                <Gauge label="메모리" value={metrics.memory.usedPercent}
+                                    color={metrics.memory.usedPercent >= 85 ? 'text-red-400' : metrics.memory.usedPercent >= 60 ? 'text-yellow-400' : 'text-blue-400'}
+                                    sub={`${metrics.memory.usedMB}MB / ${metrics.memory.totalMB}MB`} />
+                                {metrics.disk && (
+                                    <Gauge label={`디스크 (${metrics.disk.mount})`} value={metrics.disk.usedPercent}
+                                        color={metrics.disk.usedPercent >= 85 ? 'text-red-400' : metrics.disk.usedPercent >= 60 ? 'text-yellow-400' : 'text-purple-400'}
+                                        sub={`${metrics.disk.usedGB}GB / ${metrics.disk.totalGB}GB`} />
+                                )}
+                            </div>
+                            {metrics.network && (
+                                <div className="bg-gray-800 rounded-xl p-4 grid grid-cols-4 gap-4">
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">네트워크 인터페이스</p>
+                                        <p className="text-sm font-semibold text-gray-200">{metrics.network.iface || '-'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">수신 속도</p>
+                                        <p className="text-sm font-semibold text-cyan-400">{metrics.network.rxSecKB} KB/s</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">송신 속도</p>
+                                        <p className="text-sm font-semibold text-orange-400">{metrics.network.txSecKB} KB/s</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 mb-1">총 수신 / 송신</p>
+                                        <p className="text-xs text-gray-300">{metrics.network.rxMB} MB / {metrics.network.txMB} MB</p>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )
+                }
+            </div>
+
+            {/* 로그 뷰어 */}
+            <div>
+                <p className="text-sm font-semibold text-white mb-3">서버 로그</p>
+                <div className="flex items-center gap-2 mb-3">
+                    <select
+                        value={selectedDate}
+                        onChange={e => { setSelectedDate(e.target.value); setLogPage(1); }}
+                        className="bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-2"
+                    >
+                        {logDates.map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                    <select
+                        value={logLevel}
+                        onChange={e => { setLogLevel(e.target.value); setLogPage(1); }}
+                        className="bg-gray-800 border border-gray-700 text-gray-200 text-xs rounded-lg px-3 py-2"
+                    >
+                        <option value="">전체</option>
+                        <option value="error">ERROR</option>
+                        <option value="warn">WARN</option>
+                        <option value="info">INFO</option>
+                    </select>
+                    <span className="text-xs text-gray-500 ml-auto">총 {logTotal.toLocaleString()}줄</span>
+                </div>
+
+                <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    {logLoading
+                        ? <div className="text-center text-gray-500 text-xs py-8">불러오는 중...</div>
+                        : logs.length === 0
+                            ? <div className="text-center text-gray-500 text-xs py-8">로그 없음</div>
+                            : (
+                                <div className="overflow-x-auto max-h-80 font-mono text-[11px] leading-5">
+                                    {logs.map((line, i) => (
+                                        <div key={i} className={`px-3 py-0.5 border-b border-gray-800/50 hover:bg-gray-800/30 ${logColor(line)}`}>
+                                            {line}
+                                        </div>
+                                    ))}
+                                </div>
+                            )
+                    }
+                </div>
+
+                {totalPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 mt-3">
+                        <button onClick={() => setLogPage(p => Math.max(1, p - 1))} disabled={logPage === 1}
+                            className="px-3 py-1.5 text-xs bg-gray-800 rounded-lg disabled:opacity-40 text-gray-300 hover:bg-gray-700">이전</button>
+                        <span className="text-xs text-gray-400">{logPage} / {totalPages}</span>
+                        <button onClick={() => setLogPage(p => Math.min(totalPages, p + 1))} disabled={logPage === totalPages}
+                            className="px-3 py-1.5 text-xs bg-gray-800 rounded-lg disabled:opacity-40 text-gray-300 hover:bg-gray-700">다음</button>
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
