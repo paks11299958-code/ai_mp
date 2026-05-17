@@ -264,21 +264,12 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
 
                             {showCookieForm && (
                                 <div className="space-y-3">
-                                    <div className="bg-blue-900/20 border border-blue-800 rounded-xl p-3 text-xs text-blue-300 space-y-1.5">
-                                        <p className="font-medium">쿠키 내보내기 방법</p>
-                                        <ol className="list-decimal list-inside space-y-1 text-blue-400">
-                                            <li>Chrome에서 <b>NotebookLM</b> 로그인</li>
-                                            <li>확장 프로그램 <b>"Cookie Editor"</b> 설치</li>
-                                            <li>notebooklm.google.com 에서 확장 실행</li>
-                                            <li><b>Export → Export as JSON</b> 클릭</li>
-                                            <li>복사한 내용을 아래에 붙여넣기</li>
-                                        </ol>
-                                    </div>
+                                    <p className="text-xs text-blue-400">Cookie Editor 확장 → notebooklm.google.com → Export as JSON → 아래 붙여넣기</p>
                                     <textarea
                                         value={cookieInput}
                                         onChange={e => setCookieInput(e.target.value)}
                                         placeholder='[{"name":"...", "value":"...", ...}]'
-                                        rows={5}
+                                        rows={3}
                                         className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-600 text-xs font-mono focus:outline-none focus:border-blue-500 resize-none"
                                     />
                                     <button onClick={handleSaveCookies}
