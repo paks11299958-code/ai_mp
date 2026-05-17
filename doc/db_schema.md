@@ -21,13 +21,13 @@ resetToken, resetTokenExpiry    ← 비밀번호 재설정 토큰 (SMS 코드도
 id(CUID), name, jobTitle, description
 systemInstruction, identityPrompt
 iconName, colorClass, order
-imageUrl, introVideoUrl, balloonVideoUrl
+imageUrl, introVideoUrl, starVideoUrl
 chatBgUrl           ← JSON 배열 문자열 (배경 이미지 최대 5개)
 faceReadingBgUrl    ← 관상 결과카드 배경 (String?)
 isDefault, isVisible, categoryId
 quickMenuJson       ← 퀵메뉴 설정 JSON 문자열
 ```
-- `balloonVideoUrl`: 별스타 100개 이상 수신 시 재생할 감사 영상 URL (GCS)
+- `starVideoUrl`: 별스타 100개 이상 수신 시 재생할 감사 영상 URL (GCS)
 
 ## ChatSession / Message
 ```
