@@ -2891,6 +2891,43 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(500).json({ error: '서버 오류' });
             }
         }
+
+        // GET /api/admin/menu-limits — 메뉴권한 목록
+        if (req.method === 'GET' && seg1 === 'menu-limits') {
+            try {
+                const limits = await (prisma as any).menuLimit.findMany({
+                    orderBy: [{ feature: 'asc' }, { role: 'asc' }],
+                });
+                return res.json(limits);
+            } catch (e: any) {
+                console.error('[admin/menu-limits GET]', e);
+                return res.status(500).json({ error: '서버 오류' });
+            }
+        }
+
+        // PUT /api/admin/menu-limits — 메뉴권한 수정
+        if (req.method === 'PUT' && seg1 === 'menu-limits') {
+            try {
+                const { feature, role, dailyLimit, pointsCost } = req.body;
+                if (!feature || !role) return res.status(400).json({ error: 'feature, role 필수' });
+                const updated = await (prisma as any).menuLimit.upsert({
+                    where: { feature_role: { feature, role } },
+                    update: {
+                        dailyLimit: dailyLimit === null || dailyLimit === '' ? null : Number(dailyLimit),
+                        pointsCost: Number(pointsCost ?? 50),
+                    },
+                    create: {
+                        feature, role,
+                        dailyLimit: dailyLimit === null || dailyLimit === '' ? null : Number(dailyLimit),
+                        pointsCost: Number(pointsCost ?? 50),
+                    },
+                });
+                return res.json(updated);
+            } catch (e: any) {
+                console.error('[admin/menu-limits PUT]', e);
+                return res.status(500).json({ error: '서버 오류' });
+            }
+        }
     }
 
     // POST /api/face-reading

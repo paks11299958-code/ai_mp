@@ -148,6 +148,16 @@ export type UsedItemListing = $Result.DefaultSelection<Prisma.$UsedItemListingPa
  * 
  */
 export type NaverShoppingCategory = $Result.DefaultSelection<Prisma.$NaverShoppingCategoryPayload>
+/**
+ * Model MenuLimit
+ * 
+ */
+export type MenuLimit = $Result.DefaultSelection<Prisma.$MenuLimitPayload>
+/**
+ * Model MenuUsageLog
+ * 
+ */
+export type MenuUsageLog = $Result.DefaultSelection<Prisma.$MenuUsageLogPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -539,6 +549,26 @@ export class PrismaClient<
     * ```
     */
   get naverShoppingCategory(): Prisma.NaverShoppingCategoryDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.menuLimit`: Exposes CRUD operations for the **MenuLimit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuLimits
+    * const menuLimits = await prisma.menuLimit.findMany()
+    * ```
+    */
+  get menuLimit(): Prisma.MenuLimitDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.menuUsageLog`: Exposes CRUD operations for the **MenuUsageLog** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MenuUsageLogs
+    * const menuUsageLogs = await prisma.menuUsageLog.findMany()
+    * ```
+    */
+  get menuUsageLog(): Prisma.MenuUsageLogDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -999,7 +1029,9 @@ export namespace Prisma {
     StockAnalysis: 'StockAnalysis',
     LuxuryVerification: 'LuxuryVerification',
     UsedItemListing: 'UsedItemListing',
-    NaverShoppingCategory: 'NaverShoppingCategory'
+    NaverShoppingCategory: 'NaverShoppingCategory',
+    MenuLimit: 'MenuLimit',
+    MenuUsageLog: 'MenuUsageLog'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1015,7 +1047,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3017,6 +3049,154 @@ export namespace Prisma {
           }
         }
       }
+      MenuLimit: {
+        payload: Prisma.$MenuLimitPayload<ExtArgs>
+        fields: Prisma.MenuLimitFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuLimitFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuLimitFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuLimitFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuLimitFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>
+          }
+          findMany: {
+            args: Prisma.MenuLimitFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>[]
+          }
+          create: {
+            args: Prisma.MenuLimitCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>
+          }
+          createMany: {
+            args: Prisma.MenuLimitCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuLimitCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuLimitDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>
+          }
+          update: {
+            args: Prisma.MenuLimitUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuLimitDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuLimitUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MenuLimitUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>[]
+          }
+          upsert: {
+            args: Prisma.MenuLimitUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuLimitPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuLimitAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuLimit>
+          }
+          groupBy: {
+            args: Prisma.MenuLimitGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuLimitGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuLimitCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuLimitCountAggregateOutputType> | number
+          }
+        }
+      }
+      MenuUsageLog: {
+        payload: Prisma.$MenuUsageLogPayload<ExtArgs>
+        fields: Prisma.MenuUsageLogFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MenuUsageLogFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MenuUsageLogFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>
+          }
+          findFirst: {
+            args: Prisma.MenuUsageLogFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MenuUsageLogFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>
+          }
+          findMany: {
+            args: Prisma.MenuUsageLogFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>[]
+          }
+          create: {
+            args: Prisma.MenuUsageLogCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>
+          }
+          createMany: {
+            args: Prisma.MenuUsageLogCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MenuUsageLogCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>[]
+          }
+          delete: {
+            args: Prisma.MenuUsageLogDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>
+          }
+          update: {
+            args: Prisma.MenuUsageLogUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>
+          }
+          deleteMany: {
+            args: Prisma.MenuUsageLogDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MenuUsageLogUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MenuUsageLogUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>[]
+          }
+          upsert: {
+            args: Prisma.MenuUsageLogUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MenuUsageLogPayload>
+          }
+          aggregate: {
+            args: Prisma.MenuUsageLogAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMenuUsageLog>
+          }
+          groupBy: {
+            args: Prisma.MenuUsageLogGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MenuUsageLogGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MenuUsageLogCountArgs<ExtArgs>
+            result: $Utils.Optional<MenuUsageLogCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3152,6 +3332,8 @@ export namespace Prisma {
     luxuryVerification?: LuxuryVerificationOmit
     usedItemListing?: UsedItemListingOmit
     naverShoppingCategory?: NaverShoppingCategoryOmit
+    menuLimit?: MenuLimitOmit
+    menuUsageLog?: MenuUsageLogOmit
   }
 
   /* Types for Logging */
@@ -3246,6 +3428,7 @@ export namespace Prisma {
     stockAnalyses: number
     usedItemListings: number
     luxuryVerifications: number
+    menuUsageLogs: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3263,6 +3446,7 @@ export namespace Prisma {
     stockAnalyses?: boolean | UserCountOutputTypeCountStockAnalysesArgs
     usedItemListings?: boolean | UserCountOutputTypeCountUsedItemListingsArgs
     luxuryVerifications?: boolean | UserCountOutputTypeCountLuxuryVerificationsArgs
+    menuUsageLogs?: boolean | UserCountOutputTypeCountMenuUsageLogsArgs
   }
 
   // Custom InputTypes
@@ -3372,6 +3556,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountLuxuryVerificationsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: LuxuryVerificationWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountMenuUsageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuUsageLogWhereInput
   }
 
 
@@ -3922,6 +4113,7 @@ export namespace Prisma {
     stockAnalyses?: boolean | User$stockAnalysesArgs<ExtArgs>
     usedItemListings?: boolean | User$usedItemListingsArgs<ExtArgs>
     luxuryVerifications?: boolean | User$luxuryVerificationsArgs<ExtArgs>
+    menuUsageLogs?: boolean | User$menuUsageLogsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -3986,6 +4178,7 @@ export namespace Prisma {
     stockAnalyses?: boolean | User$stockAnalysesArgs<ExtArgs>
     usedItemListings?: boolean | User$usedItemListingsArgs<ExtArgs>
     luxuryVerifications?: boolean | User$luxuryVerificationsArgs<ExtArgs>
+    menuUsageLogs?: boolean | User$menuUsageLogsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4008,6 +4201,7 @@ export namespace Prisma {
       stockAnalyses: Prisma.$StockAnalysisPayload<ExtArgs>[]
       usedItemListings: Prisma.$UsedItemListingPayload<ExtArgs>[]
       luxuryVerifications: Prisma.$LuxuryVerificationPayload<ExtArgs>[]
+      menuUsageLogs: Prisma.$MenuUsageLogPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -4430,6 +4624,7 @@ export namespace Prisma {
     stockAnalyses<T extends User$stockAnalysesArgs<ExtArgs> = {}>(args?: Subset<T, User$stockAnalysesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StockAnalysisPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     usedItemListings<T extends User$usedItemListingsArgs<ExtArgs> = {}>(args?: Subset<T, User$usedItemListingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$UsedItemListingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     luxuryVerifications<T extends User$luxuryVerificationsArgs<ExtArgs> = {}>(args?: Subset<T, User$luxuryVerificationsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$LuxuryVerificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    menuUsageLogs<T extends User$menuUsageLogsArgs<ExtArgs> = {}>(args?: Subset<T, User$menuUsageLogsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5197,6 +5392,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: LuxuryVerificationScalarFieldEnum | LuxuryVerificationScalarFieldEnum[]
+  }
+
+  /**
+   * User.menuUsageLogs
+   */
+  export type User$menuUsageLogsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    where?: MenuUsageLogWhereInput
+    orderBy?: MenuUsageLogOrderByWithRelationInput | MenuUsageLogOrderByWithRelationInput[]
+    cursor?: MenuUsageLogWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MenuUsageLogScalarFieldEnum | MenuUsageLogScalarFieldEnum[]
   }
 
   /**
@@ -35486,6 +35705,2119 @@ export namespace Prisma {
 
 
   /**
+   * Model MenuLimit
+   */
+
+  export type AggregateMenuLimit = {
+    _count: MenuLimitCountAggregateOutputType | null
+    _avg: MenuLimitAvgAggregateOutputType | null
+    _sum: MenuLimitSumAggregateOutputType | null
+    _min: MenuLimitMinAggregateOutputType | null
+    _max: MenuLimitMaxAggregateOutputType | null
+  }
+
+  export type MenuLimitAvgAggregateOutputType = {
+    dailyLimit: number | null
+    pointsCost: number | null
+  }
+
+  export type MenuLimitSumAggregateOutputType = {
+    dailyLimit: number | null
+    pointsCost: number | null
+  }
+
+  export type MenuLimitMinAggregateOutputType = {
+    feature: string | null
+    role: string | null
+    dailyLimit: number | null
+    pointsCost: number | null
+  }
+
+  export type MenuLimitMaxAggregateOutputType = {
+    feature: string | null
+    role: string | null
+    dailyLimit: number | null
+    pointsCost: number | null
+  }
+
+  export type MenuLimitCountAggregateOutputType = {
+    feature: number
+    role: number
+    dailyLimit: number
+    pointsCost: number
+    _all: number
+  }
+
+
+  export type MenuLimitAvgAggregateInputType = {
+    dailyLimit?: true
+    pointsCost?: true
+  }
+
+  export type MenuLimitSumAggregateInputType = {
+    dailyLimit?: true
+    pointsCost?: true
+  }
+
+  export type MenuLimitMinAggregateInputType = {
+    feature?: true
+    role?: true
+    dailyLimit?: true
+    pointsCost?: true
+  }
+
+  export type MenuLimitMaxAggregateInputType = {
+    feature?: true
+    role?: true
+    dailyLimit?: true
+    pointsCost?: true
+  }
+
+  export type MenuLimitCountAggregateInputType = {
+    feature?: true
+    role?: true
+    dailyLimit?: true
+    pointsCost?: true
+    _all?: true
+  }
+
+  export type MenuLimitAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuLimit to aggregate.
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuLimits to fetch.
+     */
+    orderBy?: MenuLimitOrderByWithRelationInput | MenuLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuLimits
+    **/
+    _count?: true | MenuLimitCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MenuLimitAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MenuLimitSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuLimitMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuLimitMaxAggregateInputType
+  }
+
+  export type GetMenuLimitAggregateType<T extends MenuLimitAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuLimit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuLimit[P]>
+      : GetScalarType<T[P], AggregateMenuLimit[P]>
+  }
+
+
+
+
+  export type MenuLimitGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuLimitWhereInput
+    orderBy?: MenuLimitOrderByWithAggregationInput | MenuLimitOrderByWithAggregationInput[]
+    by: MenuLimitScalarFieldEnum[] | MenuLimitScalarFieldEnum
+    having?: MenuLimitScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuLimitCountAggregateInputType | true
+    _avg?: MenuLimitAvgAggregateInputType
+    _sum?: MenuLimitSumAggregateInputType
+    _min?: MenuLimitMinAggregateInputType
+    _max?: MenuLimitMaxAggregateInputType
+  }
+
+  export type MenuLimitGroupByOutputType = {
+    feature: string
+    role: string
+    dailyLimit: number | null
+    pointsCost: number
+    _count: MenuLimitCountAggregateOutputType | null
+    _avg: MenuLimitAvgAggregateOutputType | null
+    _sum: MenuLimitSumAggregateOutputType | null
+    _min: MenuLimitMinAggregateOutputType | null
+    _max: MenuLimitMaxAggregateOutputType | null
+  }
+
+  type GetMenuLimitGroupByPayload<T extends MenuLimitGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuLimitGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuLimitGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuLimitGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuLimitGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuLimitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    feature?: boolean
+    role?: boolean
+    dailyLimit?: boolean
+    pointsCost?: boolean
+  }, ExtArgs["result"]["menuLimit"]>
+
+  export type MenuLimitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    feature?: boolean
+    role?: boolean
+    dailyLimit?: boolean
+    pointsCost?: boolean
+  }, ExtArgs["result"]["menuLimit"]>
+
+  export type MenuLimitSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    feature?: boolean
+    role?: boolean
+    dailyLimit?: boolean
+    pointsCost?: boolean
+  }, ExtArgs["result"]["menuLimit"]>
+
+  export type MenuLimitSelectScalar = {
+    feature?: boolean
+    role?: boolean
+    dailyLimit?: boolean
+    pointsCost?: boolean
+  }
+
+  export type MenuLimitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"feature" | "role" | "dailyLimit" | "pointsCost", ExtArgs["result"]["menuLimit"]>
+
+  export type $MenuLimitPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuLimit"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      feature: string
+      role: string
+      dailyLimit: number | null
+      pointsCost: number
+    }, ExtArgs["result"]["menuLimit"]>
+    composites: {}
+  }
+
+  type MenuLimitGetPayload<S extends boolean | null | undefined | MenuLimitDefaultArgs> = $Result.GetResult<Prisma.$MenuLimitPayload, S>
+
+  type MenuLimitCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MenuLimitFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MenuLimitCountAggregateInputType | true
+    }
+
+  export interface MenuLimitDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuLimit'], meta: { name: 'MenuLimit' } }
+    /**
+     * Find zero or one MenuLimit that matches the filter.
+     * @param {MenuLimitFindUniqueArgs} args - Arguments to find a MenuLimit
+     * @example
+     * // Get one MenuLimit
+     * const menuLimit = await prisma.menuLimit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuLimitFindUniqueArgs>(args: SelectSubset<T, MenuLimitFindUniqueArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MenuLimit that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MenuLimitFindUniqueOrThrowArgs} args - Arguments to find a MenuLimit
+     * @example
+     * // Get one MenuLimit
+     * const menuLimit = await prisma.menuLimit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuLimitFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuLimitFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MenuLimit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitFindFirstArgs} args - Arguments to find a MenuLimit
+     * @example
+     * // Get one MenuLimit
+     * const menuLimit = await prisma.menuLimit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuLimitFindFirstArgs>(args?: SelectSubset<T, MenuLimitFindFirstArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MenuLimit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitFindFirstOrThrowArgs} args - Arguments to find a MenuLimit
+     * @example
+     * // Get one MenuLimit
+     * const menuLimit = await prisma.menuLimit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuLimitFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuLimitFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MenuLimits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuLimits
+     * const menuLimits = await prisma.menuLimit.findMany()
+     * 
+     * // Get first 10 MenuLimits
+     * const menuLimits = await prisma.menuLimit.findMany({ take: 10 })
+     * 
+     * // Only select the `feature`
+     * const menuLimitWithFeatureOnly = await prisma.menuLimit.findMany({ select: { feature: true } })
+     * 
+     */
+    findMany<T extends MenuLimitFindManyArgs>(args?: SelectSubset<T, MenuLimitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MenuLimit.
+     * @param {MenuLimitCreateArgs} args - Arguments to create a MenuLimit.
+     * @example
+     * // Create one MenuLimit
+     * const MenuLimit = await prisma.menuLimit.create({
+     *   data: {
+     *     // ... data to create a MenuLimit
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuLimitCreateArgs>(args: SelectSubset<T, MenuLimitCreateArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MenuLimits.
+     * @param {MenuLimitCreateManyArgs} args - Arguments to create many MenuLimits.
+     * @example
+     * // Create many MenuLimits
+     * const menuLimit = await prisma.menuLimit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuLimitCreateManyArgs>(args?: SelectSubset<T, MenuLimitCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuLimits and returns the data saved in the database.
+     * @param {MenuLimitCreateManyAndReturnArgs} args - Arguments to create many MenuLimits.
+     * @example
+     * // Create many MenuLimits
+     * const menuLimit = await prisma.menuLimit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuLimits and only return the `feature`
+     * const menuLimitWithFeatureOnly = await prisma.menuLimit.createManyAndReturn({
+     *   select: { feature: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuLimitCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuLimitCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MenuLimit.
+     * @param {MenuLimitDeleteArgs} args - Arguments to delete one MenuLimit.
+     * @example
+     * // Delete one MenuLimit
+     * const MenuLimit = await prisma.menuLimit.delete({
+     *   where: {
+     *     // ... filter to delete one MenuLimit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuLimitDeleteArgs>(args: SelectSubset<T, MenuLimitDeleteArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MenuLimit.
+     * @param {MenuLimitUpdateArgs} args - Arguments to update one MenuLimit.
+     * @example
+     * // Update one MenuLimit
+     * const menuLimit = await prisma.menuLimit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuLimitUpdateArgs>(args: SelectSubset<T, MenuLimitUpdateArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MenuLimits.
+     * @param {MenuLimitDeleteManyArgs} args - Arguments to filter MenuLimits to delete.
+     * @example
+     * // Delete a few MenuLimits
+     * const { count } = await prisma.menuLimit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuLimitDeleteManyArgs>(args?: SelectSubset<T, MenuLimitDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuLimits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuLimits
+     * const menuLimit = await prisma.menuLimit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuLimitUpdateManyArgs>(args: SelectSubset<T, MenuLimitUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuLimits and returns the data updated in the database.
+     * @param {MenuLimitUpdateManyAndReturnArgs} args - Arguments to update many MenuLimits.
+     * @example
+     * // Update many MenuLimits
+     * const menuLimit = await prisma.menuLimit.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MenuLimits and only return the `feature`
+     * const menuLimitWithFeatureOnly = await prisma.menuLimit.updateManyAndReturn({
+     *   select: { feature: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MenuLimitUpdateManyAndReturnArgs>(args: SelectSubset<T, MenuLimitUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MenuLimit.
+     * @param {MenuLimitUpsertArgs} args - Arguments to update or create a MenuLimit.
+     * @example
+     * // Update or create a MenuLimit
+     * const menuLimit = await prisma.menuLimit.upsert({
+     *   create: {
+     *     // ... data to create a MenuLimit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuLimit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuLimitUpsertArgs>(args: SelectSubset<T, MenuLimitUpsertArgs<ExtArgs>>): Prisma__MenuLimitClient<$Result.GetResult<Prisma.$MenuLimitPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MenuLimits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitCountArgs} args - Arguments to filter MenuLimits to count.
+     * @example
+     * // Count the number of MenuLimits
+     * const count = await prisma.menuLimit.count({
+     *   where: {
+     *     // ... the filter for the MenuLimits we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuLimitCountArgs>(
+      args?: Subset<T, MenuLimitCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuLimitCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuLimit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuLimitAggregateArgs>(args: Subset<T, MenuLimitAggregateArgs>): Prisma.PrismaPromise<GetMenuLimitAggregateType<T>>
+
+    /**
+     * Group by MenuLimit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuLimitGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuLimitGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuLimitGroupByArgs['orderBy'] }
+        : { orderBy?: MenuLimitGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuLimitGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuLimitGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuLimit model
+   */
+  readonly fields: MenuLimitFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuLimit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuLimitClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuLimit model
+   */
+  interface MenuLimitFieldRefs {
+    readonly feature: FieldRef<"MenuLimit", 'String'>
+    readonly role: FieldRef<"MenuLimit", 'String'>
+    readonly dailyLimit: FieldRef<"MenuLimit", 'Int'>
+    readonly pointsCost: FieldRef<"MenuLimit", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuLimit findUnique
+   */
+  export type MenuLimitFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MenuLimit to fetch.
+     */
+    where: MenuLimitWhereUniqueInput
+  }
+
+  /**
+   * MenuLimit findUniqueOrThrow
+   */
+  export type MenuLimitFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MenuLimit to fetch.
+     */
+    where: MenuLimitWhereUniqueInput
+  }
+
+  /**
+   * MenuLimit findFirst
+   */
+  export type MenuLimitFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MenuLimit to fetch.
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuLimits to fetch.
+     */
+    orderBy?: MenuLimitOrderByWithRelationInput | MenuLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuLimits.
+     */
+    cursor?: MenuLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuLimits.
+     */
+    distinct?: MenuLimitScalarFieldEnum | MenuLimitScalarFieldEnum[]
+  }
+
+  /**
+   * MenuLimit findFirstOrThrow
+   */
+  export type MenuLimitFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MenuLimit to fetch.
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuLimits to fetch.
+     */
+    orderBy?: MenuLimitOrderByWithRelationInput | MenuLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuLimits.
+     */
+    cursor?: MenuLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuLimits.
+     */
+    distinct?: MenuLimitScalarFieldEnum | MenuLimitScalarFieldEnum[]
+  }
+
+  /**
+   * MenuLimit findMany
+   */
+  export type MenuLimitFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * Filter, which MenuLimits to fetch.
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuLimits to fetch.
+     */
+    orderBy?: MenuLimitOrderByWithRelationInput | MenuLimitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuLimits.
+     */
+    cursor?: MenuLimitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuLimits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuLimits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuLimits.
+     */
+    distinct?: MenuLimitScalarFieldEnum | MenuLimitScalarFieldEnum[]
+  }
+
+  /**
+   * MenuLimit create
+   */
+  export type MenuLimitCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * The data needed to create a MenuLimit.
+     */
+    data: XOR<MenuLimitCreateInput, MenuLimitUncheckedCreateInput>
+  }
+
+  /**
+   * MenuLimit createMany
+   */
+  export type MenuLimitCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuLimits.
+     */
+    data: MenuLimitCreateManyInput | MenuLimitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuLimit createManyAndReturn
+   */
+  export type MenuLimitCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * The data used to create many MenuLimits.
+     */
+    data: MenuLimitCreateManyInput | MenuLimitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuLimit update
+   */
+  export type MenuLimitUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * The data needed to update a MenuLimit.
+     */
+    data: XOR<MenuLimitUpdateInput, MenuLimitUncheckedUpdateInput>
+    /**
+     * Choose, which MenuLimit to update.
+     */
+    where: MenuLimitWhereUniqueInput
+  }
+
+  /**
+   * MenuLimit updateMany
+   */
+  export type MenuLimitUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuLimits.
+     */
+    data: XOR<MenuLimitUpdateManyMutationInput, MenuLimitUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuLimits to update
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * Limit how many MenuLimits to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MenuLimit updateManyAndReturn
+   */
+  export type MenuLimitUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * The data used to update MenuLimits.
+     */
+    data: XOR<MenuLimitUpdateManyMutationInput, MenuLimitUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuLimits to update
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * Limit how many MenuLimits to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MenuLimit upsert
+   */
+  export type MenuLimitUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * The filter to search for the MenuLimit to update in case it exists.
+     */
+    where: MenuLimitWhereUniqueInput
+    /**
+     * In case the MenuLimit found by the `where` argument doesn't exist, create a new MenuLimit with this data.
+     */
+    create: XOR<MenuLimitCreateInput, MenuLimitUncheckedCreateInput>
+    /**
+     * In case the MenuLimit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuLimitUpdateInput, MenuLimitUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuLimit delete
+   */
+  export type MenuLimitDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+    /**
+     * Filter which MenuLimit to delete.
+     */
+    where: MenuLimitWhereUniqueInput
+  }
+
+  /**
+   * MenuLimit deleteMany
+   */
+  export type MenuLimitDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuLimits to delete
+     */
+    where?: MenuLimitWhereInput
+    /**
+     * Limit how many MenuLimits to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MenuLimit without action
+   */
+  export type MenuLimitDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuLimit
+     */
+    select?: MenuLimitSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuLimit
+     */
+    omit?: MenuLimitOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model MenuUsageLog
+   */
+
+  export type AggregateMenuUsageLog = {
+    _count: MenuUsageLogCountAggregateOutputType | null
+    _avg: MenuUsageLogAvgAggregateOutputType | null
+    _sum: MenuUsageLogSumAggregateOutputType | null
+    _min: MenuUsageLogMinAggregateOutputType | null
+    _max: MenuUsageLogMaxAggregateOutputType | null
+  }
+
+  export type MenuUsageLogAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type MenuUsageLogSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+  }
+
+  export type MenuUsageLogMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    feature: string | null
+    createdAt: Date | null
+  }
+
+  export type MenuUsageLogMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    feature: string | null
+    createdAt: Date | null
+  }
+
+  export type MenuUsageLogCountAggregateOutputType = {
+    id: number
+    userId: number
+    feature: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type MenuUsageLogAvgAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type MenuUsageLogSumAggregateInputType = {
+    id?: true
+    userId?: true
+  }
+
+  export type MenuUsageLogMinAggregateInputType = {
+    id?: true
+    userId?: true
+    feature?: true
+    createdAt?: true
+  }
+
+  export type MenuUsageLogMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    feature?: true
+    createdAt?: true
+  }
+
+  export type MenuUsageLogCountAggregateInputType = {
+    id?: true
+    userId?: true
+    feature?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type MenuUsageLogAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuUsageLog to aggregate.
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuUsageLogs to fetch.
+     */
+    orderBy?: MenuUsageLogOrderByWithRelationInput | MenuUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MenuUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MenuUsageLogs
+    **/
+    _count?: true | MenuUsageLogCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MenuUsageLogAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MenuUsageLogSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MenuUsageLogMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MenuUsageLogMaxAggregateInputType
+  }
+
+  export type GetMenuUsageLogAggregateType<T extends MenuUsageLogAggregateArgs> = {
+        [P in keyof T & keyof AggregateMenuUsageLog]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMenuUsageLog[P]>
+      : GetScalarType<T[P], AggregateMenuUsageLog[P]>
+  }
+
+
+
+
+  export type MenuUsageLogGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MenuUsageLogWhereInput
+    orderBy?: MenuUsageLogOrderByWithAggregationInput | MenuUsageLogOrderByWithAggregationInput[]
+    by: MenuUsageLogScalarFieldEnum[] | MenuUsageLogScalarFieldEnum
+    having?: MenuUsageLogScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MenuUsageLogCountAggregateInputType | true
+    _avg?: MenuUsageLogAvgAggregateInputType
+    _sum?: MenuUsageLogSumAggregateInputType
+    _min?: MenuUsageLogMinAggregateInputType
+    _max?: MenuUsageLogMaxAggregateInputType
+  }
+
+  export type MenuUsageLogGroupByOutputType = {
+    id: number
+    userId: number
+    feature: string
+    createdAt: Date
+    _count: MenuUsageLogCountAggregateOutputType | null
+    _avg: MenuUsageLogAvgAggregateOutputType | null
+    _sum: MenuUsageLogSumAggregateOutputType | null
+    _min: MenuUsageLogMinAggregateOutputType | null
+    _max: MenuUsageLogMaxAggregateOutputType | null
+  }
+
+  type GetMenuUsageLogGroupByPayload<T extends MenuUsageLogGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MenuUsageLogGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MenuUsageLogGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MenuUsageLogGroupByOutputType[P]>
+            : GetScalarType<T[P], MenuUsageLogGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MenuUsageLogSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    feature?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuUsageLog"]>
+
+  export type MenuUsageLogSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    feature?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuUsageLog"]>
+
+  export type MenuUsageLogSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    feature?: boolean
+    createdAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["menuUsageLog"]>
+
+  export type MenuUsageLogSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    feature?: boolean
+    createdAt?: boolean
+  }
+
+  export type MenuUsageLogOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "feature" | "createdAt", ExtArgs["result"]["menuUsageLog"]>
+  export type MenuUsageLogInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type MenuUsageLogIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type MenuUsageLogIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $MenuUsageLogPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MenuUsageLog"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      feature: string
+      createdAt: Date
+    }, ExtArgs["result"]["menuUsageLog"]>
+    composites: {}
+  }
+
+  type MenuUsageLogGetPayload<S extends boolean | null | undefined | MenuUsageLogDefaultArgs> = $Result.GetResult<Prisma.$MenuUsageLogPayload, S>
+
+  type MenuUsageLogCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MenuUsageLogFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MenuUsageLogCountAggregateInputType | true
+    }
+
+  export interface MenuUsageLogDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MenuUsageLog'], meta: { name: 'MenuUsageLog' } }
+    /**
+     * Find zero or one MenuUsageLog that matches the filter.
+     * @param {MenuUsageLogFindUniqueArgs} args - Arguments to find a MenuUsageLog
+     * @example
+     * // Get one MenuUsageLog
+     * const menuUsageLog = await prisma.menuUsageLog.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MenuUsageLogFindUniqueArgs>(args: SelectSubset<T, MenuUsageLogFindUniqueArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MenuUsageLog that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MenuUsageLogFindUniqueOrThrowArgs} args - Arguments to find a MenuUsageLog
+     * @example
+     * // Get one MenuUsageLog
+     * const menuUsageLog = await prisma.menuUsageLog.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MenuUsageLogFindUniqueOrThrowArgs>(args: SelectSubset<T, MenuUsageLogFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MenuUsageLog that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogFindFirstArgs} args - Arguments to find a MenuUsageLog
+     * @example
+     * // Get one MenuUsageLog
+     * const menuUsageLog = await prisma.menuUsageLog.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MenuUsageLogFindFirstArgs>(args?: SelectSubset<T, MenuUsageLogFindFirstArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MenuUsageLog that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogFindFirstOrThrowArgs} args - Arguments to find a MenuUsageLog
+     * @example
+     * // Get one MenuUsageLog
+     * const menuUsageLog = await prisma.menuUsageLog.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MenuUsageLogFindFirstOrThrowArgs>(args?: SelectSubset<T, MenuUsageLogFindFirstOrThrowArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MenuUsageLogs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MenuUsageLogs
+     * const menuUsageLogs = await prisma.menuUsageLog.findMany()
+     * 
+     * // Get first 10 MenuUsageLogs
+     * const menuUsageLogs = await prisma.menuUsageLog.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const menuUsageLogWithIdOnly = await prisma.menuUsageLog.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MenuUsageLogFindManyArgs>(args?: SelectSubset<T, MenuUsageLogFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MenuUsageLog.
+     * @param {MenuUsageLogCreateArgs} args - Arguments to create a MenuUsageLog.
+     * @example
+     * // Create one MenuUsageLog
+     * const MenuUsageLog = await prisma.menuUsageLog.create({
+     *   data: {
+     *     // ... data to create a MenuUsageLog
+     *   }
+     * })
+     * 
+     */
+    create<T extends MenuUsageLogCreateArgs>(args: SelectSubset<T, MenuUsageLogCreateArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MenuUsageLogs.
+     * @param {MenuUsageLogCreateManyArgs} args - Arguments to create many MenuUsageLogs.
+     * @example
+     * // Create many MenuUsageLogs
+     * const menuUsageLog = await prisma.menuUsageLog.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MenuUsageLogCreateManyArgs>(args?: SelectSubset<T, MenuUsageLogCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MenuUsageLogs and returns the data saved in the database.
+     * @param {MenuUsageLogCreateManyAndReturnArgs} args - Arguments to create many MenuUsageLogs.
+     * @example
+     * // Create many MenuUsageLogs
+     * const menuUsageLog = await prisma.menuUsageLog.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MenuUsageLogs and only return the `id`
+     * const menuUsageLogWithIdOnly = await prisma.menuUsageLog.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MenuUsageLogCreateManyAndReturnArgs>(args?: SelectSubset<T, MenuUsageLogCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MenuUsageLog.
+     * @param {MenuUsageLogDeleteArgs} args - Arguments to delete one MenuUsageLog.
+     * @example
+     * // Delete one MenuUsageLog
+     * const MenuUsageLog = await prisma.menuUsageLog.delete({
+     *   where: {
+     *     // ... filter to delete one MenuUsageLog
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MenuUsageLogDeleteArgs>(args: SelectSubset<T, MenuUsageLogDeleteArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MenuUsageLog.
+     * @param {MenuUsageLogUpdateArgs} args - Arguments to update one MenuUsageLog.
+     * @example
+     * // Update one MenuUsageLog
+     * const menuUsageLog = await prisma.menuUsageLog.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MenuUsageLogUpdateArgs>(args: SelectSubset<T, MenuUsageLogUpdateArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MenuUsageLogs.
+     * @param {MenuUsageLogDeleteManyArgs} args - Arguments to filter MenuUsageLogs to delete.
+     * @example
+     * // Delete a few MenuUsageLogs
+     * const { count } = await prisma.menuUsageLog.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MenuUsageLogDeleteManyArgs>(args?: SelectSubset<T, MenuUsageLogDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuUsageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MenuUsageLogs
+     * const menuUsageLog = await prisma.menuUsageLog.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MenuUsageLogUpdateManyArgs>(args: SelectSubset<T, MenuUsageLogUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MenuUsageLogs and returns the data updated in the database.
+     * @param {MenuUsageLogUpdateManyAndReturnArgs} args - Arguments to update many MenuUsageLogs.
+     * @example
+     * // Update many MenuUsageLogs
+     * const menuUsageLog = await prisma.menuUsageLog.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MenuUsageLogs and only return the `id`
+     * const menuUsageLogWithIdOnly = await prisma.menuUsageLog.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MenuUsageLogUpdateManyAndReturnArgs>(args: SelectSubset<T, MenuUsageLogUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MenuUsageLog.
+     * @param {MenuUsageLogUpsertArgs} args - Arguments to update or create a MenuUsageLog.
+     * @example
+     * // Update or create a MenuUsageLog
+     * const menuUsageLog = await prisma.menuUsageLog.upsert({
+     *   create: {
+     *     // ... data to create a MenuUsageLog
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MenuUsageLog we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MenuUsageLogUpsertArgs>(args: SelectSubset<T, MenuUsageLogUpsertArgs<ExtArgs>>): Prisma__MenuUsageLogClient<$Result.GetResult<Prisma.$MenuUsageLogPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MenuUsageLogs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogCountArgs} args - Arguments to filter MenuUsageLogs to count.
+     * @example
+     * // Count the number of MenuUsageLogs
+     * const count = await prisma.menuUsageLog.count({
+     *   where: {
+     *     // ... the filter for the MenuUsageLogs we want to count
+     *   }
+     * })
+    **/
+    count<T extends MenuUsageLogCountArgs>(
+      args?: Subset<T, MenuUsageLogCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MenuUsageLogCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MenuUsageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MenuUsageLogAggregateArgs>(args: Subset<T, MenuUsageLogAggregateArgs>): Prisma.PrismaPromise<GetMenuUsageLogAggregateType<T>>
+
+    /**
+     * Group by MenuUsageLog.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MenuUsageLogGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MenuUsageLogGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MenuUsageLogGroupByArgs['orderBy'] }
+        : { orderBy?: MenuUsageLogGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MenuUsageLogGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMenuUsageLogGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MenuUsageLog model
+   */
+  readonly fields: MenuUsageLogFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MenuUsageLog.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MenuUsageLogClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MenuUsageLog model
+   */
+  interface MenuUsageLogFieldRefs {
+    readonly id: FieldRef<"MenuUsageLog", 'Int'>
+    readonly userId: FieldRef<"MenuUsageLog", 'Int'>
+    readonly feature: FieldRef<"MenuUsageLog", 'String'>
+    readonly createdAt: FieldRef<"MenuUsageLog", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MenuUsageLog findUnique
+   */
+  export type MenuUsageLogFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuUsageLog to fetch.
+     */
+    where: MenuUsageLogWhereUniqueInput
+  }
+
+  /**
+   * MenuUsageLog findUniqueOrThrow
+   */
+  export type MenuUsageLogFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuUsageLog to fetch.
+     */
+    where: MenuUsageLogWhereUniqueInput
+  }
+
+  /**
+   * MenuUsageLog findFirst
+   */
+  export type MenuUsageLogFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuUsageLog to fetch.
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuUsageLogs to fetch.
+     */
+    orderBy?: MenuUsageLogOrderByWithRelationInput | MenuUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuUsageLogs.
+     */
+    cursor?: MenuUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuUsageLogs.
+     */
+    distinct?: MenuUsageLogScalarFieldEnum | MenuUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * MenuUsageLog findFirstOrThrow
+   */
+  export type MenuUsageLogFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuUsageLog to fetch.
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuUsageLogs to fetch.
+     */
+    orderBy?: MenuUsageLogOrderByWithRelationInput | MenuUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MenuUsageLogs.
+     */
+    cursor?: MenuUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuUsageLogs.
+     */
+    distinct?: MenuUsageLogScalarFieldEnum | MenuUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * MenuUsageLog findMany
+   */
+  export type MenuUsageLogFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter, which MenuUsageLogs to fetch.
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MenuUsageLogs to fetch.
+     */
+    orderBy?: MenuUsageLogOrderByWithRelationInput | MenuUsageLogOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MenuUsageLogs.
+     */
+    cursor?: MenuUsageLogWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MenuUsageLogs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MenuUsageLogs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MenuUsageLogs.
+     */
+    distinct?: MenuUsageLogScalarFieldEnum | MenuUsageLogScalarFieldEnum[]
+  }
+
+  /**
+   * MenuUsageLog create
+   */
+  export type MenuUsageLogCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MenuUsageLog.
+     */
+    data: XOR<MenuUsageLogCreateInput, MenuUsageLogUncheckedCreateInput>
+  }
+
+  /**
+   * MenuUsageLog createMany
+   */
+  export type MenuUsageLogCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MenuUsageLogs.
+     */
+    data: MenuUsageLogCreateManyInput | MenuUsageLogCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MenuUsageLog createManyAndReturn
+   */
+  export type MenuUsageLogCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * The data used to create many MenuUsageLogs.
+     */
+    data: MenuUsageLogCreateManyInput | MenuUsageLogCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuUsageLog update
+   */
+  export type MenuUsageLogUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MenuUsageLog.
+     */
+    data: XOR<MenuUsageLogUpdateInput, MenuUsageLogUncheckedUpdateInput>
+    /**
+     * Choose, which MenuUsageLog to update.
+     */
+    where: MenuUsageLogWhereUniqueInput
+  }
+
+  /**
+   * MenuUsageLog updateMany
+   */
+  export type MenuUsageLogUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MenuUsageLogs.
+     */
+    data: XOR<MenuUsageLogUpdateManyMutationInput, MenuUsageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuUsageLogs to update
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * Limit how many MenuUsageLogs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MenuUsageLog updateManyAndReturn
+   */
+  export type MenuUsageLogUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * The data used to update MenuUsageLogs.
+     */
+    data: XOR<MenuUsageLogUpdateManyMutationInput, MenuUsageLogUncheckedUpdateManyInput>
+    /**
+     * Filter which MenuUsageLogs to update
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * Limit how many MenuUsageLogs to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MenuUsageLog upsert
+   */
+  export type MenuUsageLogUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MenuUsageLog to update in case it exists.
+     */
+    where: MenuUsageLogWhereUniqueInput
+    /**
+     * In case the MenuUsageLog found by the `where` argument doesn't exist, create a new MenuUsageLog with this data.
+     */
+    create: XOR<MenuUsageLogCreateInput, MenuUsageLogUncheckedCreateInput>
+    /**
+     * In case the MenuUsageLog was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MenuUsageLogUpdateInput, MenuUsageLogUncheckedUpdateInput>
+  }
+
+  /**
+   * MenuUsageLog delete
+   */
+  export type MenuUsageLogDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+    /**
+     * Filter which MenuUsageLog to delete.
+     */
+    where: MenuUsageLogWhereUniqueInput
+  }
+
+  /**
+   * MenuUsageLog deleteMany
+   */
+  export type MenuUsageLogDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MenuUsageLogs to delete
+     */
+    where?: MenuUsageLogWhereInput
+    /**
+     * Limit how many MenuUsageLogs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MenuUsageLog without action
+   */
+  export type MenuUsageLogDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MenuUsageLog
+     */
+    select?: MenuUsageLogSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MenuUsageLog
+     */
+    omit?: MenuUsageLogOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MenuUsageLogInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -35903,6 +38235,26 @@ export namespace Prisma {
   export type NaverShoppingCategoryScalarFieldEnum = (typeof NaverShoppingCategoryScalarFieldEnum)[keyof typeof NaverShoppingCategoryScalarFieldEnum]
 
 
+  export const MenuLimitScalarFieldEnum: {
+    feature: 'feature',
+    role: 'role',
+    dailyLimit: 'dailyLimit',
+    pointsCost: 'pointsCost'
+  };
+
+  export type MenuLimitScalarFieldEnum = (typeof MenuLimitScalarFieldEnum)[keyof typeof MenuLimitScalarFieldEnum]
+
+
+  export const MenuUsageLogScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    feature: 'feature',
+    createdAt: 'createdAt'
+  };
+
+  export type MenuUsageLogScalarFieldEnum = (typeof MenuUsageLogScalarFieldEnum)[keyof typeof MenuUsageLogScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -36028,6 +38380,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisListRelationFilter
     usedItemListings?: UsedItemListingListRelationFilter
     luxuryVerifications?: LuxuryVerificationListRelationFilter
+    menuUsageLogs?: MenuUsageLogListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
@@ -36057,6 +38410,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisOrderByRelationAggregateInput
     usedItemListings?: UsedItemListingOrderByRelationAggregateInput
     luxuryVerifications?: LuxuryVerificationOrderByRelationAggregateInput
+    menuUsageLogs?: MenuUsageLogOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -36089,6 +38443,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisListRelationFilter
     usedItemListings?: UsedItemListingListRelationFilter
     luxuryVerifications?: LuxuryVerificationListRelationFilter
+    menuUsageLogs?: MenuUsageLogListRelationFilter
   }, "id" | "email" | "phone">
 
   export type UserOrderByWithAggregationInput = {
@@ -38168,6 +40523,108 @@ export namespace Prisma {
     order?: IntWithAggregatesFilter<"NaverShoppingCategory"> | number
   }
 
+  export type MenuLimitWhereInput = {
+    AND?: MenuLimitWhereInput | MenuLimitWhereInput[]
+    OR?: MenuLimitWhereInput[]
+    NOT?: MenuLimitWhereInput | MenuLimitWhereInput[]
+    feature?: StringFilter<"MenuLimit"> | string
+    role?: StringFilter<"MenuLimit"> | string
+    dailyLimit?: IntNullableFilter<"MenuLimit"> | number | null
+    pointsCost?: IntFilter<"MenuLimit"> | number
+  }
+
+  export type MenuLimitOrderByWithRelationInput = {
+    feature?: SortOrder
+    role?: SortOrder
+    dailyLimit?: SortOrderInput | SortOrder
+    pointsCost?: SortOrder
+  }
+
+  export type MenuLimitWhereUniqueInput = Prisma.AtLeast<{
+    feature_role?: MenuLimitFeatureRoleCompoundUniqueInput
+    AND?: MenuLimitWhereInput | MenuLimitWhereInput[]
+    OR?: MenuLimitWhereInput[]
+    NOT?: MenuLimitWhereInput | MenuLimitWhereInput[]
+    feature?: StringFilter<"MenuLimit"> | string
+    role?: StringFilter<"MenuLimit"> | string
+    dailyLimit?: IntNullableFilter<"MenuLimit"> | number | null
+    pointsCost?: IntFilter<"MenuLimit"> | number
+  }, "feature_role">
+
+  export type MenuLimitOrderByWithAggregationInput = {
+    feature?: SortOrder
+    role?: SortOrder
+    dailyLimit?: SortOrderInput | SortOrder
+    pointsCost?: SortOrder
+    _count?: MenuLimitCountOrderByAggregateInput
+    _avg?: MenuLimitAvgOrderByAggregateInput
+    _max?: MenuLimitMaxOrderByAggregateInput
+    _min?: MenuLimitMinOrderByAggregateInput
+    _sum?: MenuLimitSumOrderByAggregateInput
+  }
+
+  export type MenuLimitScalarWhereWithAggregatesInput = {
+    AND?: MenuLimitScalarWhereWithAggregatesInput | MenuLimitScalarWhereWithAggregatesInput[]
+    OR?: MenuLimitScalarWhereWithAggregatesInput[]
+    NOT?: MenuLimitScalarWhereWithAggregatesInput | MenuLimitScalarWhereWithAggregatesInput[]
+    feature?: StringWithAggregatesFilter<"MenuLimit"> | string
+    role?: StringWithAggregatesFilter<"MenuLimit"> | string
+    dailyLimit?: IntNullableWithAggregatesFilter<"MenuLimit"> | number | null
+    pointsCost?: IntWithAggregatesFilter<"MenuLimit"> | number
+  }
+
+  export type MenuUsageLogWhereInput = {
+    AND?: MenuUsageLogWhereInput | MenuUsageLogWhereInput[]
+    OR?: MenuUsageLogWhereInput[]
+    NOT?: MenuUsageLogWhereInput | MenuUsageLogWhereInput[]
+    id?: IntFilter<"MenuUsageLog"> | number
+    userId?: IntFilter<"MenuUsageLog"> | number
+    feature?: StringFilter<"MenuUsageLog"> | string
+    createdAt?: DateTimeFilter<"MenuUsageLog"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }
+
+  export type MenuUsageLogOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    feature?: SortOrder
+    createdAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type MenuUsageLogWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: MenuUsageLogWhereInput | MenuUsageLogWhereInput[]
+    OR?: MenuUsageLogWhereInput[]
+    NOT?: MenuUsageLogWhereInput | MenuUsageLogWhereInput[]
+    userId?: IntFilter<"MenuUsageLog"> | number
+    feature?: StringFilter<"MenuUsageLog"> | string
+    createdAt?: DateTimeFilter<"MenuUsageLog"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+  }, "id">
+
+  export type MenuUsageLogOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    feature?: SortOrder
+    createdAt?: SortOrder
+    _count?: MenuUsageLogCountOrderByAggregateInput
+    _avg?: MenuUsageLogAvgOrderByAggregateInput
+    _max?: MenuUsageLogMaxOrderByAggregateInput
+    _min?: MenuUsageLogMinOrderByAggregateInput
+    _sum?: MenuUsageLogSumOrderByAggregateInput
+  }
+
+  export type MenuUsageLogScalarWhereWithAggregatesInput = {
+    AND?: MenuUsageLogScalarWhereWithAggregatesInput | MenuUsageLogScalarWhereWithAggregatesInput[]
+    OR?: MenuUsageLogScalarWhereWithAggregatesInput[]
+    NOT?: MenuUsageLogScalarWhereWithAggregatesInput | MenuUsageLogScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"MenuUsageLog"> | number
+    userId?: IntWithAggregatesFilter<"MenuUsageLog"> | number
+    feature?: StringWithAggregatesFilter<"MenuUsageLog"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MenuUsageLog"> | Date | string
+  }
+
   export type UserCreateInput = {
     email?: string | null
     phone?: string | null
@@ -38194,6 +40651,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -38223,6 +40681,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -38251,6 +40710,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -38280,6 +40740,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -40450,6 +42911,100 @@ export namespace Prisma {
     order?: IntFieldUpdateOperationsInput | number
   }
 
+  export type MenuLimitCreateInput = {
+    feature: string
+    role: string
+    dailyLimit?: number | null
+    pointsCost?: number
+  }
+
+  export type MenuLimitUncheckedCreateInput = {
+    feature: string
+    role: string
+    dailyLimit?: number | null
+    pointsCost?: number
+  }
+
+  export type MenuLimitUpdateInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    dailyLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    pointsCost?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MenuLimitUncheckedUpdateInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    dailyLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    pointsCost?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MenuLimitCreateManyInput = {
+    feature: string
+    role: string
+    dailyLimit?: number | null
+    pointsCost?: number
+  }
+
+  export type MenuLimitUpdateManyMutationInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    dailyLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    pointsCost?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MenuLimitUncheckedUpdateManyInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    role?: StringFieldUpdateOperationsInput | string
+    dailyLimit?: NullableIntFieldUpdateOperationsInput | number | null
+    pointsCost?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MenuUsageLogCreateInput = {
+    feature: string
+    createdAt?: Date | string
+    user: UserCreateNestedOneWithoutMenuUsageLogsInput
+  }
+
+  export type MenuUsageLogUncheckedCreateInput = {
+    id?: number
+    userId: number
+    feature: string
+    createdAt?: Date | string
+  }
+
+  export type MenuUsageLogUpdateInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutMenuUsageLogsNestedInput
+  }
+
+  export type MenuUsageLogUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuUsageLogCreateManyInput = {
+    id?: number
+    userId: number
+    feature: string
+    createdAt?: Date | string
+  }
+
+  export type MenuUsageLogUpdateManyMutationInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuUsageLogUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -40597,6 +43152,12 @@ export namespace Prisma {
     none?: LuxuryVerificationWhereInput
   }
 
+  export type MenuUsageLogListRelationFilter = {
+    every?: MenuUsageLogWhereInput
+    some?: MenuUsageLogWhereInput
+    none?: MenuUsageLogWhereInput
+  }
+
   export type SortOrderInput = {
     sort: SortOrder
     nulls?: NullsOrder
@@ -40655,6 +43216,10 @@ export namespace Prisma {
   }
 
   export type LuxuryVerificationOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type MenuUsageLogOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -42183,6 +44748,73 @@ export namespace Prisma {
     order?: SortOrder
   }
 
+  export type MenuLimitFeatureRoleCompoundUniqueInput = {
+    feature: string
+    role: string
+  }
+
+  export type MenuLimitCountOrderByAggregateInput = {
+    feature?: SortOrder
+    role?: SortOrder
+    dailyLimit?: SortOrder
+    pointsCost?: SortOrder
+  }
+
+  export type MenuLimitAvgOrderByAggregateInput = {
+    dailyLimit?: SortOrder
+    pointsCost?: SortOrder
+  }
+
+  export type MenuLimitMaxOrderByAggregateInput = {
+    feature?: SortOrder
+    role?: SortOrder
+    dailyLimit?: SortOrder
+    pointsCost?: SortOrder
+  }
+
+  export type MenuLimitMinOrderByAggregateInput = {
+    feature?: SortOrder
+    role?: SortOrder
+    dailyLimit?: SortOrder
+    pointsCost?: SortOrder
+  }
+
+  export type MenuLimitSumOrderByAggregateInput = {
+    dailyLimit?: SortOrder
+    pointsCost?: SortOrder
+  }
+
+  export type MenuUsageLogCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    feature?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuUsageLogAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
+  export type MenuUsageLogMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    feature?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuUsageLogMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    feature?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type MenuUsageLogSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+  }
+
   export type PersonaCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -42281,6 +44913,13 @@ export namespace Prisma {
     connect?: LuxuryVerificationWhereUniqueInput | LuxuryVerificationWhereUniqueInput[]
   }
 
+  export type MenuUsageLogCreateNestedManyWithoutUserInput = {
+    create?: XOR<MenuUsageLogCreateWithoutUserInput, MenuUsageLogUncheckedCreateWithoutUserInput> | MenuUsageLogCreateWithoutUserInput[] | MenuUsageLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MenuUsageLogCreateOrConnectWithoutUserInput | MenuUsageLogCreateOrConnectWithoutUserInput[]
+    createMany?: MenuUsageLogCreateManyUserInputEnvelope
+    connect?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+  }
+
   export type PersonaUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -42377,6 +45016,13 @@ export namespace Prisma {
     connectOrCreate?: LuxuryVerificationCreateOrConnectWithoutUserInput | LuxuryVerificationCreateOrConnectWithoutUserInput[]
     createMany?: LuxuryVerificationCreateManyUserInputEnvelope
     connect?: LuxuryVerificationWhereUniqueInput | LuxuryVerificationWhereUniqueInput[]
+  }
+
+  export type MenuUsageLogUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<MenuUsageLogCreateWithoutUserInput, MenuUsageLogUncheckedCreateWithoutUserInput> | MenuUsageLogCreateWithoutUserInput[] | MenuUsageLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MenuUsageLogCreateOrConnectWithoutUserInput | MenuUsageLogCreateOrConnectWithoutUserInput[]
+    createMany?: MenuUsageLogCreateManyUserInputEnvelope
+    connect?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -42599,6 +45245,20 @@ export namespace Prisma {
     deleteMany?: LuxuryVerificationScalarWhereInput | LuxuryVerificationScalarWhereInput[]
   }
 
+  export type MenuUsageLogUpdateManyWithoutUserNestedInput = {
+    create?: XOR<MenuUsageLogCreateWithoutUserInput, MenuUsageLogUncheckedCreateWithoutUserInput> | MenuUsageLogCreateWithoutUserInput[] | MenuUsageLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MenuUsageLogCreateOrConnectWithoutUserInput | MenuUsageLogCreateOrConnectWithoutUserInput[]
+    upsert?: MenuUsageLogUpsertWithWhereUniqueWithoutUserInput | MenuUsageLogUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: MenuUsageLogCreateManyUserInputEnvelope
+    set?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    disconnect?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    delete?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    connect?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    update?: MenuUsageLogUpdateWithWhereUniqueWithoutUserInput | MenuUsageLogUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: MenuUsageLogUpdateManyWithWhereWithoutUserInput | MenuUsageLogUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: MenuUsageLogScalarWhereInput | MenuUsageLogScalarWhereInput[]
+  }
+
   export type PersonaUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -42793,6 +45453,20 @@ export namespace Prisma {
     update?: LuxuryVerificationUpdateWithWhereUniqueWithoutUserInput | LuxuryVerificationUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: LuxuryVerificationUpdateManyWithWhereWithoutUserInput | LuxuryVerificationUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: LuxuryVerificationScalarWhereInput | LuxuryVerificationScalarWhereInput[]
+  }
+
+  export type MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<MenuUsageLogCreateWithoutUserInput, MenuUsageLogUncheckedCreateWithoutUserInput> | MenuUsageLogCreateWithoutUserInput[] | MenuUsageLogUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: MenuUsageLogCreateOrConnectWithoutUserInput | MenuUsageLogCreateOrConnectWithoutUserInput[]
+    upsert?: MenuUsageLogUpsertWithWhereUniqueWithoutUserInput | MenuUsageLogUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: MenuUsageLogCreateManyUserInputEnvelope
+    set?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    disconnect?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    delete?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    connect?: MenuUsageLogWhereUniqueInput | MenuUsageLogWhereUniqueInput[]
+    update?: MenuUsageLogUpdateWithWhereUniqueWithoutUserInput | MenuUsageLogUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: MenuUsageLogUpdateManyWithWhereWithoutUserInput | MenuUsageLogUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: MenuUsageLogScalarWhereInput | MenuUsageLogScalarWhereInput[]
   }
 
   export type UserCreateNestedOneWithoutPersonaXpsInput = {
@@ -43905,6 +46579,20 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutUsedItemListingsInput, UserUpdateWithoutUsedItemListingsInput>, UserUncheckedUpdateWithoutUsedItemListingsInput>
   }
 
+  export type UserCreateNestedOneWithoutMenuUsageLogsInput = {
+    create?: XOR<UserCreateWithoutMenuUsageLogsInput, UserUncheckedCreateWithoutMenuUsageLogsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMenuUsageLogsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutMenuUsageLogsNestedInput = {
+    create?: XOR<UserCreateWithoutMenuUsageLogsInput, UserUncheckedCreateWithoutMenuUsageLogsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutMenuUsageLogsInput
+    upsert?: UserUpsertWithoutMenuUsageLogsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutMenuUsageLogsInput, UserUpdateWithoutMenuUsageLogsInput>, UserUncheckedUpdateWithoutMenuUsageLogsInput>
+  }
+
   export type NestedIntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -44642,6 +47330,27 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type MenuUsageLogCreateWithoutUserInput = {
+    feature: string
+    createdAt?: Date | string
+  }
+
+  export type MenuUsageLogUncheckedCreateWithoutUserInput = {
+    id?: number
+    feature: string
+    createdAt?: Date | string
+  }
+
+  export type MenuUsageLogCreateOrConnectWithoutUserInput = {
+    where: MenuUsageLogWhereUniqueInput
+    create: XOR<MenuUsageLogCreateWithoutUserInput, MenuUsageLogUncheckedCreateWithoutUserInput>
+  }
+
+  export type MenuUsageLogCreateManyUserInputEnvelope = {
+    data: MenuUsageLogCreateManyUserInput | MenuUsageLogCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PersonaUpsertWithWhereUniqueWithoutUserInput = {
     where: PersonaWhereUniqueInput
     update: XOR<PersonaUpdateWithoutUserInput, PersonaUncheckedUpdateWithoutUserInput>
@@ -45104,6 +47813,32 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"LuxuryVerification"> | Date | string
   }
 
+  export type MenuUsageLogUpsertWithWhereUniqueWithoutUserInput = {
+    where: MenuUsageLogWhereUniqueInput
+    update: XOR<MenuUsageLogUpdateWithoutUserInput, MenuUsageLogUncheckedUpdateWithoutUserInput>
+    create: XOR<MenuUsageLogCreateWithoutUserInput, MenuUsageLogUncheckedCreateWithoutUserInput>
+  }
+
+  export type MenuUsageLogUpdateWithWhereUniqueWithoutUserInput = {
+    where: MenuUsageLogWhereUniqueInput
+    data: XOR<MenuUsageLogUpdateWithoutUserInput, MenuUsageLogUncheckedUpdateWithoutUserInput>
+  }
+
+  export type MenuUsageLogUpdateManyWithWhereWithoutUserInput = {
+    where: MenuUsageLogScalarWhereInput
+    data: XOR<MenuUsageLogUpdateManyMutationInput, MenuUsageLogUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type MenuUsageLogScalarWhereInput = {
+    AND?: MenuUsageLogScalarWhereInput | MenuUsageLogScalarWhereInput[]
+    OR?: MenuUsageLogScalarWhereInput[]
+    NOT?: MenuUsageLogScalarWhereInput | MenuUsageLogScalarWhereInput[]
+    id?: IntFilter<"MenuUsageLog"> | number
+    userId?: IntFilter<"MenuUsageLog"> | number
+    feature?: StringFilter<"MenuUsageLog"> | string
+    createdAt?: DateTimeFilter<"MenuUsageLog"> | Date | string
+  }
+
   export type UserCreateWithoutPersonaXpsInput = {
     email?: string | null
     phone?: string | null
@@ -45129,6 +47864,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonaXpsInput = {
@@ -45157,6 +47893,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonaXpsInput = {
@@ -45271,6 +48008,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonaXpsInput = {
@@ -45299,6 +48037,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutPersonaXpsInput = {
@@ -45403,6 +48142,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutMemoriesInput = {
@@ -45431,6 +48171,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutMemoriesInput = {
@@ -45474,6 +48215,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutMemoriesInput = {
@@ -45502,6 +48244,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaCreateWithoutCategoryInput = {
@@ -45621,6 +48364,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPersonasInput = {
@@ -45649,6 +48393,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPersonasInput = {
@@ -45987,6 +48732,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPersonasInput = {
@@ -46015,6 +48761,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type CategoryUpsertWithoutPersonasInput = {
@@ -46544,6 +49291,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSessionsInput = {
@@ -46572,6 +49320,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSessionsInput = {
@@ -46729,6 +49478,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -46757,6 +49507,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutSessionsInput = {
@@ -47318,6 +50069,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBoardPostsInput = {
@@ -47346,6 +50098,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBoardPostsInput = {
@@ -47485,6 +50238,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBoardPostsInput = {
@@ -47513,6 +50267,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutBoardPostsInput = {
@@ -47633,6 +50388,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutSwingAnalysesInput = {
@@ -47661,6 +50417,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutSwingAnalysesInput = {
@@ -47775,6 +50532,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutSwingAnalysesInput = {
@@ -47803,6 +50561,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutSwingAnalysesInput = {
@@ -47931,6 +50690,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutBoardRepliesInput = {
@@ -47959,6 +50719,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutBoardRepliesInput = {
@@ -48032,6 +50793,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutBoardRepliesInput = {
@@ -48060,6 +50822,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaCreateWithoutAnnouncementsInput = {
@@ -48235,6 +50998,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPointTransactionsInput = {
@@ -48263,6 +51027,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPointTransactionsInput = {
@@ -48377,6 +51142,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPointTransactionsInput = {
@@ -48405,6 +51171,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutPointTransactionsInput = {
@@ -48509,6 +51276,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStarsGivenInput = {
@@ -48537,6 +51305,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStarsGivenInput = {
@@ -48651,6 +51420,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStarsGivenInput = {
@@ -48679,6 +51449,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PersonaUpsertWithoutStarsInput = {
@@ -48783,6 +51554,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPartnerPostsInput = {
@@ -48811,6 +51583,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPartnerPostsInput = {
@@ -48879,6 +51652,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPartnerPostsInput = {
@@ -48907,6 +51681,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type PartnerReplyUpsertWithWhereUniqueWithoutPostInput = {
@@ -48974,6 +51749,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPartnerRepliesInput = {
@@ -49002,6 +51778,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutPartnerRepliesInput = {
@@ -49075,6 +51852,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPartnerRepliesInput = {
@@ -49103,6 +51881,7 @@ export namespace Prisma {
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutStockAnalysesInput = {
@@ -49130,6 +51909,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStockAnalysesInput = {
@@ -49158,6 +51938,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStockAnalysesInput = {
@@ -49201,6 +51982,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStockAnalysesInput = {
@@ -49229,6 +52011,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutLuxuryVerificationsInput = {
@@ -49256,6 +52039,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyCreateNestedManyWithoutUserInput
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutLuxuryVerificationsInput = {
@@ -49284,6 +52068,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUncheckedCreateNestedManyWithoutUserInput
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutLuxuryVerificationsInput = {
@@ -49327,6 +52112,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUpdateManyWithoutUserNestedInput
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutLuxuryVerificationsInput = {
@@ -49355,6 +52141,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUncheckedUpdateManyWithoutUserNestedInput
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
     usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateWithoutUsedItemListingsInput = {
@@ -49382,6 +52169,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyCreateNestedManyWithoutUserInput
     stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutUsedItemListingsInput = {
@@ -49410,6 +52198,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUncheckedCreateNestedManyWithoutUserInput
     stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
     luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+    menuUsageLogs?: MenuUsageLogUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutUsedItemListingsInput = {
@@ -49453,6 +52242,7 @@ export namespace Prisma {
     partnerReplies?: PartnerReplyUpdateManyWithoutUserNestedInput
     stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutUsedItemListingsInput = {
@@ -49480,6 +52270,137 @@ export namespace Prisma {
     partnerPosts?: PartnerPostUncheckedUpdateManyWithoutUserNestedInput
     partnerReplies?: PartnerReplyUncheckedUpdateManyWithoutUserNestedInput
     stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
+    luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
+    menuUsageLogs?: MenuUsageLogUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutMenuUsageLogsInput = {
+    email?: string | null
+    phone?: string | null
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    paidPoints?: number
+    bonusPoints?: number
+    birthInfoJson?: string | null
+    createdAt?: Date | string
+    personas?: PersonaCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionCreateNestedManyWithoutUserInput
+    memories?: UserMemoryCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisCreateNestedManyWithoutUserInput
+    pointTransactions?: PointTransactionCreateNestedManyWithoutUserInput
+    starsGiven?: StarCreateNestedManyWithoutFromUserInput
+    partnerPosts?: PartnerPostCreateNestedManyWithoutUserInput
+    partnerReplies?: PartnerReplyCreateNestedManyWithoutUserInput
+    stockAnalyses?: StockAnalysisCreateNestedManyWithoutUserInput
+    usedItemListings?: UsedItemListingCreateNestedManyWithoutUserInput
+    luxuryVerifications?: LuxuryVerificationCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutMenuUsageLogsInput = {
+    id?: number
+    email?: string | null
+    phone?: string | null
+    password: string
+    username?: string | null
+    role?: string
+    resetToken?: string | null
+    resetTokenExpiry?: Date | string | null
+    paidPoints?: number
+    bonusPoints?: number
+    birthInfoJson?: string | null
+    createdAt?: Date | string
+    personas?: PersonaUncheckedCreateNestedManyWithoutUserInput
+    sessions?: ChatSessionUncheckedCreateNestedManyWithoutUserInput
+    memories?: UserMemoryUncheckedCreateNestedManyWithoutUserInput
+    personaXps?: UserPersonaXpUncheckedCreateNestedManyWithoutUserInput
+    boardPosts?: BoardPostUncheckedCreateNestedManyWithoutUserInput
+    boardReplies?: BoardReplyUncheckedCreateNestedManyWithoutUserInput
+    swingAnalyses?: UserSwingAnalysisUncheckedCreateNestedManyWithoutUserInput
+    pointTransactions?: PointTransactionUncheckedCreateNestedManyWithoutUserInput
+    starsGiven?: StarUncheckedCreateNestedManyWithoutFromUserInput
+    partnerPosts?: PartnerPostUncheckedCreateNestedManyWithoutUserInput
+    partnerReplies?: PartnerReplyUncheckedCreateNestedManyWithoutUserInput
+    stockAnalyses?: StockAnalysisUncheckedCreateNestedManyWithoutUserInput
+    usedItemListings?: UsedItemListingUncheckedCreateNestedManyWithoutUserInput
+    luxuryVerifications?: LuxuryVerificationUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutMenuUsageLogsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutMenuUsageLogsInput, UserUncheckedCreateWithoutMenuUsageLogsInput>
+  }
+
+  export type UserUpsertWithoutMenuUsageLogsInput = {
+    update: XOR<UserUpdateWithoutMenuUsageLogsInput, UserUncheckedUpdateWithoutMenuUsageLogsInput>
+    create: XOR<UserCreateWithoutMenuUsageLogsInput, UserUncheckedCreateWithoutMenuUsageLogsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutMenuUsageLogsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutMenuUsageLogsInput, UserUncheckedUpdateWithoutMenuUsageLogsInput>
+  }
+
+  export type UserUpdateWithoutMenuUsageLogsInput = {
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paidPoints?: IntFieldUpdateOperationsInput | number
+    bonusPoints?: IntFieldUpdateOperationsInput | number
+    birthInfoJson?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUpdateManyWithoutUserNestedInput
+    pointTransactions?: PointTransactionUpdateManyWithoutUserNestedInput
+    starsGiven?: StarUpdateManyWithoutFromUserNestedInput
+    partnerPosts?: PartnerPostUpdateManyWithoutUserNestedInput
+    partnerReplies?: PartnerReplyUpdateManyWithoutUserNestedInput
+    stockAnalyses?: StockAnalysisUpdateManyWithoutUserNestedInput
+    usedItemListings?: UsedItemListingUpdateManyWithoutUserNestedInput
+    luxuryVerifications?: LuxuryVerificationUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutMenuUsageLogsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    email?: NullableStringFieldUpdateOperationsInput | string | null
+    phone?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: StringFieldUpdateOperationsInput | string
+    username?: NullableStringFieldUpdateOperationsInput | string | null
+    role?: StringFieldUpdateOperationsInput | string
+    resetToken?: NullableStringFieldUpdateOperationsInput | string | null
+    resetTokenExpiry?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    paidPoints?: IntFieldUpdateOperationsInput | number
+    bonusPoints?: IntFieldUpdateOperationsInput | number
+    birthInfoJson?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    personas?: PersonaUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: ChatSessionUncheckedUpdateManyWithoutUserNestedInput
+    memories?: UserMemoryUncheckedUpdateManyWithoutUserNestedInput
+    personaXps?: UserPersonaXpUncheckedUpdateManyWithoutUserNestedInput
+    boardPosts?: BoardPostUncheckedUpdateManyWithoutUserNestedInput
+    boardReplies?: BoardReplyUncheckedUpdateManyWithoutUserNestedInput
+    swingAnalyses?: UserSwingAnalysisUncheckedUpdateManyWithoutUserNestedInput
+    pointTransactions?: PointTransactionUncheckedUpdateManyWithoutUserNestedInput
+    starsGiven?: StarUncheckedUpdateManyWithoutFromUserNestedInput
+    partnerPosts?: PartnerPostUncheckedUpdateManyWithoutUserNestedInput
+    partnerReplies?: PartnerReplyUncheckedUpdateManyWithoutUserNestedInput
+    stockAnalyses?: StockAnalysisUncheckedUpdateManyWithoutUserNestedInput
+    usedItemListings?: UsedItemListingUncheckedUpdateManyWithoutUserNestedInput
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
@@ -49663,6 +52584,12 @@ export namespace Prisma {
     errorMessage?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type MenuUsageLogCreateManyUserInput = {
+    id?: number
+    feature: string
+    createdAt?: Date | string
   }
 
   export type PersonaUpdateWithoutUserInput = {
@@ -50225,6 +53152,23 @@ export namespace Prisma {
     errorMessage?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuUsageLogUpdateWithoutUserInput = {
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuUsageLogUncheckedUpdateWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type MenuUsageLogUncheckedUpdateManyWithoutUserInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    feature?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PersonaCreateManyCategoryInput = {

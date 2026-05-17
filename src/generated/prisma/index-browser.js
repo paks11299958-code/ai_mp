@@ -443,6 +443,20 @@ exports.Prisma.NaverShoppingCategoryScalarFieldEnum = {
   order: 'order'
 };
 
+exports.Prisma.MenuLimitScalarFieldEnum = {
+  feature: 'feature',
+  role: 'role',
+  dailyLimit: 'dailyLimit',
+  pointsCost: 'pointsCost'
+};
+
+exports.Prisma.MenuUsageLogScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  feature: 'feature',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -486,7 +500,9 @@ exports.Prisma.ModelName = {
   StockAnalysis: 'StockAnalysis',
   LuxuryVerification: 'LuxuryVerification',
   UsedItemListing: 'UsedItemListing',
-  NaverShoppingCategory: 'NaverShoppingCategory'
+  NaverShoppingCategory: 'NaverShoppingCategory',
+  MenuLimit: 'MenuLimit',
+  MenuUsageLog: 'MenuUsageLog'
 };
 
 /**

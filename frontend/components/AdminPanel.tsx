@@ -52,7 +52,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits'>('personas');
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
     const [commonInstruction, setCommonInstruction] = useState('');
@@ -668,6 +668,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
                         { key: 'points',        label: '포인트 통계', icon: 'Coins' },
                         { key: 'users',         label: '회원 관리',   icon: 'Users' },
+                        { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
                     ] as const).map(tab => (
                         <button
                             key={tab.key}
@@ -1099,6 +1100,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         </div>
                     </div>
                 )}
+
+                {/* 메뉴권한 패널 */}
+                {mainView === 'menu-limits' && <MenuLimitsPanel />}
 
                 {/* 카테고리 관리 패널 */}
                 {mainView === 'categories' && (
@@ -2185,6 +2189,179 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 </>}
                 </div>
             </div>
+        </div>
+    );
+};
+
+const FEATURE_LABELS: Record<string, string> = {
+    'golf':       '골프 스윙 분석',
+    'stock':      '주식 분석',
+    'used-item':  '중고판매 분석',
+    'hot-keyword':'핫쇼핑 키워드',
+    'luxury':     '명품 감정',
+    'face':       '얼굴 관상 분석',
+    'quick-menu': '퀵메뉴',
+};
+
+const ROLES = ['USER', 'MANAGE', 'ADMIN'] as const;
+
+interface MenuLimit {
+    feature: string;
+    role: string;
+    dailyLimit: number | null;
+    pointsCost: number;
+}
+
+const MenuLimitsPanel: React.FC = () => {
+    const [limits, setLimits] = useState<MenuLimit[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState<string | null>(null);
+    const [edits, setEdits] = useState<Record<string, { dailyLimit: string; pointsCost: string }>>({});
+    const [savedKey, setSavedKey] = useState<string | null>(null);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetch('/api/admin/menu-limits', { credentials: 'include' })
+            .then(r => r.json())
+            .then((data: MenuLimit[]) => {
+                setLimits(data);
+                const initEdits: Record<string, { dailyLimit: string; pointsCost: string }> = {};
+                data.forEach(l => {
+                    initEdits[`${l.feature}:${l.role}`] = {
+                        dailyLimit: l.dailyLimit === null ? '' : String(l.dailyLimit),
+                        pointsCost: String(l.pointsCost),
+                    };
+                });
+                setEdits(initEdits);
+            })
+            .catch(() => setError('로드 실패'))
+            .finally(() => setLoading(false));
+    }, []);
+
+    const getEdit = (feature: string, role: string) => {
+        return edits[`${feature}:${role}`] ?? { dailyLimit: '', pointsCost: '50' };
+    };
+
+    const setEdit = (feature: string, role: string, field: 'dailyLimit' | 'pointsCost', value: string) => {
+        const key = `${feature}:${role}`;
+        setEdits(prev => ({ ...prev, [key]: { ...prev[key], [field]: value } }));
+    };
+
+    const handleSave = async (feature: string, role: string) => {
+        const key = `${feature}:${role}`;
+        const edit = getEdit(feature, role);
+        setSaving(key);
+        setError('');
+        try {
+            const res = await fetch('/api/admin/menu-limits', {
+                method: 'PUT',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    feature,
+                    role,
+                    dailyLimit: edit.dailyLimit === '' ? null : Number(edit.dailyLimit),
+                    pointsCost: Number(edit.pointsCost),
+                }),
+            });
+            if (!res.ok) throw new Error('저장 실패');
+            setSavedKey(key);
+            setTimeout(() => setSavedKey(null), 1500);
+        } catch {
+            setError(`${feature}/${role} 저장 실패`);
+        } finally {
+            setSaving(null);
+        }
+    };
+
+    const features = Object.keys(FEATURE_LABELS);
+
+    if (loading) return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">불러오는 중...</div>;
+
+    return (
+        <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-5">
+                <div>
+                    <h3 className="text-sm font-bold text-white">메뉴 권한 설정</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">기능별 역할별 일일 이용 횟수 및 포인트 차감을 설정합니다.</p>
+                </div>
+            </div>
+
+            {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
+
+            <div className="space-y-4">
+                {features.map(feature => (
+                    <div key={feature} className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+                        <div className="px-4 py-2.5 bg-gray-750 border-b border-gray-700 flex items-center gap-2">
+                            <Icon name="Shield" size={13} className="text-blue-400" />
+                            <span className="text-sm font-semibold text-gray-200">{FEATURE_LABELS[feature] ?? feature}</span>
+                            <span className="text-[10px] text-gray-500 font-mono ml-1">{feature}</span>
+                        </div>
+                        <div className="divide-y divide-gray-700/50">
+                            {ROLES.map(role => {
+                                const key = `${feature}:${role}`;
+                                const edit = getEdit(feature, role);
+                                const isSaving = saving === key;
+                                const isSaved = savedKey === key;
+                                const roleColors: Record<string, string> = {
+                                    USER: 'text-green-400',
+                                    MANAGE: 'text-yellow-400',
+                                    ADMIN: 'text-red-400',
+                                };
+                                return (
+                                    <div key={role} className="flex items-center gap-3 px-4 py-3">
+                                        <span className={`text-xs font-bold w-14 shrink-0 ${roleColors[role]}`}>{role}</span>
+
+                                        <div className="flex-1 flex items-center gap-2">
+                                            <div className="flex flex-col gap-0.5">
+                                                <label className="text-[10px] text-gray-500">일일 횟수 (비워두면 무제한)</label>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    value={edit.dailyLimit}
+                                                    onChange={e => setEdit(feature, role, 'dailyLimit', e.target.value)}
+                                                    placeholder="무제한"
+                                                    className="w-24 px-2 py-1 text-xs bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                                />
+                                            </div>
+
+                                            <div className="flex flex-col gap-0.5">
+                                                <label className="text-[10px] text-gray-500">포인트 차감</label>
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={edit.pointsCost}
+                                                        onChange={e => setEdit(feature, role, 'pointsCost', e.target.value)}
+                                                        className="w-20 px-2 py-1 text-xs bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                                                    />
+                                                    <span className="text-[10px] text-gray-500">pt</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={() => handleSave(feature, role)}
+                                            disabled={isSaving}
+                                            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                                isSaved
+                                                    ? 'bg-emerald-600 text-white'
+                                                    : 'bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50'
+                                            }`}
+                                        >
+                                            {isSaved ? '저장됨' : isSaving ? '...' : '저장'}
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <p className="text-[10px] text-gray-600 mt-5 text-center">
+                DB에서 직접 수정한 정책은 즉시 반영됩니다. 항목이 없으면 기본값(무제한/50pt)이 적용됩니다.
+            </p>
         </div>
     );
 };
