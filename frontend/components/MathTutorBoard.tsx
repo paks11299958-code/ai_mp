@@ -71,26 +71,49 @@ const STEP_COLORS = [
     { bg: '#F0FFF4', border: '#A5D6A7', title: '#2E7D32', highlight: '#E8F5E9' },
 ];
 
-// ── TTS 훅 ───────────────────────────────────────────────
+// ── TTS 훅 (OpenAI nova 목소리) ───────────────────────────
 
 function useTTS() {
     const [speaking, setSpeaking] = useState(false);
-    const stop = useCallback(() => { window.speechSynthesis.cancel(); setSpeaking(false); }, []);
-    const speak = useCallback((text: string) => {
-        window.speechSynthesis.cancel();
-        const utt = new SpeechSynthesisUtterance(text);
-        utt.lang = 'ko-KR'; utt.rate = 0.9; utt.pitch = 1.1;
-        const voices = window.speechSynthesis.getVoices();
-        const koVoice = voices.find(v => v.lang.startsWith('ko'));
-        if (koVoice) utt.voice = koVoice;
-        utt.onstart = () => setSpeaking(true);
-        utt.onend = () => setSpeaking(false);
-        utt.onerror = () => setSpeaking(false);
-        window.speechSynthesis.speak(utt);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const stop = useCallback(() => {
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+        setSpeaking(false);
     }, []);
-    useEffect(() => () => { window.speechSynthesis.cancel(); }, []);
+
+    const speak = useCallback(async (text: string) => {
+        stop();
+        setSpeaking(true);
+        try {
+            const res = await fetch('/api/math-tutor-tts', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text }),
+            });
+            if (!res.ok) throw new Error('TTS 실패');
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            audioRef.current = audio;
+            audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+            audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+            await audio.play();
+        } catch {
+            setSpeaking(false);
+        }
+    }, [stop]);
+
+    // 컴포넌트 언마운트 시 정리
+    useEffect(() => () => { audioRef.current?.pause(); }, []);
+
     return { speaking, speak, stop };
 }
+
 
 // ── 메인 컴포넌트 ─────────────────────────────────────────
 

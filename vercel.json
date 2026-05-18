@@ -24,6 +24,9 @@
       "includeFiles": "src/generated/prisma/**",
       "maxDuration": 300
     },
+    "api/math-tutor-tts.ts": {
+      "maxDuration": 30
+    },
     "api/cron-stock-worker.ts": {
       "includeFiles": "src/generated/prisma/**",
       "maxDuration": 300
