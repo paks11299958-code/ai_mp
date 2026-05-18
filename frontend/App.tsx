@@ -1715,7 +1715,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* 트리거 키워드 안내 */}
-                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || isGolfPersona) && (
+                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || isGolfPersona) && (
                             <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
                                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
