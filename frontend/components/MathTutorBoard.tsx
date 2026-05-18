@@ -102,6 +102,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const [loading, setLoading] = useState(false);
     const [listLoading, setListLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [showHistoryMobile, setShowHistoryMobile] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { speaking, speak, stop } = useTTS();
 
@@ -180,17 +181,27 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                         <div className="text-pink-100 text-[10px]">수학 문제를 찍으면 쉽게 설명해드려요</div>
                     </div>
                 </div>
-                <button onClick={onClose} className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors">
-                    <X size={18} />
-                </button>
+                <div className="flex items-center gap-2">
+                    {/* 모바일 이력 토글 버튼 */}
+                    <button
+                        onClick={() => setShowHistoryMobile(v => !v)}
+                        className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-full text-white/90 text-xs font-medium hover:bg-white/20 transition-colors border border-white/30"
+                    >
+                        <BookOpen size={12} />
+                        이력 {history.length > 0 && `(${history.length})`}
+                    </button>
+                    <button onClick={onClose} className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors">
+                        <X size={18} />
+                    </button>
+                </div>
             </div>
 
             <div className="flex flex-1 overflow-hidden">
-                {/* 좌측: 이력 목록 */}
-                <div className="w-52 shrink-0 flex flex-col border-r overflow-y-auto" style={{ borderColor: '#FFD6E8', background: '#FFF0F8' }}>
+                {/* 좌측: 이력 목록 — 모바일: showHistoryMobile 일때만 / 데스크탑: 항상 */}
+                <div className={`${showHistoryMobile ? 'flex' : 'hidden'} md:flex w-full md:w-52 shrink-0 flex-col border-r overflow-y-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`} style={{ borderColor: '#FFD6E8', background: '#FFF0F8' }}>
                     <div className="p-3">
                         <button
-                            onClick={() => { setSelected(null); setPreview(null); setFile(null); setError(null); }}
+                            onClick={() => { setSelected(null); setPreview(null); setFile(null); setError(null); setShowHistoryMobile(false); }}
                             style={{ background: 'linear-gradient(135deg, #FF6B9D, #C44FD8)' }}
                             className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-white text-xs font-bold shadow-sm hover:opacity-90 transition-opacity"
                         >
@@ -210,7 +221,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                             {history.map(h => (
                                 <div
                                     key={h.id}
-                                    onClick={() => { setSelected(h); setPreview(null); setFile(null); }}
+                                    onClick={() => { setSelected(h); setPreview(null); setFile(null); setShowHistoryMobile(false); }}
                                     className={`p-2.5 rounded-xl cursor-pointer transition-all border ${selected?.id === h.id ? 'border-pink-400 bg-pink-50' : 'border-pink-100 bg-white hover:border-pink-300'}`}
                                 >
                                     <div className="flex items-start justify-between gap-1">
@@ -227,8 +238,8 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                     )}
                 </div>
 
-                {/* 우측: 메인 영역 */}
-                <div className="flex-1 overflow-y-auto">
+                {/* 우측: 메인 영역 — 모바일: 이력 패널 닫혔을 때만 표시 */}
+                <div className={`${showHistoryMobile ? 'hidden' : 'flex'} md:flex flex-1 flex-col overflow-y-auto`}>
                     {/* 이미지 업로드 화면 */}
                     {!selected && (
                         <div className="flex flex-col items-center p-6 gap-5 max-w-lg mx-auto">
