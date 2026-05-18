@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getTokenFromRequest, verifyToken } from './_lib/auth.js';
 
-const ARIA_VOICE_ID = '9BWtsMINqrJLrRacOk9x';
+const SARAH_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -20,7 +20,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (!apiKey) return res.status(500).json({ error: 'ELEVENLABS_API_KEY not set' });
 
     try {
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${ARIA_VOICE_ID}`, {
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${SARAH_VOICE_ID}`, {
             method: 'POST',
             headers: {
                 'xi-api-key': apiKey,

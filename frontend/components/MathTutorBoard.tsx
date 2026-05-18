@@ -75,6 +75,7 @@ const STEP_COLORS = [
 
 function useTTS() {
     const [speaking, setSpeaking] = useState(false);
+    const [ttsLoading, setTtsLoading] = useState(false);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const stop = useCallback(() => {
@@ -83,11 +84,12 @@ function useTTS() {
             audioRef.current.currentTime = 0;
         }
         setSpeaking(false);
+        setTtsLoading(false);
     }, []);
 
     const speak = useCallback(async (text: string) => {
         stop();
-        setSpeaking(true);
+        setTtsLoading(true);
         try {
             const res = await fetch('/api/math-tutor-tts', {
                 method: 'POST',
@@ -102,16 +104,18 @@ function useTTS() {
             audioRef.current = audio;
             audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
             audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); };
+            setTtsLoading(false);
+            setSpeaking(true);
             await audio.play();
         } catch {
+            setTtsLoading(false);
             setSpeaking(false);
         }
     }, [stop]);
 
-    // 컴포넌트 언마운트 시 정리
     useEffect(() => () => { audioRef.current?.pause(); }, []);
 
-    return { speaking, speak, stop };
+    return { speaking, ttsLoading, speak, stop };
 }
 
 
@@ -128,7 +132,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const [error, setError] = useState<string | null>(null);
     const [showHistoryMobile, setShowHistoryMobile] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { speaking, speak, stop } = useTTS();
+    const { speaking, ttsLoading, speak, stop } = useTTS();
 
     const loadHistory = useCallback(async () => {
         try {
@@ -386,10 +390,16 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                             {/* TTS 버튼 */}
                             {selected.steps?.length > 0 && (
                                 <button
-                                    onClick={() => speaking ? stop() : speak(buildTTSText(selected))}
-                                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all border-2 ${speaking ? 'border-purple-400 bg-purple-50 text-purple-600' : 'border-pink-300 bg-pink-50 text-pink-500 hover:bg-pink-100'}`}
+                                    onClick={() => (speaking || ttsLoading) ? stop() : speak(buildTTSText(selected))}
+                                    disabled={false}
+                                    className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold transition-all border-2 ${speaking ? 'border-purple-400 bg-purple-50 text-purple-600' : ttsLoading ? 'border-pink-300 bg-pink-50 text-pink-400' : 'border-pink-300 bg-pink-50 text-pink-500 hover:bg-pink-100'}`}
                                 >
-                                    {speaking ? <><VolumeX size={15} /> 설명 멈추기</> : <><Volume2 size={15} /> 🔊 설명 듣기</>}
+                                    {ttsLoading
+                                        ? <><Loader size={15} className="animate-spin" /> 목소리 준비 중...</>
+                                        : speaking
+                                            ? <><VolumeX size={15} /> 설명 멈추기</>
+                                            : <><Volume2 size={15} /> 🔊 설명 듣기</>
+                                    }
                                 </button>
                             )}
 
