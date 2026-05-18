@@ -3033,9 +3033,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const q = ((req.query.q as string) || '').trim();
             if (q.length < 2) return res.status(200).json([]);
             const rows = await prisma.corpCode.findMany({
-                where: { corpName: { contains: q } },
+                where: { OR: [{ corpName: { contains: q } }, { corpNameEng: { contains: q, mode: 'insensitive' } }] },
                 take: 20,
-                select: { corpName: true, stockCode: true },
+                select: { corpName: true, corpNameEng: true, stockCode: true },
             });
             const sorted = [
                 ...rows.filter(r => r.stockCode),
