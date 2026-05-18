@@ -292,6 +292,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
     const [showSuggestions, setShowSuggestions] = useState(false);
     const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const inputWrapRef = useRef<HTMLDivElement>(null);
+    const reportPanelRef = useRef<HTMLDivElement>(null);
 
     const loadTasks = useCallback(async () => {
         try {
@@ -364,6 +365,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
     const handleSelect = async (task: StockTask) => {
         if (task.status !== 'completed') return;
         setDetailLoading(true);
+        reportPanelRef.current?.scrollTo({ top: 0 });
         try {
             const detail = await apiFetch<StockDetail>(API(`/${task.id}`));
             setSelected(detail);
@@ -547,7 +549,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
                     </div>
 
                     {/* 우측: 보고서 패널 — 모바일: 상세 있을 때만 표시 */}
-                    <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-y-auto`}>
+                    <div ref={reportPanelRef} className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-y-auto`}>
                         {/* 모바일 뒤로가기 */}
                         <div className="md:hidden flex items-center px-4 py-2 border-b border-slate-800 shrink-0">
                             <button
