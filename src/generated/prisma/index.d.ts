@@ -29591,6 +29591,7 @@ export namespace Prisma {
   export type CorpCodeMinAggregateOutputType = {
     corpCode: string | null
     corpName: string | null
+    corpNameEng: string | null
     stockCode: string | null
     modifyDt: string | null
   }
@@ -29598,6 +29599,7 @@ export namespace Prisma {
   export type CorpCodeMaxAggregateOutputType = {
     corpCode: string | null
     corpName: string | null
+    corpNameEng: string | null
     stockCode: string | null
     modifyDt: string | null
   }
@@ -29605,6 +29607,7 @@ export namespace Prisma {
   export type CorpCodeCountAggregateOutputType = {
     corpCode: number
     corpName: number
+    corpNameEng: number
     stockCode: number
     modifyDt: number
     _all: number
@@ -29614,6 +29617,7 @@ export namespace Prisma {
   export type CorpCodeMinAggregateInputType = {
     corpCode?: true
     corpName?: true
+    corpNameEng?: true
     stockCode?: true
     modifyDt?: true
   }
@@ -29621,6 +29625,7 @@ export namespace Prisma {
   export type CorpCodeMaxAggregateInputType = {
     corpCode?: true
     corpName?: true
+    corpNameEng?: true
     stockCode?: true
     modifyDt?: true
   }
@@ -29628,6 +29633,7 @@ export namespace Prisma {
   export type CorpCodeCountAggregateInputType = {
     corpCode?: true
     corpName?: true
+    corpNameEng?: true
     stockCode?: true
     modifyDt?: true
     _all?: true
@@ -29708,6 +29714,7 @@ export namespace Prisma {
   export type CorpCodeGroupByOutputType = {
     corpCode: string
     corpName: string
+    corpNameEng: string | null
     stockCode: string | null
     modifyDt: string | null
     _count: CorpCodeCountAggregateOutputType | null
@@ -29732,6 +29739,7 @@ export namespace Prisma {
   export type CorpCodeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     corpCode?: boolean
     corpName?: boolean
+    corpNameEng?: boolean
     stockCode?: boolean
     modifyDt?: boolean
   }, ExtArgs["result"]["corpCode"]>
@@ -29739,6 +29747,7 @@ export namespace Prisma {
   export type CorpCodeSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     corpCode?: boolean
     corpName?: boolean
+    corpNameEng?: boolean
     stockCode?: boolean
     modifyDt?: boolean
   }, ExtArgs["result"]["corpCode"]>
@@ -29746,6 +29755,7 @@ export namespace Prisma {
   export type CorpCodeSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     corpCode?: boolean
     corpName?: boolean
+    corpNameEng?: boolean
     stockCode?: boolean
     modifyDt?: boolean
   }, ExtArgs["result"]["corpCode"]>
@@ -29753,11 +29763,12 @@ export namespace Prisma {
   export type CorpCodeSelectScalar = {
     corpCode?: boolean
     corpName?: boolean
+    corpNameEng?: boolean
     stockCode?: boolean
     modifyDt?: boolean
   }
 
-  export type CorpCodeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"corpCode" | "corpName" | "stockCode" | "modifyDt", ExtArgs["result"]["corpCode"]>
+  export type CorpCodeOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"corpCode" | "corpName" | "corpNameEng" | "stockCode" | "modifyDt", ExtArgs["result"]["corpCode"]>
 
   export type $CorpCodePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "CorpCode"
@@ -29765,6 +29776,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       corpCode: string
       corpName: string
+      corpNameEng: string | null
       stockCode: string | null
       modifyDt: string | null
     }, ExtArgs["result"]["corpCode"]>
@@ -30192,6 +30204,7 @@ export namespace Prisma {
   interface CorpCodeFieldRefs {
     readonly corpCode: FieldRef<"CorpCode", 'String'>
     readonly corpName: FieldRef<"CorpCode", 'String'>
+    readonly corpNameEng: FieldRef<"CorpCode", 'String'>
     readonly stockCode: FieldRef<"CorpCode", 'String'>
     readonly modifyDt: FieldRef<"CorpCode", 'String'>
   }
@@ -38126,6 +38139,7 @@ export namespace Prisma {
   export const CorpCodeScalarFieldEnum: {
     corpCode: 'corpCode',
     corpName: 'corpName',
+    corpNameEng: 'corpNameEng',
     stockCode: 'stockCode',
     modifyDt: 'modifyDt'
   };
@@ -39967,6 +39981,7 @@ export namespace Prisma {
     NOT?: CorpCodeWhereInput | CorpCodeWhereInput[]
     corpCode?: StringFilter<"CorpCode"> | string
     corpName?: StringFilter<"CorpCode"> | string
+    corpNameEng?: StringNullableFilter<"CorpCode"> | string | null
     stockCode?: StringNullableFilter<"CorpCode"> | string | null
     modifyDt?: StringNullableFilter<"CorpCode"> | string | null
   }
@@ -39974,6 +39989,7 @@ export namespace Prisma {
   export type CorpCodeOrderByWithRelationInput = {
     corpCode?: SortOrder
     corpName?: SortOrder
+    corpNameEng?: SortOrderInput | SortOrder
     stockCode?: SortOrderInput | SortOrder
     modifyDt?: SortOrderInput | SortOrder
   }
@@ -39984,6 +40000,7 @@ export namespace Prisma {
     OR?: CorpCodeWhereInput[]
     NOT?: CorpCodeWhereInput | CorpCodeWhereInput[]
     corpName?: StringFilter<"CorpCode"> | string
+    corpNameEng?: StringNullableFilter<"CorpCode"> | string | null
     stockCode?: StringNullableFilter<"CorpCode"> | string | null
     modifyDt?: StringNullableFilter<"CorpCode"> | string | null
   }, "corpCode">
@@ -39991,6 +40008,7 @@ export namespace Prisma {
   export type CorpCodeOrderByWithAggregationInput = {
     corpCode?: SortOrder
     corpName?: SortOrder
+    corpNameEng?: SortOrderInput | SortOrder
     stockCode?: SortOrderInput | SortOrder
     modifyDt?: SortOrderInput | SortOrder
     _count?: CorpCodeCountOrderByAggregateInput
@@ -40004,6 +40022,7 @@ export namespace Prisma {
     NOT?: CorpCodeScalarWhereWithAggregatesInput | CorpCodeScalarWhereWithAggregatesInput[]
     corpCode?: StringWithAggregatesFilter<"CorpCode"> | string
     corpName?: StringWithAggregatesFilter<"CorpCode"> | string
+    corpNameEng?: StringNullableWithAggregatesFilter<"CorpCode"> | string | null
     stockCode?: StringNullableWithAggregatesFilter<"CorpCode"> | string | null
     modifyDt?: StringNullableWithAggregatesFilter<"CorpCode"> | string | null
   }
@@ -42250,6 +42269,7 @@ export namespace Prisma {
   export type CorpCodeCreateInput = {
     corpCode: string
     corpName: string
+    corpNameEng?: string | null
     stockCode?: string | null
     modifyDt?: string | null
   }
@@ -42257,6 +42277,7 @@ export namespace Prisma {
   export type CorpCodeUncheckedCreateInput = {
     corpCode: string
     corpName: string
+    corpNameEng?: string | null
     stockCode?: string | null
     modifyDt?: string | null
   }
@@ -42264,6 +42285,7 @@ export namespace Prisma {
   export type CorpCodeUpdateInput = {
     corpCode?: StringFieldUpdateOperationsInput | string
     corpName?: StringFieldUpdateOperationsInput | string
+    corpNameEng?: NullableStringFieldUpdateOperationsInput | string | null
     stockCode?: NullableStringFieldUpdateOperationsInput | string | null
     modifyDt?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -42271,6 +42293,7 @@ export namespace Prisma {
   export type CorpCodeUncheckedUpdateInput = {
     corpCode?: StringFieldUpdateOperationsInput | string
     corpName?: StringFieldUpdateOperationsInput | string
+    corpNameEng?: NullableStringFieldUpdateOperationsInput | string | null
     stockCode?: NullableStringFieldUpdateOperationsInput | string | null
     modifyDt?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -42278,6 +42301,7 @@ export namespace Prisma {
   export type CorpCodeCreateManyInput = {
     corpCode: string
     corpName: string
+    corpNameEng?: string | null
     stockCode?: string | null
     modifyDt?: string | null
   }
@@ -42285,6 +42309,7 @@ export namespace Prisma {
   export type CorpCodeUpdateManyMutationInput = {
     corpCode?: StringFieldUpdateOperationsInput | string
     corpName?: StringFieldUpdateOperationsInput | string
+    corpNameEng?: NullableStringFieldUpdateOperationsInput | string | null
     stockCode?: NullableStringFieldUpdateOperationsInput | string | null
     modifyDt?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -42292,6 +42317,7 @@ export namespace Prisma {
   export type CorpCodeUncheckedUpdateManyInput = {
     corpCode?: StringFieldUpdateOperationsInput | string
     corpName?: StringFieldUpdateOperationsInput | string
+    corpNameEng?: NullableStringFieldUpdateOperationsInput | string | null
     stockCode?: NullableStringFieldUpdateOperationsInput | string | null
     modifyDt?: NullableStringFieldUpdateOperationsInput | string | null
   }
@@ -44371,6 +44397,7 @@ export namespace Prisma {
   export type CorpCodeCountOrderByAggregateInput = {
     corpCode?: SortOrder
     corpName?: SortOrder
+    corpNameEng?: SortOrder
     stockCode?: SortOrder
     modifyDt?: SortOrder
   }
@@ -44378,6 +44405,7 @@ export namespace Prisma {
   export type CorpCodeMaxOrderByAggregateInput = {
     corpCode?: SortOrder
     corpName?: SortOrder
+    corpNameEng?: SortOrder
     stockCode?: SortOrder
     modifyDt?: SortOrder
   }
@@ -44385,6 +44413,7 @@ export namespace Prisma {
   export type CorpCodeMinOrderByAggregateInput = {
     corpCode?: SortOrder
     corpName?: SortOrder
+    corpNameEng?: SortOrder
     stockCode?: SortOrder
     modifyDt?: SortOrder
   }

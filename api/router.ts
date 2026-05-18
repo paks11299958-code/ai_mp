@@ -3241,8 +3241,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 if (e.message === 'INSUFFICIENT_POINTS') return res.status(402).json({ error: '포인트가 부족합니다.' });
                 throw e;
             }
-            try {
-            }
             const task = await prisma.usedItemListing.create({
                 data: { userId, imageUrls: JSON.stringify(imageUrls), itemName: itemName?.trim() || null },
             });

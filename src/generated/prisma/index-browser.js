@@ -349,6 +349,7 @@ exports.Prisma.PartnerReplyScalarFieldEnum = {
 exports.Prisma.CorpCodeScalarFieldEnum = {
   corpCode: 'corpCode',
   corpName: 'corpName',
+  corpNameEng: 'corpNameEng',
   stockCode: 'stockCode',
   modifyDt: 'modifyDt'
 };

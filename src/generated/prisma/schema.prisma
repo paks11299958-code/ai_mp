@@ -298,12 +298,14 @@ model PartnerReply {
 }
 
 model CorpCode {
-  corpCode  String  @id
-  corpName  String
-  stockCode String?
-  modifyDt  String?
+  corpCode    String  @id
+  corpName    String
+  corpNameEng String?
+  stockCode   String?
+  modifyDt    String?
 
   @@index([corpName])
+  @@index([corpNameEng])
 }
 
 model StockAnalysis {
