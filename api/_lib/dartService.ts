@@ -20,15 +20,27 @@ export interface DartFinancial {
 
 // DB에서 기업 코드 조회
 export async function findCorpCode(stockName: string): Promise<string | null> {
-    // 정확히 일치
+    // 한글명 정확히 일치
     const exact = await prisma.corpCode.findFirst({ where: { corpName: stockName } });
     if (exact) return exact.corpCode;
 
-    // 입력값 포함 (예: "레인보우" → "레인보우로보틱스")
+    // 영문명 정확히 일치 (대소문자 무시)
+    const exactEng = await prisma.corpCode.findFirst({
+        where: { corpNameEng: { equals: stockName, mode: 'insensitive' } },
+    });
+    if (exactEng) return exactEng.corpCode;
+
+    // 한글명 부분 일치
     const partial = await prisma.corpCode.findFirst({
         where: { corpName: { contains: stockName } },
     });
     if (partial) return partial.corpCode;
+
+    // 영문명 부분 일치
+    const partialEng = await prisma.corpCode.findFirst({
+        where: { corpNameEng: { contains: stockName, mode: 'insensitive' } },
+    });
+    if (partialEng) return partialEng.corpCode;
 
     return null;
 }
@@ -78,47 +90,96 @@ export async function getRecentFilings(corpCode: string, count = 5): Promise<Dar
     return (data.list ?? []).slice(0, count);
 }
 
-// Yahoo Finance 주가·밸류에이션 데이터 (KOSPI .KS / KOSDAQ .KQ 자동 탐색)
-export async function getYahooFinanceData(stockCode: string): Promise<any> {
-    for (const suffix of ['.KS', '.KQ']) {
-        try {
-            const symbol = encodeURIComponent(stockCode + suffix);
-            const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=price,summaryDetail,financialData,defaultKeyStatistics`;
-            const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-            const json = await res.json();
-            const result = json?.quoteSummary?.result?.[0];
-            if (!result) continue;
-            const p = result.price ?? {};
-            const sd = result.summaryDetail ?? {};
-            const fd = result.financialData ?? {};
-            const ks = result.defaultKeyStatistics ?? {};
-            return {
-                symbol: stockCode + suffix,
-                currentPrice: p.regularMarketPrice?.raw,
-                changePercent: p.regularMarketChangePercent?.raw,
-                marketCap: p.marketCap?.raw,
-                week52High: sd.fiftyTwoWeekHigh?.raw,
-                week52Low: sd.fiftyTwoWeekLow?.raw,
-                per: sd.trailingPE?.raw,
-                pbr: ks.priceToBook?.raw,
-                roe: fd.returnOnEquity?.raw,
-                eps: ks.trailingEps?.raw,
-                revenueGrowth: fd.revenueGrowth?.raw,
-            };
-        } catch { continue; }
+// 네이버 금융 주가·밸류에이션 데이터 (Yahoo Finance 대체 — crumb 인증 문제)
+export async function getNaverFinanceData(stockCode: string): Promise<any> {
+    const parseNum = (s: string | undefined): number | null => {
+        if (!s || s === 'N/A') return null;
+        const clean = s.replace(/[배원%,\s]/g, '');
+        const n = parseFloat(clean);
+        return isNaN(n) ? null : n;
+    };
+    const parseMarketCap = (s: string | undefined): number | null => {
+        if (!s) return null;
+        let total = 0;
+        const jo = s.match(/([0-9,]+)조/);
+        const eok = s.match(/([0-9,]+)억/);
+        if (jo) total += parseInt(jo[1].replace(/,/g, '')) * 10000;
+        if (eok) total += parseInt(eok[1].replace(/,/g, ''));
+        return total || null;
+    };
+    try {
+        const res = await fetch(`https://m.stock.naver.com/api/stock/${stockCode}/integration`, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://m.stock.naver.com',
+            },
+            signal: AbortSignal.timeout(10000),
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        const infoMap: Record<string, string> = {};
+        for (const item of data.totalInfos ?? []) {
+            infoMap[item.code] = item.value ?? '';
+        }
+        return {
+            stockCode,
+            stockName: data.stockName,
+            currentPrice: parseNum(data.closePrice),
+            changePercent: parseNum(infoMap.fluctuationsRatio),
+            week52High: parseNum(infoMap.highPriceOf52Weeks),
+            week52Low: parseNum(infoMap.lowPriceOf52Weeks),
+            marketCapEok: parseMarketCap(infoMap.marketValue),
+            foreignRate: infoMap.foreignRate,
+            per: parseNum(infoMap.per),
+            eps: parseNum(infoMap.eps),
+            cnsPer: parseNum(infoMap.cnsPer),
+            cnsEps: parseNum(infoMap.cnsEps),
+            pbr: parseNum(infoMap.pbr),
+            bps: parseNum(infoMap.bps),
+            researches: (data.researches ?? []).slice(0, 3).map((r: any) => ({
+                broker: r.bnm,
+                title: r.tit,
+                date: r.wdt,
+            })),
+        };
+    } catch {
+        return null;
     }
-    return null;
 }
 
-// 단일 재무제표 (연간)
+// 계정명 정규화 맵 (DART 기업마다 표기가 다름)
+const ACCOUNT_NORMALIZE: Record<string, string> = {
+    '매출액': '매출액', '매출수익': '매출액', '영업수익': '매출액',
+    '영업이익': '영업이익', '영업손익': '영업이익', '영업이익(손실)': '영업이익',
+    '당기순이익': '당기순이익', '당기순이익(손실)': '당기순이익',
+    '분기순이익': '당기순이익', '반기순이익': '당기순이익',
+    '부채총계': '부채총계', '자본총계': '자본총계',
+};
+
+// 단일 재무제표 (연간) — 연결 우선, 없으면 별도
 export async function getFinancials(corpCode: string): Promise<DartFinancial[]> {
     const year = new Date().getFullYear() - 1;
-    const url = `${BASE}/fnlttSinglAcnt.json?crtfc_key=${DART_KEY}&corp_code=${corpCode}&bsns_year=${year}&reprt_code=11011`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.status !== '000') return [];
-    const targets = ['매출액', '영업이익', '당기순이익', '부채총계', '자본총계'];
-    return (data.list ?? []).filter((r: any) => targets.includes(r.account_nm));
+    for (const reprtCode of ['11011']) {  // 사업보고서
+        for (const fsDiv of ['CFS', 'OFS']) {  // 연결(CFS) 우선, 별도(OFS) 차선
+            try {
+                const url = `${BASE}/fnlttSinglAcntAll.json?crtfc_key=${DART_KEY}&corp_code=${corpCode}&bsns_year=${year}&reprt_code=${reprtCode}&fs_div=${fsDiv}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status !== '000' || !data.list?.length) continue;
+                const results: DartFinancial[] = [];
+                const seen = new Set<string>();
+                for (const r of data.list) {
+                    const normalized = ACCOUNT_NORMALIZE[r.account_nm];
+                    if (normalized && !seen.has(normalized)) {
+                        seen.add(normalized);
+                        results.push({ ...r, account_nm: normalized });
+                    }
+                }
+                if (results.length >= 3) return results;
+            } catch { continue; }
+        }
+    }
+    return [];
 }
 
 // 기업 기본정보

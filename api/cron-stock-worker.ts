@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { prisma } from './_lib/prisma.js';
-import { findCorpCode, getRecentFilings, getFinancials, getCorpInfo, getYahooFinanceData } from './_lib/dartService.js';
+import { findCorpCode, getRecentFilings, getFinancials, getCorpInfo, getNaverFinanceData } from './_lib/dartService.js';
 import { uploadToGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
 import Anthropic from '@anthropic-ai/sdk';
@@ -146,11 +146,11 @@ async function analyzeStock(taskId: number, stockName: string): Promise<void> {
     const corpCode = await findCorpCode(stockName);
     if (corpCode) await prisma.stockAnalysis.update({ where: { id: taskId }, data: { corpCode } });
 
-    // 2단계: DART + Yahoo Finance 병렬 수집
+    // 2단계: DART + 네이버 금융 병렬 수집
     let filings: any[] = [];
     let financials: any[] = [];
     let corpInfo: any = null;
-    let yahoo: any = null;
+    let naver: any = null;
 
     const dartPromise = corpCode
         ? Promise.all([getRecentFilings(corpCode, 6), getFinancials(corpCode), getCorpInfo(corpCode)])
@@ -161,12 +161,12 @@ async function analyzeStock(taskId: number, stockName: string): Promise<void> {
         ? await prisma.corpCode.findUnique({ where: { corpCode }, select: { stockCode: true } }).then(r => r?.stockCode?.trim() || null)
         : null;
 
-    const yahooPromise = stockCode
-        ? getYahooFinanceData(stockCode).then(y => { yahoo = y; })
+    const naverPromise = stockCode
+        ? getNaverFinanceData(stockCode).then(n => { naver = n; })
         : Promise.resolve();
 
-    await Promise.all([dartPromise, yahooPromise]);
-    console.log(`[stock] 공시 ${filings.length}건, 재무 ${financials.length}건, Yahoo: ${yahoo?.symbol ?? '없음'}`);
+    await Promise.all([dartPromise, naverPromise]);
+    console.log(`[stock] 공시 ${filings.length}건, 재무 ${financials.length}건, Naver: ${naver?.stockName ?? '없음'}`);
 
     // 3단계: 텍스트 구성
     const filingsText = filings.length
@@ -177,22 +177,28 @@ async function analyzeStock(taskId: number, stockName: string): Promise<void> {
         ? financials.map(f => `| ${f.account_nm} | ${fmt(Number(f.thstrm_amount || 0), '원')} | ${fmt(Number(f.frmtrm_amount || 0), '원')} |`).join('\n')
         : '재무 데이터 없음';
 
-    const yahooText = yahoo ? `
-### 실시간 시장 데이터 (Yahoo Finance: ${yahoo.symbol})
+    const naverText = naver ? `
+### 실시간 시장 데이터 (네이버 금융: ${naver.stockName} ${stockCode})
 | 항목 | 값 |
 |------|-----|
-| 현재 주가 | ${fmt(yahoo.currentPrice, '원')} (${yahoo.changePercent !== undefined ? (yahoo.changePercent * 100).toFixed(2) + '%' : '—'}) |
-| 52주 최고 | ${fmt(yahoo.week52High, '원')} |
-| 52주 최저 | ${fmt(yahoo.week52Low, '원')} |
-| 시가총액 | ${yahoo.marketCap ? (yahoo.marketCap / 1e8).toFixed(0) + '억원' : '—'} |
-| PER | ${yahoo.per !== undefined ? yahoo.per.toFixed(1) + '배' : '—'} |
-| PBR | ${yahoo.pbr !== undefined ? yahoo.pbr.toFixed(2) + '배' : '—'} |
-| ROE | ${fmtPct(yahoo.roe)} |
-| EPS | ${fmt(yahoo.eps, '원')} |
-| 매출 성장률 | ${fmtPct(yahoo.revenueGrowth)} |` : '### 실시간 시장 데이터\n조회 불가 (비상장 또는 Yahoo Finance 미지원)';
+| 현재 주가 | ${fmt(naver.currentPrice, '원')} (${naver.changePercent != null ? (naver.changePercent >= 0 ? '+' : '') + naver.changePercent.toFixed(2) + '%' : '—'}) |
+| 52주 최고 | ${fmt(naver.week52High, '원')} |
+| 52주 최저 | ${fmt(naver.week52Low, '원')} |
+| 시가총액 | ${naver.marketCapEok != null ? naver.marketCapEok.toLocaleString('ko-KR') + '억원' : '—'} |
+| PER | ${naver.per != null ? naver.per.toFixed(2) + '배' : '—'} |
+| 컨센서스 PER | ${naver.cnsPer != null ? naver.cnsPer.toFixed(2) + '배' : '—'} |
+| PBR | ${naver.pbr != null ? naver.pbr.toFixed(2) + '배' : '—'} |
+| EPS | ${fmt(naver.eps, '원')} |
+| 컨센서스 EPS | ${fmt(naver.cnsEps, '원')} |
+| 외국인 보유 | ${naver.foreignRate ?? '—'} |` : '### 실시간 시장 데이터\n조회 불가 (비상장 또는 네이버 금융 미지원)';
+
+    const researchText = naver?.researches?.length ? `
+### 최신 증권사 리포트
+${naver.researches.map((r: any) => `- [${r.date.slice(0,4)}.${r.date.slice(4,6)}.${r.date.slice(6,8)}] **${r.broker}** — ${r.title}`).join('\n')}` : '';
 
     // Claude/GPT에 전달할 구조화 데이터
-    const dataSection = `${yahooText}
+    const dataSection = `${naverText}
+${researchText}
 
 ### 최근 공시 (${filings.length}건)
 ${filingsText}
@@ -222,7 +228,7 @@ ${dataSection}
 Google Search로 ${stockName}의 최신 뉴스, 증권사 리포트, 목표주가, 수급 동향을 추가 수집한 후 아래 형식으로 작성하세요.
 
 # ${stockName} 주식 분석 보고서
-> 분석일: ${new Date().toLocaleDateString('ko-KR')} | 데이터 출처: DART 공시, Yahoo Finance, Google Search
+> 분석일: ${new Date().toLocaleDateString('ko-KR')} | 데이터 출처: DART 공시, 네이버 금융, Google Search
 
 ## 📊 투자 요약
 | 구분 | 내용 |
@@ -320,7 +326,7 @@ Google Search로 ${stockName}의 최신 뉴스, 증권사 리포트, 목표주�
             claudeReport: claudeOpinion,
             gptReport: gptOpinion,
             sourceLinks: JSON.stringify(sources),
-            yahooSymbol: yahoo?.symbol ?? (stockCode ? `${stockCode}.KS` : null),
+            yahooSymbol: stockCode ? `${stockCode}.KS` : null,
             chartImageUrl,
             updatedAt: new Date(),
         },
