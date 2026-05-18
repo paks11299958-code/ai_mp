@@ -88,8 +88,9 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
             results.login = { ok: false, detail: 'MONITOR_EMAIL/MONITOR_PASSWORD 환경변수 미설정' };
         } else {
             try {
-                // 로그인 버튼 클릭 (nav 상단 버튼)
-                await page.getByRole('button', { name: '로그인' }).first().click();
+                // 로그인 버튼 클릭 (nav 상단 버튼) — 오버레이 무시하고 강제 클릭
+                await page.waitForTimeout(2000); // 페이지 애니메이션 안정화 대기
+                await page.getByRole('button', { name: '로그인' }).first().click({ force: true, timeout: TIMEOUT_MS });
 
                 // 이메일 입력창 대기 후 입력
                 await page.waitForSelector('input[placeholder*="example@email.com"]', { timeout: 5_000 });
