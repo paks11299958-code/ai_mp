@@ -23,6 +23,7 @@ import { HotKeywordBoard } from './components/HotKeywordBoard';
 import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
+import { MathTutorBoard } from './components/MathTutorBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
 import { AnnouncementModal } from './components/AnnouncementModal';
 import { Icon } from './components/Icons';
@@ -137,6 +138,7 @@ const App: React.FC = () => {
     const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
     const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
     const [showSwingBoard, setShowSwingBoard] = useState(false);
+    const [showMathTutor, setShowMathTutor] = useState(false);
 
     // 퀵메뉴 / 생년월일 폼 상태
     const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(null);
@@ -1107,6 +1109,9 @@ const App: React.FC = () => {
                 {showLuxuryBoard && (
                     <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
                 )}
+                {showMathTutor && (
+                    <MathTutorBoard onClose={() => setShowMathTutor(false)} />
+                )}
             </>
         );
     }
@@ -1163,6 +1168,9 @@ const App: React.FC = () => {
             )}
             {showResearch && (
                 <ResearchBoard onClose={() => setShowResearch(false)} user={user} />
+            )}
+            {showMathTutor && (
+                <MathTutorBoard onClose={() => setShowMathTutor(false)} />
             )}
 
             {/* 생년월일 명부 모달 */}
@@ -1789,6 +1797,15 @@ const App: React.FC = () => {
                                             >
                                                 <Icon name="Shield" size={10} />
                                                 명품 검증
+                                            </button>
+                                        )}
+                                        {activePersona?.name === '지우' && user && (
+                                            <button
+                                                onClick={() => setShowMathTutor(true)}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap flex items-center gap-1 transition-colors"
+                                                style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
+                                            >
+                                                📚 AI쌤
                                             </button>
                                         )}
                                     </div>
