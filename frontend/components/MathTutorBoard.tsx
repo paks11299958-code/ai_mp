@@ -101,6 +101,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const [file, setFile] = useState<File | null>(null);
     const [loading, setLoading] = useState(false);
     const [listLoading, setListLoading] = useState(true);
+    const [detailLoading, setDetailLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showHistoryMobile, setShowHistoryMobile] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -151,6 +152,19 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
             setLoading(false);
         }
     }, [file]);
+
+    const handleHistorySelect = useCallback(async (item: MathResult) => {
+        setSelected(item);
+        setPreview(null);
+        setFile(null);
+        setShowHistoryMobile(false);
+        setDetailLoading(true);
+        try {
+            const detail = await apiFetch<MathResult>(API(`/${item.id}`));
+            setSelected(detail);
+        } catch { }
+        finally { setDetailLoading(false); }
+    }, []);
 
     const handleDelete = useCallback(async (id: number, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -221,7 +235,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                             {history.map(h => (
                                 <div
                                     key={h.id}
-                                    onClick={() => { setSelected(h); setPreview(null); setFile(null); setShowHistoryMobile(false); }}
+                                    onClick={() => handleHistorySelect(h)}
                                     className={`p-2.5 rounded-xl cursor-pointer transition-all border ${selected?.id === h.id ? 'border-pink-400 bg-pink-50' : 'border-pink-100 bg-white hover:border-pink-300'}`}
                                 >
                                     <div className="flex items-start justify-between gap-1">
@@ -319,6 +333,13 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                             >
                                 <ChevronLeft size={14} /> 새 문제 풀기
                             </button>
+
+                            {/* 풀이 로딩 중 */}
+                            {detailLoading && (
+                                <div className="flex items-center justify-center gap-2 py-2 text-pink-400 text-xs">
+                                    <Loader size={13} className="animate-spin" /> 풀이를 불러오는 중...
+                                </div>
+                            )}
 
                             {/* 문제 카드 */}
                             <div className="rounded-2xl p-4 shadow-sm" style={{ background: 'linear-gradient(135deg, #FF6B9D, #C44FD8)' }}>
