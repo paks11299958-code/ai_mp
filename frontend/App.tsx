@@ -26,6 +26,7 @@ import { LuxuryBoard } from './components/LuxuryBoard';
 import { MathTutorBoard } from './components/MathTutorBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
 import { AnnouncementModal } from './components/AnnouncementModal';
+import { ProductExtractDialog } from './components/ProductExtractDialog';
 import { Icon } from './components/Icons';
 import { PointDisplay } from './components/PointDisplay';
 import { PointModal } from './components/PointModal';
@@ -110,6 +111,7 @@ const App: React.FC = () => {
     const [showStockAnalysis, setShowStockAnalysis] = useState(false);
     const [showHotKeyword, setShowHotKeyword] = useState(false);
     const [showResearch, setShowResearch] = useState(false);
+    const [showProductExtract, setShowProductExtract] = useState(false);
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
@@ -1112,6 +1114,12 @@ const App: React.FC = () => {
                 {showMathTutor && (
                     <MathTutorBoard onClose={() => setShowMathTutor(false)} />
                 )}
+                {showProductExtract && (
+                    <ProductExtractDialog
+                        onClose={() => setShowProductExtract(false)}
+                        userEmail={user?.email}
+                    />
+                )}
             </>
         );
     }
@@ -1171,6 +1179,12 @@ const App: React.FC = () => {
             )}
             {showMathTutor && (
                 <MathTutorBoard onClose={() => setShowMathTutor(false)} />
+            )}
+            {showProductExtract && (
+                <ProductExtractDialog
+                    onClose={() => setShowProductExtract(false)}
+                    userEmail={user?.email}
+                />
             )}
 
             {/* 생년월일 명부 모달 */}
@@ -1788,6 +1802,15 @@ const App: React.FC = () => {
                                             >
                                                 <Icon name="BookOpen" size={10} />
                                                 딥 리서치
+                                            </button>
+                                        )}
+                                        {activePersona?.name === '왕주식' && user && (
+                                            <button
+                                                onClick={() => setShowProductExtract(true)}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/20 text-emerald-300 hover:bg-emerald-800/40 hover:text-emerald-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                            >
+                                                <Icon name="Package" size={10} />
+                                                제품추출
                                             </button>
                                         )}
                                         {activePersona?.name === '신은비' && user && (

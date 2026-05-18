@@ -94,6 +94,8 @@
     { "source": "/api/payments/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/payments/:path*" },
     { "source": "/api/research",             "destination": "http://34.50.27.95:3020/api/aimp/research" },
     { "source": "/api/research/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/research/:path*" },
+    { "source": "/api/product-extract",      "destination": "http://34.50.27.95:3020/api/aimp/product-extract" },
+    { "source": "/api/product-extract/:path*", "destination": "http://34.50.27.95:3020/api/aimp/product-extract/:path*" },
     { "source": "/api/math-tutor",           "destination": "http://34.50.27.95:3020/api/aimp/math-tutor" },
     { "source": "/api/math-tutor/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/math-tutor/:path*" },
 
