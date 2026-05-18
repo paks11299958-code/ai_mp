@@ -13,10 +13,106 @@ interface StockTask {
 
 interface StockDetail extends StockTask {
     analysisReport: string | null;
+    claudeReport: string | null;
+    gptReport: string | null;
     sourceLinks: string | null;
     yahooSymbol?: string | null;
     chartImageUrl?: string | null;
 }
+
+interface AiOpinion { opinion: string; score: number | null; target: string; }
+
+function parseClaudeGptOpinion(report: string | null): AiOpinion {
+    if (!report) return { opinion: '—', score: null, target: '—' };
+    const opinionMatch = report.match(/###\s*투자의견\s*\n([^\n]+)/);
+    let opinion = '—'; let score: number | null = null;
+    if (opinionMatch) {
+        const line = opinionMatch[1].trim();
+        const sm = line.match(/([가-힣]+)\s*\((\d+)점\)/);
+        if (sm) { opinion = sm[1]; score = parseInt(sm[2]); }
+        else { opinion = line.split(/[—\-]/)[0].trim() || '—'; }
+    }
+    const targetMatch = report.match(/###\s*목표주가\s*추정\s*\n([^\n]+)/);
+    const target = targetMatch ? targetMatch[1].trim() : '—';
+    return { opinion, score, target };
+}
+
+function parseGeminiOpinion(report: string | null): AiOpinion {
+    if (!report) return { opinion: '—', score: null, target: '—' };
+    let opinion = '—'; let score: number | null = null;
+    const opinionMatch = report.match(/\|\s*투자의견\s*\|\s*\*?\*?([^\n|*]+)/);
+    if (opinionMatch) {
+        const raw = opinionMatch[1].replace(/\*\*/g, '').trim();
+        const sm = raw.match(/([가-힣]+)\s*\((\d+)점\)/);
+        if (sm) { opinion = sm[1]; score = parseInt(sm[2]); }
+        else { opinion = raw.split(/[—\-\s]/)[0] || '—'; }
+    }
+    const targetMatch = report.match(/\|\s*목표주가\s*\|\s*([^|\n]+)/);
+    const target = targetMatch ? targetMatch[1].replace(/\*\*/g, '').trim() : '—';
+    return { opinion, score, target };
+}
+
+function opinionColor(opinion: string, score: number | null): string {
+    const s = score ?? (opinion.includes('매수') ? 72 : opinion.includes('매도') ? 30 : 50);
+    if (s >= 85) return '#10b981';
+    if (s >= 65) return '#3b82f6';
+    if (s >= 40) return '#f59e0b';
+    if (s >= 20) return '#f97316';
+    return '#ef4444';
+}
+
+const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: string | null; gptReport: string | null }> = ({ geminiReport, claudeReport, gptReport }) => {
+    const gemini = parseGeminiOpinion(geminiReport);
+    const claude = parseClaudeGptOpinion(claudeReport);
+    const gpt = parseClaudeGptOpinion(gptReport);
+
+    const ais = [
+        { label: 'Gemini 2.5', emoji: '🔵', data: gemini, accent: '#60a5fa' },
+        { label: 'Claude Sonnet', emoji: '🟣', data: claude, accent: '#a78bfa' },
+        { label: 'GPT-4o', emoji: '🟢', data: gpt, accent: '#34d399' },
+    ];
+
+    return (
+        <div style={{ background: 'linear-gradient(135deg, #0d1b2e 0%, #0a1628 100%)', border: '1px solid rgba(30,58,138,0.35)' }} className="rounded-2xl overflow-hidden mx-5 mt-4">
+            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-800/80">
+                <BarChart2 size={12} className="text-blue-400" />
+                <span className="text-[10px] font-semibold text-blue-300 uppercase tracking-wider">AI 투자의견 비교</span>
+            </div>
+            <div className="grid grid-cols-3 divide-x divide-slate-800/60">
+                {ais.map(({ label, emoji, data, accent }) => {
+                    const color = opinionColor(data.opinion, data.score);
+                    const pct = data.score != null ? data.score : null;
+                    return (
+                        <div key={label} className="flex flex-col items-center gap-2 px-3 py-4">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-sm">{emoji}</span>
+                                <span className="text-[10px] font-semibold" style={{ color: accent }}>{label}</span>
+                            </div>
+                            {/* 의견 + 점수 */}
+                            <div className="text-center">
+                                <div className="text-sm font-bold" style={{ color }}>{data.opinion}</div>
+                                {pct != null && (
+                                    <div className="text-[10px] font-semibold mt-0.5" style={{ color }}>{pct}점</div>
+                                )}
+                            </div>
+                            {/* 점수 바 */}
+                            {pct != null && (
+                                <div className="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
+                                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                                </div>
+                            )}
+                            {/* 목표주가 */}
+                            <div className="text-center mt-0.5">
+                                <div className="text-[9px] text-slate-500 mb-0.5">목표주가</div>
+                                <div className="text-[10px] text-slate-300 font-medium leading-tight">{data.target}</div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
 
 interface Props {
     onClose: () => void;
@@ -506,6 +602,13 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
                                         </div>
                                     </div>
                                 </div>
+
+                                {/* AI 투자의견 비교 카드 */}
+                                <AiOpinionCard
+                                    geminiReport={selected.analysisReport}
+                                    claudeReport={selected.claudeReport}
+                                    gptReport={selected.gptReport}
+                                />
 
                                 {/* 주가 차트 — 네이버 금융 이미지 */}
                                 {naverUrl && naverChartImg && (
