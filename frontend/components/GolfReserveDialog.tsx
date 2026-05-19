@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, MapPin, Calendar, Clock, Loader, CheckCircle, ExternalLink, KeyRound, AlarmClock, List } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, MapPin, Calendar, Clock, Loader, CheckCircle, ExternalLink, KeyRound, AlarmClock, List, Search } from 'lucide-react';
 
 interface GolfCourse {
     id: number;
@@ -56,7 +56,6 @@ function toKST(date: Date) {
     return `${kst.getUTCFullYear()}-${pad(kst.getUTCMonth()+1)}-${pad(kst.getUTCDate())} ${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())}`;
 }
 
-// 예약 오픈 시각 계산 (서버 calcOpenAt과 동일 로직)
 function calcOpenAt(golfDate: string, advanceDays: number, openHour: number, openMinute: number): Date {
     const [y, m, d] = golfDate.split('-').map(Number);
     const golfMidnightKST = new Date(Date.UTC(y, m - 1, d) - 9 * 60 * 60 * 1000);
@@ -68,27 +67,25 @@ function calcOpenAt(golfDate: string, advanceDays: number, openHour: number, ope
 }
 
 export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
-    const [step, setStep]         = useState<Step>('select');
-    const [sidos, setSidos]       = useState<string[]>([]);
-    const [sigungus, setSigungus] = useState<string[]>([]);
-    const [courses, setCourses]   = useState<GolfCourse[]>([]);
-    const [selectedSido, setSelectedSido]       = useState('');
-    const [selectedSigungu, setSelectedSigungu] = useState('');
-    const [selectedCourse, setSelectedCourse]   = useState<GolfCourse | null>(null);
-    const [date, setDate]         = useState('');
+    const [step, setStep]           = useState<Step>('select');
+    const [allCourses, setAllCourses] = useState<GolfCourse[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [coursesLoading, setCoursesLoading] = useState(true);
+    const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
+    const [date, setDate]           = useState('');
     const [timePeriod, setTimePeriod] = useState('morning');
-    const [mode, setMode]         = useState<Mode>('now');
-    const [loading, setLoading]   = useState(false);
-    const [error, setError]       = useState('');
-    const [result, setResult]     = useState('');
+    const [mode, setMode]           = useState<Mode>('now');
+    const [loading, setLoading]     = useState(false);
+    const [error, setError]         = useState('');
+    const [result, setResult]       = useState('');
 
     const [showCredForm, setShowCredForm] = useState(false);
-    const [inputId, setInputId]   = useState('');
-    const [inputPw, setInputPw]   = useState('');
+    const [inputId, setInputId]     = useState('');
+    const [inputPw, setInputPw]     = useState('');
 
     const [showSchedules, setShowSchedules] = useState(false);
-    const [schedules, setSchedules]         = useState<ScheduleItem[]>([]);
-    const [schedLoading, setSchedLoading]   = useState(false);
+    const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
+    const [schedLoading, setSchedLoading] = useState(false);
 
     useEffect(() => {
         const tomorrow = new Date();
@@ -96,24 +93,29 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         setDate(tomorrow.toISOString().split('T')[0]);
     }, []);
 
+    // 모든 골프장 로드 (예약 가능한 것만 필터)
     useEffect(() => {
-        fetch('/api/golf/sido', { credentials: 'include' })
-            .then(r => r.json()).then(d => setSidos(Array.isArray(d) ? d : [])).catch(() => {});
+        setCoursesLoading(true);
+        fetch('/api/golf/courses', { credentials: 'include' })
+            .then(r => r.json())
+            .then(d => {
+                const all = Array.isArray(d) ? d : [];
+                const bookable = all.filter((c: GolfCourse) => c.hasAuto || (c.bookingUrl && c.bookingUrl.length > 0));
+                setAllCourses(bookable);
+            })
+            .catch(() => {})
+            .finally(() => setCoursesLoading(false));
     }, []);
 
-    useEffect(() => {
-        if (!selectedSido) { setSigungus([]); return; }
-        fetch(`/api/golf/sigungu?sido=${encodeURIComponent(selectedSido)}`, { credentials: 'include' })
-            .then(r => r.json()).then(d => setSigungus(Array.isArray(d) ? d : [])).catch(() => {});
-        setSelectedSigungu(''); setCourses([]); setSelectedCourse(null);
-    }, [selectedSido]);
-
-    useEffect(() => {
-        if (!selectedSigungu) { setCourses([]); return; }
-        fetch(`/api/golf/courses?sido=${encodeURIComponent(selectedSido)}&sigungu=${encodeURIComponent(selectedSigungu)}`, { credentials: 'include' })
-            .then(r => r.json()).then(d => setCourses(Array.isArray(d) ? d : [])).catch(() => {});
-        setSelectedCourse(null);
-    }, [selectedSigungu]);
+    const filteredCourses = useMemo(() => {
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return allCourses;
+        return allCourses.filter(c =>
+            c.name.toLowerCase().includes(q) ||
+            c.sido.toLowerCase().includes(q) ||
+            c.sigungu.toLowerCase().includes(q)
+        );
+    }, [allCourses, searchQuery]);
 
     const loadSchedules = () => {
         setSchedLoading(true);
@@ -131,7 +133,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         setInputPw('');
     };
 
-    // 선택된 날짜 + 골프장 기준 오픈 시각 계산
     const openAtInfo = (selectedCourse && date && mode === 'schedule')
         ? (() => {
             try {
@@ -170,7 +171,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                 setResult(data.message || '예약 진행 중입니다.');
                 setStep('done');
             } else {
-                // 시간 예약 — scheduledAt 없이 courseId/golfDate/timePeriod만 전송 (서버가 자동 계산)
                 const res = await fetch('/api/golf/schedule', {
                     method: 'POST', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
@@ -269,54 +269,77 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                     )}
 
                     <div className="p-5 space-y-4">
-                        {/* STEP 1: 골프장 선택 */}
+                        {/* STEP 1: 골프장 목록 */}
                         {step === 'select' && (
                             <>
-                                <p className="text-gray-400 text-xs">시도 → 시군구 → 골프장 순으로 선택하세요.</p>
-                                <div>
-                                    <label className="text-gray-400 text-xs mb-1 block">시도</label>
-                                    <select value={selectedSido} onChange={e => setSelectedSido(e.target.value)}
-                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500">
-                                        <option value="">-- 선택 --</option>
-                                        {sidos.map(s => <option key={s} value={s}>{s}</option>)}
-                                    </select>
+                                {/* 검색 */}
+                                <div className="relative">
+                                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                        placeholder="골프장 이름 또는 지역 검색"
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-xl pl-9 pr-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                    />
                                 </div>
-                                {selectedSido && (
-                                    <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">시군구</label>
-                                        <select value={selectedSigungu} onChange={e => setSelectedSigungu(e.target.value)}
-                                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500">
-                                            <option value="">-- 선택 --</option>
-                                            {sigungus.map(s => <option key={s} value={s}>{s}</option>)}
-                                        </select>
+
+                                {coursesLoading ? (
+                                    <div className="flex justify-center py-8">
+                                        <Loader size={24} className="animate-spin text-green-400" />
                                     </div>
-                                )}
-                                {courses.length > 0 && (
-                                    <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">골프장</label>
-                                        <div className="space-y-2 max-h-52 overflow-y-auto">
-                                            {courses.map(c => (
-                                                <button key={c.id} onClick={() => handleCourseSelect(c)}
-                                                    className="w-full text-left bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl px-3 py-3 transition-colors">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-white text-sm font-medium">{c.name}</span>
-                                                        {c.hasAuto && <span className="text-[10px] bg-green-900 text-green-400 px-2 py-0.5 rounded-full">자동예약</span>}
+                                ) : filteredCourses.length === 0 ? (
+                                    <p className="text-gray-500 text-xs text-center py-6">
+                                        {searchQuery ? '검색 결과가 없습니다.' : '예약 가능한 골프장이 없습니다.'}
+                                    </p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {filteredCourses.map(c => (
+                                            <div key={c.id} className="bg-gray-800 border border-gray-700 rounded-xl px-3 py-3">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                                            <span className="text-white text-sm font-medium">{c.name}</span>
+                                                            {c.hasAuto && (
+                                                                <span className="text-[10px] bg-green-900 text-green-400 px-2 py-0.5 rounded-full shrink-0">자동예약</span>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-gray-500 text-xs mt-0.5">{c.sido} {c.sigungu}</p>
                                                     </div>
-                                                    <p className="text-gray-500 text-xs mt-0.5">{c.address}</p>
-                                                </button>
-                                            ))}
-                                        </div>
+                                                    <div className="shrink-0">
+                                                        {c.hasAuto ? (
+                                                            <button
+                                                                onClick={() => handleCourseSelect(c)}
+                                                                className="px-3 py-1.5 rounded-lg bg-green-600 hover:bg-green-500 text-white text-xs font-medium transition-colors"
+                                                            >
+                                                                예약
+                                                            </button>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => c.bookingUrl && window.open(c.bookingUrl, '_blank')}
+                                                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-medium transition-colors"
+                                                            >
+                                                                <ExternalLink size={11} /> 예약 사이트
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </>
                         )}
 
-                        {/* STEP 2: 날짜/시간/방식 선택 */}
+                        {/* STEP 2: 날짜/시간/방식 선택 (자동예약 골프장만) */}
                         {step === 'datetime' && selectedCourse && (
                             <>
                                 <div className="bg-gray-800 rounded-xl px-4 py-3">
-                                    <p className="text-white font-medium text-sm">{selectedCourse.name}</p>
-                                    <p className="text-gray-500 text-xs mt-0.5">{selectedCourse.address}</p>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-white font-medium text-sm">{selectedCourse.name}</p>
+                                        <span className="text-[10px] bg-green-900 text-green-400 px-2 py-0.5 rounded-full">자동예약</span>
+                                    </div>
+                                    <p className="text-gray-500 text-xs mt-0.5">{selectedCourse.sido} {selectedCourse.sigungu}</p>
                                 </div>
 
                                 {/* 라운드 날짜 */}
@@ -329,106 +352,99 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                 </div>
 
                                 {/* 시간대 */}
-                                {selectedCourse.hasAuto && (
-                                    <div>
-                                        <label className="text-gray-400 text-xs mb-1 flex items-center gap-1">
-                                            <Clock size={12} /> 시간대
-                                        </label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {TIME_PERIODS.map(p => (
-                                                <button key={p.value} onClick={() => setTimePeriod(p.value)}
-                                                    className={`py-2 rounded-xl text-xs font-medium transition-colors border ${
-                                                        timePeriod === p.value
-                                                            ? 'bg-green-600 border-green-500 text-white'
-                                                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
-                                                    }`}>
-                                                    <div>{p.label}</div>
-                                                    <div className="text-[10px] opacity-70">{p.desc}</div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* 예약 방식 선택 */}
-                                {selectedCourse.hasAuto && (
-                                    <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">예약 방식</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button onClick={() => setMode('now')}
-                                                className={`py-2.5 rounded-xl text-xs font-medium border transition-colors flex items-center justify-center gap-1.5 ${
-                                                    mode === 'now'
+                                <div>
+                                    <label className="text-gray-400 text-xs mb-1 flex items-center gap-1">
+                                        <Clock size={12} /> 시간대
+                                    </label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {TIME_PERIODS.map(p => (
+                                            <button key={p.value} onClick={() => setTimePeriod(p.value)}
+                                                className={`py-2 rounded-xl text-xs font-medium transition-colors border ${
+                                                    timePeriod === p.value
                                                         ? 'bg-green-600 border-green-500 text-white'
                                                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
                                                 }`}>
-                                                <Clock size={12} /> 지금 바로
+                                                <div>{p.label}</div>
+                                                <div className="text-[10px] opacity-70">{p.desc}</div>
                                             </button>
-                                            <button onClick={() => setMode('schedule')}
-                                                className={`py-2.5 rounded-xl text-xs font-medium border transition-colors flex items-center justify-center gap-1.5 ${
-                                                    mode === 'schedule'
-                                                        ? 'bg-blue-600 border-blue-500 text-white'
-                                                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
-                                                }`}>
-                                                <AlarmClock size={12} /> 오픈 시각 예약
-                                            </button>
-                                        </div>
-
-                                        {/* 오픈 시각 자동 안내 */}
-                                        {mode === 'schedule' && date && (
-                                            <div className="mt-2 bg-blue-950/40 border border-blue-800/50 rounded-xl px-4 py-3 space-y-1">
-                                                <p className="text-blue-300 text-xs font-medium flex items-center gap-1">
-                                                    <AlarmClock size={11} /> 자동 계산된 예약 일정
-                                                </p>
-                                                {openAtInfo ? (
-                                                    <>
-                                                        <p className="text-gray-300 text-xs">
-                                                            예약 오픈: <span className="text-white font-medium">{toKST(openAtInfo.openAt)} KST</span>
-                                                        </p>
-                                                        <p className="text-gray-300 text-xs">
-                                                            봇 접속: <span className="text-white font-medium">{toKST(openAtInfo.botAt)} KST</span>
-                                                            <span className="text-gray-500"> (3분 전 대기)</span>
-                                                        </p>
-                                                        <p className="text-gray-500 text-[11px] mt-1">
-                                                            {selectedCourse.advanceDays}일 전 {pad(selectedCourse.openHour)}:{pad(selectedCourse.openMinute)} 오픈 기준
-                                                        </p>
-                                                        {!openAtInfo.valid && (
-                                                            <p className="text-red-400 text-xs mt-1">⚠ 예약 시각이 이미 지났습니다. 날짜를 다시 선택해주세요.</p>
-                                                        )}
-                                                    </>
-                                                ) : (
-                                                    <p className="text-gray-500 text-xs">날짜를 선택하면 자동 계산됩니다.</p>
-                                                )}
-                                            </div>
-                                        )}
+                                        ))}
                                     </div>
-                                )}
+                                </div>
+
+                                {/* 예약 방식 선택 */}
+                                <div>
+                                    <label className="text-gray-400 text-xs mb-1 block">예약 방식</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button onClick={() => setMode('now')}
+                                            className={`py-2.5 rounded-xl text-xs font-medium border transition-colors flex items-center justify-center gap-1.5 ${
+                                                mode === 'now'
+                                                    ? 'bg-green-600 border-green-500 text-white'
+                                                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
+                                            }`}>
+                                            <Clock size={12} /> 지금 바로
+                                        </button>
+                                        <button onClick={() => setMode('schedule')}
+                                            className={`py-2.5 rounded-xl text-xs font-medium border transition-colors flex items-center justify-center gap-1.5 ${
+                                                mode === 'schedule'
+                                                    ? 'bg-blue-600 border-blue-500 text-white'
+                                                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
+                                            }`}>
+                                            <AlarmClock size={12} /> 오픈 시각 예약
+                                        </button>
+                                    </div>
+
+                                    {mode === 'schedule' && date && (
+                                        <div className="mt-2 bg-blue-950/40 border border-blue-800/50 rounded-xl px-4 py-3 space-y-1">
+                                            <p className="text-blue-300 text-xs font-medium flex items-center gap-1">
+                                                <AlarmClock size={11} /> 자동 계산된 예약 일정
+                                            </p>
+                                            {openAtInfo ? (
+                                                <>
+                                                    <p className="text-gray-300 text-xs">
+                                                        예약 오픈: <span className="text-white font-medium">{toKST(openAtInfo.openAt)} KST</span>
+                                                    </p>
+                                                    <p className="text-gray-300 text-xs">
+                                                        봇 접속: <span className="text-white font-medium">{toKST(openAtInfo.botAt)} KST</span>
+                                                        <span className="text-gray-500"> (3분 전 대기)</span>
+                                                    </p>
+                                                    <p className="text-gray-500 text-[11px] mt-1">
+                                                        {selectedCourse.advanceDays}일 전 {pad(selectedCourse.openHour)}:{pad(selectedCourse.openMinute)} 오픈 기준
+                                                    </p>
+                                                    {!openAtInfo.valid && (
+                                                        <p className="text-red-400 text-xs mt-1">⚠ 예약 시각이 이미 지났습니다. 날짜를 다시 선택해주세요.</p>
+                                                    )}
+                                                </>
+                                            ) : (
+                                                <p className="text-gray-500 text-xs">날짜를 선택하면 자동 계산됩니다.</p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
 
                                 {/* 로그인 정보 */}
-                                {selectedCourse.hasAuto && (
-                                    <div className="border border-gray-700 rounded-xl overflow-hidden">
-                                        <button onClick={() => setShowCredForm(v => !v)}
-                                            className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-800 hover:bg-gray-750 transition-colors">
-                                            <div className="flex items-center gap-2">
-                                                <KeyRound size={13} className="text-gray-400" />
-                                                <span className="text-xs text-gray-300">로그인 정보</span>
-                                                {selectedCourse.hasCredential
-                                                    ? <span className="text-[10px] bg-blue-900 text-blue-400 px-2 py-0.5 rounded-full">등록됨</span>
-                                                    : <span className="text-[10px] bg-red-900/60 text-red-400 px-2 py-0.5 rounded-full">미등록</span>
-                                                }
-                                            </div>
-                                            <span className="text-gray-500 text-xs">{showCredForm ? '▲' : '▼'}</span>
-                                        </button>
-                                        {showCredForm && (
-                                            <div className="px-4 py-3 bg-gray-800/50 space-y-2 border-t border-gray-700">
-                                                <p className="text-gray-500 text-xs">골프장 사이트 아이디/비밀번호를 입력하면 저장 후 사용합니다.</p>
-                                                <input type="text" value={inputId} onChange={e => setInputId(e.target.value)} placeholder="아이디"
-                                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500" />
-                                                <input type="password" value={inputPw} onChange={e => setInputPw(e.target.value)} placeholder="비밀번호"
-                                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500" />
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                <div className="border border-gray-700 rounded-xl overflow-hidden">
+                                    <button onClick={() => setShowCredForm(v => !v)}
+                                        className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-800 hover:bg-gray-750 transition-colors">
+                                        <div className="flex items-center gap-2">
+                                            <KeyRound size={13} className="text-gray-400" />
+                                            <span className="text-xs text-gray-300">로그인 정보</span>
+                                            {selectedCourse.hasCredential
+                                                ? <span className="text-[10px] bg-blue-900 text-blue-400 px-2 py-0.5 rounded-full">등록됨</span>
+                                                : <span className="text-[10px] bg-red-900/60 text-red-400 px-2 py-0.5 rounded-full">미등록</span>
+                                            }
+                                        </div>
+                                        <span className="text-gray-500 text-xs">{showCredForm ? '▲' : '▼'}</span>
+                                    </button>
+                                    {showCredForm && (
+                                        <div className="px-4 py-3 bg-gray-800/50 space-y-2 border-t border-gray-700">
+                                            <p className="text-gray-500 text-xs">골프장 사이트 아이디/비밀번호를 입력하면 저장 후 사용합니다.</p>
+                                            <input type="text" value={inputId} onChange={e => setInputId(e.target.value)} placeholder="아이디"
+                                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500" />
+                                            <input type="password" value={inputPw} onChange={e => setInputPw(e.target.value)} placeholder="비밀번호"
+                                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500" />
+                                        </div>
+                                    )}
+                                </div>
 
                                 {error && <p className="text-red-400 text-xs">{error}</p>}
 
@@ -437,21 +453,14 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                         className="flex-1 py-2.5 rounded-xl border border-gray-700 text-gray-400 text-sm hover:text-white transition-colors">
                                         뒤로
                                     </button>
-                                    {selectedCourse.hasAuto ? (
-                                        <button onClick={handleSubmit}
-                                            disabled={!date || loading || (mode === 'schedule' && !!openAtInfo && !openAtInfo.valid)}
-                                            className={`flex-1 py-2.5 rounded-xl disabled:opacity-40 text-white text-sm font-medium transition-colors ${
-                                                mode === 'schedule' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'
-                                            }`}>
-                                            {mode === 'schedule' ? '오픈 시각 예약 등록' : '자동 예약'}
-                                        </button>
-                                    ) : (
-                                        <button onClick={() => selectedCourse.bookingUrl && window.open(selectedCourse.bookingUrl, '_blank')}
-                                            disabled={!selectedCourse.bookingUrl}
-                                            className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-sm font-medium transition-colors flex items-center justify-center gap-1.5">
-                                            <ExternalLink size={13} /> 예약 사이트
-                                        </button>
-                                    )}
+                                    <button onClick={handleSubmit}
+                                        disabled={!date || loading || (mode === 'schedule' && !!openAtInfo && !openAtInfo.valid)}
+                                        className={`flex-1 py-2.5 rounded-xl disabled:opacity-40 text-white text-sm font-medium transition-colors ${
+                                            mode === 'schedule' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'
+                                        }`}>
+                                        {loading ? <Loader size={14} className="animate-spin mx-auto" /> :
+                                            mode === 'schedule' ? '오픈 시각 예약 등록' : '자동 예약'}
+                                    </button>
                                 </div>
                             </>
                         )}
