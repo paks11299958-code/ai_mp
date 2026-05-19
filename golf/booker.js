@@ -77,16 +77,15 @@ async function book(dateStr, timePeriod = 'morning') {
         await page.evaluate(([y, m, d]) => Date_Click(y, m, d), [year, month, day]);
         await page.waitForTimeout(2500);
 
-        // 4. 타임슬롯 수집
+        // 4. 타임슬롯 수집 (인덱스 포함)
         const slots = await page.evaluate(() => {
-            return Array.from(document.querySelectorAll('.step2_table2.in_table')).map(row => {
+            return Array.from(document.querySelectorAll('.step2_table2.in_table')).map((row, idx) => {
                 const cells = Array.from(row.querySelectorAll('li'));
-                const btn   = row.querySelector('button');
                 return {
-                    time:    cells[0]?.textContent?.trim() ?? '',
-                    course:  cells[1]?.textContent?.trim() ?? '',
-                    price:   cells[2]?.textContent?.trim() ?? '',
-                    onclick: btn?.getAttribute('onclick') ?? '',
+                    idx,
+                    time:   cells[0]?.textContent?.trim() ?? '',
+                    course: cells[1]?.textContent?.trim() ?? '',
+                    price:  cells[2]?.textContent?.trim() ?? '',
                 };
             });
         });
@@ -115,31 +114,32 @@ async function book(dateStr, timePeriod = 'morning') {
         const target = filtered[0];
         console.log(`예약 시도: ${dateStr} ${target.time} ${target.course} ${target.price}`);
 
-        // 6. 다이얼로그 핸들러를 버튼 클릭 전에 등록 (accept 하지 않으면 예약 취소됨)
-        let dialogAccepted = false;
+        // 6. 다이얼로그 핸들러를 버튼 클릭 전에 등록
         page.on('dialog', async dialog => {
             console.log('다이얼로그:', dialog.message());
             await dialog.accept();
-            dialogAccepted = true;
         });
 
-        // 7. 신청 버튼 클릭
-        await page.evaluate(onclick => eval(onclick), target.onclick);
+        // 7. 실제 버튼 요소를 찾아서 클릭 (eval 방식 제거)
+        const allButtons = await page.$$('.step2_table2.in_table button');
+        const btn = allButtons[target.idx];
+        if (!btn) throw new Error('예약 버튼을 찾을 수 없습니다.');
+        await btn.click();
         await page.waitForTimeout(3000);
 
         // 8. 예약 완료 여부를 예약 목록에서 실제 확인
-        const MY_RESERVE_URL = `${GOLF_URL}/html/mypage/reserve.asp`;
+        const MY_RESERVE_URL = `${GOLF_URL}/html/reserve/reserve02.asp`;
         await page.goto(MY_RESERVE_URL);
         await page.waitForLoadState('networkidle');
         await page.waitForTimeout(1500);
 
-        const confirmed = await page.evaluate(([y, m, d, time]) => {
+        const confirmed = await page.evaluate(([y, m, d]) => {
             const rows = Array.from(document.querySelectorAll('table tr'));
             return rows.some(row => {
                 const text = row.textContent || '';
-                return text.includes(`${y}-${m}-${d}`) || text.includes(`${y}.${m}.${d}`) || text.includes(time);
+                return text.includes(`${y}-${m}-${d}`) || text.includes(`${y}.${m}.${d}`);
             });
-        }, [year, month, day, target.time]);
+        }, [year, month, day]);
 
         // 결과 스크린샷
         const screenshotPath = `/home/paks11299958/ai_mp/golf/result_${Date.now()}.png`;
