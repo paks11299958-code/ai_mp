@@ -1784,6 +1784,13 @@ const App: React.FC = () => {
                                                     <Icon name="Play" size={10} />
                                                     스윙 기록
                                                 </button>
+                                                <button
+                                                    onClick={() => setShowGolfReserve(true)}
+                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                >
+                                                    <Icon name="MapPin" size={10} />
+                                                    골프 예약
+                                                </button>
                                             </>
                                         )}
                                         {activePersona?.name === '서아' && user && (
