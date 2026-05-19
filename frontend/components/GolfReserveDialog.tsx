@@ -21,6 +21,7 @@ interface ScheduleItem {
     courseName: string;
     golfDate: string;
     timePeriod: string;
+    preferredTime: string | null;
     scheduledAt: string;
     openAt: string | null;
     status: string;
@@ -35,16 +36,28 @@ type Step = 'select' | 'datetime' | 'running' | 'done';
 type Mode = 'now' | 'schedule';
 
 const TIME_PERIODS = [
-    { value: 'morning',   label: '오전', desc: '~11:59' },
-    { value: 'afternoon', label: '오후', desc: '12:00~16:59' },
-    { value: 'evening',   label: '저녁', desc: '17:00~' },
+    { value: 'morning',   label: '오전', desc: '~11:59',   start: 6,  end: 12 },
+    { value: 'afternoon', label: '오후', desc: '12:00~16:59', start: 12, end: 17 },
+    { value: 'evening',   label: '저녁', desc: '17:00~',   start: 17, end: 21 },
 ];
 
+// 시간대별 30분 슬롯 생성
+function genTimeSlots(period: typeof TIME_PERIODS[0]): string[] {
+    const slots: string[] = [];
+    for (let h = period.start; h < period.end; h++) {
+        slots.push(`${String(h).padStart(2, '0')}:00`);
+        if (h < period.end - 1 || period.value !== 'evening') {
+            slots.push(`${String(h).padStart(2, '0')}:30`);
+        }
+    }
+    return slots;
+}
+
 const STATUS_LABEL: Record<string, { text: string; cls: string }> = {
-    pending:  { text: '대기 중',  cls: 'bg-yellow-900 text-yellow-400' },
-    running:  { text: '진행 중',  cls: 'bg-blue-900 text-blue-400' },
+    pending:  { text: '대기 중',   cls: 'bg-yellow-900 text-yellow-400' },
+    running:  { text: '진행 중',   cls: 'bg-blue-900 text-blue-400' },
     success:  { text: '예약 완료', cls: 'bg-green-900 text-green-400' },
-    failed:   { text: '실패',     cls: 'bg-red-900/60 text-red-400' },
+    failed:   { text: '실패',      cls: 'bg-red-900/60 text-red-400' },
 };
 
 const PERIOD_KO: Record<string, string> = { morning: '오전', afternoon: '오후', evening: '저녁' };
@@ -56,52 +69,68 @@ function toKST(date: Date) {
     return `${kst.getUTCFullYear()}-${pad(kst.getUTCMonth()+1)}-${pad(kst.getUTCDate())} ${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())}`;
 }
 
-function calcOpenAt(golfDate: string, advanceDays: number, openHour: number, openMinute: number): Date {
-    const [y, m, d] = golfDate.split('-').map(Number);
-    const golfMidnightKST = new Date(Date.UTC(y, m - 1, d) - 9 * 60 * 60 * 1000);
-    const openKST = new Date(golfMidnightKST.getTime() - advanceDays * 24 * 60 * 60 * 1000);
-    const utcHour = openHour - 9 < 0 ? openHour - 9 + 24 : openHour - 9;
-    openKST.setUTCHours(utcHour, openMinute, 0, 0);
-    if (openHour < 9) openKST.setUTCDate(openKST.getUTCDate() + 1);
-    return openKST;
+// KST YYYY-MM-DD + HH:MM → UTC Date
+function kstToDate(date: string, time: string): Date | null {
+    try {
+        const [y, m, d] = date.split('-').map(Number);
+        const [h, min]  = time.split(':').map(Number);
+        const utcH = h - 9 < 0 ? h - 9 + 24 : h - 9;
+        const base = new Date(Date.UTC(y, m - 1, d, utcH, min));
+        if (h < 9) base.setUTCDate(base.getUTCDate() + 1);
+        return base;
+    } catch { return null; }
 }
 
 export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
-    const [step, setStep]           = useState<Step>('select');
+    const [step, setStep]             = useState<Step>('select');
     const [allCourses, setAllCourses] = useState<GolfCourse[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [coursesLoading, setCoursesLoading] = useState(true);
     const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
-    const [date, setDate]           = useState('');
-    const [timePeriod, setTimePeriod] = useState('morning');
-    const [mode, setMode]           = useState<Mode>('now');
-    const [loading, setLoading]     = useState(false);
-    const [error, setError]         = useState('');
-    const [result, setResult]       = useState('');
+
+    // 라운드 날짜 / 시간대 / 희망 티타임
+    const [date, setDate]                 = useState('');
+    const [timePeriod, setTimePeriod]     = useState('morning');
+    const [preferredTime, setPreferredTime] = useState('');
+
+    // 예약 방식
+    const [mode, setMode] = useState<Mode>('now');
+
+    // 오픈 시각 (사용자 직접 입력)
+    const [openDate, setOpenDate] = useState('');
+    const [openTime, setOpenTime] = useState('00:00');
+
+    const [loading, setLoading]   = useState(false);
+    const [error, setError]       = useState('');
+    const [result, setResult]     = useState('');
 
     const [showCredForm, setShowCredForm] = useState(false);
-    const [inputId, setInputId]     = useState('');
-    const [inputPw, setInputPw]     = useState('');
+    const [inputId, setInputId]   = useState('');
+    const [inputPw, setInputPw]   = useState('');
 
     const [showSchedules, setShowSchedules] = useState(false);
-    const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
-    const [schedLoading, setSchedLoading] = useState(false);
+    const [schedules, setSchedules]         = useState<ScheduleItem[]>([]);
+    const [schedLoading, setSchedLoading]   = useState(false);
+
+    const today = new Date().toISOString().split('T')[0];
 
     useEffect(() => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
-        setDate(tomorrow.toISOString().split('T')[0]);
+        const t = tomorrow.toISOString().split('T')[0];
+        setDate(t);
+        // 오픈 날짜 기본값: 오늘
+        setOpenDate(today);
     }, []);
 
-    // 모든 골프장 로드 (예약 가능한 것만 필터)
+    // 모든 골프장 로드
     useEffect(() => {
         setCoursesLoading(true);
         fetch('/api/golf/courses', { credentials: 'include' })
             .then(r => r.json())
             .then(d => {
                 const all = Array.isArray(d) ? d : [];
-                const bookable = all.filter((c: GolfCourse) => c.hasAuto || (c.bookingUrl && c.bookingUrl.length > 0));
-                setAllCourses(bookable);
+                setAllCourses(all.filter((c: GolfCourse) => c.hasAuto || (c.bookingUrl && c.bookingUrl.length > 0)));
             })
             .catch(() => {})
             .finally(() => setCoursesLoading(false));
@@ -117,6 +146,20 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         );
     }, [allCourses, searchQuery]);
 
+    // 선택한 시간대의 슬롯
+    const timeSlots = useMemo(() => {
+        const p = TIME_PERIODS.find(p => p.value === timePeriod);
+        return p ? genTimeSlots(p) : [];
+    }, [timePeriod]);
+
+    // 봇 실행 시각 계산 (오픈 3분 전)
+    const botAt = useMemo(() => {
+        if (!openDate || !openTime) return null;
+        const open = kstToDate(openDate, openTime);
+        if (!open) return null;
+        return new Date(open.getTime() - 3 * 60 * 1000);
+    }, [openDate, openTime]);
+
     const loadSchedules = () => {
         setSchedLoading(true);
         fetch('/api/golf/schedules', { credentials: 'include' })
@@ -131,25 +174,16 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         setShowCredForm(course.hasAuto && !course.hasCredential);
         setInputId(course.loginId || '');
         setInputPw('');
+        setPreferredTime('');
     };
-
-    const openAtInfo = (selectedCourse && date && mode === 'schedule')
-        ? (() => {
-            try {
-                const openAt = calcOpenAt(date, selectedCourse.advanceDays, selectedCourse.openHour, selectedCourse.openMinute);
-                const botAt  = new Date(openAt.getTime() - 3 * 60 * 1000);
-                return { openAt, botAt, valid: botAt > new Date() };
-            } catch { return null; }
-        })()
-        : null;
 
     const handleSubmit = async () => {
         if (!selectedCourse || !date) return;
         if (showCredForm && (!inputId.trim() || !inputPw.trim())) {
             setError('아이디와 비밀번호를 입력해주세요.'); return;
         }
-        if (mode === 'schedule' && openAtInfo && !openAtInfo.valid) {
-            setError('계산된 예약 시도 시각이 이미 지났습니다. 골프 날짜를 확인해주세요.'); return;
+        if (mode === 'schedule' && (!openDate || !openTime)) {
+            setError('예약 오픈 날짜와 시간을 입력해주세요.'); return;
         }
 
         setLoading(true); setError('');
@@ -164,7 +198,11 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                 const res = await fetch('/api/golf/reserve', {
                     method: 'POST', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ courseId: selectedCourse.id, date, timePeriod, ...credBody }),
+                    body: JSON.stringify({
+                        courseId: selectedCourse.id, date, timePeriod,
+                        preferredTime: preferredTime || undefined,
+                        ...credBody,
+                    }),
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || '예약 요청 실패');
@@ -174,18 +212,23 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                 const res = await fetch('/api/golf/schedule', {
                     method: 'POST', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ courseId: selectedCourse.id, golfDate: date, timePeriod, ...credBody }),
+                    body: JSON.stringify({
+                        courseId: selectedCourse.id, golfDate: date, timePeriod,
+                        preferredTime: preferredTime || undefined,
+                        openDate, openTime,
+                        ...credBody,
+                    }),
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || '스케줄 등록 실패');
-                const openStr = openAtInfo ? toKST(openAtInfo.openAt) : '';
-                const botStr  = openAtInfo ? toKST(openAtInfo.botAt)  : '';
+                const openStr = botAt ? toKST(new Date(botAt.getTime() + 3 * 60 * 1000)) : openDate + ' ' + openTime;
+                const botStr  = botAt ? toKST(botAt) : '';
                 setResult(`예약 오픈: ${openStr} KST\n봇 접속: ${botStr} KST (3분 전)\n오픈 즉시 자동 예약합니다.`);
                 setStep('done');
             }
         } catch (e: any) {
             setError(e.message);
-            setStep('datetime');
+            if (step === 'running') setStep('datetime');
         } finally {
             setLoading(false);
         }
@@ -196,8 +239,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         await fetch(`/api/golf/schedule/${id}`, { method: 'DELETE', credentials: 'include' });
         loadSchedules();
     };
-
-    const today = new Date().toISOString().split('T')[0];
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -243,6 +284,7 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                                     </div>
                                                     <p className="text-gray-400 text-xs mt-0.5">
                                                         라운드: {s.golfDate} {PERIOD_KO[s.timePeriod]}
+                                                        {s.preferredTime && <span className="ml-1 text-green-400">{s.preferredTime}</span>}
                                                     </p>
                                                     {s.openAt && (
                                                         <p className="text-gray-500 text-xs">
@@ -272,7 +314,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                         {/* STEP 1: 골프장 목록 */}
                         {step === 'select' && (
                             <>
-                                {/* 검색 */}
                                 <div className="relative">
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                                     <input
@@ -331,7 +372,7 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                             </>
                         )}
 
-                        {/* STEP 2: 날짜/시간/방식 선택 (자동예약 골프장만) */}
+                        {/* STEP 2: 날짜/시간/방식 선택 */}
                         {step === 'datetime' && selectedCourse && (
                             <>
                                 <div className="bg-gray-800 rounded-xl px-4 py-3">
@@ -358,7 +399,8 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                     </label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {TIME_PERIODS.map(p => (
-                                            <button key={p.value} onClick={() => setTimePeriod(p.value)}
+                                            <button key={p.value}
+                                                onClick={() => { setTimePeriod(p.value); setPreferredTime(''); }}
                                                 className={`py-2 rounded-xl text-xs font-medium transition-colors border ${
                                                     timePeriod === p.value
                                                         ? 'bg-green-600 border-green-500 text-white'
@@ -369,9 +411,32 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                             </button>
                                         ))}
                                     </div>
+
+                                    {/* 희망 티타임 선택 */}
+                                    <div className="mt-2">
+                                        <p className="text-gray-500 text-[11px] mb-1.5">희망 티타임 (선택)</p>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {timeSlots.map(t => (
+                                                <button key={t}
+                                                    onClick={() => setPreferredTime(prev => prev === t ? '' : t)}
+                                                    className={`px-2.5 py-1 rounded-lg text-xs transition-colors border ${
+                                                        preferredTime === t
+                                                            ? 'bg-green-600 border-green-500 text-white'
+                                                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
+                                                    }`}>
+                                                    {t}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {preferredTime && (
+                                            <p className="text-green-400 text-[11px] mt-1">
+                                                {preferredTime} 티타임 우선 예약 시도
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
 
-                                {/* 예약 방식 선택 */}
+                                {/* 예약 방식 */}
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">예약 방식</label>
                                     <div className="grid grid-cols-2 gap-2">
@@ -393,29 +458,36 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                         </button>
                                     </div>
 
-                                    {mode === 'schedule' && date && (
-                                        <div className="mt-2 bg-blue-950/40 border border-blue-800/50 rounded-xl px-4 py-3 space-y-1">
+                                    {/* 오픈 시각 직접 입력 */}
+                                    {mode === 'schedule' && (
+                                        <div className="mt-2 bg-blue-950/40 border border-blue-800/50 rounded-xl px-4 py-3 space-y-3">
                                             <p className="text-blue-300 text-xs font-medium flex items-center gap-1">
-                                                <AlarmClock size={11} /> 자동 계산된 예약 일정
+                                                <AlarmClock size={11} /> 예약 오픈 일시 설정
                                             </p>
-                                            {openAtInfo ? (
-                                                <>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <p className="text-gray-500 text-[11px] mb-1">오픈 날짜</p>
+                                                    <input type="date" value={openDate} min={today}
+                                                        onChange={e => setOpenDate(e.target.value)}
+                                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-gray-500 text-[11px] mb-1">오픈 시각 (KST)</p>
+                                                    <input type="time" value={openTime}
+                                                        onChange={e => setOpenTime(e.target.value)}
+                                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
+                                                </div>
+                                            </div>
+                                            {botAt && (
+                                                <div className="space-y-0.5">
                                                     <p className="text-gray-300 text-xs">
-                                                        예약 오픈: <span className="text-white font-medium">{toKST(openAtInfo.openAt)} KST</span>
+                                                        예약 오픈: <span className="text-white font-medium">{openDate} {openTime} KST</span>
                                                     </p>
                                                     <p className="text-gray-300 text-xs">
-                                                        봇 접속: <span className="text-white font-medium">{toKST(openAtInfo.botAt)} KST</span>
+                                                        봇 접속: <span className="text-white font-medium">{toKST(botAt)} KST</span>
                                                         <span className="text-gray-500"> (3분 전 대기)</span>
                                                     </p>
-                                                    <p className="text-gray-500 text-[11px] mt-1">
-                                                        {selectedCourse.advanceDays}일 전 {pad(selectedCourse.openHour)}:{pad(selectedCourse.openMinute)} 오픈 기준
-                                                    </p>
-                                                    {!openAtInfo.valid && (
-                                                        <p className="text-red-400 text-xs mt-1">⚠ 예약 시각이 이미 지났습니다. 날짜를 다시 선택해주세요.</p>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <p className="text-gray-500 text-xs">날짜를 선택하면 자동 계산됩니다.</p>
+                                                </div>
                                             )}
                                         </div>
                                     )}
@@ -453,13 +525,13 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                         className="flex-1 py-2.5 rounded-xl border border-gray-700 text-gray-400 text-sm hover:text-white transition-colors">
                                         뒤로
                                     </button>
-                                    <button onClick={handleSubmit}
-                                        disabled={!date || loading || (mode === 'schedule' && !!openAtInfo && !openAtInfo.valid)}
+                                    <button onClick={handleSubmit} disabled={!date || loading}
                                         className={`flex-1 py-2.5 rounded-xl disabled:opacity-40 text-white text-sm font-medium transition-colors ${
                                             mode === 'schedule' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'
                                         }`}>
-                                        {loading ? <Loader size={14} className="animate-spin mx-auto" /> :
-                                            mode === 'schedule' ? '오픈 시각 예약 등록' : '자동 예약'}
+                                        {loading
+                                            ? <Loader size={14} className="animate-spin mx-auto" />
+                                            : mode === 'schedule' ? '오픈 시각 예약 등록' : '자동 예약'}
                                     </button>
                                 </div>
                             </>
