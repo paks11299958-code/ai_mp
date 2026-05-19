@@ -2427,11 +2427,10 @@ interface GolfCourseAdmin {
     bookingUrl: string | null;
     hasAuto: boolean;
     bookerType: string | null;
-    loginId: string | null;
     hasCredential: boolean;
 }
 
-const EMPTY_FORM = { name: '', sido: '', sigungu: '', address: '', bookingUrl: '', hasAuto: false, bookerType: '', loginId: '', loginPw: '' };
+const EMPTY_FORM = { name: '', sido: '', sigungu: '', address: '', bookingUrl: '', hasAuto: false, bookerType: '' };
 
 const GolfCoursesPanel: React.FC = () => {
     const [courses, setCourses]   = useState<GolfCourseAdmin[]>([]);
@@ -2455,7 +2454,7 @@ const GolfCoursesPanel: React.FC = () => {
 
     const openNew = () => { setForm({ ...EMPTY_FORM }); setEditing('new'); setError(''); };
     const openEdit = (c: GolfCourseAdmin) => {
-        setForm({ name: c.name, sido: c.sido, sigungu: c.sigungu, address: c.address || '', bookingUrl: c.bookingUrl || '', hasAuto: c.hasAuto, bookerType: c.bookerType || '', loginId: c.loginId || '', loginPw: '' });
+        setForm({ name: c.name, sido: c.sido, sigungu: c.sigungu, address: c.address || '', bookingUrl: c.bookingUrl || '', hasAuto: c.hasAuto, bookerType: c.bookerType || '' });
         setEditing(c.id);
         setError('');
     };
@@ -2464,11 +2463,9 @@ const GolfCoursesPanel: React.FC = () => {
         if (!form.name || !form.sido || !form.sigungu) { setError('골프장명, 시도, 시군구는 필수입니다.'); return; }
         setSaving(true); setError('');
         try {
-            const body: any = { ...form, hasAuto: form.hasAuto };
-            if (!body.loginPw) delete body.loginPw; // 비워두면 기존 비밀번호 유지
             const url    = editing === 'new' ? '/api/golf/admin/courses' : `/api/golf/admin/courses/${editing}`;
             const method = editing === 'new' ? 'POST' : 'PUT';
-            const res    = await fetch(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const res    = await fetch(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
             if (!res.ok) { const d = await res.json(); throw new Error(d.error || '저장 실패'); }
             setEditing(null);
             load();
@@ -2530,14 +2527,6 @@ const GolfCoursesPanel: React.FC = () => {
                             <label className="text-gray-400 text-xs block mb-1">부커 타입</label>
                             <input value={form.bookerType} onChange={e => f('bookerType', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="adtgv" />
                         </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">로그인 ID</label>
-                            <input value={form.loginId} onChange={e => f('loginId', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="골프장 사이트 아이디" />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">비밀번호 {editing !== 'new' && <span className="text-gray-500">(변경 시에만 입력)</span>}</label>
-                            <input type="password" value={form.loginPw} onChange={e => f('loginPw', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="골프장 사이트 비밀번호" />
-                        </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <input type="checkbox" id="hasAuto" checked={form.hasAuto} onChange={e => f('hasAuto', e.target.checked)} className="rounded" />
@@ -2569,7 +2558,6 @@ const GolfCoursesPanel: React.FC = () => {
                                     }
                                 </div>
                                 <p className="text-gray-500 text-xs mt-0.5">{c.sido} {c.sigungu} {c.address && `· ${c.address}`}</p>
-                                {c.loginId && <p className="text-gray-600 text-xs">ID: {c.loginId}</p>}
                             </div>
                             <div className="flex gap-1.5 shrink-0">
                                 <button onClick={() => openEdit(c)} className="px-2.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg">수정</button>
