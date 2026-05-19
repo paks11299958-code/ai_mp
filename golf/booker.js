@@ -65,16 +65,16 @@ async function book(dateStr, timePeriod = 'morning') {
         await page.waitForTimeout(1500);
 
         // 3. 날짜 클릭
-        const dateAvailable = await page.evaluate((y, m, d) => {
+        const dateAvailable = await page.evaluate(([y, m, d]) => {
             const cells = Array.from(document.querySelectorAll('.calendar .days li div.book'));
             return cells.some(el => el.getAttribute('onclick')?.includes(`Date_Click('${y}','${m}','${d}')`));
-        }, year, month, day);
+        }, [year, month, day]);
 
         if (!dateAvailable) {
             throw new Error(`${dateStr} 예약 가능한 날짜가 아닙니다.`);
         }
 
-        await page.evaluate((y, m, d) => Date_Click(y, m, d), year, month, day);
+        await page.evaluate(([y, m, d]) => Date_Click(y, m, d), [year, month, day]);
         await page.waitForTimeout(2500);
 
         // 4. 타임슬롯 수집
