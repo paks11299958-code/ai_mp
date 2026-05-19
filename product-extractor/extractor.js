@@ -131,64 +131,88 @@ async function searchDomemedb(page, keyword) {
     return items;
 }
 
-async function getPriceFromDomeggook(page, itemNo) {
+async function getPriceAndImages(page, itemNo) {
     await page.goto(`https://domeggook.com/${itemNo}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.waitForTimeout(2000);
-    const priceText = await page.evaluate(() => {
-        const el = document.querySelector('.lItemPrice') || document.getElementById('lBaseAmtVal');
-        return el?.textContent?.trim() || '';
+    return await page.evaluate(() => {
+        const priceEl = document.querySelector('.lItemPrice') || document.getElementById('lBaseAmtVal');
+        const price = parseInt((priceEl?.textContent || '').replace(/[^0-9]/g, ''), 10) || 0;
+
+        // 대표 이미지 (상품 상단 큰 이미지)
+        const mainImg = document.querySelector('#divMainImage img, .goods_img img, .mainImg img');
+
+        // 상세 이미지 (상세 설명 영역)
+        const detailImgs = Array.from(
+            document.querySelectorAll('#divDetailImage img, .detail_img img, .itemDetailImage img, .goods_description img')
+        ).map(img => img.src).filter(s => s && s.startsWith('http')).slice(0, 9);
+
+        return { price, mainImgSrc: mainImg?.src || '', detailImgSrcs: detailImgs };
     });
-    return parseInt(priceText.replace(/[^0-9]/g, ''), 10) || 0;
 }
 
 // ── 엑셀 생성 ────────────────────────────────────────────────────────────
 
+// 카테고리명 → 쿠팡윙 시트명 매핑
+function getSheetName(wb, categoryName) {
+    const name = categoryName || '';
+    if (/패션|의류|잡화|신발|가방|악세|액세|의상|티셔츠|원피스|청바지|레깅스|자켓|코트|니트/.test(name)) {
+        return wb.SheetNames.find(s => s.includes('패션')) || wb.SheetNames[0];
+    }
+    if (/식품|음식|먹|간식|과자|음료|주류|건강식품/.test(name)) {
+        return wb.SheetNames.find(s => s.includes('식품')) || wb.SheetNames[0];
+    }
+    if (/가전|전자|TV|냉장|세탁|청소기|에어컨|컴퓨터|노트북|스마트폰|태블릿/.test(name)) {
+        return wb.SheetNames.find(s => s.includes('가전')) || wb.SheetNames[0];
+    }
+    return wb.SheetNames[0]; // 기본
+}
+
 function buildExcel(rows, categoryName) {
-    // 템플릿 로드
     const wb = xlsx.readFile(TEMPLATE_PATH);
-    const ws = wb.Sheets[wb.SheetNames[0]];
+    const sheetName = getSheetName(wb, categoryName);
+    const ws = wb.Sheets[sheetName];
+    log(`엑셀 시트: "${sheetName}"`);
 
     // 헤더는 1~4행 유지, 5행부터 데이터 삽입
     rows.forEach((row, i) => {
-        const r = i + 5; // 5행부터
+        const r = i + 5;
         const sellPrice = Math.ceil(row.wholesalePrice * MARKUP / 10) * 10;
         const discountBase = Math.ceil(sellPrice * 1.2 / 10) * 10;
 
-        // 쿠팡윙 컬럼 순서 (2행 기준)
-        // A: 카테고리, B: 등록상품명, C: 판매시작일, D: 판매종료일, E: 상품상태
-        // F: 상태설명, G: 브랜드, H: 제조사, I: 검색어, ...
-        // BJ: 판매가격, BK: 판매대행수수료, BL: 할인율기준가, BM: 재고수량
-        // BN: 출고리드타임, BO~: 기타
-        // CH or later: 대표(옵션)이미지
-
         const set = (col, val) => {
-            const cell = col + r;
-            ws[cell] = { v: val, t: typeof val === 'number' ? 'n' : 's' };
+            ws[col + r] = { v: val, t: typeof val === 'number' ? 'n' : 's' };
         };
 
-        set('A', categoryName);          // 카테고리
-        set('B', row.title);             // 등록상품명 (AI 생성)
-        set('E', '새 상품');             // 상품상태
-        set('G', '');                    // 브랜드 (공란)
-        set('H', '');                    // 제조사 (공란)
-        set('I', row.keyword);           // 검색어
-        set('BJ', sellPrice);            // 판매가격
-        set('BL', discountBase);         // 할인율기준가
-        set('BM', 99999);                // 재고수량
-        set('BN', 2);                    // 출고리드타임
-        set('BO', 0);                    // 인당최대구매수량 (0=무제한)
-        set('BR', 'N');                  // 성인상품
-        set('BS', 'Y');                  // 과세여부
-        set('CH', row.imageUrl);         // 대표(옵션)이미지 URL
+        // 기본정보 (A~I)
+        set('A', categoryName);
+        set('B', row.title);
+        set('E', '새 상품');
+        set('G', '');
+        set('H', '');
+        set('I', row.keyword);
+
+        // 가격/재고 (BJ~BS)
+        set('BJ', sellPrice);
+        set('BL', discountBase);
+        set('BM', 99999);
+        set('BN', 2);
+        set('BO', 0);
+        set('BR', 'N');
+        set('BS', 'Y');
+
+        // 이미지 (CZ: 대표이미지, DA: 직사각형, DB: 추가이미지)
+        set('CZ', row.imageUrl);
+        set('DA', row.imageUrl);
+        if (row.detailImgSrcs && row.detailImgSrcs.length > 0) {
+            set('DB', row.detailImgSrcs[0]);
+        }
     });
 
-    // 셀 범위 업데이트
     const lastRow = rows.length + 4;
     if (!ws['!ref']) {
-        ws['!ref'] = `A1:CZ${lastRow}`;
+        ws['!ref'] = `A1:DB${lastRow}`;
     } else {
-        const ref = ws['!ref'];
-        ws['!ref'] = ref.replace(/:\w+\d+$/, `:CZ${lastRow}`);
+        ws['!ref'] = ws['!ref'].replace(/:\w+\d+$/, `:DB${lastRow}`);
     }
 
     if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -265,10 +289,10 @@ async function sendEmail(to, subject, htmlContent, attachmentPath) {
                     continue;
                 }
                 const top = products[0];
-                log(`  → "${top.name}" (상품번호 ${top.itemNo}) — 가격 조회 중...`);
+                log(`  → "${top.name}" (상품번호 ${top.itemNo}) — 가격+이미지 조회 중...`);
 
-                const wholesalePrice = await getPriceFromDomeggook(page, top.itemNo);
-                log(`  → 도매가 ${wholesalePrice.toLocaleString()}원`);
+                const { price: wholesalePrice, mainImgSrc, detailImgSrcs } = await getPriceAndImages(page, top.itemNo);
+                log(`  → 도매가 ${wholesalePrice.toLocaleString()}원, 상세이미지 ${detailImgSrcs.length}개`);
                 if (wholesalePrice === 0) {
                     log(`  → 가격 0원 — 건너뜀`);
                     continue;
@@ -279,13 +303,17 @@ async function sendEmail(to, subject, htmlContent, attachmentPath) {
                 const title = await generateTitle(kw, top.name, wholesalePrice);
                 log(`  → 제목: "${title}"`);
 
+                // 대표이미지: 상품 페이지 큰 이미지 우선, 없으면 목록 썸네일
+                const representativeImg = mainImgSrc || top.imgSrc;
+
                 results.push({
                     keyword:        kw,
                     title,
                     originalName:   top.name,
                     wholesalePrice,
                     sellPrice:      Math.ceil(wholesalePrice * MARKUP / 10) * 10,
-                    imageUrl:       top.imgSrc,
+                    imageUrl:       representativeImg,
+                    detailImgSrcs,
                     productUrl:     `https://domeggook.com/${top.itemNo}`,
                 });
             } catch (e) {
@@ -310,10 +338,18 @@ async function sendEmail(to, subject, htmlContent, attachmentPath) {
         log(`이메일 발송 → ${recipientEmail}`);
         const tableRows = results.map(r => `
             <tr style="border-top:1px solid #e5e7eb">
-                <td style="padding:8px 12px;font-size:13px">${r.keyword}</td>
-                <td style="padding:8px 12px;font-size:13px">${r.title}</td>
-                <td style="padding:8px 12px;font-size:13px;text-align:right">${r.wholesalePrice.toLocaleString()}원</td>
-                <td style="padding:8px 12px;font-size:13px;text-align:right;color:#16a34a;font-weight:bold">${r.sellPrice.toLocaleString()}원</td>
+                <td style="padding:8px 12px;font-size:13px;vertical-align:middle">
+                    <a href="${r.productUrl}" target="_blank">
+                        <img src="${r.imageUrl}" width="80" height="80" style="object-fit:cover;border-radius:6px;display:block" onerror="this.style.display='none'">
+                    </a>
+                </td>
+                <td style="padding:8px 12px;font-size:13px">
+                    <div style="font-size:11px;color:#6b7280;margin-bottom:4px">${r.keyword}</div>
+                    <a href="${r.productUrl}" target="_blank" style="color:#1e3a5f;font-weight:bold;text-decoration:none">${r.title}</a>
+                    <div style="font-size:11px;color:#9ca3af;margin-top:2px">${r.originalName}</div>
+                </td>
+                <td style="padding:8px 12px;font-size:13px;text-align:right;vertical-align:middle">${r.wholesalePrice.toLocaleString()}원</td>
+                <td style="padding:8px 12px;font-size:13px;text-align:right;color:#16a34a;font-weight:bold;vertical-align:middle">${r.sellPrice.toLocaleString()}원</td>
             </tr>`).join('');
 
         await sendEmail(
@@ -331,8 +367,8 @@ async function sendEmail(to, subject, htmlContent, attachmentPath) {
                     <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden">
                         <thead>
                             <tr style="background:#1e3a5f;color:#fff">
-                                <th style="padding:10px 12px;text-align:left;font-size:13px">키워드</th>
-                                <th style="padding:10px 12px;text-align:left;font-size:13px">AI 생성 제목</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:13px;width:90px">이미지</th>
+                                <th style="padding:10px 12px;text-align:left;font-size:13px">키워드 / AI 제목</th>
                                 <th style="padding:10px 12px;text-align:right;font-size:13px">도매가</th>
                                 <th style="padding:10px 12px;text-align:right;font-size:13px">판매가(×2.5)</th>
                             </tr>
