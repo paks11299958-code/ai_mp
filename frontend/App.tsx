@@ -3,7 +3,7 @@ import { Coins } from 'lucide-react';
 import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Announcement, Category } from './types';
 import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi, announcementApi, categoryApi, userProfileApi, quickMenuApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi, announcementApi, categoryApi, userProfileApi, quickMenuApi, stockReportApi } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
@@ -707,10 +707,12 @@ const App: React.FC = () => {
         addMessageToSession(activePersonaId, { id: modelMsgId, role: 'model', text: '', isStreaming: true });
 
         try {
+            const YUNCHAEWON_ID = 'cmois970w0000xsvie6aag2f5';
             // 매 메시지마다 지식 + 기억 검색 (동적 RAG)
-            const [knowledgeResults, memories] = await Promise.all([
+            const [knowledgeResults, memories, stockReportChunks] = await Promise.all([
                 knowledgeApi.search(activePersonaId, text).catch(() => []),
                 isMemoryOn(activePersonaId) ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
+                activePersonaId === YUNCHAEWON_ID ? stockReportApi.search(text).catch(() => []) : Promise.resolve([]),
             ]);
 
             // SDK 내부 history가 너무 커지면 Vertex AI 요청이 느려짐 → 30메시지마다 리셋
@@ -808,6 +810,10 @@ const App: React.FC = () => {
             if (memories.length > 0) {
                 const memList = memories.map(m => `- ${m.content}`).join('\n');
                 contextPrefix += `--- 이 사용자 정보 (대화에 자연스럽게 반영. 사용자가 직접 묻는다면 알고 있음을 인정할 것) ---\n${memList}\n---\n\n`;
+            }
+            if (stockReportChunks.length > 0) {
+                const rList = stockReportChunks.map(c => `[${c.stockName}(${c.ticker}) ${c.reportDate}]\n${c.content}`).join('\n\n');
+                contextPrefix += `--- 보유 종목 분석 리포트 (사용자가 저장한 주식 보고서, 관련 질문에 자연스럽게 활용) ---\n${rList}\n---\n\n`;
             }
             const messageWithTime = `${contextPrefix}[${kstTime}] ${text}`;
 
@@ -1095,7 +1101,7 @@ const App: React.FC = () => {
                     <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} />
                 )}
                 {showStockAnalysis && (
-                    <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} />
+                    <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid) => { setShowStockAnalysis(false); setActivePersonaId(pid); }} />
                 )}
                 {showHotKeyword && (
                     <HotKeywordBoard
@@ -1164,7 +1170,7 @@ const App: React.FC = () => {
                 <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} />
             )}
             {showStockAnalysis && (
-                <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} />
+                <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid) => { setShowStockAnalysis(false); setActivePersonaId(pid); }} />
             )}
             {showHotKeyword && (
                 <HotKeywordBoard

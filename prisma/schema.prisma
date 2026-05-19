@@ -325,6 +325,21 @@ model StockAnalysis {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model StockReportChunk {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  ticker      String
+  stockName   String
+  reportDate  String
+  quarter     String?
+  chunkIndex  Int
+  content     String
+  embedding   Unsupported("vector(768)")?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, ticker])
+}
+
 model LuxuryVerification {
   id               Int      @id @default(autoincrement())
   userId           Int

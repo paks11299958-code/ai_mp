@@ -447,6 +447,25 @@ export const triggerVideoApi = {
         request<{ ok: boolean }>(`/trigger-videos/${id}`, { method: 'DELETE' }),
 };
 
+// Stock Report (RAG)
+export const stockReportApi = {
+    consult: (analysisId: number) =>
+        request<{ ok: boolean; chunks: number; stockName: string; ticker: string; personaId: string }>(
+            '/stock-report/consult',
+            { method: 'POST', body: JSON.stringify({ analysisId }) }
+        ),
+
+    search: (q: string) =>
+        request<{ content: string; stockName: string; ticker: string; reportDate: string; quarter: string; similarity: number }[]>(
+            `/stock-report/search?q=${encodeURIComponent(q)}`
+        ),
+
+    list: () =>
+        request<{ ticker: string; stockName: string; reportDate: string; chunkCount: number }[]>(
+            '/stock-report/list'
+        ),
+};
+
 // Swing Analysis
 export const swingAnalysisApi = {
     getSignedUrl: (mimeType: string, filename: string) =>

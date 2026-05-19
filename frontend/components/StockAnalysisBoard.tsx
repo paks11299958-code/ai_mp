@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Trash2, RefreshCw, RotateCcw, ChevronLeft, BarChart2 } from 'lucide-react';
+import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Trash2, RefreshCw, RotateCcw, ChevronLeft, BarChart2, MessageCircle } from 'lucide-react';
+import { stockReportApi } from '../services/apiService';
+
+const YUNCHAEWON_PERSONA_ID = 'cmois970w0000xsvie6aag2f5';
 
 interface StockTask {
     id: number;
@@ -116,6 +119,7 @@ const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: strin
 
 interface Props {
     onClose: () => void;
+    onConsult?: (personaId: string) => void;
 }
 
 const API = (path: string) => `/api/stock-analysis${path}`;
@@ -280,13 +284,14 @@ const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
 
 interface Suggestion { corpName: string; stockCode: string | null; }
 
-export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
+export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const [tasks, setTasks] = useState<StockTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [stockName, setStockName] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [selected, setSelected] = useState<StockDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
+    const [consulting, setConsulting] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -581,12 +586,34 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose }) => {
                                                 주식 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                                             </p>
                                         </div>
-                                        <button
-                                            onClick={() => handleDownload(selected)}
-                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs transition-colors shrink-0 mt-1 font-medium"
-                                        >
-                                            <Download size={12} /> .md 다운로드
-                                        </button>
+                                        <div className="flex items-center gap-2 shrink-0 mt-1">
+                                            <button
+                                                onClick={async () => {
+                                                    if (consulting || selected.status !== 'success') return;
+                                                    setConsulting(true);
+                                                    try {
+                                                        await stockReportApi.consult(selected.id);
+                                                        onConsult?.(YUNCHAEWON_PERSONA_ID);
+                                                        onClose();
+                                                    } catch (e: any) {
+                                                        alert(e.message || '상담 저장 실패');
+                                                    } finally {
+                                                        setConsulting(false);
+                                                    }
+                                                }}
+                                                disabled={consulting || selected.status !== 'success'}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs transition-colors font-medium"
+                                            >
+                                                {consulting ? <Loader size={12} className="animate-spin" /> : <MessageCircle size={12} />}
+                                                상담하기
+                                            </button>
+                                            <button
+                                                onClick={() => handleDownload(selected)}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs transition-colors font-medium"
+                                            >
+                                                <Download size={12} /> .md 다운로드
+                                            </button>
+                                        </div>
                                     </div>
                                     {/* 데이터 소스 카드 */}
                                     <div style={{ background: '#0d1628', border: '1px solid #1a2942' }} className="rounded-xl p-3.5">

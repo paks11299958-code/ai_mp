@@ -371,6 +371,18 @@ exports.Prisma.StockAnalysisScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.StockReportChunkScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  ticker: 'ticker',
+  stockName: 'stockName',
+  reportDate: 'reportDate',
+  quarter: 'quarter',
+  chunkIndex: 'chunkIndex',
+  content: 'content',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.LuxuryVerificationScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -531,6 +543,7 @@ exports.Prisma.ModelName = {
   PartnerReply: 'PartnerReply',
   CorpCode: 'CorpCode',
   StockAnalysis: 'StockAnalysis',
+  StockReportChunk: 'StockReportChunk',
   LuxuryVerification: 'LuxuryVerification',
   UsedItemListing: 'UsedItemListing',
   NaverShoppingCategory: 'NaverShoppingCategory',

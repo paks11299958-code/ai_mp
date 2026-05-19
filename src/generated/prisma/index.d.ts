@@ -134,6 +134,11 @@ export type CorpCode = $Result.DefaultSelection<Prisma.$CorpCodePayload>
  */
 export type StockAnalysis = $Result.DefaultSelection<Prisma.$StockAnalysisPayload>
 /**
+ * Model StockReportChunk
+ * 
+ */
+export type StockReportChunk = $Result.DefaultSelection<Prisma.$StockReportChunkPayload>
+/**
  * Model LuxuryVerification
  * 
  */
@@ -529,6 +534,16 @@ export class PrismaClient<
     * ```
     */
   get stockAnalysis(): Prisma.StockAnalysisDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.stockReportChunk`: Exposes CRUD operations for the **StockReportChunk** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more StockReportChunks
+    * const stockReportChunks = await prisma.stockReportChunk.findMany()
+    * ```
+    */
+  get stockReportChunk(): Prisma.StockReportChunkDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.luxuryVerification`: Exposes CRUD operations for the **LuxuryVerification** model.
@@ -1057,6 +1072,7 @@ export namespace Prisma {
     PartnerReply: 'PartnerReply',
     CorpCode: 'CorpCode',
     StockAnalysis: 'StockAnalysis',
+    StockReportChunk: 'StockReportChunk',
     LuxuryVerification: 'LuxuryVerification',
     UsedItemListing: 'UsedItemListing',
     NaverShoppingCategory: 'NaverShoppingCategory',
@@ -1079,7 +1095,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2859,6 +2875,80 @@ export namespace Prisma {
           }
         }
       }
+      StockReportChunk: {
+        payload: Prisma.$StockReportChunkPayload<ExtArgs>
+        fields: Prisma.StockReportChunkFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.StockReportChunkFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.StockReportChunkFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>
+          }
+          findFirst: {
+            args: Prisma.StockReportChunkFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.StockReportChunkFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>
+          }
+          findMany: {
+            args: Prisma.StockReportChunkFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>[]
+          }
+          create: {
+            args: Prisma.StockReportChunkCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>
+          }
+          createMany: {
+            args: Prisma.StockReportChunkCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.StockReportChunkCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>[]
+          }
+          delete: {
+            args: Prisma.StockReportChunkDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>
+          }
+          update: {
+            args: Prisma.StockReportChunkUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>
+          }
+          deleteMany: {
+            args: Prisma.StockReportChunkDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.StockReportChunkUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.StockReportChunkUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>[]
+          }
+          upsert: {
+            args: Prisma.StockReportChunkUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$StockReportChunkPayload>
+          }
+          aggregate: {
+            args: Prisma.StockReportChunkAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateStockReportChunk>
+          }
+          groupBy: {
+            args: Prisma.StockReportChunkGroupByArgs<ExtArgs>
+            result: $Utils.Optional<StockReportChunkGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.StockReportChunkCountArgs<ExtArgs>
+            result: $Utils.Optional<StockReportChunkCountAggregateOutputType> | number
+          }
+        }
+      }
       LuxuryVerification: {
         payload: Prisma.$LuxuryVerificationPayload<ExtArgs>
         fields: Prisma.LuxuryVerificationFieldRefs
@@ -3509,6 +3599,7 @@ export namespace Prisma {
     partnerReply?: PartnerReplyOmit
     corpCode?: CorpCodeOmit
     stockAnalysis?: StockAnalysisOmit
+    stockReportChunk?: StockReportChunkOmit
     luxuryVerification?: LuxuryVerificationOmit
     usedItemListing?: UsedItemListingOmit
     naverShoppingCategory?: NaverShoppingCategoryOmit
@@ -31979,6 +32070,1100 @@ export namespace Prisma {
 
 
   /**
+   * Model StockReportChunk
+   */
+
+  export type AggregateStockReportChunk = {
+    _count: StockReportChunkCountAggregateOutputType | null
+    _avg: StockReportChunkAvgAggregateOutputType | null
+    _sum: StockReportChunkSumAggregateOutputType | null
+    _min: StockReportChunkMinAggregateOutputType | null
+    _max: StockReportChunkMaxAggregateOutputType | null
+  }
+
+  export type StockReportChunkAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    chunkIndex: number | null
+  }
+
+  export type StockReportChunkSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    chunkIndex: number | null
+  }
+
+  export type StockReportChunkMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    ticker: string | null
+    stockName: string | null
+    reportDate: string | null
+    quarter: string | null
+    chunkIndex: number | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type StockReportChunkMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    ticker: string | null
+    stockName: string | null
+    reportDate: string | null
+    quarter: string | null
+    chunkIndex: number | null
+    content: string | null
+    createdAt: Date | null
+  }
+
+  export type StockReportChunkCountAggregateOutputType = {
+    id: number
+    userId: number
+    ticker: number
+    stockName: number
+    reportDate: number
+    quarter: number
+    chunkIndex: number
+    content: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type StockReportChunkAvgAggregateInputType = {
+    id?: true
+    userId?: true
+    chunkIndex?: true
+  }
+
+  export type StockReportChunkSumAggregateInputType = {
+    id?: true
+    userId?: true
+    chunkIndex?: true
+  }
+
+  export type StockReportChunkMinAggregateInputType = {
+    id?: true
+    userId?: true
+    ticker?: true
+    stockName?: true
+    reportDate?: true
+    quarter?: true
+    chunkIndex?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type StockReportChunkMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    ticker?: true
+    stockName?: true
+    reportDate?: true
+    quarter?: true
+    chunkIndex?: true
+    content?: true
+    createdAt?: true
+  }
+
+  export type StockReportChunkCountAggregateInputType = {
+    id?: true
+    userId?: true
+    ticker?: true
+    stockName?: true
+    reportDate?: true
+    quarter?: true
+    chunkIndex?: true
+    content?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type StockReportChunkAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StockReportChunk to aggregate.
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StockReportChunks to fetch.
+     */
+    orderBy?: StockReportChunkOrderByWithRelationInput | StockReportChunkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: StockReportChunkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StockReportChunks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StockReportChunks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned StockReportChunks
+    **/
+    _count?: true | StockReportChunkCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: StockReportChunkAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: StockReportChunkSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: StockReportChunkMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: StockReportChunkMaxAggregateInputType
+  }
+
+  export type GetStockReportChunkAggregateType<T extends StockReportChunkAggregateArgs> = {
+        [P in keyof T & keyof AggregateStockReportChunk]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateStockReportChunk[P]>
+      : GetScalarType<T[P], AggregateStockReportChunk[P]>
+  }
+
+
+
+
+  export type StockReportChunkGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: StockReportChunkWhereInput
+    orderBy?: StockReportChunkOrderByWithAggregationInput | StockReportChunkOrderByWithAggregationInput[]
+    by: StockReportChunkScalarFieldEnum[] | StockReportChunkScalarFieldEnum
+    having?: StockReportChunkScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: StockReportChunkCountAggregateInputType | true
+    _avg?: StockReportChunkAvgAggregateInputType
+    _sum?: StockReportChunkSumAggregateInputType
+    _min?: StockReportChunkMinAggregateInputType
+    _max?: StockReportChunkMaxAggregateInputType
+  }
+
+  export type StockReportChunkGroupByOutputType = {
+    id: number
+    userId: number
+    ticker: string
+    stockName: string
+    reportDate: string
+    quarter: string | null
+    chunkIndex: number
+    content: string
+    createdAt: Date
+    _count: StockReportChunkCountAggregateOutputType | null
+    _avg: StockReportChunkAvgAggregateOutputType | null
+    _sum: StockReportChunkSumAggregateOutputType | null
+    _min: StockReportChunkMinAggregateOutputType | null
+    _max: StockReportChunkMaxAggregateOutputType | null
+  }
+
+  type GetStockReportChunkGroupByPayload<T extends StockReportChunkGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<StockReportChunkGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof StockReportChunkGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], StockReportChunkGroupByOutputType[P]>
+            : GetScalarType<T[P], StockReportChunkGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type StockReportChunkSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    ticker?: boolean
+    stockName?: boolean
+    reportDate?: boolean
+    quarter?: boolean
+    chunkIndex?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["stockReportChunk"]>
+
+  export type StockReportChunkSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    ticker?: boolean
+    stockName?: boolean
+    reportDate?: boolean
+    quarter?: boolean
+    chunkIndex?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["stockReportChunk"]>
+
+  export type StockReportChunkSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    ticker?: boolean
+    stockName?: boolean
+    reportDate?: boolean
+    quarter?: boolean
+    chunkIndex?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["stockReportChunk"]>
+
+  export type StockReportChunkSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    ticker?: boolean
+    stockName?: boolean
+    reportDate?: boolean
+    quarter?: boolean
+    chunkIndex?: boolean
+    content?: boolean
+    createdAt?: boolean
+  }
+
+  export type StockReportChunkOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "ticker" | "stockName" | "reportDate" | "quarter" | "chunkIndex" | "content" | "createdAt", ExtArgs["result"]["stockReportChunk"]>
+
+  export type $StockReportChunkPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "StockReportChunk"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      ticker: string
+      stockName: string
+      reportDate: string
+      quarter: string | null
+      chunkIndex: number
+      content: string
+      createdAt: Date
+    }, ExtArgs["result"]["stockReportChunk"]>
+    composites: {}
+  }
+
+  type StockReportChunkGetPayload<S extends boolean | null | undefined | StockReportChunkDefaultArgs> = $Result.GetResult<Prisma.$StockReportChunkPayload, S>
+
+  type StockReportChunkCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<StockReportChunkFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: StockReportChunkCountAggregateInputType | true
+    }
+
+  export interface StockReportChunkDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['StockReportChunk'], meta: { name: 'StockReportChunk' } }
+    /**
+     * Find zero or one StockReportChunk that matches the filter.
+     * @param {StockReportChunkFindUniqueArgs} args - Arguments to find a StockReportChunk
+     * @example
+     * // Get one StockReportChunk
+     * const stockReportChunk = await prisma.stockReportChunk.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends StockReportChunkFindUniqueArgs>(args: SelectSubset<T, StockReportChunkFindUniqueArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one StockReportChunk that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {StockReportChunkFindUniqueOrThrowArgs} args - Arguments to find a StockReportChunk
+     * @example
+     * // Get one StockReportChunk
+     * const stockReportChunk = await prisma.stockReportChunk.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends StockReportChunkFindUniqueOrThrowArgs>(args: SelectSubset<T, StockReportChunkFindUniqueOrThrowArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StockReportChunk that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkFindFirstArgs} args - Arguments to find a StockReportChunk
+     * @example
+     * // Get one StockReportChunk
+     * const stockReportChunk = await prisma.stockReportChunk.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends StockReportChunkFindFirstArgs>(args?: SelectSubset<T, StockReportChunkFindFirstArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first StockReportChunk that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkFindFirstOrThrowArgs} args - Arguments to find a StockReportChunk
+     * @example
+     * // Get one StockReportChunk
+     * const stockReportChunk = await prisma.stockReportChunk.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends StockReportChunkFindFirstOrThrowArgs>(args?: SelectSubset<T, StockReportChunkFindFirstOrThrowArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more StockReportChunks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all StockReportChunks
+     * const stockReportChunks = await prisma.stockReportChunk.findMany()
+     * 
+     * // Get first 10 StockReportChunks
+     * const stockReportChunks = await prisma.stockReportChunk.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const stockReportChunkWithIdOnly = await prisma.stockReportChunk.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends StockReportChunkFindManyArgs>(args?: SelectSubset<T, StockReportChunkFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a StockReportChunk.
+     * @param {StockReportChunkCreateArgs} args - Arguments to create a StockReportChunk.
+     * @example
+     * // Create one StockReportChunk
+     * const StockReportChunk = await prisma.stockReportChunk.create({
+     *   data: {
+     *     // ... data to create a StockReportChunk
+     *   }
+     * })
+     * 
+     */
+    create<T extends StockReportChunkCreateArgs>(args: SelectSubset<T, StockReportChunkCreateArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many StockReportChunks.
+     * @param {StockReportChunkCreateManyArgs} args - Arguments to create many StockReportChunks.
+     * @example
+     * // Create many StockReportChunks
+     * const stockReportChunk = await prisma.stockReportChunk.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends StockReportChunkCreateManyArgs>(args?: SelectSubset<T, StockReportChunkCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many StockReportChunks and returns the data saved in the database.
+     * @param {StockReportChunkCreateManyAndReturnArgs} args - Arguments to create many StockReportChunks.
+     * @example
+     * // Create many StockReportChunks
+     * const stockReportChunk = await prisma.stockReportChunk.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many StockReportChunks and only return the `id`
+     * const stockReportChunkWithIdOnly = await prisma.stockReportChunk.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends StockReportChunkCreateManyAndReturnArgs>(args?: SelectSubset<T, StockReportChunkCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a StockReportChunk.
+     * @param {StockReportChunkDeleteArgs} args - Arguments to delete one StockReportChunk.
+     * @example
+     * // Delete one StockReportChunk
+     * const StockReportChunk = await prisma.stockReportChunk.delete({
+     *   where: {
+     *     // ... filter to delete one StockReportChunk
+     *   }
+     * })
+     * 
+     */
+    delete<T extends StockReportChunkDeleteArgs>(args: SelectSubset<T, StockReportChunkDeleteArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one StockReportChunk.
+     * @param {StockReportChunkUpdateArgs} args - Arguments to update one StockReportChunk.
+     * @example
+     * // Update one StockReportChunk
+     * const stockReportChunk = await prisma.stockReportChunk.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends StockReportChunkUpdateArgs>(args: SelectSubset<T, StockReportChunkUpdateArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more StockReportChunks.
+     * @param {StockReportChunkDeleteManyArgs} args - Arguments to filter StockReportChunks to delete.
+     * @example
+     * // Delete a few StockReportChunks
+     * const { count } = await prisma.stockReportChunk.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends StockReportChunkDeleteManyArgs>(args?: SelectSubset<T, StockReportChunkDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StockReportChunks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many StockReportChunks
+     * const stockReportChunk = await prisma.stockReportChunk.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends StockReportChunkUpdateManyArgs>(args: SelectSubset<T, StockReportChunkUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more StockReportChunks and returns the data updated in the database.
+     * @param {StockReportChunkUpdateManyAndReturnArgs} args - Arguments to update many StockReportChunks.
+     * @example
+     * // Update many StockReportChunks
+     * const stockReportChunk = await prisma.stockReportChunk.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more StockReportChunks and only return the `id`
+     * const stockReportChunkWithIdOnly = await prisma.stockReportChunk.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends StockReportChunkUpdateManyAndReturnArgs>(args: SelectSubset<T, StockReportChunkUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one StockReportChunk.
+     * @param {StockReportChunkUpsertArgs} args - Arguments to update or create a StockReportChunk.
+     * @example
+     * // Update or create a StockReportChunk
+     * const stockReportChunk = await prisma.stockReportChunk.upsert({
+     *   create: {
+     *     // ... data to create a StockReportChunk
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the StockReportChunk we want to update
+     *   }
+     * })
+     */
+    upsert<T extends StockReportChunkUpsertArgs>(args: SelectSubset<T, StockReportChunkUpsertArgs<ExtArgs>>): Prisma__StockReportChunkClient<$Result.GetResult<Prisma.$StockReportChunkPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of StockReportChunks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkCountArgs} args - Arguments to filter StockReportChunks to count.
+     * @example
+     * // Count the number of StockReportChunks
+     * const count = await prisma.stockReportChunk.count({
+     *   where: {
+     *     // ... the filter for the StockReportChunks we want to count
+     *   }
+     * })
+    **/
+    count<T extends StockReportChunkCountArgs>(
+      args?: Subset<T, StockReportChunkCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], StockReportChunkCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a StockReportChunk.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends StockReportChunkAggregateArgs>(args: Subset<T, StockReportChunkAggregateArgs>): Prisma.PrismaPromise<GetStockReportChunkAggregateType<T>>
+
+    /**
+     * Group by StockReportChunk.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {StockReportChunkGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends StockReportChunkGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: StockReportChunkGroupByArgs['orderBy'] }
+        : { orderBy?: StockReportChunkGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, StockReportChunkGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetStockReportChunkGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the StockReportChunk model
+   */
+  readonly fields: StockReportChunkFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for StockReportChunk.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__StockReportChunkClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the StockReportChunk model
+   */
+  interface StockReportChunkFieldRefs {
+    readonly id: FieldRef<"StockReportChunk", 'Int'>
+    readonly userId: FieldRef<"StockReportChunk", 'Int'>
+    readonly ticker: FieldRef<"StockReportChunk", 'String'>
+    readonly stockName: FieldRef<"StockReportChunk", 'String'>
+    readonly reportDate: FieldRef<"StockReportChunk", 'String'>
+    readonly quarter: FieldRef<"StockReportChunk", 'String'>
+    readonly chunkIndex: FieldRef<"StockReportChunk", 'Int'>
+    readonly content: FieldRef<"StockReportChunk", 'String'>
+    readonly createdAt: FieldRef<"StockReportChunk", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * StockReportChunk findUnique
+   */
+  export type StockReportChunkFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * Filter, which StockReportChunk to fetch.
+     */
+    where: StockReportChunkWhereUniqueInput
+  }
+
+  /**
+   * StockReportChunk findUniqueOrThrow
+   */
+  export type StockReportChunkFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * Filter, which StockReportChunk to fetch.
+     */
+    where: StockReportChunkWhereUniqueInput
+  }
+
+  /**
+   * StockReportChunk findFirst
+   */
+  export type StockReportChunkFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * Filter, which StockReportChunk to fetch.
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StockReportChunks to fetch.
+     */
+    orderBy?: StockReportChunkOrderByWithRelationInput | StockReportChunkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StockReportChunks.
+     */
+    cursor?: StockReportChunkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StockReportChunks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StockReportChunks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StockReportChunks.
+     */
+    distinct?: StockReportChunkScalarFieldEnum | StockReportChunkScalarFieldEnum[]
+  }
+
+  /**
+   * StockReportChunk findFirstOrThrow
+   */
+  export type StockReportChunkFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * Filter, which StockReportChunk to fetch.
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StockReportChunks to fetch.
+     */
+    orderBy?: StockReportChunkOrderByWithRelationInput | StockReportChunkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for StockReportChunks.
+     */
+    cursor?: StockReportChunkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StockReportChunks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StockReportChunks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StockReportChunks.
+     */
+    distinct?: StockReportChunkScalarFieldEnum | StockReportChunkScalarFieldEnum[]
+  }
+
+  /**
+   * StockReportChunk findMany
+   */
+  export type StockReportChunkFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * Filter, which StockReportChunks to fetch.
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of StockReportChunks to fetch.
+     */
+    orderBy?: StockReportChunkOrderByWithRelationInput | StockReportChunkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing StockReportChunks.
+     */
+    cursor?: StockReportChunkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` StockReportChunks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` StockReportChunks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of StockReportChunks.
+     */
+    distinct?: StockReportChunkScalarFieldEnum | StockReportChunkScalarFieldEnum[]
+  }
+
+  /**
+   * StockReportChunk create
+   */
+  export type StockReportChunkCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * The data needed to create a StockReportChunk.
+     */
+    data: XOR<StockReportChunkCreateInput, StockReportChunkUncheckedCreateInput>
+  }
+
+  /**
+   * StockReportChunk createMany
+   */
+  export type StockReportChunkCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many StockReportChunks.
+     */
+    data: StockReportChunkCreateManyInput | StockReportChunkCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StockReportChunk createManyAndReturn
+   */
+  export type StockReportChunkCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * The data used to create many StockReportChunks.
+     */
+    data: StockReportChunkCreateManyInput | StockReportChunkCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * StockReportChunk update
+   */
+  export type StockReportChunkUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * The data needed to update a StockReportChunk.
+     */
+    data: XOR<StockReportChunkUpdateInput, StockReportChunkUncheckedUpdateInput>
+    /**
+     * Choose, which StockReportChunk to update.
+     */
+    where: StockReportChunkWhereUniqueInput
+  }
+
+  /**
+   * StockReportChunk updateMany
+   */
+  export type StockReportChunkUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update StockReportChunks.
+     */
+    data: XOR<StockReportChunkUpdateManyMutationInput, StockReportChunkUncheckedUpdateManyInput>
+    /**
+     * Filter which StockReportChunks to update
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * Limit how many StockReportChunks to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StockReportChunk updateManyAndReturn
+   */
+  export type StockReportChunkUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * The data used to update StockReportChunks.
+     */
+    data: XOR<StockReportChunkUpdateManyMutationInput, StockReportChunkUncheckedUpdateManyInput>
+    /**
+     * Filter which StockReportChunks to update
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * Limit how many StockReportChunks to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * StockReportChunk upsert
+   */
+  export type StockReportChunkUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * The filter to search for the StockReportChunk to update in case it exists.
+     */
+    where: StockReportChunkWhereUniqueInput
+    /**
+     * In case the StockReportChunk found by the `where` argument doesn't exist, create a new StockReportChunk with this data.
+     */
+    create: XOR<StockReportChunkCreateInput, StockReportChunkUncheckedCreateInput>
+    /**
+     * In case the StockReportChunk was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<StockReportChunkUpdateInput, StockReportChunkUncheckedUpdateInput>
+  }
+
+  /**
+   * StockReportChunk delete
+   */
+  export type StockReportChunkDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+    /**
+     * Filter which StockReportChunk to delete.
+     */
+    where: StockReportChunkWhereUniqueInput
+  }
+
+  /**
+   * StockReportChunk deleteMany
+   */
+  export type StockReportChunkDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which StockReportChunks to delete
+     */
+    where?: StockReportChunkWhereInput
+    /**
+     * Limit how many StockReportChunks to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * StockReportChunk without action
+   */
+  export type StockReportChunkDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StockReportChunk
+     */
+    select?: StockReportChunkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the StockReportChunk
+     */
+    omit?: StockReportChunkOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model LuxuryVerification
    */
 
@@ -40645,6 +41830,21 @@ export namespace Prisma {
   export type StockAnalysisScalarFieldEnum = (typeof StockAnalysisScalarFieldEnum)[keyof typeof StockAnalysisScalarFieldEnum]
 
 
+  export const StockReportChunkScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    ticker: 'ticker',
+    stockName: 'stockName',
+    reportDate: 'reportDate',
+    quarter: 'quarter',
+    chunkIndex: 'chunkIndex',
+    content: 'content',
+    createdAt: 'createdAt'
+  };
+
+  export type StockReportChunkScalarFieldEnum = (typeof StockReportChunkScalarFieldEnum)[keyof typeof StockReportChunkScalarFieldEnum]
+
+
   export const LuxuryVerificationScalarFieldEnum: {
     id: 'id',
     userId: 'userId',
@@ -42643,6 +43843,80 @@ export namespace Prisma {
     errorMessage?: StringNullableWithAggregatesFilter<"StockAnalysis"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"StockAnalysis"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"StockAnalysis"> | Date | string
+  }
+
+  export type StockReportChunkWhereInput = {
+    AND?: StockReportChunkWhereInput | StockReportChunkWhereInput[]
+    OR?: StockReportChunkWhereInput[]
+    NOT?: StockReportChunkWhereInput | StockReportChunkWhereInput[]
+    id?: IntFilter<"StockReportChunk"> | number
+    userId?: IntFilter<"StockReportChunk"> | number
+    ticker?: StringFilter<"StockReportChunk"> | string
+    stockName?: StringFilter<"StockReportChunk"> | string
+    reportDate?: StringFilter<"StockReportChunk"> | string
+    quarter?: StringNullableFilter<"StockReportChunk"> | string | null
+    chunkIndex?: IntFilter<"StockReportChunk"> | number
+    content?: StringFilter<"StockReportChunk"> | string
+    createdAt?: DateTimeFilter<"StockReportChunk"> | Date | string
+  }
+
+  export type StockReportChunkOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    ticker?: SortOrder
+    stockName?: SortOrder
+    reportDate?: SortOrder
+    quarter?: SortOrderInput | SortOrder
+    chunkIndex?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StockReportChunkWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: StockReportChunkWhereInput | StockReportChunkWhereInput[]
+    OR?: StockReportChunkWhereInput[]
+    NOT?: StockReportChunkWhereInput | StockReportChunkWhereInput[]
+    userId?: IntFilter<"StockReportChunk"> | number
+    ticker?: StringFilter<"StockReportChunk"> | string
+    stockName?: StringFilter<"StockReportChunk"> | string
+    reportDate?: StringFilter<"StockReportChunk"> | string
+    quarter?: StringNullableFilter<"StockReportChunk"> | string | null
+    chunkIndex?: IntFilter<"StockReportChunk"> | number
+    content?: StringFilter<"StockReportChunk"> | string
+    createdAt?: DateTimeFilter<"StockReportChunk"> | Date | string
+  }, "id">
+
+  export type StockReportChunkOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    ticker?: SortOrder
+    stockName?: SortOrder
+    reportDate?: SortOrder
+    quarter?: SortOrderInput | SortOrder
+    chunkIndex?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+    _count?: StockReportChunkCountOrderByAggregateInput
+    _avg?: StockReportChunkAvgOrderByAggregateInput
+    _max?: StockReportChunkMaxOrderByAggregateInput
+    _min?: StockReportChunkMinOrderByAggregateInput
+    _sum?: StockReportChunkSumOrderByAggregateInput
+  }
+
+  export type StockReportChunkScalarWhereWithAggregatesInput = {
+    AND?: StockReportChunkScalarWhereWithAggregatesInput | StockReportChunkScalarWhereWithAggregatesInput[]
+    OR?: StockReportChunkScalarWhereWithAggregatesInput[]
+    NOT?: StockReportChunkScalarWhereWithAggregatesInput | StockReportChunkScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"StockReportChunk"> | number
+    userId?: IntWithAggregatesFilter<"StockReportChunk"> | number
+    ticker?: StringWithAggregatesFilter<"StockReportChunk"> | string
+    stockName?: StringWithAggregatesFilter<"StockReportChunk"> | string
+    reportDate?: StringWithAggregatesFilter<"StockReportChunk"> | string
+    quarter?: StringNullableWithAggregatesFilter<"StockReportChunk"> | string | null
+    chunkIndex?: IntWithAggregatesFilter<"StockReportChunk"> | number
+    content?: StringWithAggregatesFilter<"StockReportChunk"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"StockReportChunk"> | Date | string
   }
 
   export type LuxuryVerificationWhereInput = {
@@ -45141,6 +46415,87 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type StockReportChunkCreateInput = {
+    userId: number
+    ticker: string
+    stockName: string
+    reportDate: string
+    quarter?: string | null
+    chunkIndex: number
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type StockReportChunkUncheckedCreateInput = {
+    id?: number
+    userId: number
+    ticker: string
+    stockName: string
+    reportDate: string
+    quarter?: string | null
+    chunkIndex: number
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type StockReportChunkUpdateInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    ticker?: StringFieldUpdateOperationsInput | string
+    stockName?: StringFieldUpdateOperationsInput | string
+    reportDate?: StringFieldUpdateOperationsInput | string
+    quarter?: NullableStringFieldUpdateOperationsInput | string | null
+    chunkIndex?: IntFieldUpdateOperationsInput | number
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StockReportChunkUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    ticker?: StringFieldUpdateOperationsInput | string
+    stockName?: StringFieldUpdateOperationsInput | string
+    reportDate?: StringFieldUpdateOperationsInput | string
+    quarter?: NullableStringFieldUpdateOperationsInput | string | null
+    chunkIndex?: IntFieldUpdateOperationsInput | number
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StockReportChunkCreateManyInput = {
+    id?: number
+    userId: number
+    ticker: string
+    stockName: string
+    reportDate: string
+    quarter?: string | null
+    chunkIndex: number
+    content: string
+    createdAt?: Date | string
+  }
+
+  export type StockReportChunkUpdateManyMutationInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    ticker?: StringFieldUpdateOperationsInput | string
+    stockName?: StringFieldUpdateOperationsInput | string
+    reportDate?: StringFieldUpdateOperationsInput | string
+    quarter?: NullableStringFieldUpdateOperationsInput | string | null
+    chunkIndex?: IntFieldUpdateOperationsInput | number
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type StockReportChunkUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    ticker?: StringFieldUpdateOperationsInput | string
+    stockName?: StringFieldUpdateOperationsInput | string
+    reportDate?: StringFieldUpdateOperationsInput | string
+    quarter?: NullableStringFieldUpdateOperationsInput | string | null
+    chunkIndex?: IntFieldUpdateOperationsInput | number
+    content?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type LuxuryVerificationCreateInput = {
     imageUrls?: string
     brandHint?: string | null
@@ -47399,6 +48754,54 @@ export namespace Prisma {
   export type StockAnalysisSumOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+  }
+
+  export type StockReportChunkCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    ticker?: SortOrder
+    stockName?: SortOrder
+    reportDate?: SortOrder
+    quarter?: SortOrder
+    chunkIndex?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StockReportChunkAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    chunkIndex?: SortOrder
+  }
+
+  export type StockReportChunkMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    ticker?: SortOrder
+    stockName?: SortOrder
+    reportDate?: SortOrder
+    quarter?: SortOrder
+    chunkIndex?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StockReportChunkMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    ticker?: SortOrder
+    stockName?: SortOrder
+    reportDate?: SortOrder
+    quarter?: SortOrder
+    chunkIndex?: SortOrder
+    content?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type StockReportChunkSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    chunkIndex?: SortOrder
   }
 
   export type LuxuryVerificationCountOrderByAggregateInput = {
