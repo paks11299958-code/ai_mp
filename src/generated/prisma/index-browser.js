@@ -458,6 +458,19 @@ exports.Prisma.MenuUsageLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.GolfBookingScheduleScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  courseId: 'courseId',
+  golfDate: 'golfDate',
+  timePeriod: 'timePeriod',
+  scheduledAt: 'scheduledAt',
+  status: 'status',
+  resultMsg: 'resultMsg',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.GolfCourseScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -519,6 +532,7 @@ exports.Prisma.ModelName = {
   NaverShoppingCategory: 'NaverShoppingCategory',
   MenuLimit: 'MenuLimit',
   MenuUsageLog: 'MenuUsageLog',
+  GolfBookingSchedule: 'GolfBookingSchedule',
   GolfCourse: 'GolfCourse'
 };
 

@@ -159,6 +159,11 @@ export type MenuLimit = $Result.DefaultSelection<Prisma.$MenuLimitPayload>
  */
 export type MenuUsageLog = $Result.DefaultSelection<Prisma.$MenuUsageLogPayload>
 /**
+ * Model GolfBookingSchedule
+ * 
+ */
+export type GolfBookingSchedule = $Result.DefaultSelection<Prisma.$GolfBookingSchedulePayload>
+/**
  * Model GolfCourse
  * 
  */
@@ -574,6 +579,16 @@ export class PrismaClient<
     * ```
     */
   get menuUsageLog(): Prisma.MenuUsageLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.golfBookingSchedule`: Exposes CRUD operations for the **GolfBookingSchedule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GolfBookingSchedules
+    * const golfBookingSchedules = await prisma.golfBookingSchedule.findMany()
+    * ```
+    */
+  get golfBookingSchedule(): Prisma.GolfBookingScheduleDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.golfCourse`: Exposes CRUD operations for the **GolfCourse** model.
@@ -1047,6 +1062,7 @@ export namespace Prisma {
     NaverShoppingCategory: 'NaverShoppingCategory',
     MenuLimit: 'MenuLimit',
     MenuUsageLog: 'MenuUsageLog',
+    GolfBookingSchedule: 'GolfBookingSchedule',
     GolfCourse: 'GolfCourse'
   };
 
@@ -1063,7 +1079,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfCourse"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3213,6 +3229,80 @@ export namespace Prisma {
           }
         }
       }
+      GolfBookingSchedule: {
+        payload: Prisma.$GolfBookingSchedulePayload<ExtArgs>
+        fields: Prisma.GolfBookingScheduleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GolfBookingScheduleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GolfBookingScheduleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>
+          }
+          findFirst: {
+            args: Prisma.GolfBookingScheduleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GolfBookingScheduleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>
+          }
+          findMany: {
+            args: Prisma.GolfBookingScheduleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>[]
+          }
+          create: {
+            args: Prisma.GolfBookingScheduleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>
+          }
+          createMany: {
+            args: Prisma.GolfBookingScheduleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GolfBookingScheduleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>[]
+          }
+          delete: {
+            args: Prisma.GolfBookingScheduleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>
+          }
+          update: {
+            args: Prisma.GolfBookingScheduleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>
+          }
+          deleteMany: {
+            args: Prisma.GolfBookingScheduleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GolfBookingScheduleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GolfBookingScheduleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>[]
+          }
+          upsert: {
+            args: Prisma.GolfBookingScheduleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfBookingSchedulePayload>
+          }
+          aggregate: {
+            args: Prisma.GolfBookingScheduleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGolfBookingSchedule>
+          }
+          groupBy: {
+            args: Prisma.GolfBookingScheduleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GolfBookingScheduleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GolfBookingScheduleCountArgs<ExtArgs>
+            result: $Utils.Optional<GolfBookingScheduleCountAggregateOutputType> | number
+          }
+        }
+      }
       GolfCourse: {
         payload: Prisma.$GolfCoursePayload<ExtArgs>
         fields: Prisma.GolfCourseFieldRefs
@@ -3424,6 +3514,7 @@ export namespace Prisma {
     naverShoppingCategory?: NaverShoppingCategoryOmit
     menuLimit?: MenuLimitOmit
     menuUsageLog?: MenuUsageLogOmit
+    golfBookingSchedule?: GolfBookingScheduleOmit
     golfCourse?: GolfCourseOmit
   }
 
@@ -37922,6 +38013,1113 @@ export namespace Prisma {
 
 
   /**
+   * Model GolfBookingSchedule
+   */
+
+  export type AggregateGolfBookingSchedule = {
+    _count: GolfBookingScheduleCountAggregateOutputType | null
+    _avg: GolfBookingScheduleAvgAggregateOutputType | null
+    _sum: GolfBookingScheduleSumAggregateOutputType | null
+    _min: GolfBookingScheduleMinAggregateOutputType | null
+    _max: GolfBookingScheduleMaxAggregateOutputType | null
+  }
+
+  export type GolfBookingScheduleAvgAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    courseId: number | null
+  }
+
+  export type GolfBookingScheduleSumAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    courseId: number | null
+  }
+
+  export type GolfBookingScheduleMinAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    courseId: number | null
+    golfDate: string | null
+    timePeriod: string | null
+    scheduledAt: Date | null
+    status: string | null
+    resultMsg: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GolfBookingScheduleMaxAggregateOutputType = {
+    id: number | null
+    userId: number | null
+    courseId: number | null
+    golfDate: string | null
+    timePeriod: string | null
+    scheduledAt: Date | null
+    status: string | null
+    resultMsg: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GolfBookingScheduleCountAggregateOutputType = {
+    id: number
+    userId: number
+    courseId: number
+    golfDate: number
+    timePeriod: number
+    scheduledAt: number
+    status: number
+    resultMsg: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GolfBookingScheduleAvgAggregateInputType = {
+    id?: true
+    userId?: true
+    courseId?: true
+  }
+
+  export type GolfBookingScheduleSumAggregateInputType = {
+    id?: true
+    userId?: true
+    courseId?: true
+  }
+
+  export type GolfBookingScheduleMinAggregateInputType = {
+    id?: true
+    userId?: true
+    courseId?: true
+    golfDate?: true
+    timePeriod?: true
+    scheduledAt?: true
+    status?: true
+    resultMsg?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GolfBookingScheduleMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    courseId?: true
+    golfDate?: true
+    timePeriod?: true
+    scheduledAt?: true
+    status?: true
+    resultMsg?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GolfBookingScheduleCountAggregateInputType = {
+    id?: true
+    userId?: true
+    courseId?: true
+    golfDate?: true
+    timePeriod?: true
+    scheduledAt?: true
+    status?: true
+    resultMsg?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GolfBookingScheduleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GolfBookingSchedule to aggregate.
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfBookingSchedules to fetch.
+     */
+    orderBy?: GolfBookingScheduleOrderByWithRelationInput | GolfBookingScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GolfBookingScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfBookingSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfBookingSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GolfBookingSchedules
+    **/
+    _count?: true | GolfBookingScheduleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: GolfBookingScheduleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GolfBookingScheduleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GolfBookingScheduleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GolfBookingScheduleMaxAggregateInputType
+  }
+
+  export type GetGolfBookingScheduleAggregateType<T extends GolfBookingScheduleAggregateArgs> = {
+        [P in keyof T & keyof AggregateGolfBookingSchedule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGolfBookingSchedule[P]>
+      : GetScalarType<T[P], AggregateGolfBookingSchedule[P]>
+  }
+
+
+
+
+  export type GolfBookingScheduleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GolfBookingScheduleWhereInput
+    orderBy?: GolfBookingScheduleOrderByWithAggregationInput | GolfBookingScheduleOrderByWithAggregationInput[]
+    by: GolfBookingScheduleScalarFieldEnum[] | GolfBookingScheduleScalarFieldEnum
+    having?: GolfBookingScheduleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GolfBookingScheduleCountAggregateInputType | true
+    _avg?: GolfBookingScheduleAvgAggregateInputType
+    _sum?: GolfBookingScheduleSumAggregateInputType
+    _min?: GolfBookingScheduleMinAggregateInputType
+    _max?: GolfBookingScheduleMaxAggregateInputType
+  }
+
+  export type GolfBookingScheduleGroupByOutputType = {
+    id: number
+    userId: number
+    courseId: number
+    golfDate: string
+    timePeriod: string
+    scheduledAt: Date
+    status: string
+    resultMsg: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: GolfBookingScheduleCountAggregateOutputType | null
+    _avg: GolfBookingScheduleAvgAggregateOutputType | null
+    _sum: GolfBookingScheduleSumAggregateOutputType | null
+    _min: GolfBookingScheduleMinAggregateOutputType | null
+    _max: GolfBookingScheduleMaxAggregateOutputType | null
+  }
+
+  type GetGolfBookingScheduleGroupByPayload<T extends GolfBookingScheduleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GolfBookingScheduleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GolfBookingScheduleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GolfBookingScheduleGroupByOutputType[P]>
+            : GetScalarType<T[P], GolfBookingScheduleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GolfBookingScheduleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    courseId?: boolean
+    golfDate?: boolean
+    timePeriod?: boolean
+    scheduledAt?: boolean
+    status?: boolean
+    resultMsg?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["golfBookingSchedule"]>
+
+  export type GolfBookingScheduleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    courseId?: boolean
+    golfDate?: boolean
+    timePeriod?: boolean
+    scheduledAt?: boolean
+    status?: boolean
+    resultMsg?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["golfBookingSchedule"]>
+
+  export type GolfBookingScheduleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    courseId?: boolean
+    golfDate?: boolean
+    timePeriod?: boolean
+    scheduledAt?: boolean
+    status?: boolean
+    resultMsg?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["golfBookingSchedule"]>
+
+  export type GolfBookingScheduleSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    courseId?: boolean
+    golfDate?: boolean
+    timePeriod?: boolean
+    scheduledAt?: boolean
+    status?: boolean
+    resultMsg?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type GolfBookingScheduleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "courseId" | "golfDate" | "timePeriod" | "scheduledAt" | "status" | "resultMsg" | "createdAt" | "updatedAt", ExtArgs["result"]["golfBookingSchedule"]>
+
+  export type $GolfBookingSchedulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GolfBookingSchedule"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      userId: number
+      courseId: number
+      golfDate: string
+      timePeriod: string
+      scheduledAt: Date
+      status: string
+      resultMsg: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["golfBookingSchedule"]>
+    composites: {}
+  }
+
+  type GolfBookingScheduleGetPayload<S extends boolean | null | undefined | GolfBookingScheduleDefaultArgs> = $Result.GetResult<Prisma.$GolfBookingSchedulePayload, S>
+
+  type GolfBookingScheduleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GolfBookingScheduleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GolfBookingScheduleCountAggregateInputType | true
+    }
+
+  export interface GolfBookingScheduleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GolfBookingSchedule'], meta: { name: 'GolfBookingSchedule' } }
+    /**
+     * Find zero or one GolfBookingSchedule that matches the filter.
+     * @param {GolfBookingScheduleFindUniqueArgs} args - Arguments to find a GolfBookingSchedule
+     * @example
+     * // Get one GolfBookingSchedule
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GolfBookingScheduleFindUniqueArgs>(args: SelectSubset<T, GolfBookingScheduleFindUniqueArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GolfBookingSchedule that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GolfBookingScheduleFindUniqueOrThrowArgs} args - Arguments to find a GolfBookingSchedule
+     * @example
+     * // Get one GolfBookingSchedule
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GolfBookingScheduleFindUniqueOrThrowArgs>(args: SelectSubset<T, GolfBookingScheduleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GolfBookingSchedule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleFindFirstArgs} args - Arguments to find a GolfBookingSchedule
+     * @example
+     * // Get one GolfBookingSchedule
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GolfBookingScheduleFindFirstArgs>(args?: SelectSubset<T, GolfBookingScheduleFindFirstArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GolfBookingSchedule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleFindFirstOrThrowArgs} args - Arguments to find a GolfBookingSchedule
+     * @example
+     * // Get one GolfBookingSchedule
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GolfBookingScheduleFindFirstOrThrowArgs>(args?: SelectSubset<T, GolfBookingScheduleFindFirstOrThrowArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GolfBookingSchedules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GolfBookingSchedules
+     * const golfBookingSchedules = await prisma.golfBookingSchedule.findMany()
+     * 
+     * // Get first 10 GolfBookingSchedules
+     * const golfBookingSchedules = await prisma.golfBookingSchedule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const golfBookingScheduleWithIdOnly = await prisma.golfBookingSchedule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GolfBookingScheduleFindManyArgs>(args?: SelectSubset<T, GolfBookingScheduleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GolfBookingSchedule.
+     * @param {GolfBookingScheduleCreateArgs} args - Arguments to create a GolfBookingSchedule.
+     * @example
+     * // Create one GolfBookingSchedule
+     * const GolfBookingSchedule = await prisma.golfBookingSchedule.create({
+     *   data: {
+     *     // ... data to create a GolfBookingSchedule
+     *   }
+     * })
+     * 
+     */
+    create<T extends GolfBookingScheduleCreateArgs>(args: SelectSubset<T, GolfBookingScheduleCreateArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GolfBookingSchedules.
+     * @param {GolfBookingScheduleCreateManyArgs} args - Arguments to create many GolfBookingSchedules.
+     * @example
+     * // Create many GolfBookingSchedules
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GolfBookingScheduleCreateManyArgs>(args?: SelectSubset<T, GolfBookingScheduleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GolfBookingSchedules and returns the data saved in the database.
+     * @param {GolfBookingScheduleCreateManyAndReturnArgs} args - Arguments to create many GolfBookingSchedules.
+     * @example
+     * // Create many GolfBookingSchedules
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GolfBookingSchedules and only return the `id`
+     * const golfBookingScheduleWithIdOnly = await prisma.golfBookingSchedule.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GolfBookingScheduleCreateManyAndReturnArgs>(args?: SelectSubset<T, GolfBookingScheduleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GolfBookingSchedule.
+     * @param {GolfBookingScheduleDeleteArgs} args - Arguments to delete one GolfBookingSchedule.
+     * @example
+     * // Delete one GolfBookingSchedule
+     * const GolfBookingSchedule = await prisma.golfBookingSchedule.delete({
+     *   where: {
+     *     // ... filter to delete one GolfBookingSchedule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GolfBookingScheduleDeleteArgs>(args: SelectSubset<T, GolfBookingScheduleDeleteArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GolfBookingSchedule.
+     * @param {GolfBookingScheduleUpdateArgs} args - Arguments to update one GolfBookingSchedule.
+     * @example
+     * // Update one GolfBookingSchedule
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GolfBookingScheduleUpdateArgs>(args: SelectSubset<T, GolfBookingScheduleUpdateArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GolfBookingSchedules.
+     * @param {GolfBookingScheduleDeleteManyArgs} args - Arguments to filter GolfBookingSchedules to delete.
+     * @example
+     * // Delete a few GolfBookingSchedules
+     * const { count } = await prisma.golfBookingSchedule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GolfBookingScheduleDeleteManyArgs>(args?: SelectSubset<T, GolfBookingScheduleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GolfBookingSchedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GolfBookingSchedules
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GolfBookingScheduleUpdateManyArgs>(args: SelectSubset<T, GolfBookingScheduleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GolfBookingSchedules and returns the data updated in the database.
+     * @param {GolfBookingScheduleUpdateManyAndReturnArgs} args - Arguments to update many GolfBookingSchedules.
+     * @example
+     * // Update many GolfBookingSchedules
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GolfBookingSchedules and only return the `id`
+     * const golfBookingScheduleWithIdOnly = await prisma.golfBookingSchedule.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GolfBookingScheduleUpdateManyAndReturnArgs>(args: SelectSubset<T, GolfBookingScheduleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GolfBookingSchedule.
+     * @param {GolfBookingScheduleUpsertArgs} args - Arguments to update or create a GolfBookingSchedule.
+     * @example
+     * // Update or create a GolfBookingSchedule
+     * const golfBookingSchedule = await prisma.golfBookingSchedule.upsert({
+     *   create: {
+     *     // ... data to create a GolfBookingSchedule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GolfBookingSchedule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GolfBookingScheduleUpsertArgs>(args: SelectSubset<T, GolfBookingScheduleUpsertArgs<ExtArgs>>): Prisma__GolfBookingScheduleClient<$Result.GetResult<Prisma.$GolfBookingSchedulePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GolfBookingSchedules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleCountArgs} args - Arguments to filter GolfBookingSchedules to count.
+     * @example
+     * // Count the number of GolfBookingSchedules
+     * const count = await prisma.golfBookingSchedule.count({
+     *   where: {
+     *     // ... the filter for the GolfBookingSchedules we want to count
+     *   }
+     * })
+    **/
+    count<T extends GolfBookingScheduleCountArgs>(
+      args?: Subset<T, GolfBookingScheduleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GolfBookingScheduleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GolfBookingSchedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GolfBookingScheduleAggregateArgs>(args: Subset<T, GolfBookingScheduleAggregateArgs>): Prisma.PrismaPromise<GetGolfBookingScheduleAggregateType<T>>
+
+    /**
+     * Group by GolfBookingSchedule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfBookingScheduleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GolfBookingScheduleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GolfBookingScheduleGroupByArgs['orderBy'] }
+        : { orderBy?: GolfBookingScheduleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GolfBookingScheduleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGolfBookingScheduleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GolfBookingSchedule model
+   */
+  readonly fields: GolfBookingScheduleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GolfBookingSchedule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GolfBookingScheduleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GolfBookingSchedule model
+   */
+  interface GolfBookingScheduleFieldRefs {
+    readonly id: FieldRef<"GolfBookingSchedule", 'Int'>
+    readonly userId: FieldRef<"GolfBookingSchedule", 'Int'>
+    readonly courseId: FieldRef<"GolfBookingSchedule", 'Int'>
+    readonly golfDate: FieldRef<"GolfBookingSchedule", 'String'>
+    readonly timePeriod: FieldRef<"GolfBookingSchedule", 'String'>
+    readonly scheduledAt: FieldRef<"GolfBookingSchedule", 'DateTime'>
+    readonly status: FieldRef<"GolfBookingSchedule", 'String'>
+    readonly resultMsg: FieldRef<"GolfBookingSchedule", 'String'>
+    readonly createdAt: FieldRef<"GolfBookingSchedule", 'DateTime'>
+    readonly updatedAt: FieldRef<"GolfBookingSchedule", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GolfBookingSchedule findUnique
+   */
+  export type GolfBookingScheduleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfBookingSchedule to fetch.
+     */
+    where: GolfBookingScheduleWhereUniqueInput
+  }
+
+  /**
+   * GolfBookingSchedule findUniqueOrThrow
+   */
+  export type GolfBookingScheduleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfBookingSchedule to fetch.
+     */
+    where: GolfBookingScheduleWhereUniqueInput
+  }
+
+  /**
+   * GolfBookingSchedule findFirst
+   */
+  export type GolfBookingScheduleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfBookingSchedule to fetch.
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfBookingSchedules to fetch.
+     */
+    orderBy?: GolfBookingScheduleOrderByWithRelationInput | GolfBookingScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GolfBookingSchedules.
+     */
+    cursor?: GolfBookingScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfBookingSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfBookingSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GolfBookingSchedules.
+     */
+    distinct?: GolfBookingScheduleScalarFieldEnum | GolfBookingScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * GolfBookingSchedule findFirstOrThrow
+   */
+  export type GolfBookingScheduleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfBookingSchedule to fetch.
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfBookingSchedules to fetch.
+     */
+    orderBy?: GolfBookingScheduleOrderByWithRelationInput | GolfBookingScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GolfBookingSchedules.
+     */
+    cursor?: GolfBookingScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfBookingSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfBookingSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GolfBookingSchedules.
+     */
+    distinct?: GolfBookingScheduleScalarFieldEnum | GolfBookingScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * GolfBookingSchedule findMany
+   */
+  export type GolfBookingScheduleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfBookingSchedules to fetch.
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfBookingSchedules to fetch.
+     */
+    orderBy?: GolfBookingScheduleOrderByWithRelationInput | GolfBookingScheduleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GolfBookingSchedules.
+     */
+    cursor?: GolfBookingScheduleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfBookingSchedules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfBookingSchedules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GolfBookingSchedules.
+     */
+    distinct?: GolfBookingScheduleScalarFieldEnum | GolfBookingScheduleScalarFieldEnum[]
+  }
+
+  /**
+   * GolfBookingSchedule create
+   */
+  export type GolfBookingScheduleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * The data needed to create a GolfBookingSchedule.
+     */
+    data: XOR<GolfBookingScheduleCreateInput, GolfBookingScheduleUncheckedCreateInput>
+  }
+
+  /**
+   * GolfBookingSchedule createMany
+   */
+  export type GolfBookingScheduleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GolfBookingSchedules.
+     */
+    data: GolfBookingScheduleCreateManyInput | GolfBookingScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GolfBookingSchedule createManyAndReturn
+   */
+  export type GolfBookingScheduleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to create many GolfBookingSchedules.
+     */
+    data: GolfBookingScheduleCreateManyInput | GolfBookingScheduleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GolfBookingSchedule update
+   */
+  export type GolfBookingScheduleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * The data needed to update a GolfBookingSchedule.
+     */
+    data: XOR<GolfBookingScheduleUpdateInput, GolfBookingScheduleUncheckedUpdateInput>
+    /**
+     * Choose, which GolfBookingSchedule to update.
+     */
+    where: GolfBookingScheduleWhereUniqueInput
+  }
+
+  /**
+   * GolfBookingSchedule updateMany
+   */
+  export type GolfBookingScheduleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GolfBookingSchedules.
+     */
+    data: XOR<GolfBookingScheduleUpdateManyMutationInput, GolfBookingScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which GolfBookingSchedules to update
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * Limit how many GolfBookingSchedules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GolfBookingSchedule updateManyAndReturn
+   */
+  export type GolfBookingScheduleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * The data used to update GolfBookingSchedules.
+     */
+    data: XOR<GolfBookingScheduleUpdateManyMutationInput, GolfBookingScheduleUncheckedUpdateManyInput>
+    /**
+     * Filter which GolfBookingSchedules to update
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * Limit how many GolfBookingSchedules to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GolfBookingSchedule upsert
+   */
+  export type GolfBookingScheduleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * The filter to search for the GolfBookingSchedule to update in case it exists.
+     */
+    where: GolfBookingScheduleWhereUniqueInput
+    /**
+     * In case the GolfBookingSchedule found by the `where` argument doesn't exist, create a new GolfBookingSchedule with this data.
+     */
+    create: XOR<GolfBookingScheduleCreateInput, GolfBookingScheduleUncheckedCreateInput>
+    /**
+     * In case the GolfBookingSchedule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GolfBookingScheduleUpdateInput, GolfBookingScheduleUncheckedUpdateInput>
+  }
+
+  /**
+   * GolfBookingSchedule delete
+   */
+  export type GolfBookingScheduleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+    /**
+     * Filter which GolfBookingSchedule to delete.
+     */
+    where: GolfBookingScheduleWhereUniqueInput
+  }
+
+  /**
+   * GolfBookingSchedule deleteMany
+   */
+  export type GolfBookingScheduleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GolfBookingSchedules to delete
+     */
+    where?: GolfBookingScheduleWhereInput
+    /**
+     * Limit how many GolfBookingSchedules to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GolfBookingSchedule without action
+   */
+  export type GolfBookingScheduleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfBookingSchedule
+     */
+    select?: GolfBookingScheduleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfBookingSchedule
+     */
+    omit?: GolfBookingScheduleOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model GolfCourse
    */
 
@@ -39483,6 +40681,22 @@ export namespace Prisma {
   };
 
   export type MenuUsageLogScalarFieldEnum = (typeof MenuUsageLogScalarFieldEnum)[keyof typeof MenuUsageLogScalarFieldEnum]
+
+
+  export const GolfBookingScheduleScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    courseId: 'courseId',
+    golfDate: 'golfDate',
+    timePeriod: 'timePeriod',
+    scheduledAt: 'scheduledAt',
+    status: 'status',
+    resultMsg: 'resultMsg',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GolfBookingScheduleScalarFieldEnum = (typeof GolfBookingScheduleScalarFieldEnum)[keyof typeof GolfBookingScheduleScalarFieldEnum]
 
 
   export const GolfCourseScalarFieldEnum: {
@@ -41876,6 +43090,85 @@ export namespace Prisma {
     userId?: IntWithAggregatesFilter<"MenuUsageLog"> | number
     feature?: StringWithAggregatesFilter<"MenuUsageLog"> | string
     createdAt?: DateTimeWithAggregatesFilter<"MenuUsageLog"> | Date | string
+  }
+
+  export type GolfBookingScheduleWhereInput = {
+    AND?: GolfBookingScheduleWhereInput | GolfBookingScheduleWhereInput[]
+    OR?: GolfBookingScheduleWhereInput[]
+    NOT?: GolfBookingScheduleWhereInput | GolfBookingScheduleWhereInput[]
+    id?: IntFilter<"GolfBookingSchedule"> | number
+    userId?: IntFilter<"GolfBookingSchedule"> | number
+    courseId?: IntFilter<"GolfBookingSchedule"> | number
+    golfDate?: StringFilter<"GolfBookingSchedule"> | string
+    timePeriod?: StringFilter<"GolfBookingSchedule"> | string
+    scheduledAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+    status?: StringFilter<"GolfBookingSchedule"> | string
+    resultMsg?: StringNullableFilter<"GolfBookingSchedule"> | string | null
+    createdAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+    updatedAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+  }
+
+  export type GolfBookingScheduleOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
+    golfDate?: SortOrder
+    timePeriod?: SortOrder
+    scheduledAt?: SortOrder
+    status?: SortOrder
+    resultMsg?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfBookingScheduleWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: GolfBookingScheduleWhereInput | GolfBookingScheduleWhereInput[]
+    OR?: GolfBookingScheduleWhereInput[]
+    NOT?: GolfBookingScheduleWhereInput | GolfBookingScheduleWhereInput[]
+    userId?: IntFilter<"GolfBookingSchedule"> | number
+    courseId?: IntFilter<"GolfBookingSchedule"> | number
+    golfDate?: StringFilter<"GolfBookingSchedule"> | string
+    timePeriod?: StringFilter<"GolfBookingSchedule"> | string
+    scheduledAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+    status?: StringFilter<"GolfBookingSchedule"> | string
+    resultMsg?: StringNullableFilter<"GolfBookingSchedule"> | string | null
+    createdAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+    updatedAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+  }, "id">
+
+  export type GolfBookingScheduleOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
+    golfDate?: SortOrder
+    timePeriod?: SortOrder
+    scheduledAt?: SortOrder
+    status?: SortOrder
+    resultMsg?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GolfBookingScheduleCountOrderByAggregateInput
+    _avg?: GolfBookingScheduleAvgOrderByAggregateInput
+    _max?: GolfBookingScheduleMaxOrderByAggregateInput
+    _min?: GolfBookingScheduleMinOrderByAggregateInput
+    _sum?: GolfBookingScheduleSumOrderByAggregateInput
+  }
+
+  export type GolfBookingScheduleScalarWhereWithAggregatesInput = {
+    AND?: GolfBookingScheduleScalarWhereWithAggregatesInput | GolfBookingScheduleScalarWhereWithAggregatesInput[]
+    OR?: GolfBookingScheduleScalarWhereWithAggregatesInput[]
+    NOT?: GolfBookingScheduleScalarWhereWithAggregatesInput | GolfBookingScheduleScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"GolfBookingSchedule"> | number
+    userId?: IntWithAggregatesFilter<"GolfBookingSchedule"> | number
+    courseId?: IntWithAggregatesFilter<"GolfBookingSchedule"> | number
+    golfDate?: StringWithAggregatesFilter<"GolfBookingSchedule"> | string
+    timePeriod?: StringWithAggregatesFilter<"GolfBookingSchedule"> | string
+    scheduledAt?: DateTimeWithAggregatesFilter<"GolfBookingSchedule"> | Date | string
+    status?: StringWithAggregatesFilter<"GolfBookingSchedule"> | string
+    resultMsg?: StringNullableWithAggregatesFilter<"GolfBookingSchedule"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"GolfBookingSchedule"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GolfBookingSchedule"> | Date | string
   }
 
   export type GolfCourseWhereInput = {
@@ -44354,6 +45647,94 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GolfBookingScheduleCreateInput = {
+    userId: number
+    courseId: number
+    golfDate: string
+    timePeriod: string
+    scheduledAt: Date | string
+    status?: string
+    resultMsg?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GolfBookingScheduleUncheckedCreateInput = {
+    id?: number
+    userId: number
+    courseId: number
+    golfDate: string
+    timePeriod: string
+    scheduledAt: Date | string
+    status?: string
+    resultMsg?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GolfBookingScheduleUpdateInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    courseId?: IntFieldUpdateOperationsInput | number
+    golfDate?: StringFieldUpdateOperationsInput | string
+    timePeriod?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GolfBookingScheduleUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    courseId?: IntFieldUpdateOperationsInput | number
+    golfDate?: StringFieldUpdateOperationsInput | string
+    timePeriod?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GolfBookingScheduleCreateManyInput = {
+    id?: number
+    userId: number
+    courseId: number
+    golfDate: string
+    timePeriod: string
+    scheduledAt: Date | string
+    status?: string
+    resultMsg?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GolfBookingScheduleUpdateManyMutationInput = {
+    userId?: IntFieldUpdateOperationsInput | number
+    courseId?: IntFieldUpdateOperationsInput | number
+    golfDate?: StringFieldUpdateOperationsInput | string
+    timePeriod?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GolfBookingScheduleUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    userId?: IntFieldUpdateOperationsInput | number
+    courseId?: IntFieldUpdateOperationsInput | number
+    golfDate?: StringFieldUpdateOperationsInput | string
+    timePeriod?: StringFieldUpdateOperationsInput | string
+    scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    status?: StringFieldUpdateOperationsInput | string
+    resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type GolfCourseCreateInput = {
     name: string
     sido: string
@@ -46267,6 +47648,57 @@ export namespace Prisma {
   export type MenuUsageLogSumOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+  }
+
+  export type GolfBookingScheduleCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
+    golfDate?: SortOrder
+    timePeriod?: SortOrder
+    scheduledAt?: SortOrder
+    status?: SortOrder
+    resultMsg?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfBookingScheduleAvgOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
+  }
+
+  export type GolfBookingScheduleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
+    golfDate?: SortOrder
+    timePeriod?: SortOrder
+    scheduledAt?: SortOrder
+    status?: SortOrder
+    resultMsg?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfBookingScheduleMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
+    golfDate?: SortOrder
+    timePeriod?: SortOrder
+    scheduledAt?: SortOrder
+    status?: SortOrder
+    resultMsg?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfBookingScheduleSumOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    courseId?: SortOrder
   }
 
   export type GolfCourseCountOrderByAggregateInput = {
