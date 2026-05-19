@@ -26,6 +26,125 @@ const SOLAPI_FROM    = process.env.SOLAPI_SENDER_PHONE;
 
 const crypto = require('crypto');
 
+// 프리미엄 HTML 이메일 빌더
+function buildSuccessEmail(dateStr, time, course, price) {
+    const reservationNo = `GF-${Date.now().toString(36).toUpperCase().slice(-8)}`;
+    const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>골프 예약 완료</title></head>
+<body style="margin:0;padding:0;background:#0d1f17;font-family:'Apple SD Gothic Neo',Malgun Gothic,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0d1f17;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+
+        <!-- 헤더 -->
+        <tr><td style="background:linear-gradient(135deg,#0f2d1a 0%,#1a4a2a 100%);border-radius:16px 16px 0 0;padding:40px 40px 32px;text-align:center;border-bottom:1px solid #c9a84c40;">
+          <div style="width:56px;height:56px;background:rgba(201,168,76,0.15);border:2px solid #c9a84c;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:26px;">&#x26F3;</div>
+          <p style="margin:0 0 8px;color:#c9a84c;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:600;">RESERVATION CONFIRMED</p>
+          <h1 style="margin:0 0 6px;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">예약이 완료되었습니다</h1>
+          <p style="margin:0;color:#7a9e8a;font-size:13px;">예약번호 &nbsp;<span style="color:#c9a84c;font-weight:600;font-family:monospace;">${reservationNo}</span></p>
+        </td></tr>
+
+        <!-- 예약 정보 카드 -->
+        <tr><td style="background:#132b1d;padding:0 40px;">
+
+          <!-- 날짜 -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #1e3d2a;padding:22px 0;">
+            <tr>
+              <td style="padding:22px 0 0;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="color:#6b9678;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;width:80px;">DATE</td>
+                    <td style="color:#ffffff;font-size:16px;font-weight:600;text-align:right;">${dateStr}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- 시간 -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #1e3d2a;">
+            <tr>
+              <td style="padding:20px 0;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="color:#6b9678;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;width:80px;">TIME</td>
+                    <td style="color:#c9a84c;font-size:22px;font-weight:700;text-align:right;font-family:monospace;">${time}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- 코스 -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #1e3d2a;">
+            <tr>
+              <td style="padding:20px 0;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="color:#6b9678;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;width:80px;">COURSE</td>
+                    <td style="color:#ffffff;font-size:15px;font-weight:500;text-align:right;">${course}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+          <!-- 요금 -->
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="padding:20px 0 24px;">
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="color:#6b9678;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;width:80px;">FEE</td>
+                    <td style="color:#ffffff;font-size:18px;font-weight:700;text-align:right;">${price}</td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+
+        </td></tr>
+
+        <!-- 하단 정보 -->
+        <tr><td style="background:#0f2d1a;border-radius:0 0 16px 16px;padding:20px 40px 28px;border-top:1px solid #c9a84c30;">
+          <p style="margin:0 0 4px;color:#4a7a5a;font-size:11px;text-align:center;">예약 확정 시각: ${now}</p>
+          <p style="margin:0;color:#3a6040;font-size:11px;text-align:center;">본 메일은 자동으로 발송되었습니다. aichat.dbzone.kr</p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+function buildFailEmail(dateStr, reason) {
+    return `<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#1a0d0d;font-family:'Apple SD Gothic Neo',Malgun Gothic,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#1a0d0d;padding:40px 16px;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;">
+        <tr><td style="background:linear-gradient(135deg,#2d0f0f 0%,#3d1a1a 100%);border-radius:16px;padding:40px;text-align:center;">
+          <p style="margin:0 0 16px;font-size:36px;">&#x26A0;&#xFE0F;</p>
+          <h1 style="margin:0 0 12px;color:#ffffff;font-size:20px;font-weight:700;">예약에 실패했습니다</h1>
+          <p style="margin:0 0 24px;color:#c07070;font-size:14px;">라운드 날짜: ${dateStr}</p>
+          <div style="background:#2a1515;border-radius:10px;padding:16px 20px;text-align:left;">
+            <p style="margin:0;color:#e08080;font-size:13px;line-height:1.6;">${reason}</p>
+          </div>
+          <p style="margin:24px 0 0;color:#7a4040;font-size:11px;">골프장 사이트에서 직접 예약 상태를 확인해주세요.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 async function sendNotification(subject, html, smsText) {
     if (NOTIFY_EMAIL && BREVO_API_KEY) {
         try {
@@ -243,14 +362,8 @@ async function book(dateStr, timePeriod = 'morning', openAt = null) {
 
         await sendNotification(
             `[골프예약 완료] ${dateStr} ${target.time} ${target.course}`,
-            `<h2>골프 예약이 완료되었습니다</h2>
-             <table border="1" cellpadding="8">
-               <tr><td>날짜</td><td>${dateStr}</td></tr>
-               <tr><td>시간</td><td>${target.time}</td></tr>
-               <tr><td>코스</td><td>${target.course}</td></tr>
-               <tr><td>요금</td><td>${target.price}</td></tr>
-             </table>`,
-            `[골프예약 완료]\n날짜: ${dateStr}\n시간: ${target.time}\n코스: ${target.course}\n요금: ${target.price}`
+            buildSuccessEmail(dateStr, target.time, target.course, target.price),
+            `✅ 골프 예약 완료\n\n📅 ${dateStr}\n⏰ ${target.time}\n⛳ ${target.course}\n💰 ${target.price}`
         );
 
         return { ok: true, time: target.time, course: target.course, price: target.price };
@@ -259,8 +372,8 @@ async function book(dateStr, timePeriod = 'morning', openAt = null) {
         console.error('예약 실패:', err.message);
         await sendNotification(
             `[골프예약 실패] ${dateStr}`,
-            `<h2>골프 예약에 실패했습니다</h2><p>${err.message}</p>`,
-            `[골프예약 실패]\n날짜: ${dateStr}\n사유: ${err.message}`
+            buildFailEmail(dateStr, err.message),
+            `❌ 골프 예약 실패\n\n📅 ${dateStr}\n사유: ${err.message}`
         );
         return { ok: false, error: err.message };
     } finally {
