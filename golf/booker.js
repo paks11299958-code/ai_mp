@@ -115,20 +115,39 @@ async function book(dateStr, timePeriod = 'morning') {
         const target = filtered[0];
         console.log(`예약 시도: ${dateStr} ${target.time} ${target.course} ${target.price}`);
 
-        // 6. 신청 버튼 클릭
-        await page.evaluate(onclick => eval(onclick), target.onclick);
-        await page.waitForTimeout(2000);
-
-        // 7. 확인 다이얼로그 처리
+        // 6. 다이얼로그 핸들러를 버튼 클릭 전에 등록 (accept 하지 않으면 예약 취소됨)
+        let dialogAccepted = false;
         page.on('dialog', async dialog => {
             console.log('다이얼로그:', dialog.message());
             await dialog.accept();
+            dialogAccepted = true;
         });
-        await page.waitForTimeout(2000);
 
-        // 8. 결과 스크린샷
+        // 7. 신청 버튼 클릭
+        await page.evaluate(onclick => eval(onclick), target.onclick);
+        await page.waitForTimeout(3000);
+
+        // 8. 예약 완료 여부를 예약 목록에서 실제 확인
+        const MY_RESERVE_URL = `${GOLF_URL}/html/mypage/reserve.asp`;
+        await page.goto(MY_RESERVE_URL);
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1500);
+
+        const confirmed = await page.evaluate(([y, m, d, time]) => {
+            const rows = Array.from(document.querySelectorAll('table tr'));
+            return rows.some(row => {
+                const text = row.textContent || '';
+                return text.includes(`${y}-${m}-${d}`) || text.includes(`${y}.${m}.${d}`) || text.includes(time);
+            });
+        }, [year, month, day, target.time]);
+
+        // 결과 스크린샷
         const screenshotPath = `/home/paks11299958/ai_mp/golf/result_${Date.now()}.png`;
         await page.screenshot({ path: screenshotPath });
+
+        if (!confirmed) {
+            throw new Error(`예약 버튼을 눌렀으나 예약 내역에서 확인되지 않았습니다. 골프장 사이트를 직접 확인해주세요.`);
+        }
 
         const successMsg = `✅ 예약 완료\n날짜: ${dateStr}\n시간: ${target.time}\n코스: ${target.course}\n요금: ${target.price}`;
         console.log(successMsg);
