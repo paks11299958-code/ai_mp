@@ -82,3 +82,25 @@
 - **빈 상태**: 프라이버시 안내 + 업로드 가이드
 - **모바일**: 목록/상세 단일 패널 전환 + 뒤로가기 버튼
 - **App.tsx 정리**: `showSwingHistory`/`showSwingModal`/`swingHistory`/`PentagonChart` 제거 → `showSwingBoard` 단일 상태
+
+## 골프 예약 UI 전면 개편 (2026-05-19)
+- `GolfReserveDialog.tsx` 완전 재작성:
+  - **시도/시군구 드롭다운 제거** → 마운트 시 전체 골프장 한 번에 로드
+  - **예약 가능 골프장만 표시**: `hasAuto=true` 또는 `bookingUrl` 있는 것
+  - **검색 필터**: 이름/지역 실시간 검색 (`useMemo` 필터링)
+  - 자동예약 골프장 → "예약" 버튼 → 날짜/시간 선택 단계
+  - 비자동 골프장 → "예약 사이트" ExternalLink 버튼 직접 연결
+  - **희망 티타임 슬롯**: 시간대 선택 후 30분 단위 버튼 (`genTimeSlots()`) 표시, 클릭해제 토글
+  - **오픈 시각 직접 입력**: "오픈 시각 예약" 모드에서 오픈 날짜(`<input type="date">`) + 오픈 시각(`<input type="time">`) 사용자 직접 입력. 봇 접속(= 오픈 -3분) 자동 계산 표시
+  - "이미 지났습니다" 경고 완전 제거
+- `golf.ts` schedule POST: `openDate`/`openTime` 수신, `kstToUtc()` 변환
+- `GolfBookingSchedule.preferredTime TEXT` 컬럼 추가
+
+## 골프 예약 완료 알림 리디자인 (2026-05-19)
+- `golf/booker.js` `buildSuccessEmail()`:
+  - 딥그린(`#0f2d1a`) + 골드(`#c9a84c`) 테마 HTML 이메일
+  - 상단: ⛳ 아이콘 + "RESERVATION CONFIRMED" + 예약번호(`GF-XXXXXXXX` 자동 생성)
+  - 본문: DATE / TIME / COURSE / FEE 티켓 카드 스타일 (border 없음, 충분한 여백)
+  - 하단: 확정 시각 + 발송 안내 푸터
+- `buildFailEmail()`: 다크 레드(`#2d0f0f`) 테마 실패 이메일
+- SMS: 이모지 마크다운 (`✅ 골프 예약 완료\n\n📅...\n⏰...\n⛳...\n💰...`)

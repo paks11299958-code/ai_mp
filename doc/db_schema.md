@@ -1,4 +1,4 @@
-# DB 스키마 (23개 모델)
+# DB 스키마 (25개 모델)
 
 > Prisma 마이그레이션 대신 raw SQL 직접 실행 (히스토리 없음)  
 > 스키마 변경 후 반드시 `npx prisma generate` + `src/generated/prisma/` 커밋
@@ -88,6 +88,21 @@ createdAt, updatedAt
 - Gemini: Google Search 그라운딩 포함 전체 보고서 / Claude·GPT: DART+Yahoo 데이터 기반 의견
 - 비용: 50P / 일일 1회 제한 (어드민 예외)
 
+## StockReportChunk
+```
+id, userId, ticker(종목코드), stockName
+reportDate(YYYY-MM-DD), quarter(e.g. 2026_2Q)
+chunkIndex, content(Text)
+embedding(vector 768차원, nullable)
+createdAt
+@@index([userId, ticker])
+```
+- 주식 분석 보고서를 900자 단위로 청킹 (오버랩 없음) 후 text-embedding-004 임베딩 저장
+- 사용자별 격리: 동일 userId+ticker는 학습하기 클릭 시 기존 삭제 후 재저장
+- ivfflat 인덱스 (vector_cosine_ops, lists=100)
+- 윤채원 채팅 시 코사인 유사도 0.55 이상 top-5 청크를 RAG로 주입
+- 비용: 무료
+
 ## LuxuryVerification
 ```
 id, userId, imageUrls(JSON), brandHint(nullable)
@@ -120,6 +135,24 @@ errorMessage(nullable), createdAt, updatedAt
 - 최종 가격 = 3개 AI 추천가 평균 (100원 단위 반올림)
 - 분석 완료 후 GCS 이미지 자동 삭제
 - 비용: 50P / 일일 1회 제한 (어드민 예외)
+
+## 기타 모델
+```
+GolfCourse          ← 골프장 정보 (hasAuto, bookingUrl, advanceDays, openHour, openMinute)
+GolfBookingSchedule ← 예약 스케줄 (scheduledAt, openAt, preferredTime ← 희망 티타임 HH:MM)
+```
+
+## GolfBookingSchedule
+```
+id, userId, courseId
+golfDate(YYYY-MM-DD), timePeriod(morning/afternoon/evening)
+preferredTime(HH:MM, nullable)  ← 희망 티타임 (선택사항)
+scheduledAt                     ← 봇 실행 시각 (openAt - 3분, UTC)
+openAt                          ← 예약 오픈 시각 (사용자 직접 입력 KST → UTC 변환)
+status(pending|running|success|failed), resultMsg
+```
+- 예약 오픈 날짜+시간: 사용자가 직접 입력 (자동계산 제거)
+- `kstToUtc(date, time)` — `golf.ts`에서 KST "YYYY-MM-DD HH:MM" → UTC Date 변환
 
 ## 기타 모델
 ```
