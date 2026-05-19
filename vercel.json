@@ -100,6 +100,8 @@
     { "source": "/api/math-tutor/:path*",    "destination": "http://34.50.27.95:3020/api/aimp/math-tutor/:path*" },
     { "source": "/api/golf",                 "destination": "http://34.50.27.95:3020/api/aimp/golf" },
     { "source": "/api/golf/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/golf/:path*" },
+    { "source": "/api/stock-report",         "destination": "http://34.50.27.95:3020/api/aimp/stock-report" },
+    { "source": "/api/stock-report/:path*",  "destination": "http://34.50.27.95:3020/api/aimp/stock-report/:path*" },
 
     { "source": "/api/:d/:s1/:s2/:s3", "destination": "/api/router?d=:d&s1=:s1&s2=:s2&s3=:s3" },
     { "source": "/api/:d/:s1/:s2", "destination": "/api/router?d=:d&s1=:s1&s2=:s2" },
