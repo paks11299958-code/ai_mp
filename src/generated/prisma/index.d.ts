@@ -158,6 +158,11 @@ export type MenuLimit = $Result.DefaultSelection<Prisma.$MenuLimitPayload>
  * 
  */
 export type MenuUsageLog = $Result.DefaultSelection<Prisma.$MenuUsageLogPayload>
+/**
+ * Model GolfCourse
+ * 
+ */
+export type GolfCourse = $Result.DefaultSelection<Prisma.$GolfCoursePayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -569,6 +574,16 @@ export class PrismaClient<
     * ```
     */
   get menuUsageLog(): Prisma.MenuUsageLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.golfCourse`: Exposes CRUD operations for the **GolfCourse** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more GolfCourses
+    * const golfCourses = await prisma.golfCourse.findMany()
+    * ```
+    */
+  get golfCourse(): Prisma.GolfCourseDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1031,7 +1046,8 @@ export namespace Prisma {
     UsedItemListing: 'UsedItemListing',
     NaverShoppingCategory: 'NaverShoppingCategory',
     MenuLimit: 'MenuLimit',
-    MenuUsageLog: 'MenuUsageLog'
+    MenuUsageLog: 'MenuUsageLog',
+    GolfCourse: 'GolfCourse'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1047,7 +1063,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfCourse"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3197,6 +3213,80 @@ export namespace Prisma {
           }
         }
       }
+      GolfCourse: {
+        payload: Prisma.$GolfCoursePayload<ExtArgs>
+        fields: Prisma.GolfCourseFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.GolfCourseFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.GolfCourseFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>
+          }
+          findFirst: {
+            args: Prisma.GolfCourseFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.GolfCourseFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>
+          }
+          findMany: {
+            args: Prisma.GolfCourseFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>[]
+          }
+          create: {
+            args: Prisma.GolfCourseCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>
+          }
+          createMany: {
+            args: Prisma.GolfCourseCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.GolfCourseCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>[]
+          }
+          delete: {
+            args: Prisma.GolfCourseDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>
+          }
+          update: {
+            args: Prisma.GolfCourseUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>
+          }
+          deleteMany: {
+            args: Prisma.GolfCourseDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.GolfCourseUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.GolfCourseUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>[]
+          }
+          upsert: {
+            args: Prisma.GolfCourseUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$GolfCoursePayload>
+          }
+          aggregate: {
+            args: Prisma.GolfCourseAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateGolfCourse>
+          }
+          groupBy: {
+            args: Prisma.GolfCourseGroupByArgs<ExtArgs>
+            result: $Utils.Optional<GolfCourseGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.GolfCourseCountArgs<ExtArgs>
+            result: $Utils.Optional<GolfCourseCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3334,6 +3424,7 @@ export namespace Prisma {
     naverShoppingCategory?: NaverShoppingCategoryOmit
     menuLimit?: MenuLimitOmit
     menuUsageLog?: MenuUsageLogOmit
+    golfCourse?: GolfCourseOmit
   }
 
   /* Types for Logging */
@@ -37831,6 +37922,1131 @@ export namespace Prisma {
 
 
   /**
+   * Model GolfCourse
+   */
+
+  export type AggregateGolfCourse = {
+    _count: GolfCourseCountAggregateOutputType | null
+    _avg: GolfCourseAvgAggregateOutputType | null
+    _sum: GolfCourseSumAggregateOutputType | null
+    _min: GolfCourseMinAggregateOutputType | null
+    _max: GolfCourseMaxAggregateOutputType | null
+  }
+
+  export type GolfCourseAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type GolfCourseSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type GolfCourseMinAggregateOutputType = {
+    id: number | null
+    name: string | null
+    sido: string | null
+    sigungu: string | null
+    address: string | null
+    bookingUrl: string | null
+    hasAuto: boolean | null
+    bookerType: string | null
+    loginId: string | null
+    loginPw: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GolfCourseMaxAggregateOutputType = {
+    id: number | null
+    name: string | null
+    sido: string | null
+    sigungu: string | null
+    address: string | null
+    bookingUrl: string | null
+    hasAuto: boolean | null
+    bookerType: string | null
+    loginId: string | null
+    loginPw: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type GolfCourseCountAggregateOutputType = {
+    id: number
+    name: number
+    sido: number
+    sigungu: number
+    address: number
+    bookingUrl: number
+    hasAuto: number
+    bookerType: number
+    loginId: number
+    loginPw: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type GolfCourseAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type GolfCourseSumAggregateInputType = {
+    id?: true
+  }
+
+  export type GolfCourseMinAggregateInputType = {
+    id?: true
+    name?: true
+    sido?: true
+    sigungu?: true
+    address?: true
+    bookingUrl?: true
+    hasAuto?: true
+    bookerType?: true
+    loginId?: true
+    loginPw?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GolfCourseMaxAggregateInputType = {
+    id?: true
+    name?: true
+    sido?: true
+    sigungu?: true
+    address?: true
+    bookingUrl?: true
+    hasAuto?: true
+    bookerType?: true
+    loginId?: true
+    loginPw?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type GolfCourseCountAggregateInputType = {
+    id?: true
+    name?: true
+    sido?: true
+    sigungu?: true
+    address?: true
+    bookingUrl?: true
+    hasAuto?: true
+    bookerType?: true
+    loginId?: true
+    loginPw?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type GolfCourseAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GolfCourse to aggregate.
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfCourses to fetch.
+     */
+    orderBy?: GolfCourseOrderByWithRelationInput | GolfCourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: GolfCourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfCourses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfCourses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned GolfCourses
+    **/
+    _count?: true | GolfCourseCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: GolfCourseAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: GolfCourseSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: GolfCourseMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: GolfCourseMaxAggregateInputType
+  }
+
+  export type GetGolfCourseAggregateType<T extends GolfCourseAggregateArgs> = {
+        [P in keyof T & keyof AggregateGolfCourse]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateGolfCourse[P]>
+      : GetScalarType<T[P], AggregateGolfCourse[P]>
+  }
+
+
+
+
+  export type GolfCourseGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: GolfCourseWhereInput
+    orderBy?: GolfCourseOrderByWithAggregationInput | GolfCourseOrderByWithAggregationInput[]
+    by: GolfCourseScalarFieldEnum[] | GolfCourseScalarFieldEnum
+    having?: GolfCourseScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: GolfCourseCountAggregateInputType | true
+    _avg?: GolfCourseAvgAggregateInputType
+    _sum?: GolfCourseSumAggregateInputType
+    _min?: GolfCourseMinAggregateInputType
+    _max?: GolfCourseMaxAggregateInputType
+  }
+
+  export type GolfCourseGroupByOutputType = {
+    id: number
+    name: string
+    sido: string
+    sigungu: string
+    address: string | null
+    bookingUrl: string | null
+    hasAuto: boolean
+    bookerType: string | null
+    loginId: string | null
+    loginPw: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: GolfCourseCountAggregateOutputType | null
+    _avg: GolfCourseAvgAggregateOutputType | null
+    _sum: GolfCourseSumAggregateOutputType | null
+    _min: GolfCourseMinAggregateOutputType | null
+    _max: GolfCourseMaxAggregateOutputType | null
+  }
+
+  type GetGolfCourseGroupByPayload<T extends GolfCourseGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<GolfCourseGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof GolfCourseGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], GolfCourseGroupByOutputType[P]>
+            : GetScalarType<T[P], GolfCourseGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type GolfCourseSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    sido?: boolean
+    sigungu?: boolean
+    address?: boolean
+    bookingUrl?: boolean
+    hasAuto?: boolean
+    bookerType?: boolean
+    loginId?: boolean
+    loginPw?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["golfCourse"]>
+
+  export type GolfCourseSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    sido?: boolean
+    sigungu?: boolean
+    address?: boolean
+    bookingUrl?: boolean
+    hasAuto?: boolean
+    bookerType?: boolean
+    loginId?: boolean
+    loginPw?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["golfCourse"]>
+
+  export type GolfCourseSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    sido?: boolean
+    sigungu?: boolean
+    address?: boolean
+    bookingUrl?: boolean
+    hasAuto?: boolean
+    bookerType?: boolean
+    loginId?: boolean
+    loginPw?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["golfCourse"]>
+
+  export type GolfCourseSelectScalar = {
+    id?: boolean
+    name?: boolean
+    sido?: boolean
+    sigungu?: boolean
+    address?: boolean
+    bookingUrl?: boolean
+    hasAuto?: boolean
+    bookerType?: boolean
+    loginId?: boolean
+    loginPw?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type GolfCourseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "sido" | "sigungu" | "address" | "bookingUrl" | "hasAuto" | "bookerType" | "loginId" | "loginPw" | "createdAt" | "updatedAt", ExtArgs["result"]["golfCourse"]>
+
+  export type $GolfCoursePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "GolfCourse"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      name: string
+      sido: string
+      sigungu: string
+      address: string | null
+      bookingUrl: string | null
+      hasAuto: boolean
+      bookerType: string | null
+      loginId: string | null
+      loginPw: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["golfCourse"]>
+    composites: {}
+  }
+
+  type GolfCourseGetPayload<S extends boolean | null | undefined | GolfCourseDefaultArgs> = $Result.GetResult<Prisma.$GolfCoursePayload, S>
+
+  type GolfCourseCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<GolfCourseFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: GolfCourseCountAggregateInputType | true
+    }
+
+  export interface GolfCourseDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['GolfCourse'], meta: { name: 'GolfCourse' } }
+    /**
+     * Find zero or one GolfCourse that matches the filter.
+     * @param {GolfCourseFindUniqueArgs} args - Arguments to find a GolfCourse
+     * @example
+     * // Get one GolfCourse
+     * const golfCourse = await prisma.golfCourse.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends GolfCourseFindUniqueArgs>(args: SelectSubset<T, GolfCourseFindUniqueArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one GolfCourse that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {GolfCourseFindUniqueOrThrowArgs} args - Arguments to find a GolfCourse
+     * @example
+     * // Get one GolfCourse
+     * const golfCourse = await prisma.golfCourse.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends GolfCourseFindUniqueOrThrowArgs>(args: SelectSubset<T, GolfCourseFindUniqueOrThrowArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GolfCourse that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseFindFirstArgs} args - Arguments to find a GolfCourse
+     * @example
+     * // Get one GolfCourse
+     * const golfCourse = await prisma.golfCourse.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends GolfCourseFindFirstArgs>(args?: SelectSubset<T, GolfCourseFindFirstArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first GolfCourse that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseFindFirstOrThrowArgs} args - Arguments to find a GolfCourse
+     * @example
+     * // Get one GolfCourse
+     * const golfCourse = await prisma.golfCourse.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends GolfCourseFindFirstOrThrowArgs>(args?: SelectSubset<T, GolfCourseFindFirstOrThrowArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more GolfCourses that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all GolfCourses
+     * const golfCourses = await prisma.golfCourse.findMany()
+     * 
+     * // Get first 10 GolfCourses
+     * const golfCourses = await prisma.golfCourse.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const golfCourseWithIdOnly = await prisma.golfCourse.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends GolfCourseFindManyArgs>(args?: SelectSubset<T, GolfCourseFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a GolfCourse.
+     * @param {GolfCourseCreateArgs} args - Arguments to create a GolfCourse.
+     * @example
+     * // Create one GolfCourse
+     * const GolfCourse = await prisma.golfCourse.create({
+     *   data: {
+     *     // ... data to create a GolfCourse
+     *   }
+     * })
+     * 
+     */
+    create<T extends GolfCourseCreateArgs>(args: SelectSubset<T, GolfCourseCreateArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many GolfCourses.
+     * @param {GolfCourseCreateManyArgs} args - Arguments to create many GolfCourses.
+     * @example
+     * // Create many GolfCourses
+     * const golfCourse = await prisma.golfCourse.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends GolfCourseCreateManyArgs>(args?: SelectSubset<T, GolfCourseCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many GolfCourses and returns the data saved in the database.
+     * @param {GolfCourseCreateManyAndReturnArgs} args - Arguments to create many GolfCourses.
+     * @example
+     * // Create many GolfCourses
+     * const golfCourse = await prisma.golfCourse.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many GolfCourses and only return the `id`
+     * const golfCourseWithIdOnly = await prisma.golfCourse.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends GolfCourseCreateManyAndReturnArgs>(args?: SelectSubset<T, GolfCourseCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a GolfCourse.
+     * @param {GolfCourseDeleteArgs} args - Arguments to delete one GolfCourse.
+     * @example
+     * // Delete one GolfCourse
+     * const GolfCourse = await prisma.golfCourse.delete({
+     *   where: {
+     *     // ... filter to delete one GolfCourse
+     *   }
+     * })
+     * 
+     */
+    delete<T extends GolfCourseDeleteArgs>(args: SelectSubset<T, GolfCourseDeleteArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one GolfCourse.
+     * @param {GolfCourseUpdateArgs} args - Arguments to update one GolfCourse.
+     * @example
+     * // Update one GolfCourse
+     * const golfCourse = await prisma.golfCourse.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends GolfCourseUpdateArgs>(args: SelectSubset<T, GolfCourseUpdateArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more GolfCourses.
+     * @param {GolfCourseDeleteManyArgs} args - Arguments to filter GolfCourses to delete.
+     * @example
+     * // Delete a few GolfCourses
+     * const { count } = await prisma.golfCourse.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends GolfCourseDeleteManyArgs>(args?: SelectSubset<T, GolfCourseDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GolfCourses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many GolfCourses
+     * const golfCourse = await prisma.golfCourse.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends GolfCourseUpdateManyArgs>(args: SelectSubset<T, GolfCourseUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more GolfCourses and returns the data updated in the database.
+     * @param {GolfCourseUpdateManyAndReturnArgs} args - Arguments to update many GolfCourses.
+     * @example
+     * // Update many GolfCourses
+     * const golfCourse = await prisma.golfCourse.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more GolfCourses and only return the `id`
+     * const golfCourseWithIdOnly = await prisma.golfCourse.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends GolfCourseUpdateManyAndReturnArgs>(args: SelectSubset<T, GolfCourseUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one GolfCourse.
+     * @param {GolfCourseUpsertArgs} args - Arguments to update or create a GolfCourse.
+     * @example
+     * // Update or create a GolfCourse
+     * const golfCourse = await prisma.golfCourse.upsert({
+     *   create: {
+     *     // ... data to create a GolfCourse
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the GolfCourse we want to update
+     *   }
+     * })
+     */
+    upsert<T extends GolfCourseUpsertArgs>(args: SelectSubset<T, GolfCourseUpsertArgs<ExtArgs>>): Prisma__GolfCourseClient<$Result.GetResult<Prisma.$GolfCoursePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of GolfCourses.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseCountArgs} args - Arguments to filter GolfCourses to count.
+     * @example
+     * // Count the number of GolfCourses
+     * const count = await prisma.golfCourse.count({
+     *   where: {
+     *     // ... the filter for the GolfCourses we want to count
+     *   }
+     * })
+    **/
+    count<T extends GolfCourseCountArgs>(
+      args?: Subset<T, GolfCourseCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], GolfCourseCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a GolfCourse.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends GolfCourseAggregateArgs>(args: Subset<T, GolfCourseAggregateArgs>): Prisma.PrismaPromise<GetGolfCourseAggregateType<T>>
+
+    /**
+     * Group by GolfCourse.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {GolfCourseGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends GolfCourseGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: GolfCourseGroupByArgs['orderBy'] }
+        : { orderBy?: GolfCourseGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, GolfCourseGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetGolfCourseGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the GolfCourse model
+   */
+  readonly fields: GolfCourseFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for GolfCourse.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__GolfCourseClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the GolfCourse model
+   */
+  interface GolfCourseFieldRefs {
+    readonly id: FieldRef<"GolfCourse", 'Int'>
+    readonly name: FieldRef<"GolfCourse", 'String'>
+    readonly sido: FieldRef<"GolfCourse", 'String'>
+    readonly sigungu: FieldRef<"GolfCourse", 'String'>
+    readonly address: FieldRef<"GolfCourse", 'String'>
+    readonly bookingUrl: FieldRef<"GolfCourse", 'String'>
+    readonly hasAuto: FieldRef<"GolfCourse", 'Boolean'>
+    readonly bookerType: FieldRef<"GolfCourse", 'String'>
+    readonly loginId: FieldRef<"GolfCourse", 'String'>
+    readonly loginPw: FieldRef<"GolfCourse", 'String'>
+    readonly createdAt: FieldRef<"GolfCourse", 'DateTime'>
+    readonly updatedAt: FieldRef<"GolfCourse", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * GolfCourse findUnique
+   */
+  export type GolfCourseFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfCourse to fetch.
+     */
+    where: GolfCourseWhereUniqueInput
+  }
+
+  /**
+   * GolfCourse findUniqueOrThrow
+   */
+  export type GolfCourseFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfCourse to fetch.
+     */
+    where: GolfCourseWhereUniqueInput
+  }
+
+  /**
+   * GolfCourse findFirst
+   */
+  export type GolfCourseFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfCourse to fetch.
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfCourses to fetch.
+     */
+    orderBy?: GolfCourseOrderByWithRelationInput | GolfCourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GolfCourses.
+     */
+    cursor?: GolfCourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfCourses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfCourses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GolfCourses.
+     */
+    distinct?: GolfCourseScalarFieldEnum | GolfCourseScalarFieldEnum[]
+  }
+
+  /**
+   * GolfCourse findFirstOrThrow
+   */
+  export type GolfCourseFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfCourse to fetch.
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfCourses to fetch.
+     */
+    orderBy?: GolfCourseOrderByWithRelationInput | GolfCourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for GolfCourses.
+     */
+    cursor?: GolfCourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfCourses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfCourses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GolfCourses.
+     */
+    distinct?: GolfCourseScalarFieldEnum | GolfCourseScalarFieldEnum[]
+  }
+
+  /**
+   * GolfCourse findMany
+   */
+  export type GolfCourseFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * Filter, which GolfCourses to fetch.
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of GolfCourses to fetch.
+     */
+    orderBy?: GolfCourseOrderByWithRelationInput | GolfCourseOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing GolfCourses.
+     */
+    cursor?: GolfCourseWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` GolfCourses from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` GolfCourses.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of GolfCourses.
+     */
+    distinct?: GolfCourseScalarFieldEnum | GolfCourseScalarFieldEnum[]
+  }
+
+  /**
+   * GolfCourse create
+   */
+  export type GolfCourseCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * The data needed to create a GolfCourse.
+     */
+    data: XOR<GolfCourseCreateInput, GolfCourseUncheckedCreateInput>
+  }
+
+  /**
+   * GolfCourse createMany
+   */
+  export type GolfCourseCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many GolfCourses.
+     */
+    data: GolfCourseCreateManyInput | GolfCourseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GolfCourse createManyAndReturn
+   */
+  export type GolfCourseCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * The data used to create many GolfCourses.
+     */
+    data: GolfCourseCreateManyInput | GolfCourseCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * GolfCourse update
+   */
+  export type GolfCourseUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * The data needed to update a GolfCourse.
+     */
+    data: XOR<GolfCourseUpdateInput, GolfCourseUncheckedUpdateInput>
+    /**
+     * Choose, which GolfCourse to update.
+     */
+    where: GolfCourseWhereUniqueInput
+  }
+
+  /**
+   * GolfCourse updateMany
+   */
+  export type GolfCourseUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update GolfCourses.
+     */
+    data: XOR<GolfCourseUpdateManyMutationInput, GolfCourseUncheckedUpdateManyInput>
+    /**
+     * Filter which GolfCourses to update
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * Limit how many GolfCourses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GolfCourse updateManyAndReturn
+   */
+  export type GolfCourseUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * The data used to update GolfCourses.
+     */
+    data: XOR<GolfCourseUpdateManyMutationInput, GolfCourseUncheckedUpdateManyInput>
+    /**
+     * Filter which GolfCourses to update
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * Limit how many GolfCourses to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * GolfCourse upsert
+   */
+  export type GolfCourseUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * The filter to search for the GolfCourse to update in case it exists.
+     */
+    where: GolfCourseWhereUniqueInput
+    /**
+     * In case the GolfCourse found by the `where` argument doesn't exist, create a new GolfCourse with this data.
+     */
+    create: XOR<GolfCourseCreateInput, GolfCourseUncheckedCreateInput>
+    /**
+     * In case the GolfCourse was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<GolfCourseUpdateInput, GolfCourseUncheckedUpdateInput>
+  }
+
+  /**
+   * GolfCourse delete
+   */
+  export type GolfCourseDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+    /**
+     * Filter which GolfCourse to delete.
+     */
+    where: GolfCourseWhereUniqueInput
+  }
+
+  /**
+   * GolfCourse deleteMany
+   */
+  export type GolfCourseDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which GolfCourses to delete
+     */
+    where?: GolfCourseWhereInput
+    /**
+     * Limit how many GolfCourses to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * GolfCourse without action
+   */
+  export type GolfCourseDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the GolfCourse
+     */
+    select?: GolfCourseSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the GolfCourse
+     */
+    omit?: GolfCourseOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -38267,6 +39483,24 @@ export namespace Prisma {
   };
 
   export type MenuUsageLogScalarFieldEnum = (typeof MenuUsageLogScalarFieldEnum)[keyof typeof MenuUsageLogScalarFieldEnum]
+
+
+  export const GolfCourseScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    sido: 'sido',
+    sigungu: 'sigungu',
+    address: 'address',
+    bookingUrl: 'bookingUrl',
+    hasAuto: 'hasAuto',
+    bookerType: 'bookerType',
+    loginId: 'loginId',
+    loginPw: 'loginPw',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type GolfCourseScalarFieldEnum = (typeof GolfCourseScalarFieldEnum)[keyof typeof GolfCourseScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -40642,6 +41876,95 @@ export namespace Prisma {
     userId?: IntWithAggregatesFilter<"MenuUsageLog"> | number
     feature?: StringWithAggregatesFilter<"MenuUsageLog"> | string
     createdAt?: DateTimeWithAggregatesFilter<"MenuUsageLog"> | Date | string
+  }
+
+  export type GolfCourseWhereInput = {
+    AND?: GolfCourseWhereInput | GolfCourseWhereInput[]
+    OR?: GolfCourseWhereInput[]
+    NOT?: GolfCourseWhereInput | GolfCourseWhereInput[]
+    id?: IntFilter<"GolfCourse"> | number
+    name?: StringFilter<"GolfCourse"> | string
+    sido?: StringFilter<"GolfCourse"> | string
+    sigungu?: StringFilter<"GolfCourse"> | string
+    address?: StringNullableFilter<"GolfCourse"> | string | null
+    bookingUrl?: StringNullableFilter<"GolfCourse"> | string | null
+    hasAuto?: BoolFilter<"GolfCourse"> | boolean
+    bookerType?: StringNullableFilter<"GolfCourse"> | string | null
+    loginId?: StringNullableFilter<"GolfCourse"> | string | null
+    loginPw?: StringNullableFilter<"GolfCourse"> | string | null
+    createdAt?: DateTimeFilter<"GolfCourse"> | Date | string
+    updatedAt?: DateTimeFilter<"GolfCourse"> | Date | string
+  }
+
+  export type GolfCourseOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    sido?: SortOrder
+    sigungu?: SortOrder
+    address?: SortOrderInput | SortOrder
+    bookingUrl?: SortOrderInput | SortOrder
+    hasAuto?: SortOrder
+    bookerType?: SortOrderInput | SortOrder
+    loginId?: SortOrderInput | SortOrder
+    loginPw?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfCourseWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: GolfCourseWhereInput | GolfCourseWhereInput[]
+    OR?: GolfCourseWhereInput[]
+    NOT?: GolfCourseWhereInput | GolfCourseWhereInput[]
+    name?: StringFilter<"GolfCourse"> | string
+    sido?: StringFilter<"GolfCourse"> | string
+    sigungu?: StringFilter<"GolfCourse"> | string
+    address?: StringNullableFilter<"GolfCourse"> | string | null
+    bookingUrl?: StringNullableFilter<"GolfCourse"> | string | null
+    hasAuto?: BoolFilter<"GolfCourse"> | boolean
+    bookerType?: StringNullableFilter<"GolfCourse"> | string | null
+    loginId?: StringNullableFilter<"GolfCourse"> | string | null
+    loginPw?: StringNullableFilter<"GolfCourse"> | string | null
+    createdAt?: DateTimeFilter<"GolfCourse"> | Date | string
+    updatedAt?: DateTimeFilter<"GolfCourse"> | Date | string
+  }, "id">
+
+  export type GolfCourseOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    sido?: SortOrder
+    sigungu?: SortOrder
+    address?: SortOrderInput | SortOrder
+    bookingUrl?: SortOrderInput | SortOrder
+    hasAuto?: SortOrder
+    bookerType?: SortOrderInput | SortOrder
+    loginId?: SortOrderInput | SortOrder
+    loginPw?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: GolfCourseCountOrderByAggregateInput
+    _avg?: GolfCourseAvgOrderByAggregateInput
+    _max?: GolfCourseMaxOrderByAggregateInput
+    _min?: GolfCourseMinOrderByAggregateInput
+    _sum?: GolfCourseSumOrderByAggregateInput
+  }
+
+  export type GolfCourseScalarWhereWithAggregatesInput = {
+    AND?: GolfCourseScalarWhereWithAggregatesInput | GolfCourseScalarWhereWithAggregatesInput[]
+    OR?: GolfCourseScalarWhereWithAggregatesInput[]
+    NOT?: GolfCourseScalarWhereWithAggregatesInput | GolfCourseScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"GolfCourse"> | number
+    name?: StringWithAggregatesFilter<"GolfCourse"> | string
+    sido?: StringWithAggregatesFilter<"GolfCourse"> | string
+    sigungu?: StringWithAggregatesFilter<"GolfCourse"> | string
+    address?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
+    bookingUrl?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
+    hasAuto?: BoolWithAggregatesFilter<"GolfCourse"> | boolean
+    bookerType?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
+    loginId?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
+    loginPw?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"GolfCourse"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"GolfCourse"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -43031,6 +44354,108 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type GolfCourseCreateInput = {
+    name: string
+    sido: string
+    sigungu: string
+    address?: string | null
+    bookingUrl?: string | null
+    hasAuto?: boolean
+    bookerType?: string | null
+    loginId?: string | null
+    loginPw?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GolfCourseUncheckedCreateInput = {
+    id?: number
+    name: string
+    sido: string
+    sigungu: string
+    address?: string | null
+    bookingUrl?: string | null
+    hasAuto?: boolean
+    bookerType?: string | null
+    loginId?: string | null
+    loginPw?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GolfCourseUpdateInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    sido?: StringFieldUpdateOperationsInput | string
+    sigungu?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    bookingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAuto?: BoolFieldUpdateOperationsInput | boolean
+    bookerType?: NullableStringFieldUpdateOperationsInput | string | null
+    loginId?: NullableStringFieldUpdateOperationsInput | string | null
+    loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GolfCourseUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    sido?: StringFieldUpdateOperationsInput | string
+    sigungu?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    bookingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAuto?: BoolFieldUpdateOperationsInput | boolean
+    bookerType?: NullableStringFieldUpdateOperationsInput | string | null
+    loginId?: NullableStringFieldUpdateOperationsInput | string | null
+    loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GolfCourseCreateManyInput = {
+    id?: number
+    name: string
+    sido: string
+    sigungu: string
+    address?: string | null
+    bookingUrl?: string | null
+    hasAuto?: boolean
+    bookerType?: string | null
+    loginId?: string | null
+    loginPw?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type GolfCourseUpdateManyMutationInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    sido?: StringFieldUpdateOperationsInput | string
+    sigungu?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    bookingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAuto?: BoolFieldUpdateOperationsInput | boolean
+    bookerType?: NullableStringFieldUpdateOperationsInput | string | null
+    loginId?: NullableStringFieldUpdateOperationsInput | string | null
+    loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type GolfCourseUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    sido?: StringFieldUpdateOperationsInput | string
+    sigungu?: StringFieldUpdateOperationsInput | string
+    address?: NullableStringFieldUpdateOperationsInput | string | null
+    bookingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    hasAuto?: BoolFieldUpdateOperationsInput | boolean
+    bookerType?: NullableStringFieldUpdateOperationsInput | string | null
+    loginId?: NullableStringFieldUpdateOperationsInput | string | null
+    loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -44842,6 +46267,59 @@ export namespace Prisma {
   export type MenuUsageLogSumOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
+  }
+
+  export type GolfCourseCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    sido?: SortOrder
+    sigungu?: SortOrder
+    address?: SortOrder
+    bookingUrl?: SortOrder
+    hasAuto?: SortOrder
+    bookerType?: SortOrder
+    loginId?: SortOrder
+    loginPw?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfCourseAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type GolfCourseMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    sido?: SortOrder
+    sigungu?: SortOrder
+    address?: SortOrder
+    bookingUrl?: SortOrder
+    hasAuto?: SortOrder
+    bookerType?: SortOrder
+    loginId?: SortOrder
+    loginPw?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfCourseMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    sido?: SortOrder
+    sigungu?: SortOrder
+    address?: SortOrder
+    bookingUrl?: SortOrder
+    hasAuto?: SortOrder
+    bookerType?: SortOrder
+    loginId?: SortOrder
+    loginPw?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type GolfCourseSumOrderByAggregateInput = {
+    id?: SortOrder
   }
 
   export type PersonaCreateNestedManyWithoutUserInput = {

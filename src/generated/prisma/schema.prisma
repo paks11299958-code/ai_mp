@@ -426,3 +426,20 @@ model MenuUsageLog {
 
   @@index([userId, feature, createdAt])
 }
+
+model GolfCourse {
+  id         Int      @id @default(autoincrement())
+  name       String
+  sido       String
+  sigungu    String
+  address    String?
+  bookingUrl String?
+  hasAuto    Boolean  @default(false)
+  bookerType String?
+  loginId    String?
+  loginPw    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([sido, sigungu])
+}

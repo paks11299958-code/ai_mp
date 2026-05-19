@@ -7,8 +7,9 @@ const { chromium } = require('/home/paks11299958/ai_mp/node_modules/playwright')
 const GOLF_URL  = 'https://www.adtgv.co.kr';
 const LOGIN_URL = `${GOLF_URL}/html/member/login.asp`;
 const BOOK_URL  = `${GOLF_URL}/html/reserve/reserve01.asp`;
-const ID        = 'paks1012';
-const PW        = 'paks9958!';
+// 환경변수 우선, 없으면 하드코딩된 기본값 (개인 계정)
+const ID        = process.env.GOLF_LOGIN_ID || 'paks1012';
+const PW        = process.env.GOLF_LOGIN_PW || 'paks9958!';
 
 // 시간대 범위 (HHMM 숫자 비교)
 const TIME_RANGES = {

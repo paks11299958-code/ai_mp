@@ -458,6 +458,21 @@ exports.Prisma.MenuUsageLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.GolfCourseScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  sido: 'sido',
+  sigungu: 'sigungu',
+  address: 'address',
+  bookingUrl: 'bookingUrl',
+  hasAuto: 'hasAuto',
+  bookerType: 'bookerType',
+  loginId: 'loginId',
+  loginPw: 'loginPw',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -503,7 +518,8 @@ exports.Prisma.ModelName = {
   UsedItemListing: 'UsedItemListing',
   NaverShoppingCategory: 'NaverShoppingCategory',
   MenuLimit: 'MenuLimit',
-  MenuUsageLog: 'MenuUsageLog'
+  MenuUsageLog: 'MenuUsageLog',
+  GolfCourse: 'GolfCourse'
 };
 
 /**
