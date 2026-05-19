@@ -119,7 +119,7 @@ const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: strin
 
 interface Props {
     onClose: () => void;
-    onConsult?: (personaId: string) => void;
+    onConsult?: (personaId: string, stockName: string) => void;
 }
 
 const API = (path: string) => `/api/stock-analysis${path}`;
@@ -593,19 +593,20 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                     setConsulting(true);
                                                     try {
                                                         await stockReportApi.consult(selected.id);
-                                                        onConsult?.(YUNCHAEWON_PERSONA_ID);
                                                         onClose();
+                                                        onConsult?.(YUNCHAEWON_PERSONA_ID, selected.stockName);
                                                     } catch (e: any) {
-                                                        alert(e.message || '상담 저장 실패');
-                                                    } finally {
+                                                        alert(e.message || '학습 저장 실패');
                                                         setConsulting(false);
                                                     }
                                                 }}
                                                 disabled={consulting || selected.status !== 'completed'}
                                                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs transition-colors font-medium"
                                             >
-                                                {consulting ? <Loader size={12} className="animate-spin" /> : <MessageCircle size={12} />}
-                                                상담하기
+                                                {consulting
+                                                    ? <><Loader size={12} className="animate-spin" /> 학습 중...</>
+                                                    : <><MessageCircle size={12} /> 학습하기</>
+                                                }
                                             </button>
                                             <button
                                                 onClick={() => handleDownload(selected)}
