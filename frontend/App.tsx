@@ -1717,7 +1717,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* 트리거 키워드 안내 */}
-                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || isGolfPersona) && (
+                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '서현진' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || isGolfPersona) && (
                             <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
                                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
@@ -1763,7 +1763,7 @@ const App: React.FC = () => {
                                                 </button>
                                             </>
                                         )}
-                                        {activePersona?.name === '서아' && user && (
+                                        {(activePersona?.name === '서아' || activePersona?.name === '서현진') && user && (
                                             <button
                                                 onClick={() => setShowStockAnalysis(true)}
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100 transition-colors whitespace-nowrap flex items-center gap-1"
