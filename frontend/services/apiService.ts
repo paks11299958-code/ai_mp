@@ -212,7 +212,7 @@ export const personaImageApi = {
         request<PersonaImage[]>(`/personas/${personaId}/images`),
 
     getSignedUrl: (personaId: string, mimeType: string, filename: string) =>
-        request<{ signedUrl: string; publicUrl: string }>(`/personas/${personaId}/images?action=signed-url`, {
+        request<{ signedUrl: string; publicUrl: string }>(`/personas/${personaId}/images/signed-url`, {
             method: 'POST',
             body: JSON.stringify({ mimeType, filename }),
         }),

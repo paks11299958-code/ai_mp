@@ -22,8 +22,9 @@ self.addEventListener('fetch', (event) => {
   // 외부 도메인 요청은 SW에서 처리하지 않음
   if (!request.url.startsWith(self.location.origin)) return;
 
-  // API 요청은 캐시 없이 그대로 통과
-  if (request.url.includes('/api/')) return;
+  // API 요청 및 POST 요청은 캐시 없이 그대로 통과
+  if (request.url.includes('/api/') || request.url.includes('/api-proxy')) return;
+  if (request.method !== 'GET') return;
 
   // 페이지 이동 요청: 네트워크 우선, 실패 시 캐시된 index.html
   if (request.mode === 'navigate') {
@@ -33,7 +34,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 정적 자산: 캐시 우선
+  // 정적 자산 (GET만): 캐시 우선
   event.respondWith(
     caches.match(request).then((cached) => {
       if (cached) return cached;
