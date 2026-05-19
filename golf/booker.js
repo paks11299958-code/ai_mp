@@ -18,24 +18,50 @@ const TIME_RANGES = {
     evening:   { min: 1700, max: 2359 },
 };
 
-const BREVO_API_KEY = process.env.BREVO_API_KEY;
-const NOTIFY_EMAIL  = 'paks1012@naver.com';
+const BREVO_API_KEY   = process.env.BREVO_API_KEY;
+const NOTIFY_EMAIL    = process.env.NOTIFY_EMAIL || '';   // 회원 이메일 (golf.ts에서 주입)
+const NOTIFY_PHONE    = process.env.NOTIFY_PHONE || '';   // 회원 전화번호 (이메일 없을 때)
+const SOLAPI_API_KEY  = process.env.SOLAPI_API_KEY;
+const SOLAPI_SECRET   = process.env.SOLAPI_API_SECRET;
+const SOLAPI_FROM     = process.env.SOLAPI_SENDER_PHONE;
 
-async function sendNotification(subject, html) {
-    if (!BREVO_API_KEY) return;
-    try {
-        await fetch('https://api.brevo.com/v3/smtp/email', {
-            method: 'POST',
-            headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sender: { name: 'Golf Booking Bot', email: 'noreply@golf.dbzone.kr' },
-                to: [{ email: NOTIFY_EMAIL }],
-                subject,
-                htmlContent: html,
-            }),
-        });
-    } catch (e) {
-        console.error('이메일 발송 실패:', e.message);
+const crypto = require('crypto');
+
+async function sendNotification(subject, html, smsText) {
+    // 이메일 우선, 없으면 SMS
+    if (NOTIFY_EMAIL && BREVO_API_KEY) {
+        try {
+            await fetch('https://api.brevo.com/v3/smtp/email', {
+                method: 'POST',
+                headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sender: { name: 'Golf Booking Bot', email: 'noreply@golf.dbzone.kr' },
+                    to: [{ email: NOTIFY_EMAIL }],
+                    subject,
+                    htmlContent: html,
+                }),
+            });
+            console.log('이메일 발송 완료:', NOTIFY_EMAIL);
+        } catch (e) {
+            console.error('이메일 발송 실패:', e.message);
+        }
+    } else if (NOTIFY_PHONE && SOLAPI_API_KEY && SOLAPI_SECRET && SOLAPI_FROM) {
+        try {
+            const date = new Date().toISOString();
+            const salt = crypto.randomBytes(16).toString('hex');
+            const sig  = crypto.createHmac('sha256', SOLAPI_SECRET).update(date + salt).digest('hex');
+            const auth = `HMAC-SHA256 apiKey=${SOLAPI_API_KEY}, date=${date}, salt=${salt}, signature=${sig}`;
+            await fetch('https://api.solapi.com/messages/v4/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: auth },
+                body: JSON.stringify({ message: { to: NOTIFY_PHONE, from: SOLAPI_FROM, text: smsText } }),
+            });
+            console.log('SMS 발송 완료:', NOTIFY_PHONE);
+        } catch (e) {
+            console.error('SMS 발송 실패:', e.message);
+        }
+    } else {
+        console.warn('알림 수단 없음 (이메일/SMS 모두 미설정)');
     }
 }
 
@@ -169,7 +195,8 @@ async function book(dateStr, timePeriod = 'morning') {
                <tr><td>시간</td><td>${target.time}</td></tr>
                <tr><td>코스</td><td>${target.course}</td></tr>
                <tr><td>요금</td><td>${target.price}</td></tr>
-             </table>`
+             </table>`,
+            `[골프예약 완료]\n날짜: ${dateStr}\n시간: ${target.time}\n코스: ${target.course}\n요금: ${target.price}`
         );
 
         return { ok: true, time: target.time, course: target.course, price: target.price };
@@ -178,7 +205,8 @@ async function book(dateStr, timePeriod = 'morning') {
         console.error('예약 실패:', err.message);
         await sendNotification(
             `[골프예약 실패] ${dateStr}`,
-            `<h2>골프 예약에 실패했습니다</h2><p>${err.message}</p>`
+            `<h2>골프 예약에 실패했습니다</h2><p>${err.message}</p>`,
+            `[골프예약 실패]\n날짜: ${dateStr}\n사유: ${err.message}`
         );
         return { ok: false, error: err.message };
     } finally {
