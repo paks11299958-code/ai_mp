@@ -27,6 +27,7 @@ import { MathTutorBoard } from './components/MathTutorBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
 import { AnnouncementModal } from './components/AnnouncementModal';
 import { ProductExtractDialog } from './components/ProductExtractDialog';
+import { GolfReserveDialog } from './components/GolfReserveDialog';
 import { Icon } from './components/Icons';
 import { PointDisplay } from './components/PointDisplay';
 import { PointModal } from './components/PointModal';
@@ -112,6 +113,7 @@ const App: React.FC = () => {
     const [showHotKeyword, setShowHotKeyword] = useState(false);
     const [showResearch, setShowResearch] = useState(false);
     const [showProductExtract, setShowProductExtract] = useState(false);
+    const [showGolfReserve, setShowGolfReserve] = useState(false);
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
@@ -1120,6 +1122,9 @@ const App: React.FC = () => {
                         userEmail={user?.email}
                     />
                 )}
+                {showGolfReserve && (
+                    <GolfReserveDialog onClose={() => setShowGolfReserve(false)} />
+                )}
             </>
         );
     }
@@ -1185,6 +1190,9 @@ const App: React.FC = () => {
                     onClose={() => setShowProductExtract(false)}
                     userEmail={user?.email}
                 />
+            )}
+            {showGolfReserve && (
+                <GolfReserveDialog onClose={() => setShowGolfReserve(false)} />
             )}
 
             {/* 생년월일 명부 모달 */}
@@ -1705,6 +1713,16 @@ const App: React.FC = () => {
                                                 >
                                                     <Icon name="Play" size={15} className="text-green-400" />
                                                     스윙 기록
+                                                </button>
+                                            )}
+                                            {/* 골프예약 (골프 페르소나만) */}
+                                            {isGolfPersona && user && (
+                                                <button
+                                                    onClick={() => { setShowHeaderMenu(false); setShowGolfReserve(true); }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                                                >
+                                                    <Icon name="MapPin" size={15} className="text-green-400" />
+                                                    골프 예약
                                                 </button>
                                             )}
                                             {/* 기억 공유 */}
