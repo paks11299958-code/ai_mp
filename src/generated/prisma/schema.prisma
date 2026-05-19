@@ -428,33 +428,37 @@ model MenuUsageLog {
 }
 
 model GolfBookingSchedule {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   userId      Int
   courseId    Int
-  golfDate    String // YYYY-MM-DD (라운드 날짜)
-  timePeriod  String // morning/afternoon/evening
-  scheduledAt DateTime // 예약 시도할 시각
-  status      String   @default("pending") // pending/running/success/failed
+  golfDate    String
+  timePeriod  String
+  scheduledAt DateTime
+  openAt      DateTime?
+  status      String    @default("pending")
   resultMsg   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([status, scheduledAt])
 }
 
 model GolfCourse {
-  id         Int      @id @default(autoincrement())
-  name       String
-  sido       String
-  sigungu    String
-  address    String?
-  bookingUrl String?
-  hasAuto    Boolean  @default(false)
-  bookerType String?
-  loginId    String?
-  loginPw    String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  name        String
+  sido        String
+  sigungu     String
+  address     String?
+  bookingUrl  String?
+  hasAuto     Boolean  @default(false)
+  bookerType  String?
+  loginId     String?
+  loginPw     String?
+  advanceDays Int      @default(30)
+  openHour    Int      @default(0)
+  openMinute  Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([sido, sigungu])
 }

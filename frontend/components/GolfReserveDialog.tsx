@@ -11,6 +11,9 @@ interface GolfCourse {
     hasAuto: boolean;
     loginId: string | null;
     hasCredential: boolean;
+    advanceDays: number;
+    openHour: number;
+    openMinute: number;
 }
 
 interface ScheduleItem {
@@ -19,6 +22,7 @@ interface ScheduleItem {
     golfDate: string;
     timePeriod: string;
     scheduledAt: string;
+    openAt: string | null;
     status: string;
     resultMsg: string | null;
 }
@@ -45,6 +49,24 @@ const STATUS_LABEL: Record<string, { text: string; cls: string }> = {
 
 const PERIOD_KO: Record<string, string> = { morning: '오전', afternoon: '오후', evening: '저녁' };
 
+function pad(n: number) { return String(n).padStart(2, '0'); }
+
+function toKST(date: Date) {
+    const kst = new Date(date.getTime() + 9 * 60 * 60 * 1000);
+    return `${kst.getUTCFullYear()}-${pad(kst.getUTCMonth()+1)}-${pad(kst.getUTCDate())} ${pad(kst.getUTCHours())}:${pad(kst.getUTCMinutes())}`;
+}
+
+// 예약 오픈 시각 계산 (서버 calcOpenAt과 동일 로직)
+function calcOpenAt(golfDate: string, advanceDays: number, openHour: number, openMinute: number): Date {
+    const [y, m, d] = golfDate.split('-').map(Number);
+    const golfMidnightKST = new Date(Date.UTC(y, m - 1, d) - 9 * 60 * 60 * 1000);
+    const openKST = new Date(golfMidnightKST.getTime() - advanceDays * 24 * 60 * 60 * 1000);
+    const utcHour = openHour - 9 < 0 ? openHour - 9 + 24 : openHour - 9;
+    openKST.setUTCHours(utcHour, openMinute, 0, 0);
+    if (openHour < 9) openKST.setUTCDate(openKST.getUTCDate() + 1);
+    return openKST;
+}
+
 export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
     const [step, setStep]         = useState<Step>('select');
     const [sidos, setSidos]       = useState<string[]>([]);
@@ -56,7 +78,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
     const [date, setDate]         = useState('');
     const [timePeriod, setTimePeriod] = useState('morning');
     const [mode, setMode]         = useState<Mode>('now');
-    const [scheduledAt, setScheduledAt] = useState('');
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState('');
     const [result, setResult]     = useState('');
@@ -73,9 +94,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         setDate(tomorrow.toISOString().split('T')[0]);
-        // 기본 시도 시각: 내일 00:00
-        const def = new Date(); def.setDate(def.getDate() + 1); def.setHours(0, 0, 0, 0);
-        setScheduledAt(toLocalDatetimeInput(def));
     }, []);
 
     useEffect(() => {
@@ -97,11 +115,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         setSelectedCourse(null);
     }, [selectedSigungu]);
 
-    function toLocalDatetimeInput(d: Date) {
-        const pad = (n: number) => String(n).padStart(2, '0');
-        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    }
-
     const loadSchedules = () => {
         setSchedLoading(true);
         fetch('/api/golf/schedules', { credentials: 'include' })
@@ -118,17 +131,24 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         setInputPw('');
     };
 
-    const handleOpenBooking = () => {
-        if (selectedCourse?.bookingUrl) window.open(selectedCourse.bookingUrl, '_blank');
-    };
+    // 선택된 날짜 + 골프장 기준 오픈 시각 계산
+    const openAtInfo = (selectedCourse && date && mode === 'schedule')
+        ? (() => {
+            try {
+                const openAt = calcOpenAt(date, selectedCourse.advanceDays, selectedCourse.openHour, selectedCourse.openMinute);
+                const botAt  = new Date(openAt.getTime() - 3 * 60 * 1000);
+                return { openAt, botAt, valid: botAt > new Date() };
+            } catch { return null; }
+        })()
+        : null;
 
     const handleSubmit = async () => {
         if (!selectedCourse || !date) return;
         if (showCredForm && (!inputId.trim() || !inputPw.trim())) {
             setError('아이디와 비밀번호를 입력해주세요.'); return;
         }
-        if (mode === 'schedule' && !scheduledAt) {
-            setError('예약 시도 시각을 선택해주세요.'); return;
+        if (mode === 'schedule' && openAtInfo && !openAtInfo.valid) {
+            setError('계산된 예약 시도 시각이 이미 지났습니다. 골프 날짜를 확인해주세요.'); return;
         }
 
         setLoading(true); setError('');
@@ -139,7 +159,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                 : {};
 
             if (mode === 'now') {
-                // 즉시 예약
                 setStep('running');
                 const res = await fetch('/api/golf/reserve', {
                     method: 'POST', credentials: 'include',
@@ -151,17 +170,17 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                 setResult(data.message || '예약 진행 중입니다.');
                 setStep('done');
             } else {
-                // 시간 예약 (스케줄 등록)
-                const schedAt = new Date(scheduledAt).toISOString();
+                // 시간 예약 — scheduledAt 없이 courseId/golfDate/timePeriod만 전송 (서버가 자동 계산)
                 const res = await fetch('/api/golf/schedule', {
                     method: 'POST', credentials: 'include',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ courseId: selectedCourse.id, golfDate: date, timePeriod, scheduledAt: schedAt, ...credBody }),
+                    body: JSON.stringify({ courseId: selectedCourse.id, golfDate: date, timePeriod, ...credBody }),
                 });
                 const data = await res.json();
                 if (!res.ok) throw new Error(data.error || '스케줄 등록 실패');
-                const schedDate = new Date(scheduledAt);
-                setResult(`${schedDate.toLocaleString('ko-KR')}에 자동으로 예약을 시도합니다.`);
+                const openStr = openAtInfo ? toKST(openAtInfo.openAt) : '';
+                const botStr  = openAtInfo ? toKST(openAtInfo.botAt)  : '';
+                setResult(`예약 오픈: ${openStr} KST\n봇 접속: ${botStr} KST (3분 전)\n오픈 즉시 자동 예약합니다.`);
                 setStep('done');
             }
         } catch (e: any) {
@@ -179,7 +198,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
     };
 
     const today = new Date().toISOString().split('T')[0];
-    const nowStr = toLocalDatetimeInput(new Date());
 
     return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
@@ -226,8 +244,13 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                                     <p className="text-gray-400 text-xs mt-0.5">
                                                         라운드: {s.golfDate} {PERIOD_KO[s.timePeriod]}
                                                     </p>
+                                                    {s.openAt && (
+                                                        <p className="text-gray-500 text-xs">
+                                                            오픈: {toKST(new Date(s.openAt))} KST
+                                                        </p>
+                                                    )}
                                                     <p className="text-gray-500 text-xs">
-                                                        시도: {new Date(s.scheduledAt).toLocaleString('ko-KR')}
+                                                        봇 실행: {toKST(new Date(s.scheduledAt))} KST
                                                     </p>
                                                     {s.resultMsg && <p className="text-gray-500 text-xs mt-0.5 truncate">{s.resultMsg}</p>}
                                                 </div>
@@ -346,19 +369,35 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                                         ? 'bg-blue-600 border-blue-500 text-white'
                                                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-white'
                                                 }`}>
-                                                <AlarmClock size={12} /> 시간 예약
+                                                <AlarmClock size={12} /> 오픈 시각 예약
                                             </button>
                                         </div>
 
-                                        {mode === 'schedule' && (
-                                            <div className="mt-2">
-                                                <label className="text-gray-400 text-xs mb-1 flex items-center gap-1">
-                                                    <AlarmClock size={12} /> 예약 시도 시각
-                                                </label>
-                                                <input type="datetime-local" value={scheduledAt} min={nowStr}
-                                                    onChange={e => setScheduledAt(e.target.value)}
-                                                    className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500" />
-                                                <p className="text-gray-600 text-xs mt-1">설정한 시각에 자동으로 예약을 시도합니다.</p>
+                                        {/* 오픈 시각 자동 안내 */}
+                                        {mode === 'schedule' && date && (
+                                            <div className="mt-2 bg-blue-950/40 border border-blue-800/50 rounded-xl px-4 py-3 space-y-1">
+                                                <p className="text-blue-300 text-xs font-medium flex items-center gap-1">
+                                                    <AlarmClock size={11} /> 자동 계산된 예약 일정
+                                                </p>
+                                                {openAtInfo ? (
+                                                    <>
+                                                        <p className="text-gray-300 text-xs">
+                                                            예약 오픈: <span className="text-white font-medium">{toKST(openAtInfo.openAt)} KST</span>
+                                                        </p>
+                                                        <p className="text-gray-300 text-xs">
+                                                            봇 접속: <span className="text-white font-medium">{toKST(openAtInfo.botAt)} KST</span>
+                                                            <span className="text-gray-500"> (3분 전 대기)</span>
+                                                        </p>
+                                                        <p className="text-gray-500 text-[11px] mt-1">
+                                                            {selectedCourse.advanceDays}일 전 {pad(selectedCourse.openHour)}:{pad(selectedCourse.openMinute)} 오픈 기준
+                                                        </p>
+                                                        {!openAtInfo.valid && (
+                                                            <p className="text-red-400 text-xs mt-1">⚠ 예약 시각이 이미 지났습니다. 날짜를 다시 선택해주세요.</p>
+                                                        )}
+                                                    </>
+                                                ) : (
+                                                    <p className="text-gray-500 text-xs">날짜를 선택하면 자동 계산됩니다.</p>
+                                                )}
                                             </div>
                                         )}
                                     </div>
@@ -399,14 +438,16 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                         뒤로
                                     </button>
                                     {selectedCourse.hasAuto ? (
-                                        <button onClick={handleSubmit} disabled={!date || loading}
+                                        <button onClick={handleSubmit}
+                                            disabled={!date || loading || (mode === 'schedule' && !!openAtInfo && !openAtInfo.valid)}
                                             className={`flex-1 py-2.5 rounded-xl disabled:opacity-40 text-white text-sm font-medium transition-colors ${
                                                 mode === 'schedule' ? 'bg-blue-600 hover:bg-blue-500' : 'bg-green-600 hover:bg-green-500'
                                             }`}>
-                                            {mode === 'schedule' ? '시간 예약 등록' : '자동 예약'}
+                                            {mode === 'schedule' ? '오픈 시각 예약 등록' : '자동 예약'}
                                         </button>
                                     ) : (
-                                        <button onClick={handleOpenBooking} disabled={!selectedCourse.bookingUrl}
+                                        <button onClick={() => selectedCourse.bookingUrl && window.open(selectedCourse.bookingUrl, '_blank')}
+                                            disabled={!selectedCourse.bookingUrl}
                                             className="flex-1 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-sm font-medium transition-colors flex items-center justify-center gap-1.5">
                                             <ExternalLink size={13} /> 예약 사이트
                                         </button>
@@ -431,7 +472,7 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                 <p className="text-white font-medium">
                                     {mode === 'schedule' ? '예약 등록 완료' : '예약 요청 완료'}
                                 </p>
-                                <p className="text-gray-400 text-xs">{result}</p>
+                                <p className="text-gray-400 text-xs whitespace-pre-line">{result}</p>
                                 <button onClick={onClose}
                                     className="mt-4 px-6 py-2.5 rounded-xl bg-green-600 hover:bg-green-500 text-white text-sm font-medium transition-colors">
                                     확인

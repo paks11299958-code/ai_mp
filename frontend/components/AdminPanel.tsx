@@ -2428,9 +2428,12 @@ interface GolfCourseAdmin {
     hasAuto: boolean;
     bookerType: string | null;
     hasCredential: boolean;
+    advanceDays: number;
+    openHour: number;
+    openMinute: number;
 }
 
-const EMPTY_FORM = { name: '', sido: '', sigungu: '', address: '', bookingUrl: '', hasAuto: false, bookerType: '' };
+const EMPTY_FORM = { name: '', sido: '', sigungu: '', address: '', bookingUrl: '', hasAuto: false, bookerType: '', advanceDays: 30, openHour: 0, openMinute: 0 };
 
 const GolfCoursesPanel: React.FC = () => {
     const [courses, setCourses]   = useState<GolfCourseAdmin[]>([]);
@@ -2454,7 +2457,7 @@ const GolfCoursesPanel: React.FC = () => {
 
     const openNew = () => { setForm({ ...EMPTY_FORM }); setEditing('new'); setError(''); };
     const openEdit = (c: GolfCourseAdmin) => {
-        setForm({ name: c.name, sido: c.sido, sigungu: c.sigungu, address: c.address || '', bookingUrl: c.bookingUrl || '', hasAuto: c.hasAuto, bookerType: c.bookerType || '' });
+        setForm({ name: c.name, sido: c.sido, sigungu: c.sigungu, address: c.address || '', bookingUrl: c.bookingUrl || '', hasAuto: c.hasAuto, bookerType: c.bookerType || '', advanceDays: c.advanceDays ?? 30, openHour: c.openHour ?? 0, openMinute: c.openMinute ?? 0 });
         setEditing(c.id);
         setError('');
     };
@@ -2532,6 +2535,32 @@ const GolfCoursesPanel: React.FC = () => {
                         <input type="checkbox" id="hasAuto" checked={form.hasAuto} onChange={e => f('hasAuto', e.target.checked)} className="rounded" />
                         <label htmlFor="hasAuto" className="text-xs text-gray-300">자동예약 지원</label>
                     </div>
+                    {form.hasAuto && (
+                        <div>
+                            <p className="text-gray-400 text-xs mb-2">예약 오픈 규칙 (KST 기준)</p>
+                            <div className="grid grid-cols-3 gap-2">
+                                <div>
+                                    <label className="text-gray-500 text-xs block mb-1">며칠 전 오픈</label>
+                                    <input type="number" min={1} max={180} value={form.advanceDays}
+                                        onChange={e => f('advanceDays', Number(e.target.value) as any)}
+                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="30" />
+                                </div>
+                                <div>
+                                    <label className="text-gray-500 text-xs block mb-1">오픈 시 (0~23)</label>
+                                    <input type="number" min={0} max={23} value={form.openHour}
+                                        onChange={e => f('openHour', Number(e.target.value) as any)}
+                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="0" />
+                                </div>
+                                <div>
+                                    <label className="text-gray-500 text-xs block mb-1">오픈 분 (0~59)</label>
+                                    <input type="number" min={0} max={59} value={form.openMinute}
+                                        onChange={e => f('openMinute', Number(e.target.value) as any)}
+                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="0" />
+                                </div>
+                            </div>
+                            <p className="text-gray-600 text-[11px] mt-1">예: 30일 전 00:00 KST → advanceDays=30, 시=0, 분=0</p>
+                        </div>
+                    )}
                     <div className="flex gap-2 pt-1">
                         <button onClick={() => setEditing(null)} className="flex-1 py-2 rounded-lg border border-gray-700 text-gray-400 text-xs hover:text-white">취소</button>
                         <button onClick={handleSave} disabled={saving} className="flex-1 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-xs font-medium">{saving ? '저장 중...' : '저장'}</button>

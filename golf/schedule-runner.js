@@ -23,7 +23,7 @@ async function run() {
     const prisma  = new PrismaClient({ adapter });
 
     try {
-        // 시각이 된 pending 스케줄 조회
+        // scheduledAt(봇 실행 시각)이 된 pending 스케줄 조회
         const dues = await prisma.$queryRawUnsafe(`
             SELECT s.*, u.email AS "userEmail", u.phone AS "userPhone",
                    c."loginId", c."loginPw"
@@ -41,7 +41,6 @@ async function run() {
         console.log(`[골프스케줄] ${dues.length}건 실행 시작`);
 
         for (const row of dues) {
-            // running으로 먼저 업데이트 (중복 실행 방지)
             await prisma.$executeRawUnsafe(
                 `UPDATE "GolfBookingSchedule" SET status='running', "updatedAt"=NOW() WHERE id=$1`,
                 row.id
@@ -65,14 +64,19 @@ async function run() {
             if (row.userEmail) env.NOTIFY_EMAIL = row.userEmail;
             if (row.userPhone) env.NOTIFY_PHONE = row.userPhone;
 
-            // booker.js 실행 후 결과 수집
+            // openAt이 있으면 booker.js에 전달 (대기 모드 활성화)
+            const args = [BOOKER_SCRIPT, row.golfDate, row.timePeriod];
+            if (row.openAt) args.push(new Date(row.openAt).toISOString());
+
+            console.log(`[골프스케줄] #${row.id} 실행: ${row.golfDate} ${row.timePeriod}${row.openAt ? ` (오픈: ${new Date(row.openAt).toISOString()})` : ''}`);
+
             await new Promise(resolve => {
                 let output = '';
-                const child = spawn('node', [BOOKER_SCRIPT, row.golfDate, row.timePeriod], {
+                const child = spawn('node', args, {
                     env, stdio: ['ignore', 'pipe', 'pipe'],
                 });
-                child.stdout.on('data', d => { output += d.toString(); });
-                child.stderr.on('data', d => { output += d.toString(); });
+                child.stdout.on('data', d => { output += d.toString(); process.stdout.write(d); });
+                child.stderr.on('data', d => { output += d.toString(); process.stderr.write(d); });
                 child.on('close', async code => {
                     const success = code === 0;
                     let msg = output.trim().split('\n').pop() || '';

@@ -465,6 +465,7 @@ exports.Prisma.GolfBookingScheduleScalarFieldEnum = {
   golfDate: 'golfDate',
   timePeriod: 'timePeriod',
   scheduledAt: 'scheduledAt',
+  openAt: 'openAt',
   status: 'status',
   resultMsg: 'resultMsg',
   createdAt: 'createdAt',
@@ -482,6 +483,9 @@ exports.Prisma.GolfCourseScalarFieldEnum = {
   bookerType: 'bookerType',
   loginId: 'loginId',
   loginPw: 'loginPw',
+  advanceDays: 'advanceDays',
+  openHour: 'openHour',
+  openMinute: 'openMinute',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

@@ -38043,6 +38043,7 @@ export namespace Prisma {
     golfDate: string | null
     timePeriod: string | null
     scheduledAt: Date | null
+    openAt: Date | null
     status: string | null
     resultMsg: string | null
     createdAt: Date | null
@@ -38056,6 +38057,7 @@ export namespace Prisma {
     golfDate: string | null
     timePeriod: string | null
     scheduledAt: Date | null
+    openAt: Date | null
     status: string | null
     resultMsg: string | null
     createdAt: Date | null
@@ -38069,6 +38071,7 @@ export namespace Prisma {
     golfDate: number
     timePeriod: number
     scheduledAt: number
+    openAt: number
     status: number
     resultMsg: number
     createdAt: number
@@ -38096,6 +38099,7 @@ export namespace Prisma {
     golfDate?: true
     timePeriod?: true
     scheduledAt?: true
+    openAt?: true
     status?: true
     resultMsg?: true
     createdAt?: true
@@ -38109,6 +38113,7 @@ export namespace Prisma {
     golfDate?: true
     timePeriod?: true
     scheduledAt?: true
+    openAt?: true
     status?: true
     resultMsg?: true
     createdAt?: true
@@ -38122,6 +38127,7 @@ export namespace Prisma {
     golfDate?: true
     timePeriod?: true
     scheduledAt?: true
+    openAt?: true
     status?: true
     resultMsg?: true
     createdAt?: true
@@ -38222,6 +38228,7 @@ export namespace Prisma {
     golfDate: string
     timePeriod: string
     scheduledAt: Date
+    openAt: Date | null
     status: string
     resultMsg: string | null
     createdAt: Date
@@ -38254,6 +38261,7 @@ export namespace Prisma {
     golfDate?: boolean
     timePeriod?: boolean
     scheduledAt?: boolean
+    openAt?: boolean
     status?: boolean
     resultMsg?: boolean
     createdAt?: boolean
@@ -38267,6 +38275,7 @@ export namespace Prisma {
     golfDate?: boolean
     timePeriod?: boolean
     scheduledAt?: boolean
+    openAt?: boolean
     status?: boolean
     resultMsg?: boolean
     createdAt?: boolean
@@ -38280,6 +38289,7 @@ export namespace Prisma {
     golfDate?: boolean
     timePeriod?: boolean
     scheduledAt?: boolean
+    openAt?: boolean
     status?: boolean
     resultMsg?: boolean
     createdAt?: boolean
@@ -38293,13 +38303,14 @@ export namespace Prisma {
     golfDate?: boolean
     timePeriod?: boolean
     scheduledAt?: boolean
+    openAt?: boolean
     status?: boolean
     resultMsg?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type GolfBookingScheduleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "courseId" | "golfDate" | "timePeriod" | "scheduledAt" | "status" | "resultMsg" | "createdAt" | "updatedAt", ExtArgs["result"]["golfBookingSchedule"]>
+  export type GolfBookingScheduleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "courseId" | "golfDate" | "timePeriod" | "scheduledAt" | "openAt" | "status" | "resultMsg" | "createdAt" | "updatedAt", ExtArgs["result"]["golfBookingSchedule"]>
 
   export type $GolfBookingSchedulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "GolfBookingSchedule"
@@ -38311,6 +38322,7 @@ export namespace Prisma {
       golfDate: string
       timePeriod: string
       scheduledAt: Date
+      openAt: Date | null
       status: string
       resultMsg: string | null
       createdAt: Date
@@ -38744,6 +38756,7 @@ export namespace Prisma {
     readonly golfDate: FieldRef<"GolfBookingSchedule", 'String'>
     readonly timePeriod: FieldRef<"GolfBookingSchedule", 'String'>
     readonly scheduledAt: FieldRef<"GolfBookingSchedule", 'DateTime'>
+    readonly openAt: FieldRef<"GolfBookingSchedule", 'DateTime'>
     readonly status: FieldRef<"GolfBookingSchedule", 'String'>
     readonly resultMsg: FieldRef<"GolfBookingSchedule", 'String'>
     readonly createdAt: FieldRef<"GolfBookingSchedule", 'DateTime'>
@@ -39133,10 +39146,16 @@ export namespace Prisma {
 
   export type GolfCourseAvgAggregateOutputType = {
     id: number | null
+    advanceDays: number | null
+    openHour: number | null
+    openMinute: number | null
   }
 
   export type GolfCourseSumAggregateOutputType = {
     id: number | null
+    advanceDays: number | null
+    openHour: number | null
+    openMinute: number | null
   }
 
   export type GolfCourseMinAggregateOutputType = {
@@ -39150,6 +39169,9 @@ export namespace Prisma {
     bookerType: string | null
     loginId: string | null
     loginPw: string | null
+    advanceDays: number | null
+    openHour: number | null
+    openMinute: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -39165,6 +39187,9 @@ export namespace Prisma {
     bookerType: string | null
     loginId: string | null
     loginPw: string | null
+    advanceDays: number | null
+    openHour: number | null
+    openMinute: number | null
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -39180,6 +39205,9 @@ export namespace Prisma {
     bookerType: number
     loginId: number
     loginPw: number
+    advanceDays: number
+    openHour: number
+    openMinute: number
     createdAt: number
     updatedAt: number
     _all: number
@@ -39188,10 +39216,16 @@ export namespace Prisma {
 
   export type GolfCourseAvgAggregateInputType = {
     id?: true
+    advanceDays?: true
+    openHour?: true
+    openMinute?: true
   }
 
   export type GolfCourseSumAggregateInputType = {
     id?: true
+    advanceDays?: true
+    openHour?: true
+    openMinute?: true
   }
 
   export type GolfCourseMinAggregateInputType = {
@@ -39205,6 +39239,9 @@ export namespace Prisma {
     bookerType?: true
     loginId?: true
     loginPw?: true
+    advanceDays?: true
+    openHour?: true
+    openMinute?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -39220,6 +39257,9 @@ export namespace Prisma {
     bookerType?: true
     loginId?: true
     loginPw?: true
+    advanceDays?: true
+    openHour?: true
+    openMinute?: true
     createdAt?: true
     updatedAt?: true
   }
@@ -39235,6 +39275,9 @@ export namespace Prisma {
     bookerType?: true
     loginId?: true
     loginPw?: true
+    advanceDays?: true
+    openHour?: true
+    openMinute?: true
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -39337,6 +39380,9 @@ export namespace Prisma {
     bookerType: string | null
     loginId: string | null
     loginPw: string | null
+    advanceDays: number
+    openHour: number
+    openMinute: number
     createdAt: Date
     updatedAt: Date
     _count: GolfCourseCountAggregateOutputType | null
@@ -39371,6 +39417,9 @@ export namespace Prisma {
     bookerType?: boolean
     loginId?: boolean
     loginPw?: boolean
+    advanceDays?: boolean
+    openHour?: boolean
+    openMinute?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["golfCourse"]>
@@ -39386,6 +39435,9 @@ export namespace Prisma {
     bookerType?: boolean
     loginId?: boolean
     loginPw?: boolean
+    advanceDays?: boolean
+    openHour?: boolean
+    openMinute?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["golfCourse"]>
@@ -39401,6 +39453,9 @@ export namespace Prisma {
     bookerType?: boolean
     loginId?: boolean
     loginPw?: boolean
+    advanceDays?: boolean
+    openHour?: boolean
+    openMinute?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }, ExtArgs["result"]["golfCourse"]>
@@ -39416,11 +39471,14 @@ export namespace Prisma {
     bookerType?: boolean
     loginId?: boolean
     loginPw?: boolean
+    advanceDays?: boolean
+    openHour?: boolean
+    openMinute?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type GolfCourseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "sido" | "sigungu" | "address" | "bookingUrl" | "hasAuto" | "bookerType" | "loginId" | "loginPw" | "createdAt" | "updatedAt", ExtArgs["result"]["golfCourse"]>
+  export type GolfCourseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "sido" | "sigungu" | "address" | "bookingUrl" | "hasAuto" | "bookerType" | "loginId" | "loginPw" | "advanceDays" | "openHour" | "openMinute" | "createdAt" | "updatedAt", ExtArgs["result"]["golfCourse"]>
 
   export type $GolfCoursePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "GolfCourse"
@@ -39436,6 +39494,9 @@ export namespace Prisma {
       bookerType: string | null
       loginId: string | null
       loginPw: string | null
+      advanceDays: number
+      openHour: number
+      openMinute: number
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["golfCourse"]>
@@ -39871,6 +39932,9 @@ export namespace Prisma {
     readonly bookerType: FieldRef<"GolfCourse", 'String'>
     readonly loginId: FieldRef<"GolfCourse", 'String'>
     readonly loginPw: FieldRef<"GolfCourse", 'String'>
+    readonly advanceDays: FieldRef<"GolfCourse", 'Int'>
+    readonly openHour: FieldRef<"GolfCourse", 'Int'>
+    readonly openMinute: FieldRef<"GolfCourse", 'Int'>
     readonly createdAt: FieldRef<"GolfCourse", 'DateTime'>
     readonly updatedAt: FieldRef<"GolfCourse", 'DateTime'>
   }
@@ -40690,6 +40754,7 @@ export namespace Prisma {
     golfDate: 'golfDate',
     timePeriod: 'timePeriod',
     scheduledAt: 'scheduledAt',
+    openAt: 'openAt',
     status: 'status',
     resultMsg: 'resultMsg',
     createdAt: 'createdAt',
@@ -40710,6 +40775,9 @@ export namespace Prisma {
     bookerType: 'bookerType',
     loginId: 'loginId',
     loginPw: 'loginPw',
+    advanceDays: 'advanceDays',
+    openHour: 'openHour',
+    openMinute: 'openMinute',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -43102,6 +43170,7 @@ export namespace Prisma {
     golfDate?: StringFilter<"GolfBookingSchedule"> | string
     timePeriod?: StringFilter<"GolfBookingSchedule"> | string
     scheduledAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+    openAt?: DateTimeNullableFilter<"GolfBookingSchedule"> | Date | string | null
     status?: StringFilter<"GolfBookingSchedule"> | string
     resultMsg?: StringNullableFilter<"GolfBookingSchedule"> | string | null
     createdAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
@@ -43115,6 +43184,7 @@ export namespace Prisma {
     golfDate?: SortOrder
     timePeriod?: SortOrder
     scheduledAt?: SortOrder
+    openAt?: SortOrderInput | SortOrder
     status?: SortOrder
     resultMsg?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -43131,6 +43201,7 @@ export namespace Prisma {
     golfDate?: StringFilter<"GolfBookingSchedule"> | string
     timePeriod?: StringFilter<"GolfBookingSchedule"> | string
     scheduledAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
+    openAt?: DateTimeNullableFilter<"GolfBookingSchedule"> | Date | string | null
     status?: StringFilter<"GolfBookingSchedule"> | string
     resultMsg?: StringNullableFilter<"GolfBookingSchedule"> | string | null
     createdAt?: DateTimeFilter<"GolfBookingSchedule"> | Date | string
@@ -43144,6 +43215,7 @@ export namespace Prisma {
     golfDate?: SortOrder
     timePeriod?: SortOrder
     scheduledAt?: SortOrder
+    openAt?: SortOrderInput | SortOrder
     status?: SortOrder
     resultMsg?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -43165,6 +43237,7 @@ export namespace Prisma {
     golfDate?: StringWithAggregatesFilter<"GolfBookingSchedule"> | string
     timePeriod?: StringWithAggregatesFilter<"GolfBookingSchedule"> | string
     scheduledAt?: DateTimeWithAggregatesFilter<"GolfBookingSchedule"> | Date | string
+    openAt?: DateTimeNullableWithAggregatesFilter<"GolfBookingSchedule"> | Date | string | null
     status?: StringWithAggregatesFilter<"GolfBookingSchedule"> | string
     resultMsg?: StringNullableWithAggregatesFilter<"GolfBookingSchedule"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"GolfBookingSchedule"> | Date | string
@@ -43185,6 +43258,9 @@ export namespace Prisma {
     bookerType?: StringNullableFilter<"GolfCourse"> | string | null
     loginId?: StringNullableFilter<"GolfCourse"> | string | null
     loginPw?: StringNullableFilter<"GolfCourse"> | string | null
+    advanceDays?: IntFilter<"GolfCourse"> | number
+    openHour?: IntFilter<"GolfCourse"> | number
+    openMinute?: IntFilter<"GolfCourse"> | number
     createdAt?: DateTimeFilter<"GolfCourse"> | Date | string
     updatedAt?: DateTimeFilter<"GolfCourse"> | Date | string
   }
@@ -43200,6 +43276,9 @@ export namespace Prisma {
     bookerType?: SortOrderInput | SortOrder
     loginId?: SortOrderInput | SortOrder
     loginPw?: SortOrderInput | SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -43218,6 +43297,9 @@ export namespace Prisma {
     bookerType?: StringNullableFilter<"GolfCourse"> | string | null
     loginId?: StringNullableFilter<"GolfCourse"> | string | null
     loginPw?: StringNullableFilter<"GolfCourse"> | string | null
+    advanceDays?: IntFilter<"GolfCourse"> | number
+    openHour?: IntFilter<"GolfCourse"> | number
+    openMinute?: IntFilter<"GolfCourse"> | number
     createdAt?: DateTimeFilter<"GolfCourse"> | Date | string
     updatedAt?: DateTimeFilter<"GolfCourse"> | Date | string
   }, "id">
@@ -43233,6 +43315,9 @@ export namespace Prisma {
     bookerType?: SortOrderInput | SortOrder
     loginId?: SortOrderInput | SortOrder
     loginPw?: SortOrderInput | SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: GolfCourseCountOrderByAggregateInput
@@ -43256,6 +43341,9 @@ export namespace Prisma {
     bookerType?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
     loginId?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
     loginPw?: StringNullableWithAggregatesFilter<"GolfCourse"> | string | null
+    advanceDays?: IntWithAggregatesFilter<"GolfCourse"> | number
+    openHour?: IntWithAggregatesFilter<"GolfCourse"> | number
+    openMinute?: IntWithAggregatesFilter<"GolfCourse"> | number
     createdAt?: DateTimeWithAggregatesFilter<"GolfCourse"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"GolfCourse"> | Date | string
   }
@@ -45653,6 +45741,7 @@ export namespace Prisma {
     golfDate: string
     timePeriod: string
     scheduledAt: Date | string
+    openAt?: Date | string | null
     status?: string
     resultMsg?: string | null
     createdAt?: Date | string
@@ -45666,6 +45755,7 @@ export namespace Prisma {
     golfDate: string
     timePeriod: string
     scheduledAt: Date | string
+    openAt?: Date | string | null
     status?: string
     resultMsg?: string | null
     createdAt?: Date | string
@@ -45678,6 +45768,7 @@ export namespace Prisma {
     golfDate?: StringFieldUpdateOperationsInput | string
     timePeriod?: StringFieldUpdateOperationsInput | string
     scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    openAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45691,6 +45782,7 @@ export namespace Prisma {
     golfDate?: StringFieldUpdateOperationsInput | string
     timePeriod?: StringFieldUpdateOperationsInput | string
     scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    openAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45704,6 +45796,7 @@ export namespace Prisma {
     golfDate: string
     timePeriod: string
     scheduledAt: Date | string
+    openAt?: Date | string | null
     status?: string
     resultMsg?: string | null
     createdAt?: Date | string
@@ -45716,6 +45809,7 @@ export namespace Prisma {
     golfDate?: StringFieldUpdateOperationsInput | string
     timePeriod?: StringFieldUpdateOperationsInput | string
     scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    openAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45729,6 +45823,7 @@ export namespace Prisma {
     golfDate?: StringFieldUpdateOperationsInput | string
     timePeriod?: StringFieldUpdateOperationsInput | string
     scheduledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    openAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     status?: StringFieldUpdateOperationsInput | string
     resultMsg?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45745,6 +45840,9 @@ export namespace Prisma {
     bookerType?: string | null
     loginId?: string | null
     loginPw?: string | null
+    advanceDays?: number
+    openHour?: number
+    openMinute?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -45760,6 +45858,9 @@ export namespace Prisma {
     bookerType?: string | null
     loginId?: string | null
     loginPw?: string | null
+    advanceDays?: number
+    openHour?: number
+    openMinute?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -45774,6 +45875,9 @@ export namespace Prisma {
     bookerType?: NullableStringFieldUpdateOperationsInput | string | null
     loginId?: NullableStringFieldUpdateOperationsInput | string | null
     loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    advanceDays?: IntFieldUpdateOperationsInput | number
+    openHour?: IntFieldUpdateOperationsInput | number
+    openMinute?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -45789,6 +45893,9 @@ export namespace Prisma {
     bookerType?: NullableStringFieldUpdateOperationsInput | string | null
     loginId?: NullableStringFieldUpdateOperationsInput | string | null
     loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    advanceDays?: IntFieldUpdateOperationsInput | number
+    openHour?: IntFieldUpdateOperationsInput | number
+    openMinute?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -45804,6 +45911,9 @@ export namespace Prisma {
     bookerType?: string | null
     loginId?: string | null
     loginPw?: string | null
+    advanceDays?: number
+    openHour?: number
+    openMinute?: number
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -45818,6 +45928,9 @@ export namespace Prisma {
     bookerType?: NullableStringFieldUpdateOperationsInput | string | null
     loginId?: NullableStringFieldUpdateOperationsInput | string | null
     loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    advanceDays?: IntFieldUpdateOperationsInput | number
+    openHour?: IntFieldUpdateOperationsInput | number
+    openMinute?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -45833,6 +45946,9 @@ export namespace Prisma {
     bookerType?: NullableStringFieldUpdateOperationsInput | string | null
     loginId?: NullableStringFieldUpdateOperationsInput | string | null
     loginPw?: NullableStringFieldUpdateOperationsInput | string | null
+    advanceDays?: IntFieldUpdateOperationsInput | number
+    openHour?: IntFieldUpdateOperationsInput | number
+    openMinute?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -47657,6 +47773,7 @@ export namespace Prisma {
     golfDate?: SortOrder
     timePeriod?: SortOrder
     scheduledAt?: SortOrder
+    openAt?: SortOrder
     status?: SortOrder
     resultMsg?: SortOrder
     createdAt?: SortOrder
@@ -47676,6 +47793,7 @@ export namespace Prisma {
     golfDate?: SortOrder
     timePeriod?: SortOrder
     scheduledAt?: SortOrder
+    openAt?: SortOrder
     status?: SortOrder
     resultMsg?: SortOrder
     createdAt?: SortOrder
@@ -47689,6 +47807,7 @@ export namespace Prisma {
     golfDate?: SortOrder
     timePeriod?: SortOrder
     scheduledAt?: SortOrder
+    openAt?: SortOrder
     status?: SortOrder
     resultMsg?: SortOrder
     createdAt?: SortOrder
@@ -47712,12 +47831,18 @@ export namespace Prisma {
     bookerType?: SortOrder
     loginId?: SortOrder
     loginPw?: SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type GolfCourseAvgOrderByAggregateInput = {
     id?: SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
   }
 
   export type GolfCourseMaxOrderByAggregateInput = {
@@ -47731,6 +47856,9 @@ export namespace Prisma {
     bookerType?: SortOrder
     loginId?: SortOrder
     loginPw?: SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -47746,12 +47874,18 @@ export namespace Prisma {
     bookerType?: SortOrder
     loginId?: SortOrder
     loginPw?: SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
 
   export type GolfCourseSumOrderByAggregateInput = {
     id?: SortOrder
+    advanceDays?: SortOrder
+    openHour?: SortOrder
+    openMinute?: SortOrder
   }
 
   export type PersonaCreateNestedManyWithoutUserInput = {
