@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Calendar, Clock, Loader, CheckCircle, ExternalLink } from 'lucide-react';
+import { X, MapPin, Calendar, Clock, Loader, CheckCircle, ExternalLink, KeyRound } from 'lucide-react';
 
 interface GolfCourse {
     id: number;
@@ -9,6 +9,8 @@ interface GolfCourse {
     address: string;
     bookingUrl: string | null;
     hasAuto: boolean;
+    loginId: string | null;
+    hasCredential: boolean;
 }
 
 interface Props {
@@ -28,14 +30,19 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
     const [sidos, setSidos]       = useState<string[]>([]);
     const [sigungus, setSigungus] = useState<string[]>([]);
     const [courses, setCourses]   = useState<GolfCourse[]>([]);
-    const [selectedSido, setSelectedSido]     = useState('');
+    const [selectedSido, setSelectedSido]       = useState('');
     const [selectedSigungu, setSelectedSigungu] = useState('');
-    const [selectedCourse, setSelectedCourse] = useState<GolfCourse | null>(null);
+    const [selectedCourse, setSelectedCourse]   = useState<GolfCourse | null>(null);
     const [date, setDate]         = useState('');
     const [timePeriod, setTimePeriod] = useState('morning');
     const [loading, setLoading]   = useState(false);
     const [error, setError]       = useState('');
     const [result, setResult]     = useState('');
+
+    // 로그인 정보 입력 상태
+    const [showCredForm, setShowCredForm] = useState(false);
+    const [inputId, setInputId]   = useState('');
+    const [inputPw, setInputPw]   = useState('');
 
     // 내일 날짜를 기본값으로
     useEffect(() => {
@@ -75,25 +82,39 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
         setSelectedCourse(course);
         setStep('datetime');
         setError('');
+        // 인증 미등록 시 바로 입력 폼 노출
+        setShowCredForm(course.hasAuto && !course.hasCredential);
+        setInputId(course.loginId || '');
+        setInputPw('');
     };
 
     const handleOpenBooking = () => {
-        if (selectedCourse?.bookingUrl) {
-            window.open(selectedCourse.bookingUrl, '_blank');
-        }
+        if (selectedCourse?.bookingUrl) window.open(selectedCourse.bookingUrl, '_blank');
     };
 
     const handleAutoReserve = async () => {
         if (!selectedCourse || !date) return;
+
+        // 인증 입력 폼이 열려 있으면 ID/PW 필수
+        if (showCredForm && (!inputId.trim() || !inputPw.trim())) {
+            setError('아이디와 비밀번호를 입력해주세요.');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setStep('running');
         try {
+            const body: any = { courseId: selectedCourse.id, date, timePeriod };
+            if (showCredForm && inputId && inputPw) {
+                body.loginId = inputId.trim();
+                body.loginPw = inputPw;
+            }
             const res = await fetch('/api/golf/reserve', {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ courseId: selectedCourse.id, date, timePeriod }),
+                body: JSON.stringify(body),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || '예약 요청 실패');
@@ -129,7 +150,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                         <>
                             <p className="text-gray-400 text-xs">시도 → 시군구 → 골프장 순으로 선택하세요.</p>
 
-                            {/* 시도 */}
                             <div>
                                 <label className="text-gray-400 text-xs mb-1 block">시도</label>
                                 <select
@@ -142,7 +162,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                 </select>
                             </div>
 
-                            {/* 시군구 */}
                             {selectedSido && (
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">시군구</label>
@@ -157,7 +176,6 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
 
-                            {/* 골프장 목록 */}
                             {courses.length > 0 && (
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">골프장</label>
@@ -183,7 +201,7 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                         </>
                     )}
 
-                    {/* STEP 2: 날짜/시간 선택 */}
+                    {/* STEP 2: 날짜/시간/인증 */}
                     {step === 'datetime' && selectedCourse && (
                         <>
                             <div className="bg-gray-800 rounded-xl px-4 py-3">
@@ -227,6 +245,46 @@ export const GolfReserveDialog: React.FC<Props> = ({ onClose }) => {
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+
+                            {/* 로그인 정보 섹션 (자동예약 골프장) */}
+                            {selectedCourse.hasAuto && (
+                                <div className="border border-gray-700 rounded-xl overflow-hidden">
+                                    <button
+                                        onClick={() => setShowCredForm(v => !v)}
+                                        className="w-full flex items-center justify-between px-4 py-2.5 bg-gray-800 hover:bg-gray-750 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <KeyRound size={13} className="text-gray-400" />
+                                            <span className="text-xs text-gray-300">로그인 정보</span>
+                                            {selectedCourse.hasCredential
+                                                ? <span className="text-[10px] bg-blue-900 text-blue-400 px-2 py-0.5 rounded-full">등록됨</span>
+                                                : <span className="text-[10px] bg-red-900/60 text-red-400 px-2 py-0.5 rounded-full">미등록</span>
+                                            }
+                                        </div>
+                                        <span className="text-gray-500 text-xs">{showCredForm ? '▲' : '▼'}</span>
+                                    </button>
+
+                                    {showCredForm && (
+                                        <div className="px-4 py-3 bg-gray-800/50 space-y-2 border-t border-gray-700">
+                                            <p className="text-gray-500 text-xs">골프장 사이트 아이디/비밀번호를 입력하면 저장 후 예약합니다.</p>
+                                            <input
+                                                type="text"
+                                                value={inputId}
+                                                onChange={e => setInputId(e.target.value)}
+                                                placeholder="아이디"
+                                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                            />
+                                            <input
+                                                type="password"
+                                                value={inputPw}
+                                                onChange={e => setInputPw(e.target.value)}
+                                                placeholder="비밀번호"
+                                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
