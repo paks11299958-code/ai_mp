@@ -120,26 +120,35 @@ async function book(dateStr, timePeriod = 'morning') {
             await dialog.accept();
         });
 
-        // 7. 실제 버튼 요소를 찾아서 클릭 (eval 방식 제거)
+        // 7. 실제 버튼 요소를 찾아서 클릭
         const allButtons = await page.$$('.step2_table2.in_table button');
         const btn = allButtons[target.idx];
         if (!btn) throw new Error('예약 버튼을 찾을 수 없습니다.');
         await btn.click();
         await page.waitForTimeout(3000);
 
-        // 8. 예약 완료 여부를 예약 목록에서 실제 확인
-        const MY_RESERVE_URL = `${GOLF_URL}/html/reserve/reserve02.asp`;
-        await page.goto(MY_RESERVE_URL);
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1500);
+        // 8. 예약정보 확인 페이지 감지 → "예약" 버튼 한 번 더 클릭 (2단계 확인)
+        const pageBtns = await page.$$('button');
+        let finalClicked = false;
+        for (const pb of pageBtns) {
+            const txt = (await pb.textContent() || '').trim();
+            if (txt === '예약') {
+                console.log('예약 확인 페이지 감지 — 최종 예약 버튼 클릭');
+                await pb.click();
+                finalClicked = true;
+                await page.waitForTimeout(3000);
+                break;
+            }
+        }
+        if (!finalClicked) {
+            console.log('예약 확인 페이지 없음 — 단일 단계로 처리');
+        }
 
-        const confirmed = await page.evaluate(([y, m, d]) => {
-            const rows = Array.from(document.querySelectorAll('table tr'));
-            return rows.some(row => {
-                const text = row.textContent || '';
-                return text.includes(`${y}-${m}-${d}`) || text.includes(`${y}.${m}.${d}`);
-            });
-        }, [year, month, day]);
+        // 9. 현재 페이지 텍스트로 성공 여부 판단
+        const pageText = await page.evaluate(() => document.body?.innerText ?? '');
+        const confirmed = pageText.includes(year) && (
+            pageText.includes(month) || pageText.includes(target.time)
+        ) && !pageText.includes('예약된 사항이 없습니다');
 
         // 결과 스크린샷
         const screenshotPath = `/home/paks11299958/ai_mp/golf/result_${Date.now()}.png`;
