@@ -1694,37 +1694,7 @@ const App: React.FC = () => {
                                                 <Icon name="Handshake" size={15} className="text-gray-400" />
                                                 제휴 게시판
                                             </button>
-{/* 스윙 분석 (골프 페르소나만) */}
-                                            {isGolfPersona && user && (
-                                                <button
-                                                    onClick={() => { setShowHeaderMenu(false); swingVideoRef.current?.click(); }}
-                                                    disabled={swingUploading || currentSession.isTyping}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                                                >
-                                                    <Icon name="Upload" size={15} className="text-green-400" />
-                                                    스윙 분석
-                                                </button>
-                                            )}
-                                            {/* 스윙 기록 (골프 페르소나만) */}
-                                            {isGolfPersona && user && (
-                                                <button
-                                                    onClick={() => { setShowHeaderMenu(false); setSwingResult(null); setShowSwingBoard(true); }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
-                                                >
-                                                    <Icon name="Play" size={15} className="text-green-400" />
-                                                    스윙 기록
-                                                </button>
-                                            )}
-                                            {/* 골프예약 (골프 페르소나만) */}
-                                            {isGolfPersona && user && (
-                                                <button
-                                                    onClick={() => { setShowHeaderMenu(false); setShowGolfReserve(true); }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
-                                                >
-                                                    <Icon name="MapPin" size={15} className="text-green-400" />
-                                                    골프 예약
-                                                </button>
-                                            )}
+{/* 기억 공유 바로 위 — 골프 관련 버튼은 상단 바로 이동됨 */}
                                             {/* 기억 공유 */}
                                             {activePersona && (
                                                 <button
