@@ -70,14 +70,30 @@ async function checkCoupangCompetition(page, keyword) {
     try {
         if (!coupangReady) {
             coupangReady = true;
-            log('  [쿠팡] 홈페이지 진입 (Cloudflare 우회)...');
+            log('  [쿠팡] 홈페이지 진입...');
             await page.goto('https://www.coupang.com', { waitUntil: 'domcontentloaded', timeout: 20000 });
             await sleep(3000);
+            // 사람처럼 마우스 이동
+            await page.mouse.move(300 + Math.random() * 400, 200 + Math.random() * 200);
+            await sleep(500 + Math.random() * 500);
         }
-        await page.goto(`https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`, {
-            waitUntil: 'domcontentloaded', timeout: 20000,
-        });
-        await sleep(2500);
+
+        // URL 직접 이동 대신 검색창 타이핑
+        const searchBox = await page.$('#headerSearchKeyword, input[name="q"], .search-input input, input[type="search"]');
+        if (searchBox) {
+            await searchBox.click();
+            await sleep(300);
+            await searchBox.fill('');
+            await page.keyboard.type(keyword, { delay: 80 });
+            await sleep(400);
+            await page.keyboard.press('Enter');
+            await page.waitForLoadState('domcontentloaded', { timeout: 20000 });
+        } else {
+            await page.goto(`https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`, {
+                waitUntil: 'domcontentloaded', timeout: 20000,
+            });
+        }
+        await sleep(2000);
         // Access Denied 체크
         const bodyText = await page.evaluate(() => document.body?.innerText?.slice(0, 200) || '');
         if (bodyText.includes('Access Denied') || bodyText.includes('Forbidden')) {
