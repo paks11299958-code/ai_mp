@@ -8,9 +8,10 @@
 require('dotenv').config();
 
 const { chromium } = require('playwright');
-const xlsx  = require('xlsx');
-const path  = require('path');
-const fs    = require('fs');
+const xlsx   = require('xlsx');
+const path   = require('path');
+const fs     = require('fs');
+const crypto = require('crypto');
 
 const BREVO_API_KEY       = process.env.BREVO_API_KEY;
 const SENDER_EMAIL        = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
@@ -20,9 +21,13 @@ const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET || 'iz7FciCCdG';
 const DOMEGGOOK_ID        = process.env.DOMEGGOOK_ID        || 'c2clo';
 const DOMEGGOOK_PW        = process.env.DOMEGGOOK_PASSWORD;
 const NOTIFY_EMAIL        = process.env.NOTIFY_EMAIL;
+const COUPANG_VENDOR_ID   = process.env.COUPANG_VENDOR_ID   || 'A01662881';
+const COUPANG_ACCESS_KEY  = process.env.COUPANG_ACCESS_KEY;
+const COUPANG_SECRET_KEY  = process.env.COUPANG_SECRET_KEY;
 const OUTPUT_DIR          = path.join(__dirname, 'output');
 const CATEGORIES          = JSON.parse(fs.readFileSync(path.join(__dirname, 'categories.json'), 'utf8'));
-const MARKUP              = 2.5;
+const MARKUP              = 2.5;   // 도매가 × 2.5 = 판매가
+const MARKUP_DISPLAY      = 3.5;   // 도매가 × 3.5 = 정가(할인 전 표시가) → 판매가 대비 약 28% 할인처럼 보임
 
 // 블루오션 기준
 const BLUE_OCEAN_SEARCH_MIN  = 3;      // 네이버 검색량 ratio 최소 (수요 있어야 함)
@@ -207,21 +212,70 @@ async function searchDomemedbWithFallback(page, keyword) {
 async function getPriceAndImages(page, itemNo) {
     await page.goto(`https://domeggook.com/${itemNo}`, { waitUntil: 'domcontentloaded', timeout: 20000 });
     await sleep(2000);
-    return await page.evaluate(() => {
+
+    const priceAndUrls = await page.evaluate(() => {
         const priceEl = document.querySelector('.lItemPrice') || document.getElementById('lBaseAmtVal');
         const price = parseInt((priceEl?.textContent || '').replace(/[^0-9]/g, ''), 10) || 0;
-        const mainImg = document.querySelector('#divMainImage img, .goods_img img, .mainImg img');
-        const detailImgs = Array.from(document.querySelectorAll('#divDetailImage img, .detail_img img'))
-            .map(i => i.src).filter(s => s?.startsWith('http')).slice(0, 9);
-        return { price, mainImgSrc: mainImg?.src || '', detailImgSrcs: detailImgs };
+        // 대표 썸네일: _stt_330 버전 (_stt_150보다 큼, 직접 접근 가능)
+        const mainEl = Array.from(document.querySelectorAll('img')).find(i =>
+            i.src && i.src.includes('/upload/item/') && !i.src.includes('icon') && !i.src.includes('btn')
+        );
+        const mainSrc = mainEl ? mainEl.src.replace(/_stt_\d+/, '_stt_330').replace(/_img_\d+/, '_stt_330').split('?')[0] : '';
+        return { price, mainSrc };
     });
+
+    // "상품상세 더보기" 클릭 후 추가 이미지 수집
+    let detailSrcs = [];
+    try {
+        const moreBtn = await page.$('text=상품상세 더보기');
+        if (moreBtn) {
+            await moreBtn.click();
+            await sleep(1500);
+            await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+            await sleep(1500);
+            log('  상품상세 더보기 클릭 완료');
+        }
+        // _stt_330 버전 이미지 URL 수집 (중복 제거)
+        detailSrcs = await page.$$eval('img', (els, mainSrc) => {
+            const seen = new Set([mainSrc]);
+            return els
+                .map(e => (e.src || '').replace(/_stt_\d+/, '_stt_330').replace(/_img_\d+/, '_stt_330').split('?')[0])
+                .filter(s => s && s.includes('/upload/item/') && !s.includes('icon') && !seen.has(s) && !!seen.add(s))
+                .slice(0, 8);
+        }, priceAndUrls.mainSrc);
+    } catch {}
+
+    // page.request.get()으로 이미지 다운로드 (브라우저 쿠키 + CORS 우회)
+    const downloadImage = async (url) => {
+        try {
+            const r = await page.request.get(url, { headers: { 'Referer': 'https://domeggook.com/' } });
+            if (!r.ok()) return null;
+            return { buffer: await r.body(), type: r.headers()['content-type'] || 'image/jpeg' };
+        } catch { return null; }
+    };
+
+    const mainData   = priceAndUrls.mainSrc ? await downloadImage(priceAndUrls.mainSrc) : null;
+    const detailData = [];
+    for (const url of detailSrcs.slice(0, 5)) {
+        const d = await downloadImage(url);
+        if (d) detailData.push(d);
+    }
+    log(`  이미지 다운로드: 대표 ${mainData ? '✓' : '✗'}, 상세 ${detailData.length}개`);
+
+    return {
+        price:         priceAndUrls.price,
+        mainImgData:   mainData,
+        detailImgData: detailData,
+        mainImgSrc:    priceAndUrls.mainSrc,    // 폴백용
+        detailImgSrcs: detailSrcs,
+    };
 }
 
 // ── 엑셀 생성 ────────────────────────────────────────────
 
 function buildExcel(row, categoryName) {
     const sellPrice    = Math.ceil(row.wholesalePrice * MARKUP / 10) * 10;
-    const discountBase = Math.ceil(sellPrice * 1.2 / 10) * 10;
+    const discountBase = Math.ceil(row.wholesalePrice * MARKUP_DISPLAY / 10) * 10; // 정가 = 도매가×3.5 (판매가 대비 ~28% 할인)
 
     // template.xlsm 있으면 사용, 없으면 자체 생성
     const searchDirs = [__dirname, process.cwd()];
@@ -250,6 +304,7 @@ function buildExcel(row, categoryName) {
         set('BO', 0);
         set('BR', 'N');
         set('BS', 'Y');
+        if (row.itemNo) set('BU', `DMG-${row.itemNo}`);
         set('CZ', row.imageUrl);
         set('DA', row.imageUrl);
         if (row.detailImgSrcs?.[0]) set('DB', row.detailImgSrcs[0]);
@@ -285,6 +340,197 @@ function buildExcel(row, categoryName) {
     xlsx.writeFile(wb, filepath);
     log(`템플릿: ${templatePath ? '쿠팡윙 양식' : '자체 생성 (참고용)'}`);
     return { filepath, filename };
+}
+
+// ── 쿠팡윙 Open API 업로드 ───────────────────────────────
+
+// 카테고리명 → 쿠팡 displayCategoryCode 매핑
+// 80745 = 주방/생활(확인된 유효코드), 나머지는 추후 확인 필요
+const COUPANG_CAT_CODE = {
+    '생활/건강':    80745,   // 확인됨 (주방/욕실용품)
+    '패션의류':     null,
+    '패션잡화':     null,
+    '화장품/미용':  null,
+    '가전/디지털':  null,
+    '가구/인테리어':null,
+    '식품':         null,
+    '스포츠/레저':  null,
+    '유아동/출산':  null,
+    '반려동물':     null,
+};
+
+// 이미지 버퍼 → Coupang CDN 업로드 (Playwright로 다운받은 버퍼 사용)
+async function uploadBufferToCoupang(buffer, contentType) {
+    if (!buffer || !COUPANG_ACCESS_KEY) return null;
+    try {
+        const urlPath = '/v2/providers/seller_api/apis/api/v1/vendor-items/image';
+        const { headers } = coupangSign('POST', urlPath);
+        const res = await fetch('https://api-gateway.coupang.com' + urlPath, {
+            method: 'POST',
+            headers: { Authorization: headers.Authorization, 'Content-Type': contentType || 'image/jpeg' },
+            body: buffer,
+        });
+        const data = await res.json();
+        if (data.code === 'SUCCESS') return data.data; // CDN 경로 반환 (예: /img/...)
+        log(`  이미지 CDN 실패: ${JSON.stringify(data).slice(0, 100)}`);
+        return null;
+    } catch (e) {
+        log(`  이미지 CDN 오류: ${e.message}`);
+        return null;
+    }
+}
+
+function coupangSign(method, urlPath, query = '') {
+    // 쿠팡 Open API: yyMMddTHHmmssZ (2자리 연도), 구분자 없이 이어붙임
+    const now = new Date();
+    const yy  = String(now.getUTCFullYear()).slice(-2);
+    const MM  = String(now.getUTCMonth() + 1).padStart(2, '0');
+    const dd  = String(now.getUTCDate()).padStart(2, '0');
+    const HH  = String(now.getUTCHours()).padStart(2, '0');
+    const mm  = String(now.getUTCMinutes()).padStart(2, '0');
+    const ss  = String(now.getUTCSeconds()).padStart(2, '0');
+    const dt  = `${yy}${MM}${dd}T${HH}${mm}${ss}Z`;
+    const msg = dt + method + urlPath + query;   // \n 구분자 없음
+    const sig = crypto.createHmac('sha256', COUPANG_SECRET_KEY).update(msg).digest('hex');
+    return {
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8',
+            Authorization: `CEA algorithm=HmacSHA256, access-key=${COUPANG_ACCESS_KEY}, signed-date=${dt}, signature=${sig}`,
+        },
+        dt,
+    };
+}
+
+async function uploadToCoupangWing(productData, cat, sellPrice, discountBase) {
+    if (!COUPANG_ACCESS_KEY || !COUPANG_SECRET_KEY) {
+        log('쿠팡 API 키 없음 — 업로드 스킵');
+        return null;
+    }
+    const displayCategoryCode = COUPANG_CAT_CODE[cat.name];
+    if (!displayCategoryCode) {
+        log(`쿠팡 카테고리 코드 미정의(${cat.name}) — 업로드 스킵`);
+        return null;
+    }
+
+    const BASE    = 'https://api-gateway.coupang.com';
+    const urlPath = '/v2/providers/seller_api/apis/api/v1/marketplace/seller-products';
+
+    // CDN path (starts with /) → cdnPath 필드, 외부 URL → vendorPath 필드
+    const makeImgObj = (url, order, type) => {
+        if (!url) return null;
+        return url.startsWith('/')
+            ? { imageOrder: order, imageType: type, cdnPath: url }
+            : { imageOrder: order, imageType: type, vendorPath: url };
+    };
+
+    const mainUrl    = productData.imageUrl;
+    const detailUrls = (productData.detailImgSrcs || []).filter(Boolean);
+
+    // 상품 이미지 (대표 + 추가)
+    const itemImages = [
+        makeImgObj(mainUrl, 0, 'REPRESENTATION'),
+        makeImgObj(mainUrl, 0, 'DETAIL'),
+        ...detailUrls.slice(0, 8).map((u, i) => makeImgObj(u, i + 1, 'DETAIL')),
+    ].filter(Boolean);
+
+    // 상세설명 컨텐츠 (최소 1개 필수 — 없으면 대표이미지로 대체)
+    const contentUrls = detailUrls.length > 0 ? detailUrls.slice(0, 10) : [mainUrl];
+    const contents = contentUrls
+        .filter(Boolean)
+        .map(u => ({ contentsType: 'IMAGE_NO_SPACE', contentDetails: [{ content: u, detailType: 'IMAGE' }] }));
+
+    const tags = productData.keyword.split(/\s+/).filter(w => w.length >= 2);
+
+    const body = {
+        displayCategoryCode,
+        sellerProductName:   productData.title,
+        vendorId:            COUPANG_VENDOR_ID,
+        vendorUserId:        'sjy4926',
+        saleStartedAt:       '2030-01-01T00:00:00',   // 판매중지 — 윙에서 날짜 바꾸면 바로 판매 시작
+        saleEndedAt:         '2099-12-31T00:00:00',
+        displayProductName:  productData.title,
+        brand:               '',
+        generalProductName:  productData.originalName || productData.keyword,
+        productGroup:        '',
+        deliveryMethod:      'SEQUENCIAL',
+        deliveryCompanyCode: 'CJGLS',
+        deliveryChargeType:  'NOT_FREE',
+        deliveryCharge:      3000,
+        freeShipOverAmount:  0,
+        deliveryChargeOnReturn: 0,
+        deliverySurcharge:   0,
+        remoteAreaDeliverable: 'N',
+        bundlePackingDelivery: 0,
+        unionDeliveryType:   'NOT_UNION_DELIVERY',
+        returnCenterCode:    '1002556031',
+        returnChargeName:    '프라임유통',
+        companyContactNumber:'010-5029-2445',
+        returnZipCode:       '21632',
+        returnAddress:       '인천광역시 남동구 남동서로236번길 30',
+        returnAddressDetail: ' 2층 222-a235호',
+        returnCharge:        5000,
+        exchangeType:        'AFTER',
+        outboundShippingPlaceCode: 24363515,
+        items: [{
+            itemName:               '기본',
+            originalPrice:          discountBase,
+            salePrice:              sellPrice,
+            unitCount:              1,
+            maximumBuyCount:        99999,
+            maximumBuyForPerson:    0,
+            maximumBuyForPersonPeriod: 1,
+            outboundShippingTimeDay: 1,
+            stopSellEmergency:      false,
+            coupangInventoryCount:  99999,
+            adultOnly:              'EVERYONE',
+            taxType:                'TAX',
+            parallelImported:       'NOT_PARALLEL_IMPORTED',
+            overseasPurchased:      'NOT_OVERSEAS_PURCHASED',
+            emptyBarcode:           true,
+            emptyBarcodeReason:     'COUPANG',
+            attributes: [
+                { attributeTypeName: '수량',    attributeValueName: '1개' },
+                { attributeTypeName: '개당 수량', attributeValueName: '1개' },
+            ],
+            images:   itemImages,
+            contents: contents,
+            notices: [
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '품명 및 모델명', content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '재질',          content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '구성품',         content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '크기',          content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '출시년월',       content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '제조자(수입자)', content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '제조국',         content: '상품 상세페이지 참조' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '수입신고 문구 여부', content: '해당없음' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: '품질보증기준',   content: '제품 이상 시 소비자분쟁해결기준에 의거 보상합니다.' },
+                { noticeCategoryName: '주방용품', noticeCategoryDetailName: 'A/S 책임자와 전화번호', content: '010-5029-2445' },
+            ],
+            certifications: [{ certificationType: 'NOT_REQUIRED', certificationCode: '', certificationAttachments: [] }],
+        }],
+        searchTags: tags,
+    };
+
+    try {
+        log('\n── 쿠팡윙 업로드 ──');
+
+        const { headers } = coupangSign('POST', urlPath);
+        const res  = await fetch(BASE + urlPath, { method: 'POST', headers, body: JSON.stringify(body) });
+        const data = await res.json();
+
+        if (data.code === 'SUCCESS') {
+            const pid = data.data;
+            log(`✅ 쿠팡윙 등록 성공! 상품ID: ${pid} (판매중지 — 윙에서 판매시작일 오늘로 변경 시 활성화)`);
+            if (data.details) log(`  ⚠ ${data.details.slice(0, 80)}`);
+            return pid;
+        } else {
+            log(`❌ 쿠팡윙 등록 실패: ${JSON.stringify(data).slice(0, 300)}`);
+            return null;
+        }
+    } catch (e) {
+        log(`쿠팡윙 업로드 오류: ${e.message}`);
+        return null;
+    }
 }
 
 // ── 이메일 발송 ───────────────────────────────────────────
@@ -349,9 +595,22 @@ async function sendEmail(to, subject, html, attachmentPath) {
         const top     = matched.length > 0 ? matched[0] : products[0];
         log(`상품: "${top.name}" (번호: ${top.itemNo})${matched.length === 0 ? ' ⚠️키워드 불일치' : ''}`);
 
-        const { price: wholesalePrice, mainImgSrc, detailImgSrcs } = await getPriceAndImages(page, top.itemNo);
+        const { price: wholesalePrice, mainImgData, detailImgData, mainImgSrc, detailImgSrcs } = await getPriceAndImages(page, top.itemNo);
         if (!wholesalePrice) throw new Error('도매가 조회 실패');
         log(`도매가: ${wholesalePrice.toLocaleString()}원`);
+        const domeggookUrl = `https://domeggook.com/${top.itemNo}`;
+        log(`도매꾹 URL: ${domeggookUrl}`);
+
+        // Coupang CDN 이미지 업로드 (브라우저 닫기 전 — Playwright 세션으로 다운받은 버퍼 사용)
+        log('\n── 쿠팡 이미지 CDN 업로드 ──');
+        const cdnMain = mainImgData ? await uploadBufferToCoupang(mainImgData.buffer, mainImgData.type) : null;
+        log(`  대표이미지: ${cdnMain ? '✓ CDN 업로드 성공' : '✗ 실패 (원본 URL 사용)'}`);
+        const cdnDetails = [];
+        for (const d of detailImgData) {
+            const cdn = await uploadBufferToCoupang(d.buffer, d.type);
+            if (cdn) cdnDetails.push(cdn);
+        }
+        log(`  상세이미지: ${cdnDetails.length}개 CDN 업로드 성공`);
 
         await browser.close(); browser = null;
 
@@ -361,12 +620,24 @@ async function sendEmail(to, subject, html, attachmentPath) {
         log(`제목: "${title}"`);
 
         // 4. 엑셀
-        const sellPrice   = Math.ceil(wholesalePrice * MARKUP / 10) * 10;
-        const productData = { keyword: selected.keyword, title, wholesalePrice, originalName: top.name, imageUrl: mainImgSrc || top.imgSrc, detailImgSrcs };
+        const sellPrice    = Math.ceil(wholesalePrice * MARKUP / 10) * 10;
+        const discountBase = Math.ceil(wholesalePrice * MARKUP_DISPLAY / 10) * 10;
+        const productData  = {
+            keyword:      selected.keyword,
+            title,
+            wholesalePrice,
+            originalName: top.name,
+            imageUrl:     cdnMain || mainImgSrc || top.imgSrc,       // CDN 우선, 없으면 원본 URL
+            detailImgSrcs: cdnDetails.length > 0 ? cdnDetails : detailImgSrcs,  // CDN 우선
+            itemNo:       top.itemNo,
+        };
         const { filepath } = buildExcel(productData, cat.name);
         log(`\n엑셀 저장: ${filepath}`);
 
-        // 5. 이메일
+        // 5. 쿠팡윙 자동 업로드 (판매중지 상태)
+        const coupangProductId = await uploadToCoupangWing(productData, cat, sellPrice, discountBase);
+
+        // 6. 이메일
         await sendEmail(
             NOTIFY_EMAIL,
             `[제품추출] ${cat.emoji}${cat.name} — ${title.slice(0, 25)}...`,
@@ -378,11 +649,16 @@ async function sendEmail(to, subject, html, attachmentPath) {
                     <tr><td><b>네이버 상품수</b></td><td>${selected.productCount.toLocaleString()}개</td></tr>
                     <tr><td><b>AI 제목</b></td><td>${title}</td></tr>
                     <tr><td><b>원상품명</b></td><td>${top.name}</td></tr>
+                    <tr><td><b>도매꾹 원본</b></td><td><a href="${domeggookUrl}" style="color:#2563eb">${domeggookUrl}</a></td></tr>
                     <tr><td><b>도매가</b></td><td>${wholesalePrice.toLocaleString()}원</td></tr>
                     <tr><td><b>판매가(×2.5)</b></td><td style="color:#16a34a;font-weight:bold">${sellPrice.toLocaleString()}원</td></tr>
                     <tr><td><b>블루오션</b></td><td>${selected.isBlueOcean ? '🟢 블루오션' : '🔴 경쟁있음'}</td></tr>
+                    <tr><td><b>쿠팡윙</b></td><td>${coupangProductId ? `✅ 등록완료 (ID: ${coupangProductId}) — 판매중지 상태` : '⚠️ 수동 업로드 필요 (첨부 엑셀 사용)'}</td></tr>
                 </table>
-                <p style="color:#6b7280;font-size:12px">첨부 엑셀을 쿠팡윙 → 상품일괄등록에서 업로드하세요.</p>
+                ${coupangProductId
+                    ? `<p style="color:#16a34a;font-size:13px">✅ 쿠팡윙에 자동 등록됐습니다. <b>판매중지 상태</b>이니 윙에서 확인 후 판매시작일을 오늘로 변경하세요.</p>`
+                    : `<p style="color:#6b7280;font-size:12px">첨부 엑셀을 쿠팡윙 → 상품일괄등록에서 업로드하세요.</p>`
+                }
             </div>`,
             filepath
         );
