@@ -564,16 +564,9 @@ const App: React.FC = () => {
         return () => document.removeEventListener('mousedown', handler);
     }, [showHeaderMenu]);
 
-    const handleAuthSuccess = (loggedInUser: User, token: string) => {
+    const handleAuthSuccess = (_loggedInUser: User, token: string) => {
         localStorage.setItem('token', token);
-        setShowAuthModal(false);
-        setShowAuthPage(false);
-        setIsAuthChecking(true);
-        setTimeout(() => {
-            setUser(loggedInUser);
-            setShowMain(true);
-            setIsAuthChecking(false);
-        }, 0);
+        window.location.reload();
     };
 
     const handleLogout = async () => {
