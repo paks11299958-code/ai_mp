@@ -7,9 +7,7 @@
 
 require('dotenv').config();
 
-const { chromium } = require('playwright-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-chromium.use(StealthPlugin());
+const { chromium } = require('playwright');
 
 const xlsx     = require('xlsx');
 const path     = require('path');
@@ -66,12 +64,26 @@ async function generateTitle(keyword, productName, price) {
 
 // ── 쿠팡 경쟁도 분석 (집 IP라 실제로 작동!) ──────────────
 
+let coupangReady = false;
+
 async function checkCoupangCompetition(page, keyword) {
     try {
+        if (!coupangReady) {
+            log('  [쿠팡] 홈페이지 진입 (Cloudflare 우회)...');
+            await page.goto('https://www.coupang.com', { waitUntil: 'networkidle', timeout: 30000 });
+            await sleep(4000);
+            coupangReady = true;
+        }
         await page.goto(`https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`, {
             waitUntil: 'domcontentloaded', timeout: 20000,
         });
         await sleep(2500);
+        // Access Denied 체크
+        const bodyText = await page.evaluate(() => document.body?.innerText?.slice(0, 200) || '');
+        if (bodyText.includes('Access Denied') || bodyText.includes('Forbidden')) {
+            log(`  [쿠팡] 접근 차단 — 건너뜀`);
+            return { totalCount: 9999, productCount: 0, avgReviews: 9999, score: 9999, isBlueOcean: false };
+        }
 
         const result = await page.evaluate(() => {
             const countEl = document.querySelector('.total-count strong, .js-search-count');
@@ -190,9 +202,25 @@ async function sendEmail(to, subject, html, attachmentPath) {
     let browser;
     try {
         // 실제 Chrome 사용 (쿠팡 봇 탐지 우회)
-        browser = await chromium.launch({ headless: false, channel: 'chrome', args: ['--no-sandbox'] });
+        browser = await chromium.launch({
+            headless: false,
+            channel: 'chrome',
+            args: [
+                '--no-sandbox',
+                '--disable-blink-features=AutomationControlled',
+                '--disable-dev-shm-usage',
+            ],
+        });
         const context = await browser.newContext({
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            viewport: { width: 1280, height: 800 },
+            locale: 'ko-KR',
+            timezoneId: 'Asia/Seoul',
+        });
+        await context.addInitScript(() => {
+            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+            Object.defineProperty(navigator, 'languages', { get: () => ['ko-KR', 'ko', 'en-US', 'en'] });
         });
         const page = await context.newPage();
 
