@@ -79,12 +79,10 @@ async function run() {
     });
 
     const context = await browser.newContext({
-        userAgent:   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
-        viewport:    { width: 393, height: 852 },
-        isMobile:    true,
-        hasTouch:    true,
-        locale:      'ko-KR',
-        timezoneId:  'Asia/Seoul',
+        userAgent:  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        viewport:   { width: 1280, height: 800 },
+        locale:     'ko-KR',
+        timezoneId: 'Asia/Seoul',
     });
 
     await context.addInitScript(() => {
@@ -115,14 +113,14 @@ async function run() {
         await delay(600, 1200);
         await page.fill('input[name="password"]', INSTA_PW);
         await delay(800, 1500);
-        await page.tap('button[type="submit"]');
+        await page.click('button[type="submit"]');
         await delay(4000, 7000);
 
         // 로그인 팝업 닫기
         for (const sel of ['button:has-text("나중에")', 'button:has-text("Not Now")', 'button:has-text("저장 안 함")']) {
             const btn = page.locator(sel).first();
             if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-                await btn.tap(); await delay(800, 1500);
+                await btn.click(); await delay(800, 1500);
             }
         }
         console.log('[2/4] 로그인 완료');
@@ -160,7 +158,7 @@ async function run() {
                 const likeBtn = page.locator('svg[aria-label="좋아요"], svg[aria-label="Like"]').first();
                 if (!await likeBtn.isVisible({ timeout: 3000 }).catch(() => false)) continue;
 
-                await likeBtn.tap();
+                await likeBtn.click();
                 await delay(4000, 9000); // 랜덤 딜레이
                 recordLike();
                 liked++;
