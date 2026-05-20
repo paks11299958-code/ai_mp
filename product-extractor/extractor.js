@@ -1,133 +1,126 @@
 /**
- * 제품추출 스크립트 (블루오션 전략)
- * 1. 카테고리 핫키워드 조회 (DB)
- * 2. 키워드별 쿠팡 검색 → 경쟁도 측정 (상품 수 + 리뷰수)
- * 3. 경쟁 가장 낮은 키워드 선택
- * 4. 도매매에서 해당 키워드 검색 → 상품 1개 수집
- * 5. Claude AI로 쿠팡 최적화 제목 생성
- * 6. 쿠팡윙 업로드용 엑셀 생성 → 이메일 발송
+ * 제품추출 — 서버 실행용 (GCP)
+ * 사용법: node extractor.js [카테고리코드]
+ * 예시:   node extractor.js 50000007   (스포츠/레저)
+ *         node extractor.js             (랜덤 카테고리)
  */
 
-require('dotenv').config({ path: '/home/paks11299958/shared-api/.env' });
+require('dotenv').config();
 
-const { chromium } = require('playwright-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-chromium.use(StealthPlugin());
-
+const { chromium } = require('playwright');
 const xlsx  = require('xlsx');
 const path  = require('path');
 const fs    = require('fs');
-const { Pool } = require('pg');
 
-const BREVO_API_KEY  = process.env.BREVO_API_KEY;
-const SENDER_EMAIL   = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
-const ANTHROPIC_KEY  = process.env.ANTHROPIC_API_KEY;
-const DOMEGGOOK_ID   = process.env.DOMEGGOOK_ID;
-const DOMEGGOOK_PW   = process.env.DOMEGGOOK_PASSWORD;
-const OUTPUT_DIR     = path.join(__dirname, 'output');
-const TEMPLATE_PATH  = path.join(__dirname, '..', 'doc', 'coupang_sellertool_upload_example_V4.6.xlsm');
-const MARKUP         = 2.5;
+const BREVO_API_KEY       = process.env.BREVO_API_KEY;
+const SENDER_EMAIL        = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
+const ANTHROPIC_KEY       = process.env.ANTHROPIC_API_KEY;
+const NAVER_CLIENT_ID     = process.env.NAVER_CLIENT_ID     || 'GQTM16ASwMR5e817MQvZ';
+const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET || 'iz7FciCCdG';
+const DOMEGGOOK_ID        = process.env.DOMEGGOOK_ID        || 'c2clo';
+const DOMEGGOOK_PW        = process.env.DOMEGGOOK_PASSWORD;
+const NOTIFY_EMAIL        = process.env.NOTIFY_EMAIL;
+const OUTPUT_DIR          = path.join(__dirname, 'output');
+const CATEGORIES          = JSON.parse(fs.readFileSync(path.join(__dirname, 'categories.json'), 'utf8'));
+const MARKUP              = 2.5;
 
-// 블루오션 기준: 상품수 < 이 값이면 경쟁 낮음
-const BLUE_OCEAN_PRODUCT_COUNT = 500;
-// 블루오션 기준: 상위 상품 평균 리뷰 < 이 값이면 경쟁 낮음
-const BLUE_OCEAN_AVG_REVIEWS   = 300;
+// 블루오션 기준
+const BLUE_OCEAN_SEARCH_MIN  = 3;      // 네이버 검색량 ratio 최소 (수요 있어야 함)
+const BLUE_OCEAN_PRODUCT_MAX = 30000;  // 네이버 쇼핑 상품 수 최대
 
 function log(msg) { console.log(`[${new Date().toLocaleTimeString('ko-KR')}] ${msg}`); }
-
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// ── Claude AI 제목 생성 ───────────────────────────────────────────────────
+// ── 카테고리 선택 ─────────────────────────────────────────
+
+function getCategory() {
+    const code = process.argv[2];
+    if (code) {
+        const cat = CATEGORIES.find(c => c.code === code);
+        if (!cat) {
+            console.log(`카테고리 ${code} 없음. 사용 가능:`);
+            CATEGORIES.forEach(c => console.log(`  ${c.code} - ${c.emoji}${c.name}`));
+            process.exit(1);
+        }
+        return cat;
+    }
+    return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+}
+
+// ── 네이버 블루오션 분석 ─────────────────────────────────
+
+async function analyzeBlueOcean(keywords) {
+    const naverHeaders = {
+        'X-Naver-Client-Id': NAVER_CLIENT_ID,
+        'X-Naver-Client-Secret': NAVER_CLIENT_SECRET,
+        'Content-Type': 'application/json',
+    };
+    const endDate   = new Date().toISOString().slice(0, 10);
+    const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+    const results = [];
+    for (const keyword of keywords) {
+        try {
+            // 1. 검색량 트렌드 (DataLab 검색어트렌드)
+            const dlRes = await fetch('https://openapi.naver.com/v1/datalab/search', {
+                method: 'POST',
+                headers: naverHeaders,
+                body: JSON.stringify({
+                    startDate, endDate, timeUnit: 'month',
+                    keywordGroups: [{ groupName: keyword, keywords: [keyword] }],
+                }),
+            });
+            const dlData = await dlRes.json();
+            const ratios = dlData.results?.[0]?.data?.map(d => d.ratio) || [];
+            const searchRatio = ratios.length > 0
+                ? Math.round(ratios.reduce((a, b) => a + b, 0) / ratios.length * 10) / 10
+                : 0;
+
+            // 2. 상품 수 (네이버 쇼핑 검색)
+            const shopRes = await fetch(
+                `https://openapi.naver.com/v1/search/shop.json?query=${encodeURIComponent(keyword)}&display=1`,
+                { headers: { 'X-Naver-Client-Id': NAVER_CLIENT_ID, 'X-Naver-Client-Secret': NAVER_CLIENT_SECRET } }
+            );
+            const shopData = await shopRes.json();
+            const productCount = shopData.total || 0;
+
+            // 블루오션 점수: 검색량 높고 상품 수 적을수록 높음
+            const score = productCount > 0 ? searchRatio / Math.log10(productCount + 10) : searchRatio;
+            const isBlueOcean = searchRatio >= BLUE_OCEAN_SEARCH_MIN && productCount < BLUE_OCEAN_PRODUCT_MAX;
+
+            log(`  [네이버] "${keyword}" → 검색량:${searchRatio} 상품수:${productCount.toLocaleString()} ${isBlueOcean ? '🟢블루오션' : '🔴경쟁많음'}`);
+            results.push({ keyword, searchRatio, productCount, score, isBlueOcean });
+        } catch (e) {
+            log(`  [네이버] "${keyword}" 오류: ${e.message.slice(0, 60)}`);
+            results.push({ keyword, searchRatio: 0, productCount: 99999, score: 0, isBlueOcean: false });
+        }
+        await sleep(300);
+    }
+    return results;
+}
+
+// ── Claude AI 제목 생성 ───────────────────────────────────
 
 async function generateTitle(keyword, productName, price) {
     try {
         const res = await fetch('https://api.anthropic.com/v1/messages', {
             method: 'POST',
-            headers: {
-                'x-api-key': ANTHROPIC_KEY,
-                'anthropic-version': '2023-06-01',
-                'content-type': 'application/json',
-            },
+            headers: { 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
             body: JSON.stringify({
                 model: 'claude-haiku-4-5-20251001',
                 max_tokens: 200,
-                messages: [{
-                    role: 'user',
-                    content: `쿠팡에서 잘 팔리는 상품 제목을 만들어주세요.
-
-검색 키워드: ${keyword}
-도매꾹 상품명: ${productName}
-도매가: ${price}원
-
-규칙:
-- 소비자가 검색할 법한 자연스러운 한국어 제목
-- 키워드를 자연스럽게 포함
-- 40~60자 사이
-- 상품코드/모델번호 제거
-- 브랜드명 제거 (있으면)
-- 생활에서 쓰는 표현 사용
-
-제목만 출력하세요. 설명 없이.`,
-                }],
+                messages: [{ role: 'user', content: `쿠팡에서 잘 팔리는 상품 제목을 만들어주세요.\n\n검색 키워드: ${keyword}\n도매꾹 상품명: ${productName}\n도매가: ${price}원\n\n규칙:\n- 소비자가 검색할 법한 자연스러운 한국어 제목\n- 키워드를 자연스럽게 포함\n- 40~60자 사이\n- 상품코드/모델번호 제거\n- 브랜드명 제거\n\n제목만 출력하세요.` }],
             }),
         });
-        if (!res.ok) throw new Error(`Claude API ${res.status}`);
         const data = await res.json();
         return data.content?.[0]?.text?.trim() || productName;
-    } catch (e) {
-        log(`AI 제목 생성 실패: ${e.message} → 원본 사용`);
-        return productName;
-    }
+    } catch { return productName; }
 }
 
-// ── 쿠팡 경쟁도 분석 ─────────────────────────────────────────────────────
-
-async function checkCoupangCompetition(page, keyword) {
-    try {
-        await page.goto(`https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`, {
-            waitUntil: 'domcontentloaded', timeout: 20000,
-        });
-        await sleep(2500);
-
-        const result = await page.evaluate(() => {
-            // 전체 결과 수
-            const countEl = document.querySelector('.total-count strong, .js-search-count, [class*="total-count"]');
-            const totalText = countEl?.textContent?.replace(/[^0-9]/g, '') || '0';
-            const totalCount = parseInt(totalText) || 0;
-
-            // 상위 상품 리뷰수 (최대 5개)
-            const reviewEls = [...document.querySelectorAll('.rating-total-count, [class*="rating-total"], [class*="count-review"]')].slice(0, 5);
-            const reviews = reviewEls.map(el => parseInt(el.textContent.replace(/[^0-9]/g, '') || '0'));
-
-            // 상품 카드 수 (결과수 대안)
-            const productCount = document.querySelectorAll('.search-product, [class*="search-product"]').length;
-
-            const avgReviews = reviews.length > 0
-                ? Math.round(reviews.reduce((a, b) => a + b, 0) / reviews.length)
-                : 0;
-            const maxReviews = reviews.length > 0 ? Math.max(...reviews) : 0;
-
-            return { totalCount: totalCount || productCount * 10, productCount, avgReviews, maxReviews, reviews };
-        });
-
-        // 경쟁도 점수 (낮을수록 블루오션)
-        const score = (result.totalCount / 100) + (result.avgReviews / 10);
-        const isBlueOcean = result.totalCount < BLUE_OCEAN_PRODUCT_COUNT && result.avgReviews < BLUE_OCEAN_AVG_REVIEWS;
-
-        log(`  [쿠팡] "${keyword}" → 상품수:${result.totalCount} 평균리뷰:${result.avgReviews} ${isBlueOcean ? '🟢블루오션' : '🔴경쟁많음'}`);
-        return { ...result, score, isBlueOcean };
-    } catch (e) {
-        log(`  [쿠팡] "${keyword}" 조회 실패: ${e.message}`);
-        return { totalCount: 9999, productCount: 0, avgReviews: 9999, maxReviews: 9999, score: 9999, isBlueOcean: false };
-    }
-}
-
-// ── 도매꾹/도매매 스크래퍼 ────────────────────────────────────────────────
+// ── 도매매 스크래퍼 ───────────────────────────────────────
 
 async function loginDomeggook(page) {
-    await page.goto('https://domeggook.com/main/member/mem_formLogin.php', {
-        waitUntil: 'domcontentloaded', timeout: 20000,
-    });
+    await page.goto('https://domeggook.com/main/member/mem_formLogin.php', { waitUntil: 'domcontentloaded', timeout: 20000 });
     await page.fill('#idInput', DOMEGGOOK_ID);
     await page.fill('#pwInput', DOMEGGOOK_PW);
     await page.click('input[type="submit"]');
@@ -141,25 +134,38 @@ async function searchDomemedb(page, keyword) {
     await page.fill('input[name="sw"]', keyword);
     await page.evaluate(() => document.getElementById('search_list')?.submit());
     await page.waitForLoadState('domcontentloaded', { timeout: 15000 }).catch(() => {});
-    await sleep(5000);
-
-    const items = await page.evaluate(() => {
-        const containers = Array.from(document.querySelectorAll('.sub_cont_bane1'));
+    await sleep(4000);
+    return await page.evaluate(() => {
         const seen = new Set();
-        return containers.map(c => {
+        return Array.from(document.querySelectorAll('.sub_cont_bane1')).map(c => {
             const text = c.innerText || '';
-            const noMatch = text.match(/상품번호\s+(\d+)/);
-            const itemNo = noMatch ? noMatch[1] : '';
+            const m = text.match(/상품번호\s+(\d+)/);
+            const itemNo = m ? m[1] : '';
             if (!itemNo || seen.has(itemNo)) return null;
             seen.add(itemNo);
             const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-            const noIdx = lines.findIndex(l => l.startsWith('상품번호'));
-            const name = noIdx >= 0 ? lines[noIdx + 1] || '' : '';
+            const idx = lines.findIndex(l => l.startsWith('상품번호'));
+            const name = idx >= 0 ? lines[idx + 1] || '' : '';
             const img = c.querySelector('img[src*="_img_330"], img[src*="_stt_330"]');
             return { itemNo, name, imgSrc: img?.src || '' };
         }).filter(p => p && p.name && p.itemNo);
     });
-    return items;
+}
+
+async function searchDomemedbWithFallback(page, keyword) {
+    const attempts = [keyword];
+    const words = keyword.split(' ');
+    if (words.length > 2) attempts.push(words.slice(0, 2).join(' '));
+    if (words.length > 1) attempts.push(words[0]);
+
+    for (const q of attempts) {
+        const results = await searchDomemedb(page, q);
+        if (results.length > 0) {
+            if (q !== keyword) log(`  도매꾹 "${q}"로 재검색 → ${results.length}개`);
+            return results;
+        }
+    }
+    return [];
 }
 
 async function getPriceAndImages(page, itemNo) {
@@ -169,236 +175,175 @@ async function getPriceAndImages(page, itemNo) {
         const priceEl = document.querySelector('.lItemPrice') || document.getElementById('lBaseAmtVal');
         const price = parseInt((priceEl?.textContent || '').replace(/[^0-9]/g, ''), 10) || 0;
         const mainImg = document.querySelector('#divMainImage img, .goods_img img, .mainImg img');
-        const detailImgs = Array.from(
-            document.querySelectorAll('#divDetailImage img, .detail_img img, .itemDetailImage img, .goods_description img')
-        ).map(img => img.src).filter(s => s && s.startsWith('http')).slice(0, 9);
+        const detailImgs = Array.from(document.querySelectorAll('#divDetailImage img, .detail_img img'))
+            .map(i => i.src).filter(s => s?.startsWith('http')).slice(0, 9);
         return { price, mainImgSrc: mainImg?.src || '', detailImgSrcs: detailImgs };
     });
 }
 
-// ── 엑셀 생성 ────────────────────────────────────────────────────────────
-
-function getSheetName(wb, categoryName) {
-    const name = categoryName || '';
-    if (/패션|의류|잡화|신발|가방|악세|액세/.test(name)) return wb.SheetNames.find(s => s.includes('패션')) || wb.SheetNames[0];
-    if (/식품|음식|먹|간식|과자|음료/.test(name))       return wb.SheetNames.find(s => s.includes('식품')) || wb.SheetNames[0];
-    if (/가전|전자|TV|냉장|세탁/.test(name))             return wb.SheetNames.find(s => s.includes('가전')) || wb.SheetNames[0];
-    return wb.SheetNames[0];
-}
+// ── 엑셀 생성 ────────────────────────────────────────────
 
 function buildExcel(row, categoryName) {
-    const wb = xlsx.readFile(TEMPLATE_PATH);
-    const sheetName = getSheetName(wb, categoryName);
-    const ws = wb.Sheets[sheetName];
-    log(`엑셀 시트: "${sheetName}"`);
-
-    const r = 5;
     const sellPrice    = Math.ceil(row.wholesalePrice * MARKUP / 10) * 10;
     const discountBase = Math.ceil(sellPrice * 1.2 / 10) * 10;
 
-    const set = (col, val) => { ws[col + r] = { v: val, t: typeof val === 'number' ? 'n' : 's' }; };
+    // template.xlsm 있으면 사용, 없으면 자체 생성
+    const searchDirs = [__dirname, process.cwd()];
+    let templatePath = null;
+    for (const dir of searchDirs) {
+        const files = fs.readdirSync(dir).filter(f => f.toLowerCase().startsWith('template') && /\.(xlsm|xlsx)$/i.test(f));
+        if (files.length > 0) { templatePath = path.join(dir, files[0]); break; }
+    }
 
-    set('A', categoryName);
-    set('B', row.title);
-    set('E', '새 상품');
-    set('I', row.keyword);
-    set('BJ', sellPrice);
-    set('BL', discountBase);
-    set('BM', 99999);
-    set('BN', 2);
-    set('BO', 0);
-    set('BR', 'N');
-    set('BS', 'Y');
-    set('CZ', row.imageUrl);
-    set('DA', row.imageUrl);
-    if (row.detailImgSrcs?.[0]) set('DB', row.detailImgSrcs[0]);
-
-    ws['!ref'] = `A1:DB5`;
+    let wb, ws;
+    if (templatePath) {
+        wb = xlsx.readFile(templatePath);
+        ws = wb.Sheets[wb.SheetNames[0]];
+        const r = 5;
+        const set = (col, val) => { ws[col + r] = { v: val, t: typeof val === 'number' ? 'n' : 's' }; };
+        set('A', categoryName); set('B', row.title); set('E', '새 상품'); set('I', row.keyword);
+        set('BJ', sellPrice); set('BL', discountBase); set('BM', 99999); set('BN', 2); set('BO', 0); set('BR', 'N'); set('BS', 'Y');
+        set('CZ', row.imageUrl); set('DA', row.imageUrl);
+        if (row.detailImgSrcs?.[0]) set('DB', row.detailImgSrcs[0]);
+        ws['!ref'] = 'A1:DB5';
+    } else {
+        // 템플릿 없을 때 — 쿠팡윙 참고용 데이터 엑셀 자체 생성
+        wb = xlsx.utils.book_new();
+        const data = [
+            ['항목', '내용'],
+            ['카테고리', categoryName],
+            ['AI 제목', row.title],
+            ['키워드', row.keyword],
+            ['원상품명', row.originalName || ''],
+            ['도매가', row.wholesalePrice],
+            ['판매가 (×2.5)', sellPrice],
+            ['정가 (판매가×1.2)', discountBase],
+            ['재고', 99999],
+            ['배송비타입', 2],
+            ['새상품여부', '새 상품'],
+            ['대표이미지', row.imageUrl],
+            ...(row.detailImgSrcs || []).map((url, i) => [`상세이미지${i + 1}`, url]),
+        ];
+        ws = xlsx.utils.aoa_to_sheet(data);
+        ws['!cols'] = [{ wch: 20 }, { wch: 80 }];
+        xlsx.utils.book_append_sheet(wb, ws, '제품정보');
+    }
 
     if (!fs.existsSync(OUTPUT_DIR)) fs.mkdirSync(OUTPUT_DIR, { recursive: true });
-    const timestamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
     const safeName  = categoryName.replace(/[/\\?%*:|"<>]/g, '_');
+    const timestamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-');
     const filename  = `coupang_${safeName}_${timestamp}.xlsx`;
     const filepath  = path.join(OUTPUT_DIR, filename);
     xlsx.writeFile(wb, filepath);
+    log(`템플릿: ${templatePath ? '쿠팡윙 양식' : '자체 생성 (참고용)'}`);
     return { filepath, filename };
 }
 
-// ── 이메일 발송 ───────────────────────────────────────────────────────────
+// ── 이메일 발송 ───────────────────────────────────────────
 
-async function sendEmail(to, subject, htmlContent, attachmentPath) {
+async function sendEmail(to, subject, html, attachmentPath) {
+    if (!BREVO_API_KEY || !to) { log('이메일 설정 없음 — 로컬 저장만 완료'); return; }
     const content  = fs.readFileSync(attachmentPath).toString('base64');
     const filename = path.basename(attachmentPath);
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            sender:     { name: '제품추출', email: SENDER_EMAIL },
-            to:         [{ email: to }],
-            subject,
-            htmlContent,
+            sender: { name: '제품추출', email: SENDER_EMAIL },
+            to: [{ email: to }], subject, htmlContent: html,
             attachment: [{ name: filename, content }],
         }),
     });
-    if (!res.ok) throw new Error(`Brevo 발송 실패: ${await res.text()}`);
+    if (!res.ok) log(`이메일 발송 실패: ${await res.text()}`);
+    else log(`이메일 발송 완료 → ${to}`);
 }
 
-// ── 메인 ─────────────────────────────────────────────────────────────────
+// ── 메인 ─────────────────────────────────────────────────
 
 (async () => {
-    const categoryCode   = process.argv[2];
-    const recipientEmail = process.argv[3];
+    const cat      = getCategory();
+    const keywords = cat.keywords.slice(0, 5);
+    log(`카테고리: ${cat.emoji}${cat.name}`);
+    log(`키워드: ${keywords.join(', ')}`);
 
-    if (!categoryCode || !recipientEmail) {
-        console.error('사용법: node extractor.js <categoryCode> <email>');
-        process.exit(1);
-    }
-
-    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
     let browser;
-
     try {
-        // 1. 카테고리 키워드 조회
-        log(`카테고리 ${categoryCode} 키워드 조회 중...`);
-        const { rows: cats } = await pool.query(
-            `SELECT code, name, emoji, keywords FROM "NaverShoppingCategory" WHERE code = $1 LIMIT 1`,
-            [categoryCode]
-        );
-        if (cats.length === 0) throw new Error(`카테고리 ${categoryCode} 없음`);
-        const cat      = cats[0];
-        const keywords = JSON.parse(cat.keywords || '[]').slice(0, 5);
-        log(`키워드 ${keywords.length}개: ${keywords.join(', ')}`);
+        // 1. 네이버 블루오션 분석 (브라우저 불필요)
+        log('\n── 네이버 블루오션 분석 ──');
+        const competition = await analyzeBlueOcean(keywords);
 
+        const blueOceans = competition.filter(c => c.isBlueOcean);
+        const candidates = blueOceans.length > 0
+            ? blueOceans.sort((a, b) => b.score - a.score)
+            : competition.sort((a, b) => b.score - a.score);
+        log(`블루오션 ${blueOceans.length}개 발견 → "${candidates[0].keyword}" 선택`);
+
+        // 2. 도매매 검색
+        log('\n── 도매매 검색 ──');
         browser = await chromium.launch({ headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
         const context = await browser.newContext({
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         });
         const page = await context.newPage();
-
-        // 2. 쿠팡 경쟁도 분석 — 블루오션 키워드 선정
-        log('\n── 쿠팡 경쟁도 분석 ──');
-        const competition = [];
-        for (const kw of keywords) {
-            const result = await checkCoupangCompetition(page, kw);
-            competition.push({ keyword: kw, ...result });
-            await sleep(1500);
-        }
-
-        // 모두 0이면 쿠팡 차단 → 첫 번째 키워드 사용
-        const allZero    = competition.every(c => c.totalCount === 0 && c.avgReviews === 0);
-        const blueOceans = competition.filter(c => c.isBlueOcean && !allZero);
-        const selected   = allZero
-            ? { ...competition[0], isBlueOcean: false, note: '쿠팡 경쟁도 조회 불가 (IP 차단)' }
-            : blueOceans.length > 0
-                ? blueOceans[0]
-                : competition.sort((a, b) => a.score - b.score)[0];
-        if (allZero) log('⚠️  쿠팡 IP 차단 — 경쟁도 측정 불가. 첫 번째 키워드로 진행합니다.');
-
-        log(`\n선택된 키워드: "${selected.keyword}" (상품수:${selected.totalCount}, 평균리뷰:${selected.avgReviews})`);
-
-        // 3. 도매매 검색 — 상품 1개
-        log('\n── 도매매 검색 ──');
         await loginDomeggook(page);
-        log(`"${selected.keyword}" 도매매 검색 중...`);
 
-        const products = await searchDomemedb(page, selected.keyword);
-        if (products.length === 0) throw new Error(`도매매에서 "${selected.keyword}" 상품을 찾을 수 없습니다.`);
+        let products = [], selected = candidates[0];
+        for (const candidate of candidates) {
+            log(`키워드 시도: "${candidate.keyword}" (검색량:${candidate.searchRatio}, 상품수:${candidate.productCount.toLocaleString()})`);
+            const found = await searchDomemedbWithFallback(page, candidate.keyword);
+            if (found.length > 0) { products = found; selected = candidate; break; }
+            log(`  도매꾹 상품 없음 — 다음 키워드`);
+        }
+        if (!products.length) throw new Error('모든 키워드에서 도매꾹 상품 없음');
 
-        const top = products[0];
-        log(`상품 발견: "${top.name}" (번호: ${top.itemNo})`);
+        const kwWords = selected.keyword.split(' ').filter(w => w.length >= 2);
+        const matched = products.filter(p => kwWords.some(w => p.name.includes(w)));
+        const top     = matched.length > 0 ? matched[0] : products[0];
+        log(`상품: "${top.name}" (번호: ${top.itemNo})${matched.length === 0 ? ' ⚠️키워드 불일치' : ''}`);
 
         const { price: wholesalePrice, mainImgSrc, detailImgSrcs } = await getPriceAndImages(page, top.itemNo);
-        if (wholesalePrice === 0) throw new Error('도매가 조회 실패 (0원)');
-        log(`도매가: ${wholesalePrice.toLocaleString()}원 / 이미지: ${detailImgSrcs.length}개`);
+        if (!wholesalePrice) throw new Error('도매가 조회 실패');
+        log(`도매가: ${wholesalePrice.toLocaleString()}원`);
 
-        // 4. AI 제목 생성
+        await browser.close(); browser = null;
+
+        // 3. AI 제목
         log('\nAI 제목 생성 중...');
         const title = await generateTitle(selected.keyword, top.name, wholesalePrice);
         log(`제목: "${title}"`);
 
-        await browser.close();
-        browser = null;
+        // 4. 엑셀
+        const sellPrice   = Math.ceil(wholesalePrice * MARKUP / 10) * 10;
+        const productData = { keyword: selected.keyword, title, wholesalePrice, originalName: top.name, imageUrl: mainImgSrc || top.imgSrc, detailImgSrcs };
+        const { filepath } = buildExcel(productData, cat.name);
+        log(`\n엑셀 저장: ${filepath}`);
 
-        const productData = {
-            keyword:        selected.keyword,
-            title,
-            originalName:   top.name,
-            wholesalePrice,
-            sellPrice:      Math.ceil(wholesalePrice * MARKUP / 10) * 10,
-            imageUrl:       mainImgSrc || top.imgSrc,
-            detailImgSrcs,
-            productUrl:     `https://domeggook.com/${top.itemNo}`,
-            coupangCompetition: {
-                totalCount:  selected.totalCount,
-                avgReviews:  selected.avgReviews,
-                isBlueOcean: selected.isBlueOcean,
-            },
-        };
-
-        // 5. 엑셀 생성
-        log('\n엑셀 생성 중...');
-        const { filepath, filename } = buildExcel(productData, cat.name);
-        log(`엑셀 저장: ${filepath}`);
-
-        // 6. 이메일 발송
-        log(`이메일 발송 → ${recipientEmail}`);
-        const competitionBadge = selected.isBlueOcean
-            ? `<span style="background:#166534;color:#bbf7d0;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600">🟢 블루오션</span>`
-            : `<span style="background:#7f1d1d;color:#fca5a5;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600">🔴 경쟁있음</span>`;
-
+        // 5. 이메일
         await sendEmail(
-            recipientEmail,
-            `[제품추출] ${cat.name} — "${title.slice(0, 20)}..."`,
-            `
-            <div style="font-family:'Apple SD Gothic Neo',sans-serif;max-width:600px;margin:0 auto">
-                <div style="background:#1e3a5f;padding:24px;border-radius:12px 12px 0 0">
-                    <h2 style="color:#fff;margin:0;font-size:20px">📦 제품추출 완료</h2>
-                    <p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:13px">카테고리: ${cat.emoji || ''} ${cat.name}</p>
-                </div>
-                <div style="background:#f9fafb;padding:20px;border-radius:0 0 12px 12px">
-                    <table style="width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden">
-                        <tr style="background:#1e3a5f;color:#fff">
-                            <th style="padding:10px 12px;text-align:left;font-size:13px;width:90px">이미지</th>
-                            <th style="padding:10px 12px;text-align:left;font-size:13px">상품 정보</th>
-                            <th style="padding:10px 12px;text-align:right;font-size:13px">가격</th>
-                        </tr>
-                        <tr>
-                            <td style="padding:12px;vertical-align:top">
-                                <a href="${productData.productUrl}" target="_blank">
-                                    <img src="${productData.imageUrl}" width="80" height="80" style="object-fit:cover;border-radius:6px;display:block" onerror="this.style.display='none'">
-                                </a>
-                            </td>
-                            <td style="padding:12px;vertical-align:top">
-                                <div style="margin-bottom:6px">${competitionBadge}</div>
-                                <div style="font-size:11px;color:#6b7280;margin-bottom:4px">키워드: ${productData.keyword} | 쿠팡 상품수: ${selected.totalCount.toLocaleString()} | 평균리뷰: ${selected.avgReviews}</div>
-                                <a href="${productData.productUrl}" target="_blank" style="color:#1e3a5f;font-weight:bold;font-size:13px;text-decoration:none">${title}</a>
-                                <div style="font-size:11px;color:#9ca3af;margin-top:4px">${top.name}</div>
-                            </td>
-                            <td style="padding:12px;text-align:right;vertical-align:top">
-                                <div style="font-size:12px;color:#6b7280">도매가</div>
-                                <div style="font-size:14px;font-weight:600">${wholesalePrice.toLocaleString()}원</div>
-                                <div style="font-size:12px;color:#6b7280;margin-top:8px">판매가(×${MARKUP})</div>
-                                <div style="font-size:14px;font-weight:600;color:#16a34a">${productData.sellPrice.toLocaleString()}원</div>
-                            </td>
-                        </tr>
-                    </table>
-                    <p style="font-size:12px;color:#6b7280;margin-top:16px">
-                        첨부파일(${filename})을 쿠팡윙 → 상품일괄등록에서 업로드하세요.
-                    </p>
-                </div>
+            NOTIFY_EMAIL,
+            `[제품추출] ${cat.emoji}${cat.name} — ${title.slice(0, 25)}...`,
+            `<div style="font-family:sans-serif;max-width:500px">
+                <h2 style="color:#1e3a5f">📦 ${cat.emoji}${cat.name} 제품추출 완료</h2>
+                <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%">
+                    <tr><td><b>키워드</b></td><td>${selected.keyword}</td></tr>
+                    <tr><td><b>네이버 검색량</b></td><td>${selected.searchRatio} (0~100)</td></tr>
+                    <tr><td><b>네이버 상품수</b></td><td>${selected.productCount.toLocaleString()}개</td></tr>
+                    <tr><td><b>AI 제목</b></td><td>${title}</td></tr>
+                    <tr><td><b>원상품명</b></td><td>${top.name}</td></tr>
+                    <tr><td><b>도매가</b></td><td>${wholesalePrice.toLocaleString()}원</td></tr>
+                    <tr><td><b>판매가(×2.5)</b></td><td style="color:#16a34a;font-weight:bold">${sellPrice.toLocaleString()}원</td></tr>
+                    <tr><td><b>블루오션</b></td><td>${selected.isBlueOcean ? '🟢 블루오션' : '🔴 경쟁있음'}</td></tr>
+                </table>
+                <p style="color:#6b7280;font-size:12px">첨부 엑셀을 쿠팡윙 → 상품일괄등록에서 업로드하세요.</p>
             </div>`,
-            filepath,
+            filepath
         );
 
-        log('✅ 완료!');
-        process.exit(0);
-
+        console.log('\n🎉 완료!');
+        console.log(`   엑셀 위치: ${filepath}`);
     } catch (e) {
         log(`❌ 오류: ${e.message}`);
-        console.error(e);
-        process.exit(1);
     } finally {
         if (browser) await browser.close().catch(() => {});
-        await pool.end().catch(() => {});
     }
 })();

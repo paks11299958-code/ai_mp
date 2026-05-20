@@ -1,0 +1,11 @@
+{
+  "name": "product-extractor-server",
+  "version": "1.0.0",
+  "description": "제품추출 - 서버 실행용 (네이버 DataLab 블루오션 분석)",
+  "main": "extractor.js",
+  "dependencies": {
+    "playwright": "^1.44.0",
+    "xlsx": "^0.18.5",
+    "dotenv": "^16.4.5"
+  }
+}
