@@ -1724,7 +1724,7 @@ const App: React.FC = () => {
                         )}
 
                         {/* 트리거 키워드 안내 */}
-                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '윤채원' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || isGolfPersona) && (
+                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '윤채원' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || activePersona?.name === '이아린' || isGolfPersona) && (
                             <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
                                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
@@ -1779,7 +1779,7 @@ const App: React.FC = () => {
                                                 주식 분석
                                             </button>
                                         )}
-                                        {activePersona?.name === '서아' && user && (
+                                        {activePersona?.name === '이아린' && user && (
                                             <button
                                                 onClick={() => setShowUsedItem(true)}
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
@@ -1788,7 +1788,7 @@ const App: React.FC = () => {
                                                 중고 판매
                                             </button>
                                         )}
-                                        {(activePersona?.name === '왕주식' || activePersona?.name === '신은비') && user && (
+                                        {(activePersona?.name === '왕주식' || activePersona?.name === '이아린') && user && (
                                             <button
                                                 onClick={() => setShowHotKeyword(true)}
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
