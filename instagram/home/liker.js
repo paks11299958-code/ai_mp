@@ -108,12 +108,30 @@ async function run() {
         }
 
         console.log('  → 로그인 폼 대기 중...');
-        await page.waitForSelector('input[name="username"]', { timeout: 30000 });
-        await page.click('input[name="username"]');
+        // 여러 셀렉터 시도 (Instagram 버전별 대응)
+        const idSelectors = [
+            'input[name="username"]',
+            'input[aria-label*="사용자"]',
+            'input[placeholder*="사용자"]',
+            'input[placeholder*="휴대폰"]',
+            'input[type="text"]',
+        ];
+        let idInput = null;
+        for (const sel of idSelectors) {
+            const el = page.locator(sel).first();
+            if (await el.isVisible({ timeout: 5000 }).catch(() => false)) {
+                idInput = el; console.log(`  → 셀렉터 찾음: ${sel}`); break;
+            }
+        }
+        if (!idInput) throw new Error('아이디 입력창을 찾을 수 없습니다.');
+
+        await idInput.click();
         await delay(500, 800);
         await page.keyboard.type(INSTA_ID, { delay: 80 });
         await delay(600, 1200);
-        await page.click('input[name="password"]');
+
+        const pwInput = page.locator('input[type="password"]').first();
+        await pwInput.click();
         await delay(300, 600);
         await page.keyboard.type(INSTA_PW, { delay: 80 });
         await delay(800, 1500);
