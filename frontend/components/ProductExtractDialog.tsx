@@ -82,8 +82,8 @@ export const ProductExtractDialog: React.FC<Props> = ({ onClose, userEmail }) =>
                     {step === 'select' && (
                         <>
                             <p className="text-sm text-white/60 mb-4">
-                                카테고리 1개를 선택하면 해당 카테고리 핫키워드로 도매매를 검색해서<br />
-                                상위 상품 정보를 쿠팡윙 업로드용 엑셀로 만들어 이메일로 보내드립니다.
+                                핫키워드 중 <span className="text-emerald-400 font-medium">쿠팡 경쟁이 낮은 블루오션</span> 키워드를 자동 선별하여<br />
+                                도매매 상품 <span className="text-white/80 font-medium">1개</span>를 쿠팡윙 엑셀로 만들어 이메일로 보내드립니다.
                             </p>
                             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-1">
                                 {categories.map(cat => (
