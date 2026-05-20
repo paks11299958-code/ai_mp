@@ -283,8 +283,11 @@ async function sendEmail(to, subject, html, attachmentPath) {
         const products = await searchDomemedb(page, selected.keyword);
         if (!products.length) throw new Error(`"${selected.keyword}" 도매매 상품 없음`);
 
-        const top = products[0];
-        log(`상품: "${top.name}" (번호: ${top.itemNo})`);
+        // 키워드 단어 중 하나라도 포함된 상품 우선 선택
+        const kwWords = selected.keyword.split(' ').filter(w => w.length >= 2);
+        const matched = products.filter(p => kwWords.some(w => p.name.includes(w)));
+        const top = matched.length > 0 ? matched[0] : products[0];
+        log(`상품: "${top.name}" (번호: ${top.itemNo})${matched.length === 0 ? ' ⚠️키워드 불일치' : ''}`);
         const { price: wholesalePrice, mainImgSrc, detailImgSrcs } = await getPriceAndImages(page, top.itemNo);
         if (!wholesalePrice) throw new Error('도매가 조회 실패');
         log(`도매가: ${wholesalePrice.toLocaleString()}원`);
