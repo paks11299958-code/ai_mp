@@ -171,10 +171,15 @@ async function getPriceAndImages(page, itemNo) {
 // ── 엑셀 생성 ────────────────────────────────────────────
 
 function buildExcel(row, categoryName) {
-    log(`템플릿 경로 확인: ${TEMPLATE_PATH}`);
-    const altPath = path.join(process.cwd(), 'template.xlsm');
-    const usePath = fs.existsSync(TEMPLATE_PATH) ? TEMPLATE_PATH : fs.existsSync(altPath) ? altPath : null;
-    if (!usePath) throw new Error(`template.xlsm 없음\n  경로1: ${TEMPLATE_PATH}\n  경로2: ${altPath}`);
+    // 폴더에서 template 파일 자동 탐색 (Windows 확장자 숨김 대응)
+    const searchDirs = [__dirname, process.cwd()];
+    let usePath = null;
+    for (const dir of searchDirs) {
+        const files = fs.readdirSync(dir).filter(f => f.toLowerCase().startsWith('template') && /\.(xlsm|xlsx)$/i.test(f));
+        if (files.length > 0) { usePath = path.join(dir, files[0]); break; }
+    }
+    log(`템플릿 파일: ${usePath || '없음'}`);
+    if (!usePath) throw new Error(`template.xlsm 없음 (폴더: ${__dirname})`);
     const wb = xlsx.readFile(usePath);
     const ws = wb.Sheets[wb.SheetNames[0]];
     const r  = 5;
