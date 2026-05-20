@@ -216,27 +216,21 @@ async function sendEmail(to, subject, html, attachmentPath) {
     log(`키워드: ${keywords.join(', ')}`);
 
     let browser;
+    let ownBrowser = false;
     try {
-        // 실제 Chrome 사용 (쿠팡 봇 탐지 우회)
-        browser = await chromium.launch({
-            headless: false,
-            channel: 'chrome',
-            args: [
-                '--no-sandbox',
-                '--disable-blink-features=AutomationControlled',
-                '--disable-dev-shm-usage',
-            ],
-        });
+        // 자동실행.bat이 켠 Chrome에 CDP로 연결 (봇 탐지 없음)
+        try {
+            browser = await chromium.connectOverCDP('http://localhost:9222');
+            log('기존 Chrome에 연결 완료 (CDP)');
+        } catch {
+            log('CDP 연결 실패 — Chrome 직접 실행');
+            browser = await chromium.launch({ headless: false, channel: 'chrome', args: ['--no-sandbox', '--disable-blink-features=AutomationControlled'] });
+            ownBrowser = true;
+        }
         const context = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
             viewport: { width: 1280, height: 800 },
             locale: 'ko-KR',
             timezoneId: 'Asia/Seoul',
-        });
-        await context.addInitScript(() => {
-            Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-            Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
-            Object.defineProperty(navigator, 'languages', { get: () => ['ko-KR', 'ko', 'en-US', 'en'] });
         });
         const page = await context.newPage();
 
@@ -272,7 +266,7 @@ async function sendEmail(to, subject, html, attachmentPath) {
         const title = await generateTitle(selected.keyword, top.name, wholesalePrice);
         log(`제목: "${title}"`);
 
-        await browser.close(); browser = null;
+        if (ownBrowser) { await browser.close(); browser = null; }
 
         // 4. 엑셀 생성
         const productData = { keyword: selected.keyword, title, wholesalePrice, sellPrice: Math.ceil(wholesalePrice * MARKUP / 10) * 10, imageUrl: mainImgSrc || top.imgSrc, detailImgSrcs };
@@ -299,6 +293,6 @@ async function sendEmail(to, subject, html, attachmentPath) {
     } catch (e) {
         log(`❌ 오류: ${e.message}`);
     } finally {
-        if (browser) await browser.close().catch(() => {});
+        if (browser && ownBrowser) await browser.close().catch(() => {});
     }
 })();
