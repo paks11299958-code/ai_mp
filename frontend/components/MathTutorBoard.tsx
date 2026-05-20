@@ -131,7 +131,8 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const [detailLoading, setDetailLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showHistoryMobile, setShowHistoryMobile] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+    const cameraInputRef = useRef<HTMLInputElement>(null);
+    const galleryInputRef = useRef<HTMLInputElement>(null);
     const { speaking, ttsLoading, speak, stop } = useTTS();
 
     const loadHistory = useCallback(async () => {
@@ -147,10 +148,32 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const handleFileSelect = useCallback(async (files: FileList | null) => {
         if (!files || !files[0]) return;
         const compressed = await compressImage(files[0]);
-        setFile(compressed);
-        setPreview(URL.createObjectURL(compressed));
         setSelected(null);
         setError(null);
+        setPreview(URL.createObjectURL(compressed));
+        setLoading(true);
+        try {
+            const reader = new FileReader();
+            const base64 = await new Promise<string>((resolve, reject) => {
+                reader.onload = e => resolve((e.target?.result as string).split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(compressed);
+            });
+            const result = await apiFetch<MathResult>(API(''), {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ imageBase64: base64, mimeType: compressed.type || 'image/jpeg' }),
+            });
+            setSelected(result);
+            setHistory(prev => [result, ...prev]);
+            setPreview(null);
+            setFile(null);
+        } catch (e: any) {
+            setFile(compressed);
+            setError(e.message || '분석 중 오류가 발생했습니다.');
+        } finally {
+            setLoading(false);
+        }
     }, []);
 
     const handleAnalyze = useCallback(async () => {
@@ -283,62 +306,79 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                 <div className={`${showHistoryMobile ? 'hidden' : 'flex'} md:flex flex-1 flex-col overflow-y-auto`}>
                     {/* 이미지 업로드 화면 */}
                     {!selected && (
-                        <div className="flex flex-col items-center p-6 gap-5 max-w-lg mx-auto">
-                            {/* 업로드 존 */}
-                            <div
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full cursor-pointer rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-3 py-10"
-                                style={{ borderColor: preview ? '#FF6B9D' : '#FFB3D1', background: preview ? 'transparent' : '#FFF0F8' }}
-                            >
-                                {preview ? (
-                                    <img src={preview} alt="미리보기" className="max-h-64 rounded-xl object-contain shadow-md" />
-                                ) : (
-                                    <>
-                                        <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: '#FFE0EF' }}>📷</div>
-                                        <div className="text-center">
-                                            <p className="font-bold text-pink-500">문제 사진을 찍거나 올려주세요</p>
-                                            <p className="text-xs text-pink-300 mt-1">카메라로 찍거나 갤러리에서 선택하세요</p>
+                        <div className="flex flex-col items-center p-6 gap-4 max-w-lg mx-auto w-full">
+                            {/* 미리보기 존 (분석 중 / 에러 재시도) */}
+                            {(preview || loading) && (
+                                <div className="w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-6 overflow-hidden"
+                                    style={{ borderColor: '#FF6B9D', background: '#FFF0F8' }}>
+                                    {preview && <img src={preview} alt="미리보기" className="max-h-52 rounded-xl object-contain shadow-md" />}
+                                    {loading && (
+                                        <div className="flex flex-col items-center gap-2 py-2">
+                                            <Loader size={28} className="text-pink-400 animate-spin" />
+                                            <p className="text-pink-500 text-sm font-medium">AI쌤이 문제를 풀고 있어요...</p>
                                         </div>
-                                    </>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
 
+                            {/* 업로드 존 (아이들 전 상태) */}
+                            {!preview && !loading && (
+                                <div className="w-full rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-3 py-10"
+                                    style={{ borderColor: '#FFB3D1', background: '#FFF0F8' }}>
+                                    <div className="w-16 h-16 rounded-full flex items-center justify-center text-3xl" style={{ background: '#FFE0EF' }}>📷</div>
+                                    <div className="text-center">
+                                        <p className="font-bold text-pink-500">문제 사진을 찍거나 올려주세요</p>
+                                        <p className="text-xs text-pink-300 mt-1">아래 버튼을 눌러 카메라로 찍거나 갤러리에서 선택하세요</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 숨겨진 input들 */}
                             <input
-                                ref={fileInputRef}
+                                ref={cameraInputRef}
                                 type="file"
                                 accept="image/*"
                                 capture="environment"
                                 className="hidden"
-                                onChange={e => handleFileSelect(e.target.files)}
+                                onChange={e => { handleFileSelect(e.target.files); e.target.value = ''; }}
+                            />
+                            <input
+                                ref={galleryInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={e => { handleFileSelect(e.target.files); e.target.value = ''; }}
                             />
 
-                            {preview && !loading && (
+                            {/* 버튼 영역 */}
+                            {!loading && (
                                 <div className="flex gap-3 w-full">
-                                    <button
-                                        onClick={() => { setPreview(null); setFile(null); setError(null); }}
-                                        className="flex-1 py-2.5 rounded-xl border border-pink-200 text-pink-400 text-sm font-medium hover:bg-pink-50 transition-colors flex items-center justify-center gap-1.5"
-                                    >
-                                        <RotateCcw size={13} /> 다시 찍기
-                                    </button>
-                                    <button
-                                        onClick={handleAnalyze}
-                                        style={{ background: 'linear-gradient(135deg, #FF6B9D, #C44FD8)' }}
-                                        className="flex-2 flex-1 py-2.5 rounded-xl text-white text-sm font-bold shadow-md hover:opacity-90 transition-opacity flex items-center justify-center gap-1.5"
-                                    >
-                                        <Sparkles size={13} /> AI쌤한테 물어보기!
-                                    </button>
-                                </div>
-                            )}
-
-                            {loading && (
-                                <div className="flex flex-col items-center gap-3 py-4">
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl animate-bounce" style={{ background: '#FFE0EF' }}>🤔</div>
-                                    <p className="text-pink-500 font-medium text-sm">AI쌤이 문제를 분석하고 있어요...</p>
-                                    <div className="flex gap-1">
-                                        {[0, 1, 2].map(i => (
-                                            <div key={i} className="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
-                                        ))}
-                                    </div>
+                                    {preview ? (
+                                        /* 에러 후 재시도 상태 */
+                                        <button
+                                            onClick={() => { setPreview(null); setFile(null); setError(null); }}
+                                            className="flex-1 py-3 rounded-2xl border-2 border-pink-200 text-pink-400 text-sm font-medium hover:bg-pink-50 transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <RotateCcw size={15} /> 다시 찍기
+                                        </button>
+                                    ) : (
+                                        <>
+                                            <button
+                                                onClick={() => cameraInputRef.current?.click()}
+                                                style={{ background: 'linear-gradient(135deg, #FF6B9D, #C44FD8)' }}
+                                                className="flex-1 py-3.5 rounded-2xl text-white text-sm font-bold shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Camera size={16} /> 카메라로 찍기
+                                            </button>
+                                            <button
+                                                onClick={() => galleryInputRef.current?.click()}
+                                                className="flex-1 py-3.5 rounded-2xl border-2 text-sm font-bold transition-all flex items-center justify-center gap-2"
+                                                style={{ borderColor: '#FFB3D1', color: '#FF6B9D', background: '#FFF0F8' }}
+                                            >
+                                                🖼️ 갤러리
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             )}
 
