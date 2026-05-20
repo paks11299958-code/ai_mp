@@ -189,7 +189,8 @@ async function sendEmail(to, subject, html, attachmentPath) {
 
     let browser;
     try {
-        browser = await chromium.launch({ headless: false, args: ['--no-sandbox'] });
+        // 실제 Chrome 사용 (쿠팡 봇 탐지 우회)
+        browser = await chromium.launch({ headless: false, channel: 'chrome', args: ['--no-sandbox'] });
         const context = await browser.newContext({
             userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         });
