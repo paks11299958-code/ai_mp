@@ -1538,6 +1538,7 @@ const App: React.FC = () => {
                     onImagesChanged={(personaId: string) => {
                         refreshPersonaImages(personaId);
                     }}
+                    user={user}
                 />
             ) : (
                 <div className="flex-1 flex h-full relative min-w-0">

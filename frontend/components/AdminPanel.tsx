@@ -6,6 +6,8 @@ import { STAGES } from '../utils/level';
 import { generateImageDescription } from '../services/geminiService';
 import { Icon } from './Icons';
 import { pointApi } from '../services/pointService';
+import { ResearchBoard } from './ResearchBoard';
+import { ProductExtractDialog } from './ProductExtractDialog';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -13,6 +15,7 @@ interface AdminPanelProps {
     onDelete: (id: string) => void;
     onClose: () => void;
     onImagesChanged?: (personaId: string) => void;
+    user?: any;
 }
 
 const AVAILABLE_ICONS = ['Bot', 'Code2', 'PenTool', 'Languages', 'Send', 'Settings'];
@@ -51,8 +54,10 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 "저는 AI입니다", "인공지능입니다"라는 말은 절대 하지 마세요.
 외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses'>('personas');
+export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools'>('personas');
+    const [showResearchInAdmin, setShowResearchInAdmin] = useState(false);
+    const [showProductExtractInAdmin, setShowProductExtractInAdmin] = useState(false);
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
     const [commonInstruction, setCommonInstruction] = useState('');
@@ -629,6 +634,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 </div>
             )}
 
+            {/* 기능연습 다이얼로그 */}
+            {showResearchInAdmin && (
+                <ResearchBoard onClose={() => setShowResearchInAdmin(false)} user={user} />
+            )}
+            {showProductExtractInAdmin && (
+                <ProductExtractDialog onClose={() => setShowProductExtractInAdmin(false)} userEmail={user?.email} />
+            )}
+
             {/* 저장 완료 모달 */}
             {showSavedModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -671,6 +684,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
                         { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
                         { key: 'golf-courses',  label: '골프장 관리', icon: 'MapPin'   },
+                        { key: 'tools',         label: '기능연습',    icon: 'Zap'      },
                     ] as const).map(tab => (
                         <button
                             key={tab.key}
@@ -1111,6 +1125,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}
+
+                {/* 기능연습 패널 */}
+                {mainView === 'tools' && (
+                    <div className="flex-1 overflow-y-auto p-6">
+                        <h3 className="text-sm font-bold text-white mb-1">기능연습</h3>
+                        <p className="text-gray-500 text-xs mb-6">관리자 전용 기능 테스트 공간입니다.</p>
+                        <div className="grid grid-cols-1 gap-4 max-w-md">
+                            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Icon name="BookOpen" size={16} className="text-blue-400" />
+                                    <span className="text-white font-medium text-sm">딥 리서치</span>
+                                </div>
+                                <p className="text-gray-500 text-xs mb-4">주제를 입력하면 웹 크롤링 → 원고 작성 → NotebookLM 업로드 → 이메일 발송</p>
+                                <button
+                                    onClick={() => setShowResearchInAdmin(true)}
+                                    className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
+                                >
+                                    딥 리서치 실행
+                                </button>
+                            </div>
+                            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Icon name="Package" size={16} className="text-emerald-400" />
+                                    <span className="text-white font-medium text-sm">제품추출</span>
+                                </div>
+                                <p className="text-gray-500 text-xs mb-4">도매매 검색 → 도매꾹 가격 → AI 제목 → 쿠팡윙 엑셀 → 이메일 발송</p>
+                                <button
+                                    onClick={() => setShowProductExtractInAdmin(true)}
+                                    className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
+                                >
+                                    제품추출 실행
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* 카테고리 관리 패널 */}
                 {mainView === 'categories' && (
