@@ -56,7 +56,7 @@ const IDENTITY_EXAMPLE = `당신은 AI가 아닌 실제 인물입니다.
 외모에 대한 칭찬을 받으면 실제 그 사람처럼 자연스럽게 받아들이세요.`;
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract'>('personas');
     const [showResearchInAdmin, setShowResearchInAdmin] = useState(false);
     const [showProductExtractInAdmin, setShowProductExtractInAdmin] = useState(false);
     const [showInstagramLiker, setShowInstagramLiker] = useState(false);
@@ -689,7 +689,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
                         { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
                         { key: 'golf-courses',  label: '골프장 관리', icon: 'MapPin'   },
-                        { key: 'tools',         label: '기능연습',    icon: 'Zap'      },
+                        { key: 'tools',          label: '기능연습',    icon: 'Zap'      },
+                        { key: 'product-extract', label: '제품추출',   icon: 'Package'  },
                     ] as const).map(tab => (
                         <button
                             key={tab.key}
@@ -1130,6 +1131,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}
+
+                {/* 제품추출 관리 패널 */}
+                {mainView === 'product-extract' && <ProductExtractPanel />}
 
                 {/* 기능연습 패널 */}
                 {mainView === 'tools' && (
@@ -2842,6 +2846,325 @@ const ServerMonitorPanel: React.FC = () => {
                         <span className="text-xs text-gray-400">{logPage} / {totalPages}</span>
                         <button onClick={() => setLogPage(p => Math.min(totalPages, p + 1))} disabled={logPage === totalPages}
                             className="px-3 py-1.5 text-xs bg-gray-800 rounded-lg disabled:opacity-40 text-gray-300 hover:bg-gray-700">다음</button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ──────────────────────────────────────────────────────────────
+// 제품추출 관리 패널
+// ──────────────────────────────────────────────────────────────
+const ProductExtractPanel: React.FC = () => {
+    const [subTab, setSubTab] = useState<'info' | 'schedule'>('info');
+
+    // 스케줄 상태
+    const [schedHour, setSchedHour] = useState(8);
+    const [schedMinute, setSchedMinute] = useState(0);
+    const [schedEnabled, setSchedEnabled] = useState(true);
+    const [schedLoading, setSchedLoading] = useState(true);
+    const [schedSaving, setSchedSaving] = useState(false);
+    const [schedMsg, setSchedMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+    // 즉시 실행 상태
+    const [runEmail, setRunEmail] = useState('');
+    const [running, setRunning] = useState(false);
+    const [runMsg, setRunMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+    useEffect(() => {
+        fetch('/api/product-extract/schedule', { credentials: 'include' })
+            .then(r => r.json())
+            .then(d => {
+                if (d.ok) {
+                    setSchedHour(d.hour ?? 8);
+                    setSchedMinute(d.minute ?? 0);
+                    setSchedEnabled(d.enabled ?? true);
+                }
+            })
+            .catch(() => {})
+            .finally(() => setSchedLoading(false));
+    }, []);
+
+    const saveSchedule = async () => {
+        setSchedSaving(true);
+        setSchedMsg(null);
+        try {
+            const r = await fetch('/api/product-extract/schedule', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hour: schedHour, minute: schedMinute, enabled: schedEnabled }),
+            });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || '저장 실패');
+            setSchedMsg({ ok: true, text: d.message });
+        } catch (e: any) {
+            setSchedMsg({ ok: false, text: e.message });
+        } finally {
+            setSchedSaving(false);
+        }
+    };
+
+    const runNow = async () => {
+        if (!runEmail.trim()) { setRunMsg({ ok: false, text: '이메일을 입력해주세요.' }); return; }
+        setRunning(true);
+        setRunMsg(null);
+        try {
+            const r = await fetch('/api/product-extract/run', {
+                method: 'POST', credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ categoryCode: '50000008', email: runEmail.trim() }),
+            });
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || '실행 실패');
+            setRunMsg({ ok: true, text: '백그라운드에서 실행을 시작했습니다. 완료 후 이메일로 결과가 전송됩니다.' });
+        } catch (e: any) {
+            setRunMsg({ ok: false, text: e.message });
+        } finally {
+            setRunning(false);
+        }
+    };
+
+    const hourLabel = (h: number) => `${h < 12 ? '오전' : '오후'} ${h === 0 ? 12 : h > 12 ? h - 12 : h}시`;
+
+    return (
+        <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-3xl mx-auto">
+                {/* 헤더 */}
+                <div className="flex items-center gap-3 mb-1">
+                    <div className="p-2 rounded-xl bg-emerald-900/40 border border-emerald-700/40">
+                        <Icon name="Package" size={18} className="text-emerald-400" />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-white">제품추출 자동화</h3>
+                        <p className="text-xs text-gray-500">도매매 → 도매꾹 → AI 제목 → 쿠팡윙 엑셀 → 이메일</p>
+                    </div>
+                </div>
+
+                {/* 서브탭 */}
+                <div className="flex gap-1 border-b border-gray-800 mb-6 mt-4">
+                    {(['info', 'schedule'] as const).map(t => (
+                        <button key={t} onClick={() => setSubTab(t)}
+                            className={`px-4 py-2 text-xs font-medium border-b-2 transition-all -mb-px
+                                ${subTab === t ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                            {t === 'info' ? '기능 설명' : '스케줄 관리'}
+                        </button>
+                    ))}
+                </div>
+
+                {/* ── 기능 설명 탭 ── */}
+                {subTab === 'info' && (
+                    <div className="space-y-5">
+                        {/* 파이프라인 */}
+                        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-5">
+                            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">파이프라인 흐름</h4>
+                            <div className="flex flex-col gap-0">
+                                {[
+                                    { step: '1', label: '네이버 DataLab 분석', desc: '카테고리별 핫키워드 → 쿠팡 경쟁 낮은 블루오션 키워드 선별', icon: 'TrendingUp', color: 'text-blue-400 bg-blue-900/30 border-blue-700/40' },
+                                    { step: '2', label: '도매매 검색', desc: 'domemedb.domeggook.com에서 키워드 검색 → 1위 상품 추출 (상품번호, 상품명)', icon: 'Search', color: 'text-cyan-400 bg-cyan-900/30 border-cyan-700/40' },
+                                    { step: '3', label: '도매꾹 가격+이미지 수집', desc: '대표이미지 (#lThumb, 760px↑) + 상세이미지 (#lInfoView, 최대 5장) + 도매가 수집', icon: 'Image', color: 'text-teal-400 bg-teal-900/30 border-teal-700/40' },
+                                    { step: '4', label: 'AI 제목 생성', desc: 'Claude Haiku — 40~60자 소비자 친화 한국어 제목 자동 생성', icon: 'Bot', color: 'text-purple-400 bg-purple-900/30 border-purple-700/40' },
+                                    { step: '5', label: '쿠팡윙 API 자동 등록', desc: '판매중지 상태로 업로드 (saleStartedAt: 2030-01-01). 확인 후 쿠팡윙에서 수동 활성화 필요', icon: 'Upload', color: 'text-orange-400 bg-orange-900/30 border-orange-700/40' },
+                                    { step: '6', label: '엑셀 + 이메일 발송', desc: '쿠팡윙 양식 xlsx 파일 생성 → Brevo로 이메일 발송 (썸네일 + 도매꾹 링크 포함)', icon: 'Mail', color: 'text-emerald-400 bg-emerald-900/30 border-emerald-700/40' },
+                                ].map((s, i, arr) => (
+                                    <div key={s.step} className="flex gap-3">
+                                        <div className="flex flex-col items-center">
+                                            <div className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 ${s.color}`}>
+                                                <Icon name={s.icon} size={13} />
+                                            </div>
+                                            {i < arr.length - 1 && <div className="w-px h-4 bg-gray-700 my-1" />}
+                                        </div>
+                                        <div className={`pb-4 ${i < arr.length - 1 ? '' : ''}`}>
+                                            <p className="text-xs font-semibold text-white leading-tight">{s.step}. {s.label}</p>
+                                            <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{s.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 가격 정책 */}
+                        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-5">
+                            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">가격 정책</h4>
+                            <div className="grid grid-cols-3 gap-3">
+                                {[
+                                    { label: '판매가', formula: '도매가 × 2.5', desc: '실제 결제 금액', color: 'text-emerald-400' },
+                                    { label: '정가 (표시가)', formula: '도매가 × 3.5', desc: '할인 전 표시가', color: 'text-yellow-400' },
+                                    { label: '할인율', formula: '약 28%', desc: '아이템위너 노출에 유리', color: 'text-blue-400' },
+                                ].map(p => (
+                                    <div key={p.label} className="bg-gray-900/60 rounded-lg p-3">
+                                        <p className="text-[10px] text-gray-500 mb-1">{p.label}</p>
+                                        <p className={`text-sm font-bold ${p.color}`}>{p.formula}</p>
+                                        <p className="text-[10px] text-gray-600 mt-0.5">{p.desc}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 현재 설정 */}
+                        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-5">
+                            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">현재 설정</h4>
+                            <div className="space-y-2">
+                                {[
+                                    { k: '활성 카테고리', v: '생활/건강 (displayCategoryCode: 80745)', color: 'text-white' },
+                                    { k: '업로드 상태', v: '판매중지 → 쿠팡윙에서 수동 활성화 필요', color: 'text-yellow-400' },
+                                    { k: '대표이미지 최소', v: '500×500px 이상 (760px 포맷 사용)', color: 'text-white' },
+                                    { k: '이미지 CDN', v: 'Domeggook CDN 핫링크 차단 → vendorPath 방식 (쿠팡 서버가 직접 다운로드)', color: 'text-white' },
+                                    { k: '로그 파일', v: '/ai_mp/product-extractor/cron.log', color: 'text-gray-400 font-mono text-[11px]' },
+                                    { k: '스크립트', v: '/ai_mp/product-extractor/extractor.js', color: 'text-gray-400 font-mono text-[11px]' },
+                                ].map(row => (
+                                    <div key={row.k} className="flex gap-3 py-1.5 border-b border-gray-700/50 last:border-0">
+                                        <span className="text-xs text-gray-500 w-36 shrink-0">{row.k}</span>
+                                        <span className={`text-xs ${row.color} leading-relaxed`}>{row.v}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 주의사항 */}
+                        <div className="bg-yellow-900/20 border border-yellow-700/30 rounded-xl p-4">
+                            <h4 className="text-xs font-semibold text-yellow-400 mb-2 flex items-center gap-1.5">
+                                <Icon name="AlertTriangle" size={12} /> 주의사항
+                            </h4>
+                            <ul className="space-y-1.5">
+                                {[
+                                    '업로드 후 쿠팡윙 판매관리 → 판매중지 상품에서 직접 활성화해야 판매됩니다.',
+                                    '이미지 승인반려 시 원인: 500px 미달, CDN 차단. 현재 760px 포맷 사용 중.',
+                                    '생활/건강 카테고리(코드 80745) 외 카테고리는 별도 코드 확인 후 추가 가능.',
+                                    '도매꾹 쿠키 만료 시 스크래핑 실패 → extractor.js의 쿠키 수동 갱신 필요.',
+                                    '쿠팡 HMAC 서명: 2자리 연도(yyMMdd), 구분자 없이 이어붙임 (dt+method+path+query).',
+                                ].map((t, i) => (
+                                    <li key={i} className="text-xs text-yellow-200/70 flex gap-2">
+                                        <span className="text-yellow-500 shrink-0 mt-0.5">·</span>
+                                        <span>{t}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                )}
+
+                {/* ── 스케줄 관리 탭 ── */}
+                {subTab === 'schedule' && (
+                    <div className="space-y-5">
+                        {/* 현재 스케줄 */}
+                        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-5">
+                            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">자동 실행 스케줄</h4>
+
+                            {schedLoading ? (
+                                <div className="text-center text-gray-500 text-xs py-4">불러오는 중...</div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {/* 활성화 토글 */}
+                                    <div className="flex items-center justify-between py-3 px-4 bg-gray-900/60 rounded-xl">
+                                        <div>
+                                            <p className="text-sm text-white font-medium">스케줄 자동 실행</p>
+                                            <p className="text-xs text-gray-500 mt-0.5">crontab에 등록된 자동 실행 여부</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setSchedEnabled(e => !e)}
+                                            className={`relative w-11 h-6 rounded-full transition-colors ${schedEnabled ? 'bg-emerald-500' : 'bg-gray-600'}`}
+                                        >
+                                            <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all ${schedEnabled ? 'left-6' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+
+                                    {/* 시간 선택 */}
+                                    <div className={`space-y-3 transition-opacity ${schedEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                                        <p className="text-xs text-gray-400">실행 시각</p>
+                                        <div className="flex gap-3 items-center">
+                                            <div className="flex-1">
+                                                <label className="text-[10px] text-gray-500 mb-1 block">시 (0~23)</label>
+                                                <select
+                                                    value={schedHour}
+                                                    onChange={e => setSchedHour(Number(e.target.value))}
+                                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                                                >
+                                                    {Array.from({ length: 24 }, (_, h) => (
+                                                        <option key={h} value={h}>{hourLabel(h)} ({h}시)</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-[10px] text-gray-500 mb-1 block">분</label>
+                                                <select
+                                                    value={schedMinute}
+                                                    onChange={e => setSchedMinute(Number(e.target.value))}
+                                                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                                                >
+                                                    {[0, 10, 15, 20, 30, 40, 45, 50].map(m => (
+                                                        <option key={m} value={m}>{String(m).padStart(2, '0')}분</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-[10px] text-gray-500 mb-1 block">미리보기</label>
+                                                <div className="bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-emerald-400 font-mono">
+                                                    {schedEnabled
+                                                        ? `매일 ${hourLabel(schedHour)} ${String(schedMinute).padStart(2, '0')}분`
+                                                        : '비활성화'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* 저장 */}
+                                    <button
+                                        onClick={saveSchedule}
+                                        disabled={schedSaving}
+                                        className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+                                    >
+                                        {schedSaving ? '저장 중...' : '스케줄 저장'}
+                                    </button>
+
+                                    {schedMsg && (
+                                        <p className={`text-xs text-center ${schedMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                                            {schedMsg.text}
+                                        </p>
+                                    )}
+
+                                    <div className="bg-gray-900/60 rounded-lg px-4 py-2.5 mt-1">
+                                        <p className="text-[10px] text-gray-500 font-mono">
+                                            cron: {schedEnabled
+                                                ? `${schedMinute} ${schedHour} * * * node extractor.js 50000008`
+                                                : '# (비활성화됨)'}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 즉시 실행 */}
+                        <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-5">
+                            <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">지금 바로 실행</h4>
+                            <p className="text-xs text-gray-500 mb-4">생활/건강 카테고리 제품 1개를 지금 즉시 추출하여 이메일로 전송합니다.</p>
+
+                            <div className="mb-3">
+                                <label className="text-[10px] text-gray-400 mb-1 block">결과 받을 이메일</label>
+                                <input
+                                    type="email"
+                                    value={runEmail}
+                                    onChange={e => setRunEmail(e.target.value)}
+                                    placeholder="your@email.com"
+                                    className="w-full px-3 py-2 rounded-lg bg-gray-900 border border-gray-700 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-emerald-500"
+                                />
+                            </div>
+
+                            <button
+                                onClick={runNow}
+                                disabled={running}
+                                className="w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                            >
+                                <Icon name="Play" size={14} />
+                                {running ? '실행 중...' : '지금 실행'}
+                            </button>
+
+                            {runMsg && (
+                                <p className={`text-xs mt-3 ${runMsg.ok ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {runMsg.text}
+                                </p>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
