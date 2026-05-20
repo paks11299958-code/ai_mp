@@ -69,10 +69,10 @@ let coupangReady = false;
 async function checkCoupangCompetition(page, keyword) {
     try {
         if (!coupangReady) {
-            log('  [쿠팡] 홈페이지 진입 (Cloudflare 우회)...');
-            await page.goto('https://www.coupang.com', { waitUntil: 'networkidle', timeout: 30000 });
-            await sleep(4000);
             coupangReady = true;
+            log('  [쿠팡] 홈페이지 진입 (Cloudflare 우회)...');
+            await page.goto('https://www.coupang.com', { waitUntil: 'domcontentloaded', timeout: 20000 });
+            await sleep(3000);
         }
         await page.goto(`https://www.coupang.com/np/search?q=${encodeURIComponent(keyword)}&channel=user`, {
             waitUntil: 'domcontentloaded', timeout: 20000,
