@@ -1172,7 +1172,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     <Icon name="Heart" size={16} className="text-pink-400" />
                                     <span className="text-white font-medium text-sm">인스타 자동 좋아요</span>
                                 </div>
-                                <p className="text-gray-500 text-xs mb-4">키워드(해시태그) 검색 → 게시물 좋아요 · 일일 10회 제한 · stealth 모드</p>
+                                <p className="text-gray-500 text-xs mb-2">키워드(해시태그) 검색 → 게시물 좋아요 · 일일 10회 제한 · stealth 모드</p>
+                                <div className="bg-yellow-900/30 border border-yellow-700/40 rounded-lg px-3 py-2 mb-4">
+                                    <p className="text-yellow-400 text-[11px] leading-relaxed">
+                                        ⚠️ <strong>집 PC 작업 스케줄러</strong>에서 실행됨 (GCP 서버 아님)<br />
+                                        매일 새벽 3시 자동 실행 · <code className="bg-yellow-900/40 px-1 rounded">ai_mp/instagram/liker.js</code><br />
+                                        여기 버튼은 <strong>수동 즉시 실행</strong>용 (GCP에서 1회 실행)
+                                    </p>
+                                </div>
                                 <button
                                     onClick={() => setShowInstagramLiker(true)}
                                     className="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 text-white text-sm font-medium transition-all"
