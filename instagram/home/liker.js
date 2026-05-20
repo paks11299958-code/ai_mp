@@ -97,9 +97,9 @@ async function run() {
         // ── 로그인 ────────────────────────────────────────
         console.log('\n[1/4] 인스타그램 로그인 중...');
         await page.goto('https://www.instagram.com/accounts/login/', {
-            waitUntil: 'networkidle', timeout: 40000,
+            waitUntil: 'domcontentloaded', timeout: 30000,
         });
-        await delay(2000, 3500);
+        await delay(1500, 2500);
 
         // 쿠키 동의 버튼 처리
         for (const sel of ['button:has-text("모두 허용")', 'button:has-text("Allow all")', 'button:has-text("수락")']) {
