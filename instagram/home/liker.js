@@ -109,9 +109,13 @@ async function run() {
 
         console.log('  → 로그인 폼 대기 중...');
         await page.waitForSelector('input[name="username"]', { timeout: 30000 });
-        await page.fill('input[name="username"]', INSTA_ID);
+        await page.click('input[name="username"]');
+        await delay(500, 800);
+        await page.keyboard.type(INSTA_ID, { delay: 80 });
         await delay(600, 1200);
-        await page.fill('input[name="password"]', INSTA_PW);
+        await page.click('input[name="password"]');
+        await delay(300, 600);
+        await page.keyboard.type(INSTA_PW, { delay: 80 });
         await delay(800, 1500);
         await page.click('button[type="submit"]');
         await delay(4000, 7000);
