@@ -171,8 +171,11 @@ async function getPriceAndImages(page, itemNo) {
 // ── 엑셀 생성 ────────────────────────────────────────────
 
 function buildExcel(row, categoryName) {
-    if (!fs.existsSync(TEMPLATE_PATH)) throw new Error('template.xlsm 파일이 없습니다. README를 확인하세요.');
-    const wb = xlsx.readFile(TEMPLATE_PATH);
+    log(`템플릿 경로 확인: ${TEMPLATE_PATH}`);
+    const altPath = path.join(process.cwd(), 'template.xlsm');
+    const usePath = fs.existsSync(TEMPLATE_PATH) ? TEMPLATE_PATH : fs.existsSync(altPath) ? altPath : null;
+    if (!usePath) throw new Error(`template.xlsm 없음\n  경로1: ${TEMPLATE_PATH}\n  경로2: ${altPath}`);
+    const wb = xlsx.readFile(usePath);
     const ws = wb.Sheets[wb.SheetNames[0]];
     const r  = 5;
     const sellPrice    = Math.ceil(row.wholesalePrice * MARKUP / 10) * 10;
