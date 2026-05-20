@@ -97,19 +97,20 @@ async function run() {
         // ── 로그인 ────────────────────────────────────────
         console.log('\n[1/4] 인스타그램 로그인 중...');
         await page.goto('https://www.instagram.com/accounts/login/', {
-            waitUntil: 'domcontentloaded', timeout: 30000,
+            waitUntil: 'load', timeout: 40000,
         });
-        await delay(1500, 2500);
+        await delay(4000, 6000); // React 렌더링 대기
 
         // 쿠키 동의 버튼 처리
         for (const sel of ['button:has-text("모두 허용")', 'button:has-text("Allow all")', 'button:has-text("수락")']) {
             const btn = page.locator(sel).first();
-            if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-                await btn.click(); await delay(1000, 2000); break;
+            if (await btn.isVisible({ timeout: 3000 }).catch(() => false)) {
+                await btn.click(); await delay(1500, 2500); break;
             }
         }
 
-        await page.waitForSelector('input[name="username"]', { timeout: 20000 });
+        console.log('  → 로그인 폼 대기 중...');
+        await page.waitForSelector('input[name="username"]', { timeout: 30000 });
         await page.fill('input[name="username"]', INSTA_ID);
         await delay(600, 1200);
         await page.fill('input[name="password"]', INSTA_PW);
