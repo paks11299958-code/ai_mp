@@ -33,7 +33,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // ── 카테고리 선택 ─────────────────────────────────────────
 
-function getCategory() {
+async function getCategory() {
     const code = process.argv[2];
     if (code) {
         const cat = CATEGORIES.find(c => c.code === code);
@@ -44,7 +44,43 @@ function getCategory() {
         }
         return cat;
     }
-    return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+
+    // 네이버 쇼핑인사이트로 카테고리 트렌드 조회
+    try {
+        const endDate   = new Date().toISOString().slice(0, 10);
+        const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const res = await fetch('https://openapi.naver.com/v1/datalab/shopping/categories', {
+            method: 'POST',
+            headers: { 'X-Naver-Client-Id': NAVER_CLIENT_ID, 'X-Naver-Client-Secret': NAVER_CLIENT_SECRET, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                startDate, endDate, timeUnit: 'month',
+                category: CATEGORIES.map(c => ({ name: c.name, param: [c.code] })),
+                device: '', ages: [], gender: '',
+            }),
+        });
+        const data = await res.json();
+
+        // 카테고리별 평균 클릭 비율 계산 후 순위 매기기
+        const ranked = (data.results || []).map(r => {
+            const ratios = (r.data || []).map(d => d.ratio);
+            const avg = ratios.length > 0 ? ratios.reduce((a, b) => a + b, 0) / ratios.length : 0;
+            return { cat: CATEGORIES.find(c => c.name === r.title), trend: avg };
+        }).filter(r => r.cat).sort((a, b) => b.trend - a.trend);
+
+        log('\n── 카테고리 트렌드 ──');
+        ranked.forEach((r, i) => log(`  ${i + 1}위 ${r.cat.emoji}${r.cat.name}: ${r.trend.toFixed(1)}`));
+
+        // 4~7위 중간 인기 카테고리에서 랜덤 선택 (수요O + 경쟁과열X)
+        const midRange = ranked.slice(3, 7).filter(r => r.trend > 0);
+        const picked   = midRange.length > 0
+            ? midRange[Math.floor(Math.random() * midRange.length)].cat
+            : CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+        log(`→ 선택: ${picked.emoji}${picked.name} (중간 인기)\n`);
+        return picked;
+    } catch (e) {
+        log(`카테고리 트렌드 조회 실패 (${e.message.slice(0, 40)}) → 랜덤 선택`);
+        return CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+    }
 }
 
 // ── 네이버 블루오션 분석 ─────────────────────────────────
@@ -201,11 +237,23 @@ function buildExcel(row, categoryName) {
         ws = wb.Sheets[wb.SheetNames[0]];
         const r = 5;
         const set = (col, val) => { ws[col + r] = { v: val, t: typeof val === 'number' ? 'n' : 's' }; };
-        set('A', categoryName); set('B', row.title); set('E', '새 상품'); set('I', row.keyword);
-        set('BJ', sellPrice); set('BL', discountBase); set('BM', 99999); set('BN', 2); set('BO', 0); set('BR', 'N'); set('BS', 'Y');
-        set('CZ', row.imageUrl); set('DA', row.imageUrl);
+        set('A', categoryName);
+        set('B', row.title);
+        set('E', '새 상품');
+        set('G', '상표없음');
+        set('H', '상표없음');
+        set('I', row.keyword);
+        set('BJ', sellPrice);
+        set('BL', discountBase);
+        set('BM', 99999);
+        set('BN', 2);
+        set('BO', 0);
+        set('BR', 'N');
+        set('BS', 'Y');
+        set('CZ', row.imageUrl);
+        set('DA', row.imageUrl);
         if (row.detailImgSrcs?.[0]) set('DB', row.detailImgSrcs[0]);
-        ws['!ref'] = 'A1:DB5';
+        ws['!ref'] = 'A1:DM5';
     } else {
         // 템플릿 없을 때 — 쿠팡윙 참고용 데이터 엑셀 자체 생성
         wb = xlsx.utils.book_new();
@@ -261,7 +309,7 @@ async function sendEmail(to, subject, html, attachmentPath) {
 // ── 메인 ─────────────────────────────────────────────────
 
 (async () => {
-    const cat      = getCategory();
+    const cat      = await getCategory();
     const keywords = cat.keywords.slice(0, 5);
     log(`카테고리: ${cat.emoji}${cat.name}`);
     log(`키워드: ${keywords.join(', ')}`);
