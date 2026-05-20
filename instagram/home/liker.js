@@ -119,20 +119,28 @@ async function run() {
         const tag = keyword.replace(/^#/, '');
         console.log(`[3/4] #${tag} 해시태그 검색 중...`);
         await page.goto(`https://www.instagram.com/explore/tags/${encodeURIComponent(tag)}/`, {
-            waitUntil: 'domcontentloaded', timeout: 20000,
+            waitUntil: 'load', timeout: 30000,
         });
-        await delay(3000, 5000);
+        await delay(4000, 6000);
+
+        // 스크롤로 게시물 로딩 유도
+        await page.evaluate(() => window.scrollBy(0, 600));
+        await delay(2000, 3000);
+        await page.evaluate(() => window.scrollBy(0, 600));
+        await delay(2000, 3000);
 
         // ── 좋아요 실행 ──────────────────────────────────
         console.log('[4/4] 좋아요 시작...');
         let liked  = 0;
         const target = Math.min(remaining, MAX_LIKES);
 
-        const hrefs = await page.evaluate(() =>
-            [...new Set([...document.querySelectorAll('a[href*="/p/"]')]
+        const hrefs = await page.evaluate(() => {
+            const links = [...document.querySelectorAll('a')];
+            const postLinks = links
                 .map(a => a.getAttribute('href'))
-                .filter(h => h && h.startsWith('/p/')))].slice(0, 30)
-        );
+                .filter(h => h && (h.startsWith('/p/') || h.includes('/p/')));
+            return [...new Set(postLinks)].slice(0, 30);
+        });
         console.log(`  게시물 ${hrefs.length}개 발견`);
 
         for (const href of hrefs) {
