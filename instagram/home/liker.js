@@ -173,8 +173,9 @@ async function run() {
 
     } catch (e) {
         console.log(`\n❌ 오류: ${e.message.split('\n')[0]}`);
+        console.log('\n브라우저 창을 확인하세요. 30초 후 닫힙니다...');
+        await sleep(30000);
     } finally {
-        await delay(2000, 3000);
         await browser.close();
     }
 }
