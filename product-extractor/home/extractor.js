@@ -101,14 +101,34 @@ async function checkCoupangCompetition(page, keyword) {
             return { totalCount: 9999, productCount: 0, avgReviews: 9999, score: 9999, isBlueOcean: false };
         }
 
+        await sleep(3000); // 검색 결과 렌더링 대기
+
         const result = await page.evaluate(() => {
-            const countEl = document.querySelector('.total-count strong, .js-search-count');
-            const totalCount = parseInt(countEl?.textContent?.replace(/[^0-9]/g, '') || '0') || 0;
-            const productCount = document.querySelectorAll('.search-product').length;
-            const reviewEls = [...document.querySelectorAll('.rating-total-count')].slice(0, 5);
-            const reviews = reviewEls.map(el => parseInt(el.textContent.replace(/[^0-9]/g, '') || '0'));
-            const avgReviews = reviews.length > 0 ? Math.round(reviews.reduce((a,b) => a+b,0) / reviews.length) : 0;
-            return { totalCount: totalCount || productCount * 10, productCount, avgReviews };
+            const bodyText = document.body.innerText;
+
+            // 총 상품 수: "총 N,NNN개" 텍스트 파싱 (클래스명 무관)
+            const countMatch = bodyText.match(/총\s*([\d,]+)\s*개/) ||
+                               bodyText.match(/([\d,]+)\s*개의?\s*상품/) ||
+                               bodyText.match(/([\d,]+)\s*개의?\s*검색/);
+            const totalCount = countMatch ? parseInt(countMatch[1].replace(/,/g, '')) : 0;
+
+            // 상품 아이템 수 (백업)
+            const productCount = Math.max(
+                document.querySelectorAll('li[class*="search-product"]').length,
+                document.querySelectorAll('li[class*="Product"]').length,
+                document.querySelectorAll('[data-item-id]').length
+            );
+
+            // 리뷰 수: (숫자) 패턴 — 클래스명 불필요
+            const reviewNums = [...bodyText.matchAll(/\(([\d,]+)\)/g)]
+                .map(m => parseInt(m[1].replace(/,/g, '')))
+                .filter(n => n > 0 && n < 500000)
+                .slice(0, 10);
+            const avgReviews = reviewNums.length > 0
+                ? Math.round(reviewNums.reduce((a,b) => a+b,0) / reviewNums.length)
+                : 0;
+
+            return { totalCount: totalCount || productCount * 20, productCount, avgReviews };
         });
 
         const isBlueOcean = result.totalCount < BLUE_OCEAN_COUNT && result.avgReviews < BLUE_OCEAN_REVIEWS;
