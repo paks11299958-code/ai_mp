@@ -216,15 +216,19 @@ async function getPriceAndImages(page, itemNo) {
     const priceAndUrls = await page.evaluate(() => {
         const priceEl = document.querySelector('.lItemPrice') || document.getElementById('lBaseAmtVal');
         const price = parseInt((priceEl?.textContent || '').replace(/[^0-9]/g, ''), 10) || 0;
-        // 대표 썸네일: _stt_330 버전 (_stt_150보다 큼, 직접 접근 가능)
-        const mainEl = Array.from(document.querySelectorAll('img')).find(i =>
-            i.src && i.src.includes('/upload/item/') && !i.src.includes('icon') && !i.src.includes('btn')
-        );
-        const mainSrc = mainEl ? mainEl.src.replace(/_stt_\d+/, '_stt_330').replace(/_img_\d+/, '_stt_330').split('?')[0] : '';
-        return { price, mainSrc };
+
+        // 대표이미지: #lThumb 라이트박스 링크 → _img_760 포맷 (760px, 쿠팡 500px 기준 통과)
+        const lightboxImgs = Array.from(document.querySelectorAll('#lThumb a.thumbLightbox img'))
+            .map(i => i.src.split('?')[0]).filter(Boolean);
+        const fallbackImgs = Array.from(document.querySelectorAll('#lThumbWrap img'))
+            .map(i => i.src.split('?')[0]).filter(s => s.includes('_img_'));
+        const allMainImgs = [...new Set([...lightboxImgs, ...fallbackImgs])];
+        const mainSrc = allMainImgs[0] || '';
+
+        return { price, mainSrc, extraMainSrcs: allMainImgs.slice(1, 4) };
     });
 
-    // "상품상세 더보기" 클릭 후 추가 이미지 수집
+    // "상품상세 더보기" 클릭 후 상세 이미지 수집
     let detailSrcs = [];
     try {
         const moreBtn = await page.$('text=상품상세 더보기');
@@ -235,39 +239,47 @@ async function getPriceAndImages(page, itemNo) {
             await sleep(1500);
             log('  상품상세 더보기 클릭 완료');
         }
-        // _stt_330 버전 이미지 URL 수집 (중복 제거)
-        detailSrcs = await page.$$eval('img', (els, mainSrc) => {
+        // #lInfoView: 셀러 업로드 상품 상세 이미지 전용 컨테이너 (860px+, 연관상품/배너 제외)
+        detailSrcs = await page.evaluate((mainSrc) => {
             const seen = new Set([mainSrc]);
-            return els
-                .map(e => (e.src || '').replace(/_stt_\d+/, '_stt_330').replace(/_img_\d+/, '_stt_330').split('?')[0])
-                .filter(s => s && s.includes('/upload/item/') && !s.includes('icon') && !seen.has(s) && !!seen.add(s))
+            const container = document.querySelector('#lInfoView');
+            if (!container) return [];
+            const SKIP = ['/image/', 'pstatic.net', 'ico_', 'btn_', '/sns/', '/common/'];
+            return Array.from(container.querySelectorAll('img'))
+                .map(e => (e.src || e.dataset.src || '').split('?')[0])
+                .filter(s => s && s.startsWith('http') && !SKIP.some(k => s.includes(k))
+                    && !seen.has(s) && !!seen.add(s))
                 .slice(0, 8);
         }, priceAndUrls.mainSrc);
     } catch {}
 
-    // page.request.get()으로 이미지 다운로드 (브라우저 쿠키 + CORS 우회)
+    // page.request.get()으로 이미지 다운로드 (브라우저 세션 — 핫링크 우회)
     const downloadImage = async (url) => {
+        if (!url) return null;
         try {
             const r = await page.request.get(url, { headers: { 'Referer': 'https://domeggook.com/' } });
             if (!r.ok()) return null;
-            return { buffer: await r.body(), type: r.headers()['content-type'] || 'image/jpeg' };
+            const buffer = await r.body();
+            if (buffer.length < 3000) return null;
+            return { buffer, type: r.headers()['content-type'] || 'image/jpeg' };
         } catch { return null; }
     };
 
-    const mainData   = priceAndUrls.mainSrc ? await downloadImage(priceAndUrls.mainSrc) : null;
+    const mainData = priceAndUrls.mainSrc ? await downloadImage(priceAndUrls.mainSrc) : null;
     const detailData = [];
+    const usedDetailSrcs = [];
     for (const url of detailSrcs.slice(0, 5)) {
         const d = await downloadImage(url);
-        if (d) detailData.push(d);
+        if (d) { detailData.push(d); usedDetailSrcs.push(url); }
     }
-    log(`  이미지 다운로드: 대표 ${mainData ? '✓' : '✗'}, 상세 ${detailData.length}개`);
+    log(`  이미지 다운로드: 대표 ${mainData ? `✓ (${(mainData.buffer.length/1024).toFixed(0)}KB)` : '✗'}, 상세 ${detailData.length}개`);
 
     return {
         price:         priceAndUrls.price,
         mainImgData:   mainData,
         detailImgData: detailData,
-        mainImgSrc:    priceAndUrls.mainSrc,    // 폴백용
-        detailImgSrcs: detailSrcs,
+        mainImgSrc:    priceAndUrls.mainSrc,
+        detailImgSrcs: usedDetailSrcs,
     };
 }
 
