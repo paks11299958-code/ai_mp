@@ -90,7 +90,24 @@ async function like(keyword) {
         await page.goto('https://www.instagram.com/accounts/login/', {
             waitUntil: 'domcontentloaded', timeout: 30000,
         });
-        await delay(2500, 4000);
+        await delay(2000, 3500);
+
+        // 쿠키 동의 버튼 처리
+        for (const sel of [
+            'button:has-text("모두 허용")', 'button:has-text("Allow all")',
+            'button:has-text("Accept All")', 'button:has-text("수락")',
+            '[data-cookiebanner="accept_button"]',
+        ]) {
+            const btn = page.locator(sel).first();
+            if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
+                await btn.click(); await delay(1000, 2000);
+                break;
+            }
+        }
+
+        // username 입력창이 나타날 때까지 대기
+        await page.waitForSelector('input[name="username"]', { timeout: 20000 });
+        console.log('  → 로그인 폼 확인');
 
         await page.fill('input[name="username"]', INSTA_ID);
         await delay(600, 1400);

@@ -131,7 +131,8 @@ async function checkCoupangCompetition(page, keyword) {
             return { totalCount: totalCount || productCount * 20, productCount, avgReviews };
         });
 
-        const isBlueOcean = result.totalCount < BLUE_OCEAN_COUNT && result.avgReviews < BLUE_OCEAN_REVIEWS;
+        // 상품수는 1200으로 고정(쿠팡 캡)이라 신뢰 불가 → 리뷰 평균만으로 판단
+        const isBlueOcean = result.avgReviews < BLUE_OCEAN_REVIEWS;
         const score = (result.totalCount / 100) + (result.avgReviews / 10);
         log(`  [쿠팡] "${keyword}" → 상품수:${result.totalCount} 평균리뷰:${result.avgReviews} ${isBlueOcean ? '🟢블루오션' : '🔴경쟁많음'}`);
         return { ...result, score, isBlueOcean };
@@ -150,6 +151,23 @@ async function loginDomeggook(page) {
     await page.click('input[type="submit"]');
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
     log('도매꾹 로그인 완료');
+}
+
+async function searchDomemedbWithFallback(page, keyword) {
+    // 전체 키워드 → 앞 두 단어 → 첫 단어 순서로 시도
+    const attempts = [keyword];
+    const words = keyword.split(' ');
+    if (words.length > 2) attempts.push(words.slice(0, 2).join(' '));
+    if (words.length > 1) attempts.push(words[0]);
+
+    for (const q of attempts) {
+        const results = await searchDomemedb(page, q);
+        if (results.length > 0) {
+            if (q !== keyword) log(`  도매꾹 "${q}"로 재검색 → ${results.length}개`);
+            return results;
+        }
+    }
+    return [];
 }
 
 async function searchDomemedb(page, keyword) {

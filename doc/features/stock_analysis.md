@@ -1,7 +1,7 @@
 # 주식 분석 기능
 
-> 최종 업데이트: 2026-05-16  
-> 관련 파일: `api/cron-stock-worker.ts`, `api/_lib/dartService.ts`, `frontend/components/StockAnalysisBoard.tsx`, `api/router.ts`
+> 최종 업데이트: 2026-05-19  
+> 관련 파일: `api/cron-stock-worker.ts`, `api/_lib/dartService.ts`, `frontend/components/StockAnalysisBoard.tsx`, `shared-api/routes/aimp/stock-report.ts`, `frontend/App.tsx`
 
 ---
 
@@ -103,7 +103,7 @@ Gemini 2.5 Flash (Google Search 그라운딩) + Claude Sonnet + GPT-4o 3중 AI �
   - 종목명 입력 시 CorpCode DB 자동완성 (300ms 디바운스, 상장사 우선 정렬)
   - 미등록 종목명 제출 시 서버에서 400 에러 → alert 안내
 - **우측 패널**:
-  - 딥 네이비 그라디언트 헤더 + 기업명 + `.md 다운로드` 버튼 (solid blue)
+  - 딥 네이비 그라디언트 헤더 + 기업명 + **`학습하기` 버튼** (emerald) + `.md 다운로드` 버튼 (blue)
   - 데이터 소스 카드: DART 공시 / AI 분석 뱃지 + KRX 심볼
   - 네이버 금융 차트 이미지 (`chartImageUrl`, GCS 저장본) — 클릭 시 네이버 금융 새 탭
   - 마크다운 렌더러: 실제 `<table>`, **굵게**, *이탤릭*, `코드`, DART 스타일 H2 섹션
@@ -116,6 +116,7 @@ Gemini 2.5 Flash (Google Search 그라운딩) + Claude Sonnet + GPT-4o 3중 AI �
 
 ## API 엔드포인트
 
+### 주식 분석
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | POST | `/api/stock-analysis` | 분석 요청 (stockName, DB 미등록 시 400) |
@@ -126,6 +127,13 @@ Gemini 2.5 Flash (Google Search 그라운딩) + Claude Sonnet + GPT-4o 3중 AI �
 | POST | `/api/stock-analysis/:id/retry` | 재분석 (완료/실패 모두 가능, yahooSymbol 초기화) |
 | DELETE | `/api/stock-analysis/:id` | 삭제 |
 | POST | `/api/dart-import` | DART 기업코드 갱신 (어드민 전용) |
+
+### 보고서 학습하기 (RAG)
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| POST | `/api/stock-report/consult` | 보고서 벡터화 저장 (청킹 900자, 오버랩 없음) |
+| GET | `/api/stock-report/search?q=` | 사용자별 벡터 검색 (유사도 0.55 이상, top-5) |
+| GET | `/api/stock-report/list` | 저장된 종목 목록 |
 
 ---
 
