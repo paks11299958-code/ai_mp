@@ -10,8 +10,8 @@ chromium.use(StealthPlugin());
 const fs   = require('fs');
 const path = require('path');
 
-const INSTA_ID  = process.env.INSTA_ID  || '';
-const INSTA_PW  = process.env.INSTA_PW  || '';
+const INSTA_ID  = 'concealeunbi';
+const INSTA_PW  = 'wlsgur0879@';
 const MAX_LIKES = parseInt(process.env.INSTA_MAX_LIKES || '10', 10);
 
 const LOG_FILE = path.join(__dirname, 'daily_log.json');

@@ -13,8 +13,6 @@ interface Status {
 }
 
 export const InstagramLikerDialog: React.FC<Props> = ({ onClose }) => {
-    const [loginId,  setLoginId]  = useState('');
-    const [loginPw,  setLoginPw]  = useState('');
     const [keyword,  setKeyword]  = useState('');
     const [loading,  setLoading]  = useState(false);
     const [status,   setStatus]   = useState<Status | null>(null);
@@ -26,7 +24,7 @@ export const InstagramLikerDialog: React.FC<Props> = ({ onClose }) => {
     }, []);
 
     const handleRun = async () => {
-        if (!loginId.trim() || !loginPw.trim() || !keyword.trim()) return;
+        if (!keyword.trim()) return;
         setLoading(true); setResult(null);
         try {
             const res = await fetch('/api/instagram/like', {
@@ -34,8 +32,6 @@ export const InstagramLikerDialog: React.FC<Props> = ({ onClose }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     keyword: keyword.replace(/^#/, ''),
-                    loginId: loginId.trim(),
-                    loginPw: loginPw,
                 }),
             });
             const data = await res.json();
@@ -89,25 +85,6 @@ export const InstagramLikerDialog: React.FC<Props> = ({ onClose }) => {
                         </div>
                     )}
 
-                    {/* 로그인 정보 */}
-                    <div className="space-y-2">
-                        <label className="text-gray-400 text-xs">인스타그램 계정</label>
-                        <input
-                            type="text"
-                            value={loginId}
-                            onChange={e => setLoginId(e.target.value)}
-                            placeholder="아이디"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                        />
-                        <input
-                            type="password"
-                            value={loginPw}
-                            onChange={e => setLoginPw(e.target.value)}
-                            placeholder="비밀번호"
-                            className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-pink-500"
-                        />
-                    </div>
-
                     {/* 키워드 */}
                     <div>
                         <label className="text-gray-400 text-xs mb-1 flex items-center gap-1">
@@ -150,7 +127,7 @@ export const InstagramLikerDialog: React.FC<Props> = ({ onClose }) => {
                     {/* 실행 버튼 */}
                     <button
                         onClick={handleRun}
-                        disabled={loading || !loginId.trim() || !loginPw.trim() || !keyword.trim() || status?.remaining === 0}
+                        disabled={loading || !keyword.trim() || status?.remaining === 0}
                         className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 disabled:opacity-40 text-white text-sm font-medium transition-all flex items-center justify-center gap-2"
                     >
                         {loading
