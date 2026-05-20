@@ -1,0 +1,10 @@
+{
+  "name": "instagram-liker-home",
+  "version": "1.0.0",
+  "description": "인스타 자동 좋아요 - 집 PC 실행용",
+  "main": "liker.js",
+  "dependencies": {
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  }
+}
