@@ -1146,25 +1146,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     <Icon name="BookOpen" size={16} className="text-blue-400" />
                                     <span className="text-white font-medium text-sm">딥 리서치</span>
                                 </div>
-                                <p className="text-gray-500 text-xs mb-4">주제를 입력하면 웹 크롤링 → 원고 작성 → NotebookLM 업로드 → 이메일 발송</p>
+                                <p className="text-gray-500 text-xs mb-2">주제를 입력하면 웹 크롤링 → 원고 작성 → NotebookLM 업로드 → 이메일 발송</p>
+                                <div className="bg-red-900/30 border border-red-700/40 rounded-lg px-3 py-2 mb-4">
+                                    <p className="text-red-300 text-[11px] leading-relaxed">
+                                        ⚠️ <strong>NotebookLM 업로드 현재 미작동</strong> — 크롤링+원고 작성+이메일까지만 동작<br />
+                                        수동 실행 전용 (자동 스케줄 없음)
+                                    </p>
+                                </div>
                                 <button
                                     onClick={() => setShowResearchInAdmin(true)}
                                     className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium transition-colors"
                                 >
                                     딥 리서치 실행
-                                </button>
-                            </div>
-                            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <Icon name="Package" size={16} className="text-emerald-400" />
-                                    <span className="text-white font-medium text-sm">제품추출</span>
-                                </div>
-                                <p className="text-gray-500 text-xs mb-4">도매매 검색 → 도매꾹 가격 → AI 제목 → 쿠팡윙 엑셀 → 이메일 발송</p>
-                                <button
-                                    onClick={() => setShowProductExtractInAdmin(true)}
-                                    className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
-                                >
-                                    제품추출 실행
                                 </button>
                             </div>
                             <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
