@@ -8,6 +8,7 @@ import { Icon } from './Icons';
 import { pointApi } from '../services/pointService';
 import { ResearchBoard } from './ResearchBoard';
 import { ProductExtractDialog } from './ProductExtractDialog';
+import { InstagramLikerDialog } from './InstagramLikerDialog';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -58,6 +59,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools'>('personas');
     const [showResearchInAdmin, setShowResearchInAdmin] = useState(false);
     const [showProductExtractInAdmin, setShowProductExtractInAdmin] = useState(false);
+    const [showInstagramLiker, setShowInstagramLiker] = useState(false);
     const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
     const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
     const [commonInstruction, setCommonInstruction] = useState('');
@@ -641,6 +643,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             {showProductExtractInAdmin && (
                 <ProductExtractDialog onClose={() => setShowProductExtractInAdmin(false)} userEmail={user?.email} />
             )}
+            {showInstagramLiker && (
+                <InstagramLikerDialog onClose={() => setShowInstagramLiker(false)} />
+            )}
 
             {/* 저장 완료 모달 */}
             {showSavedModal && (
@@ -1156,6 +1161,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition-colors"
                                 >
                                     제품추출 실행
+                                </button>
+                            </div>
+                            <div className="bg-gray-800 border border-gray-700 rounded-xl p-5">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Icon name="Heart" size={16} className="text-pink-400" />
+                                    <span className="text-white font-medium text-sm">인스타 자동 좋아요</span>
+                                </div>
+                                <p className="text-gray-500 text-xs mb-4">키워드(해시태그) 검색 → 게시물 좋아요 · 일일 10회 제한 · stealth 모드</p>
+                                <button
+                                    onClick={() => setShowInstagramLiker(true)}
+                                    className="w-full py-2 rounded-lg bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 hover:opacity-90 text-white text-sm font-medium transition-all"
+                                >
+                                    좋아요 실행
                                 </button>
                             </div>
                         </div>
