@@ -1,153 +1,122 @@
 // 인스타그램 자동 좋아요 — 집 PC 실행용
-// 사용법: node liker.js 골프  (또는 실행하기.bat 더블클릭)
-
 const { chromium } = require('playwright-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 
-const fs   = require('fs');
-const path = require('path');
+const fs      = require('fs');
+const path    = require('path');
 const readline = require('readline');
 
-// ── 계정 정보 ─────────────────────────────────────────────
 const INSTA_ID  = 'concealeunbi';
 const INSTA_PW  = 'wlsgur0879@';
-const MAX_LIKES = 10; // 하루 최대 좋아요 수
-// ────────────────────────────────────────────────────────
-
-const LOG_FILE = path.join(__dirname, 'daily_log.json');
+const MAX_LIKES = 10;
+const LOG_FILE  = path.join(__dirname, 'daily_log.json');
 
 function todayKST() {
     return new Date().toLocaleDateString('ko-KR', {
         timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
     }).replace(/\. /g, '-').replace('.', '');
 }
-
 function loadLog() {
     try { return JSON.parse(fs.readFileSync(LOG_FILE, 'utf8')); }
     catch { return { date: '', count: 0 }; }
 }
-
 function recordLike() {
-    const log  = loadLog();
-    const today = todayKST();
-    fs.writeFileSync(LOG_FILE, JSON.stringify({
-        date:  today,
-        count: log.date === today ? log.count + 1 : 1,
-    }));
+    const log = loadLog(), today = todayKST();
+    fs.writeFileSync(LOG_FILE, JSON.stringify({ date: today, count: log.date === today ? log.count + 1 : 1 }));
 }
-
 function getRemainingLikes() {
-    const log   = loadLog();
-    const today = todayKST();
-    if (log.date !== today) return MAX_LIKES;
-    return Math.max(0, MAX_LIKES - log.count);
+    const log = loadLog(), today = todayKST();
+    return log.date !== today ? MAX_LIKES : Math.max(0, MAX_LIKES - log.count);
 }
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const rand  = (min, max) => Math.floor(Math.random() * (max - min) + min);
-const delay = (min = 2000, max = 5000) => sleep(rand(min, max));
+const rand  = (a, b) => Math.floor(Math.random() * (b - a) + a);
+const delay = (a = 2000, b = 5000) => sleep(rand(a, b));
 
 async function getKeyword() {
     const arg = process.argv[2];
     if (arg) return arg;
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    return new Promise(resolve => {
-        rl.question('해시태그 키워드 입력 (# 없이, 예: 골프): ', ans => {
-            rl.close();
-            resolve(ans.trim());
-        });
-    });
+    return new Promise(r => rl.question('키워드 입력 (예: 골프): ', ans => { rl.close(); r(ans.trim()); }));
 }
 
 async function run() {
-    const keyword = await getKeyword();
+    const keyword   = await getKeyword();
     if (!keyword) { console.log('❌ 키워드를 입력해주세요.'); return; }
-
     const remaining = getRemainingLikes();
     console.log(`\n오늘 남은 좋아요: ${remaining}/${MAX_LIKES}회`);
-    if (remaining <= 0) {
-        console.log('⛔ 오늘 좋아요 한도(10회)에 도달했습니다. 내일 다시 시도하세요.');
-        return;
-    }
+    if (remaining <= 0) { console.log('⛔ 오늘 한도 초과. 내일 다시 시도하세요.'); return; }
 
-    console.log(`\n#${keyword} 좋아요 시작합니다...`);
+    console.log(`\n#${keyword} 좋아요 시작합니다...\n`);
 
     const browser = await chromium.launch({
-        headless: false, // 집에서는 화면 보이게
+        headless: false,
         args: ['--no-sandbox', '--disable-blink-features=AutomationControlled'],
     });
-
     const context = await browser.newContext({
         userAgent:  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         viewport:   { width: 1280, height: 800 },
         locale:     'ko-KR',
         timezoneId: 'Asia/Seoul',
     });
-
     await context.addInitScript(() => {
         Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
     });
-
     const page = await context.newPage();
 
     try {
-        // ── 로그인 ────────────────────────────────────────
-        console.log('\n[1/4] 인스타그램 로그인 중...');
+        // ── 로그인 ───────────────────────────────────────
+        console.log('[1/4] 인스타그램 로그인 중...');
         await page.goto('https://www.instagram.com/accounts/login/', {
             waitUntil: 'load', timeout: 40000,
         });
-        await delay(4000, 6000); // React 렌더링 대기
+        await delay(3000, 5000);
 
-        // 쿠키 동의 버튼 처리
+        // 쿠키 동의 버튼
         for (const sel of ['button:has-text("모두 허용")', 'button:has-text("Allow all")', 'button:has-text("수락")']) {
-            const btn = page.locator(sel).first();
-            if (await btn.isVisible({ timeout: 3000 }).catch(() => false)) {
-                await btn.click(); await delay(1500, 2500); break;
+            if (await page.locator(sel).isVisible({ timeout: 2000 }).catch(() => false)) {
+                await page.locator(sel).click(); await delay(1000, 2000); break;
             }
         }
 
-        console.log('  → 로그인 폼 대기 중...');
-        // 여러 셀렉터 시도 (Instagram 버전별 대응)
-        const idSelectors = [
-            'input[name="username"]',
-            'input[aria-label*="사용자"]',
-            'input[placeholder*="사용자"]',
-            'input[placeholder*="휴대폰"]',
-            'input[type="text"]',
-        ];
-        let idInput = null;
-        for (const sel of idSelectors) {
-            const el = page.locator(sel).first();
-            if (await el.isVisible({ timeout: 5000 }).catch(() => false)) {
-                idInput = el; console.log(`  → 셀렉터 찾음: ${sel}`); break;
-            }
-        }
-        if (!idInput) throw new Error('아이디 입력창을 찾을 수 없습니다.');
+        // 페이지에 input이 몇 개인지 확인
+        const inputCount = await page.evaluate(() => document.querySelectorAll('input').length);
+        console.log(`  → 입력창 감지: ${inputCount}개`);
 
-        await idInput.click();
-        await delay(500, 800);
-        await page.keyboard.type(INSTA_ID, { delay: 80 });
-        await delay(600, 1200);
+        if (inputCount === 0) throw new Error('로그인 폼이 로드되지 않았습니다. 브라우저 창을 확인하세요.');
 
-        const pwInput = page.locator('input[type="password"]').first();
-        await pwInput.click();
-        await delay(300, 600);
-        await page.keyboard.type(INSTA_PW, { delay: 80 });
+        // JS로 직접 값 주입
+        await page.evaluate(([id, pw]) => {
+            const inputs = document.querySelectorAll('input');
+            const setVal = (el, val) => {
+                el.focus();
+                const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+                nativeInputValueSetter.call(el, val);
+                el.dispatchEvent(new Event('input',  { bubbles: true }));
+                el.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+            if (inputs[0]) setVal(inputs[0], id);
+            if (inputs[1]) setVal(inputs[1], pw);
+        }, [INSTA_ID, INSTA_PW]);
+
         await delay(800, 1500);
-        await page.click('button[type="submit"]');
-        await delay(4000, 7000);
+        console.log('  → 아이디/비밀번호 입력 완료');
 
-        // 로그인 팝업 닫기
+        // 로그인 버튼 클릭
+        const submitBtn = page.locator('button[type="submit"]').first();
+        await submitBtn.click();
+        await delay(5000, 8000);
+
+        // 팝업 닫기
         for (const sel of ['button:has-text("나중에")', 'button:has-text("Not Now")', 'button:has-text("저장 안 함")']) {
-            const btn = page.locator(sel).first();
-            if (await btn.isVisible({ timeout: 2000 }).catch(() => false)) {
-                await btn.click(); await delay(800, 1500);
+            if (await page.locator(sel).isVisible({ timeout: 2000 }).catch(() => false)) {
+                await page.locator(sel).click(); await delay(800, 1500);
             }
         }
         console.log('[2/4] 로그인 완료');
 
-        // ── 해시태그 페이지 ─────────────────────────────
+        // ── 해시태그 페이지 ──────────────────────────────
         const tag = keyword.replace(/^#/, '');
         console.log(`[3/4] #${tag} 해시태그 검색 중...`);
         await page.goto(`https://www.instagram.com/explore/tags/${encodeURIComponent(tag)}/`, {
@@ -155,17 +124,15 @@ async function run() {
         });
         await delay(3000, 5000);
 
-        // ── 좋아요 실행 ─────────────────────────────────
+        // ── 좋아요 실행 ──────────────────────────────────
         console.log('[4/4] 좋아요 시작...');
-        let liked = 0;
+        let liked  = 0;
         const target = Math.min(remaining, MAX_LIKES);
 
         const hrefs = await page.evaluate(() =>
-            [...new Set(
-                [...document.querySelectorAll('a[href*="/p/"]')]
-                    .map(a => a.getAttribute('href'))
-                    .filter(h => h && h.startsWith('/p/'))
-            )].slice(0, 30)
+            [...new Set([...document.querySelectorAll('a[href*="/p/"]')]
+                .map(a => a.getAttribute('href'))
+                .filter(h => h && h.startsWith('/p/')))].slice(0, 30)
         );
         console.log(`  게시물 ${hrefs.length}개 발견`);
 
@@ -179,9 +146,8 @@ async function run() {
 
                 const likeBtn = page.locator('svg[aria-label="좋아요"], svg[aria-label="Like"]').first();
                 if (!await likeBtn.isVisible({ timeout: 3000 }).catch(() => false)) continue;
-
                 await likeBtn.click();
-                await delay(4000, 9000); // 랜덤 딜레이
+                await delay(4000, 9000);
                 recordLike();
                 liked++;
                 console.log(`  ✅ 좋아요 ${liked}/${target} — ${href}`);
@@ -190,11 +156,11 @@ async function run() {
             }
         }
 
-        console.log(`\n🎉 완료! 총 ${liked}개 좋아요 완료 (오늘 남은 횟수: ${getRemainingLikes()}회)`);
+        console.log(`\n🎉 완료! 총 ${liked}개 좋아요 (오늘 남은 횟수: ${getRemainingLikes()}회)`);
 
     } catch (e) {
         console.log(`\n❌ 오류: ${e.message.split('\n')[0]}`);
-        console.log('\n브라우저 창을 확인하세요. 30초 후 닫힙니다...');
+        console.log('브라우저 창을 확인하세요. 30초 후 닫힙니다...');
         await sleep(30000);
     } finally {
         await browser.close();
