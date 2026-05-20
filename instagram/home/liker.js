@@ -103,9 +103,8 @@ async function run() {
         await delay(800, 1500);
         console.log('  → 아이디/비밀번호 입력 완료');
 
-        // 로그인 버튼 클릭
-        const submitBtn = page.locator('button[type="submit"]').first();
-        await submitBtn.click();
+        // Enter 키로 로그인
+        await page.keyboard.press('Enter');
         await delay(5000, 8000);
 
         // 팝업 닫기
