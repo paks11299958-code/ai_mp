@@ -1770,7 +1770,7 @@ const App: React.FC = () => {
                                                 </button>
                                             </>
                                         )}
-                                        {(activePersona?.name === '서아' || activePersona?.name === '윤채원') && user && (
+                                        {activePersona?.name === '윤채원' && user && (
                                             <button
                                                 onClick={() => setShowStockAnalysis(true)}
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100 transition-colors whitespace-nowrap flex items-center gap-1"
