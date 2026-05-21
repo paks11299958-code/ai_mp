@@ -3,13 +3,13 @@ const { chromium } = require('playwright-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 
-const fs      = require('fs');
-const path    = require('path');
-const readline = require('readline');
+const fs   = require('fs');
+const path = require('path');
 
 const INSTA_ID  = 'concealeunbi';
 const INSTA_PW  = 'wlsgur0879@';
 const MAX_LIKES = 10;
+const KEYWORD   = 'AI채팅';
 const LOG_FILE  = path.join(__dirname, 'daily_log.json');
 
 function todayKST() {
@@ -34,16 +34,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const rand  = (a, b) => Math.floor(Math.random() * (b - a) + a);
 const delay = (a = 2000, b = 5000) => sleep(rand(a, b));
 
-async function getKeyword() {
-    const arg = process.argv[2];
-    if (arg) return arg;
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    return new Promise(r => rl.question('키워드 입력 (예: 골프): ', ans => { rl.close(); r(ans.trim()); }));
-}
-
 async function run() {
-    const keyword   = await getKeyword();
-    if (!keyword) { console.log('❌ 키워드를 입력해주세요.'); return; }
+    const keyword   = process.argv[2] || KEYWORD;
     const remaining = getRemainingLikes();
     console.log(`\n오늘 남은 좋아요: ${remaining}/${MAX_LIKES}회`);
     if (remaining <= 0) { console.log('⛔ 오늘 한도 초과. 내일 다시 시도하세요.'); return; }
