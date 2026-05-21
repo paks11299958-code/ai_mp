@@ -16,7 +16,9 @@ const TARGET_DAY    = '3';    // 3일
 const RETRY_MS      = 2000;   // 실패 시 재시도 간격 (ms)
 const MAX_RETRIES   = 1800;   // 최대 시도 횟수 (기본 1시간)
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
+const sleep  = ms => new Promise(r => setTimeout(r, ms));
+const rand   = (min, max) => Math.floor(Math.random() * (max - min) + min);
+const delay  = (min, max) => sleep(rand(min, max));  // 랜덤 딜레이
 
 function beep() {
     process.stdout.write('\x07');
@@ -29,7 +31,7 @@ async function tryClickDate(page) {
         return { ok: false, reason: '날짜 입력창 없음 (페이지 로딩 확인)' };
     }
     await dateInput.click();
-    await sleep(800);
+    await delay(700, 1200);
 
     // ── 2. Element UI 피커 패널 대기 ─────────────────────────
     const panel = page.locator('.el-picker-panel').first();
@@ -42,27 +44,22 @@ async function tryClickDate(page) {
         const headerText = await panel.locator('.el-date-picker__header-label').first()
             .textContent().catch(() => '');
 
-        // "2026年 6月" 또는 "2026년 6월" 형태 모두 처리
         const isYear2026 = headerText.includes(TARGET_YEAR);
-        // 2026 안의 숫자 제외하고 '6' 확인 (6月, 6월, 공백6공백 등)
         const strippedYear = headerText.replace(TARGET_YEAR, '');
         const isMonth6 = /6[月월]/.test(strippedYear) || /[^0-9]6[^0-9]/.test(strippedYear) || strippedYear.trim().startsWith('6');
 
         if (isYear2026 && isMonth6) break;
 
-        // 다음 달(>) 버튼 — el-icon-arrow-right (단일 화살표, d-arrow는 연도 이동)
         const nextBtn = panel.locator('button.el-icon-arrow-right').first();
         if (await nextBtn.isVisible({ timeout: 500 }).catch(() => false)) {
             await nextBtn.click();
-            await sleep(400);
+            await delay(350, 650);  // 사람처럼 불규칙하게
         } else {
             return { ok: false, reason: '다음달 버튼 없음' };
         }
     }
 
     // ── 4. 3일 셀 찾기 & 클릭 ────────────────────────────────
-    // Element UI: .el-date-table tbody td 안에 .cell 요소
-    // prev-month / next-month / disabled 클래스 제외
     const allTds = panel.locator('.el-date-table tbody td');
     const count  = await allTds.count();
 
@@ -75,14 +72,12 @@ async function tryClickDate(page) {
         const cellText = (await td.locator('.cell').textContent().catch(() => '')).trim();
         if (cellText !== TARGET_DAY) continue;
 
-        // 3일을 찾았다 — disabled 여부 확인
         if (cls.includes('disabled')) {
             return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 비활성화 (아직 예약 불가)` };
         }
 
-        // 클릭 가능 → 클릭
         await td.locator('.cell').click();
-        await sleep(500);
+        await delay(400, 700);
         return { ok: true };
     }
 
@@ -133,7 +128,7 @@ async function run() {
             } else {
                 process.stdout.write(`\r[${attempt}회] ${now} — ${result.reason}  `);
                 await page.reload({ waitUntil: 'networkidle', timeout: 20000 }).catch(() => {});
-                await sleep(RETRY_MS);
+                await delay(RETRY_MS, RETRY_MS + 1000);  // 2~3초 랜덤
             }
         }
 
