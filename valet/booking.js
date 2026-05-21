@@ -40,20 +40,20 @@ async function tryClickDate(page) {
     }
 
     // ── 3. 2026년 6월로 이동 ─────────────────────────────────
+    // 헤더 전체 텍스트 읽기 (연도·월이 별도 span으로 나뉘어 있으므로 header div 전체를 읽음)
     for (let i = 0; i < 15; i++) {
-        const headerText = await panel.locator('.el-date-picker__header-label').first()
+        const headerText = await panel.locator('.el-date-picker__header')
             .textContent().catch(() => '');
 
         const isYear2026 = headerText.includes(TARGET_YEAR);
-        const strippedYear = headerText.replace(TARGET_YEAR, '');
-        const isMonth6 = /6[月월]/.test(strippedYear) || /[^0-9]6[^0-9]/.test(strippedYear) || strippedYear.trim().startsWith('6');
+        const isMonth6   = /6[月월]/.test(headerText) || headerText.includes(` 6 `) || headerText.includes(`\n6`);
 
         if (isYear2026 && isMonth6) break;
 
         const nextBtn = panel.locator('button.el-icon-arrow-right').first();
         if (await nextBtn.isVisible({ timeout: 500 }).catch(() => false)) {
             await nextBtn.click();
-            await delay(350, 650);  // 사람처럼 불규칙하게
+            await delay(350, 650);
         } else {
             return { ok: false, reason: '다음달 버튼 없음' };
         }
