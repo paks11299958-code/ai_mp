@@ -80,8 +80,17 @@ async function tryClickDate(page) {
         }
 
         await td.locator('span').click();
-        await delay(400, 700);
-        return { ok: true };
+        await delay(500, 800);
+
+        // 성공 조건 1: 입력창에 "2026-06-03" 값이 들어온 경우
+        const inputVal = await dateInput.inputValue().catch(() => '');
+        if (inputVal.includes('2026-06-03')) return { ok: true };
+
+        // 성공 조건 2: 달력 패널이 닫힌 경우 (날짜 선택 완료 의미)
+        const panelClosed = !(await panel.isVisible({ timeout: 800 }).catch(() => true));
+        if (panelClosed) return { ok: true };
+
+        return { ok: false, reason: `클릭했지만 날짜 미입력 (값: "${inputVal}")` };
     }
 
     return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 날짜 요소 못찾음` };
