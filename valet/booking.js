@@ -10,11 +10,15 @@ const { chromium } = require('playwright-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
 
-const TARGET_MONTH  = '6';    // 6월
-const TARGET_YEAR   = '2026';
-const TARGET_DAY    = '3';    // 3일
-const RETRY_MS      = 2000;   // 실패 시 재시도 간격 (ms)
-const MAX_RETRIES   = parseInt(process.argv[2]) || 1800;  // node booking.js [횟수]
+// node booking.js [날짜 YYYY-MM-DD] [횟수]
+// 예) node booking.js 2026-06-03 1800
+const rawDate = process.argv[2] && /^\d{4}-\d{2}-\d{2}$/.test(process.argv[2]) ? process.argv[2] : '2026-06-03';
+const [TARGET_YEAR, TARGET_MONTH_PAD, TARGET_DAY_PAD] = rawDate.split('-');
+const TARGET_MONTH  = String(parseInt(TARGET_MONTH_PAD));  // '06' → '6'
+const TARGET_DAY    = String(parseInt(TARGET_DAY_PAD));    // '03' → '3'
+const TARGET_DATE   = rawDate;  // 'YYYY-MM-DD' 형식 (입력값 확인용)
+const RETRY_MS      = 2000;
+const MAX_RETRIES   = parseInt(process.argv[3]) || 1800;
 
 const sleep  = ms => new Promise(r => setTimeout(r, ms));
 const rand   = (min, max) => Math.floor(Math.random() * (max - min) + min);
@@ -82,9 +86,9 @@ async function tryClickDate(page) {
         await td.locator('span').click();
         await delay(500, 800);
 
-        // 입력창에 "2026-06-03" 값이 들어왔을 때만 성공
+        // 입력창에 목표 날짜 값이 들어왔을 때만 성공
         const inputVal = await dateInput.inputValue().catch(() => '');
-        if (inputVal.includes('2026-06-03')) return { ok: true };
+        if (inputVal.includes(TARGET_DATE)) return { ok: true };
 
         return { ok: false, reason: `날짜 미입력 (현재값: "${inputVal || '빈값'}") — 재시도` };
     }
