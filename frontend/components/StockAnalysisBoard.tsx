@@ -458,6 +458,26 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                             </div>
                         </form>
 
+                        {/* 상태 범례 */}
+                        <div className="px-3 py-1.5 border-b border-slate-800 flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-yellow-400 shrink-0" />
+                                <span className="text-[10px] text-slate-500">대기중</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                                <span className="text-[10px] text-slate-500">분석중</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+                                <span className="text-[10px] text-slate-500">분석완료</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
+                                <span className="text-[10px] text-slate-500">실패</span>
+                            </div>
+                        </div>
+
                         <div className="flex-1 overflow-y-auto p-2 space-y-1">
                             {loading && <div className="text-center py-8 text-slate-500 text-xs">불러오는 중...</div>}
                             {!loading && tasks.length === 0 && (
