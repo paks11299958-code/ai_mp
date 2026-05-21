@@ -4,6 +4,7 @@
   "description": "발렛파킹 예약 매크로 - 집 PC 실행용",
   "main": "booking.js",
   "dependencies": {
+    "playwright": "^1.60.0",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2"
   }

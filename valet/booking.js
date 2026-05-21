@@ -46,7 +46,10 @@ async function tryClickDate(page) {
             .textContent().catch(() => '');
 
         const isYear2026 = headerText.includes(TARGET_YEAR);
-        const isMonth6   = /6[月월]/.test(headerText) || headerText.includes(` 6 `) || headerText.includes(`\n6`);
+        const isMonth6   = headerText.includes('June') || headerText.includes('Jun')
+                        || /6[月월]/.test(headerText)
+                        || headerText.includes(' 6 ')
+                        || headerText.includes('\n6');
 
         if (isYear2026 && isMonth6) break;
 
@@ -69,14 +72,14 @@ async function tryClickDate(page) {
 
         if (cls.includes('prev-month') || cls.includes('next-month')) continue;
 
-        const cellText = (await td.locator('.cell').textContent().catch(() => '')).trim();
+        const cellText = (await td.locator('span').textContent().catch(() => '')).trim();
         if (cellText !== TARGET_DAY) continue;
 
         if (cls.includes('disabled')) {
             return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 비활성화 (아직 예약 불가)` };
         }
 
-        await td.locator('.cell').click();
+        await td.locator('span').click();
         await delay(400, 700);
         return { ok: true };
     }
