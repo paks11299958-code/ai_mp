@@ -174,22 +174,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const { email } = req.body || {};
             if (!email) return res.status(400).json({ error: '이메일을 입력해주세요.' });
             try {
+                console.log('[forgot-password] step1: findUnique', email);
                 const user = await prisma.user.findUnique({ where: { email } });
+                console.log('[forgot-password] step2: user found=', !!user);
                 if (user) {
                     const token = crypto.randomBytes(32).toString('hex');
                     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
                     const expiry = new Date(Date.now() + 30 * 60 * 1000);
+                    console.log('[forgot-password] step3: update resetToken');
                     await prisma.user.update({ where: { email }, data: { resetToken: tokenHash, resetTokenExpiry: expiry } });
                     const baseUrl = process.env.APP_BASE_URL || 'https://ai-mp.vercel.app';
+                    console.log('[forgot-password] step4: sendEmail baseUrl=', baseUrl);
                     await sendEmail(
                         email,
                         '[AI 페르소나] 비밀번호 재설정',
                         `<div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#111827;color:#f9fafb;border-radius:12px;"><h2 style="color:#60a5fa;margin-bottom:16px;">비밀번호 재설정</h2><p style="color:#9ca3af;margin-bottom:24px;">아래 버튼을 클릭해 비밀번호를 재설정하세요.<br>링크는 30분 후 만료됩니다.</p><a href="${baseUrl}/?token=${token}" style="display:inline-block;background:linear-gradient(to right,#2563eb,#7c3aed);color:white;font-weight:bold;padding:12px 28px;border-radius:999px;text-decoration:none;">비밀번호 재설정하기</a><p style="margin-top:24px;font-size:12px;color:#6b7280;">이 요청을 하지 않으셨다면 무시하셔도 됩니다.</p></div>`
                     );
+                    console.log('[forgot-password] step5: email sent ok');
                 }
                 return res.json({ message: '입력한 이메일로 재설정 링크를 전송했습니다.' });
             } catch (e: any) {
-                console.error('[forgot-password]', e.message);
+                console.error('[forgot-password] ERROR at step, message:', e.message, 'stack:', e.stack);
                 return res.status(500).json({ error: '서버 오류가 발생했습니다.' });
             }
         }
