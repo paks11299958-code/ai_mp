@@ -114,6 +114,7 @@ const App: React.FC = () => {
     const [showResearch, setShowResearch] = useState(false);
     const [showProductExtract, setShowProductExtract] = useState(false);
     const [showGolfReserve, setShowGolfReserve] = useState(false);
+    const [comingSoonMsg, setComingSoonMsg] = useState('');
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
@@ -1124,6 +1125,12 @@ const App: React.FC = () => {
                 {showGolfReserve && (
                     <GolfReserveDialog onClose={() => setShowGolfReserve(false)} />
                 )}
+                {comingSoonMsg && (
+                    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
+                        <span className="text-yellow-400">🚧</span>
+                        {comingSoonMsg}
+                    </div>
+                )}
             </>
         );
     }
@@ -1755,7 +1762,14 @@ const App: React.FC = () => {
                                                     스윙 기록
                                                 </button>
                                                 <button
-                                                    onClick={() => setShowGolfReserve(true)}
+                                                    onClick={() => {
+                                                        if (activePersona?.name === '설아') {
+                                                            setComingSoonMsg('골프 예약 기능은 준비중입니다.');
+                                                            setTimeout(() => setComingSoonMsg(''), 3000);
+                                                        } else {
+                                                            setShowGolfReserve(true);
+                                                        }
+                                                    }}
                                                     className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100 transition-colors whitespace-nowrap flex items-center gap-1"
                                                 >
                                                     <Icon name="MapPin" size={10} />
