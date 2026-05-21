@@ -1,4 +1,4 @@
-// 발렛파킹 예약 매크로 — 집 PC 실행용
+// 발렛파킹 예약 매크로 — 집 PC 실행용 (Element UI / Vue.js)
 // 대상: https://valet.amanopark.co.kr/booking
 // 목표: 6월 3일 날짜 선택 가능해질 때까지 반복 클릭
 
@@ -19,149 +19,74 @@ const MAX_RETRIES   = 1800;   // 최대 시도 횟수 (기본 1시간)
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 function beep() {
-    // Windows 콘솔 벨
     process.stdout.write('\x07');
 }
 
 async function tryClickDate(page) {
-    // ── 날짜 입력창 클릭 (달력 열기) ─────────────────────
-    const inputSelectors = [
-        "input[placeholder*='년도']",
-        "input[placeholder*='날짜']",
-        "input[placeholder*='date']",
-        "input[placeholder*='Date']",
-        ".date-input",
-        "[class*='departure'] input",
-        "[class*='pickup'] input",
-        "[id*='date']",
-    ];
+    // ── 1. 출발일 입력창 클릭 (placeholder="년도-월-일" 첫번째) ──
+    const dateInput = page.locator('input.el-input__inner[placeholder="년도-월-일"]').first();
+    if (!await dateInput.isVisible({ timeout: 3000 }).catch(() => false)) {
+        return { ok: false, reason: '날짜 입력창 없음 (페이지 로딩 확인)' };
+    }
+    await dateInput.click();
+    await sleep(800);
 
-    let calendarOpened = false;
-    for (const sel of inputSelectors) {
-        const el = page.locator(sel).first();
-        if (await el.isVisible({ timeout: 800 }).catch(() => false)) {
-            await el.click();
-            await sleep(800);
-            calendarOpened = true;
-            break;
-        }
+    // ── 2. Element UI 피커 패널 대기 ─────────────────────────
+    const panel = page.locator('.el-picker-panel').first();
+    if (!await panel.isVisible({ timeout: 3000 }).catch(() => false)) {
+        return { ok: false, reason: '달력 팝업이 열리지 않음' };
     }
 
-    if (!calendarOpened) {
-        // 달력 트리거 버튼 시도
-        const btnSelectors = [
-            "[class*='calendar'] button",
-            "[class*='picker'] button",
-            "button[class*='date']",
-        ];
-        for (const sel of btnSelectors) {
-            const el = page.locator(sel).first();
-            if (await el.isVisible({ timeout: 500 }).catch(() => false)) {
-                await el.click();
-                await sleep(800);
-                calendarOpened = true;
-                break;
-            }
-        }
-    }
+    // ── 3. 2026년 6월로 이동 ─────────────────────────────────
+    for (let i = 0; i < 15; i++) {
+        const headerText = await panel.locator('.el-date-picker__header-label').first()
+            .textContent().catch(() => '');
 
-    if (!calendarOpened) return { ok: false, reason: '달력 열기 실패' };
+        // "2026年 6月" 또는 "2026년 6월" 형태 모두 처리
+        const isYear2026 = headerText.includes(TARGET_YEAR);
+        // 2026 안의 숫자 제외하고 '6' 확인 (6月, 6월, 공백6공백 등)
+        const strippedYear = headerText.replace(TARGET_YEAR, '');
+        const isMonth6 = /6[月월]/.test(strippedYear) || /[^0-9]6[^0-9]/.test(strippedYear) || strippedYear.trim().startsWith('6');
 
-    // ── 월 이동 (현재 월 확인 후 6월로 이동) ──────────────
-    const maxMonthNav = 12;
-    for (let i = 0; i < maxMonthNav; i++) {
-        // 헤더 텍스트 확인
-        const headerSelectors = [
-            ".vc-title",          // vue-calendar
-            ".datepicker-title",
-            "[class*='header'] [class*='title']",
-            "[class*='calendar'] [class*='header']",
-            "[class*='month']",
-            "table caption",
-            "th[class*='month']",
-        ];
-        let headerText = '';
-        for (const sel of headerSelectors) {
-            const el = page.locator(sel).first();
-            if (await el.isVisible({ timeout: 500 }).catch(() => false)) {
-                headerText = (await el.textContent()) || '';
-                if (headerText.trim()) break;
-            }
-        }
+        if (isYear2026 && isMonth6) break;
 
-        const hasYear  = headerText.includes(TARGET_YEAR);
-        const hasMonth = headerText.includes(`${TARGET_MONTH}월`)
-                      || headerText.includes(`June`)
-                      || headerText.includes(`Jun`)
-                      || (hasYear && headerText.replace(/\D/g, '').includes(TARGET_MONTH));
-
-        if (hasYear && hasMonth) break; // 6월 2026 도달
-
-        // 다음 달 버튼
-        const nextBtnSelectors = [
-            ".vc-arrow.is-right",
-            "button[aria-label*='next']",
-            "button[aria-label*='다음']",
-            "button[title*='다음']",
-            "[class*='next']",
-            ".datepicker-next",
-            "button:has(svg):last-of-type",
-        ];
-        let moved = false;
-        for (const sel of nextBtnSelectors) {
-            const el = page.locator(sel).first();
-            if (await el.isVisible({ timeout: 500 }).catch(() => false)) {
-                await el.click();
-                await sleep(500);
-                moved = true;
-                break;
-            }
-        }
-        if (!moved) {
-            // 키보드로 시도
-            await page.keyboard.press('ArrowRight');
+        // 다음 달(>) 버튼 — el-icon-arrow-right (단일 화살표, d-arrow는 연도 이동)
+        const nextBtn = panel.locator('button.el-icon-arrow-right').first();
+        if (await nextBtn.isVisible({ timeout: 500 }).catch(() => false)) {
+            await nextBtn.click();
             await sleep(400);
+        } else {
+            return { ok: false, reason: '다음달 버튼 없음' };
         }
     }
 
-    // ── 3일 클릭 시도 ────────────────────────────────────
-    // 정확히 '3' 텍스트인 날짜 셀 (13, 23 제외)
-    const daySelectors = [
-        `//td[normalize-space(text())='${TARGET_DAY}']`,
-        `//button[normalize-space(text())='${TARGET_DAY}']`,
-        `//span[normalize-space(text())='${TARGET_DAY}']`,
-        `//div[normalize-space(text())='${TARGET_DAY}' and contains(@class,'day')]`,
-        `//li[normalize-space(text())='${TARGET_DAY}']`,
-    ];
+    // ── 4. 3일 셀 찾기 & 클릭 ────────────────────────────────
+    // Element UI: .el-date-table tbody td 안에 .cell 요소
+    // prev-month / next-month / disabled 클래스 제외
+    const allTds = panel.locator('.el-date-table tbody td');
+    const count  = await allTds.count();
 
-    for (const xpath of daySelectors) {
-        const els = page.locator(`xpath=${xpath}`);
-        const count = await els.count();
-        for (let i = 0; i < count; i++) {
-            const el = els.nth(i);
-            if (!await el.isVisible({ timeout: 300 }).catch(() => false)) continue;
+    for (let i = 0; i < count; i++) {
+        const td = allTds.nth(i);
+        const cls = await td.getAttribute('class').catch(() => '') || '';
 
-            // disabled 여부 확인
-            const disabled = await el.evaluate(e => {
-                return e.hasAttribute('disabled')
-                    || e.getAttribute('aria-disabled') === 'true'
-                    || e.classList.contains('disabled')
-                    || e.classList.contains('is-disabled')
-                    || e.classList.contains('unavailable')
-                    || e.classList.contains('inactive')
-                    || e.classList.contains('greyed');
-            });
+        if (cls.includes('prev-month') || cls.includes('next-month')) continue;
 
-            if (disabled) return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 비활성화 (예약 불가)` };
+        const cellText = (await td.locator('.cell').textContent().catch(() => '')).trim();
+        if (cellText !== TARGET_DAY) continue;
 
-            // 클릭 가능 → 클릭
-            await el.click();
-            await sleep(500);
-            return { ok: true };
+        // 3일을 찾았다 — disabled 여부 확인
+        if (cls.includes('disabled')) {
+            return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 비활성화 (아직 예약 불가)` };
         }
+
+        // 클릭 가능 → 클릭
+        await td.locator('.cell').click();
+        await sleep(500);
+        return { ok: true };
     }
 
-    return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 날짜 요소를 찾지 못함` };
+    return { ok: false, reason: `${TARGET_MONTH}월 ${TARGET_DAY}일 날짜 요소 못찾음` };
 }
 
 async function run() {
@@ -188,7 +113,7 @@ async function run() {
     try {
         console.log('사이트 접속 중...');
         await page.goto('https://valet.amanopark.co.kr/booking', {
-            waitUntil: 'domcontentloaded',
+            waitUntil: 'networkidle',
             timeout: 30000,
         });
         await sleep(2000);
@@ -207,7 +132,7 @@ async function run() {
                 break;
             } else {
                 process.stdout.write(`\r[${attempt}회] ${now} — ${result.reason}  `);
-                await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => {});
+                await page.reload({ waitUntil: 'networkidle', timeout: 20000 }).catch(() => {});
                 await sleep(RETRY_MS);
             }
         }
@@ -219,11 +144,10 @@ async function run() {
     } catch (e) {
         console.log(`\n오류: ${e.message.split('\n')[0]}`);
     } finally {
-        // 성공 시 브라우저를 닫지 않음 — 사용자가 직접 예약 완료
         if (!success) await browser.close().catch(() => {});
     }
 
-    // 성공 시 프로세스를 유지해 브라우저가 살아있도록 대기 (4시간)
+    // 성공 시 브라우저 유지 (사용자가 직접 예약 완료)
     if (success) await sleep(4 * 60 * 60 * 1000);
 }
 
