@@ -236,7 +236,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
 
             ) : mode === 'forgot' && forgotStep === 'verify' ? (
                 /* 전화번호 인증코드 + 새 비밀번호 폼 */
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form key="forgot-verify" onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
                         <label className={labelClass}>인증번호 (6자리)</label>
                         <input
