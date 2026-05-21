@@ -597,6 +597,13 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         )}
                         {!detailLoading && selected && (
                             <div>
+                                {/* 학습하기 안내 */}
+                                <div className="mx-5 mt-4 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3 py-2.5">
+                                    <MessageCircle size={13} className="text-emerald-400 shrink-0 mt-0.5" />
+                                    <p className="text-[11px] text-emerald-300/90 leading-relaxed">
+                                        <span className="font-semibold text-emerald-300">학습하기</span> — 현재 보고서를 AI 윤채원에게 학습시켜 보고서 내용으로 토론할 수 있습니다.
+                                    </p>
+                                </div>
                                 {/* 보고서 헤더 */}
                                 <div style={{ background: 'linear-gradient(135deg, #0d1b2e 0%, #0a1628 100%)', borderBottom: '1px solid rgba(30,58,138,0.3)' }} className="px-5 py-4">
                                     <div className="flex items-start justify-between gap-3 mb-4">
