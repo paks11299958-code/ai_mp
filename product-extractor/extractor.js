@@ -5,13 +5,15 @@
  *         node extractor.js             (랜덤 카테고리)
  */
 
-require('dotenv').config();
+require('dotenv').config({ path: '/home/paks11299958/shared-api/.env' });
+require('dotenv').config({ override: false }); // product-extractor/.env 보완
 
 const { chromium } = require('playwright');
 const xlsx   = require('xlsx');
 const path   = require('path');
 const fs     = require('fs');
 const crypto = require('crypto');
+const { Pool } = require('pg');
 
 const BREVO_API_KEY       = process.env.BREVO_API_KEY;
 const SENDER_EMAIL        = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
@@ -20,7 +22,8 @@ const NAVER_CLIENT_ID     = process.env.NAVER_CLIENT_ID     || 'GQTM16ASwMR5e817
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET || 'iz7FciCCdG';
 const DOMEGGOOK_ID        = process.env.DOMEGGOOK_ID        || 'c2clo';
 const DOMEGGOOK_PW        = process.env.DOMEGGOOK_PASSWORD;
-const NOTIFY_EMAIL        = process.env.NOTIFY_EMAIL;
+const NOTIFY_EMAIL        = 'sjy4926@hanmail.net';
+const NOTIFY_PHONE        = '01050294926';
 const COUPANG_VENDOR_ID   = process.env.COUPANG_VENDOR_ID   || 'A01662881';
 const COUPANG_ACCESS_KEY  = process.env.COUPANG_ACCESS_KEY;
 const COUPANG_SECRET_KEY  = process.env.COUPANG_SECRET_KEY;
@@ -545,6 +548,56 @@ async function uploadToCoupangWing(productData, cat, sellPrice, discountBase) {
     }
 }
 
+// ── SMS 발송 ─────────────────────────────────────────────
+
+async function sendSms(to, text) {
+    const apiKey    = process.env.SOLAPI_API_KEY;
+    const apiSecret = process.env.SOLAPI_API_SECRET;
+    const from      = process.env.SOLAPI_SENDER_PHONE;
+    if (!apiKey || !apiSecret || !from) { log('SMS 환경변수 없음 — 건너뜀'); return; }
+    const date = new Date().toISOString();
+    const salt = crypto.randomBytes(16).toString('hex');
+    const sig  = crypto.createHmac('sha256', apiSecret).update(date + salt).digest('hex');
+    const res  = await fetch('https://api.solapi.com/messages/v4/send', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${date}, salt=${salt}, signature=${sig}`,
+        },
+        body: JSON.stringify({ message: { to, from, text } }),
+    });
+    if (!res.ok) log(`SMS 발송 실패: ${await res.text()}`);
+    else log(`SMS 발송 완료 → ${to}`);
+}
+
+// ── DB 중복 체크 ──────────────────────────────────────────
+
+const dbPool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+async function initExtractedTable() {
+    await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS extracted_products (
+            id         SERIAL PRIMARY KEY,
+            item_no    TEXT UNIQUE NOT NULL,
+            keyword    TEXT,
+            title      TEXT,
+            extracted_at TIMESTAMPTZ DEFAULT NOW()
+        )
+    `);
+}
+
+async function isAlreadyExtracted(itemNo) {
+    const { rows } = await dbPool.query('SELECT 1 FROM extracted_products WHERE item_no=$1', [String(itemNo)]);
+    return rows.length > 0;
+}
+
+async function saveExtracted(itemNo, keyword, title) {
+    await dbPool.query(
+        'INSERT INTO extracted_products (item_no, keyword, title) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING',
+        [String(itemNo), keyword, title]
+    );
+}
+
 // ── 이메일 발송 ───────────────────────────────────────────
 
 async function sendEmail(to, subject, html, attachmentPath) {
@@ -567,6 +620,8 @@ async function sendEmail(to, subject, html, attachmentPath) {
 // ── 메인 ─────────────────────────────────────────────────
 
 (async () => {
+    await initExtractedTable();
+
     const cat      = await getCategory();
     const keywords = cat.keywords.slice(0, 5);
     log(`카테고리: ${cat.emoji}${cat.name}`);
@@ -604,7 +659,17 @@ async function sendEmail(to, subject, html, attachmentPath) {
 
         const kwWords = selected.keyword.split(' ').filter(w => w.length >= 2);
         const matched = products.filter(p => kwWords.some(w => p.name.includes(w)));
-        const top     = matched.length > 0 ? matched[0] : products[0];
+
+        // DB 중복 체크 — 이미 추출한 상품 건너뜀
+        let top = null;
+        for (const p of matched.length > 0 ? matched : products) {
+            if (await isAlreadyExtracted(p.itemNo)) {
+                log(`⏭ 이미 추출한 상품 건너뜀: "${p.name}" (${p.itemNo})`);
+                continue;
+            }
+            top = p; break;
+        }
+        if (!top) throw new Error('새로운 상품 없음 — 모든 후보가 이미 추출됨');
         log(`상품: "${top.name}" (번호: ${top.itemNo})${matched.length === 0 ? ' ⚠️키워드 불일치' : ''}`);
 
         const { price: wholesalePrice, mainImgData, detailImgData, mainImgSrc, detailImgSrcs } = await getPriceAndImages(page, top.itemNo);
@@ -675,11 +740,21 @@ async function sendEmail(to, subject, html, attachmentPath) {
             filepath
         );
 
+        // 7. SMS
+        await sendSms(NOTIFY_PHONE,
+            `[제품추출완료] ${cat.emoji}${cat.name}\n키워드: ${selected.keyword}\n판매가: ${sellPrice.toLocaleString()}원\n${coupangProductId ? '쿠팡윙 자동등록 완료' : '수동업로드 필요'}`
+        );
+
+        // 8. DB 저장 (중복 방지)
+        await saveExtracted(top.itemNo, selected.keyword, title);
+        log(`DB 저장 완료: ${top.itemNo}`);
+
         console.log('\n🎉 완료!');
         console.log(`   엑셀 위치: ${filepath}`);
     } catch (e) {
         log(`❌ 오류: ${e.message}`);
     } finally {
         if (browser) await browser.close().catch(() => {});
+        await dbPool.end().catch(() => {});
     }
 })();
