@@ -74,6 +74,7 @@ async function run() {
         Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
     });
     const page = await context.newPage();
+    let liked = 0;
 
     try {
         // ── 로그인 ───────────────────────────────────────
@@ -141,7 +142,6 @@ async function run() {
 
         // ── 좋아요 실행 ──────────────────────────────────
         console.log('[4/4] 좋아요 시작...');
-        let liked  = 0;
         const target = Math.min(remaining, MAX_LIKES);
 
         const hrefs = await page.evaluate(() => {
