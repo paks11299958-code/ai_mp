@@ -14,7 +14,7 @@ const TARGET_MONTH  = '6';    // 6월
 const TARGET_YEAR   = '2026';
 const TARGET_DAY    = '3';    // 3일
 const RETRY_MS      = 2000;   // 실패 시 재시도 간격 (ms)
-const MAX_RETRIES   = 1800;   // 최대 시도 횟수 (기본 1시간)
+const MAX_RETRIES   = parseInt(process.argv[2]) || 1800;  // node booking.js [횟수]
 
 const sleep  = ms => new Promise(r => setTimeout(r, ms));
 const rand   = (min, max) => Math.floor(Math.random() * (max - min) + min);
