@@ -127,8 +127,9 @@ async function run() {
                 break;
             } else {
                 process.stdout.write(`\r[${attempt}회] ${now} — ${result.reason}  `);
-                await page.reload({ waitUntil: 'networkidle', timeout: 20000 }).catch(() => {});
-                await delay(RETRY_MS, RETRY_MS + 1000);  // 2~3초 랜덤
+                // 달력만 닫고 재시도 (페이지 새로고침 없음)
+                await page.keyboard.press('Escape').catch(() => {});
+                await delay(RETRY_MS, RETRY_MS + 1000);
             }
         }
 
