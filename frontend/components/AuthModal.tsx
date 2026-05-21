@@ -247,6 +247,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="123456"
                             required
+                            autoComplete="off"
                             className={inputClass}
                         />
                     </div>
@@ -297,6 +298,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             onChange={e => setRegVerifyCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="123456"
                             required
+                            autoComplete="off"
                             className={inputClass}
                         />
                     </div>
