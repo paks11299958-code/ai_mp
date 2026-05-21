@@ -25,6 +25,18 @@ function recordLike() {
     const log = loadLog(), today = todayKST();
     fs.writeFileSync(LOG_FILE, JSON.stringify({ date: today, count: log.date === today ? log.count + 1 : 1 }));
 }
+function recordResult(keyword, liked, status) {
+    const log = loadLog(), today = todayKST();
+    const now = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    fs.writeFileSync(LOG_FILE, JSON.stringify({
+        date: today,
+        count: log.count || 0,
+        keyword,
+        liked,
+        status,
+        lastRun: now,
+    }, null, 2));
+}
 function getRemainingLikes() {
     const log = loadLog(), today = todayKST();
     return log.date !== today ? MAX_LIKES : Math.max(0, MAX_LIKES - log.count);
@@ -156,9 +168,11 @@ async function run() {
         }
 
         console.log(`\n🎉 완료! 총 ${liked}개 좋아요 (오늘 남은 횟수: ${getRemainingLikes()}회)`);
+        recordResult(keyword, liked, 'success');
 
     } catch (e) {
         console.log(`\n❌ 오류: ${e.message.split('\n')[0]}`);
+        recordResult(keyword, liked, `error: ${e.message.split('\n')[0]}`);
         console.log('브라우저 창을 확인하세요. 30초 후 닫힙니다...');
         await sleep(30000);
     } finally {
