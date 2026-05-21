@@ -1,4 +1,10 @@
 // 인스타그램 자동 좋아요 — 집 PC 실행용
+
+// Task Scheduler 환경에서 한글 깨짐 방지: Node.js 내부에서 직접 UTF-8 강제 설정
+if (process.platform === 'win32') {
+    try { require('child_process').execSync('chcp 65001', { stdio: 'ignore' }); } catch {}
+}
+
 const { chromium } = require('playwright-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 chromium.use(StealthPlugin());
