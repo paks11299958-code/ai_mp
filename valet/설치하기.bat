@@ -1,5 +1,5 @@
 @echo off
 cd /d "%~dp0"
-call npm install
+npm install playwright-extra puppeteer-extra-plugin-stealth
 call npx playwright install chromium
 pause
