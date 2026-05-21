@@ -184,6 +184,7 @@ async function run() {
     });
     const page = await context.newPage();
 
+    let success = false;
     try {
         console.log('사이트 접속 중...');
         await page.goto('https://valet.amanopark.co.kr/booking', {
@@ -201,36 +202,29 @@ async function run() {
             const result = await tryClickDate(page);
 
             if (result.ok) {
+                success = true;
                 beep(); beep(); beep();
-                console.log(`\n=======================================`);
-                console.log(`  성공! ${TARGET_MONTH}월 ${TARGET_DAY}일 클릭 완료!`);
-                console.log(`  시각: ${now}`);
-                console.log(`=======================================`);
-                console.log('\n브라우저를 확인하여 예약을 완료하세요.');
-                console.log('엔터를 누르면 종료됩니다...');
-                await new Promise(r => process.stdin.once('data', r));
                 break;
             } else {
-                // 실패 — 상태 표시 후 재시도
                 process.stdout.write(`\r[${attempt}회] ${now} — ${result.reason}  `);
-
-                // 페이지를 새로 고침하며 재시도 (달력 초기화)
                 await page.reload({ waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => {});
                 await sleep(RETRY_MS);
             }
         }
 
-        if (attempt >= MAX_RETRIES) {
+        if (!success) {
             console.log(`\n최대 재시도 횟수(${MAX_RETRIES}회) 초과. 종료합니다.`);
         }
 
     } catch (e) {
         console.log(`\n오류: ${e.message.split('\n')[0]}`);
-        console.log('30초 후 브라우저 종료...');
-        await sleep(30000);
     } finally {
-        await browser.close();
+        // 성공 시 브라우저를 닫지 않음 — 사용자가 직접 예약 완료
+        if (!success) await browser.close().catch(() => {});
     }
+
+    // 성공 시 프로세스를 유지해 브라우저가 살아있도록 대기 (4시간)
+    if (success) await sleep(4 * 60 * 60 * 1000);
 }
 
 run();
