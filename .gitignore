@@ -1,2 +1,8 @@
 node_modules
 .env.local
+.env
+**/.env
+product-extractor/output/
+product-extractor/cron.log
+product-extractor/coupang_category/
+product-extractor/*.zip
