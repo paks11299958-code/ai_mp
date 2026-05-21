@@ -620,8 +620,6 @@ async function sendEmail(to, subject, html, attachmentPath) {
 // ── 메인 ─────────────────────────────────────────────────
 
 (async () => {
-    await initExtractedTable();
-
     const cat      = await getCategory();
     const keywords = cat.keywords.slice(0, 5);
     log(`카테고리: ${cat.emoji}${cat.name}`);
@@ -629,6 +627,7 @@ async function sendEmail(to, subject, html, attachmentPath) {
 
     let browser;
     try {
+        await initExtractedTable();
         // 1. 네이버 블루오션 분석 (브라우저 불필요)
         log('\n── 네이버 블루오션 분석 ──');
         const competition = await analyzeBlueOcean(keywords);
