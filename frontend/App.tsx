@@ -1623,10 +1623,10 @@ const App: React.FC = () => {
                         <header className="h-16 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-4 shrink-0 z-10">
                             <div className="flex items-center">
                                 <button
-                                    className="md:hidden mr-3 text-gray-400 hover:text-white"
+                                    className="md:hidden mr-2 flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
                                     onClick={() => setShowMain(true)}
                                 >
-                                    <Icon name="Menu" size={24} />
+                                    <Icon name="ChevronLeft" size={22} />
                                 </button>
                                 {activePersona && (
                                     <>
