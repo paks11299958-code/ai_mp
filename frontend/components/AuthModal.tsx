@@ -236,7 +236,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
 
             ) : mode === 'forgot' && forgotStep === 'verify' ? (
                 /* 전화번호 인증코드 + 새 비밀번호 폼 */
-                <form key="forgot-verify" onSubmit={handleSubmit} className="p-6 space-y-4">
+                <form key="forgot-verify" onSubmit={handleSubmit} className="p-6 space-y-4" autoComplete="off">
+                    {/* 브라우저 자동완성 흡수용 더미 필드 */}
+                    <input type="text" name="username" style={{ display: 'none' }} autoComplete="username" aria-hidden="true" readOnly />
+                    <input type="password" name="current-password" style={{ display: 'none' }} autoComplete="current-password" aria-hidden="true" readOnly />
                     <div>
                         <label className={labelClass}>인증번호 (6자리)</label>
                         <input
@@ -247,7 +250,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             onChange={e => setVerifyCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="123456"
                             required
-                            autoComplete="off"
+                            autoComplete="one-time-code"
+                            name="otp-code"
                             className={inputClass}
                         />
                     </div>
@@ -259,6 +263,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             onChange={e => setNewPassword(e.target.value)}
                             placeholder="6자 이상"
                             required
+                            autoComplete="new-password"
+                            name="new-password"
                             className={inputClass}
                         />
                     </div>
