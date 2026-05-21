@@ -2756,6 +2756,15 @@ const ServerMonitorPanel: React.FC = () => {
                         </button>
                     </div>
                 </div>
+                {/* 배포 버전 정보 */}
+                <div className="flex items-center gap-3 mb-3 px-3 py-2 bg-gray-800/60 rounded-lg border border-gray-700/50">
+                    <Icon name="GitCommit" size={13} className="text-purple-400 shrink-0" />
+                    <span className="text-xs text-gray-400">배포 커밋:</span>
+                    <span className="text-xs font-mono text-purple-300 font-bold">{__GIT_COMMIT__}</span>
+                    <span className="text-gray-600 text-xs">|</span>
+                    <span className="text-xs text-gray-400">빌드:</span>
+                    <span className="text-xs font-mono text-blue-300">{new Date(__BUILD_TIME__).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</span>
+                </div>
                 {metricsLoading && !metrics
                     ? <div className="text-center text-gray-500 text-sm py-8">불러오는 중...</div>
                     : metrics && (
