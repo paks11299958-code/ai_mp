@@ -160,11 +160,24 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
         return () => clearTimeout(t);
     }, [tasks, loadTasks]);
 
+    const MAX_FILES = 8;
+
     const handleFiles = (newFiles: FileList | null) => {
         if (!newFiles) return;
-        const accepted = Array.from(newFiles).filter(f => f.type.startsWith('image/')).slice(0, 8);
-        setFiles(accepted);
-        setPreviews(accepted.map(f => URL.createObjectURL(f)));
+        const incoming = Array.from(newFiles).filter(f => f.type.startsWith('image/'));
+        setFiles(prev => {
+            const combined = [...prev, ...incoming].slice(0, MAX_FILES);
+            setPreviews(combined.map(f => URL.createObjectURL(f)));
+            return combined;
+        });
+    };
+
+    const removeFile = (index: number) => {
+        setFiles(prev => {
+            const next = prev.filter((_, i) => i !== index);
+            setPreviews(next.map(f => URL.createObjectURL(f)));
+            return next;
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -253,7 +266,14 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                 {previews.length > 0 ? (
                                     <div className="flex gap-1 flex-wrap justify-center">
                                         {previews.map((p, i) => (
-                                            <img key={i} src={p} className="w-12 h-12 object-cover rounded-lg" alt="" />
+                                            <div key={i} className="relative">
+                                                <img src={p} className="w-12 h-12 object-cover rounded-lg" alt="" />
+                                                <button
+                                                    type="button"
+                                                    onClick={e => { e.stopPropagation(); removeFile(i); }}
+                                                    className="absolute -top-1 -right-1 w-4 h-4 bg-red-600 rounded-full text-white flex items-center justify-center text-[9px] leading-none"
+                                                >✕</button>
+                                            </div>
                                         ))}
                                     </div>
                                 ) : (
@@ -262,6 +282,14 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                         <p className="text-[11px] text-slate-500">사진 선택 (최대 8장)</p>
                                         <p className="text-[10px] text-slate-600">로고·스티칭·시리얼 등 다각도</p>
                                     </div>
+                                )}
+                                {previews.length > 0 && previews.length < MAX_FILES && (
+                                    <p className="text-[10px] text-slate-500 text-center mt-1">
+                                        {previews.length}장 선택됨 · 탭하면 {MAX_FILES - previews.length}장 더 추가 가능
+                                    </p>
+                                )}
+                                {previews.length >= MAX_FILES && (
+                                    <p className="text-[10px] text-purple-400 text-center mt-1">최대 8장 선택됨</p>
                                 )}
                             </div>
                             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => handleFiles(e.target.files)} />
