@@ -1,0 +1,31 @@
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+◇ injected env (0) from .env // tip: ◈ secrets for agents [www.dotenvx.com]
+◇ injected env (0) from .env // tip: ⌁ auth for agents [www.vestauth.com]
+◇ injected env (0) from .env // tip: ⌘ multiple files { path: ['.env.local', '.env'] }
+
+🚀 리서치 시작: "클로드코드 ai agent 만들기" → 노트북: "Ai agent"
+
+── Step 1. 웹 리서치 ──
+🔍 한국어 검색 결과: 10개 링크
+✅ https://m.blog.naver.com/kiosta/224186097269
+✅ https://ios-development.tistory.com/1847
+✅ https://code.claude.com/docs/ko/sub-agents
+✅ https://blog.jackerlab.com/claude-code-complete-guide/
+✅ https://www.inflearn.com/course/클로드-코드-완벽-마스터-ai-개발?cid=339317
+🔍 영문 검색 결과: 10개 링크
+📚 총 8개 소스 수집 완료
+
+── Step 2. 원고 작성 ──
+✍️  Claude API 원고 작성 중...
+✅ 원고 작성 완료 (5024자)
+
+── Step 3. 파일 저장 ──
+✅ 파일 저장: /home/paks11299958/ai_mp/research/output/Ai agent_1779151653300.txt
+
+── Step 4. NotebookLM 업로드 ──
+⚠️ NotebookLM 업로드 실패: 쿠키 만료 — 재등록 필요 (파일은 이메일로 발송)
+
+── Step 5. 이메일 발송 ──
+📧 이메일 발송 완료 → paks1012@naver.com
+
+🎉 리서치 완료!

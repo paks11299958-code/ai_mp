@@ -1,0 +1,45 @@
+◇ injected env (28) from shared-api/.env // tip: ⌘ suppress logs { quiet: true }
+
+=== GCS 고아 파일 정리 (실제 삭제) ===
+
+1. DB 전체 컬럼 자동 탐색 중...
+   스캔 대상: 170개 컬럼
+   ✓ LuxuryVerification.imageUrls: 9행
+   ✓ MathTutorHistory.imageUrl: 4행
+   ✓ Persona.chatBgUrl: 1행
+   ✓ Persona.faceReadingBgUrl: 1행
+   ✓ Persona.introVideoUrl: 4행
+   ✓ Persona.starVideoUrl: 2행
+   ✓ PersonaImage.imageUrl: 27행
+   ✓ PersonaTriggerVideo.videoUrl: 2행
+   ✓ PersonaVideo.videoUrl: 1행
+   ✓ StockAnalysis.chartImageUrl: 12행
+   ✓ UsedItemListing.imageUrls: 3행
+
+   → 사용 중인 GCS 파일: 94개
+
+2. GCS 버킷 전체 파일 목록 조회 중...
+   → 버킷 전체 파일: 58개
+
+3. 고아 파일: 8개 (0.11 MB)
+
+  - stock-charts/16_009150.png (0.008 MB)
+  - stock-charts/17_006260.png (0.014 MB)
+  - stock-charts/18_010140.png (0.015 MB)
+  - stock-charts/20_086520.png (0.015 MB)
+  - stock-charts/21_010130.png (0.015 MB)
+  - stock-charts/22_002840.png (0.010 MB)
+  - stock-charts/23_004980.png (0.012 MB)
+  - stock-charts/32_099320.png (0.016 MB)
+
+4. 삭제 중...
+  ✅ 삭제: stock-charts/16_009150.png
+  ✅ 삭제: stock-charts/17_006260.png
+  ✅ 삭제: stock-charts/18_010140.png
+  ✅ 삭제: stock-charts/20_086520.png
+  ✅ 삭제: stock-charts/21_010130.png
+  ✅ 삭제: stock-charts/22_002840.png
+  ✅ 삭제: stock-charts/23_004980.png
+  ✅ 삭제: stock-charts/32_099320.png
+
+완료: 삭제 8개 / 실패 0개 / 절약 0.11 MB
