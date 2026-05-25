@@ -678,6 +678,9 @@ export const adminApi = {
     getMonitorMetrics: () =>
         request<any>('/admin/monitor/metrics'),
 
+    getServer2Metrics: () =>
+        request<any>('/admin/monitor/server2/metrics'),
+
     getLogDates: () =>
         request<{ dates: string[] }>('/admin/monitor/logs'),
 

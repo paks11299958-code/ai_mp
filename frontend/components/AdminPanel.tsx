@@ -1360,6 +1360,54 @@ const GolfCoursesPanel: React.FC = () => {
 
 // ── 서버 모니터링 패널 ──────────────────────────────────────
 const ServerMonitorPanel: React.FC = () => {
+    const [serverTab, setServerTab] = useState<'server1' | 'server2'>('server1');
+
+    return (
+        <div className="flex-1 overflow-y-auto">
+            {/* 서버 탭 */}
+            <div className="flex gap-1 border-b border-gray-800 px-5 pt-4 sticky top-0 bg-gray-900/95 backdrop-blur z-10">
+                <button onClick={() => setServerTab('server1')}
+                    className={`px-4 py-2 text-xs font-medium border-b-2 transition-all -mb-px flex items-center gap-2
+                        ${serverTab === 'server1' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                    <Icon name="Server" size={13} />
+                    서버1 (운영 · 34.50.27.95)
+                </button>
+                <button onClick={() => setServerTab('server2')}
+                    className={`px-4 py-2 text-xs font-medium border-b-2 transition-all -mb-px flex items-center gap-2
+                        ${serverTab === 'server2' ? 'border-purple-500 text-purple-400' : 'border-transparent text-gray-500 hover:text-gray-300'}`}>
+                    <Icon name="Bot" size={13} />
+                    서버2 (에이전트 · 34.50.44.87)
+                </button>
+            </div>
+
+            {serverTab === 'server1' ? <Server1MonitorView /> : <Server2MonitorView />}
+        </div>
+    );
+};
+
+// ── 공통 유틸 ──────────────────────────────────────────────
+const fmtUptime = (s: number) => {
+    const d = Math.floor(s / 86400);
+    const h = Math.floor((s % 86400) / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
+};
+
+const Gauge: React.FC<{ label: string; value: number; color: string; sub?: string }> = ({ label, value, color, sub }) => (
+    <div className="bg-gray-800 rounded-xl p-4">
+        <p className="text-xs text-gray-400 mb-2">{label}</p>
+        <div className="flex items-end gap-2 mb-2">
+            <span className={`text-2xl font-bold ${color}`}>{value}%</span>
+            {sub && <span className="text-xs text-gray-500 mb-0.5">{sub}</span>}
+        </div>
+        <div className="w-full bg-gray-700 rounded-full h-1.5">
+            <div className={`h-1.5 rounded-full transition-all ${color.replace('text-', 'bg-')}`} style={{ width: `${Math.min(value, 100)}%` }} />
+        </div>
+    </div>
+);
+
+// ── 서버1 (운영) 모니터링 뷰 — 기존 컨텐츠 ─────────────────
+const Server1MonitorView: React.FC = () => {
     const [metrics, setMetrics] = useState<any>(null);
     const [logDates, setLogDates] = useState<string[]>([]);
     const [selectedDate, setSelectedDate] = useState<string>('');
@@ -1406,27 +1454,8 @@ const ServerMonitorPanel: React.FC = () => {
         return 'text-gray-300';
     };
 
-    const fmtUptime = (s: number) => {
-        const h = Math.floor(s / 3600);
-        const m = Math.floor((s % 3600) / 60);
-        return `${h}h ${m}m`;
-    };
-
-    const Gauge: React.FC<{ label: string; value: number; color: string; sub?: string }> = ({ label, value, color, sub }) => (
-        <div className="bg-gray-800 rounded-xl p-4">
-            <p className="text-xs text-gray-400 mb-2">{label}</p>
-            <div className="flex items-end gap-2 mb-2">
-                <span className={`text-2xl font-bold ${color}`}>{value}%</span>
-                {sub && <span className="text-xs text-gray-500 mb-0.5">{sub}</span>}
-            </div>
-            <div className="w-full bg-gray-700 rounded-full h-1.5">
-                <div className={`h-1.5 rounded-full transition-all ${color.replace('text-', 'bg-')}`} style={{ width: `${Math.min(value, 100)}%` }} />
-            </div>
-        </div>
-    );
-
     return (
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+        <div className="p-5 space-y-5">
             {/* 시스템 지표 */}
             <div>
                 <div className="flex items-center justify-between mb-3">
@@ -1493,6 +1522,97 @@ const ServerMonitorPanel: React.FC = () => {
                 }
             </div>
 
+            {/* 운영 서비스 status (PM2 + cron + DB) */}
+            {metrics?.status && (
+                <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Icon name="Activity" size={11} />
+                        시스템 상태 (status)
+                    </p>
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                        <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
+                            <span className="text-xs text-gray-400">⚡ shared-api (PM2)</span>
+                            <span className="text-xs text-gray-200 font-medium">{metrics.status.sharedApi}</span>
+                        </div>
+                        <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
+                            <span className="text-xs text-gray-400">📊 PostgreSQL (aichat)</span>
+                            <span className="text-xs text-gray-200 font-medium">{metrics.status.database}</span>
+                        </div>
+                        <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
+                            <span className="text-xs text-gray-400">🔍 monitor.js cron (3시간)</span>
+                            <span className="text-xs text-gray-200 font-medium">{metrics.status.monitorCron}</span>
+                        </div>
+                        <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
+                            <span className="text-xs text-gray-400">📦 제품추출 cron (KST 08시)</span>
+                            <span className="text-xs text-gray-200 font-medium">{metrics.status.extractCron}</span>
+                        </div>
+                        <div className="flex items-center justify-between py-2 px-3">
+                            <span className="text-xs text-gray-400">🌐 Nginx 리버스 프록시</span>
+                            <span className="text-xs text-gray-200 font-medium">{metrics.status.nginx}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* PM2 프로세스 목록 */}
+            {metrics?.pm2 && metrics.pm2.length > 0 && (
+                <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Icon name="Zap" size={11} />
+                        PM2 프로세스
+                    </p>
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                        {metrics.pm2.map((p: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+                                <span className="text-xs font-mono text-gray-200">{p.name}</span>
+                                <div className="flex items-center gap-3">
+                                    <span className={`text-xs font-semibold ${p.status === 'online' ? 'text-green-400' : 'text-red-400'}`}>
+                                        {p.status}
+                                    </span>
+                                    <span className="text-xs text-gray-500">pid {p.pid}</span>
+                                    <span className="text-xs text-gray-500">CPU {p.cpu}%</span>
+                                    <span className="text-xs text-gray-500">{p.memMB}MB</span>
+                                    <span className="text-xs text-gray-500">재시작 {p.restarts}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Docker 컨테이너 (n8n / typebot 등) */}
+            {metrics?.docker && metrics.docker.length > 0 && (
+                <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Icon name="Package" size={11} />
+                        Docker 컨테이너
+                    </p>
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                        {metrics.docker.map((d: any, i: number) => (
+                            <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+                                <span className="text-xs font-mono text-gray-200">{d.name}</span>
+                                <span className="text-xs text-gray-400">{d.status}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* cron 작업 목록 */}
+            {metrics?.cron && metrics.cron.length > 0 && (
+                <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Icon name="Clock" size={11} />
+                        Cron 작업
+                    </p>
+                    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden font-mono text-[11px] leading-5 p-3 max-h-48 overflow-y-auto">
+                        {metrics.cron.map((c: string, i: number) => (
+                            <div key={i} className="text-gray-300 py-0.5">{c}</div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* 로그 뷰어 */}
             <div>
                 <p className="text-sm font-semibold text-white mb-3">서버 로그</p>
@@ -1544,6 +1664,203 @@ const ServerMonitorPanel: React.FC = () => {
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+// ── 서버2 (에이전트) 모니터링 뷰 ───────────────────────────
+const Server2MonitorView: React.FC = () => {
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<{ message: string; hint?: string } | null>(null);
+
+    const fetchData = useCallback(() => {
+        setLoading(true);
+        setError(null);
+        adminApi.getServer2Metrics()
+            .then((d: any) => { setData(d); setError(null); })
+            .catch((e: any) => {
+                setError({ message: e?.message || '서버2 접속 실패', hint: e?.hint });
+            })
+            .finally(() => setLoading(false));
+    }, []);
+
+    useEffect(() => {
+        fetchData();
+        const timer = setInterval(fetchData, 15000);
+        return () => clearInterval(timer);
+    }, [fetchData]);
+
+    const StatusRow: React.FC<{ label: string; value: string; mono?: boolean }> = ({ label, value, mono }) => (
+        <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+            <span className="text-xs text-gray-400">{label}</span>
+            <span className={`text-xs text-gray-200 ${mono ? 'font-mono' : 'font-medium'}`}>{value}</span>
+        </div>
+    );
+
+    return (
+        <div className="p-5 space-y-5">
+            {/* 헤더 */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-sm font-semibold text-white">
+                        서버2 — {data?.role || '에이전트 전용'}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                        {data?.host ? `${data.host} · ` : ''}{data?.ip || '34.50.44.87'}
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {data && (
+                        <span className="text-xs text-gray-500">업타임 {fmtUptime(data.uptime)}</span>
+                    )}
+                    <button onClick={fetchData} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                        <Icon name="RefreshCw" size={11} />새로고침
+                    </button>
+                </div>
+            </div>
+
+            {/* 로딩/에러 */}
+            {loading && !data && !error && (
+                <div className="text-center text-gray-500 text-sm py-8">불러오는 중...</div>
+            )}
+            {error && (
+                <div className="bg-red-950/30 border border-red-800/50 rounded-xl p-4">
+                    <p className="text-sm font-semibold text-red-300 mb-1">서버2 접속 실패</p>
+                    <p className="text-xs text-red-200/80">{error.message}</p>
+                    {error.hint && <p className="text-xs text-gray-400 mt-2">💡 {error.hint}</p>}
+                </div>
+            )}
+
+            {data && (
+                <>
+                    {/* 시스템 메트릭 */}
+                    <div className="grid grid-cols-3 gap-3">
+                        <Gauge label={`CPU (${data.cpu.cores}코어)`} value={data.cpu.loadPercent}
+                            color={data.cpu.loadPercent >= 80 ? 'text-red-400' : data.cpu.loadPercent >= 50 ? 'text-yellow-400' : 'text-green-400'}
+                            sub={`load ${data.cpu.load1?.toFixed(2) ?? '-'}`} />
+                        <Gauge label="메모리" value={data.memory.usedPercent}
+                            color={data.memory.usedPercent >= 85 ? 'text-red-400' : data.memory.usedPercent >= 60 ? 'text-yellow-400' : 'text-blue-400'}
+                            sub={`${data.memory.usedMB}MB / ${data.memory.totalMB}MB`} />
+                        <Gauge label={`디스크 (${data.disk.mount})`} value={data.disk.usedPercent}
+                            color={data.disk.usedPercent >= 85 ? 'text-red-400' : data.disk.usedPercent >= 60 ? 'text-yellow-400' : 'text-purple-400'}
+                            sub={`${data.disk.usedGB}GB / ${data.disk.totalGB}GB`} />
+                    </div>
+
+                    {/* /status — 텔레그램 /status 출력값 (동적 검증) */}
+                    <div>
+                        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                            <Icon name="Activity" size={11} />
+                            시스템 상태 (텔레그램 /status)
+                        </p>
+                        <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                            <StatusRow label="🤖 Hermes 리스너" value={data.status.hermesListener} />
+                            <StatusRow label="🔍 Search Agent" value={data.status.searchAgent} />
+                            <StatusRow label="💻 Dev Agent (Claude Code)" value={data.status.devAgent} />
+                            <StatusRow label="📚 RAG DB" value={data.status.ragDb} />
+                            <StatusRow label="👀 wiki-watcher" value={data.status.wikiWatcher} />
+                            <StatusRow label="💾 wiki 백업" value={data.status.wikiBackup} />
+                        </div>
+                    </div>
+
+                    {/* 텔레그램 /status 원본 텍스트 */}
+                    {data.statusText && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Icon name="Bot" size={11} />
+                                /status 원본 출력 (텔레그램 메시지)
+                            </p>
+                            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden p-4">
+                                <pre className="text-[11px] text-gray-300 font-mono leading-relaxed whitespace-pre-wrap">
+{data.statusText}
+                                </pre>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* supervisor 프로세스 */}
+                    {data.supervisor && data.supervisor.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Icon name="Cpu" size={11} />
+                                Supervisor 프로세스
+                            </p>
+                            <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                                {data.supervisor.map((s: any, i: number) => (
+                                    <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+                                        <span className="text-xs font-mono text-gray-200">{s.name}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-xs font-semibold ${s.state === 'RUNNING' ? 'text-green-400' : s.state === 'STOPPED' ? 'text-red-400' : 'text-yellow-400'}`}>
+                                                {s.state}
+                                            </span>
+                                            <span className="text-xs text-gray-500 font-mono">{s.detail}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* PM2 프로세스 */}
+                    {data.pm2 && data.pm2.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Icon name="Zap" size={11} />
+                                PM2 프로세스
+                            </p>
+                            <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                                {data.pm2.map((p: any, i: number) => (
+                                    <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+                                        <span className="text-xs font-mono text-gray-200">{p.name}</span>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-xs font-semibold ${p.status === 'online' ? 'text-green-400' : 'text-red-400'}`}>
+                                                {p.status}
+                                            </span>
+                                            <span className="text-xs text-gray-500">pid {p.pid}</span>
+                                            <span className="text-xs text-gray-500">CPU {p.cpu}%</span>
+                                            <span className="text-xs text-gray-500">{p.memMB}MB</span>
+                                            <span className="text-xs text-gray-500">재시작 {p.restarts}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Docker 컨테이너 */}
+                    {data.docker && data.docker.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Icon name="Package" size={11} />
+                                Docker 컨테이너
+                            </p>
+                            <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                                {data.docker.map((d: any, i: number) => (
+                                    <div key={i} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+                                        <span className="text-xs font-mono text-gray-200">{d.name}</span>
+                                        <span className="text-xs text-gray-400">{d.status}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* cron */}
+                    {data.cron && data.cron.length > 0 && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Icon name="Clock" size={11} />
+                                Cron 작업
+                            </p>
+                            <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden font-mono text-[11px] leading-5 p-3">
+                                {data.cron.map((c: string, i: number) => (
+                                    <div key={i} className="text-gray-300 py-0.5">{c}</div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
         </div>
     );
 };

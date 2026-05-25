@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import type { VercelRequest } from '@vercel/node';
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -37,4 +37,25 @@ export function setTokenCookie(token: string) {
 
 export function clearTokenCookie() {
   return `token=; HttpOnly; Secure; Path=/; Max-Age=0; SameSite=Strict`;
+}
+
+/**
+ * 토큰 검증 후 userId 반환. 실패 시 401 응답 후 null 반환.
+ * 호출 측에서 null 체크 후 즉시 return해야 함.
+ *
+ * if (userId === null) return;
+ */
+export function requireAuth(req: VercelRequest, res: VercelResponse): number | null {
+  const token = getTokenFromRequest(req);
+  if (!token) {
+    res.status(401).json({ error: '로그인이 필요합니다.' });
+    return null;
+  }
+  try {
+    const { userId } = verifyToken(token);
+    return userId;
+  } catch {
+    res.status(401).json({ error: '유효하지 않은 토큰입니다.' });
+    return null;
+  }
 }

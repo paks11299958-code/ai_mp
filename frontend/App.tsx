@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { PointsProvider, usePoints } from './contexts/PointsContext';
 import { Coins } from 'lucide-react';
 import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Announcement, Category } from './types';
@@ -42,7 +43,17 @@ import { FaceReadingResult } from './services/apiService';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
 
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+    const {
+        paidPoints: userPaidPoints,
+        bonusPoints: userBonusPoints,
+        showPointModal, setShowPointModal,
+        showPointDashboard, setShowPointDashboard,
+        levelUpInfo, setLevelUpInfo,
+        setPaidPoints: setUserPaidPoints,
+        setBonusPoints: setUserBonusPoints,
+    } = usePoints();
+
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -132,12 +143,6 @@ const App: React.FC = () => {
     const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
         try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
     });
-
-    const [userPaidPoints, setUserPaidPoints] = useState<number>(0);
-    const [userBonusPoints, setUserBonusPoints] = useState<number>(0);
-    const [showPointModal, setShowPointModal] = useState(false);
-    const [showPointDashboard, setShowPointDashboard] = useState(false);
-    const [levelUpInfo, setLevelUpInfo] = useState<{ newStage: number; levelupBonus: number } | null>(null);
 
     const [swingUploading, setSwingUploading] = useState(false);
     const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
@@ -2127,5 +2132,11 @@ const App: React.FC = () => {
         </div>
     );
 };
+
+const App: React.FC = () => (
+    <PointsProvider>
+        <AppContent />
+    </PointsProvider>
+);
 
 export default App;

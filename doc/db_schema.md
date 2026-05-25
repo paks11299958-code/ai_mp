@@ -1,6 +1,6 @@
 # DB 스키마 (25개 모델)
 
-> Prisma 마이그레이션 대신 raw SQL 직접 실행 (히스토리 없음)  
+> Prisma 마이그레이션 대신 raw SQL 직접 실행 (히스토리 없음) 
 > 스키마 변경 후 반드시 `npx prisma generate` + `src/generated/prisma/` 커밋
 
 ---
@@ -182,3 +182,4 @@ ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
 CREATE UNIQUE INDEX IF NOT EXISTS "User_phone_key" ON "User"(phone);
 ALTER TABLE "User" ALTER COLUMN email DROP NOT NULL;
 ```
+
