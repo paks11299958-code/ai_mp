@@ -301,58 +301,45 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
 };
 
 const NewsCard: React.FC<{ item: NewsItem; index: number }> = ({ item, index }) => {
-    const [expanded, setExpanded] = useState(false);
-
     return (
-        <div
-            className="group rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.06] hover:border-sky-700/30 transition-all cursor-pointer overflow-hidden"
-            onClick={() => setExpanded(e => !e)}
-        >
+        <div className="rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.06] hover:border-sky-700/30 transition-all overflow-hidden">
             {/* 제목 행 */}
             <div className="flex items-start gap-3 px-4 py-3">
-                {/* 번호 뱃지 */}
                 <span className="flex-shrink-0 w-5 h-5 rounded-full bg-sky-800/60 text-sky-300 text-[10px] font-bold flex items-center justify-center mt-0.5">
                     {index + 1}
                 </span>
-                <p className="flex-1 text-sm font-semibold text-gray-100 leading-snug group-hover:text-white transition-colors">
+                <p className="flex-1 text-sm font-semibold text-gray-100 leading-snug">
                     {item.title}
                 </p>
-                <span className="flex-shrink-0 text-gray-600 group-hover:text-sky-500 transition-colors text-[10px] mt-1">
-                    {expanded ? '▲' : '▼'}
-                </span>
             </div>
 
-            {/* 펼쳐지는 상세 */}
-            {expanded && (
-                <div className="px-4 pb-3.5 space-y-2.5 border-t border-white/5">
-                    {/* 핵심 내용 */}
-                    {item.content && (
-                        <div className="pt-3">
-                            <div className="flex items-start gap-2">
-                                <span className="flex-shrink-0 text-[10px] font-semibold text-sky-400 bg-sky-900/40 px-1.5 py-0.5 rounded mt-0.5">
-                                    핵심
-                                </span>
-                                <p className="text-xs text-gray-300 leading-relaxed">{item.content}</p>
-                            </div>
+            {/* 상세 내용 — 항상 표시 */}
+            <div className="px-4 pb-3.5 space-y-2.5 border-t border-white/5">
+                {item.content && (
+                    <div className="pt-3">
+                        <div className="flex items-start gap-2">
+                            <span className="flex-shrink-0 text-[10px] font-semibold text-sky-400 bg-sky-900/40 px-1.5 py-0.5 rounded mt-0.5">
+                                핵심
+                            </span>
+                            <p className="text-xs text-gray-300 leading-relaxed">{item.content}</p>
                         </div>
-                    )}
+                    </div>
+                )}
 
-                    {/* 출처 태그들 */}
-                    {item.sources.length > 0 && (
-                        <div className="flex items-center flex-wrap gap-1.5">
-                            <span className="text-[10px] text-gray-600">출처</span>
-                            {item.sources.map((src, i) => (
-                                <span
-                                    key={i}
-                                    className="text-[10px] px-2 py-0.5 rounded-full bg-gray-800/80 text-gray-400 border border-gray-700/50 font-mono"
-                                >
-                                    {src}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            )}
+                {item.sources.length > 0 && (
+                    <div className="flex items-center flex-wrap gap-1.5">
+                        <span className="text-[10px] text-gray-600">출처</span>
+                        {item.sources.map((src, i) => (
+                            <span
+                                key={i}
+                                className="text-[10px] px-2 py-0.5 rounded-full bg-gray-800/80 text-gray-400 border border-gray-700/50 font-mono"
+                            >
+                                {src}
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
