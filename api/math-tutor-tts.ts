@@ -1,7 +1,21 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { getTokenFromRequest, verifyToken } from './_lib/auth.js';
+import { TextToSpeechClient } from '@google-cloud/text-to-speech';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 
-const SARAH_VOICE_ID = 'EXAVITQu4vr4xnSDxMaL';
+function mdToPlain(text: string): string {
+    return text
+        .replace(/#{1,6}\s/g, '')
+        .replace(/\*\*/g, '')
+        .replace(/\*/g, '')
+        .replace(/`{1,3}/g, '')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/^[-*+]\s/gm, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -12,47 +26,41 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const { text } = req.body || {};
     if (!text || typeof text !== 'string') return res.status(400).json({ error: '텍스트가 필요합니다.' });
-    if (text.length > 2000) return res.status(400).json({ error: '텍스트가 너무 깁니다.' });
+    if (text.length > 4800) return res.status(400).json({ error: '텍스트가 너무 깁니다.' });
 
-    const apiKey = process.env.ELEVENLABS_API_KEY;
-    console.log('[TTS] apiKey exists:', !!apiKey, 'prefix:', apiKey?.slice(0, 8));
+    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    if (!credsJson) return res.status(500).json({ error: 'Google TTS 설정이 없습니다.' });
 
-    if (!apiKey) return res.status(500).json({ error: 'ELEVENLABS_API_KEY not set' });
-
+    let tmpFile: string | null = null;
     try {
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${SARAH_VOICE_ID}`, {
-            method: 'POST',
-            headers: {
-                'xi-api-key': apiKey,
-                'Content-Type': 'application/json',
-                'Accept': 'audio/mpeg',
+        // 임시 파일로 credentials 저장
+        tmpFile = path.join(os.tmpdir(), `gcp-tts-${Date.now()}.json`);
+        fs.writeFileSync(tmpFile, credsJson, 'utf8');
+        process.env.GOOGLE_APPLICATION_CREDENTIALS = tmpFile;
+
+        const client = new TextToSpeechClient();
+        const plain = mdToPlain(text).slice(0, 4800);
+
+        const [response] = await client.synthesizeSpeech({
+            input: { text: plain },
+            voice: {
+                languageCode: 'ko-KR',
+                name: 'ko-KR-Chirp3-HD-Leda',
             },
-            body: JSON.stringify({
-                text,
-                model_id: 'eleven_multilingual_v2',
-                voice_settings: {
-                    stability: 0.5,
-                    similarity_boost: 0.8,
-                    style: 0.3,
-                    use_speaker_boost: true,
-                },
-            }),
+            audioConfig: {
+                audioEncoding: 'MP3',
+                speakingRate: 1.05,
+            },
         });
 
-        console.log('[TTS] ElevenLabs status:', response.status);
-
-        if (!response.ok) {
-            const err = await response.text();
-            console.error('[TTS] ElevenLabs error:', err);
-            return res.status(500).json({ error: `ElevenLabs ${response.status}: ${err}` });
-        }
-
-        const buffer = Buffer.from(await response.arrayBuffer());
+        const audioBuffer = Buffer.from(response.audioContent as Uint8Array);
         res.setHeader('Content-Type', 'audio/mpeg');
         res.setHeader('Cache-Control', 'no-store');
-        res.send(buffer);
+        res.send(audioBuffer);
     } catch (e: any) {
-        console.error('[TTS] 예외:', e.message);
-        return res.status(500).json({ error: `서버 예외: ${e.message}` });
+        console.error('[TTS] Google TTS 오류:', e.message);
+        return res.status(500).json({ error: `TTS 오류: ${e.message}` });
+    } finally {
+        if (tmpFile && fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
     }
 }

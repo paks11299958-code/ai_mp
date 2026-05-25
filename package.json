@@ -27,6 +27,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.96.0",
     "@google-cloud/storage": "^7.19.0",
+    "@google-cloud/text-to-speech": "^6.4.1",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "@types/pg": "^8.20.0",
