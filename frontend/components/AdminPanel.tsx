@@ -2204,14 +2204,25 @@ const AiUsagePanel: React.FC = () => {
     const [days, setDays] = React.useState(30);
     const [data, setData] = React.useState<any>(null);
     const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState<string | null>(null);
 
     const load = async (d: number) => {
         setLoading(true);
+        setError(null);
         try {
-            const res = await fetch(`/api/aimp/admin/ai-usage?days=${d}`, {
+            const res = await fetch(`/api/admin/ai-usage?days=${d}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
-            setData(await res.json());
+            const json = await res.json();
+            if (!res.ok || json?.error) {
+                setError(json?.error || `요청 실패 (HTTP ${res.status})`);
+                setData(null);
+            } else {
+                setData(json);
+            }
+        } catch (e: any) {
+            setError(e?.message || '네트워크 오류');
+            setData(null);
         } finally {
             setLoading(false);
         }
@@ -2253,13 +2264,19 @@ const AiUsagePanel: React.FC = () => {
 
             {loading && <div className="text-center text-gray-400 py-8">불러오는 중...</div>}
 
-            {!loading && data && (
+            {!loading && error && (
+                <div className="bg-red-900/40 border border-red-700 text-red-200 rounded-lg p-4 text-center">
+                    오류: {error}
+                </div>
+            )}
+
+            {!loading && !error && data && (
                 <>
                     <div className="grid grid-cols-3 gap-3">
                         {[
-                            { label: '총 비용', value: fmt(data.total.cost), sub: `${data.total.calls}회 호출` },
-                            { label: '총 토큰', value: data.total.tokens.toLocaleString(), sub: '토큰' },
-                            { label: '평균/일', value: fmt(data.total.cost / days), sub: `기준 ${days}일` },
+                            { label: '총 비용', value: fmt(Number(data?.total?.cost ?? 0)), sub: `${Number(data?.total?.calls ?? 0)}회 호출` },
+                            { label: '총 토큰', value: Number(data?.total?.tokens ?? 0).toLocaleString(), sub: '토큰' },
+                            { label: '평균/일', value: fmt(Number(data?.total?.cost ?? 0) / days), sub: `기준 ${days}일` },
                         ].map(c => (
                             <div key={c.label} className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700">
                                 <div className="text-gray-400 text-xs mb-1">{c.label}</div>
@@ -2307,7 +2324,7 @@ const AiUsagePanel: React.FC = () => {
 
                     <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
                         <div className="text-gray-300 font-medium mb-3">기능별 상세</div>
-                        {data.byFeature.length === 0 ? (
+                        {(!Array.isArray(data?.byFeature) || data.byFeature.length === 0) ? (
                             <div className="text-gray-500 text-center py-4">데이터 없음</div>
                         ) : (
                             <table className="w-full text-xs">
