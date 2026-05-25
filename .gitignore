@@ -6,3 +6,7 @@ product-extractor/output/
 product-extractor/cron.log
 product-extractor/coupang_category/
 product-extractor/*.zip
+
+# 보고서/뉴스 요약 파일 (reports/ 디렉토리에 저장)
+/*.md
+reports/
