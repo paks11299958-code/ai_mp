@@ -4,6 +4,7 @@ import { deleteFromGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { logAiUsage } from './_lib/aiUsage.js';
 
 export const maxDuration = 300;
 
@@ -82,6 +83,11 @@ async function getPriceFromClaude(imageUrls: string[], itemHint: string | null):
         max_tokens: 400,
         messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: buildPricePrompt(itemHint) }] }],
     });
+    await logAiUsage({
+        service: 'anthropic', model: 'claude-sonnet-4-6', feature: 'used-item',
+        promptTokens: res.usage?.input_tokens ?? 0,
+        completionTokens: res.usage?.output_tokens ?? 0,
+    });
     const text = res.content[0].type === 'text' ? res.content[0].text : '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(clean);
@@ -102,6 +108,11 @@ async function getPriceFromOpenAI(imageUrls: string[], itemHint: string | null):
             { role: 'system', content: '당신은 중고 거래 전문 감정사입니다. 이미지를 보고 정확한 시세를 제시합니다.' },
             { role: 'user', content: [...imageContent, { type: 'text', text: buildPricePrompt(itemHint) }] },
         ],
+    });
+    await logAiUsage({
+        service: 'openai', model: 'gpt-4o', feature: 'used-item',
+        promptTokens: res.usage?.prompt_tokens ?? 0,
+        completionTokens: res.usage?.completion_tokens ?? 0,
     });
     const text = res.choices[0]?.message?.content || '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -149,6 +160,14 @@ async function analyzeUsedItem(taskId: number): Promise<void> {
         contents: [{ role: 'user', parts: [...imageParts, { text: analysisPrompt }] }],
     });
 
+    const analysisMeta = (analysisRes as any).usageMetadata;
+    if (analysisMeta) {
+        await logAiUsage({
+            service: 'gemini', model: 'gemini-2.5-flash', feature: 'used-item',
+            promptTokens: analysisMeta.promptTokenCount ?? 0,
+            completionTokens: analysisMeta.candidatesTokenCount ?? 0,
+        });
+    }
     const analysisText = analysisRes.candidates?.[0]?.content?.parts?.[0]?.text || '';
     let analysis: any = {};
     try {

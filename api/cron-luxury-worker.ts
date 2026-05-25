@@ -4,6 +4,7 @@ import { deleteFromGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { logAiUsage } from './_lib/aiUsage.js';
 
 export const maxDuration = 300;
 
@@ -82,6 +83,14 @@ async function analyzeWithGemini(imageUrls: string[], brandHint: string | null):
         contents: [{ role: 'user', parts: [...imageParts, { text: buildPrompt(brandHint) }] }],
     });
 
+    const geminiMeta = (res as any).usageMetadata;
+    if (geminiMeta) {
+        await logAiUsage({
+            service: 'gemini', model: 'gemini-2.5-flash', feature: 'luxury',
+            promptTokens: geminiMeta.promptTokenCount ?? 0,
+            completionTokens: geminiMeta.candidatesTokenCount ?? 0,
+        });
+    }
     const text = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(clean);
@@ -106,6 +115,11 @@ async function analyzeWithClaude(imageUrls: string[], brandHint: string | null):
         }],
     });
 
+    await logAiUsage({
+        service: 'anthropic', model: 'claude-sonnet-4-6', feature: 'luxury',
+        promptTokens: res.usage?.input_tokens ?? 0,
+        completionTokens: res.usage?.output_tokens ?? 0,
+    });
     const text = res.content[0].type === 'text' ? res.content[0].text : '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(clean);
@@ -136,6 +150,11 @@ async function analyzeWithOpenAI(imageUrls: string[], brandHint: string | null):
         ],
     });
 
+    await logAiUsage({
+        service: 'openai', model: 'gpt-4o', feature: 'luxury',
+        promptTokens: res.usage?.prompt_tokens ?? 0,
+        completionTokens: res.usage?.completion_tokens ?? 0,
+    });
     const text = res.choices[0]?.message?.content || '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(clean);

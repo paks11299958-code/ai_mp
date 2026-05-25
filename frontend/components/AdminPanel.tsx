@@ -26,7 +26,7 @@ interface AdminPanelProps {
 const DEFAULT_IDS = ['general', 'coder', 'writer', 'translator'];
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage'>('personas');
     const [showResearchInAdmin, setShowResearchInAdmin] = useState(false);
     const [showProductExtractInAdmin, setShowProductExtractInAdmin] = useState(false);
     const [showInstagramLiker, setShowInstagramLiker] = useState(false);
@@ -225,6 +225,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { key: 'users',         label: '회원 관리',   icon: 'Users' },
                         { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
                         { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
+                        { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
                         { key: 'golf-courses',  label: '골프장 관리', icon: 'MapPin'   },
                         { key: 'tools',          label: '기능연습',    icon: 'Zap'      },
                         { key: 'product-extract', label: '제품추출',   icon: 'Package'  },
@@ -665,6 +666,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 서버 모니터링 패널 */}
                 {mainView === 'monitor' && <ServerMonitorPanel />}
+                {mainView === 'ai-usage' && <AiUsagePanel />}
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}
@@ -2180,6 +2182,167 @@ const ProductExtractPanel: React.FC = () => {
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+// ── AI 사용량 대시보드 ───────────────────────────────────────────
+const SERVICE_COLOR: Record<string, string> = {
+    openai:    '#10a37f',
+    anthropic: '#d97706',
+    gemini:    '#4285f4',
+};
+const SERVICE_LABEL: Record<string, string> = {
+    openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini',
+};
+const FEATURE_LABEL: Record<string, string> = {
+    stock: '주식분석', luxury: '명품감정', 'used-item': '중고시세',
+    chat: '채팅', research: '리서치',
+};
+
+const AiUsagePanel: React.FC = () => {
+    const [days, setDays] = React.useState(30);
+    const [data, setData] = React.useState<any>(null);
+    const [loading, setLoading] = React.useState(false);
+
+    const load = async (d: number) => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/aimp/admin/ai-usage?days=${d}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            setData(await res.json());
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    React.useEffect(() => { load(days); }, [days]);
+
+    const dailyMap: Record<string, Record<string, { cost: number; calls: number }>> = {};
+    if (data?.daily) {
+        for (const r of data.daily) {
+            const d = String(r.date).slice(0, 10);
+            if (!dailyMap[d]) dailyMap[d] = {};
+            if (!dailyMap[d][r.service]) dailyMap[d][r.service] = { cost: 0, calls: 0 };
+            dailyMap[d][r.service].cost += r.cost;
+            dailyMap[d][r.service].calls += r.calls;
+        }
+    }
+    const dailyDates = Object.keys(dailyMap).sort();
+    const maxDayCost = Math.max(...dailyDates.map(d => Object.values(dailyMap[d]).reduce((s, v) => s + v.cost, 0)), 0.001);
+    const fmt = (v: number) => v < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(3)}`;
+
+    return (
+        <div className="p-4 space-y-6 text-sm">
+            <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    📊 AI 사용량 대시보드
+                    <span className="text-xs font-normal text-gray-400">(지금부터 누적)</span>
+                </h2>
+                <div className="flex gap-2">
+                    {[7, 30, 90].map(d => (
+                        <button key={d} onClick={() => setDays(d)}
+                            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                                days === d ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                            }`}
+                        >{d}일</button>
+                    ))}
+                </div>
+            </div>
+
+            {loading && <div className="text-center text-gray-400 py-8">불러오는 중...</div>}
+
+            {!loading && data && (
+                <>
+                    <div className="grid grid-cols-3 gap-3">
+                        {[
+                            { label: '총 비용', value: fmt(data.total.cost), sub: `${data.total.calls}회 호출` },
+                            { label: '총 토큰', value: data.total.tokens.toLocaleString(), sub: '토큰' },
+                            { label: '평균/일', value: fmt(data.total.cost / days), sub: `기준 ${days}일` },
+                        ].map(c => (
+                            <div key={c.label} className="bg-gray-800 rounded-lg p-4 text-center border border-gray-700">
+                                <div className="text-gray-400 text-xs mb-1">{c.label}</div>
+                                <div className="text-white text-xl font-bold">{c.value}</div>
+                                <div className="text-gray-500 text-xs mt-1">{c.sub}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <div className="text-gray-300 font-medium mb-3">일별 비용</div>
+                        {dailyDates.length === 0 ? (
+                            <div className="text-gray-500 text-center py-6">아직 데이터가 없습니다.<br/>AI 기능 사용 후 여기에 집계됩니다.</div>
+                        ) : (
+                            <div className="space-y-1 max-h-64 overflow-y-auto">
+                                {dailyDates.slice().reverse().map(date => {
+                                    const services = dailyMap[date];
+                                    const total = Object.values(services).reduce((s, v) => s + v.cost, 0);
+                                    return (
+                                        <div key={date} className="flex items-center gap-2">
+                                            <span className="text-gray-400 text-xs w-20 shrink-0">{date.slice(5)}</span>
+                                            <div className="flex-1 flex h-5 rounded overflow-hidden bg-gray-700">
+                                                {Object.entries(services).map(([svc, v]) => (
+                                                    <div key={svc}
+                                                        style={{ width: `${(v.cost / maxDayCost) * 100}%`, backgroundColor: SERVICE_COLOR[svc] ?? '#666' }}
+                                                        title={`${SERVICE_LABEL[svc]}: ${fmt(v.cost)} (${v.calls}회)`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <span className="text-white text-xs w-16 text-right shrink-0">{fmt(total)}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        <div className="flex gap-4 mt-3 pt-3 border-t border-gray-700">
+                            {Object.entries(SERVICE_COLOR).map(([svc, color]) => (
+                                <div key={svc} className="flex items-center gap-1 text-xs text-gray-400">
+                                    <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: color }} />
+                                    {SERVICE_LABEL[svc]}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <div className="text-gray-300 font-medium mb-3">기능별 상세</div>
+                        {data.byFeature.length === 0 ? (
+                            <div className="text-gray-500 text-center py-4">데이터 없음</div>
+                        ) : (
+                            <table className="w-full text-xs">
+                                <thead>
+                                    <tr className="text-gray-400 border-b border-gray-700">
+                                        <th className="text-left pb-2">기능</th>
+                                        <th className="text-left pb-2">서비스</th>
+                                        <th className="text-left pb-2">모델</th>
+                                        <th className="text-right pb-2">호출</th>
+                                        <th className="text-right pb-2">토큰</th>
+                                        <th className="text-right pb-2">비용</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.byFeature.map((r: any, i: number) => (
+                                        <tr key={i} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+                                            <td className="py-2 text-white">{FEATURE_LABEL[r.feature] ?? r.feature}</td>
+                                            <td className="py-2">
+                                                <span className="px-2 py-0.5 rounded text-white text-xs"
+                                                    style={{ backgroundColor: SERVICE_COLOR[r.service] ?? '#666' }}>
+                                                    {SERVICE_LABEL[r.service] ?? r.service}
+                                                </span>
+                                            </td>
+                                            <td className="py-2 text-gray-400">{r.model}</td>
+                                            <td className="py-2 text-right text-gray-300">{r.calls.toLocaleString()}</td>
+                                            <td className="py-2 text-right text-gray-300">{r.tokens.toLocaleString()}</td>
+                                            <td className="py-2 text-right text-yellow-400 font-medium">{fmt(r.cost)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </>
+            )}
         </div>
     );
 };

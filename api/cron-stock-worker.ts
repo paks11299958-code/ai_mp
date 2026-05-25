@@ -5,6 +5,7 @@ import { uploadToGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { logAiUsage } from './_lib/aiUsage.js';
 
 export const maxDuration = 300;
 
@@ -96,6 +97,11 @@ XX,000 ~ XX,000원
         max_tokens: 800,
         messages: [{ role: 'user', content: prompt }],
     });
+    await logAiUsage({
+        service: 'anthropic', model: 'claude-sonnet-4-6', feature: 'stock',
+        promptTokens: res.usage?.input_tokens ?? 0,
+        completionTokens: res.usage?.output_tokens ?? 0,
+    });
     return res.content[0].type === 'text' ? res.content[0].text : '';
 }
 
@@ -138,6 +144,11 @@ XX,000 ~ XX,000원
             { role: 'system', content: '당신은 한국 증권 시장 전문 애널리스트입니다.' },
             { role: 'user', content: prompt },
         ],
+    });
+    await logAiUsage({
+        service: 'openai', model: 'gpt-4o', feature: 'stock',
+        promptTokens: res.usage?.prompt_tokens ?? 0,
+        completionTokens: res.usage?.completion_tokens ?? 0,
     });
     return res.choices[0]?.message?.content || '';
 }
@@ -291,6 +302,16 @@ Google Search로 ${stockName}의 최신 뉴스, 증권사 리포트, 목표주�
 
     const geminiReport = geminiResponse.text ?? '';
     console.log(`[stock] Gemini 완료 ${geminiReport.length}자, Claude: ${claudeOpinion ? 'OK' : '실패'}, GPT: ${gptOpinion ? 'OK' : '실패'}`);
+
+    // Gemini 토큰 로깅 (usageMetadata)
+    const geminiMeta = (geminiResponse as any).usageMetadata;
+    if (geminiMeta) {
+        await logAiUsage({
+            service: 'gemini', model: 'gemini-2.5-flash', feature: 'stock',
+            promptTokens: geminiMeta.promptTokenCount ?? 0,
+            completionTokens: geminiMeta.candidatesTokenCount ?? 0,
+        });
+    }
 
     // 5단계: 보고서 합산
     let combinedReport = geminiReport;
