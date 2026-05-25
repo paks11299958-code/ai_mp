@@ -25,6 +25,7 @@ import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { MathTutorBoard } from './components/MathTutorBoard';
+import { TodayNewsBoard } from './components/TodayNewsBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
 import { AnnouncementModal } from './components/AnnouncementModal';
 import { ProductExtractDialog } from './components/ProductExtractDialog';
@@ -128,6 +129,7 @@ const AppContent: React.FC = () => {
     const [comingSoonMsg, setComingSoonMsg] = useState('');
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
+    const [showTodayNews, setShowTodayNews] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
     const [commonInstruction, setCommonInstruction] = useState('');
@@ -1118,6 +1120,9 @@ const AppContent: React.FC = () => {
                 {showLuxuryBoard && (
                     <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
                 )}
+                {showTodayNews && (
+                    <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
+                )}
                 {showMathTutor && (
                     <MathTutorBoard onClose={() => setShowMathTutor(false)} />
                 )}
@@ -1189,6 +1194,9 @@ const AppContent: React.FC = () => {
             )}
             {showLuxuryBoard && (
                 <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
+            )}
+            {showTodayNews && (
+                <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
             )}
             {showResearch && (
                 <ResearchBoard onClose={() => setShowResearch(false)} user={user} />
@@ -1834,6 +1842,15 @@ const AppContent: React.FC = () => {
                                             >
                                                 <Icon name="Shield" size={10} />
                                                 명품 검증
+                                            </button>
+                                        )}
+                                        {activePersona?.name === '서아' && user && (
+                                            <button
+                                                onClick={() => setShowTodayNews(true)}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 hover:text-sky-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                            >
+                                                <Icon name="Newspaper" size={10} />
+                                                오늘뉴스
                                             </button>
                                         )}
                                         {activePersona?.name === '지우' && user && (
