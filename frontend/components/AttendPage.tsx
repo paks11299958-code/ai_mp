@@ -49,6 +49,10 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
     useEffect(() => {
         if (step === 'phone')    setTimeout(() => phoneRef.current?.focus(), 100);
         if (step === 'nickname') setTimeout(() => nicknameRef.current?.focus(), 100);
+        if (step === 'done' || step === 'already') {
+            const t = setTimeout(() => window.close(), 2000);
+            return () => clearTimeout(t);
+        }
     }, [step]);
 
     // 연락처 제출
@@ -218,6 +222,7 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                             {sheetInfo?.clubName} 출석이 기록되었습니다 ✓
                         </div>
+                        <p className="text-white/20 text-xs">잠시 후 창이 닫힙니다...</p>
                     </div>
                 )}
 
@@ -233,6 +238,7 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
                             <p className="text-yellow-400 text-sm font-medium mt-1">이미 출석하셨습니다</p>
                             <p className="text-white/30 text-xs mt-1">{formatTime(alreadyAt)}</p>
                         </div>
+                        <p className="text-white/20 text-xs">잠시 후 창이 닫힙니다...</p>
                     </div>
                 )}
 
