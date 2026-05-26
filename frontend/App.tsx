@@ -1862,7 +1862,7 @@ const AppContent: React.FC = () => {
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap flex items-center gap-1 transition-colors"
                                                 style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
                                             >
-                                                🤝 모임
+                                                🤝 모임(출첵)
                                             </button>
                                         )}
                                     </div>
