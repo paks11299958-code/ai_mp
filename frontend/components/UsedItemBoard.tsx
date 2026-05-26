@@ -436,9 +436,6 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
 
                                 <div className="p-5 space-y-5">
-                                    {/* 이미지 썸네일 */}
-                                    <ImageGallery raw={selected.imageUrls} />
-
                                     {/* AI 분석 정보 */}
                                     <AnalysisCard detail={selected} />
 
