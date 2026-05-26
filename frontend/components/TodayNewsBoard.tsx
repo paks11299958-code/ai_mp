@@ -79,17 +79,16 @@ function useTTS() {
         setTtsLoading(false);
     }, []);
 
-    const speak = useCallback(async (text: string) => {
+    const speakCategory = useCallback(async (category: string) => {
         stop();
         setTtsLoading(true);
         try {
-            const res = await fetch('/api/math-tutor-tts', {
-                method: 'POST',
+            // 사전 생성된 TTS mp3 시도
+            const res = await fetch(`/api/news/tts?category=${encodeURIComponent(category)}`, {
                 credentials: 'include',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
-                body: JSON.stringify({ text: text.slice(0, 2000) }),
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
-            if (!res.ok) throw new Error('TTS 실패');
+            if (!res.ok) throw new Error('캐시 없음');
             const url = URL.createObjectURL(await res.blob());
             const audio = new Audio(url);
             audioRef.current = audio;
@@ -105,7 +104,7 @@ function useTTS() {
     }, [stop]);
 
     useEffect(() => () => { audioRef.current?.pause(); }, []);
-    return { speaking, ttsLoading, speak, stop };
+    return { speaking, ttsLoading, speakCategory, stop };
 }
 
 function formatTime(iso: string) {
@@ -129,7 +128,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const [loadingKey, setLoadingKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [collectedAt, setCollectedAt] = useState<string | null>(null);
-    const { speaking, ttsLoading, speak, stop } = useTTS();
+    const { speaking, ttsLoading, speakCategory, stop } = useTTS();
 
     const fetchCategory = useCallback(async (key: string) => {
         if (newsMap[key] !== undefined) return;
@@ -167,10 +166,6 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const isLoading = loadingKey === activeKey;
     const activeCat = CATEGORIES.find(c => c.key === activeKey)!;
 
-    const ttsText = current
-        ? current.report.replace(/#{1,6}\s/g, '').replace(/\*\*/g, '').replace(/- /g, '')
-        : '';
-
     const parsed = current ? parseNewsItems(current.report) : null;
 
     return (
@@ -191,7 +186,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                     <div className="flex items-center gap-2">
                         {current && (
                             <button
-                                onClick={() => speaking ? stop() : speak(ttsText)}
+                                onClick={() => speaking ? stop() : speakCategory(activeKey)}
                                 disabled={ttsLoading}
                                 className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border border-sky-600/50 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 transition-colors disabled:opacity-50"
                             >
