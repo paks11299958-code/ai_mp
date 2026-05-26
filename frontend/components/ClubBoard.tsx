@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, Plus, Users, QrCode, ClipboardList, RefreshCw, Loader, Copy, Check } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 // ── 타입 ─────────────────────────────────────────────────
 
@@ -330,27 +331,27 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                     </div>
                                     <p className="text-xs text-white/30">{formatDate(s.createdAt)}</p>
 
-                                    {/* QR URL 복사 */}
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <input
-                                            readOnly
-                                            value={url}
-                                            className="flex-1 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-white/50 border border-white/10 truncate"
-                                        />
-                                        <button
-                                            onClick={() => copyUrl(url, s.id)}
-                                            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                                            title="출석 링크 복사"
-                                        >
-                                            {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-white/60" />}
-                                        </button>
-                                        <button
-                                            onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
-                                            className="p-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors"
-                                            title="출석 명단 보기"
-                                        >
-                                            <Users size={14} className="text-pink-400" />
-                                        </button>
+                                    {/* QR 코드 + 버튼 */}
+                                    <div className="flex gap-3 mt-2 items-start">
+                                        <div className="p-2 rounded-xl bg-white">
+                                            <QRCodeSVG value={url} size={100} />
+                                        </div>
+                                        <div className="flex flex-col gap-2 flex-1">
+                                            <button
+                                                onClick={() => copyUrl(url, s.id)}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-xs text-white/70"
+                                            >
+                                                {copied === s.id ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                                                {copied === s.id ? '복사됨' : '링크 복사'}
+                                            </button>
+                                            <button
+                                                onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
+                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors text-xs text-pink-400"
+                                            >
+                                                <Users size={13} />
+                                                출석 명단
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             );
