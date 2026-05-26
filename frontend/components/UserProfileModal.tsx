@@ -24,6 +24,38 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose }) => {
     const [pwLoading, setPwLoading] = useState(false);
     const [pwMsg, setPwMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
+    // 전화번호 등록
+    const [phoneOpen, setPhoneOpen] = useState(false);
+    const [phoneInput, setPhoneInput] = useState('');
+    const [phoneLoading, setPhoneLoading] = useState(false);
+    const [phoneMsg, setPhoneMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+    const [currentPhone, setCurrentPhone] = useState(user.phone || '');
+
+    const handleRegisterPhone = async () => {
+        const raw = phoneInput.replace(/-/g, '').trim();
+        if (!/^\d{10,11}$/.test(raw)) {
+            setPhoneMsg({ type: 'err', text: '올바른 전화번호를 입력해주세요. (숫자 10~11자리)' });
+            return;
+        }
+        setPhoneLoading(true); setPhoneMsg(null);
+        try {
+            await fetch('/api/user/phone', {
+                method: 'PATCH',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: raw }),
+            }).then(async r => {
+                if (!r.ok) throw new Error((await r.json()).error || '오류가 발생했습니다.');
+            });
+            setCurrentPhone(raw);
+            setPhoneOpen(false);
+            setPhoneInput('');
+            setPhoneMsg({ type: 'ok', text: '전화번호가 등록되었습니다.' });
+        } catch (e: any) {
+            setPhoneMsg({ type: 'err', text: e.message });
+        } finally { setPhoneLoading(false); }
+    };
+
     // 통계
     const [stats, setStats] = useState<PointsStats | null>(null);
     const [statsLoading, setStatsLoading] = useState(false);
@@ -106,7 +138,48 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose }) => {
                                 <div className="bg-gray-800/60 rounded-xl divide-y divide-gray-700/50">
                                     <InfoRow label="이름" value={user.username || '—'} />
                                     <InfoRow label="이메일" value={user.email || '—'} />
-                                    <InfoRow label="전화번호" value={user.phone ? formatPhone(user.phone) : '—'} />
+                                    {/* 전화번호 — 없으면 등록 버튼 */}
+                                    {currentPhone ? (
+                                        <InfoRow label="전화번호" value={formatPhone(currentPhone)} />
+                                    ) : (
+                                        <div className="flex items-center justify-between px-4 py-3">
+                                            <span className="text-sm text-gray-400">전화번호</span>
+                                            <button
+                                                onClick={() => { setPhoneOpen(v => !v); setPhoneMsg(null); }}
+                                                className="text-xs px-2.5 py-1 rounded-lg bg-pink-500/20 text-pink-400 hover:bg-pink-500/30 transition-colors"
+                                            >
+                                                + 등록
+                                            </button>
+                                        </div>
+                                    )}
+                                    {phoneOpen && !currentPhone && (
+                                        <div className="px-4 pb-3 space-y-2 border-t border-gray-700/50 pt-3">
+                                            <input
+                                                type="tel"
+                                                inputMode="numeric"
+                                                value={phoneInput}
+                                                onChange={e => setPhoneInput(e.target.value)}
+                                                placeholder="01012345678"
+                                                maxLength={13}
+                                                onKeyDown={e => e.key === 'Enter' && handleRegisterPhone()}
+                                                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-pink-500"
+                                            />
+                                            {phoneMsg && (
+                                                <p className={`text-xs ${phoneMsg.type === 'ok' ? 'text-green-400' : 'text-red-400'}`}>{phoneMsg.text}</p>
+                                            )}
+                                            <button
+                                                onClick={handleRegisterPhone}
+                                                disabled={phoneLoading}
+                                                className="w-full py-2 rounded-xl text-sm font-semibold disabled:opacity-40 transition-all"
+                                                style={{ background: 'linear-gradient(135deg, #FF6B9D, #C84B8F)', color: '#fff' }}
+                                            >
+                                                {phoneLoading ? '저장 중...' : '저장'}
+                                            </button>
+                                        </div>
+                                    )}
+                                    {phoneMsg?.type === 'ok' && currentPhone && (
+                                        <p className="px-4 pb-2 text-xs text-green-400">{phoneMsg.text}</p>
+                                    )}
                                 </div>
                             </div>
 
