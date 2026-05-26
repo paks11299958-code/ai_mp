@@ -212,33 +212,39 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
 
                 {/* 출석 완료 */}
                 {step === 'done' && (
-                    <div className="text-center py-4 space-y-3">
-                        <CheckCircle size={52} className="mx-auto text-green-400" />
+                    <div className="text-center py-4 space-y-4">
+                        <CheckCircle size={64} className="mx-auto text-green-400" />
                         <div>
-                            <p className="text-white text-lg font-bold">{doneNickname}님, 출석 완료!</p>
+                            <p className="text-white text-xl font-bold">{doneNickname}님, 출석 완료!</p>
                             <p className="text-white/40 text-sm mt-1">{formatTime(attendedAt)}</p>
                         </div>
-                        <div className="mt-4 p-3 rounded-xl text-xs text-white/40"
+                        <div className="p-3 rounded-xl text-xs text-white/40"
                             style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                             {sheetInfo?.clubName} 출석이 기록되었습니다 ✓
                         </div>
-                        <p className="text-white/20 text-xs">잠시 후 창이 닫힙니다...</p>
+                        <div className="mt-2 py-3 px-4 rounded-xl text-sm font-semibold text-green-300"
+                            style={{ background: 'rgba(74,222,128,0.1)', border: '1px solid rgba(74,222,128,0.3)' }}>
+                            이 창을 닫아주세요 ✕
+                        </div>
                     </div>
                 )}
 
                 {/* 이미 출석 */}
                 {step === 'already' && (
-                    <div className="text-center py-4 space-y-3">
-                        <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center text-2xl"
+                    <div className="text-center py-4 space-y-4">
+                        <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center text-3xl"
                             style={{ background: 'rgba(251,191,36,0.15)', border: '1px solid rgba(251,191,36,0.3)' }}>
                             ✓
                         </div>
                         <div>
-                            <p className="text-white text-lg font-bold">{doneNickname}님</p>
+                            <p className="text-white text-xl font-bold">{doneNickname}님</p>
                             <p className="text-yellow-400 text-sm font-medium mt-1">이미 출석하셨습니다</p>
                             <p className="text-white/30 text-xs mt-1">{formatTime(alreadyAt)}</p>
                         </div>
-                        <p className="text-white/20 text-xs">잠시 후 창이 닫힙니다...</p>
+                        <div className="mt-2 py-3 px-4 rounded-xl text-sm font-semibold text-yellow-300"
+                            style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)' }}>
+                            이 창을 닫아주세요 ✕
+                        </div>
                     </div>
                 )}
 
