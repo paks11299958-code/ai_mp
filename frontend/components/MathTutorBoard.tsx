@@ -430,10 +430,22 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                             {/* TTS 버튼 */}
                             {selected.steps?.length > 0 && (
                                 <button
-                                    disabled={true}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold border-2 border-gray-200 bg-gray-50 text-gray-300 cursor-not-allowed"
+                                    onClick={() => speaking ? stop() : speak(buildTTSText(selected))}
+                                    disabled={ttsLoading}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors"
+                                    style={speaking
+                                        ? { borderColor: '#C44FD8', background: '#F5E6FF', color: '#C44FD8' }
+                                        : ttsLoading
+                                        ? { borderColor: '#FFD6E8', background: '#FFF0F8', color: '#FF6B9D' }
+                                        : { borderColor: '#FF6B9D', background: 'linear-gradient(135deg, #FF6B9D, #C44FD8)', color: '#fff' }
+                                    }
                                 >
-                                    <Volume2 size={15} /> 🔊 설명 듣기 (준비 중)
+                                    {ttsLoading
+                                        ? <><span className="animate-spin">⏳</span> 준비 중...</>
+                                        : speaking
+                                        ? <><VolumeX size={15} /> 🔇 설명 중지</>
+                                        : <><Volume2 size={15} /> 🔊 설명 듣기</>
+                                    }
                                 </button>
                             )}
 
