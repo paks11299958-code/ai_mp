@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, ChevronLeft, Plus, Users, QrCode, ClipboardList, RefreshCw, Loader, Copy, Check } from 'lucide-react';
+import { X, ChevronLeft, Plus, Users, QrCode, ClipboardList, RefreshCw, Loader, Copy, Check, Bell, Trash2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
 // ── 타입 ─────────────────────────────────────────────────
@@ -41,7 +41,14 @@ interface SheetRecord {
     attendedAt: string;
 }
 
-type View = 'list' | 'create' | 'detail' | 'members' | 'sheets' | 'sheet_records';
+interface Notice {
+    id: string;
+    title: string;
+    content: string;
+    createdAt: string;
+}
+
+type View = 'list' | 'create' | 'detail' | 'members' | 'sheets' | 'sheet_records' | 'notices';
 
 interface Props { onClose: () => void; }
 
@@ -81,7 +88,11 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     const [sheets, setSheets]           = useState<Sheet[]>([]);
     const [selectedSheet, setSelectedSheet] = useState<Sheet | null>(null);
     const [records, setRecords]         = useState<SheetRecord[]>([]);
+    const [notices, setNotices]         = useState<Notice[]>([]);
     const [copied, setCopied]           = useState<string | null>(null);
+    const [noticeTitle, setNoticeTitle]     = useState('');
+    const [noticeContent, setNoticeContent] = useState('');
+    const [noticeLoading, setNoticeLoading] = useState(false);
 
     // 모임 목록 로드
     const loadClubs = useCallback(async () => {
@@ -128,6 +139,41 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) { setError(e.message); }
         finally { setLoading(false); }
     }, [selectedClub]);
+
+    // 공지 목록 로드
+    const loadNotices = useCallback(async (club: Club) => {
+        setLoading(true); setError('');
+        try {
+            const data = await apiFetch<{ notices: Notice[] }>(`/api/clubs/${club.id}/notices`);
+            setNotices(data.notices);
+        } catch (e: any) { setError(e.message); }
+        finally { setLoading(false); }
+    }, []);
+
+    // 공지 작성
+    const submitNotice = async () => {
+        if (!selectedClub || !noticeTitle.trim() || !noticeContent.trim()) return;
+        setNoticeLoading(true);
+        try {
+            await apiFetch(`/api/clubs/${selectedClub.id}/notices`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: noticeTitle.trim(), content: noticeContent.trim() }),
+            });
+            setNoticeTitle(''); setNoticeContent('');
+            loadNotices(selectedClub);
+        } catch (e: any) { setError(e.message); }
+        finally { setNoticeLoading(false); }
+    };
+
+    // 공지 삭제
+    const deleteNotice = async (noticeId: string) => {
+        if (!selectedClub) return;
+        try {
+            await apiFetch(`/api/clubs/${selectedClub.id}/notices/${noticeId}`, { method: 'DELETE' });
+            setNotices(prev => prev.filter(n => n.id !== noticeId));
+        } catch (e: any) { setError(e.message); }
+    };
 
     // URL 복사
     const copyUrl = async (url: string, key: string) => {
@@ -256,6 +302,17 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             </button>
                         )}
+
+                        <button
+                            onClick={() => { loadNotices(selectedClub); setView('notices'); }}
+                            className="w-full p-3.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 flex items-center gap-3"
+                        >
+                            <Bell size={18} className="text-pink-400" />
+                            <div className="text-left">
+                                <p className="text-sm font-medium text-white">공지사항</p>
+                                <p className="text-xs text-white/40">{isOwner ? '공지 작성 및 관리' : '모임 공지 확인'}</p>
+                            </div>
+                        </button>
 
                         {!isOwner && (
                             <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-center">
@@ -395,6 +452,82 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                     <p className="text-[11px] text-white/40">{r.phone}</p>
                                 </div>
                                 <p className="text-[11px] text-white/30">{formatDateTime(r.attendedAt)}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 공지사항
+    if (view === 'notices' && selectedClub) {
+        const isOwner = selectedClub.myRole === 'OWNER';
+        return (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    {renderHeader('공지사항', () => setView('detail'))}
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                        {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
+
+                        {/* OWNER 작성 폼 */}
+                        {isOwner && (
+                            <div className="rounded-xl p-3.5 space-y-2.5"
+                                style={{ background: 'rgba(255,107,157,0.06)', border: '1px solid rgba(255,107,157,0.2)' }}>
+                                <p className="text-xs font-medium text-pink-400">새 공지 작성</p>
+                                <input
+                                    type="text"
+                                    value={noticeTitle}
+                                    onChange={e => setNoticeTitle(e.target.value)}
+                                    placeholder="제목"
+                                    maxLength={50}
+                                    className="w-full rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
+                                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                                />
+                                <textarea
+                                    value={noticeContent}
+                                    onChange={e => setNoticeContent(e.target.value)}
+                                    placeholder="내용"
+                                    maxLength={500}
+                                    rows={3}
+                                    className="w-full rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-pink-500/50 resize-none"
+                                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                                />
+                                <button
+                                    onClick={submitNotice}
+                                    disabled={noticeLoading || !noticeTitle.trim() || !noticeContent.trim()}
+                                    className="w-full py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                                    style={{ background: 'linear-gradient(135deg, #FF6B9D, #C84B8F)', color: '#fff' }}
+                                >
+                                    {noticeLoading ? <Loader size={14} className="animate-spin" /> : '등록'}
+                                </button>
+                            </div>
+                        )}
+
+                        {/* 공지 목록 */}
+                        {!loading && notices.length === 0 && (
+                            <div className="text-center py-10 text-white/40">
+                                <Bell size={36} className="mx-auto mb-3 opacity-40" />
+                                <p className="text-sm">등록된 공지가 없습니다.</p>
+                            </div>
+                        )}
+                        {notices.map(n => (
+                            <div key={n.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
+                                <div className="flex items-start justify-between gap-2">
+                                    <p className="text-sm font-semibold text-white leading-snug">{n.title}</p>
+                                    {isOwner && (
+                                        <button
+                                            onClick={() => deleteNotice(n.id)}
+                                            className="p-1 rounded-lg hover:bg-red-500/20 transition-colors flex-shrink-0"
+                                        >
+                                            <Trash2 size={13} className="text-white/30 hover:text-red-400" />
+                                        </button>
+                                    )}
+                                </div>
+                                <p className="text-xs text-white/60 leading-relaxed whitespace-pre-wrap">{n.content}</p>
+                                <p className="text-[11px] text-white/25">{formatDateTime(n.createdAt)}</p>
                             </div>
                         ))}
                     </div>
