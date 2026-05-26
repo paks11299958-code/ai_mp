@@ -42,6 +42,7 @@ import { FaceReadingModal } from './components/FaceReadingModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { FaceReadingResult } from './services/apiService';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
+import { ClubBoard } from './components/ClubBoard';
 
 
 const AppContent: React.FC = () => {
@@ -151,6 +152,7 @@ const AppContent: React.FC = () => {
     const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
     const [showSwingBoard, setShowSwingBoard] = useState(false);
     const [showMathTutor, setShowMathTutor] = useState(false);
+    const [showClubBoard, setShowClubBoard] = useState(false);
 
     // 퀵메뉴 / 생년월일 폼 상태
     const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(null);
@@ -1126,6 +1128,9 @@ const AppContent: React.FC = () => {
                 {showMathTutor && (
                     <MathTutorBoard onClose={() => setShowMathTutor(false)} />
                 )}
+                {showClubBoard && (
+                    <ClubBoard onClose={() => setShowClubBoard(false)} />
+                )}
                 {showProductExtract && (
                     <ProductExtractDialog
                         onClose={() => setShowProductExtract(false)}
@@ -1203,6 +1208,9 @@ const AppContent: React.FC = () => {
             )}
             {showMathTutor && (
                 <MathTutorBoard onClose={() => setShowMathTutor(false)} />
+            )}
+            {showClubBoard && (
+                <ClubBoard onClose={() => setShowClubBoard(false)} />
             )}
             {showProductExtract && (
                 <ProductExtractDialog
@@ -1846,6 +1854,15 @@ const AppContent: React.FC = () => {
                                                 style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
                                             >
                                                 📚 AI쌤
+                                            </button>
+                                        )}
+                                        {activePersona?.name === '지우' && user && (
+                                            <button
+                                                onClick={() => setShowClubBoard(true)}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap flex items-center gap-1 transition-colors"
+                                                style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
+                                            >
+                                                🤝 모임
                                             </button>
                                         )}
                                     </div>
