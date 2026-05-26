@@ -601,71 +601,104 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         return (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
                 <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    {renderHeader('공지사항', () => setView('detail'))}
+                    {renderHeader('공지사항', () => { setView('detail'); setNoticeTitle(''); setNoticeContent(''); })}
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {/* 공지 목록 */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
                         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
                         {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
-
-                        {/* OWNER 작성 폼 */}
-                        {isOwner && (
-                            <div className="rounded-xl p-3.5 space-y-2.5"
-                                style={{ background: 'rgba(255,107,157,0.06)', border: '1px solid rgba(255,107,157,0.2)' }}>
-                                <p className="text-xs font-medium text-pink-400">새 공지 작성</p>
-                                <input
-                                    type="text"
-                                    value={noticeTitle}
-                                    onChange={e => setNoticeTitle(e.target.value)}
-                                    placeholder="제목"
-                                    maxLength={50}
-                                    className="w-full rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
-                                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                                />
-                                <textarea
-                                    value={noticeContent}
-                                    onChange={e => setNoticeContent(e.target.value)}
-                                    placeholder="내용"
-                                    maxLength={500}
-                                    rows={3}
-                                    className="w-full rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-pink-500/50 resize-none"
-                                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                                />
-                                <button
-                                    onClick={submitNotice}
-                                    disabled={noticeLoading || !noticeTitle.trim() || !noticeContent.trim()}
-                                    className="w-full py-2 rounded-lg text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
-                                    style={{ background: 'linear-gradient(135deg, #FF6B9D, #C84B8F)', color: '#fff' }}
-                                >
-                                    {noticeLoading ? <Loader size={14} className="animate-spin" /> : '등록'}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* 공지 목록 */}
                         {!loading && notices.length === 0 && (
                             <div className="text-center py-10 text-white/40">
                                 <Bell size={36} className="mx-auto mb-3 opacity-40" />
                                 <p className="text-sm">등록된 공지가 없습니다.</p>
                             </div>
                         )}
-                        {notices.map(n => (
-                            <div key={n.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-1.5">
-                                <div className="flex items-start justify-between gap-2">
-                                    <p className="text-sm font-semibold text-white leading-snug">{n.title}</p>
-                                    {isOwner && (
-                                        <button
-                                            onClick={() => deleteNotice(n.id)}
-                                            className="p-1 rounded-lg hover:bg-red-500/20 transition-colors flex-shrink-0"
-                                        >
-                                            <Trash2 size={13} className="text-white/30 hover:text-red-400" />
-                                        </button>
+                        {notices.map(n => {
+                            const isExpanded = expandedSheetId === `notice-${n.id}`;
+                            return (
+                                <div key={n.id} className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                                    <button
+                                        onClick={() => setExpandedSheetId(isExpanded ? null : `notice-${n.id}`)}
+                                        className="w-full flex items-center justify-between px-3.5 py-3 hover:bg-white/5 transition-colors"
+                                    >
+                                        <p className="text-sm font-medium text-white text-left truncate pr-2">{n.title}</p>
+                                        <div className="flex items-center gap-2 flex-shrink-0">
+                                            <span className="text-[11px] text-white/25">{formatDate(n.createdAt)}</span>
+                                            <ChevronLeft size={15} className={`text-white/30 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
+                                        </div>
+                                    </button>
+                                    {isExpanded && (
+                                        <div className="px-3.5 pb-3.5 border-t border-white/10 pt-3 space-y-2">
+                                            <p className="text-sm text-white/70 leading-relaxed whitespace-pre-wrap">{n.content}</p>
+                                            {isOwner && (
+                                                <div className="flex justify-end">
+                                                    <button
+                                                        onClick={() => deleteNotice(n.id)}
+                                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-red-400/60 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                                                    >
+                                                        <Trash2 size={12} /> 삭제
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-white/60 leading-relaxed whitespace-pre-wrap">{n.content}</p>
-                                <p className="text-[11px] text-white/25">{formatDateTime(n.createdAt)}</p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
+
+                    {/* 하단 — OWNER만 새 공지 작성 */}
+                    {isOwner && (
+                        <div className="p-4 border-t border-white/10 space-y-3">
+                            {noticeTitle !== '' || noticeContent !== '' ? (
+                                <div className="space-y-2">
+                                    <input
+                                        type="text"
+                                        value={noticeTitle}
+                                        onChange={e => setNoticeTitle(e.target.value)}
+                                        placeholder="제목"
+                                        maxLength={50}
+                                        className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-pink-500/50"
+                                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                                    />
+                                    <textarea
+                                        value={noticeContent}
+                                        onChange={e => setNoticeContent(e.target.value)}
+                                        placeholder="내용"
+                                        maxLength={500}
+                                        rows={3}
+                                        className="w-full rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-1 focus:ring-pink-500/50 resize-none"
+                                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => { setNoticeTitle(''); setNoticeContent(''); }}
+                                            className="flex-1 py-2.5 rounded-xl text-sm text-white/40 hover:text-white/60 transition-colors"
+                                            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                                        >
+                                            취소
+                                        </button>
+                                        <button
+                                            onClick={submitNotice}
+                                            disabled={noticeLoading || !noticeTitle.trim() || !noticeContent.trim()}
+                                            className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                                            style={{ background: 'linear-gradient(135deg, #FF6B9D, #C84B8F)', color: '#fff' }}
+                                        >
+                                            {noticeLoading ? <Loader size={14} className="animate-spin" /> : '등록'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => setNoticeTitle(' ')}
+                                    className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                                    style={{ background: 'rgba(255,107,157,0.15)', border: '1px solid rgba(255,107,157,0.3)', color: '#FF6B9D' }}
+                                >
+                                    <Plus size={15} /> 새 공지 작성
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         );
