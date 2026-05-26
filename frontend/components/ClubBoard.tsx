@@ -48,7 +48,7 @@ interface Notice {
     createdAt: string;
 }
 
-type View = 'list' | 'create' | 'detail' | 'members' | 'sheets' | 'sheet_records' | 'notices';
+type View = 'list' | 'create' | 'detail' | 'members' | 'sheets' | 'sheet_records' | 'notices' | 'edit';
 
 interface Props { onClose: () => void; }
 
@@ -94,6 +94,10 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     const [noticeContent, setNoticeContent] = useState('');
     const [noticeLoading, setNoticeLoading] = useState(false);
     const [expandedSheetId, setExpandedSheetId] = useState<string | null>(null);
+    const [editName, setEditName]           = useState('');
+    const [editRegion, setEditRegion]       = useState('');
+    const [editDesc, setEditDesc]           = useState('');
+    const [editLoading, setEditLoading]     = useState(false);
 
     // 모임 목록 로드
     const loadClubs = useCallback(async () => {
@@ -140,6 +144,35 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) { setError(e.message); }
         finally { setLoading(false); }
     }, [selectedClub]);
+
+    // 모임 삭제
+    const deleteClub = async () => {
+        if (!selectedClub) return;
+        if (!window.confirm(`"${selectedClub.name}" 모임을 삭제하시겠습니까?\n모든 회원, 출석부, 공지가 함께 삭제됩니다.`)) return;
+        try {
+            await apiFetch(`/api/clubs/${selectedClub.id}`, { method: 'DELETE' });
+            setSelectedClub(null);
+            loadClubs();
+            setView('list');
+        } catch (e: any) { setError(e.message); }
+    };
+
+    // 모임 수정 저장
+    const submitEdit = async () => {
+        if (!selectedClub || !editName.trim()) return;
+        setEditLoading(true); setError('');
+        try {
+            const data = await apiFetch<{ club: Club }>(`/api/clubs/${selectedClub.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: editName.trim(), region: editRegion.trim(), description: editDesc.trim() }),
+            });
+            setSelectedClub({ ...selectedClub, ...data.club });
+            setClubs(prev => prev.map(c => c.id === selectedClub.id ? { ...c, ...data.club } : c));
+            setView('detail');
+        } catch (e: any) { setError(e.message); }
+        finally { setEditLoading(false); }
+    };
 
     // 공지 목록 로드
     const loadNotices = useCallback(async (club: Club) => {
@@ -321,6 +354,31 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                 <p className="text-xs text-white/30 mt-1">가입일: {formatDate(selectedClub.createdAt)}</p>
                             </div>
                         )}
+
+                        {isOwner && (
+                            <div className="flex gap-2 pt-2">
+                                <button
+                                    onClick={() => {
+                                        setEditName(selectedClub.name);
+                                        setEditRegion(selectedClub.region || '');
+                                        setEditDesc(selectedClub.description || '');
+                                        setError('');
+                                        setView('edit');
+                                    }}
+                                    className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                                    style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.7)' }}
+                                >
+                                    ✏️ 모임 수정
+                                </button>
+                                <button
+                                    onClick={deleteClub}
+                                    className="flex-1 py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
+                                    style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'rgba(239,68,68,0.8)' }}
+                                >
+                                    🗑️ 모임 삭제
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -469,6 +527,68 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                 <p className="text-[11px] text-white/30">{formatDateTime(r.attendedAt)}</p>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 모임 수정
+    if (view === 'edit' && selectedClub) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
+                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                    {renderHeader('모임 수정', () => setView('detail'))}
+
+                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                        {error && <p className="text-red-400 text-sm">{error}</p>}
+
+                        <div className="space-y-1">
+                            <p className="text-xs text-white/50">모임 이름 *</p>
+                            <input
+                                type="text"
+                                value={editName}
+                                onChange={e => setEditName(e.target.value)}
+                                maxLength={30}
+                                className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-xs text-white/50">지역 (선택)</p>
+                            <input
+                                type="text"
+                                value={editRegion}
+                                onChange={e => setEditRegion(e.target.value)}
+                                placeholder="예: 서울 강남"
+                                maxLength={20}
+                                className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
+                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-xs text-white/50">설명 (선택)</p>
+                            <textarea
+                                value={editDesc}
+                                onChange={e => setEditDesc(e.target.value)}
+                                placeholder="모임 소개를 입력해주세요"
+                                maxLength={200}
+                                rows={3}
+                                className="w-full rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/25 focus:outline-none focus:ring-2 focus:ring-pink-500/50 resize-none"
+                                style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="p-4 border-t border-white/10">
+                        <button
+                            onClick={submitEdit}
+                            disabled={editLoading || !editName.trim()}
+                            className="w-full py-3 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 flex items-center justify-center gap-2"
+                            style={{ background: 'linear-gradient(135deg, #FF6B9D, #C84B8F)', color: '#fff' }}
+                        >
+                            {editLoading ? <Loader size={16} className="animate-spin" /> : '저장'}
+                        </button>
                     </div>
                 </div>
             </div>
