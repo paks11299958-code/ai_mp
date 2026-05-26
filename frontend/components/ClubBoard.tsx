@@ -93,6 +93,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     const [noticeTitle, setNoticeTitle]     = useState('');
     const [noticeContent, setNoticeContent] = useState('');
     const [noticeLoading, setNoticeLoading] = useState(false);
+    const [expandedSheetId, setExpandedSheetId] = useState<string | null>(null);
 
     // 모임 목록 로드
     const loadClubs = useCallback(async () => {
@@ -380,36 +381,50 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                         )}
                         {sheets.map(s => {
                             const url = getAttendanceUrl(s.qrUuid);
+                            const isExpanded = expandedSheetId === s.id;
                             return (
-                                <div key={s.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-sm font-medium text-white">{s.title}</p>
-                                        <span className="text-xs text-pink-400 font-bold">{s.attendeeCount}명 출석</span>
-                                    </div>
-                                    <p className="text-xs text-white/30">{formatDate(s.createdAt)}</p>
+                                <div key={s.id} className="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                                    {/* 헤더 — 클릭으로 펼치기/닫기 */}
+                                    <button
+                                        onClick={() => setExpandedSheetId(isExpanded ? null : s.id)}
+                                        className="w-full flex items-center justify-between px-3.5 py-3 hover:bg-white/5 transition-colors"
+                                    >
+                                        <div className="text-left">
+                                            <p className="text-sm font-medium text-white">{s.title}</p>
+                                            <p className="text-xs text-white/30 mt-0.5">{formatDate(s.createdAt)}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-pink-400 font-bold">{s.attendeeCount}명 출석</span>
+                                            <ChevronLeft size={15} className={`text-white/30 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
+                                        </div>
+                                    </button>
 
-                                    {/* QR 코드 + 버튼 */}
-                                    <div className="flex gap-3 mt-2 items-start">
-                                        <div className="p-2 rounded-xl bg-white">
-                                            <QRCodeSVG value={url} size={100} />
+                                    {/* 펼쳐지는 내용 */}
+                                    {isExpanded && (
+                                        <div className="px-3.5 pb-3.5 border-t border-white/10 pt-3">
+                                            <div className="flex gap-3 items-start">
+                                                <div className="p-2 rounded-xl bg-white">
+                                                    <QRCodeSVG value={url} size={110} />
+                                                </div>
+                                                <div className="flex flex-col gap-2 flex-1">
+                                                    <button
+                                                        onClick={() => copyUrl(url, s.id)}
+                                                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-xs text-white/70"
+                                                    >
+                                                        {copied === s.id ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
+                                                        {copied === s.id ? '복사됨' : '링크 복사'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
+                                                        className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors text-xs text-pink-400"
+                                                    >
+                                                        <Users size={13} />
+                                                        출석 명단
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col gap-2 flex-1">
-                                            <button
-                                                onClick={() => copyUrl(url, s.id)}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-xs text-white/70"
-                                            >
-                                                {copied === s.id ? <Check size={13} className="text-green-400" /> : <Copy size={13} />}
-                                                {copied === s.id ? '복사됨' : '링크 복사'}
-                                            </button>
-                                            <button
-                                                onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors text-xs text-pink-400"
-                                            >
-                                                <Users size={13} />
-                                                출석 명단
-                                            </button>
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             );
                         })}
