@@ -1,10 +1,9 @@
 /**
- * writer.js — Claude API로 리서치 원고 작성
+ * writer.js — Gemini API로 리서치 원고 작성
  */
 require('dotenv').config({ path: '/home/paks11299958/shared-api/.env' });
-const Anthropic = require('@anthropic-ai/sdk');
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 async function write({ topic, outline, sources }) {
   const sourcesText = sources
@@ -27,16 +26,19 @@ ${outline ? `\n목차 구조:\n${outline}\n` : ''}
 
 ${sourcesText}`;
 
-  console.log('✍️  Claude API 원고 작성 중...');
+  console.log('✍️  Gemini API 원고 작성 중...');
 
-  const message = await client.messages.create({
-    model:      'claude-sonnet-4-6',
-    max_tokens: 4096,
-    system:     systemPrompt,
-    messages:   [{ role: 'user', content: userPrompt }],
+  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }] }],
+      generationConfig: { temperature: 0.3, maxOutputTokens: 8192 },
+    }),
   });
+  const data = await res.json();
+  const content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-  const content = message.content[0].text;
   console.log(`✅ 원고 작성 완료 (${content.length}자)`);
   return content;
 }

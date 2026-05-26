@@ -2,7 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { prisma } from './_lib/prisma.js';
 import { deleteFromGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
-import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { logAiUsage } from './_lib/aiUsage.js';
 
@@ -20,12 +19,6 @@ function getGemini(): GoogleGenAI {
         location: 'us-central1',
         googleAuthOptions: { credentials: creds },
     });
-}
-
-function getClaude(): Anthropic {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
-    return new Anthropic({ apiKey });
 }
 
 function getOpenAI(): OpenAI {
@@ -70,25 +63,26 @@ function buildPricePrompt(itemHint: string | null): string {
 }`;
 }
 
-// ── Claude 가격 추정 (URL 방식) ──────────────────────────────
+// ── Gemini 2nd 가격 추정 (URL 방식) ─────────────────────────
 
-async function getPriceFromClaude(imageUrls: string[], itemHint: string | null): Promise<any> {
-    const client = getClaude();
-    const imageBlocks = imageUrls.map(url => ({
-        type: 'image' as const,
-        source: { type: 'url' as const, url },
+async function getPriceFromGemini2nd(imageUrls: string[], itemHint: string | null): Promise<any> {
+    const ai = getGemini();
+    const imageParts = imageUrls.map(url => ({
+        fileData: { fileUri: url, mimeType: guessMime(url) },
     }));
-    const res = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 400,
-        messages: [{ role: 'user', content: [...imageBlocks, { type: 'text', text: buildPricePrompt(itemHint) }] }],
+    const res = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ role: 'user', parts: [...imageParts, { text: buildPricePrompt(itemHint) }] }],
     });
-    await logAiUsage({
-        service: 'anthropic', model: 'claude-sonnet-4-6', feature: 'used-item',
-        promptTokens: res.usage?.input_tokens ?? 0,
-        completionTokens: res.usage?.output_tokens ?? 0,
-    });
-    const text = res.content[0].type === 'text' ? res.content[0].text : '';
+    const geminiMeta = (res as any).usageMetadata;
+    if (geminiMeta) {
+        await logAiUsage({
+            service: 'gemini', model: 'gemini-2.5-flash', feature: 'used-item-price',
+            promptTokens: geminiMeta.promptTokenCount ?? 0,
+            completionTokens: geminiMeta.candidatesTokenCount ?? 0,
+        });
+    }
+    const text = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(clean);
 }
@@ -202,12 +196,12 @@ ${listing.itemName ? `사용자 입력: ${listing.itemName}` : ''}
   "hashtags": ["#태그1", "#태그2", "#태그3"]
 }`;
 
-    const [listingRes, claudePrice, gptPrice] = await Promise.all([
+    const [listingRes, gemini2ndPrice, gptPrice] = await Promise.all([
         ai.models.generateContent({
             model,
             contents: [{ role: 'user', parts: [{ text: listingPrompt }] }],
         }),
-        safeAnalyze('Claude', () => getPriceFromClaude(urls, listing.itemName)),
+        safeAnalyze('Gemini-2nd', () => getPriceFromGemini2nd(urls, listing.itemName)),
         safeAnalyze('GPT-4o', () => getPriceFromOpenAI(urls, listing.itemName)),
     ]);
 
@@ -223,7 +217,7 @@ ${listing.itemName ? `사용자 입력: ${listing.itemName}` : ''}
     // 3개 AI 가격 평균
     const prices = [
         listingData.suggestedPrice,
-        claudePrice?.suggestedPrice,
+        gemini2ndPrice?.suggestedPrice,
         gptPrice?.suggestedPrice,
     ].filter((p): p is number => typeof p === 'number' && p > 0);
 
@@ -231,7 +225,7 @@ ${listing.itemName ? `사용자 입력: ${listing.itemName}` : ''}
         ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length / 100) * 100
         : listingData.suggestedPrice || null;
 
-    console.log(`[used-item] 가격 — Gemini: ${listingData.suggestedPrice}, Claude: ${claudePrice?.suggestedPrice ?? '실패'}, GPT: ${gptPrice?.suggestedPrice ?? '실패'}, 평균: ${avgPrice}`);
+    console.log(`[used-item] 가격 — Gemini: ${listingData.suggestedPrice}, Gemini-2nd: ${gemini2ndPrice?.suggestedPrice ?? '실패'}, GPT: ${gptPrice?.suggestedPrice ?? '실패'}, 평균: ${avgPrice}`);
 
     await prisma.usedItemListing.update({
         where: { id: taskId },
@@ -246,7 +240,7 @@ ${listing.itemName ? `사용자 입력: ${listing.itemName}` : ''}
             includedItems: JSON.stringify(analysis.includedItems || []),
             confidence: typeof analysis.confidence === 'number' ? analysis.confidence : null,
             suggestedPrice: avgPrice,
-            claudePrice: claudePrice?.suggestedPrice || null,
+            claudePrice: gemini2ndPrice?.suggestedPrice || null,
             gptPrice: gptPrice?.suggestedPrice || null,
             minPrice: listingData.minPrice || null,
             maxPrice: listingData.maxPrice || null,

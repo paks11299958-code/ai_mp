@@ -3,7 +3,6 @@ import { prisma } from './_lib/prisma.js';
 import { findCorpCode, getRecentFilings, getFinancials, getCorpInfo, getNaverFinanceData } from './_lib/dartService.js';
 import { uploadToGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
-import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { logAiUsage } from './_lib/aiUsage.js';
 
@@ -23,12 +22,6 @@ function getGemini(): GoogleGenAI {
         location: 'us-central1',
         googleAuthOptions: { credentials: creds },
     });
-}
-
-function getClaude(): Anthropic {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
-    return new Anthropic({ apiKey });
 }
 
 function getOpenAI(): OpenAI {
@@ -60,10 +53,10 @@ function fmtPct(n: number | undefined) {
     return (n * 100).toFixed(1) + '%';
 }
 
-// ── Claude 투자 의견 ─────────────────────────────────────────
+// ── Gemini 2nd Opinion 투자 의견 ─────────────────────────────
 
-async function getClaudeOpinion(stockName: string, dataSection: string): Promise<string> {
-    const client = getClaude();
+async function getGeminiOpinion(stockName: string, dataSection: string): Promise<string> {
+    const ai = getGemini();
     const prompt = `당신은 국내 주식 전문 애널리스트입니다. 아래 데이터만을 기반으로 간결한 투자 의견을 작성하세요.
 
 ## 분석 대상: ${stockName}
@@ -92,17 +85,19 @@ XX,000 ~ XX,000원
 ### 종합 코멘트
 2~3문장`;
 
-    const res = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 800,
-        messages: [{ role: 'user', content: prompt }],
+    const res = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
     });
-    await logAiUsage({
-        service: 'anthropic', model: 'claude-sonnet-4-6', feature: 'stock',
-        promptTokens: res.usage?.input_tokens ?? 0,
-        completionTokens: res.usage?.output_tokens ?? 0,
-    });
-    return res.content[0].type === 'text' ? res.content[0].text : '';
+    const geminiMeta = (res as any).usageMetadata;
+    if (geminiMeta) {
+        await logAiUsage({
+            service: 'gemini', model: 'gemini-2.5-flash', feature: 'stock-opinion',
+            promptTokens: geminiMeta.promptTokenCount ?? 0,
+            completionTokens: geminiMeta.candidatesTokenCount ?? 0,
+        });
+    }
+    return res.text ?? '';
 }
 
 // ── GPT-4o 투자 의견 ─────────────────────────────────────────
@@ -288,20 +283,20 @@ Google Search로 ${stockName}의 최신 뉴스, 증권사 리포트, 목표주�
 ## 7. 종합 의견
 (투자의견 재확인, 단기/중기/장기 관점, 투자자 유형별 조언)`;
 
-    // 4단계: Gemini(검색 포함) + Claude + GPT 병렬 실행
+    // 4단계: Gemini(검색 포함) + Gemini 2nd + GPT 병렬 실행
     const ai = getGemini();
-    const [geminiResponse, claudeOpinion, gptOpinion] = await Promise.all([
+    const [geminiResponse, geminiOpinion, gptOpinion] = await Promise.all([
         ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: [{ role: 'user', parts: [{ text: geminiPrompt }] }],
             config: { tools: [{ googleSearch: {} }] },
         }),
-        safeAnalyze('Claude', () => getClaudeOpinion(stockName, dataSection)),
+        safeAnalyze('Gemini-2nd', () => getGeminiOpinion(stockName, dataSection)),
         safeAnalyze('GPT-4o', () => getGptOpinion(stockName, dataSection)),
     ]);
 
     const geminiReport = geminiResponse.text ?? '';
-    console.log(`[stock] Gemini 완료 ${geminiReport.length}자, Claude: ${claudeOpinion ? 'OK' : '실패'}, GPT: ${gptOpinion ? 'OK' : '실패'}`);
+    console.log(`[stock] Gemini 완료 ${geminiReport.length}자, Gemini-2nd: ${geminiOpinion ? 'OK' : '실패'}, GPT: ${gptOpinion ? 'OK' : '실패'}`);
 
     // Gemini 토큰 로깅 (usageMetadata)
     const geminiMeta = (geminiResponse as any).usageMetadata;
@@ -315,7 +310,7 @@ Google Search로 ${stockName}의 최신 뉴스, 증권사 리포트, 목표주�
 
     // 5단계: 보고서 합산
     let combinedReport = geminiReport;
-    if (claudeOpinion) combinedReport += `\n\n---\n\n## 🤖 Claude Sonnet 투자 의견\n\n${claudeOpinion}`;
+    if (geminiOpinion) combinedReport += `\n\n---\n\n## 🤖 Gemini 2nd 투자 의견\n\n${geminiOpinion}`;
     if (gptOpinion) combinedReport += `\n\n---\n\n## 🤖 GPT-4o 투자 의견\n\n${gptOpinion}`;
     combinedReport += DISCLAIMER;
 
@@ -350,7 +345,7 @@ Google Search로 ${stockName}의 최신 뉴스, 증권사 리포트, 목표주�
         data: {
             status: 'completed',
             analysisReport: combinedReport,
-            claudeReport: claudeOpinion,
+            claudeReport: geminiOpinion,
             gptReport: gptOpinion,
             sourceLinks: JSON.stringify(sources),
             yahooSymbol: stockCode ? `${stockCode}.KS` : null,

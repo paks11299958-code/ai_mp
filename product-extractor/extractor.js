@@ -17,7 +17,7 @@ const { Pool } = require('pg');
 
 const BREVO_API_KEY       = process.env.BREVO_API_KEY;
 const SENDER_EMAIL        = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
-const ANTHROPIC_KEY       = process.env.ANTHROPIC_API_KEY;
+const GEMINI_API_KEY      = process.env.GEMINI_API_KEY;
 const NAVER_CLIENT_ID     = process.env.NAVER_CLIENT_ID     || 'GQTM16ASwMR5e817MQvZ';
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET || 'iz7FciCCdG';
 const DOMEGGOOK_ID        = process.env.DOMEGGOOK_ID        || 'c2clo';
@@ -143,21 +143,20 @@ async function analyzeBlueOcean(keywords) {
     return results;
 }
 
-// ── Claude AI 제목 생성 ───────────────────────────────────
+// ── Gemini AI 제목 생성 ───────────────────────────────────
 
 async function generateTitle(keyword, productName, price) {
     try {
-        const res = await fetch('https://api.anthropic.com/v1/messages', {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
-            headers: { 'x-api-key': ANTHROPIC_KEY, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
-                model: 'claude-haiku-4-5-20251001',
-                max_tokens: 200,
-                messages: [{ role: 'user', content: `쿠팡에서 잘 팔리는 상품 제목을 만들어주세요.\n\n검색 키워드: ${keyword}\n도매꾹 상품명: ${productName}\n도매가: ${price}원\n\n규칙:\n- 소비자가 검색할 법한 자연스러운 한국어 제목\n- 키워드를 자연스럽게 포함\n- 40~60자 사이\n- 상품코드/모델번호 제거\n- 브랜드명 제거\n\n제목만 출력하세요.` }],
+                contents: [{ parts: [{ text: `쿠팡에서 잘 팔리는 상품 제목을 만들어주세요.\n\n검색 키워드: ${keyword}\n도매꾹 상품명: ${productName}\n도매가: ${price}원\n\n규칙:\n- 소비자가 검색할 법한 자연스러운 한국어 제목\n- 키워드를 자연스럽게 포함\n- 40~60자 사이\n- 상품코드/모델번호 제거\n- 브랜드명 제거\n\n제목만 출력하세요.` }] }],
+                generationConfig: { temperature: 0.3, maxOutputTokens: 200 },
             }),
         });
         const data = await res.json();
-        return data.content?.[0]?.text?.trim() || productName;
+        return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || productName;
     } catch { return productName; }
 }
 

@@ -2,7 +2,6 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { prisma } from './_lib/prisma.js';
 import { deleteFromGCS } from './_lib/storage.js';
 import { GoogleGenAI } from '@google/genai';
-import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { logAiUsage } from './_lib/aiUsage.js';
 
@@ -20,12 +19,6 @@ function getGemini(): GoogleGenAI {
         location: 'us-central1',
         googleAuthOptions: { credentials: creds },
     });
-}
-
-function getClaude(): Anthropic {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) throw new Error('ANTHROPIC_API_KEY not set');
-    return new Anthropic({ apiKey });
 }
 
 function getOpenAI(): OpenAI {
@@ -96,31 +89,28 @@ async function analyzeWithGemini(imageUrls: string[], brandHint: string | null):
     return JSON.parse(clean);
 }
 
-// ── Claude 분석 (URL 방식) ────────────────────────────────────
+// ── Gemini 2nd 분석 (URL 방식) ───────────────────────────────
 
-async function analyzeWithClaude(imageUrls: string[], brandHint: string | null): Promise<any> {
-    const client = getClaude();
-
-    const imageBlocks = imageUrls.map(url => ({
-        type: 'image' as const,
-        source: { type: 'url' as const, url },
+async function analyzeWithGemini2nd(imageUrls: string[], brandHint: string | null): Promise<any> {
+    const ai = getGemini();
+    const imageParts = imageUrls.map(url => ({
+        fileData: { fileUri: url, mimeType: guessMime(url) },
     }));
 
-    const res = await client.messages.create({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1500,
-        messages: [{
-            role: 'user',
-            content: [...imageBlocks, { type: 'text', text: buildPrompt(brandHint) }],
-        }],
+    const res = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ role: 'user', parts: [...imageParts, { text: buildPrompt(brandHint) }] }],
     });
 
-    await logAiUsage({
-        service: 'anthropic', model: 'claude-sonnet-4-6', feature: 'luxury',
-        promptTokens: res.usage?.input_tokens ?? 0,
-        completionTokens: res.usage?.output_tokens ?? 0,
-    });
-    const text = res.content[0].type === 'text' ? res.content[0].text : '';
+    const geminiMeta = (res as any).usageMetadata;
+    if (geminiMeta) {
+        await logAiUsage({
+            service: 'gemini', model: 'gemini-2.5-flash', feature: 'luxury-2nd',
+            promptTokens: geminiMeta.promptTokenCount ?? 0,
+            completionTokens: geminiMeta.candidatesTokenCount ?? 0,
+        });
+    }
+    const text = res.candidates?.[0]?.content?.parts?.[0]?.text || '';
     const clean = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     return JSON.parse(clean);
 }
@@ -235,22 +225,22 @@ async function analyzeLuxury(taskId: number): Promise<void> {
 
     const urls = imageUrls.slice(0, 8);
 
-    // Gemini + Claude + GPT-4o 병렬 실행 (개별 실패 허용)
-    const [geminiResult, claudeResult, gptResult] = await Promise.all([
+    // Gemini + Gemini-2nd + GPT-4o 병렬 실행 (개별 실패 허용)
+    const [geminiResult, gemini2ndResult, gptResult] = await Promise.all([
         safeAnalyze('Gemini', () => analyzeWithGemini(urls, task.brandHint)),
-        safeAnalyze('Claude', () => analyzeWithClaude(urls, task.brandHint)),
+        safeAnalyze('Gemini-2nd', () => analyzeWithGemini2nd(urls, task.brandHint)),
         safeAnalyze('GPT-4o', () => analyzeWithOpenAI(urls, task.brandHint)),
     ]);
 
-    if (!geminiResult && !claudeResult && !gptResult) {
+    if (!geminiResult && !gemini2ndResult && !gptResult) {
         throw new Error('모든 AI 분석 실패');
     }
 
-    if (geminiResult) console.log(`[luxury] Gemini: ${geminiResult.score}점 ${geminiResult.verdict}`);
-    if (claudeResult) console.log(`[luxury] Claude: ${claudeResult.score}점 ${claudeResult.verdict}`);
-    if (gptResult)    console.log(`[luxury] GPT-4o: ${gptResult.score}점 ${gptResult.verdict}`);
+    if (geminiResult)    console.log(`[luxury] Gemini: ${geminiResult.score}점 ${geminiResult.verdict}`);
+    if (gemini2ndResult) console.log(`[luxury] Gemini-2nd: ${gemini2ndResult.score}점 ${gemini2ndResult.verdict}`);
+    if (gptResult)       console.log(`[luxury] GPT-4o: ${gptResult.score}점 ${gptResult.verdict}`);
 
-    const { finalScore, finalVerdict, agreements, disagreements } = compareResults(geminiResult, claudeResult, gptResult);
+    const { finalScore, finalVerdict, agreements, disagreements } = compareResults(geminiResult, gemini2ndResult, gptResult);
 
     await prisma.luxuryVerification.update({
         where: { id: taskId },
@@ -262,12 +252,12 @@ async function analyzeLuxury(taskId: number): Promise<void> {
             geminiPoints: JSON.stringify(geminiResult?.points || []),
             geminiVerdict: geminiResult?.verdict || null,
             geminiSummary: geminiResult?.summary || null,
-            claudeBrand:  claudeResult?.brand   || null,
-            claudeModel:  claudeResult?.model   || null,
-            claudeScore:  claudeResult?.score   || null,
-            claudePoints: JSON.stringify(claudeResult?.points || []),
-            claudeVerdict: claudeResult?.verdict || null,
-            claudeSummary: claudeResult?.summary || null,
+            claudeBrand:  gemini2ndResult?.brand   || null,
+            claudeModel:  gemini2ndResult?.model   || null,
+            claudeScore:  gemini2ndResult?.score   || null,
+            claudePoints: JSON.stringify(gemini2ndResult?.points || []),
+            claudeVerdict: gemini2ndResult?.verdict || null,
+            claudeSummary: gemini2ndResult?.summary || null,
             gptBrand:  gptResult?.brand   || null,
             gptModel:  gptResult?.model   || null,
             gptScore:  gptResult?.score   || null,
