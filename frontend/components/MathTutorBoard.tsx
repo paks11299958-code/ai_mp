@@ -448,7 +448,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                                                 >
                                                     <span className="text-lg">{step.emoji}</span>
                                                     <span className="font-bold text-sm flex-1" style={{ color: color.title }}>
-                                                        {i + 1}단계. {step.title}
+                                                        {step.title}
                                                     </span>
                                                     <span className="text-gray-400 text-xs">{isOpen ? '▲' : '▼'}</span>
                                                 </button>
