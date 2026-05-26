@@ -71,11 +71,11 @@ const STEP_COLORS = [
     { bg: '#F0FFF4', border: '#A5D6A7', title: '#2E7D32', highlight: '#E8F5E9' },
 ];
 
-// ── TTS 훅 (OpenAI nova 목소리) ───────────────────────────
+// ── TTS 훅 ────────────────────────────────────────────────
 
 function useTTS() {
-    const [speaking, setSpeaking] = useState(false);
-    const [ttsLoading, setTtsLoading] = useState(false);
+    const [speakingId, setSpeakingId] = useState<string | null>(null);
+    const [loadingId, setLoadingId] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const stop = useCallback(() => {
@@ -83,13 +83,13 @@ function useTTS() {
             audioRef.current.pause();
             audioRef.current.currentTime = 0;
         }
-        setSpeaking(false);
-        setTtsLoading(false);
+        setSpeakingId(null);
+        setLoadingId(null);
     }, []);
 
-    const speak = useCallback(async (text: string) => {
+    const speak = useCallback(async (text: string, id: string) => {
         stop();
-        setTtsLoading(true);
+        setLoadingId(id);
         try {
             const res = await fetch('/api/math-tutor-tts', {
                 method: 'POST',
@@ -102,20 +102,20 @@ function useTTS() {
             const url = URL.createObjectURL(blob);
             const audio = new Audio(url);
             audioRef.current = audio;
-            audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); };
-            audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); };
-            setTtsLoading(false);
-            setSpeaking(true);
+            audio.onended = () => { setSpeakingId(null); URL.revokeObjectURL(url); };
+            audio.onerror = () => { setSpeakingId(null); URL.revokeObjectURL(url); };
+            setLoadingId(null);
+            setSpeakingId(id);
             await audio.play();
         } catch {
-            setTtsLoading(false);
-            setSpeaking(false);
+            setLoadingId(null);
+            setSpeakingId(null);
         }
     }, [stop]);
 
     useEffect(() => () => { audioRef.current?.pause(); }, []);
 
-    return { speaking, ttsLoading, speak, stop };
+    return { speakingId, loadingId, speak, stop };
 }
 
 
@@ -133,7 +133,8 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const [showHistoryMobile, setShowHistoryMobile] = useState(false);
     const cameraInputRef = useRef<HTMLInputElement>(null);
     const galleryInputRef = useRef<HTMLInputElement>(null);
-    const { speaking, ttsLoading, speak, stop } = useTTS();
+    const { speakingId, loadingId, speak, stop } = useTTS();
+    const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([0]));
 
     const loadHistory = useCallback(async () => {
         try {
@@ -205,6 +206,8 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
 
     const handleHistorySelect = useCallback(async (item: MathResult) => {
         setSelected(item);
+        setOpenSteps(new Set([0]));
+        stop();
         setPreview(null);
         setFile(null);
         setShowHistoryMobile(false);
@@ -214,7 +217,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
             setSelected(detail);
         } catch { }
         finally { setDetailLoading(false); }
-    }, []);
+    }, [stop]);
 
     const handleDelete = useCallback(async (id: number, e: React.MouseEvent) => {
         e.stopPropagation();
@@ -224,15 +227,6 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
             if (selected?.id === id) setSelected(null);
         } catch { }
     }, [selected]);
-
-    const buildTTSText = (result: MathResult) => {
-        if (!result.steps?.length) return result.problem || '';
-        const lines = [`문제: ${result.problem || ''}`, ''];
-        result.steps.forEach(s => { lines.push(s.title); lines.push(s.content); lines.push(''); });
-        if (result.answer) lines.push(`정답은 ${result.answer} 입니다!`);
-        if (result.tip) lines.push(result.tip);
-        return lines.join(' ');
-    };
 
     return (
         <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#FFF8FC' }}>
@@ -427,44 +421,66 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                                 )}
                             </div>
 
-                            {/* TTS 버튼 */}
+                            {/* 단계별 아코디언 카드 */}
                             {selected.steps?.length > 0 && (
-                                <button
-                                    onClick={() => speaking ? stop() : speak(buildTTSText(selected))}
-                                    disabled={ttsLoading}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors"
-                                    style={speaking
-                                        ? { borderColor: '#C44FD8', background: '#F5E6FF', color: '#C44FD8' }
-                                        : ttsLoading
-                                        ? { borderColor: '#FFD6E8', background: '#FFF0F8', color: '#FF6B9D' }
-                                        : { borderColor: '#FF6B9D', background: 'linear-gradient(135deg, #FF6B9D, #C44FD8)', color: '#fff' }
-                                    }
-                                >
-                                    {ttsLoading
-                                        ? <><span className="animate-spin">⏳</span> 준비 중...</>
-                                        : speaking
-                                        ? <><VolumeX size={15} /> 🔇 설명 중지</>
-                                        : <><Volume2 size={15} /> 🔊 설명 듣기</>
-                                    }
-                                </button>
-                            )}
-
-                            {/* 단계별 카드 */}
-                            {selected.steps?.length > 0 && (
-                                <div className="space-y-3">
+                                <div className="space-y-2">
                                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wider px-1">📖 단계별 풀이</p>
                                     {selected.steps.map((step, i) => {
                                         const color = STEP_COLORS[i % STEP_COLORS.length];
+                                        const isOpen = openSteps.has(i);
+                                        const ttsId = `step-${selected.id}-${i}`;
+                                        const isSpeaking = speakingId === ttsId;
+                                        const isLoading = loadingId === ttsId;
+                                        const stepText = `${step.title}. ${step.content}${step.highlight ? `. ${step.highlight}` : ''}`;
                                         return (
-                                            <div key={i} className="rounded-2xl p-4 border-2 shadow-sm" style={{ background: color.bg, borderColor: color.border }}>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-xl">{step.emoji}</span>
-                                                    <span className="font-bold text-sm" style={{ color: color.title }}>{step.title}</span>
-                                                </div>
-                                                <p className="text-gray-600 text-sm leading-relaxed">{step.content}</p>
-                                                {step.highlight && (
-                                                    <div className="mt-2.5 px-3 py-2 rounded-xl text-center font-bold text-sm" style={{ background: color.highlight, color: color.title }}>
-                                                        {step.highlight}
+                                            <div key={i} className="rounded-2xl border-2 shadow-sm overflow-hidden" style={{ borderColor: color.border }}>
+                                                {/* 헤더 — 클릭으로 열고 닫기 */}
+                                                <button
+                                                    className="w-full flex items-center gap-2 px-4 py-3 text-left transition-colors"
+                                                    style={{ background: isOpen ? color.bg : '#fff' }}
+                                                    onClick={() => {
+                                                        setOpenSteps(prev => {
+                                                            const next = new Set(prev);
+                                                            if (next.has(i)) next.delete(i); else next.add(i);
+                                                            return next;
+                                                        });
+                                                    }}
+                                                >
+                                                    <span className="text-lg">{step.emoji}</span>
+                                                    <span className="font-bold text-sm flex-1" style={{ color: color.title }}>
+                                                        {i + 1}단계. {step.title}
+                                                    </span>
+                                                    <span className="text-gray-400 text-xs">{isOpen ? '▲' : '▼'}</span>
+                                                </button>
+
+                                                {/* 내용 */}
+                                                {isOpen && (
+                                                    <div className="px-4 pb-4 pt-1" style={{ background: color.bg }}>
+                                                        <p className="text-gray-600 text-sm leading-relaxed">{step.content}</p>
+                                                        {step.highlight && (
+                                                            <div className="mt-2.5 px-3 py-2 rounded-xl text-center font-bold text-sm" style={{ background: color.highlight, color: color.title }}>
+                                                                {step.highlight}
+                                                            </div>
+                                                        )}
+                                                        {/* 단계별 TTS 버튼 */}
+                                                        <button
+                                                            onClick={() => isSpeaking ? stop() : speak(stepText, ttsId)}
+                                                            disabled={isLoading}
+                                                            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-colors"
+                                                            style={isSpeaking
+                                                                ? { borderColor: color.title, background: color.highlight, color: color.title }
+                                                                : isLoading
+                                                                ? { borderColor: color.border, background: '#fff', color: color.title }
+                                                                : { borderColor: color.title, background: color.title, color: '#fff' }
+                                                            }
+                                                        >
+                                                            {isLoading
+                                                                ? <><Loader size={11} className="animate-spin" /> 준비 중</>
+                                                                : isSpeaking
+                                                                ? <><VolumeX size={11} /> 중지</>
+                                                                : <><Volume2 size={11} /> 이 단계 듣기</>
+                                                            }
+                                                        </button>
                                                     </div>
                                                 )}
                                             </div>
