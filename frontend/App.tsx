@@ -16,7 +16,7 @@ import { LandingPage } from './components/LandingPage';
 import { LandingPageNew } from './components/LandingPageNew';
 
 // 뉴페이지 전환 플래그 (true = 뉴페이지, false = 올드페이지)
-const USE_NEW_UI = false;
+const USE_NEW_UI = true;
 import { Theme } from './components/themes';
 import { MainPage } from './components/MainPage';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
