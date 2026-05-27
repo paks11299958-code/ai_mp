@@ -750,7 +750,11 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 }}>
                     {/* 로고 */}
                     <a href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-                        <img src="/aichat_log2.png" alt="logo" style={{ height: 44, width: 'auto' }} />
+                        <img src="/aichat_log2.png" alt="logo" style={{
+                            height: 44, width: 'auto',
+                            mixBlendMode: 'multiply',
+                            borderRadius: 8,
+                        }} />
                         <div>
                             <div style={{
                                 fontFamily: "'Cinzel', serif",
