@@ -45,6 +45,7 @@ interface LandingPageNewProps {
     // 로그인 상태 전달 (로그인 후 히어로 페이지 표시 시)
     user?: { username?: string; email: string } | null;
     onGoToChat?: () => void;
+    onLogout?: () => void;
 }
 
 // ─────────────────────────────────────────────
@@ -638,6 +639,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     categories = [],
     user,
     onGoToChat,
+    onLogout,
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -902,6 +904,13 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 }}>
                                     ✦ 채팅 시작하기
                                 </button>
+                                {onLogout && (
+                                    <button onClick={() => { setMobileMenuOpen(false); onLogout(); }} style={{
+                                        padding: '13px 20px', background: 'none', border: 'none',
+                                        textAlign: 'left', fontSize: 14, color: '#C0505A', cursor: 'pointer',
+                                        borderTop: `1px solid ${T.lineSoft}`, marginTop: 4,
+                                    }}>로그아웃</button>
+                                )}
                             </>
                         ) : (
                             <>

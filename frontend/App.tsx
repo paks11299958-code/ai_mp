@@ -1119,6 +1119,7 @@ const AppContent: React.FC = () => {
                     categories={categories}
                     user={user}
                     onGoToChat={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
+                    onLogout={handleLogout}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
