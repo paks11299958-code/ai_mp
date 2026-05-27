@@ -557,17 +557,51 @@ const PersonaSelectPanel: React.FC<{
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(8px)',
             }}>
-                <div style={{
-                    fontFamily: "'Cinzel', serif", fontSize: 10,
-                    letterSpacing: '0.35em', color: T.gold,
-                    marginBottom: 6, opacity: 0.9,
-                }}>✦ AI PERSONAS</div>
-                <h2 style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 26, fontWeight: 600,
-                    margin: '0 0 14px', color: T.ink,
-                    letterSpacing: '-0.01em',
-                }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
+                {/* 타이틀 + 기능 썸네일 (오른쪽 정렬) */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div>
+                        <div style={{
+                            fontFamily: "'Cinzel', serif", fontSize: 10,
+                            letterSpacing: '0.35em', color: T.gold,
+                            marginBottom: 6, opacity: 0.9,
+                        }}>✦ AI PERSONAS</div>
+                        <h2 style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontSize: 26, fontWeight: 600,
+                            margin: '0 0 14px', color: T.ink,
+                            letterSpacing: '-0.01em',
+                        }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
+                    </div>
+                    {/* 선택된 기능 썸네일 */}
+                    {focusFeatureKey && (() => {
+                        const feat = FEATURES_GRID.find(f => f.key === focusFeatureKey);
+                        if (!feat) return null;
+                        return (
+                            <div style={{
+                                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                gap: 4, padding: '8px 12px',
+                                background: `linear-gradient(155deg, ${feat.palette.bg} 0%, #FBF8F3 100%)`,
+                                border: `1.5px solid ${feat.palette.accent}55`,
+                                borderRadius: 14,
+                                boxShadow: `0 0 0 2px ${feat.palette.accent}33, 0 6px 18px -6px rgba(80,50,110,0.2)`,
+                                minWidth: 72,
+                            }}>
+                                <MpnFeatureIcon kind={feat.icon} size={40} color={feat.palette.accent} bg={feat.palette.bg} />
+                                <div style={{
+                                    fontFamily: "'Cormorant Garamond', serif",
+                                    fontSize: 11, fontWeight: 600,
+                                    color: feat.palette.accent, textAlign: 'center', lineHeight: 1.2,
+                                }}>{feat.name}</div>
+                                <div style={{
+                                    fontSize: 9, color: feat.palette.deep,
+                                    background: `${feat.palette.accent}22`,
+                                    borderRadius: 99, padding: '2px 7px',
+                                    fontWeight: 600,
+                                }}>{feat.tag}</div>
+                            </div>
+                        );
+                    })()}
+                </div>
 
                 {/* 탭 */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
