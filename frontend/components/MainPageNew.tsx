@@ -464,7 +464,7 @@ const ChatStage: React.FC<{
 // 기능 카드 데이터
 // ─────────────────────────────────────────────
 // chat 카드 제거, 각 기능에 연결 페르소나 이름 매핑
-const FEATURES_GRID = [
+export const FEATURES_GRID = [
     { id: 1,  numeral: 'I',   latin: 'News',    key: 'news',    name: '오늘 뉴스',      tag: 'AI 뉴스 브리핑', desc: '매일 아침 AI가 핵심만 골라 요약 전달. 9개 카테고리 중 원하는 분야를 선택하세요.',         icon: 'newspaper', palette: { bg: '#E8EEF7', deep: '#9AAFCB', accent: '#5C7BA8' }, personaName: '서아'    },
     { id: 2,  numeral: 'II',  latin: 'Stock',   key: 'stock',   name: '주식 분석',      tag: 'AI 투자 리포트', desc: '종목명만 입력하면 Gemini·Claude·GPT 3중 AI가 투자 리포트를 드려요.',                     icon: 'chart',     palette: { bg: '#E0EFE3', deep: '#9CC4A7', accent: '#2E6B32' }, personaName: '윤채원'  },
     { id: 3,  numeral: 'III', latin: 'Swing',   key: 'swing',   name: '스윙 분석',      tag: '골프 AI 코치',   desc: '스윙 영상을 올리면 AI가 5개 항목을 분석해 개선점을 제안해요. 나만의 AI 골프 코치.',        icon: 'golf',      palette: { bg: '#FEF6E8', deep: '#E2C9A0', accent: '#8B6020' }, personaName: '설아'    },
@@ -557,51 +557,17 @@ const PersonaSelectPanel: React.FC<{
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(8px)',
             }}>
-                {/* 타이틀 + 기능 썸네일 (오른쪽 정렬) */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                    <div>
-                        <div style={{
-                            fontFamily: "'Cinzel', serif", fontSize: 10,
-                            letterSpacing: '0.35em', color: T.gold,
-                            marginBottom: 6, opacity: 0.9,
-                        }}>✦ AI PERSONAS</div>
-                        <h2 style={{
-                            fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 26, fontWeight: 600,
-                            margin: '0 0 14px', color: T.ink,
-                            letterSpacing: '-0.01em',
-                        }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
-                    </div>
-                    {/* 선택된 기능 썸네일 */}
-                    {focusFeatureKey && (() => {
-                        const feat = FEATURES_GRID.find(f => f.key === focusFeatureKey);
-                        if (!feat) return null;
-                        return (
-                            <div style={{
-                                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                                gap: 4, padding: '8px 12px',
-                                background: `linear-gradient(155deg, ${feat.palette.bg} 0%, #FBF8F3 100%)`,
-                                border: `1.5px solid ${feat.palette.accent}55`,
-                                borderRadius: 14,
-                                boxShadow: `0 0 0 2px ${feat.palette.accent}33, 0 6px 18px -6px rgba(80,50,110,0.2)`,
-                                minWidth: 72,
-                            }}>
-                                <MpnFeatureIcon kind={feat.icon} size={40} color={feat.palette.accent} bg={feat.palette.bg} />
-                                <div style={{
-                                    fontFamily: "'Cormorant Garamond', serif",
-                                    fontSize: 11, fontWeight: 600,
-                                    color: feat.palette.accent, textAlign: 'center', lineHeight: 1.2,
-                                }}>{feat.name}</div>
-                                <div style={{
-                                    fontSize: 9, color: feat.palette.deep,
-                                    background: `${feat.palette.accent}22`,
-                                    borderRadius: 99, padding: '2px 7px',
-                                    fontWeight: 600,
-                                }}>{feat.tag}</div>
-                            </div>
-                        );
-                    })()}
-                </div>
+                <div style={{
+                    fontFamily: "'Cinzel', serif", fontSize: 10,
+                    letterSpacing: '0.35em', color: T.gold,
+                    marginBottom: 6, opacity: 0.9,
+                }}>✦ AI PERSONAS</div>
+                <h2 style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: 26, fontWeight: 600,
+                    margin: '0 0 14px', color: T.ink,
+                    letterSpacing: '-0.01em',
+                }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
 
                 {/* 탭 */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>

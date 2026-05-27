@@ -19,7 +19,7 @@ import { LandingPageNew } from './components/LandingPageNew';
 const USE_NEW_UI = true;
 import { Theme } from './components/themes';
 import { MainPage } from './components/MainPage';
-import { MainPageNew } from './components/MainPageNew';
+import { MainPageNew, FEATURES_GRID } from './components/MainPageNew';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
@@ -1840,6 +1840,40 @@ const AppContent: React.FC = () => {
                                 )}
                             </div>
                             <div className="flex items-center gap-2">
+                                {/* 기능 썸네일 (히어로에서 기능카드 클릭 시 표시) */}
+                                {USE_NEW_UI && mainFocusFeatureKey && (() => {
+                                    const feat = FEATURES_GRID.find(f => f.key === mainFocusFeatureKey);
+                                    if (!feat) return null;
+                                    return (
+                                        <div style={{
+                                            display: 'flex', alignItems: 'center', gap: 6,
+                                            padding: '4px 10px 4px 6px',
+                                            background: `linear-gradient(135deg, ${feat.palette.bg} 0%, #FBF8F3 100%)`,
+                                            border: `1.5px solid ${feat.palette.accent}55`,
+                                            borderRadius: 20,
+                                            boxShadow: `0 0 0 2px ${feat.palette.accent}22`,
+                                        }}>
+                                            <div style={{
+                                                width: 28, height: 28, borderRadius: '50%',
+                                                background: `${feat.palette.accent}22`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            }}>
+                                                <svg width={16} height={16} viewBox="0 0 96 96" fill="none">
+                                                    {feat.icon === 'shield'    && <><path d="M48 14 L74 24 V46 Q74 68 48 78 Q22 68 22 46 V24 Z" fill={feat.palette.accent} opacity="0.9"/><path d="M36 46 L44 54 L62 36" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>}
+                                                    {feat.icon === 'newspaper' && <><rect x="14" y="18" width="54" height="62" rx="5" fill={feat.palette.accent} opacity="0.9"/><rect x="22" y="28" width="24" height="18" rx="3" fill="#fff" opacity="0.7"/><line x1="22" y1="54" x2="60" y2="54" stroke="#fff" strokeWidth="2.5" strokeLinecap="round"/><line x1="22" y1="62" x2="52" y2="62" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/></>}
+                                                    {feat.icon === 'chart'     && <><rect x="14" y="64" width="14" height="18" rx="3" fill={feat.palette.accent} opacity="0.5"/><rect x="34" y="48" width="14" height="34" rx="3" fill={feat.palette.accent} opacity="0.7"/><rect x="54" y="30" width="14" height="52" rx="3" fill={feat.palette.accent} opacity="0.9"/><path d="M14 62 Q34 40 54 28 L68 20" stroke={feat.palette.accent} strokeWidth="2.5" fill="none" strokeLinecap="round"/></>}
+                                                    {feat.icon === 'golf'      && <><line x1="48" y1="20" x2="48" y2="80" stroke={feat.palette.accent} strokeWidth="3" strokeLinecap="round"/><path d="M48 20 Q62 28 60 38 Q58 46 48 44 Z" fill={feat.palette.accent} opacity="0.9"/></>}
+                                                    {feat.icon === 'face'      && <><ellipse cx="48" cy="44" rx="28" ry="32" fill={feat.palette.accent} opacity="0.9"/><circle cx="38" cy="40" r="4" fill="#fff" opacity="0.9"/><circle cx="58" cy="40" r="4" fill="#fff" opacity="0.9"/><path d="M36 56 Q48 64 60 56" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round"/></>}
+                                                    {feat.icon === 'shopping'  && <><path d="M28 36 L20 76 L76 76 L68 36 Z" fill={feat.palette.accent} opacity="0.9"/><path d="M34 36 Q34 22 48 22 Q62 22 62 36" stroke={feat.palette.accent} strokeWidth="3" fill="none" strokeLinecap="round"/></>}
+                                                    {feat.icon === 'sparkles'  && <><path d="M48 14 L52 40 L78 44 L52 48 L48 74 L44 48 L18 44 L44 40 Z" fill={feat.palette.accent} opacity="0.9"/></>}
+                                                    {feat.icon === 'book'      && <><path d="M14 22 Q30 18 48 22 L48 76 Q30 72 14 76 Z" fill={feat.palette.accent} opacity="0.9"/><path d="M82 22 Q66 18 48 22 L48 76 Q66 72 82 76 Z" fill={feat.palette.accent} opacity="0.65"/></>}
+                                                    {feat.icon === 'people'    && <><circle cx="34" cy="30" r="13" fill={feat.palette.accent} opacity="0.9"/><path d="M14 76 Q14 54 34 54 Q54 54 54 76 Z" fill={feat.palette.accent} opacity="0.9"/><circle cx="64" cy="36" r="11" fill={feat.palette.accent} opacity="0.6"/><path d="M46 78 Q46 60 64 60 Q82 60 82 78 Z" fill={feat.palette.accent} opacity="0.6"/></>}
+                                                </svg>
+                                            </div>
+                                            <span style={{ fontSize: 11, fontWeight: 700, color: feat.palette.accent }}>{feat.name}</span>
+                                        </div>
+                                    );
+                                })()}
                                 {user && (() => {
                                     const stage = getStage(user.personaXp?.[activePersonaId] ?? 0);
                                     return (
