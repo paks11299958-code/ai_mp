@@ -955,11 +955,13 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
             }}>
                 {/* 타로 킥커 */}
                 <div style={{
-                    fontFamily: "'Cinzel', serif",
-                    fontSize: 33, letterSpacing: '0.25em',
-                    color: T.gold, marginBottom: 18,
-                    textTransform: 'uppercase', opacity: 0.9,
-                }}>✦ AI Persona Chat ✦</div>
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    color: T.gold, marginBottom: 18, opacity: 0.9,
+                }}>
+                    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, letterSpacing: '0.25em', textTransform: 'uppercase' }}>✦ AI Persona</span>
+                    <span style={{ fontFamily: "'Dancing Script', cursive", fontSize: 22, fontWeight: 700, letterSpacing: '0.05em' }}>Chat</span>
+                    <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, letterSpacing: '0.25em' }}>✦</span>
+                </div>
 
                 {/* 메인 타이틀 */}
                 <h1 style={{
