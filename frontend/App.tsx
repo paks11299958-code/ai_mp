@@ -1859,7 +1859,7 @@ const AppContent: React.FC = () => {
 
                         {/* 트리거 키워드 안내 */}
                         {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '윤채원' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || activePersona?.name === '이아린' || isGolfPersona) && (
-                            <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
+                            <div className={`px-4 py-2 shrink-0 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/60'}`}>
                                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
@@ -1870,7 +1870,7 @@ const AppContent: React.FC = () => {
                                                 <button
                                                     key={tv.id}
                                                     onClick={() => setTriggerVideoPopup(tv)}
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100 transition-colors whitespace-nowrap"
+                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
                                                 >
                                                     {label}
                                                 </button>
@@ -2099,31 +2099,61 @@ const AppContent: React.FC = () => {
                                 };
                                 const featuredMenus = config.menus.filter(m => m.featured);
                                 const dropdownMenus = config.menus.filter(m => !m.featured);
-                                const glassBtn = 'text-xs px-3.5 py-1.5 rounded-full text-gray-200 transition-all duration-150 hover:text-white active:scale-95';
-                                const glassBtnStyle = {
+                                const glassBtn = USE_NEW_UI
+                                    ? 'text-xs px-3.5 py-1.5 rounded-full transition-all duration-150 active:scale-95'
+                                    : 'text-xs px-3.5 py-1.5 rounded-full text-gray-200 transition-all duration-150 hover:text-white active:scale-95';
+                                const glassBtnStyle = USE_NEW_UI ? {
+                                    background: '#FFFFFF',
+                                    border: '1px solid #EAE2D3',
+                                    color: '#6B5F7A',
+                                } as React.CSSProperties : {
                                     background: 'rgba(255,255,255,0.07)',
                                     border: '1px solid rgba(255,255,255,0.13)',
                                     backdropFilter: 'blur(8px)',
                                     WebkitBackdropFilter: 'blur(8px)',
                                 } as React.CSSProperties;
-                                const glassBtnHoverStyle = {
+                                const glassBtnHoverStyle = USE_NEW_UI ? {
+                                    background: '#F5E6F7',
+                                    border: '1px solid #B49AC9',
+                                    color: '#8E6FB7',
+                                } as React.CSSProperties : {
                                     background: 'rgba(255,255,255,0.14)',
                                     border: '1px solid rgba(255,255,255,0.22)',
                                 } as React.CSSProperties;
-                                const featuredBtnStyle = {
+                                const featuredBtnStyle = USE_NEW_UI ? {
+                                    background: '#FFFFFF',
+                                    border: '1px solid #EAE2D3',
+                                    borderLeft: '2px solid #8E6FB7',
+                                    color: '#6B5F7A',
+                                } as React.CSSProperties : {
                                     ...glassBtnStyle,
                                     borderLeft: '2px solid rgba(167,139,250,0.7)',
                                 } as React.CSSProperties;
-                                const featuredBtnHoverStyle = {
+                                const featuredBtnHoverStyle = USE_NEW_UI ? {
+                                    background: '#F5E6F7',
+                                    border: '1px solid #B49AC9',
+                                    borderLeft: '2px solid #8E6FB7',
+                                    color: '#8E6FB7',
+                                } as React.CSSProperties : {
                                     ...glassBtnHoverStyle,
                                     borderLeft: '2px solid rgba(167,139,250,1)',
                                 } as React.CSSProperties;
-                                const featuredBtnActiveStyle = {
+                                const featuredBtnActiveStyle = USE_NEW_UI ? {
+                                    background: '#FFF3D6',
+                                    border: '1px solid #E8C56A',
+                                    borderLeft: '2px solid #B89232',
+                                    color: '#B89232',
+                                } as React.CSSProperties : {
                                     ...glassBtnHoverStyle,
                                     borderLeft: '2px solid rgba(251,191,36,1)',
                                     boxShadow: '0 0 10px rgba(251,191,36,0.3)',
                                 } as React.CSSProperties;
-                                const featuredBtnSelectedStyle = {
+                                const featuredBtnSelectedStyle = USE_NEW_UI ? {
+                                    background: '#FFF3D6',
+                                    border: '1px solid #E8C56A',
+                                    borderLeft: '2px solid #B89232',
+                                    color: '#B89232',
+                                } as React.CSSProperties : {
                                     background: 'rgba(251,191,36,0.15)',
                                     border: '1px solid rgba(251,191,36,0.5)',
                                     borderLeft: '2px solid rgba(251,191,36,1)',
