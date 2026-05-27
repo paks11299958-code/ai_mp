@@ -13,6 +13,10 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPage } from './components/LandingPage';
+import { LandingPageNew } from './components/LandingPageNew';
+
+// 뉴페이지 전환 플래그 (true = 뉴페이지, false = 올드페이지)
+const USE_NEW_UI = false;
 import { Theme } from './components/themes';
 import { MainPage } from './components/MainPage';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
@@ -994,21 +998,41 @@ const AppContent: React.FC = () => {
                 />
             );
         }
+        // Feature 키 → 기능 오픈 핸들러 (뉴페이지용)
+        const handleNewPageFeatureClick = (key: string) => {
+            setShowAuthModal(true); // 비로그인 → 로그인 모달
+        };
+
         return (
             <>
-                <LandingPage
-                    personas={visiblePersonas}
-                    isLoading={isPersonasLoading}
-                    onStart={() => setShowAuthPage(true)}
-                    onLoginClick={() => setShowAuthModal(true)}
-                    onPersonaClick={handleGuestPersonaClick}
-                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                    unreadAnnouncementCount={unreadAnnouncementCount}
-                    theme={theme}
-                    onThemeChange={handleThemeChange}
-                    heroImageUrl={heroImageUrl}
-                    categories={categories}
-                />
+                {USE_NEW_UI ? (
+                    <LandingPageNew
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        onStart={() => setShowAuthPage(true)}
+                        onLoginClick={() => setShowAuthModal(true)}
+                        onPersonaClick={handleGuestPersonaClick}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                        onFeatureClick={handleNewPageFeatureClick}
+                        categories={categories}
+                    />
+                ) : (
+                    <LandingPage
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        onStart={() => setShowAuthPage(true)}
+                        onLoginClick={() => setShowAuthModal(true)}
+                        onPersonaClick={handleGuestPersonaClick}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        theme={theme}
+                        onThemeChange={handleThemeChange}
+                        heroImageUrl={heroImageUrl}
+                        categories={categories}
+                    />
+                )}
                 {showAuthModal && (
                     <AuthModal
                         onSuccess={handleAuthSuccess}
