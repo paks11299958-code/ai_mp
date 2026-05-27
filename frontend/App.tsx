@@ -1723,79 +1723,16 @@ const AppContent: React.FC = () => {
                         const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
-                            <div className={`hidden md:flex w-1/3 border-r ${USE_NEW_UI ? 'border-[#F0E9DE] bg-transparent' : 'border-gray-800 bg-gray-900/30'}`}
-                                style={{ flexDirection: 'row', alignItems: 'stretch', overflow: 'hidden' }}>
-                                {/* 왼쪽: 페르소나 이미지 */}
-                                <div style={{ width: 120, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '16px 8px', borderRight: USE_NEW_UI ? '1px solid #F0E9DE' : '1px solid #374151' }}>
+                            <div className={`hidden md:flex w-1/3 p-8 flex-col items-center justify-center ${USE_NEW_UI ? 'border-r border-[#F0E9DE] bg-transparent' : 'border-r border-gray-800 bg-gray-900/30'}`}>
+                                <div className="w-full max-h-[60%] flex items-center justify-center">
                                     <img
                                         src={displayUrl}
                                         alt={`${activePersona?.name} 프로필`}
-                                        style={{ width: 90, height: 'auto', objectFit: 'contain', borderRadius: 14, boxShadow: '0 4px 16px -4px rgba(80,50,110,0.25)' }}
+                                        className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
                                     />
-                                    <div style={{ marginTop: 8, fontSize: 12, fontWeight: 700, color: '#2D2438', textAlign: 'center', fontFamily: "'Cormorant Garamond', serif" }}>{activePersona?.name}</div>
                                 </div>
-                                {/* 오른쪽: 기능카드 영역 */}
-                                <div style={{ flex: 1, padding: '16px 12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-
-                                {/* 페르소나 전용 기능카드 */}
-                                {USE_NEW_UI && activePersona && (() => {
-                                    const featureMap: Record<string, () => void> = {
-                                        'news':    () => setShowTodayNews(true),
-                                        'stock':   () => setShowStockAnalysis(true),
-                                        'swing':   () => setShowSwingBoard(true),
-                                        'luxury':  () => setShowLuxuryBoard(true),
-                                        'face':    () => setShowFaceModal(true),
-                                        'used':    () => setShowUsedItem(true),
-                                        'keyword': () => setShowHotKeyword(true),
-                                        'math':    () => setShowMathTutor(true),
-                                        'attend':  () => setShowClubBoard(true),
-                                    };
-                                    const feats = FEATURES_GRID.filter(f => f.personaName === activePersona.name);
-                                    if (feats.length === 0) return null;
-                                    return (
-                                        <div style={{ marginTop: 20, width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
-                                            <div style={{ fontFamily: "'Cinzel', serif", fontSize: 9, letterSpacing: '0.25em', color: '#B58F4A', textAlign: 'center', marginBottom: 4, opacity: 0.8 }}>✦ 기능</div>
-                                            {feats.map(feat => (
-                                                <button
-                                                    key={feat.key}
-                                                    onClick={() => featureMap[feat.key]?.()}
-                                                    style={{
-                                                        display: 'flex', alignItems: 'center', gap: 10,
-                                                        padding: '10px 14px',
-                                                        background: `linear-gradient(135deg, ${feat.palette.bg} 0%, #FBF8F3 100%)`,
-                                                        border: `1.5px solid ${feat.palette.accent}44`,
-                                                        borderRadius: 14, cursor: 'pointer',
-                                                        transition: 'transform 0.15s, box-shadow 0.15s',
-                                                        boxShadow: `0 2px 10px -4px ${feat.palette.accent}44`,
-                                                        width: '100%',
-                                                    }}
-                                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = `0 6px 16px -4px ${feat.palette.accent}66`; }}
-                                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'none'; (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 10px -4px ${feat.palette.accent}44`; }}
-                                                >
-                                                    <div style={{ width: 32, height: 32, borderRadius: 10, background: `${feat.palette.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                                        <svg width={18} height={18} viewBox="0 0 96 96" fill="none">
-                                                            {feat.icon === 'shield'    && <><path d="M48 14 L74 24 V46 Q74 68 48 78 Q22 68 22 46 V24 Z" fill={feat.palette.accent} opacity="0.9"/><path d="M36 46 L44 54 L62 36" stroke="#fff" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>}
-                                                            {feat.icon === 'newspaper' && <><rect x="14" y="18" width="54" height="62" rx="5" fill={feat.palette.accent} opacity="0.9"/><rect x="22" y="28" width="24" height="18" rx="3" fill="#fff" opacity="0.7"/><line x1="22" y1="54" x2="60" y2="54" stroke="#fff" strokeWidth="3" strokeLinecap="round"/></>}
-                                                            {feat.icon === 'chart'     && <><rect x="14" y="64" width="14" height="18" rx="3" fill={feat.palette.accent} opacity="0.5"/><rect x="34" y="48" width="14" height="34" rx="3" fill={feat.palette.accent} opacity="0.7"/><rect x="54" y="30" width="14" height="52" rx="3" fill={feat.palette.accent} opacity="0.9"/><path d="M14 62 Q34 40 54 28 L68 20" stroke={feat.palette.accent} strokeWidth="3" fill="none" strokeLinecap="round"/></>}
-                                                            {feat.icon === 'golf'      && <><line x1="48" y1="20" x2="48" y2="80" stroke={feat.palette.accent} strokeWidth="3" strokeLinecap="round"/><path d="M48 20 Q62 28 60 38 Q58 46 48 44 Z" fill={feat.palette.accent} opacity="0.9"/></>}
-                                                            {feat.icon === 'face'      && <><ellipse cx="48" cy="44" rx="28" ry="32" fill={feat.palette.accent} opacity="0.9"/><circle cx="38" cy="40" r="4" fill="#fff" opacity="0.9"/><circle cx="58" cy="40" r="4" fill="#fff" opacity="0.9"/><path d="M36 56 Q48 64 60 56" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round"/></>}
-                                                            {feat.icon === 'shopping'  && <><path d="M28 36 L20 76 L76 76 L68 36 Z" fill={feat.palette.accent} opacity="0.9"/><path d="M34 36 Q34 22 48 22 Q62 22 62 36" stroke={feat.palette.accent} strokeWidth="3" fill="none" strokeLinecap="round"/></>}
-                                                            {feat.icon === 'sparkles'  && <><path d="M48 14 L52 40 L78 44 L52 48 L48 74 L44 48 L18 44 L44 40 Z" fill={feat.palette.accent} opacity="0.9"/></>}
-                                                            {feat.icon === 'book'      && <><path d="M14 22 Q30 18 48 22 L48 76 Q30 72 14 76 Z" fill={feat.palette.accent} opacity="0.9"/><path d="M82 22 Q66 18 48 22 L48 76 Q66 72 82 76 Z" fill={feat.palette.accent} opacity="0.65"/></>}
-                                                            {feat.icon === 'people'    && <><circle cx="34" cy="30" r="13" fill={feat.palette.accent} opacity="0.9"/><path d="M14 76 Q14 54 34 54 Q54 54 54 76 Z" fill={feat.palette.accent} opacity="0.9"/><circle cx="64" cy="36" r="11" fill={feat.palette.accent} opacity="0.6"/><path d="M46 78 Q46 60 64 60 Q82 60 82 78 Z" fill={feat.palette.accent} opacity="0.6"/></>}
-                                                        </svg>
-                                                    </div>
-                                                    <div style={{ textAlign: 'left' }}>
-                                                        <div style={{ fontSize: 13, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.2 }}>{feat.name}</div>
-                                                        <div style={{ fontSize: 10, color: feat.palette.deep, marginTop: 2 }}>{feat.tag}</div>
-                                                    </div>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    );
-                                })()}
-
-                                </div>{/* 기능카드 영역 닫기 */}
+                                <h3 className={`mt-8 text-2xl font-bold text-center ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-gray-100'}`} style={USE_NEW_UI ? { fontFamily: "'Cormorant Garamond', serif" } : {}}>{activePersona?.name}</h3>
+                                <p className={`mt-3 text-base text-center leading-relaxed ${USE_NEW_UI ? 'text-[#6B5F7A]' : 'text-gray-400'}`}>{activePersona?.description}</p>
                             </div>
                         ) : null;
                     })()}
