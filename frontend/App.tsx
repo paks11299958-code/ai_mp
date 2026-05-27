@@ -1723,7 +1723,7 @@ const AppContent: React.FC = () => {
                         const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
-                            <div className={`hidden md:flex w-1/3 p-8 flex-col items-center justify-center ${USE_NEW_UI ? 'border-r border-[#F0E9DE] bg-white/30' : 'border-r border-gray-800 bg-gray-900/30'}`}>
+                            <div className={`hidden md:flex w-1/3 p-8 flex-col items-center justify-center ${USE_NEW_UI ? 'border-r border-[#F0E9DE] bg-transparent' : 'border-r border-gray-800 bg-gray-900/30'}`}>
                                 <div className="w-full max-h-[60%] flex items-center justify-center">
                                     <img
                                         src={displayUrl}
