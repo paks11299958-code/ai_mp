@@ -8,9 +8,10 @@ interface PersonaImageViewerProps {
     images: PersonaImage[];
     onSelectMain: (image: PersonaImage) => void;
     userXp: number;
+    newUi?: boolean;
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp }) => {
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi = false }) => {
     const [videosByImage, setVideosByImage] = useState<Record<number, PersonaVideo[]>>({});
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
@@ -47,7 +48,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
 
     return (
         <>
-            <div className="px-3 py-2 bg-gray-900/50 border-b border-gray-800">
+            <div className={`px-3 py-2 ${newUi ? 'bg-white/70 border-b border-[#F0E9DE]' : 'bg-gray-900/50 border-b border-gray-800'}`}>
                 <div className="flex gap-2 overflow-x-auto">
                     {images.map(img => {
                         const isLocked = userStage < img.requiredLevel;

@@ -261,7 +261,7 @@ const AppContent: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); setShowMain(true); })
+            .then(({ user }) => { setUser(user); setShowMain(USE_NEW_UI ? false : true); })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -1095,6 +1095,39 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 로그인 후 히어로 페이지 (USE_NEW_UI + showMain=false + activePersonaId 없음)
+    if (USE_NEW_UI && user && !showMain && !activePersonaId) {
+        const handleNewPageFeatureClickLoggedIn = (key: string) => {
+            setShowMain(true);
+        };
+        return (
+            <>
+                <LandingPageNew
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    onStart={() => setShowMain(true)}
+                    onLoginClick={() => setShowMain(true)}
+                    onPersonaClick={(id) => { handlePersonaClick(id); }}
+                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                    unreadAnnouncementCount={unreadAnnouncementCount}
+                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                    onFeatureClick={handleNewPageFeatureClickLoggedIn}
+                    categories={categories}
+                    user={user}
+                    onGoToChat={() => setShowMain(true)}
+                />
+                {showAnnouncementModal && (
+                    <AnnouncementModal
+                        announcements={announcements}
+                        readIds={readAnnouncementIds}
+                        onRead={handleReadAnnouncements}
+                        onClose={() => setShowAnnouncementModal(false)}
+                    />
+                )}
+            </>
+        );
+    }
+
     if (showMain) {
         return (
             <>
@@ -1854,7 +1887,7 @@ const AppContent: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} />
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} />
                         )}
 
                         {/* 트리거 키워드 안내 */}
@@ -1883,14 +1916,14 @@ const AppContent: React.FC = () => {
                                                 <button
                                                     onClick={() => swingVideoRef.current?.click()}
                                                     disabled={swingUploading || currentSession.isTyping}
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1 disabled:opacity-40"
+                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 disabled:opacity-40 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                                 >
                                                     <Icon name="Upload" size={10} />
                                                     스윙 분석
                                                 </button>
                                                 <button
                                                     onClick={() => { setSwingResult(null); setShowSwingBoard(true); }}
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                                 >
                                                     <Icon name="Play" size={10} />
                                                     스윙 기록
@@ -1900,7 +1933,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '윤채원' && user && (
                                             <button
                                                 onClick={() => setShowStockAnalysis(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9EC4A0] bg-[#EAF5EB] text-[#2E6B32] hover:bg-[#D4EDD5]' : 'border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100'}`}
                                             >
                                                 <Icon name="TrendingUp" size={10} />
                                                 주식 분석
@@ -1909,7 +1942,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '이아린' && user && (
                                             <button
                                                 onClick={() => setShowUsedItem(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                             >
                                                 <Icon name="ShoppingBag" size={10} />
                                                 중고 판매
@@ -1918,7 +1951,7 @@ const AppContent: React.FC = () => {
                                         {(activePersona?.name === '왕주식' || activePersona?.name === '이아린') && user && (
                                             <button
                                                 onClick={() => setShowHotKeyword(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                             >
                                                 <Icon name="ShoppingBag" size={10} />
                                                 핫쇼핑키워드
@@ -1927,7 +1960,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '왕주식' && user && (
                                             <button
                                                 onClick={() => setShowResearch(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-blue-700/60 bg-blue-900/20 text-blue-300 hover:bg-blue-800/40 hover:text-blue-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9AAFCB] bg-[#E8EEF7] text-[#5C7BA8] hover:bg-[#D5E2F0]' : 'border-blue-700/60 bg-blue-900/20 text-blue-300 hover:bg-blue-800/40 hover:text-blue-100'}`}
                                             >
                                                 <Icon name="BookOpen" size={10} />
                                                 딥 리서치
@@ -1936,7 +1969,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '왕주식' && user && (
                                             <button
                                                 onClick={() => setShowProductExtract(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/20 text-emerald-300 hover:bg-emerald-800/40 hover:text-emerald-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9EC4A0] bg-[#EAF5EB] text-[#2E6B32] hover:bg-[#D4EDD5]' : 'border-emerald-700/60 bg-emerald-900/20 text-emerald-300 hover:bg-emerald-800/40 hover:text-emerald-100'}`}
                                             >
                                                 <Icon name="Package" size={10} />
                                                 제품추출
@@ -1945,7 +1978,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '신은비' && user && (
                                             <button
                                                 onClick={() => setShowLuxuryBoard(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#7A5FA0] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
                                             >
                                                 <Icon name="Shield" size={10} />
                                                 명품 검증
@@ -1954,7 +1987,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '서아' && user && (
                                             <button
                                                 onClick={() => setShowTodayNews(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 hover:text-sky-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9AAFCB] bg-[#E8EEF7] text-[#5C7BA8] hover:bg-[#D5E2F0]' : 'border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 hover:text-sky-100'}`}
                                             >
                                                 <Icon name="Newspaper" size={10} />
                                                 오늘뉴스

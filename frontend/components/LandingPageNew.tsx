@@ -42,6 +42,9 @@ interface LandingPageNewProps {
     categories?: Category[];
     // 기능 카드 클릭 핸들러
     onFeatureClick?: (featureKey: string) => void;
+    // 로그인 상태 전달 (로그인 후 히어로 페이지 표시 시)
+    user?: { username?: string; email: string } | null;
+    onGoToChat?: () => void;
 }
 
 // ─────────────────────────────────────────────
@@ -633,6 +636,8 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     onPartnerBoardClick,
     onFeatureClick,
     categories = [],
+    user,
+    onGoToChat,
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
 
@@ -799,34 +804,58 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 제휴
                             </button>
                         )}
-                        <button
-                            className="lp-nav-btn"
-                            onClick={onLoginClick ?? onStart}
-                        >
-                            로그인
-                        </button>
-                        <button
-                            onClick={onStart}
-                            style={{
-                                padding: '8px 20px',
-                                borderRadius: 999,
-                                background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
-                                color: '#fff',
-                                fontSize: 13, fontWeight: 700,
-                                border: 'none', cursor: 'pointer',
-                                boxShadow: `0 6px 18px -6px rgba(142,111,183,0.55)`,
-                                transition: 'transform 0.15s, box-shadow 0.15s',
-                                letterSpacing: '0.03em',
-                            }}
-                            onMouseEnter={e => {
-                                (e.target as HTMLElement).style.transform = 'translateY(-1px)';
-                            }}
-                            onMouseLeave={e => {
-                                (e.target as HTMLElement).style.transform = 'translateY(0)';
-                            }}
-                        >
-                            무료 시작
-                        </button>
+                        {user ? (
+                            <>
+                                <span style={{ fontSize: 13, color: T.inkSoft, fontWeight: 500 }}>
+                                    {user.username || user.email.split('@')[0]}님 ✦
+                                </span>
+                                <button
+                                    onClick={onGoToChat ?? onStart}
+                                    style={{
+                                        padding: '8px 20px',
+                                        borderRadius: 999,
+                                        background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                                        color: '#fff',
+                                        fontSize: 13, fontWeight: 700,
+                                        border: 'none', cursor: 'pointer',
+                                        boxShadow: `0 6px 18px -6px rgba(142,111,183,0.55)`,
+                                        transition: 'transform 0.15s, box-shadow 0.15s',
+                                        letterSpacing: '0.03em',
+                                    }}
+                                    onMouseEnter={e => { (e.target as HTMLElement).style.transform = 'translateY(-1px)'; }}
+                                    onMouseLeave={e => { (e.target as HTMLElement).style.transform = 'translateY(0)'; }}
+                                >
+                                    채팅 시작 →
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <button
+                                    className="lp-nav-btn"
+                                    onClick={onLoginClick ?? onStart}
+                                >
+                                    로그인
+                                </button>
+                                <button
+                                    onClick={onStart}
+                                    style={{
+                                        padding: '8px 20px',
+                                        borderRadius: 999,
+                                        background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                                        color: '#fff',
+                                        fontSize: 13, fontWeight: 700,
+                                        border: 'none', cursor: 'pointer',
+                                        boxShadow: `0 6px 18px -6px rgba(142,111,183,0.55)`,
+                                        transition: 'transform 0.15s, box-shadow 0.15s',
+                                        letterSpacing: '0.03em',
+                                    }}
+                                    onMouseEnter={e => { (e.target as HTMLElement).style.transform = 'translateY(-1px)'; }}
+                                    onMouseLeave={e => { (e.target as HTMLElement).style.transform = 'translateY(0)'; }}
+                                >
+                                    무료 시작
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -913,6 +942,30 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                         ◈ 기능 둘러보기
                     </button>
                 </div>
+
+                {/* 로그인 상태 CTA */}
+                {user && (
+                    <div style={{ marginBottom: 20 }}>
+                        <button
+                            onClick={onGoToChat ?? onStart}
+                            style={{
+                                padding: '14px 36px',
+                                borderRadius: 999,
+                                background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                                color: '#fff',
+                                fontSize: 16, fontWeight: 700,
+                                border: 'none', cursor: 'pointer',
+                                boxShadow: `0 10px 28px -8px rgba(142,111,183,0.65)`,
+                                letterSpacing: '0.04em',
+                                transition: 'transform 0.15s, box-shadow 0.15s',
+                            }}
+                            onMouseEnter={e => { (e.target as HTMLElement).style.transform = 'translateY(-2px) scale(1.02)'; }}
+                            onMouseLeave={e => { (e.target as HTMLElement).style.transform = 'translateY(0) scale(1)'; }}
+                        >
+                            채팅 시작하기 →
+                        </button>
+                    </div>
+                )}
 
                 {/* 신뢰 칩 */}
                 <div style={{
