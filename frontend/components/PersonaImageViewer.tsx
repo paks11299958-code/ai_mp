@@ -4,15 +4,24 @@ import { personaVideoApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { getStage, STAGES } from '../utils/level';
 
+interface FeatureCard {
+    icon: string;
+    label: string;
+    onClick: () => void;
+    borderColor?: string;
+    bgColor?: string;
+    color?: string;
+}
+
 interface PersonaImageViewerProps {
     images: PersonaImage[];
     onSelectMain: (image: PersonaImage) => void;
     userXp: number;
     newUi?: boolean;
-    onNewsClick?: () => void;
+    featureCards?: FeatureCard[];
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, onNewsClick }) => {
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, featureCards }) => {
     const [videosByImage, setVideosByImage] = useState<Record<number, PersonaVideo[]>>({});
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
@@ -22,7 +31,6 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
     const userStage = getStage(userXp).stage;
     const mainImage = images.find(img => img.isMain) || images[0];
 
-    // 잠금 해제된 이미지의 동영상 미리 로드
     useEffect(() => {
         const unlockedImages = images.filter(img => userStage >= img.requiredLevel && (img._count?.videos ?? 0) > 0);
         unlockedImages.forEach(img => {
@@ -41,10 +49,6 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
         setPreviewImage(img);
     };
 
-    const handleVideoCircleClick = (video: PersonaVideo) => {
-        setPlayingVideo(video);
-    };
-
     if (images.length === 0) return null;
 
     return (
@@ -52,14 +56,13 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
             <div className={`px-3 py-2 border-b ${newUi ? 'border-[#F0E9DE] bg-transparent' : 'bg-gray-900/50 border-gray-800'}`}>
                 <div className="flex items-center gap-3">
                     {/* 이미지 썸네일 목록 */}
-                    <div className="flex gap-2 overflow-x-auto flex-1">
+                    <div className="flex gap-2 overflow-x-auto flex-1 min-w-0">
                         {images.map(img => {
                             const isLocked = userStage < img.requiredLevel;
                             const reqStageName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
                             const videoCount = img._count?.videos ?? 0;
                             return (
                                 <div key={img.id} className="flex flex-col items-center gap-1 shrink-0">
-                                    {/* 이미지 썸네일 */}
                                     <button
                                         onClick={() => handleImageClick(img)}
                                         className={`relative group ${isLocked ? 'cursor-not-allowed' : ''}`}
@@ -76,7 +79,6 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                                         : 'border-transparent opacity-60 group-hover:opacity-90 group-hover:border-gray-500'
                                             }`}
                                         />
-                                        {/* 잠금 오버레이 */}
                                         {isLocked && (
                                             <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-gray-900/60">
                                                 <Icon name="Lock" size={14} className="text-gray-400" />
@@ -84,7 +86,6 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                             </div>
                                         )}
                                     </button>
-                                    {/* 동영상 숫자 동그라미 */}
                                     {!isLocked && videoCount > 0 && (
                                         <div className="flex gap-1">
                                             {(videosByImage[img.id] ?? Array.from({ length: videoCount }, (_, i) => ({ id: `ph-${img.id}-${i}`, requiredLevel: 1 } as any))).map((v: PersonaVideo, i: number) => {
@@ -100,7 +101,7 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                                                 ) : (
                                                     <button
                                                         key={v.id}
-                                                        onClick={() => handleVideoCircleClick(v)}
+                                                        onClick={() => setPlayingVideo(v)}
                                                         className={`w-6 h-6 rounded-full border-2 flex items-center justify-center gap-0.5 transition-all shadow ${newUi ? 'bg-[#8E6FB7] hover:bg-[#7A5FA0] border-[#8E6FB7]' : 'bg-blue-600 hover:bg-blue-500 border-blue-500 hover:border-blue-400'}`}
                                                         title={`동영상 ${i + 1} 재생`}
                                                     >
@@ -116,19 +117,25 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                         })}
                     </div>
 
-                    {/* 오늘뉴스 카드 (서아 전용) */}
-                    {onNewsClick && (
-                        <button
-                            onClick={onNewsClick}
-                            className={`shrink-0 flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl border transition-all ${
-                                newUi
-                                    ? 'border-[#9AAFCB] bg-[#E8EEF7] text-[#5C7BA8] hover:bg-[#D5E2F0]'
-                                    : 'border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40'
-                            }`}
-                        >
-                            <Icon name="Newspaper" size={18} />
-                            <span className="text-[10px] font-medium whitespace-nowrap">오늘뉴스</span>
-                        </button>
+                    {/* 기능 카드 */}
+                    {featureCards && featureCards.length > 0 && (
+                        <div className="flex gap-1.5 shrink-0">
+                            {featureCards.map((card, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={card.onClick}
+                                    className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-xl border transition-all"
+                                    style={{
+                                        borderColor: card.borderColor ?? '#B49AC9',
+                                        background: card.bgColor ?? '#F5E6F7',
+                                        color: card.color ?? '#8E6FB7',
+                                    }}
+                                >
+                                    <Icon name={card.icon as any} size={16} />
+                                    <span className="text-[10px] font-medium whitespace-nowrap">{card.label}</span>
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>

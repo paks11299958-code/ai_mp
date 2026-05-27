@@ -1895,16 +1895,37 @@ const AppContent: React.FC = () => {
                             </div>
                         </header>
 
-                        {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} onNewsClick={activePersona?.name === '서아' ? () => setShowTodayNews(true) : undefined} />
-                        )}
+                        {activeImages.length > 0 && (() => {
+                            const featureCards: { icon: string; label: string; onClick: () => void; color?: string; bgColor?: string; borderColor?: string }[] = [];
+                            if (user) {
+                                if (activePersona?.name === '서아')
+                                    featureCards.push({ icon: 'Newspaper', label: '오늘뉴스', onClick: () => setShowTodayNews(true), borderColor: '#9AAFCB', bgColor: '#E8EEF7', color: '#5C7BA8' });
+                                if (activePersona?.name === '윤채원') {
+                                    featureCards.push({ icon: 'TrendingUp', label: '주식 분석', onClick: () => setShowStockAnalysis(true), borderColor: '#9EC4A0', bgColor: '#EAF5EB', color: '#2E6B32' });
+                                    featureCards.push({ icon: 'ShoppingBag', label: '핫쇼핑키워드', onClick: () => setShowHotKeyword(true), borderColor: '#E2C9A0', bgColor: '#FEF6E8', color: '#8B6020' });
+                                }
+                                if (activePersona?.name === '이아린') {
+                                    featureCards.push({ icon: 'ShoppingBag', label: '중고 판매', onClick: () => setShowUsedItem(true), borderColor: '#E2C9A0', bgColor: '#FEF6E8', color: '#8B6020' });
+                                    featureCards.push({ icon: 'ShoppingBag', label: '핫쇼핑키워드', onClick: () => setShowHotKeyword(true), borderColor: '#E2C9A0', bgColor: '#FEF6E8', color: '#8B6020' });
+                                }
+                                if (activePersona?.name === '신은비')
+                                    featureCards.push({ icon: 'Shield', label: '명품 검증', onClick: () => setShowLuxuryBoard(true), borderColor: '#B49AC9', bgColor: '#F5E6F7', color: '#7A5FA0' });
+                                if (activePersona?.name === '지우') {
+                                    featureCards.push({ icon: 'BookOpen', label: 'AI쌤', onClick: () => setShowMathTutor(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
+                                    featureCards.push({ icon: 'Handshake', label: '모임(출첵)', onClick: () => setShowClubBoard(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
+                                }
+                            }
+                            return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} featureCards={featureCards} />;
+                        })()}
 
-                        {/* 트리거 키워드 안내 */}
-                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '윤채원' || activePersona?.name === '신은비' || activePersona?.name === '윤채원' || activePersona?.name === '지우' || activePersona?.name === '이아린' || isGolfPersona) && (
+                        {/* 트리거 키워드 + 골프 기능 버튼 */}
+                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || isGolfPersona) && (
                             <div className={`px-4 py-2 shrink-0 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/60'}`}>
                                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
+                                        {(triggerVideos[activePersonaId]?.length ?? 0) > 0 && (
+                                            <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
+                                        )}
                                         {triggerVideos[activePersonaId]?.map(tv => {
                                             const firstKw = tv.keywords.split(',').map(k => k.trim()).find(k => k) || '';
                                             const label = tv.tag || firstKw;
@@ -1938,69 +1959,6 @@ const AppContent: React.FC = () => {
                                                     스윙 기록
                                                 </button>
                                             </>
-                                        )}
-                                        {activePersona?.name === '윤채원' && user && (
-                                            <button
-                                                onClick={() => setShowStockAnalysis(true)}
-                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9EC4A0] bg-[#EAF5EB] text-[#2E6B32] hover:bg-[#D4EDD5]' : 'border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100'}`}
-                                            >
-                                                <Icon name="TrendingUp" size={10} />
-                                                주식 분석
-                                            </button>
-                                        )}
-                                        {activePersona?.name === '이아린' && user && (
-                                            <button
-                                                onClick={() => setShowUsedItem(true)}
-                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
-                                            >
-                                                <Icon name="ShoppingBag" size={10} />
-                                                중고 판매
-                                            </button>
-                                        )}
-                                        {(activePersona?.name === '윤채원' || activePersona?.name === '이아린') && user && (
-                                            <button
-                                                onClick={() => setShowHotKeyword(true)}
-                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
-                                            >
-                                                <Icon name="ShoppingBag" size={10} />
-                                                핫쇼핑키워드
-                                            </button>
-                                        )}
-                                        {activePersona?.name === '신은비' && user && (
-                                            <button
-                                                onClick={() => setShowLuxuryBoard(true)}
-                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#7A5FA0] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
-                                            >
-                                                <Icon name="Shield" size={10} />
-                                                명품 검증
-                                            </button>
-                                        )}
-                                        {activePersona?.name === '서아' && user && (
-                                            <button
-                                                onClick={() => setShowTodayNews(true)}
-                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9AAFCB] bg-[#E8EEF7] text-[#5C7BA8] hover:bg-[#D5E2F0]' : 'border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 hover:text-sky-100'}`}
-                                            >
-                                                <Icon name="Newspaper" size={10} />
-                                                오늘뉴스
-                                            </button>
-                                        )}
-                                        {activePersona?.name === '지우' && user && (
-                                            <button
-                                                onClick={() => setShowMathTutor(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap flex items-center gap-1 transition-colors"
-                                                style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
-                                            >
-                                                📚 AI쌤
-                                            </button>
-                                        )}
-                                        {activePersona?.name === '지우' && user && (
-                                            <button
-                                                onClick={() => setShowClubBoard(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap flex items-center gap-1 transition-colors"
-                                                style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
-                                            >
-                                                🤝 모임(출첵)
-                                            </button>
                                         )}
                                     </div>
                                 </div>
