@@ -955,7 +955,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
             }}>
                 {/* 타로 킥커 */}
                 <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     color: T.gold, marginBottom: 18, opacity: 0.9,
                 }}>
                     <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, letterSpacing: '0.25em', textTransform: 'uppercase' }}>✦ AI Persona</span>
