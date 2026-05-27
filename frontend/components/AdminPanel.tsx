@@ -969,6 +969,7 @@ const FEATURE_LABELS: Record<string, string> = {
     'luxury':     '명품 감정',
     'face':       '얼굴 관상 분석',
     'quick-menu': '퀵메뉴',
+    'news':       '오늘뉴스',
 };
 
 const ROLES = ['USER', 'MANAGE', 'ADMIN'] as const;
