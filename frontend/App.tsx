@@ -1143,6 +1143,7 @@ const AppContent: React.FC = () => {
                         onPartnerBoardClick={() => setShowPartnerBoard(true)}
                         onProfileClick={() => setShowUserProfile(true)}
                         categories={categories}
+                        onGoHome={() => { setShowMain(false); setShowHero(true); }}
                     />
                 ) : (
                     <MainPage

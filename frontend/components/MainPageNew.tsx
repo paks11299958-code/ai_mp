@@ -58,6 +58,7 @@ interface MainPageNewProps {
     onPartnerBoardClick?: () => void;
     onProfileClick?: () => void;
     categories?: Category[];
+    onGoHome?: () => void;
 }
 
 // ─────────────────────────────────────────────
@@ -135,7 +136,8 @@ const ChatRail: React.FC<{
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
     user: User;
-}> = ({ personas, activeId, onSelect, onLogout, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, user }) => (
+    onGoHome?: () => void;
+}> = ({ personas, activeId, onSelect, onLogout, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, user, onGoHome }) => (
     <aside style={{
         width: 80,
         flexShrink: 0,
@@ -152,13 +154,23 @@ const ChatRail: React.FC<{
         overflowY: 'auto',
         zIndex: 10,
     }}>
-        {/* 브랜드 로고 */}
+        {/* 브랜드 로고 - 클릭 시 히어로 페이지로 */}
         <div style={{ marginBottom: 14 }}>
-            <img src="/aichat_log2.png" alt="logo" style={{
-                width: 44, height: 44,
-                borderRadius: 12,
-                mixBlendMode: 'multiply',
-            }} />
+            <button
+                onClick={onGoHome}
+                title="홈으로"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', display: 'block' }}
+            >
+                <img src="/aichat_log2.png" alt="logo" style={{
+                    width: 44, height: 44,
+                    borderRadius: 12,
+                    mixBlendMode: 'multiply',
+                    transition: 'opacity 0.15s, transform 0.15s',
+                }}
+                onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.75'; (e.target as HTMLElement).style.transform = 'scale(0.95)'; }}
+                onMouseLeave={e => { (e.target as HTMLElement).style.opacity = '1'; (e.target as HTMLElement).style.transform = 'scale(1)'; }}
+                />
+            </button>
         </div>
 
         {/* FRIENDS 라벨 */}
@@ -690,6 +702,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     onPartnerBoardClick,
     onProfileClick,
     categories = [],
+    onGoHome,
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -750,6 +763,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={onProfileClick}
                     user={user}
+                    onGoHome={onGoHome}
                 />
             </div>
 
