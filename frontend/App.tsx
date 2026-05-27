@@ -1896,7 +1896,7 @@ const AppContent: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} />
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} onNewsClick={activePersona?.name === '서아' ? () => setShowTodayNews(true) : undefined} />
                         )}
 
                         {/* 트리거 키워드 안내 */}
@@ -2009,7 +2009,9 @@ const AppContent: React.FC = () => {
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth"
                             style={chatBgSelected ? {
-                                backgroundImage: `linear-gradient(rgba(10,11,15,0.65), rgba(10,11,15,0.65)), url(${chatBgSelected})`,
+                                backgroundImage: USE_NEW_UI
+                                    ? `linear-gradient(rgba(251,248,243,0.55), rgba(251,248,243,0.55)), url(${chatBgSelected})`
+                                    : `linear-gradient(rgba(10,11,15,0.65), rgba(10,11,15,0.65)), url(${chatBgSelected})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
                             } : USE_NEW_UI ? { background: 'transparent' } : undefined}

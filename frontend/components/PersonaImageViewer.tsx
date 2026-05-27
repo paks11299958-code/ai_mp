@@ -8,9 +8,11 @@ interface PersonaImageViewerProps {
     images: PersonaImage[];
     onSelectMain: (image: PersonaImage) => void;
     userXp: number;
+    newUi?: boolean;
+    onNewsClick?: () => void;
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp }) => {
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, onNewsClick }) => {
     const [videosByImage, setVideosByImage] = useState<Record<number, PersonaVideo[]>>({});
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
@@ -47,69 +49,87 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
 
     return (
         <>
-            <div className="px-3 py-2 bg-gray-900/50 border-b border-gray-800">
-                <div className="flex gap-2 overflow-x-auto">
-                    {images.map(img => {
-                        const isLocked = userStage < img.requiredLevel;
-                        const reqStageName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
-                        const videoCount = img._count?.videos ?? 0;
-                        return (
-                            <div key={img.id} className="flex flex-col items-center gap-1 shrink-0">
-                                {/* 이미지 썸네일 */}
-                                <button
-                                    onClick={() => handleImageClick(img)}
-                                    className={`relative group ${isLocked ? 'cursor-not-allowed' : ''}`}
-                                    title={isLocked ? `${img.requiredLevel}단계 "${reqStageName}" 달성 시 해제` : (img.description || '')}
-                                >
-                                    <img
-                                        src={img.imageUrl}
-                                        alt={img.description || ''}
-                                        className={`w-14 h-14 rounded-lg object-cover border-2 transition-all ${
-                                            isLocked
-                                                ? 'border-gray-700 opacity-30 blur-[2px]'
-                                                : img.id === mainImage?.id
-                                                    ? 'border-blue-400 opacity-100'
-                                                    : 'border-transparent opacity-60 group-hover:opacity-90 group-hover:border-gray-500'
-                                        }`}
-                                    />
-                                    {/* 잠금 오버레이 */}
-                                    {isLocked && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-gray-900/60">
-                                            <Icon name="Lock" size={14} className="text-gray-400" />
-                                            <span className="text-[9px] text-gray-400 mt-0.5">{img.requiredLevel}단계</span>
+            <div className={`px-3 py-2 border-b ${newUi ? 'border-[#F0E9DE] bg-transparent' : 'bg-gray-900/50 border-gray-800'}`}>
+                <div className="flex items-center gap-3">
+                    {/* 이미지 썸네일 목록 */}
+                    <div className="flex gap-2 overflow-x-auto flex-1">
+                        {images.map(img => {
+                            const isLocked = userStage < img.requiredLevel;
+                            const reqStageName = STAGES[img.requiredLevel - 1]?.name ?? `${img.requiredLevel}단계`;
+                            const videoCount = img._count?.videos ?? 0;
+                            return (
+                                <div key={img.id} className="flex flex-col items-center gap-1 shrink-0">
+                                    {/* 이미지 썸네일 */}
+                                    <button
+                                        onClick={() => handleImageClick(img)}
+                                        className={`relative group ${isLocked ? 'cursor-not-allowed' : ''}`}
+                                        title={isLocked ? `${img.requiredLevel}단계 "${reqStageName}" 달성 시 해제` : (img.description || '')}
+                                    >
+                                        <img
+                                            src={img.imageUrl}
+                                            alt={img.description || ''}
+                                            className={`w-14 h-14 rounded-lg object-cover border-2 transition-all ${
+                                                isLocked
+                                                    ? 'border-gray-700 opacity-30 blur-[2px]'
+                                                    : img.id === mainImage?.id
+                                                        ? newUi ? 'border-[#8E6FB7] opacity-100' : 'border-blue-400 opacity-100'
+                                                        : 'border-transparent opacity-60 group-hover:opacity-90 group-hover:border-gray-500'
+                                            }`}
+                                        />
+                                        {/* 잠금 오버레이 */}
+                                        {isLocked && (
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg bg-gray-900/60">
+                                                <Icon name="Lock" size={14} className="text-gray-400" />
+                                                <span className="text-[9px] text-gray-400 mt-0.5">{img.requiredLevel}단계</span>
+                                            </div>
+                                        )}
+                                    </button>
+                                    {/* 동영상 숫자 동그라미 */}
+                                    {!isLocked && videoCount > 0 && (
+                                        <div className="flex gap-1">
+                                            {(videosByImage[img.id] ?? Array.from({ length: videoCount }, (_, i) => ({ id: `ph-${img.id}-${i}`, requiredLevel: 1 } as any))).map((v: PersonaVideo, i: number) => {
+                                                const videoLocked = userStage < v.requiredLevel;
+                                                return videoLocked ? (
+                                                    <div
+                                                        key={v.id}
+                                                        title={`${v.requiredLevel}단계 달성 시 해제`}
+                                                        className="w-6 h-6 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center opacity-40 cursor-not-allowed"
+                                                    >
+                                                        <Icon name="Lock" size={8} className="text-gray-400" />
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        key={v.id}
+                                                        onClick={() => handleVideoCircleClick(v)}
+                                                        className={`w-6 h-6 rounded-full border-2 flex items-center justify-center gap-0.5 transition-all shadow ${newUi ? 'bg-[#8E6FB7] hover:bg-[#7A5FA0] border-[#8E6FB7]' : 'bg-blue-600 hover:bg-blue-500 border-blue-500 hover:border-blue-400'}`}
+                                                        title={`동영상 ${i + 1} 재생`}
+                                                    >
+                                                        <Icon name="Play" size={7} className="text-white ml-0.5" />
+                                                        <span className="text-[9px] font-bold text-white leading-none">{i + 1}</span>
+                                                    </button>
+                                                );
+                                            })}
                                         </div>
                                     )}
-                                </button>
-                                {/* 동영상 숫자 동그라미 */}
-                                {!isLocked && videoCount > 0 && (
-                                    <div className="flex gap-1">
-                                        {(videosByImage[img.id] ?? Array.from({ length: videoCount }, (_, i) => ({ id: `ph-${img.id}-${i}`, requiredLevel: 1 } as any))).map((v: PersonaVideo, i: number) => {
-                                            const videoLocked = userStage < v.requiredLevel;
-                                            return videoLocked ? (
-                                                <div
-                                                    key={v.id}
-                                                    title={`${v.requiredLevel}단계 달성 시 해제`}
-                                                    className="w-6 h-6 rounded-full bg-gray-700 border-2 border-gray-600 flex items-center justify-center opacity-40 cursor-not-allowed"
-                                                >
-                                                    <Icon name="Lock" size={8} className="text-gray-400" />
-                                                </div>
-                                            ) : (
-                                                <button
-                                                    key={v.id}
-                                                    onClick={() => handleVideoCircleClick(v)}
-                                                    className="w-6 h-6 rounded-full bg-blue-600 hover:bg-blue-500 border-2 border-blue-500 hover:border-blue-400 flex items-center justify-center gap-0.5 transition-all shadow"
-                                                    title={`동영상 ${i + 1} 재생`}
-                                                >
-                                                    <Icon name="Play" size={7} className="text-white ml-0.5" />
-                                                    <span className="text-[9px] font-bold text-white leading-none">{i + 1}</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
-                        );
-                    })}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* 오늘뉴스 카드 (서아 전용) */}
+                    {onNewsClick && (
+                        <button
+                            onClick={onNewsClick}
+                            className={`shrink-0 flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-xl border transition-all ${
+                                newUi
+                                    ? 'border-[#9AAFCB] bg-[#E8EEF7] text-[#5C7BA8] hover:bg-[#D5E2F0]'
+                                    : 'border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40'
+                            }`}
+                        >
+                            <Icon name="Newspaper" size={18} />
+                            <span className="text-[10px] font-medium whitespace-nowrap">오늘뉴스</span>
+                        </button>
+                    )}
                 </div>
             </div>
 
