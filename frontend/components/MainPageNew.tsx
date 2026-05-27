@@ -515,6 +515,7 @@ const PersonaSelectPanel: React.FC<{
     focusFeatureKey?: string | null;
 }> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey }) => {
     const [tab, setTab] = useState<'personas' | 'features'>(initialTab);
+    const [featureSearchQuery, setFeatureSearchQuery] = useState('');
     const focusPersonaRef = useRef<HTMLDivElement | null>(null);
     const focusFeatureRef = useRef<HTMLDivElement | null>(null);
 
@@ -544,6 +545,12 @@ const PersonaSelectPanel: React.FC<{
             const q = searchQuery.toLowerCase();
             return p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q);
         });
+
+    const filteredFeatures = FEATURES_GRID.filter(f => {
+        if (!featureSearchQuery.trim()) return true;
+        const q = featureSearchQuery.toLowerCase();
+        return f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q);
+    });
 
     return (
         <div style={{
@@ -589,74 +596,74 @@ const PersonaSelectPanel: React.FC<{
                     ))}
                 </div>
 
-                {/* 검색바 + 카테고리 - 페르소나 탭일 때만 */}
-                {tab === 'personas' && (
-                    <>
-                        <div style={{
-                            display: 'flex', alignItems: 'center', gap: 8,
-                            padding: '8px 12px',
-                            background: T.panel,
-                            border: `1px solid ${T.line}`,
-                            borderRadius: 12,
-                            transition: 'border-color 0.18s, box-shadow 0.18s',
-                            marginBottom: categories.length > 0 ? 0 : 14,
-                        }}>
-                            <Search size={15} color={T.inkMute} />
-                            <input
-                                value={searchQuery}
-                                onChange={e => onSearchChange(e.target.value)}
-                                placeholder="이름, 설명으로 검색..."
-                                style={{
-                                    flex: 1, border: 'none', outline: 'none',
-                                    background: 'transparent', fontSize: 13.5,
-                                    color: T.ink,
-                                }}
-                                onFocus={e => {
-                                    const p = e.currentTarget.parentElement!;
-                                    p.style.borderColor = T.accent;
-                                    p.style.boxShadow = `0 0 0 3px rgba(142,111,183,0.1)`;
-                                }}
-                                onBlur={e => {
-                                    const p = e.currentTarget.parentElement!;
-                                    p.style.borderColor = T.line;
-                                    p.style.boxShadow = 'none';
-                                }}
-                            />
-                            {searchQuery && (
-                                <button onClick={() => onSearchChange('')}
-                                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.inkMute }}>
-                                    <X size={14} />
-                                </button>
-                            )}
-                        </div>
-                        {categories.length > 0 && (
-                            <div style={{
-                                display: 'flex', gap: 6, marginTop: 10, marginBottom: 14,
-                                overflowX: 'auto', paddingBottom: 2,
-                            }}>
-                                <button onClick={() => onCategorySelect(null)} style={{
-                                    padding: '5px 12px', borderRadius: 999, fontSize: 12,
-                                    fontWeight: 600, cursor: 'pointer',
-                                    background: selectedCategoryId === null ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : 'rgba(255,255,255,0.7)',
-                                    color: selectedCategoryId === null ? '#fff' : T.inkSoft,
-                                    boxShadow: selectedCategoryId === null ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
-                                    border: selectedCategoryId === null ? 'none' : `1px solid ${T.line}`,
-                                    whiteSpace: 'nowrap', transition: 'all 0.15s',
-                                } as React.CSSProperties}>전체</button>
-                                {categories.map(cat => (
-                                    <button key={cat.id} onClick={() => onCategorySelect(cat.id)} style={{
-                                        padding: '5px 12px', borderRadius: 999, fontSize: 12,
-                                        fontWeight: 600, cursor: 'pointer',
-                                        background: selectedCategoryId === cat.id ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : 'rgba(255,255,255,0.7)',
-                                        color: selectedCategoryId === cat.id ? '#fff' : T.inkSoft,
-                                        boxShadow: selectedCategoryId === cat.id ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
-                                        border: selectedCategoryId === cat.id ? 'none' : `1px solid ${T.line}`,
-                                        whiteSpace: 'nowrap', transition: 'all 0.15s',
-                                    } as React.CSSProperties}>{cat.name}</button>
-                                ))}
-                            </div>
-                        )}
-                    </>
+                {/* 검색바 - 양 탭 모두 */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 12px',
+                    background: T.panel,
+                    border: `1px solid ${T.line}`,
+                    borderRadius: 12,
+                    transition: 'border-color 0.18s, box-shadow 0.18s',
+                    marginBottom: (tab === 'personas' && categories.length > 0) ? 0 : 14,
+                }}>
+                    <Search size={15} color={T.inkMute} />
+                    <input
+                        value={tab === 'personas' ? searchQuery : featureSearchQuery}
+                        onChange={e => tab === 'personas' ? onSearchChange(e.target.value) : setFeatureSearchQuery(e.target.value)}
+                        placeholder={tab === 'personas' ? '이름, 설명으로 검색...' : '기능 이름, 설명으로 검색...'}
+                        style={{
+                            flex: 1, border: 'none', outline: 'none',
+                            background: 'transparent', fontSize: 13.5,
+                            color: T.ink,
+                        }}
+                        onFocus={e => {
+                            const p = e.currentTarget.parentElement!;
+                            p.style.borderColor = T.accent;
+                            p.style.boxShadow = `0 0 0 3px rgba(142,111,183,0.1)`;
+                        }}
+                        onBlur={e => {
+                            const p = e.currentTarget.parentElement!;
+                            p.style.borderColor = T.line;
+                            p.style.boxShadow = 'none';
+                        }}
+                    />
+                    {(tab === 'personas' ? searchQuery : featureSearchQuery) && (
+                        <button
+                            onClick={() => tab === 'personas' ? onSearchChange('') : setFeatureSearchQuery('')}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.inkMute }}
+                        >
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+
+                {/* 카테고리 - 페르소나 탭, 검색창 아래 별도 행 */}
+                {tab === 'personas' && categories.length > 0 && (
+                    <div style={{
+                        display: 'flex', gap: 6, marginTop: 10, marginBottom: 14,
+                        overflowX: 'auto', paddingBottom: 2,
+                    }}>
+                        <button onClick={() => onCategorySelect(null)} style={{
+                            padding: '5px 12px', borderRadius: 999, fontSize: 12,
+                            fontWeight: 600, cursor: 'pointer',
+                            background: selectedCategoryId === null ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : 'rgba(255,255,255,0.7)',
+                            color: selectedCategoryId === null ? '#fff' : T.inkSoft,
+                            boxShadow: selectedCategoryId === null ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
+                            border: selectedCategoryId === null ? 'none' : `1px solid ${T.line}`,
+                            whiteSpace: 'nowrap', transition: 'all 0.15s',
+                        } as React.CSSProperties}>전체</button>
+                        {categories.map(cat => (
+                            <button key={cat.id} onClick={() => onCategorySelect(cat.id)} style={{
+                                padding: '5px 12px', borderRadius: 999, fontSize: 12,
+                                fontWeight: 600, cursor: 'pointer',
+                                background: selectedCategoryId === cat.id ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : 'rgba(255,255,255,0.7)',
+                                color: selectedCategoryId === cat.id ? '#fff' : T.inkSoft,
+                                boxShadow: selectedCategoryId === cat.id ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
+                                border: selectedCategoryId === cat.id ? 'none' : `1px solid ${T.line}`,
+                                whiteSpace: 'nowrap', transition: 'all 0.15s',
+                            } as React.CSSProperties}>{cat.name}</button>
+                        ))}
+                    </div>
                 )}
             </div>
 
@@ -670,7 +677,12 @@ const PersonaSelectPanel: React.FC<{
                     gap: 16,
                     alignContent: 'start',
                 }}>
-                    {FEATURES_GRID.map((feat, i) => {
+                    {filteredFeatures.length === 0 && (
+                        <div style={{ gridColumn: '1/-1', textAlign: 'center', color: T.inkMute, paddingTop: 40, fontSize: 14 }}>
+                            검색 결과가 없습니다
+                        </div>
+                    )}
+                    {filteredFeatures.map((feat, i) => {
                         const gold = T.gold;
                         const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
                         const isFocused = feat.key === focusFeatureKey;
