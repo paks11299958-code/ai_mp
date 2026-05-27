@@ -1192,7 +1192,78 @@ const AppContent: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen w-full bg-gray-950">
+        <>
+        {USE_NEW_UI && (
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&display=swap');
+
+                /* ── 사이드바 뉴테마 ── */
+                .new-ui-sidebar {
+                    background: rgba(255,255,255,0.6) !important;
+                    backdrop-filter: blur(12px) !important;
+                    border-right: 1px solid #F0E9DE !important;
+                }
+                .new-ui-sidebar * { color: #2D2438; }
+
+                /* ── 채팅 배경 ── */
+                .new-ui-chat-main {
+                    background: transparent !important;
+                }
+
+                /* ── 메시지 버블 ── */
+                .new-ui-bubble-ai {
+                    background: rgba(255,255,255,0.85) !important;
+                    border: 1px solid #EAE2D3 !important;
+                    color: #2D2438 !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 4px 14px -6px rgba(60,40,90,0.1) !important;
+                }
+                .new-ui-bubble-user {
+                    background: linear-gradient(135deg, #8E6FB7, #B49AC9) !important;
+                    color: #ffffff !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 8px 20px -8px rgba(142,111,183,0.5) !important;
+                }
+
+                /* ── 입력창 ── */
+                .new-ui-input-area {
+                    background: rgba(255,255,255,0.8) !important;
+                    border-top: 1px solid #F0E9DE !important;
+                    backdrop-filter: blur(10px) !important;
+                }
+                .new-ui-textarea {
+                    background: #FFFFFF !important;
+                    color: #2D2438 !important;
+                    border: 1px solid #EAE2D3 !important;
+                    border-radius: 14px !important;
+                }
+                .new-ui-textarea::placeholder { color: #9089A1 !important; }
+                .new-ui-textarea:focus {
+                    border-color: #8E6FB7 !important;
+                    box-shadow: 0 0 0 3px rgba(142,111,183,0.12) !important;
+                    outline: none !important;
+                }
+
+                /* ── 채팅 헤더 ── */
+                .new-ui-chat-header {
+                    background: rgba(255,255,255,0.75) !important;
+                    backdrop-filter: blur(10px) !important;
+                    border-bottom: 1px solid #F0E9DE !important;
+                    color: #2D2438 !important;
+                }
+                .new-ui-chat-header * { color: #2D2438; }
+            `}</style>
+        )}
+        <div className={`flex h-screen w-full ${USE_NEW_UI ? '' : 'bg-gray-950'}`}
+            style={USE_NEW_UI ? {
+                background: `
+                    radial-gradient(ellipse 50% 30% at 0% 0%, #F5E6F7 0%, transparent 60%),
+                    radial-gradient(ellipse 50% 30% at 100% 100%, #FCEADD 0%, transparent 60%),
+                    #FBF8F3
+                `,
+                fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif",
+            } : {}}
+        >
             <Sidebar
                 personas={visiblePersonas}
                 activePersonaId={activePersonaId}
@@ -1209,6 +1280,7 @@ const AppContent: React.FC = () => {
                 onLogout={handleLogout}
                 onGoHome={() => setShowMain(true)}
                 onProfileClick={() => setShowUserProfile(true)}
+                newUi={USE_NEW_UI}
             />
 
             {showAnnouncementModal && (
@@ -2191,6 +2263,7 @@ const AppContent: React.FC = () => {
                 </div>
             )}
         </div>
+        </>
     );
 };
 

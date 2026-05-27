@@ -8,6 +8,7 @@ interface SidebarProps {
     activePersonaId: string;
     onSelectPersona: (id: string) => void;
     isOpen: boolean;
+    newUi?: boolean;
     setIsOpen: (isOpen: boolean) => void;
     isCollapsed: boolean;
     onToggleCollapse: () => void;
@@ -25,8 +26,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     personas, activePersonaId, onSelectPersona,
     isOpen, setIsOpen, isCollapsed, onToggleCollapse,
     onAdminClick, onAnnouncementClick, unreadAnnouncementCount, onReorder,
-    user, onLogout, onGoHome, onProfileClick,
+    user, onLogout, onGoHome, onProfileClick, newUi = false,
 }) => {
+    const nb = newUi ? 'rgba(255,255,255,0.65)' : '';
+    const nbBorder = newUi ? '#F0E9DE' : '';
     const [searchQuery, setSearchQuery] = useState('');
     const filteredPersonas = searchQuery.trim()
         ? personas.filter(p =>
@@ -38,7 +41,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // 접힌 상태 렌더링
     if (isCollapsed) {
         return (
-            <div className="hidden md:flex flex-col w-16 bg-gray-900 border-r border-gray-800 shrink-0 h-full">
+            <div className="hidden md:flex flex-col w-16 shrink-0 h-full"
+                style={{ background: nb || '#111827', borderRight: `1px solid ${nbBorder || '#1f2937'}` }}>
                 {/* 펼치기 버튼 */}
                 <div className="h-14 flex items-center justify-center border-b border-gray-800 shrink-0">
                     <button
@@ -107,11 +111,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 />
             )}
 
-            <div className={`
-                fixed md:static inset-y-0 left-0 z-30 w-64 bg-gray-900 border-r border-gray-800
-                transform transition-transform duration-300 ease-in-out flex flex-col
-                ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-            `}>
+            <div
+                className={`fixed md:static inset-y-0 left-0 z-30 w-64 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+                style={{ background: nb || '#111827', borderRight: `1px solid ${nbBorder || '#1f2937'}` }}
+            >
                 <div className="h-14 px-4 border-b border-gray-800 flex justify-between items-center shrink-0">
                     <button
                         onClick={onGoHome}
