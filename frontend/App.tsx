@@ -13,8 +13,13 @@ import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPage } from './components/LandingPage';
+import { LandingPageNew } from './components/LandingPageNew';
+
+// 뉴페이지 전환 플래그 (true = 뉴페이지, false = 올드페이지)
+const USE_NEW_UI = true;
 import { Theme } from './components/themes';
 import { MainPage } from './components/MainPage';
+import { MainPageNew } from './components/MainPageNew';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
@@ -61,6 +66,13 @@ const AppContent: React.FC = () => {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showAuthPage, setShowAuthPage] = useState(false);
     const [showMain, setShowMain] = useState(false);
+    // 뉴UI: 로그인 후 히어로 페이지 표시 여부
+    const [showHero, setShowHero] = useState(false);
+    // 뉴UI: 페르소나 대기 페이지 초기 탭
+    const [mainInitialTab, setMainInitialTab] = useState<'personas' | 'features'>('personas');
+    // 뉴UI: 히어로→대기 페이지 포커스 대상
+    const [mainFocusPersonaId, setMainFocusPersonaId] = useState<string | null>(null);
+    const [mainFocusFeatureKey, setMainFocusFeatureKey] = useState<string | null>(null);
     const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('ui_theme') as Theme) || 'lavender');
     const handleThemeChange = (t: Theme) => { setTheme(t); localStorage.setItem('ui_theme', t); };
     const [resetToken, setResetToken] = useState<string | null>(() => {
@@ -256,7 +268,7 @@ const AppContent: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); setShowMain(true); })
+            .then(({ user }) => { setUser(user); if (USE_NEW_UI) { setShowHero(true); } else { setShowMain(true); } })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -994,21 +1006,41 @@ const AppContent: React.FC = () => {
                 />
             );
         }
+        // Feature 키 → 기능 오픈 핸들러 (뉴페이지용)
+        const handleNewPageFeatureClick = (key: string) => {
+            setShowAuthModal(true); // 비로그인 → 로그인 모달
+        };
+
         return (
             <>
-                <LandingPage
-                    personas={visiblePersonas}
-                    isLoading={isPersonasLoading}
-                    onStart={() => setShowAuthPage(true)}
-                    onLoginClick={() => setShowAuthModal(true)}
-                    onPersonaClick={handleGuestPersonaClick}
-                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                    unreadAnnouncementCount={unreadAnnouncementCount}
-                    theme={theme}
-                    onThemeChange={handleThemeChange}
-                    heroImageUrl={heroImageUrl}
-                    categories={categories}
-                />
+                {USE_NEW_UI ? (
+                    <LandingPageNew
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        onStart={() => setShowAuthPage(true)}
+                        onLoginClick={() => setShowAuthModal(true)}
+                        onPersonaClick={handleGuestPersonaClick}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                        onFeatureClick={handleNewPageFeatureClick}
+                        categories={categories}
+                    />
+                ) : (
+                    <LandingPage
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        onStart={() => setShowAuthPage(true)}
+                        onLoginClick={() => setShowAuthModal(true)}
+                        onPersonaClick={handleGuestPersonaClick}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        theme={theme}
+                        onThemeChange={handleThemeChange}
+                        heroImageUrl={heroImageUrl}
+                        categories={categories}
+                    />
+                )}
                 {showAuthModal && (
                     <AuthModal
                         onSuccess={handleAuthSuccess}
@@ -1070,25 +1102,75 @@ const AppContent: React.FC = () => {
         );
     }
 
-    if (showMain) {
+    // 로그인 후 히어로 페이지 (USE_NEW_UI + showHero=true)
+    if (USE_NEW_UI && user && showHero) {
         return (
             <>
-                <MainPage
+                <LandingPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    user={user}
-                    onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
-                    onLogout={handleLogout}
-                    onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                    onStart={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
+                    onLoginClick={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
+                    onPersonaClick={(id) => { setMainFocusPersonaId(id); setMainFocusFeatureKey(null); setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                    onProfileClick={() => setShowUserProfile(true)}
-                    theme={theme}
-                    onThemeChange={handleThemeChange}
-                    heroImageUrl={heroImageUrl}
+                    onFeatureClick={(key) => { setMainFocusFeatureKey(key); setMainFocusPersonaId(null); setShowHero(false); setMainInitialTab('features'); setShowMain(true); }}
                     categories={categories}
+                    user={user}
+                    onGoToChat={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
                 />
+                {showAnnouncementModal && (
+                    <AnnouncementModal
+                        announcements={announcements}
+                        readIds={readAnnouncementIds}
+                        onRead={handleReadAnnouncements}
+                        onClose={() => setShowAnnouncementModal(false)}
+                    />
+                )}
+            </>
+        );
+    }
+
+    if (showMain) {
+        return (
+            <>
+                {USE_NEW_UI ? (
+                    <MainPageNew
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        user={user}
+                        onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
+                        onLogout={handleLogout}
+                        onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                        onProfileClick={() => setShowUserProfile(true)}
+                        categories={categories}
+                        onGoHome={() => { setShowMain(false); setShowHero(true); }}
+                        initialTab={mainInitialTab}
+                        initialFocusPersonaId={mainFocusPersonaId}
+                        initialFocusFeatureKey={mainFocusFeatureKey}
+                    />
+                ) : (
+                    <MainPage
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        user={user}
+                        onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
+                        onLogout={handleLogout}
+                        onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                        onProfileClick={() => setShowUserProfile(true)}
+                        theme={theme}
+                        onThemeChange={handleThemeChange}
+                        heroImageUrl={heroImageUrl}
+                        categories={categories}
+                    />
+                )}
                 {showAnnouncementModal && (
                     <AnnouncementModal
                         announcements={announcements}
@@ -1151,7 +1233,78 @@ const AppContent: React.FC = () => {
     }
 
     return (
-        <div className="flex h-screen w-full bg-gray-950">
+        <>
+        {USE_NEW_UI && (
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&display=swap');
+
+                /* ── 사이드바 뉴테마 ── */
+                .new-ui-sidebar {
+                    background: rgba(255,255,255,0.6) !important;
+                    backdrop-filter: blur(12px) !important;
+                    border-right: 1px solid #F0E9DE !important;
+                }
+                .new-ui-sidebar * { color: #2D2438; }
+
+                /* ── 채팅 배경 ── */
+                .new-ui-chat-main {
+                    background: transparent !important;
+                }
+
+                /* ── 메시지 버블 ── */
+                .new-ui-bubble-ai {
+                    background: rgba(255,255,255,0.85) !important;
+                    border: 1px solid #EAE2D3 !important;
+                    color: #2D2438 !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 4px 14px -6px rgba(60,40,90,0.1) !important;
+                }
+                .new-ui-bubble-user {
+                    background: linear-gradient(135deg, #8E6FB7, #B49AC9) !important;
+                    color: #ffffff !important;
+                    border-radius: 18px !important;
+                    box-shadow: 0 8px 20px -8px rgba(142,111,183,0.5) !important;
+                }
+
+                /* ── 입력창 ── */
+                .new-ui-input-area {
+                    background: rgba(255,255,255,0.8) !important;
+                    border-top: 1px solid #F0E9DE !important;
+                    backdrop-filter: blur(10px) !important;
+                }
+                .new-ui-textarea {
+                    background: #FFFFFF !important;
+                    color: #2D2438 !important;
+                    border: 1px solid #EAE2D3 !important;
+                    border-radius: 14px !important;
+                }
+                .new-ui-textarea::placeholder { color: #9089A1 !important; }
+                .new-ui-textarea:focus {
+                    border-color: #8E6FB7 !important;
+                    box-shadow: 0 0 0 3px rgba(142,111,183,0.12) !important;
+                    outline: none !important;
+                }
+
+                /* ── 채팅 헤더 ── */
+                .new-ui-chat-header {
+                    background: rgba(255,255,255,0.75) !important;
+                    backdrop-filter: blur(10px) !important;
+                    border-bottom: 1px solid #F0E9DE !important;
+                    color: #2D2438 !important;
+                }
+                .new-ui-chat-header * { color: #2D2438; }
+            `}</style>
+        )}
+        <div className={`flex h-screen w-full ${USE_NEW_UI ? '' : 'bg-gray-950'}`}
+            style={USE_NEW_UI ? {
+                background: `
+                    radial-gradient(ellipse 50% 30% at 0% 0%, #F5E6F7 0%, transparent 60%),
+                    radial-gradient(ellipse 50% 30% at 100% 100%, #FCEADD 0%, transparent 60%),
+                    #FBF8F3
+                `,
+                fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif",
+            } : {}}
+        >
             <Sidebar
                 personas={visiblePersonas}
                 activePersonaId={activePersonaId}
@@ -1166,8 +1319,9 @@ const AppContent: React.FC = () => {
                 onReorder={handleReorderPersona}
                 user={user}
                 onLogout={handleLogout}
-                onGoHome={() => setShowMain(true)}
+                onGoHome={() => { if (USE_NEW_UI) { setShowMain(false); setShowHero(true); } else { setShowMain(true); } }}
                 onProfileClick={() => setShowUserProfile(true)}
+                newUi={USE_NEW_UI}
             />
 
             {showAnnouncementModal && (
@@ -1568,7 +1722,7 @@ const AppContent: React.FC = () => {
                         const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
-                            <div className="hidden md:flex w-1/3 border-r border-gray-800 bg-gray-900/30 p-8 flex-col items-center justify-center">
+                            <div className={`hidden md:flex w-1/3 p-8 flex-col items-center justify-center ${USE_NEW_UI ? 'border-r border-[#F0E9DE] bg-white/30' : 'border-r border-gray-800 bg-gray-900/30'}`}>
                                 <div className="w-full max-h-[60%] flex items-center justify-center">
                                     <img
                                         src={displayUrl}
@@ -1576,8 +1730,8 @@ const AppContent: React.FC = () => {
                                         className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
                                     />
                                 </div>
-                                <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
-                                <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
+                                <h3 className={`mt-8 text-2xl font-bold text-center ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-gray-100'}`} style={USE_NEW_UI ? { fontFamily: "'Cormorant Garamond', serif" } : {}}>{activePersona?.name}</h3>
+                                <p className={`mt-3 text-base text-center leading-relaxed ${USE_NEW_UI ? 'text-[#6B5F7A]' : 'text-gray-400'}`}>{activePersona?.description}</p>
                                 {activeImages.length > 1 && (() => {
                                     const userStage = getStage(user?.personaXp?.[activePersonaId] ?? 0).stage;
                                     return (
@@ -1641,7 +1795,7 @@ const AppContent: React.FC = () => {
                     })()}
 
                     <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
-                        <header className="h-16 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-4 shrink-0 z-10">
+                        <header className={`h-16 flex items-center justify-between px-4 shrink-0 z-10 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm'}`}>
                             <div className="flex items-center">
                                 <button
                                     className="md:hidden mr-2 flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
@@ -1664,7 +1818,7 @@ const AppContent: React.FC = () => {
                                             );
                                         })()}
                                         <div style={{ letterSpacing: '-0.02em' }}>
-                                            <h2 className="font-bold text-white text-sm leading-tight flex items-center gap-2">
+                                            <h2 className={`font-bold text-sm leading-tight flex items-center gap-2 ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-white'}`}>
                                                 {activePersona.name}
                                                 {activePersona.name === '신은비' && firstChatMap[activePersonaId] && (() => {
                                                     const days = Math.floor((Date.now() - new Date(firstChatMap[activePersonaId]).getTime()) / (1000 * 60 * 60 * 24));
@@ -1741,12 +1895,12 @@ const AppContent: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (
-                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} />
+                            <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} />
                         )}
 
                         {/* 트리거 키워드 안내 */}
-                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '윤채원' || activePersona?.name === '신은비' || activePersona?.name === '왕주식' || activePersona?.name === '지우' || activePersona?.name === '이아린' || isGolfPersona) && (
-                            <div className="border-b border-gray-800 bg-gray-900/60 px-4 py-2 shrink-0">
+                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || activePersona?.name === '서아' || activePersona?.name === '윤채원' || activePersona?.name === '신은비' || activePersona?.name === '윤채원' || activePersona?.name === '지우' || activePersona?.name === '이아린' || isGolfPersona) && (
+                            <div className={`px-4 py-2 shrink-0 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/60'}`}>
                                 <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
@@ -1757,7 +1911,7 @@ const AppContent: React.FC = () => {
                                                 <button
                                                     key={tv.id}
                                                     onClick={() => setTriggerVideoPopup(tv)}
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100 transition-colors whitespace-nowrap"
+                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
                                                 >
                                                     {label}
                                                 </button>
@@ -1770,14 +1924,14 @@ const AppContent: React.FC = () => {
                                                 <button
                                                     onClick={() => swingVideoRef.current?.click()}
                                                     disabled={swingUploading || currentSession.isTyping}
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1 disabled:opacity-40"
+                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 disabled:opacity-40 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                                 >
                                                     <Icon name="Upload" size={10} />
                                                     스윙 분석
                                                 </button>
                                                 <button
                                                     onClick={() => { setSwingResult(null); setShowSwingBoard(true); }}
-                                                    className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                                 >
                                                     <Icon name="Play" size={10} />
                                                     스윙 기록
@@ -1787,7 +1941,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '윤채원' && user && (
                                             <button
                                                 onClick={() => setShowStockAnalysis(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9EC4A0] bg-[#EAF5EB] text-[#2E6B32] hover:bg-[#D4EDD5]' : 'border-green-700/60 bg-green-900/20 text-green-300 hover:bg-green-800/40 hover:text-green-100'}`}
                                             >
                                                 <Icon name="TrendingUp" size={10} />
                                                 주식 분석
@@ -1796,43 +1950,25 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '이아린' && user && (
                                             <button
                                                 onClick={() => setShowUsedItem(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                             >
                                                 <Icon name="ShoppingBag" size={10} />
                                                 중고 판매
                                             </button>
                                         )}
-                                        {(activePersona?.name === '왕주식' || activePersona?.name === '이아린') && user && (
+                                        {(activePersona?.name === '윤채원' || activePersona?.name === '이아린') && user && (
                                             <button
                                                 onClick={() => setShowHotKeyword(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                             >
                                                 <Icon name="ShoppingBag" size={10} />
                                                 핫쇼핑키워드
                                             </button>
                                         )}
-                                        {activePersona?.name === '왕주식' && user && (
-                                            <button
-                                                onClick={() => setShowResearch(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-blue-700/60 bg-blue-900/20 text-blue-300 hover:bg-blue-800/40 hover:text-blue-100 transition-colors whitespace-nowrap flex items-center gap-1"
-                                            >
-                                                <Icon name="BookOpen" size={10} />
-                                                딥 리서치
-                                            </button>
-                                        )}
-                                        {activePersona?.name === '왕주식' && user && (
-                                            <button
-                                                onClick={() => setShowProductExtract(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-emerald-700/60 bg-emerald-900/20 text-emerald-300 hover:bg-emerald-800/40 hover:text-emerald-100 transition-colors whitespace-nowrap flex items-center gap-1"
-                                            >
-                                                <Icon name="Package" size={10} />
-                                                제품추출
-                                            </button>
-                                        )}
                                         {activePersona?.name === '신은비' && user && (
                                             <button
                                                 onClick={() => setShowLuxuryBoard(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#7A5FA0] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
                                             >
                                                 <Icon name="Shield" size={10} />
                                                 명품 검증
@@ -1841,7 +1977,7 @@ const AppContent: React.FC = () => {
                                         {activePersona?.name === '서아' && user && (
                                             <button
                                                 onClick={() => setShowTodayNews(true)}
-                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 hover:text-sky-100 transition-colors whitespace-nowrap flex items-center gap-1"
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#9AAFCB] bg-[#E8EEF7] text-[#5C7BA8] hover:bg-[#D5E2F0]' : 'border-sky-700/60 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 hover:text-sky-100'}`}
                                             >
                                                 <Icon name="Newspaper" size={10} />
                                                 오늘뉴스
@@ -1862,7 +1998,7 @@ const AppContent: React.FC = () => {
                                                 className="text-[11px] font-medium px-2.5 py-1 rounded-full border whitespace-nowrap flex items-center gap-1 transition-colors"
                                                 style={{ borderColor: '#FFB3D1', background: 'rgba(255,107,157,0.15)', color: '#FF6B9D' }}
                                             >
-                                                🤝 모임
+                                                🤝 모임(출첵)
                                             </button>
                                         )}
                                     </div>
@@ -1875,7 +2011,7 @@ const AppContent: React.FC = () => {
                                 backgroundImage: `linear-gradient(rgba(10,11,15,0.65), rgba(10,11,15,0.65)), url(${chatBgSelected})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
-                            } : undefined}
+                            } : USE_NEW_UI ? { background: 'transparent' } : undefined}
                         >
                             {currentSession.messages.length === 0 && isGreeting && (
                                 <div className="h-full flex flex-col items-center justify-center gap-3 opacity-60">
@@ -1906,14 +2042,14 @@ const AppContent: React.FC = () => {
                                         </div>
                                     )}
                                     {currentSession.messages.map(msg => (
-                                        <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} />
+                                        <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} newUi={USE_NEW_UI} />
                                     ))}
                                     <div ref={messagesEndRef} />
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-4 bg-gray-900 border-t border-gray-800 shrink-0">
+                        <div className={`p-4 shrink-0 ${USE_NEW_UI ? 'border-t border-[#F0E9DE] bg-white/75 backdrop-blur-sm' : 'bg-gray-900 border-t border-gray-800'}`}>
                             {/* 퀵메뉴 버튼 */}
                             {(() => {
                                 if (!activePersona?.quickMenuJson) return null;
@@ -1986,31 +2122,61 @@ const AppContent: React.FC = () => {
                                 };
                                 const featuredMenus = config.menus.filter(m => m.featured);
                                 const dropdownMenus = config.menus.filter(m => !m.featured);
-                                const glassBtn = 'text-xs px-3.5 py-1.5 rounded-full text-gray-200 transition-all duration-150 hover:text-white active:scale-95';
-                                const glassBtnStyle = {
+                                const glassBtn = USE_NEW_UI
+                                    ? 'text-xs px-3.5 py-1.5 rounded-full transition-all duration-150 active:scale-95'
+                                    : 'text-xs px-3.5 py-1.5 rounded-full text-gray-200 transition-all duration-150 hover:text-white active:scale-95';
+                                const glassBtnStyle = USE_NEW_UI ? {
+                                    background: '#FFFFFF',
+                                    border: '1px solid #EAE2D3',
+                                    color: '#6B5F7A',
+                                } as React.CSSProperties : {
                                     background: 'rgba(255,255,255,0.07)',
                                     border: '1px solid rgba(255,255,255,0.13)',
                                     backdropFilter: 'blur(8px)',
                                     WebkitBackdropFilter: 'blur(8px)',
                                 } as React.CSSProperties;
-                                const glassBtnHoverStyle = {
+                                const glassBtnHoverStyle = USE_NEW_UI ? {
+                                    background: '#F5E6F7',
+                                    border: '1px solid #B49AC9',
+                                    color: '#8E6FB7',
+                                } as React.CSSProperties : {
                                     background: 'rgba(255,255,255,0.14)',
                                     border: '1px solid rgba(255,255,255,0.22)',
                                 } as React.CSSProperties;
-                                const featuredBtnStyle = {
+                                const featuredBtnStyle = USE_NEW_UI ? {
+                                    background: '#FFFFFF',
+                                    border: '1px solid #EAE2D3',
+                                    borderLeft: '2px solid #8E6FB7',
+                                    color: '#6B5F7A',
+                                } as React.CSSProperties : {
                                     ...glassBtnStyle,
                                     borderLeft: '2px solid rgba(167,139,250,0.7)',
                                 } as React.CSSProperties;
-                                const featuredBtnHoverStyle = {
+                                const featuredBtnHoverStyle = USE_NEW_UI ? {
+                                    background: '#F5E6F7',
+                                    border: '1px solid #B49AC9',
+                                    borderLeft: '2px solid #8E6FB7',
+                                    color: '#8E6FB7',
+                                } as React.CSSProperties : {
                                     ...glassBtnHoverStyle,
                                     borderLeft: '2px solid rgba(167,139,250,1)',
                                 } as React.CSSProperties;
-                                const featuredBtnActiveStyle = {
+                                const featuredBtnActiveStyle = USE_NEW_UI ? {
+                                    background: '#FFF3D6',
+                                    border: '1px solid #E8C56A',
+                                    borderLeft: '2px solid #B89232',
+                                    color: '#B89232',
+                                } as React.CSSProperties : {
                                     ...glassBtnHoverStyle,
                                     borderLeft: '2px solid rgba(251,191,36,1)',
                                     boxShadow: '0 0 10px rgba(251,191,36,0.3)',
                                 } as React.CSSProperties;
-                                const featuredBtnSelectedStyle = {
+                                const featuredBtnSelectedStyle = USE_NEW_UI ? {
+                                    background: '#FFF3D6',
+                                    border: '1px solid #E8C56A',
+                                    borderLeft: '2px solid #B89232',
+                                    color: '#B89232',
+                                } as React.CSSProperties : {
                                     background: 'rgba(251,191,36,0.15)',
                                     border: '1px solid rgba(251,191,36,0.5)',
                                     borderLeft: '2px solid rgba(251,191,36,1)',
@@ -2059,7 +2225,7 @@ const AppContent: React.FC = () => {
                                 );
                             })()}
 
-                            <div className="max-w-4xl mx-auto relative flex items-end bg-gray-800 rounded-2xl border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-all">
+                            <div className={`max-w-4xl mx-auto relative flex items-end rounded-2xl transition-all ${USE_NEW_UI ? 'bg-white border border-[#EAE2D3] focus-within:border-[#8E6FB7] focus-within:ring-1 focus-within:ring-[#8E6FB7]/20' : 'bg-gray-800 border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500'}`}>
                                 {isGolfPersona && user && (
                                     <input
                                         ref={swingVideoRef}
@@ -2075,7 +2241,7 @@ const AppContent: React.FC = () => {
                                     onChange={e => setInputText(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     placeholder={inputPlaceholder ?? (activePersona ? `${activePersona.name}에게 메시지 보내기...` : '메시지를 입력하세요...')}
-                                    className="w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl"
+                                    className={`w-full max-h-[200px] bg-transparent p-4 pr-12 resize-none focus:outline-none rounded-2xl ${USE_NEW_UI ? 'text-[#2D2438] placeholder-[#9089A1]' : 'text-gray-100 placeholder-gray-500'}`}
                                     rows={1}
                                     disabled={!activePersona}
                                 />
@@ -2084,9 +2250,15 @@ const AppContent: React.FC = () => {
                                     disabled={!inputText.trim() || currentSession.isTyping || !activePersona}
                                     className={`absolute right-2 bottom-2 p-2 rounded-xl transition-colors
                                         ${inputText.trim() && !currentSession.isTyping && activePersona
-                                            ? `bg-gradient-to-r ${activePersona.colorClass} text-white shadow-lg`
-                                            : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                            ? USE_NEW_UI
+                                                ? 'text-white shadow-lg'
+                                                : `bg-gradient-to-r ${activePersona.colorClass} text-white shadow-lg`
+                                            : USE_NEW_UI ? 'text-[#9089A1] cursor-not-allowed' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                         }`}
+                                    style={USE_NEW_UI && inputText.trim() && !currentSession.isTyping && activePersona ? {
+                                        background: 'linear-gradient(135deg, #8E6FB7, #E48BB0)',
+                                        boxShadow: '0 6px 16px -6px rgba(142,111,183,0.55)',
+                                    } : {}}
                                 >
                                     <Icon name="Send" size={18} />
                                 </button>
@@ -2150,6 +2322,7 @@ const AppContent: React.FC = () => {
                 </div>
             )}
         </div>
+        </>
     );
 };
 
