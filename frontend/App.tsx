@@ -1681,7 +1681,7 @@ const AppContent: React.FC = () => {
                         const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
-                            <div className="hidden md:flex w-1/3 border-r border-gray-800 bg-gray-900/30 p-8 flex-col items-center justify-center">
+                            <div className={`hidden md:flex w-1/3 p-8 flex-col items-center justify-center ${USE_NEW_UI ? 'border-r border-[#F0E9DE] bg-white/30' : 'border-r border-gray-800 bg-gray-900/30'}`}>
                                 <div className="w-full max-h-[60%] flex items-center justify-center">
                                     <img
                                         src={displayUrl}
@@ -1689,8 +1689,8 @@ const AppContent: React.FC = () => {
                                         className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
                                     />
                                 </div>
-                                <h3 className="mt-8 text-2xl font-bold text-gray-100 text-center">{activePersona?.name}</h3>
-                                <p className="mt-3 text-base text-gray-400 text-center leading-relaxed">{activePersona?.description}</p>
+                                <h3 className={`mt-8 text-2xl font-bold text-center ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-gray-100'}`} style={USE_NEW_UI ? { fontFamily: "'Cormorant Garamond', serif" } : {}}>{activePersona?.name}</h3>
+                                <p className={`mt-3 text-base text-center leading-relaxed ${USE_NEW_UI ? 'text-[#6B5F7A]' : 'text-gray-400'}`}>{activePersona?.description}</p>
                                 {activeImages.length > 1 && (() => {
                                     const userStage = getStage(user?.personaXp?.[activePersonaId] ?? 0).stage;
                                     return (
@@ -1754,7 +1754,7 @@ const AppContent: React.FC = () => {
                     })()}
 
                     <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
-                        <header className="h-16 border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm flex items-center justify-between px-4 shrink-0 z-10">
+                        <header className={`h-16 flex items-center justify-between px-4 shrink-0 z-10 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm'}`}>
                             <div className="flex items-center">
                                 <button
                                     className="md:hidden mr-2 flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
@@ -1777,7 +1777,7 @@ const AppContent: React.FC = () => {
                                             );
                                         })()}
                                         <div style={{ letterSpacing: '-0.02em' }}>
-                                            <h2 className="font-bold text-white text-sm leading-tight flex items-center gap-2">
+                                            <h2 className={`font-bold text-sm leading-tight flex items-center gap-2 ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-white'}`}>
                                                 {activePersona.name}
                                                 {activePersona.name === '신은비' && firstChatMap[activePersonaId] && (() => {
                                                     const days = Math.floor((Date.now() - new Date(firstChatMap[activePersonaId]).getTime()) / (1000 * 60 * 60 * 24));
@@ -1988,7 +1988,7 @@ const AppContent: React.FC = () => {
                                 backgroundImage: `linear-gradient(rgba(10,11,15,0.65), rgba(10,11,15,0.65)), url(${chatBgSelected})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
-                            } : undefined}
+                            } : USE_NEW_UI ? { background: 'transparent' } : undefined}
                         >
                             {currentSession.messages.length === 0 && isGreeting && (
                                 <div className="h-full flex flex-col items-center justify-center gap-3 opacity-60">
@@ -2019,14 +2019,14 @@ const AppContent: React.FC = () => {
                                         </div>
                                     )}
                                     {currentSession.messages.map(msg => (
-                                        <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} />
+                                        <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} newUi={USE_NEW_UI} />
                                     ))}
                                     <div ref={messagesEndRef} />
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-4 bg-gray-900 border-t border-gray-800 shrink-0">
+                        <div className={`p-4 shrink-0 ${USE_NEW_UI ? 'border-t border-[#F0E9DE] bg-white/75 backdrop-blur-sm' : 'bg-gray-900 border-t border-gray-800'}`}>
                             {/* 퀵메뉴 버튼 */}
                             {(() => {
                                 if (!activePersona?.quickMenuJson) return null;
@@ -2172,7 +2172,7 @@ const AppContent: React.FC = () => {
                                 );
                             })()}
 
-                            <div className="max-w-4xl mx-auto relative flex items-end bg-gray-800 rounded-2xl border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500 transition-all">
+                            <div className={`max-w-4xl mx-auto relative flex items-end rounded-2xl transition-all ${USE_NEW_UI ? 'bg-white border border-[#EAE2D3] focus-within:border-[#8E6FB7] focus-within:ring-1 focus-within:ring-[#8E6FB7]/20' : 'bg-gray-800 border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500'}`}>
                                 {isGolfPersona && user && (
                                     <input
                                         ref={swingVideoRef}
@@ -2188,7 +2188,7 @@ const AppContent: React.FC = () => {
                                     onChange={e => setInputText(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     placeholder={inputPlaceholder ?? (activePersona ? `${activePersona.name}에게 메시지 보내기...` : '메시지를 입력하세요...')}
-                                    className="w-full max-h-[200px] bg-transparent text-gray-100 placeholder-gray-500 p-4 pr-12 resize-none focus:outline-none rounded-2xl"
+                                    className={`w-full max-h-[200px] bg-transparent p-4 pr-12 resize-none focus:outline-none rounded-2xl ${USE_NEW_UI ? 'text-[#2D2438] placeholder-[#9089A1]' : 'text-gray-100 placeholder-gray-500'}`}
                                     rows={1}
                                     disabled={!activePersona}
                                 />
@@ -2197,9 +2197,15 @@ const AppContent: React.FC = () => {
                                     disabled={!inputText.trim() || currentSession.isTyping || !activePersona}
                                     className={`absolute right-2 bottom-2 p-2 rounded-xl transition-colors
                                         ${inputText.trim() && !currentSession.isTyping && activePersona
-                                            ? `bg-gradient-to-r ${activePersona.colorClass} text-white shadow-lg`
-                                            : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                            ? USE_NEW_UI
+                                                ? 'text-white shadow-lg'
+                                                : `bg-gradient-to-r ${activePersona.colorClass} text-white shadow-lg`
+                                            : USE_NEW_UI ? 'text-[#9089A1] cursor-not-allowed' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
                                         }`}
+                                    style={USE_NEW_UI && inputText.trim() && !currentSession.isTyping && activePersona ? {
+                                        background: 'linear-gradient(135deg, #8E6FB7, #E48BB0)',
+                                        boxShadow: '0 6px 16px -6px rgba(142,111,183,0.55)',
+                                    } : {}}
                                 >
                                     <Icon name="Send" size={18} />
                                 </button>
