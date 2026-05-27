@@ -19,6 +19,7 @@ import { LandingPageNew } from './components/LandingPageNew';
 const USE_NEW_UI = true;
 import { Theme } from './components/themes';
 import { MainPage } from './components/MainPage';
+import { MainPageNew } from './components/MainPageNew';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
@@ -1097,22 +1098,38 @@ const AppContent: React.FC = () => {
     if (showMain) {
         return (
             <>
-                <MainPage
-                    personas={visiblePersonas}
-                    isLoading={isPersonasLoading}
-                    user={user}
-                    onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
-                    onLogout={handleLogout}
-                    onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
-                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                    unreadAnnouncementCount={unreadAnnouncementCount}
-                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                    onProfileClick={() => setShowUserProfile(true)}
-                    theme={theme}
-                    onThemeChange={handleThemeChange}
-                    heroImageUrl={heroImageUrl}
-                    categories={categories}
-                />
+                {USE_NEW_UI ? (
+                    <MainPageNew
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        user={user}
+                        onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
+                        onLogout={handleLogout}
+                        onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                        onProfileClick={() => setShowUserProfile(true)}
+                        categories={categories}
+                    />
+                ) : (
+                    <MainPage
+                        personas={visiblePersonas}
+                        isLoading={isPersonasLoading}
+                        user={user}
+                        onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
+                        onLogout={handleLogout}
+                        onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                        unreadAnnouncementCount={unreadAnnouncementCount}
+                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                        onProfileClick={() => setShowUserProfile(true)}
+                        theme={theme}
+                        onThemeChange={handleThemeChange}
+                        heroImageUrl={heroImageUrl}
+                        categories={categories}
+                    />
+                )}
                 {showAnnouncementModal && (
                     <AnnouncementModal
                         announcements={announcements}
