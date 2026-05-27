@@ -66,6 +66,8 @@ const AppContent: React.FC = () => {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [showAuthPage, setShowAuthPage] = useState(false);
     const [showMain, setShowMain] = useState(false);
+    // 뉴UI: 로그인 후 히어로 페이지 표시 여부
+    const [showHero, setShowHero] = useState(false);
     const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('ui_theme') as Theme) || 'lavender');
     const handleThemeChange = (t: Theme) => { setTheme(t); localStorage.setItem('ui_theme', t); };
     const [resetToken, setResetToken] = useState<string | null>(() => {
@@ -261,7 +263,7 @@ const AppContent: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); setShowMain(USE_NEW_UI ? false : true); })
+            .then(({ user }) => { setUser(user); if (USE_NEW_UI) { setShowHero(true); } else { setShowMain(true); } })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -1095,26 +1097,23 @@ const AppContent: React.FC = () => {
         );
     }
 
-    // 로그인 후 히어로 페이지 (USE_NEW_UI + showMain=false + activePersonaId 없음)
-    if (USE_NEW_UI && user && !showMain && !activePersonaId) {
-        const handleNewPageFeatureClickLoggedIn = (key: string) => {
-            setShowMain(true);
-        };
+    // 로그인 후 히어로 페이지 (USE_NEW_UI + showHero=true)
+    if (USE_NEW_UI && user && showHero) {
         return (
             <>
                 <LandingPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    onStart={() => setShowMain(true)}
-                    onLoginClick={() => setShowMain(true)}
-                    onPersonaClick={(id) => { handlePersonaClick(id); }}
+                    onStart={() => { setShowHero(false); setShowMain(true); }}
+                    onLoginClick={() => { setShowHero(false); setShowMain(true); }}
+                    onPersonaClick={(id) => { setShowHero(false); handlePersonaClick(id); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                    onFeatureClick={handleNewPageFeatureClickLoggedIn}
+                    onFeatureClick={() => { setShowHero(false); setShowMain(true); }}
                     categories={categories}
                     user={user}
-                    onGoToChat={() => setShowMain(true)}
+                    onGoToChat={() => { setShowHero(false); setShowMain(true); }}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
@@ -1311,7 +1310,7 @@ const AppContent: React.FC = () => {
                 onReorder={handleReorderPersona}
                 user={user}
                 onLogout={handleLogout}
-                onGoHome={() => setShowMain(true)}
+                onGoHome={() => { if (USE_NEW_UI) { setShowMain(false); setShowHero(true); } else { setShowMain(true); } }}
                 onProfileClick={() => setShowUserProfile(true)}
                 newUi={USE_NEW_UI}
             />
