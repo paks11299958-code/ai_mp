@@ -106,7 +106,7 @@ const PersonaAvatar: React.FC<{
         >
             {persona.imageUrl ? (
                 <img src={persona.imageUrl} alt={persona.name}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                    draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', userSelect: 'none', WebkitUserDrag: 'none' } as React.CSSProperties} />
             ) : (
                 <div style={{
                     width: '100%', height: '100%',
@@ -362,7 +362,7 @@ const ChatStage: React.FC<{
                     }}>
                         {persona.imageUrl ? (
                             <img src={persona.imageUrl} alt={persona.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                                draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', userSelect: 'none', WebkitUserDrag: 'none' } as React.CSSProperties} />
                         ) : (
                             <div style={{
                                 width: '100%', height: '100%',
@@ -957,7 +957,7 @@ const PersonaSelectPanel: React.FC<{
                             }}>
                                 {persona.imageUrl ? (
                                     <img src={persona.imageUrl} alt={persona.name}
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }} />
+                                        draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', userSelect: 'none', WebkitUserDrag: 'none' } as React.CSSProperties} />
                                 ) : (
                                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: palette.accent, opacity: 0.4 }}>✦</div>
                                 )}

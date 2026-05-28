@@ -376,7 +376,8 @@ const PersonaTarotCard: React.FC<{
                     <img
                         src={persona.imageUrl}
                         alt={persona.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
+                        draggable={false}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', userSelect: 'none', WebkitUserDrag: 'none' } as React.CSSProperties}
                     />
                 ) : (
                     <div style={{
