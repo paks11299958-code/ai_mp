@@ -28,9 +28,9 @@ const formatPhoneNumber = (val: string) => {
 
 export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack, defaultMode = 'login', fullScreen = false }) => {
     const [mode, setMode] = useState<Mode>(defaultMode);
-    const [identifier, setIdentifier] = useState('');   // login / forgot 공용
-    const [email, setEmail] = useState('');              // register 이메일 탭
-    const [phone, setPhone] = useState('');              // register 전화번호 탭 (포매팅됨)
+    const [identifier, setIdentifier] = useState('');
+    const [email, setEmail] = useState('');
+    const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
     const [registerTab, setRegisterTab] = useState<RegisterTab>('email');
@@ -134,15 +134,34 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
         }
     };
 
-    const inputClass = 'w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors';
-    const labelClass = 'block text-xs font-medium text-gray-400 mb-1.5';
+    // 크림 스타일 공통 클래스
+    const inputClass = 'w-full rounded-xl px-4 py-3 text-sm transition-colors focus:outline-none';
+    const inputStyle: React.CSSProperties = {
+        background: '#FFFDF9',
+        border: '1px solid #D9CEBF',
+        color: '#2D2017',
+    };
+    const inputFocusStyle = (e: React.FocusEvent<HTMLInputElement>) => {
+        e.currentTarget.style.borderColor = '#8E6FB7';
+        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(142,111,183,0.12)';
+    };
+    const inputBlurStyle = (e: React.FocusEvent<HTMLInputElement>) => {
+        e.currentTarget.style.borderColor = '#D9CEBF';
+        e.currentTarget.style.boxShadow = 'none';
+    };
+    const labelClass = 'block text-xs font-medium mb-1.5';
+    const labelStyle: React.CSSProperties = { color: '#7A6555' };
 
     const formCard = (
-        <div className="w-full max-w-sm bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
+        <div className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden relative"
+            style={{ background: '#FBF8F3', border: '1px solid #E8DDD0' }}>
             {onClose && !fullScreen && (
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-300 transition-colors z-10"
+                    className="absolute top-4 right-4 transition-colors z-10"
+                    style={{ color: '#B0A090' }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#6B4E3D'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#B0A090'}
                 >
                     <Icon name="X" size={20} />
                 </button>
@@ -150,34 +169,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
 
             {/* 로고 */}
             <div className="flex items-center justify-center gap-2 pt-8 pb-6">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                <div className="p-2 rounded-xl text-white" style={{ background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)' }}>
                     <Icon name="Bot" size={24} />
                 </div>
-                <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                <span className="text-xl font-bold" style={{ color: '#2D2017' }}>
                     AI 페르소나
                 </span>
             </div>
 
             {/* 탭 (forgot 모드일 때 숨김) */}
             {mode !== 'forgot' && (
-                <div className="flex bg-gray-800 rounded-xl p-1 mx-6">
+                <div className="flex rounded-xl p-1 mx-6" style={{ background: '#EFE8DE' }}>
                     <button
                         onClick={() => switchMode('login')}
-                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                            mode === 'login'
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
-                                : 'text-gray-400 hover:text-gray-200'
-                        }`}
+                        className="flex-1 py-2 text-sm font-semibold rounded-lg transition-all"
+                        style={mode === 'login'
+                            ? { background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)', color: '#fff', boxShadow: '0 2px 8px rgba(142,111,183,0.3)' }
+                            : { color: '#A89080' }}
                     >
                         로그인
                     </button>
                     <button
                         onClick={() => switchMode('register')}
-                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${
-                            mode === 'register'
-                                ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow'
-                                : 'text-gray-400 hover:text-gray-200'
-                        }`}
+                        className="flex-1 py-2 text-sm font-semibold rounded-lg transition-all"
+                        style={mode === 'register'
+                            ? { background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)', color: '#fff', boxShadow: '0 2px 8px rgba(142,111,183,0.3)' }
+                            : { color: '#A89080' }}
                     >
                         회원가입
                     </button>
@@ -189,13 +206,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                 <div className="px-6 pb-2">
                     <button
                         onClick={() => switchMode('login')}
-                        className="flex items-center gap-1 text-gray-500 hover:text-gray-300 text-sm transition-colors mb-4"
+                        className="flex items-center gap-1 text-sm transition-colors mb-4"
+                        style={{ color: '#A89080' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#6B4E3D'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#A89080'}
                     >
                         <Icon name="ChevronLeft" size={16} />
                         로그인으로 돌아가기
                     </button>
-                    <h3 className="text-lg font-bold text-gray-100">비밀번호 찾기</h3>
-                    <p className="text-sm text-gray-400 mt-1">
+                    <h3 className="text-lg font-bold" style={{ color: '#2D2017' }}>비밀번호 찾기</h3>
+                    <p className="text-sm mt-1" style={{ color: '#7A6555' }}>
                         {forgotStep === 'verify'
                             ? '발송된 인증번호와 새 비밀번호를 입력하세요.'
                             : '가입 시 사용한 이메일 또는 전화번호를 입력하세요.'}
@@ -207,19 +227,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
             {mode === 'forgot' && forgotDone ? (
                 <div className="p-6">
                     <div className="flex flex-col items-center text-center py-4">
-                        <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
-                            <Icon name={forgotType === 'phone' ? 'Check' : 'Mail'} size={24} className="text-green-400" />
+                        <div className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+                            style={{ background: 'rgba(142,111,183,0.15)' }}>
+                            <Icon name={forgotType === 'phone' ? 'Check' : 'Mail'} size={24} style={{ color: '#8E6FB7' } as React.CSSProperties} />
                         </div>
                         {forgotType === 'phone' ? (
                             <>
-                                <p className="text-gray-200 font-semibold mb-2">비밀번호가 변경되었습니다</p>
-                                <p className="text-sm text-gray-400">새 비밀번호로 로그인하세요.</p>
+                                <p className="font-semibold mb-2" style={{ color: '#2D2017' }}>비밀번호가 변경되었습니다</p>
+                                <p className="text-sm" style={{ color: '#7A6555' }}>새 비밀번호로 로그인하세요.</p>
                             </>
                         ) : (
                             <>
-                                <p className="text-gray-200 font-semibold mb-2">이메일을 확인해주세요</p>
-                                <p className="text-sm text-gray-400">
-                                    <span className="text-blue-400">{identifier}</span>로<br />
+                                <p className="font-semibold mb-2" style={{ color: '#2D2017' }}>이메일을 확인해주세요</p>
+                                <p className="text-sm" style={{ color: '#7A6555' }}>
+                                    <span style={{ color: '#8E6FB7' }}>{identifier}</span>로<br />
                                     재설정 링크를 전송했습니다.<br />
                                     링크는 30분간 유효합니다.
                                 </p>
@@ -228,20 +249,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     </div>
                     <button
                         onClick={() => switchMode('login')}
-                        className="w-full mt-4 text-sm text-gray-400 hover:text-white transition-colors"
+                        className="w-full mt-4 text-sm transition-colors"
+                        style={{ color: '#A89080' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#2D2017'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#A89080'}
                     >
                         로그인으로 돌아가기
                     </button>
                 </div>
 
             ) : mode === 'forgot' && forgotStep === 'verify' ? (
-                /* 전화번호 인증코드 + 새 비밀번호 폼 */
                 <form key="forgot-verify" onSubmit={handleSubmit} className="p-6 space-y-4" autoComplete="off">
-                    {/* 브라우저 자동완성 흡수용 더미 필드 */}
                     <input type="text" name="username" style={{ display: 'none' }} autoComplete="username" aria-hidden="true" readOnly />
                     <input type="password" name="current-password" style={{ display: 'none' }} autoComplete="current-password" aria-hidden="true" readOnly />
                     <div>
-                        <label className={labelClass}>인증번호 (6자리)</label>
+                        <label className={labelClass} style={labelStyle}>인증번호 (6자리)</label>
                         <input
                             type="text"
                             inputMode="numeric"
@@ -253,10 +275,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             autoComplete="one-time-code"
                             name="otp-code"
                             className={inputClass}
+                            style={{ ...inputStyle, placeholder: '#C4B5A5' } as React.CSSProperties}
+                            onFocus={inputFocusStyle}
+                            onBlur={inputBlurStyle}
                         />
                     </div>
                     <div>
-                        <label className={labelClass}>새 비밀번호</label>
+                        <label className={labelClass} style={labelStyle}>새 비밀번호</label>
                         <input
                             type="password"
                             value={newPassword}
@@ -266,10 +291,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             autoComplete="new-password"
                             name="new-password"
                             className={inputClass}
+                            style={inputStyle}
+                            onFocus={inputFocusStyle}
+                            onBlur={inputBlurStyle}
                         />
                     </div>
                     {error && (
-                        <div className="flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+                        <div className="flex items-center gap-2 text-sm rounded-xl px-4 py-3"
+                            style={{ color: '#C0392B', background: '#FDF0ED', border: '1px solid #F5C6C0' }}>
                             <Icon name="AlertCircle" size={15} className="shrink-0" />
                             {error}
                         </div>
@@ -277,24 +306,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+                        className="w-full font-semibold py-3 rounded-xl transition-all text-sm text-white disabled:opacity-50"
+                        style={{ background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)' }}
                     >
                         {loading ? '처리 중...' : '비밀번호 변경'}
                     </button>
                 </form>
 
             ) : mode === 'register' && registerStep === 'verify' ? (
-                /* 회원가입 인증코드 입력 */
                 <div className="p-6 space-y-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-400 bg-gray-800/60 rounded-xl px-4 py-3">
-                        <Icon name="Mail" size={15} className="shrink-0 text-purple-400" />
+                    <div className="flex items-center gap-2 text-sm rounded-xl px-4 py-3"
+                        style={{ background: '#F5EFE6', color: '#7A6555', border: '1px solid #E8DDD0' }}>
+                        <Icon name="Mail" size={15} className="shrink-0" style={{ color: '#8E6FB7' } as React.CSSProperties} />
                         <span>
                             {registerTab === 'phone' ? phone : email}로<br />
                             인증번호 6자리를 발송했습니다.
                         </span>
                     </div>
                     <div>
-                        <label className={labelClass}>인증번호 (6자리)</label>
+                        <label className={labelClass} style={labelStyle}>인증번호 (6자리)</label>
                         <input
                             autoFocus
                             type="text"
@@ -306,10 +336,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             required
                             autoComplete="off"
                             className={inputClass}
+                            style={inputStyle}
+                            onFocus={inputFocusStyle}
+                            onBlur={inputBlurStyle}
                         />
                     </div>
                     {error && (
-                        <div className="flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+                        <div className="flex items-center gap-2 text-sm rounded-xl px-4 py-3"
+                            style={{ color: '#C0392B', background: '#FDF0ED', border: '1px solid #F5C6C0' }}>
                             <Icon name="AlertCircle" size={15} className="shrink-0" />
                             {error}
                         </div>
@@ -317,7 +351,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     <button
                         onClick={handleSubmit}
                         disabled={loading || regVerifyCode.length < 6}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+                        className="w-full font-semibold py-3 rounded-xl transition-all text-sm text-white disabled:opacity-50"
+                        style={{ background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)' }}
                     >
                         {loading ? '처리 중...' : '가입 완료'}
                     </button>
@@ -325,7 +360,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                         <button
                             type="button"
                             onClick={() => { setRegisterStep('form'); setRegVerifyCode(''); setError(''); }}
-                            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+                            className="text-xs transition-colors"
+                            style={{ color: '#A89080' }}
+                            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#2D2017'}
+                            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#A89080'}
                         >
                             ← 돌아가기
                         </button>
@@ -346,7 +384,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                     setLoading(false);
                                 }
                             }}
-                            className="text-xs text-blue-400 hover:text-blue-300 disabled:text-gray-600 disabled:cursor-not-allowed transition-colors"
+                            className="text-xs transition-colors disabled:cursor-not-allowed"
+                            style={{ color: '#8E6FB7' }}
+                            onMouseEnter={e => { if (!((e.currentTarget as HTMLButtonElement).disabled)) (e.currentTarget as HTMLElement).style.color = '#6B4E9A'; }}
+                            onMouseLeave={e => { if (!((e.currentTarget as HTMLButtonElement).disabled)) (e.currentTarget as HTMLElement).style.color = '#8E6FB7'; }}
                         >
                             {resendCountdown > 0 ? `재발송 (${resendCountdown}초)` : '인증번호 재발송'}
                         </button>
@@ -354,31 +395,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                 </div>
 
             ) : (
-                /* 메인 폼 */
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
 
                     {/* 회원가입 전용: 이메일/전화번호 탭 */}
                     {mode === 'register' && (
-                        <div className="flex bg-gray-800 rounded-xl p-1">
+                        <div className="flex rounded-xl p-1" style={{ background: '#EFE8DE' }}>
                             <button
                                 type="button"
                                 onClick={() => setRegisterTab('email')}
-                                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-                                    registerTab === 'email'
-                                        ? 'bg-gray-700 text-white'
-                                        : 'text-gray-500 hover:text-gray-300'
-                                }`}
+                                className="flex-1 py-2 text-xs font-semibold rounded-lg transition-all"
+                                style={registerTab === 'email'
+                                    ? { background: '#FBF8F3', color: '#2D2017', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }
+                                    : { color: '#A89080' }}
                             >
                                 이메일
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setRegisterTab('phone')}
-                                className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-colors ${
-                                    registerTab === 'phone'
-                                        ? 'bg-gray-700 text-white'
-                                        : 'text-gray-500 hover:text-gray-300'
-                                }`}
+                                className="flex-1 py-2 text-xs font-semibold rounded-lg transition-all"
+                                style={registerTab === 'phone'
+                                    ? { background: '#FBF8F3', color: '#2D2017', boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }
+                                    : { color: '#A89080' }}
                             >
                                 휴대전화
                             </button>
@@ -388,21 +426,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     {/* 회원가입 전용: 닉네임 */}
                     {mode === 'register' && (
                         <div>
-                            <label className={labelClass}>닉네임 (선택)</label>
+                            <label className={labelClass} style={labelStyle}>닉네임 (선택)</label>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
                                 placeholder="사용할 닉네임"
                                 className={inputClass}
+                                style={inputStyle}
+                                onFocus={inputFocusStyle}
+                                onBlur={inputBlurStyle}
                             />
                         </div>
                     )}
 
-                    {/* 이메일 입력 — 로그인/forgot: identifier, 회원가입 이메일탭: email */}
                     {(mode === 'login' || mode === 'forgot') && (
                         <div>
-                            <label className={labelClass}>이메일 또는 전화번호</label>
+                            <label className={labelClass} style={labelStyle}>이메일 또는 전화번호</label>
                             <input
                                 type="text"
                                 value={identifier}
@@ -410,12 +450,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                 placeholder="example@email.com 또는 010-1234-5678"
                                 required
                                 className={inputClass}
+                                style={inputStyle}
+                                onFocus={inputFocusStyle}
+                                onBlur={inputBlurStyle}
                             />
                         </div>
                     )}
                     {mode === 'register' && registerTab === 'email' && (
                         <div>
-                            <label className={labelClass}>이메일</label>
+                            <label className={labelClass} style={labelStyle}>이메일</label>
                             <input
                                 type="email"
                                 value={email}
@@ -423,12 +466,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                 placeholder="example@email.com"
                                 required
                                 className={inputClass}
+                                style={inputStyle}
+                                onFocus={inputFocusStyle}
+                                onBlur={inputBlurStyle}
                             />
                         </div>
                     )}
                     {mode === 'register' && registerTab === 'phone' && (
                         <div>
-                            <label className={labelClass}>휴대전화번호</label>
+                            <label className={labelClass} style={labelStyle}>휴대전화번호</label>
                             <input
                                 type="tel"
                                 value={phone}
@@ -436,14 +482,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                 placeholder="010-1234-5678"
                                 required
                                 className={inputClass}
+                                style={inputStyle}
+                                onFocus={inputFocusStyle}
+                                onBlur={inputBlurStyle}
                             />
                         </div>
                     )}
 
-                    {/* 비밀번호 (forgot 모드 제외) */}
                     {mode !== 'forgot' && (
                         <div>
-                            <label className={labelClass}>비밀번호</label>
+                            <label className={labelClass} style={labelStyle}>비밀번호</label>
                             <input
                                 type="password"
                                 value={password}
@@ -451,12 +499,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                 placeholder={mode === 'login' ? '비밀번호' : '8자 이상 권장'}
                                 required
                                 className={inputClass}
+                                style={inputStyle}
+                                onFocus={inputFocusStyle}
+                                onBlur={inputBlurStyle}
                             />
                             {mode === 'login' && (
                                 <button
                                     type="button"
                                     onClick={() => switchMode('forgot')}
-                                    className="mt-2 text-sm text-blue-400 hover:text-blue-300 transition-colors underline underline-offset-2 block w-full text-right"
+                                    className="mt-2 text-sm transition-colors underline underline-offset-2 block w-full text-right"
+                                    style={{ color: '#8E6FB7' }}
+                                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#6B4E9A'}
+                                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#8E6FB7'}
                                 >
                                     비밀번호를 잊으셨나요?
                                 </button>
@@ -464,19 +518,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                         </div>
                     )}
 
-                    {/* 에러 */}
                     {error && (
-                        <div className="flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3 clear-both">
+                        <div className="flex items-center gap-2 text-sm rounded-xl px-4 py-3 clear-both"
+                            style={{ color: '#C0392B', background: '#FDF0ED', border: '1px solid #F5C6C0' }}>
                             <Icon name="AlertCircle" size={15} className="shrink-0" />
                             {error}
                         </div>
                     )}
 
-                    {/* 제출 버튼 */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all text-sm clear-both"
+                        className="w-full font-semibold py-3 rounded-xl transition-all text-sm text-white disabled:opacity-50 clear-both"
+                        style={{ background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)' }}
                     >
                         {loading
                             ? '처리 중...'
@@ -496,11 +550,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
 
     if (fullScreen) {
         return (
-            <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'linear-gradient(135deg, #1e1b4b 0%, #0f172a 55%, #1e1035 100%)' }}>
+            <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'linear-gradient(135deg, #F5EFE6 0%, #FBF8F3 55%, #EDE4D8 100%)' }}>
                 <div className="flex items-center px-6 py-4">
                     <button
                         onClick={onBack}
-                        className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
+                        className="flex items-center gap-2 transition-colors text-sm"
+                        style={{ color: '#A89080' }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#2D2017'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#A89080'}
                     >
                         <Icon name="ChevronLeft" size={18} />
                         돌아가기
@@ -515,7 +572,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
 
     return (
         <div
-            className="fixed inset-0 bg-gray-950/90 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            style={{ background: 'rgba(45,32,23,0.5)' }}
             onClick={onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
         >
             {formCard}
