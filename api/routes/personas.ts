@@ -57,7 +57,7 @@ export async function handler(
         try {
             const userId = await requireAdmin();
             if (!userId) return;
-            const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, starVideoUrl, faceReadingBgUrl, chatBgUrl, quickMenuJson, order, isVisible, adminOnly, categoryId } = req.body;
+            const { name, jobTitle, description, systemInstruction, iconName, colorClass, imageUrl, introVideoUrl, starVideoUrl, faceReadingBgUrl, chatBgUrl, quickMenuJson, order, isVisible, adminOnly, useGrounding, categoryId } = req.body;
             const persona = await prisma.persona.update({
                 where: { id: seg1 },
                 data: {
@@ -68,6 +68,7 @@ export async function handler(
                     quickMenuJson: quickMenuJson ?? null, order,
                     ...(isVisible !== undefined && { isVisible }),
                     ...(adminOnly !== undefined && { adminOnly }),
+                    ...(useGrounding !== undefined && { useGrounding }),
                     categoryId: categoryId !== undefined ? (categoryId || null) : undefined,
                 },
                 include: { category: true },

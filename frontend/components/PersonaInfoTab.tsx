@@ -78,6 +78,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
     const [isUploadingChatBg, setIsUploadingChatBg] = useState(false);
     const chatBgInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
+    const [useGrounding, setUseGrounding] = useState(false);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -91,7 +92,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
             setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl(''); setIntroVideoUrl(''); setStarVideoUrl(''); setFaceReadingBgUrl('');
-            setChatBgUrls([]); setQuickMenuJson(''); setIsVisible(true);
+            setChatBgUrls([]); setQuickMenuJson(''); setIsVisible(true); setUseGrounding(false);
             setSelectedCategoryId(null); setShowSuccess(false);
         } else {
             const p = personas.find(p => p.id === selectedId);
@@ -103,7 +104,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                 setStarVideoUrl(p.starVideoUrl || ''); setFaceReadingBgUrl(p.faceReadingBgUrl || '');
                 try { setChatBgUrls(p.chatBgUrl ? (p.chatBgUrl.startsWith('[') ? JSON.parse(p.chatBgUrl) : [p.chatBgUrl]) : []); }
                 catch { setChatBgUrls(p.chatBgUrl ? [p.chatBgUrl] : []); }
-                setQuickMenuJson(p.quickMenuJson || ''); setIsVisible(p.isVisible !== false);
+                setQuickMenuJson(p.quickMenuJson || ''); setIsVisible(p.isVisible !== false); setUseGrounding(p.useGrounding ?? false);
                 setSelectedCategoryId(p.categoryId ?? null); setShowSuccess(false);
             }
         }
@@ -116,7 +117,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
         setIsSaving(true); setSaveError(null);
         try {
             const chatBgUrlValue = chatBgUrls.length ? JSON.stringify(chatBgUrls) : undefined;
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, categoryId: selectedCategoryId });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, useGrounding, categoryId: selectedCategoryId });
             localStorage.removeItem('personas_cache');
             if (isNew) onSelectId(idToSave);
             setShowSuccess(true);
@@ -586,6 +587,14 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                         className="w-4 h-4 accent-blue-500 cursor-pointer" />
                     <label htmlFor="isVisible" className="text-sm text-gray-300 cursor-pointer select-none">페르소나 목록에 표시</label>
                     {!isVisible && <span className="text-xs text-yellow-500 ml-1">숨김 — 데이터 보존됨</span>}
+                </div>
+
+                {/* Google Search Grounding */}
+                <div className="flex items-center gap-3 p-3.5 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                    <input type="checkbox" id="useGrounding" checked={useGrounding} onChange={e => setUseGrounding(e.target.checked)}
+                        className="w-4 h-4 accent-green-500 cursor-pointer" />
+                    <label htmlFor="useGrounding" className="text-sm text-gray-300 cursor-pointer select-none">Google Search Grounding 사용</label>
+                    {useGrounding && <span className="text-xs text-green-400 ml-1">실시간 검색 활성화</span>}
                 </div>
 
                 {/* 저장 / 삭제 */}

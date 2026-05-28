@@ -802,7 +802,7 @@ const AppContent: React.FC = () => {
                     `\n\n현재 날짜/시각: ${kstNow} (한국 표준시)` +
                     levelContext +
                     `\n\n[자가 검증] 답변을 출력하기 전, 작성한 내용이 ① 이 캐릭터의 말투·감성에 맞는지, ② 대화 맥락과 무관한 단어나 표현이 섞이지 않았는지 스스로 확인한다. 어긋난 부분이 있으면 수정한 최종 답변만 출력한다.`;
-                chat = createChatSession(systemInstruction)!;
+                chat = createChatSession(systemInstruction, activePersona.useGrounding)!;
                 chatInstancesRef.current[activePersonaId] = chat;
             }
 
@@ -838,12 +838,16 @@ const AppContent: React.FC = () => {
                 for await (const chunk of responseStream) {
                     if (chunk.text) {
                         fullResponse += chunk.text;
-                        updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse });
+                        // grounding 인용 마커([1], [2] 등) 제거해서 자연스럽게 표시
+                        const displayText = fullResponse.replace(/\[\d+\]/g, '').trim();
+                        updateMessageInSession(activePersonaId, modelMsgId, { text: displayText });
                     }
                 }
             } finally {
                 clearTimeout(streamTimeout);
             }
+            // 최종 저장용 텍스트도 마커 제거
+            fullResponse = fullResponse.replace(/\[\d+\]/g, '').trim();
             updateMessageInSession(activePersonaId, modelMsgId, { isStreaming: false });
 
             // AI 응답 DB 저장

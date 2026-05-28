@@ -12,7 +12,7 @@ try {
 
 export const getAIInstance = () => aiInstance;
 
-export const createChatSession = (systemInstruction: string): Chat | null => {
+export const createChatSession = (systemInstruction: string, useGrounding = false): Chat | null => {
     if (!aiInstance) return null;
 
     try {
@@ -22,6 +22,7 @@ export const createChatSession = (systemInstruction: string): Chat | null => {
                 systemInstruction,
                 maxOutputTokens: 8192,
                 thinkingConfig: { thinkingBudget: 512 },
+                ...(useGrounding ? { tools: [{ googleSearch: {} }] } : {}),
             },
         });
     } catch (error) {

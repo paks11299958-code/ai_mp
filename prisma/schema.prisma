@@ -83,6 +83,7 @@ model Persona {
   isDefault         Boolean         @default(false)
   isVisible         Boolean         @default(true)
   adminOnly         Boolean         @default(false)
+  useGrounding      Boolean         @default(false)
   createdBy         Int?
   categoryId        Int?
   user              User?           @relation(fields: [createdBy], references: [id], onDelete: SetNull)

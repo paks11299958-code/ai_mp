@@ -35,6 +35,7 @@ export interface Persona {
     isDefault?: boolean;
     isVisible?: boolean;
     adminOnly?: boolean;
+    useGrounding?: boolean;
     categoryId?: number | null;
     category?: Category | null;
     createdAt?: string;
