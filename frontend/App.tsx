@@ -32,6 +32,7 @@ import { LuxuryBoard } from './components/LuxuryBoard';
 import { MathTutorBoard } from './components/MathTutorBoard';
 import { TodayNewsBoard } from './components/TodayNewsBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
+import { SwingInputModal } from './components/SwingInputModal';
 import { AnnouncementModal } from './components/AnnouncementModal';
 import { ProductExtractDialog } from './components/ProductExtractDialog';
 import { GolfReserveDialog } from './components/GolfReserveDialog';
@@ -163,6 +164,7 @@ const AppContent: React.FC = () => {
     const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
     const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
     const [showSwingBoard, setShowSwingBoard] = useState(false);
+    const [showSwingInput, setShowSwingInput] = useState(false);
     const [showMathTutor, setShowMathTutor] = useState(false);
     const [showClubBoard, setShowClubBoard] = useState(false);
 
@@ -611,10 +613,9 @@ const AppContent: React.FC = () => {
         }
     };
 
-    const handleSwingVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file || !activePersonaId || !user) return;
-        e.target.value = '';
+    const handleSwingSubmit = async ({ title, gender, skillLevel, file }: { title: string; gender: string; skillLevel: string; file: File }) => {
+        if (!activePersonaId || !user) return;
+        setShowSwingInput(false);
         setSwingUploading(true);
         setSwingStep('uploading');
         const pendingMsgId = Date.now().toString();
@@ -627,7 +628,7 @@ const AppContent: React.FC = () => {
             const { signedUrl, publicUrl } = await swingAnalysisApi.getSignedUrl(file.type, file.name);
             await fetch(signedUrl, { method: 'PUT', body: file, headers: { 'Content-Type': file.type } });
             setSwingStep('analyzing');
-            const result = await swingAnalysisApi.analyze(publicUrl, activePersonaId, file.type, file.name);
+            const result = await swingAnalysisApi.analyze(publicUrl, activePersonaId, file.type, file.name, title, gender, skillLevel);
             setSwingStep('saving');
             updateMessageInSession(activePersonaId, pendingMsgId, {
                 text: `스윙 분석 완료! 종합 점수: **${result.analysis.overallScore}점**\n${result.analysis.overallComment}`,
@@ -644,6 +645,10 @@ const AppContent: React.FC = () => {
             setSwingUploading(false);
             setSwingStep('idle');
         }
+    };
+
+    const handleSwingVideoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        e.target.value = '';
     };
 
     const handleSendMessage = async () => {
@@ -1564,6 +1569,14 @@ const AppContent: React.FC = () => {
                 </div>
             )}
 
+            {showSwingInput && (
+                <SwingInputModal
+                    onClose={() => setShowSwingInput(false)}
+                    onSubmit={handleSwingSubmit}
+                    isUploading={swingUploading}
+                />
+            )}
+
             {showSwingBoard && (
                 <SwingAnalysisBoard
                     onClose={() => { setShowSwingBoard(false); setSwingResult(null); }}
@@ -1915,7 +1928,7 @@ const AppContent: React.FC = () => {
                                     featureCards.push({ icon: 'Handshake', label: '모임(출첵)', onClick: () => setShowClubBoard(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
                                 }
                                 if (isGolfPersona) {
-                                    featureCards.push({ icon: 'Activity', label: '스윙 분석', onClick: () => swingVideoRef.current?.click(), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
+                                    featureCards.push({ icon: 'Activity', label: '스윙 분석', onClick: () => setShowSwingInput(true), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
                                     featureCards.push({ icon: 'Clock', label: '스윙 기록', onClick: () => setShowSwingBoard(true), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
                                 }
                             }
@@ -1948,7 +1961,7 @@ const AppContent: React.FC = () => {
                                         {isGolfPersona && user && (
                                             <>
                                                 <button
-                                                    onClick={() => swingVideoRef.current?.click()}
+                                                    onClick={() => setShowSwingInput(true)}
                                                     disabled={swingUploading || currentSession.isTyping}
                                                     className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 disabled:opacity-40 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
                                                 >

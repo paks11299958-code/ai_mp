@@ -474,8 +474,9 @@ export const swingAnalysisApi = {
             body: JSON.stringify({ mimeType, filename }),
         }),
 
-    analyze: async (videoUrl: string, personaId: string, mimeType: string, fileName: string): Promise<{ id: number; analysis: SwingAnalysis; createdAt: string }> => {
+    analyze: async (videoUrl: string, personaId: string, mimeType: string, fileName: string, title?: string, gender?: string, skillLevel?: string): Promise<{ id: number; analysis: SwingAnalysis; createdAt: string }> => {
         const cfUrl = import.meta.env.VITE_GOLF_CF_URL as string | undefined;
+        const body = { videoUrl, personaId, mimeType, fileName, title, gender, skillLevel };
         if (cfUrl) {
             // 프로덕션: Cloud Function 직접 호출 (Vercel 타임아웃 우회)
             const token = getToken();
@@ -485,7 +486,7 @@ export const swingAnalysisApi = {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {}),
                 },
-                body: JSON.stringify({ videoUrl, personaId, mimeType, fileName }),
+                body: JSON.stringify(body),
             });
             const text = await res.text();
             let data: any;
@@ -496,7 +497,7 @@ export const swingAnalysisApi = {
         // 로컬 개발: Express 서버 사용 (타임아웃 없음)
         return request<{ id: number; analysis: SwingAnalysis; createdAt: string }>('/swing-analysis/analyze', {
             method: 'POST',
-            body: JSON.stringify({ videoUrl, personaId, mimeType, fileName }),
+            body: JSON.stringify(body),
         });
     },
 

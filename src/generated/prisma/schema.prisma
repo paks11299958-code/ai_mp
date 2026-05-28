@@ -205,6 +205,9 @@ model UserSwingAnalysis {
   userId       Int
   personaId    String
   fileName     String?
+  title        String?
+  gender       String?
+  skillLevel   String?  @map("skill_level")
   analysisJson String
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -476,4 +479,20 @@ model GolfCourse {
   updatedAt   DateTime @updatedAt
 
   @@index([sido, sigungu])
+}
+
+model AiUsageLog {
+  id               Int      @id @default(autoincrement())
+  service          String
+  model            String
+  feature          String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  totalTokens      Int      @default(0)
+  costUsd          Float    @default(0)
+  userId           Int?
+  createdAt        DateTime @default(now())
+
+  @@index([service, createdAt])
+  @@index([createdAt])
 }

@@ -906,7 +906,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // POST /api/swing-analysis/analyze
         if (seg1 === 'analyze' && req.method === 'POST') {
             try {
-                const { videoUrl, personaId, mimeType, fileName } = req.body;
+                const { videoUrl, personaId, mimeType, fileName, title, gender, skillLevel } = req.body;
                 if (!videoUrl || !personaId) return res.status(400).json({ error: '필수 항목 누락' });
                 const swingUser = await prisma.user.findUnique({ where: { id: userId }, select: { role: true } });
                 try {
@@ -927,7 +927,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 // 분석 완료 즉시 GCS에서 영상 삭제 (개인정보 보호)
                 await deleteFromGCS(videoUrl).catch(() => {});
                 const record = await prisma.userSwingAnalysis.create({
-                    data: { userId, personaId, fileName: fileName || null, analysisJson: JSON.stringify(analysis) },
+                    data: {
+                        userId, personaId,
+                        fileName: fileName || null,
+                        analysisJson: JSON.stringify(analysis),
+                        title: title || null,
+                        gender: gender || null,
+                        skillLevel: skillLevel || null,
+                    },
                 });
 
                 // UserMemory에 최신 스윙 분석 요약 upsert

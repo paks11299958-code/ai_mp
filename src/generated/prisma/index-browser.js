@@ -269,6 +269,9 @@ exports.Prisma.UserSwingAnalysisScalarFieldEnum = {
   userId: 'userId',
   personaId: 'personaId',
   fileName: 'fileName',
+  title: 'title',
+  gender: 'gender',
+  skillLevel: 'skillLevel',
   analysisJson: 'analysisJson',
   createdAt: 'createdAt'
 };
@@ -502,6 +505,19 @@ exports.Prisma.GolfCourseScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.AiUsageLogScalarFieldEnum = {
+  id: 'id',
+  service: 'service',
+  model: 'model',
+  feature: 'feature',
+  promptTokens: 'promptTokens',
+  completionTokens: 'completionTokens',
+  totalTokens: 'totalTokens',
+  costUsd: 'costUsd',
+  userId: 'userId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -550,7 +566,8 @@ exports.Prisma.ModelName = {
   MenuLimit: 'MenuLimit',
   MenuUsageLog: 'MenuUsageLog',
   GolfBookingSchedule: 'GolfBookingSchedule',
-  GolfCourse: 'GolfCourse'
+  GolfCourse: 'GolfCourse',
+  AiUsageLog: 'AiUsageLog'
 };
 
 /**

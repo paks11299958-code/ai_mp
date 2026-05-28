@@ -204,6 +204,9 @@ model UserSwingAnalysis {
   userId       Int
   personaId    String
   fileName     String?
+  title        String?
+  gender       String?
+  skillLevel   String?  @map("skill_level")
   analysisJson String
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
