@@ -492,6 +492,13 @@ export const swingAnalysisApi = {
             let data: any;
             try { data = text ? JSON.parse(text) : {}; } catch { throw new Error(`서버 응답 오류: ${text.slice(0, 200)}`); }
             if (!res.ok) throw new Error(data.error || `오류 (${res.status})`);
+            // CF는 AI 분석만 수행하고 title/gender/skillLevel을 저장하지 않으므로 별도 업데이트
+            if (data.id && (title || gender || skillLevel)) {
+                request(`/swing-analysis/${data.id}`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ title, gender, skillLevel }),
+                }).catch(() => {});
+            }
             return data;
         }
         // 로컬 개발: Express 서버 사용 (타임아웃 없음)

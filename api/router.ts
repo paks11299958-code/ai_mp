@@ -983,6 +983,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
         }
 
+        // PATCH /api/swing-analysis/:id — title/gender/skillLevel 업데이트 (CF 경로용)
+        if (seg1 && req.method === 'PATCH') {
+            try {
+                const { title, gender, skillLevel } = req.body;
+                const record = await prisma.userSwingAnalysis.findFirst({ where: { id: parseInt(seg1), userId } });
+                if (!record) return res.status(404).json({ error: '기록을 찾을 수 없습니다.' });
+                await prisma.userSwingAnalysis.update({
+                    where: { id: record.id },
+                    data: { title: title || null, gender: gender || null, skillLevel: skillLevel || null },
+                });
+                return res.status(200).json({ ok: true });
+            } catch (e: any) {
+                console.error('[swing PATCH]', e);
+                return res.status(500).json({ error: '업데이트 실패' });
+            }
+        }
+
         // DELETE /api/swing-analysis/:id
         if (seg1 && req.method === 'DELETE') {
             try {
