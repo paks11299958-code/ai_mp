@@ -692,12 +692,16 @@ const PersonaSelectPanel: React.FC<{
                             key: 'personas',
                             label: '✦ 캐릭터 둘러보기',
                             activeGradient: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                            inactiveGradient: `linear-gradient(135deg, rgba(142,111,183,0.18), rgba(228,139,176,0.18))`,
+                            inactiveColor: T.accent,
                             activeShadow: 'rgba(142,111,183,0.4)',
                         },
                         {
                             key: 'features',
                             label: '◆ 기능 둘러보기',
                             activeGradient: 'linear-gradient(135deg, #4CAF82, #7CC56A)',
+                            inactiveGradient: 'linear-gradient(135deg, rgba(76,175,130,0.18), rgba(124,197,106,0.18))',
+                            inactiveColor: '#3a9e6e',
                             activeShadow: 'rgba(76,175,130,0.4)',
                         },
                     ].map(t => {
@@ -706,10 +710,10 @@ const PersonaSelectPanel: React.FC<{
                             <button key={t.key} onClick={() => setTab(t.key as any)} style={{
                                 padding: '6px 16px', borderRadius: 999, fontSize: 12,
                                 fontWeight: 600, cursor: 'pointer', border: 'none',
-                                background: isActive ? t.activeGradient : 'rgba(255,255,255,0.7)',
-                                color: isActive ? '#fff' : T.inkSoft,
+                                background: isActive ? t.activeGradient : t.inactiveGradient,
+                                color: isActive ? '#fff' : t.inactiveColor,
                                 boxShadow: isActive ? `0 4px 12px -4px ${t.activeShadow}` : 'none',
-                                outline: !isActive ? `1px solid ${T.line}` : 'none',
+                                outline: 'none',
                                 transition: 'all 0.2s',
                             }}>{t.label}</button>
                         );
