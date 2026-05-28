@@ -78,6 +78,8 @@ interface StarResult {
     personaId: string;
 }
 
+export { StarRain };
+
 interface StarButtonProps {
     personaId: string;
     personaName: string;
@@ -85,26 +87,27 @@ interface StarButtonProps {
     onSent: (result: StarResult) => void;
     onBalloonStart?: (amount: number) => void;
     onRainDone?: () => void;
+    onRainStart?: (rain: { count: number; duration: number; key: number }) => void;
 }
 
-export const StarButton: React.FC<StarButtonProps> = ({ personaId, personaName, userPoints, onSent, onBalloonStart, onRainDone }) => {
+export const StarButton: React.FC<StarButtonProps> = ({ personaId, personaName, userPoints, onSent, onBalloonStart, onRainDone, onRainStart }) => {
     const [open, setOpen] = useState(false);
     const [sending, setSending] = useState(false);
-    const [rain, setRain] = useState<{ count: number; duration: number } | null>(null);
     const [rainKey, setRainKey] = useState(0);
 
     const send = async (opt: typeof STAR_OPTIONS[0]) => {
         if (userPoints < opt.points) { alert('포인트가 부족합니다.'); return; }
         setOpen(false);
-        setRainKey(k => k + 1);
-        setRain({ count: opt.count, duration: opt.duration });
-        onBalloonStart?.(opt.amount); // 애니메이션 시작과 동시에 Gemini 호출 트리거
+        const nextKey = rainKey + 1;
+        setRainKey(nextKey);
+        onRainStart?.({ count: opt.count, duration: opt.duration, key: nextKey });
+        onBalloonStart?.(opt.amount);
         setSending(true);
         try {
             const result = await pointApi.sendStar(personaId, opt.amount);
             onSent({ ...result, personaId });
         } catch {
-            setRain(null);
+            onRainDone?.();
             alert('스타 전송에 실패했습니다.');
         } finally {
             setSending(false);
@@ -113,14 +116,6 @@ export const StarButton: React.FC<StarButtonProps> = ({ personaId, personaName, 
 
     return (
         <div className="relative">
-            {rain && (
-                <StarRain
-                    key={rainKey}
-                    count={rain.count}
-                    duration={rain.duration}
-                    onDone={() => { setRain(null); onRainDone?.(); }}
-                />
-            )}
             <button
                 onClick={() => setOpen(v => !v)}
                 className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-yellow-400 hover:bg-yellow-400/10 transition-colors text-sm"

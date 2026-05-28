@@ -40,7 +40,7 @@ import { Icon } from './components/Icons';
 import { PointDisplay } from './components/PointDisplay';
 import { PointModal } from './components/PointModal';
 import { PointDashboard } from './components/PointDashboard';
-import { StarButton } from './components/StarBalloonButton';
+import { StarButton, StarRain } from './components/StarBalloonButton';
 import { BirthInfoModal, BirthInfo } from './components/BirthInfoModal';
 import { PartnerInfoModal } from './components/PartnerInfoModal';
 import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuModal';
@@ -156,6 +156,7 @@ const AppContent: React.FC = () => {
     const [triggerVideoPopup, setTriggerVideoPopup] = useState<TriggerVideo | null>(null);
     const [introVideoModal, setIntroVideoModal] = useState<{ personaId: string; type: 'video' | 'image'; url: string; guestMode?: boolean } | null>(null);
     const [starVideoModal, setStarVideoModal] = useState<{ url: string; personaId: string; amount: number } | null>(null);
+    const [starRain, setStarRain] = useState<{ count: number; duration: number; key: number } | null>(null);
     const [memoryEnabled, setMemoryEnabled] = useState<Record<string, boolean>>(() => {
         try { return JSON.parse(localStorage.getItem('memoryEnabled') || '{}'); } catch { return {}; }
     });
@@ -1526,6 +1527,16 @@ const AppContent: React.FC = () => {
                 />
             )}
 
+            {/* 별풍선 레인 — 전체 화면 */}
+            {starRain && (
+                <StarRain
+                    key={starRain.key}
+                    count={starRain.count}
+                    duration={starRain.duration}
+                    onDone={() => setStarRain(null)}
+                />
+            )}
+
             {/* 별스타 감사 영상 오버레이 */}
             {starVideoModal && (
                 <div className="fixed inset-0 z-[80] bg-black flex flex-col">
@@ -2268,7 +2279,8 @@ const AppContent: React.FC = () => {
                                                 setStarVideoModal({ url: starVideoUrl, personaId: result.personaId, amount });
                                             }
                                         }}
-                                        onRainDone={() => { starThanksPromiseRef.current = null; }}
+                                        onRainStart={(rain) => setStarRain(rain)}
+                                        onRainDone={() => { setStarRain(null); starThanksPromiseRef.current = null; }}
                                     />
                                 )}
                                 </div>
