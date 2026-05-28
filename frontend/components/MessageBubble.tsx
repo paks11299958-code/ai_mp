@@ -21,10 +21,10 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaNa
                     {/* Avatar */}
                     <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 overflow-hidden
                         ${isUser ? 'ml-3' : 'mr-3'}`}
-                        style={isUser ? { background: 'linear-gradient(135deg, #8E6FB7, #B49AC9)' } : { background: '#F0E9DE' }}
+                        style={isUser ? { background: 'linear-gradient(135deg, #C49A6C, #E48BB0, #8E6FB7)', boxShadow: '0 2px 8px rgba(142,111,183,0.4)' } : { background: '#F0E9DE' }}
                     >
                         {isUser ? (
-                            <span className="text-xs font-bold text-white">나</span>
+                            <span style={{ fontSize: 12, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px', textShadow: '0 1px 3px rgba(0,0,0,0.2)' }}>나</span>
                         ) : personaImageUrl ? (
                             <img src={personaImageUrl} alt={personaName} className="w-full h-full object-cover object-top" />
                         ) : (
