@@ -84,13 +84,6 @@ const FEATURES = [
         icon: 'shield', key: 'luxury',
     },
     {
-        id: 6, numeral: 'VI', latin: 'Face',
-        name: '얼굴 관상', tag: 'AI 관상 분석',
-        desc: '셀카 한 장으로 AI가 관상·성격·운세를 재미있게 풀어드려요.',
-        palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' },
-        icon: 'face', key: 'face',
-    },
-    {
         id: 7, numeral: 'VII', latin: 'Resell',
         name: '중고판매 분석', tag: '최적 판매가 추천',
         desc: '팔려는 물건 사진을 올리면 AI가 적정 가격과 판매 전략을 알려드려요.',
