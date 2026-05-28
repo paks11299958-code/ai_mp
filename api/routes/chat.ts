@@ -230,7 +230,7 @@ export async function handler(req: VercelRequest, res: VercelResponse) {
                 systemInstruction,
                 maxOutputTokens: 8192,
                 thinkingConfig: { thinkingBudget: 512 },
-                ...(persona.useGrounding ? { tools: [{ googleSearch: {} }] } : {}),
+                ...(persona.useGrounding ? { tools: [{ googleSearchRetrieval: {} }] } : {}),
             },
             history,
         });
