@@ -1914,6 +1914,10 @@ const AppContent: React.FC = () => {
                                     featureCards.push({ icon: 'BookOpen', label: 'AI쌤', onClick: () => setShowMathTutor(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
                                     featureCards.push({ icon: 'Handshake', label: '모임(출첵)', onClick: () => setShowClubBoard(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
                                 }
+                                if (isGolfPersona) {
+                                    featureCards.push({ icon: 'Activity', label: '스윙 분석', onClick: () => swingVideoRef.current?.click(), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
+                                    featureCards.push({ icon: 'Clock', label: '스윙 기록', onClick: () => setShowSwingBoard(true), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
+                                }
                             }
                             return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} featureCards={featureCards} />;
                         })()}
