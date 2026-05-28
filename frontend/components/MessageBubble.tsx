@@ -7,12 +7,68 @@ interface MessageBubbleProps {
     message: Message;
     personaName: string;
     personaImageUrl?: string;
+    newUi?: boolean;
 }
 
-export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaName, personaImageUrl }) => {
+export const MessageBubble: React.FC<MessageBubbleProps> = ({ message, personaName, personaImageUrl, newUi }) => {
     const isUser = message.role === 'user';
-    const userGradient = 'bg-gradient-to-br from-violet-600 to-purple-500';
 
+    if (newUi) {
+        return (
+            <div className={`flex w-full mb-5 ${isUser ? 'justify-end' : 'justify-start'}`}>
+                <div className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
+
+                    {/* Avatar */}
+                    <div className={`flex-shrink-0 h-8 w-8 rounded-full flex items-center justify-center mt-1 overflow-hidden
+                        ${isUser ? 'ml-3' : 'mr-3'}`}
+                        style={isUser ? { background: 'linear-gradient(135deg, #8E6FB7, #B49AC9)' } : { background: '#F0E9DE' }}
+                    >
+                        {isUser ? (
+                            <span className="text-xs font-bold text-white">나</span>
+                        ) : personaImageUrl ? (
+                            <img src={personaImageUrl} alt={personaName} className="w-full h-full object-cover object-top" />
+                        ) : (
+                            <Icon name="Bot" size={16} style={{ color: '#8E6FB7' }} />
+                        )}
+                    </div>
+
+                    {/* Message Content */}
+                    <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                        <span className="text-xs mb-1 px-1" style={{ color: '#9089A1' }}>
+                            {isUser ? '나' : personaName}
+                        </span>
+
+                        <div className={`relative px-4 py-3 new-ui-bubble-${isUser ? 'user' : 'ai'}
+                            ${message.error ? 'border-red-400' : ''}
+                        `}>
+                            {message.error ? (
+                                <div className="flex items-center text-red-500 text-sm">
+                                    <Icon name="AlertCircle" size={16} className="mr-2" />
+                                    {message.text}
+                                </div>
+                            ) : message.isStreaming && !message.text ? (
+                                <div className="flex items-end gap-1.5 py-1 px-1 h-8">
+                                    <span className="w-2.5 h-2.5 rounded-full animate-bounce [animation-delay:0ms]" style={{ background: '#8E6FB7' }}></span>
+                                    <span className="w-2.5 h-2.5 rounded-full animate-bounce [animation-delay:150ms]" style={{ background: '#B49AC9' }}></span>
+                                    <span className="w-2.5 h-2.5 rounded-full animate-bounce [animation-delay:300ms]" style={{ background: '#E48BB0' }}></span>
+                                </div>
+                            ) : (
+                                <div className={`markdown-body text-sm md:text-base break-words ${isUser ? 'leading-relaxed' : 'leading-loose'}`}>
+                                    <ReactMarkdown>{message.text}</ReactMarkdown>
+                                    {message.isStreaming && (
+                                        <span className="inline-block w-1.5 h-4 rounded-sm animate-pulse ml-0.5 align-middle" style={{ background: '#B49AC9' }}></span>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // 기존 다크 UI
+    const userGradient = 'bg-gradient-to-br from-violet-600 to-purple-500';
     return (
         <div className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex max-w-[85%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
