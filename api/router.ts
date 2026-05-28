@@ -971,6 +971,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json(records.map(r => ({
                     id: r.id,
                     fileName: r.fileName,
+                    title: r.title,
+                    gender: r.gender,
+                    skillLevel: r.skillLevel,
                     createdAt: r.createdAt,
                     analysis: JSON.parse(r.analysisJson),
                 })));

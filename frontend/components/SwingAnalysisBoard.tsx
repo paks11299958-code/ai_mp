@@ -187,7 +187,7 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                 history.map(record => {
                                     const isActive = selected?.id === record.id;
                                     const g = scoreGrade(record.analysis.overallScore);
-                                    const title = (record as any).title;
+                                    const title = record.title || 'Untitled';
                                     return (
                                         <button key={record.id}
                                             onClick={() => handleSelect(record)}
@@ -203,12 +203,8 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                                     <span className="text-[8px]" style={{ color: T.muted }}>점</span>
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-semibold truncate" style={{ color: T.ink }}>
-                                                        {title || fmtDate(record.createdAt)}
-                                                    </p>
-                                                    {title && (
-                                                        <p className="text-[10px] truncate" style={{ color: T.muted }}>{fmtDate(record.createdAt)}</p>
-                                                    )}
+                                                    <p className="text-xs font-semibold truncate" style={{ color: T.ink }}>{title}</p>
+                                                    <p className="text-[10px] truncate" style={{ color: T.muted }}>{fmtDate(record.createdAt)}</p>
                                                 </div>
                                             </div>
                                             <button onClick={e => handleDelete(record.id, e)}

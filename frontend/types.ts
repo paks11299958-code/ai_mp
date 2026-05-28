@@ -149,6 +149,9 @@ export interface SwingAnalysis {
 export interface UserSwingAnalysis {
     id: number;
     fileName?: string;
+    title?: string;
+    gender?: string;
+    skillLevel?: string;
     createdAt: string;
     analysis: SwingAnalysis;
 }
