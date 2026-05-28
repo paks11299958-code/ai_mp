@@ -572,12 +572,7 @@ const AppContent: React.FC = () => {
     const handleLogout = async () => {
         await authApi.logout();
         localStorage.removeItem('token');
-        setUser(null);
-        setShowMain(false);
-        setShowAuthModal(false);
-        setPersonas([]);
-        setSessions({});
-        setActivePersonaId('');
+        window.location.reload();
     };
 
     const handleAdminLogin = () => {
