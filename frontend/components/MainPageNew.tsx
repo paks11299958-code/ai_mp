@@ -162,15 +162,22 @@ const ChatRail: React.FC<{
         zIndex: 10,
     }}>
 
-        {/* FRIENDS 라벨 */}
-        <div style={{
-            fontFamily: "'Cinzel', serif",
-            fontSize: 8, letterSpacing: '0.28em',
-            color: T.gold, marginBottom: 10,
-            paddingBottom: 10,
+        {/* HOME 버튼 */}
+        <button onClick={onGoHome} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            marginBottom: 10, paddingBottom: 10,
             borderBottom: `1px solid ${T.lineSoft}`,
             width: '100%', textAlign: 'center',
-        }}>친구</div>
+            padding: '0 0 10px',
+        }}>
+            <span style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: 28, fontWeight: 700,
+                color: T.gold,
+                lineHeight: 1,
+                display: 'block',
+            }}>H</span>
+        </button>
 
         {/* 페르소나 목록 */}
         <div style={{
@@ -564,11 +571,16 @@ const PersonaSelectPanel: React.FC<{
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(8px)',
             }}>
-                <div style={{
-                    fontFamily: "'Cinzel', serif", fontSize: 10,
-                    letterSpacing: '0.35em', color: T.gold,
-                    marginBottom: 6, opacity: 0.9,
-                }}>✦ AI PERSONAS</div>
+                <button onClick={() => { setTab('personas'); setFeatureSearchQuery(''); onSearchChange(''); }} style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    padding: 0, marginBottom: 8, display: 'block',
+                }}>
+                    <span style={{
+                        fontFamily: "'Cinzel', serif", fontSize: 15,
+                        fontWeight: 700, letterSpacing: '0.35em',
+                        color: T.gold, opacity: 1,
+                    }}>✦ AI PERSONAS</span>
+                </button>
                 <h2 style={{
                     fontFamily: "'Cormorant Garamond', serif",
                     fontSize: 26, fontWeight: 600,
