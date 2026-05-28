@@ -1935,49 +1935,24 @@ const AppContent: React.FC = () => {
                             return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} featureCards={featureCards} />;
                         })()}
 
-                        {/* 트리거 키워드 + 골프 기능 버튼 */}
-                        {((triggerVideos[activePersonaId]?.length ?? 0) > 0 || isGolfPersona) && (
+                        {/* 트리거 키워드 버튼 */}
+                        {(triggerVideos[activePersonaId]?.length ?? 0) > 0 && (
                             <div className={`px-4 py-2 shrink-0 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/60'}`}>
-                                <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        {(triggerVideos[activePersonaId]?.length ?? 0) > 0 && (
-                                            <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
-                                        )}
-                                        {triggerVideos[activePersonaId]?.map(tv => {
-                                            const firstKw = tv.keywords.split(',').map(k => k.trim()).find(k => k) || '';
-                                            const label = tv.tag || firstKw;
-                                            return (
-                                                <button
-                                                    key={tv.id}
-                                                    onClick={() => setTriggerVideoPopup(tv)}
-                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
-                                                >
-                                                    {label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                        {isGolfPersona && user && (
-                                            <>
-                                                <button
-                                                    onClick={() => setShowSwingInput(true)}
-                                                    disabled={swingUploading || currentSession.isTyping}
-                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 disabled:opacity-40 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
-                                                >
-                                                    <Icon name="Upload" size={10} />
-                                                    스윙 분석
-                                                </button>
-                                                <button
-                                                    onClick={() => { setSwingResult(null); setShowSwingBoard(true); }}
-                                                    className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap flex items-center gap-1 ${USE_NEW_UI ? 'border-[#E2C9A0] bg-[#FEF6E8] text-[#8B6020] hover:bg-[#FDEBD0]' : 'border-orange-700/60 bg-orange-900/20 text-orange-300 hover:bg-orange-800/40 hover:text-orange-100'}`}
-                                                >
-                                                    <Icon name="Play" size={10} />
-                                                    스윙 기록
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
+                                <div className="max-w-4xl mx-auto flex items-center gap-2 flex-wrap">
+                                    <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
+                                    {triggerVideos[activePersonaId]?.map(tv => {
+                                        const firstKw = tv.keywords.split(',').map(k => k.trim()).find(k => k) || '';
+                                        const label = tv.tag || firstKw;
+                                        return (
+                                            <button
+                                                key={tv.id}
+                                                onClick={() => setTriggerVideoPopup(tv)}
+                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
+                                            >
+                                                {label}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
