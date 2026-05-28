@@ -688,21 +688,32 @@ const PersonaSelectPanel: React.FC<{
                 {/* 탭 */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
                     {[
-                        { key: 'personas', label: '🧑‍🤝‍🧑 AI 페르소나' },
-                        { key: 'features', label: '✦ 기능 둘러보기' },
-                    ].map(t => (
-                        <button key={t.key} onClick={() => setTab(t.key as any)} style={{
-                            padding: '6px 16px', borderRadius: 999, fontSize: 12,
-                            fontWeight: 600, cursor: 'pointer', border: 'none',
-                            background: tab === t.key
-                                ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})`
-                                : 'rgba(255,255,255,0.7)',
-                            color: tab === t.key ? '#fff' : T.inkSoft,
-                            boxShadow: tab === t.key ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
-                            outline: tab !== t.key ? `1px solid ${T.line}` : 'none',
-                            transition: 'all 0.15s',
-                        }}>{t.label}</button>
-                    ))}
+                        {
+                            key: 'personas',
+                            label: '✦ 캐릭터 둘러보기',
+                            activeGradient: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                            activeShadow: 'rgba(142,111,183,0.4)',
+                        },
+                        {
+                            key: 'features',
+                            label: '◆ 기능 둘러보기',
+                            activeGradient: 'linear-gradient(135deg, #4CAF82, #7CC56A)',
+                            activeShadow: 'rgba(76,175,130,0.4)',
+                        },
+                    ].map(t => {
+                        const isActive = tab === t.key;
+                        return (
+                            <button key={t.key} onClick={() => setTab(t.key as any)} style={{
+                                padding: '6px 16px', borderRadius: 999, fontSize: 12,
+                                fontWeight: 600, cursor: 'pointer', border: 'none',
+                                background: isActive ? t.activeGradient : 'rgba(255,255,255,0.7)',
+                                color: isActive ? '#fff' : T.inkSoft,
+                                boxShadow: isActive ? `0 4px 12px -4px ${t.activeShadow}` : 'none',
+                                outline: !isActive ? `1px solid ${T.line}` : 'none',
+                                transition: 'all 0.2s',
+                            }}>{t.label}</button>
+                        );
+                    })}
                 </div>
 
                 {/* 검색바 - 양 탭 모두 */}
