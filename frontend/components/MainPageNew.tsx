@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X } from 'lucide-react';
+import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, User, Category } from '../types';
 import { Icon } from './Icons';
 
@@ -520,9 +520,19 @@ const PersonaSelectPanel: React.FC<{
     initialTab?: 'personas' | 'features';
     focusPersonaId?: string | null;
     focusFeatureKey?: string | null;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey }) => {
+    // 햄버거 메뉴용
+    user?: { username?: string; email: string; role?: string } | null;
+    onGoHome?: () => void;
+    onLogout?: () => void;
+    onAdminClick?: () => void;
+    onAnnouncementClick?: () => void;
+    unreadAnnouncementCount?: number;
+    onProfileClick?: () => void;
+    onPartnerBoardClick?: () => void;
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, user, onGoHome, onLogout, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick }) => {
     const [tab, setTab] = useState<'personas' | 'features'>(initialTab);
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const focusPersonaRef = useRef<HTMLDivElement | null>(null);
     const focusFeatureRef = useRef<HTMLDivElement | null>(null);
 
@@ -564,13 +574,100 @@ const PersonaSelectPanel: React.FC<{
             flex: 1, display: 'flex', flexDirection: 'column',
             background: T.bg, overflow: 'hidden',
         }}>
+            {/* 모바일 드로어 */}
+            {mobileMenuOpen && (
+                <>
+                    <div onClick={() => setMobileMenuOpen(false)} style={{
+                        position: 'fixed', inset: 0, zIndex: 98,
+                        background: 'rgba(45,36,56,0.3)', backdropFilter: 'blur(2px)',
+                    }} />
+                    <div style={{
+                        position: 'fixed', top: 0, right: 0, bottom: 0, zIndex: 99,
+                        width: 240,
+                        background: 'rgba(251,248,243,0.97)',
+                        backdropFilter: 'blur(16px)',
+                        borderLeft: `1px solid ${T.lineSoft}`,
+                        padding: '20px 0',
+                        display: 'flex', flexDirection: 'column',
+                        boxShadow: '-8px 0 32px -8px rgba(80,50,110,0.18)',
+                    }}>
+                        {/* 닫기 */}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '0 16px 12px' }}>
+                            <button onClick={() => setMobileMenuOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                                <X size={20} color={T.inkMute} />
+                            </button>
+                        </div>
+
+                        {/* 유저 정보 */}
+                        {user && (
+                            <div style={{ padding: '8px 20px 14px', borderBottom: `1px solid ${T.lineSoft}`, marginBottom: 4 }}>
+                                <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 2 }}>로그인됨</div>
+                                <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
+                                    {user.username || user.email.split('@')[0]}님 ✦
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 메뉴 아이템 */}
+                        {[
+                            { label: '🏠 첫 화면', onClick: onGoHome },
+                            { label: '🧑‍🤝‍🧑 페르소나 목록', onClick: () => { setTab('personas'); setMobileMenuOpen(false); } },
+                            { label: '✨ 기능 둘러보기', onClick: () => { setTab('features'); setMobileMenuOpen(false); } },
+                            { label: '👤 내 정보', onClick: onProfileClick },
+                            { label: '📢 공지사항', onClick: onAnnouncementClick, badge: unreadAnnouncementCount },
+                            { label: '🤝 제휴 문의', onClick: onPartnerBoardClick },
+                            ...(user?.role === 'ADMIN' ? [{ label: '⚙️ 어드민', onClick: onAdminClick }] : []),
+                        ].filter(item => item.onClick).map((item, i) => (
+                            <button key={i} onClick={() => { setMobileMenuOpen(false); item.onClick?.(); }} style={{
+                                padding: '13px 20px', background: 'none', border: 'none',
+                                textAlign: 'left', fontSize: 14, color: T.inkSoft, cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', gap: 8,
+                                borderTop: i === 0 ? 'none' : 'none',
+                            }}>
+                                {item.label}
+                                {item.badge && item.badge > 0 ? (
+                                    <span style={{ marginLeft: 'auto', minWidth: 18, height: 18, background: T.accent2, color: '#fff', fontSize: 10, fontWeight: 700, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 4px' }}>{item.badge}</span>
+                                ) : null}
+                            </button>
+                        ))}
+
+                        {/* 로그아웃 */}
+                        {onLogout && (
+                            <button onClick={() => { setMobileMenuOpen(false); onLogout(); }} style={{
+                                marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
+                                textAlign: 'left', fontSize: 14, color: '#C0505A', cursor: 'pointer',
+                                borderTop: `1px solid ${T.lineSoft}`,
+                                display: 'flex', alignItems: 'center', gap: 8,
+                            }}>
+                                <LogOut size={15} /> 로그아웃
+                            </button>
+                        )}
+                    </div>
+                </>
+            )}
+
             {/* 헤더 */}
             <div style={{
                 padding: '20px 28px 0px',
                 borderBottom: `1px solid ${T.lineSoft}`,
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(8px)',
+                position: 'relative',
             }}>
+                {/* 모바일 햄버거 버튼 — mpn-rail 숨겨질 때만 표시 */}
+                <button
+                    className="mpn-hamburger"
+                    onClick={() => setMobileMenuOpen(true)}
+                    style={{
+                        position: 'absolute', top: 18, right: 20,
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: 6, borderRadius: 8,
+                        display: 'none', // CSS로 모바일만 표시
+                    }}
+                >
+                    <Menu size={22} color={T.ink} />
+                </button>
+
                 <button onClick={() => { setTab('personas'); setFeatureSearchQuery(''); onSearchChange(''); }} style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     padding: 0, marginBottom: 8, display: 'block',
@@ -957,6 +1054,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 }
                 @media (max-width: 700px) {
                     .mpn-rail { display: none !important; }
+                    .mpn-hamburger { display: flex !important; }
                 }
             `}</style>
 
@@ -996,6 +1094,14 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 initialTab={initialTab}
                 focusPersonaId={initialFocusPersonaId}
                 focusFeatureKey={initialFocusFeatureKey}
+                user={user}
+                onGoHome={onGoHome}
+                onLogout={onLogout}
+                onAdminClick={onAdminClick}
+                onAnnouncementClick={onAnnouncementClick}
+                unreadAnnouncementCount={unreadAnnouncementCount}
+                onProfileClick={onProfileClick}
+                onPartnerBoardClick={onPartnerBoardClick}
             />
         </div>
     );
