@@ -118,10 +118,10 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
                     timeout: TIMEOUT_MS,
                 });
 
-                // 페르소나 목록 노출 확인
-                await page.waitForSelector('text=모든 페르소나', { timeout: 10_000 });
+                // 로그인 후 히어로 페이지 노출 확인
+                await page.waitForSelector('text=채팅 시작하기', { timeout: 10_000 });
 
-                results.login = { ok: true, detail: '페르소나 목록 표시 확인' };
+                results.login = { ok: true, detail: '로그인 성공 — 히어로 페이지 확인' };
                 console.log('✅ [로그인] 성공 — 페르소나 목록 확인');
             } catch (err) {
                 results.login = { ok: false, detail: err.message };
