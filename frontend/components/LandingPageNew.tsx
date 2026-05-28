@@ -118,6 +118,41 @@ const FEATURES = [
         palette: { bg: '#E4ECEE', deep: '#9DB6BC', accent: '#5E7E86' },
         icon: 'people', key: 'attend',
     },
+    {
+        id: 11, numeral: 'XI', latin: 'Fortune',
+        name: '시운의 흐름', tag: '운세 · 토정비결',
+        desc: '오늘·이달·올해의 시운을 도결 선생이 명부를 펼쳐 읽어드려요.',
+        palette: { bg: '#EEE5F8', deep: '#B8A0D8', accent: '#6B4FA0' },
+        icon: 'fortune', key: 'siwoon',
+    },
+    {
+        id: 12, numeral: 'XII', latin: 'Wealth',
+        name: '성취와 재물', tag: '재물 · 사업 운세',
+        desc: '재물이 차오를 때인지, 성을 쌓고 지켜야 할 때인지 명부로 살펴드려요.',
+        palette: { bg: '#FDF6E0', deep: '#E8C86A', accent: '#A07828' },
+        icon: 'coin', key: 'wealth',
+    },
+    {
+        id: 13, numeral: 'XIII', latin: 'Love',
+        name: '인연의 결', tag: '연애 · 궁합 운세',
+        desc: '스쳐 가는 인연인지, 머무를 인연인지 도결 선생이 살펴드려요.',
+        palette: { bg: '#FDE8F0', deep: '#E8A0BC', accent: '#B84070' },
+        icon: 'heart', key: 'yeonn',
+    },
+    {
+        id: 14, numeral: 'XIV', latin: 'Dream',
+        name: '꿈해몽', tag: 'AI 꿈 풀이',
+        desc: '어젯밤 꾼 꿈을 들려주시면 도결 선생이 그 뜻을 풀어드려요.',
+        palette: { bg: '#E8E4F5', deep: '#A898D0', accent: '#5848A0' },
+        icon: 'moon', key: 'dream',
+    },
+    {
+        id: 15, numeral: 'XV', latin: 'Gwansang',
+        name: '관상학', tag: 'AI 관상 분석',
+        desc: '얼굴 사진 한 장으로 도결 선생이 관상과 성격·운세를 풀어드려요.',
+        palette: { bg: '#F0EAE0', deep: '#C8B098', accent: '#886040' },
+        icon: 'gwansang', key: 'gwansang',
+    },
 ];
 
 // 페르소나 팔레트 순환 (실제 DB 페르소나에 적용)
@@ -287,6 +322,50 @@ const FeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg?: 
                     <path d="M14 76 Q14 54 34 54 Q54 54 54 76 Z" fill={c} opacity="0.9" />
                     <circle cx="64" cy="36" r="11" fill={c} opacity="0.6" />
                     <path d="M46 78 Q46 60 64 60 Q82 60 82 78 Z" fill={c} opacity="0.6" />
+                </svg>
+            );
+        case 'fortune':
+            return (
+                <svg width={size} height={size} viewBox="0 0 96 96" fill="none">
+                    <circle cx="48" cy="46" r="26" fill={c} opacity="0.15"/>
+                    <path d="M48 14 L52 36 L74 30 L58 46 L74 62 L52 56 L48 78 L44 56 L22 62 L38 46 L22 30 L44 36 Z" fill={c} opacity="0.9"/>
+                    <circle cx="48" cy="46" r="7" fill={a} opacity="0.8"/>
+                </svg>
+            );
+        case 'coin':
+            return (
+                <svg width={size} height={size} viewBox="0 0 96 96" fill="none">
+                    <circle cx="48" cy="48" r="30" fill={c} opacity="0.9"/>
+                    <circle cx="48" cy="48" r="22" fill="none" stroke={a} strokeWidth="2" opacity="0.5"/>
+                    <text x="48" y="56" textAnchor="middle" fontSize="24" fontWeight="bold" fill={a} opacity="0.9">₩</text>
+                </svg>
+            );
+        case 'heart':
+            return (
+                <svg width={size} height={size} viewBox="0 0 96 96" fill="none">
+                    <path d="M48 74 Q18 56 18 36 Q18 20 32 18 Q40 18 48 28 Q56 18 64 18 Q78 20 78 36 Q78 56 48 74 Z" fill={c} opacity="0.9"/>
+                    <path d="M38 40 Q42 36 48 40 Q54 36 58 40" stroke={a} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7"/>
+                </svg>
+            );
+        case 'moon':
+            return (
+                <svg width={size} height={size} viewBox="0 0 96 96" fill="none">
+                    <path d="M62 18 Q38 22 34 48 Q30 72 54 80 Q30 82 20 62 Q10 38 28 22 Q42 10 62 18 Z" fill={c} opacity="0.9"/>
+                    <circle cx="66" cy="28" r="4" fill={c} opacity="0.5"/>
+                    <circle cx="72" cy="40" r="2.5" fill={c} opacity="0.35"/>
+                    <circle cx="60" cy="42" r="2" fill={c} opacity="0.3"/>
+                </svg>
+            );
+        case 'gwansang':
+            return (
+                <svg width={size} height={size} viewBox="0 0 96 96" fill="none">
+                    <ellipse cx="48" cy="42" rx="24" ry="28" fill={c} opacity="0.9"/>
+                    <circle cx="38" cy="38" r="3.5" fill={a} opacity="0.9"/>
+                    <circle cx="58" cy="38" r="3.5" fill={a} opacity="0.9"/>
+                    <path d="M37 52 Q48 58 59 52" stroke={a} strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+                    <path d="M34 30 Q48 22 62 30" stroke={c} strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.5"/>
+                    <line x1="48" y1="70" x2="48" y2="80" stroke={c} strokeWidth="2" opacity="0.3"/>
+                    <path d="M36 80 Q48 76 60 80" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.3"/>
                 </svg>
             );
         default:

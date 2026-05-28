@@ -481,9 +481,14 @@ export const FEATURES_GRID = [
     { id: 7,  numeral: 'VII', latin: 'Keyword', key: 'keyword', name: '핫 키워드',      tag: '쇼핑 트렌드',    desc: '실시간 인기 쇼핑 키워드를 AI가 분석해 트렌드를 알려드려요.',                               icon: 'sparkles',  palette: { bg: '#E4ECEE', deep: '#9DB6BC', accent: '#5E7E86' }, personaName: '이아린'  },
     { id: 8,  numeral: 'VIII',latin: 'Math',    key: 'math',    name: 'AI 수학 튜터',   tag: '학습 도우미',    desc: '단계별 풀이로 수학 문제를 해결해 드려요. 개념 설명부터 심화까지.',                           icon: 'book',      palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우'    },
     { id: 9,  numeral: 'IX',  latin: 'Club',    key: 'attend',  name: '모임 출첵',      tag: '커뮤니티 관리',  desc: '모임 출석 체크와 멤버 관리를 AI가 도와드려요.',                                             icon: 'people',    palette: { bg: '#E5E1F2', deep: '#A99DCC', accent: '#6E5DA3' }, personaName: '지우'    },
+    { id: 10, numeral: 'X',   latin: 'Fortune', key: 'siwoon',  name: '시운의 흐름',    tag: '운세 · 토정비결', desc: '',  subItems: ['📅 오늘의 운세', '🌙 이달의 흐름', '🌟 올해의 비결'], icon: 'fortune',   palette: { bg: '#EEE5F8', deep: '#B8A0D8', accent: '#6B4FA0' }, personaName: '도결(道潔) 선생' },
+    { id: 11, numeral: 'XI',  latin: 'Wealth',  key: 'wealth',  name: '성취와 재물',    tag: '재물 · 사업 운세', desc: '', subItems: ['💰 재물 흐름', '🏆 사업 / 성취'],                   icon: 'coin',      palette: { bg: '#FDF6E0', deep: '#E8C86A', accent: '#A07828' }, personaName: '도결(道潔) 선생' },
+    { id: 12, numeral: 'XII', latin: 'Love',    key: 'yeonn',   name: '인연의 결',      tag: '연애 · 궁합 운세', desc: '', subItems: ['❤️ 연애 운세', '💑 인연 궁합'],                   icon: 'heart',     palette: { bg: '#FDE8F0', deep: '#E8A0BC', accent: '#B84070' }, personaName: '도결(道潔) 선생' },
+    { id: 13, numeral: 'XIII',latin: 'Dream',   key: 'dream',   name: '꿈해몽',         tag: 'AI 꿈 풀이',      desc: '어젯밤 꾼 꿈을 들려주시면 도결 선생이 그 뜻을 풀어드려요.',                                  icon: 'moon',      palette: { bg: '#E8E4F5', deep: '#A898D0', accent: '#5848A0' }, personaName: '도결(道潔) 선생' },
+    { id: 14, numeral: 'XIV', latin: 'Gwansang',key: 'gwansang',name: '관상학',         tag: 'AI 관상 분석',    desc: '얼굴 사진 한 장으로 도결 선생이 관상과 성격·운세를 풀어드려요.',                              icon: 'gwansang',  palette: { bg: '#F0EAE0', deep: '#C8B098', accent: '#886040' }, personaName: '도결(道潔) 선생' },
 ];
 
-const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV'];
 
 // ─────────────────────────────────────────────
 // Feature 아이콘 SVG (MainPageNew용)
@@ -501,6 +506,11 @@ const MpnFeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg
         case 'sparkles':  return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M48 14 L52 40 L78 44 L52 48 L48 74 L44 48 L18 44 L44 40 Z" fill={c} opacity="0.9"/><path d="M76 66 L78 74 L86 76 L78 78 L76 86 L74 78 L66 76 L74 74 Z" fill={c} opacity="0.65"/><path d="M20 18 L22 24 L28 26 L22 28 L20 34 L18 28 L12 26 L18 24 Z" fill={c} opacity="0.5"/></svg>;
         case 'book':      return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M14 22 Q30 18 48 22 L48 76 Q30 72 14 76 Z" fill={c} opacity="0.9"/><path d="M82 22 Q66 18 48 22 L48 76 Q66 72 82 76 Z" fill={c} opacity="0.65"/><path d="M22 34 Q32 32 42 34 M22 44 Q32 42 42 44 M22 54 Q32 52 42 54" stroke={a} strokeWidth="1.8" strokeLinecap="round"/></svg>;
         case 'people':    return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><circle cx="34" cy="30" r="13" fill={c} opacity="0.9"/><path d="M14 76 Q14 54 34 54 Q54 54 54 76 Z" fill={c} opacity="0.9"/><circle cx="64" cy="36" r="11" fill={c} opacity="0.6"/><path d="M46 78 Q46 60 64 60 Q82 60 82 78 Z" fill={c} opacity="0.6"/></svg>;
+        case 'fortune':   return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><circle cx="48" cy="46" r="26" fill={c} opacity="0.15"/><path d="M48 14 L52 36 L74 30 L58 46 L74 62 L52 56 L48 78 L44 56 L22 62 L38 46 L22 30 L44 36 Z" fill={c} opacity="0.9"/><circle cx="48" cy="46" r="7" fill={a} opacity="0.8"/></svg>;
+        case 'coin':      return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><circle cx="48" cy="48" r="30" fill={c} opacity="0.9"/><circle cx="48" cy="48" r="22" fill="none" stroke={a} strokeWidth="2" opacity="0.5"/><text x="48" y="55" textAnchor="middle" fontSize="22" fontWeight="bold" fill={a} opacity="0.9">₩</text></svg>;
+        case 'heart':     return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M48 74 Q18 56 18 36 Q18 20 32 18 Q40 18 48 28 Q56 18 64 18 Q78 20 78 36 Q78 56 48 74 Z" fill={c} opacity="0.9"/><path d="M38 40 Q42 36 48 40 Q54 36 58 40" stroke={a} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7"/></svg>;
+        case 'moon':      return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M62 18 Q38 22 34 48 Q30 72 54 80 Q30 82 20 62 Q10 38 28 22 Q42 10 62 18 Z" fill={c} opacity="0.9"/><circle cx="66" cy="28" r="4" fill={c} opacity="0.5"/><circle cx="72" cy="40" r="2.5" fill={c} opacity="0.35"/><circle cx="60" cy="42" r="2" fill={c} opacity="0.3"/></svg>;
+        case 'gwansang':  return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><ellipse cx="48" cy="42" rx="24" ry="28" fill={c} opacity="0.9"/><circle cx="38" cy="38" r="3.5" fill={a} opacity="0.9"/><circle cx="58" cy="38" r="3.5" fill={a} opacity="0.9"/><path d="M37 52 Q48 58 59 52" stroke={a} strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M34 30 Q48 22 62 30" stroke={c} strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.5"/><line x1="48" y1="70" x2="48" y2="80" stroke={c} strokeWidth="2" opacity="0.3"/><path d="M36 80 Q48 76 60 80" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.3"/></svg>;
         default: return null;
     }
 };
@@ -877,7 +887,21 @@ const PersonaSelectPanel: React.FC<{
                                 }}>
                                     <div style={{ fontFamily: "'Cinzel', serif", fontSize: 7.5, color: gold, letterSpacing: '0.28em', marginBottom: 3, opacity: 0.9 }}>— {feat.latin} —</div>
                                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, fontWeight: 600, color: feat.palette.accent, lineHeight: 1.2, marginBottom: 5 }}>{feat.name}</div>
-                                    <div style={{ fontSize: 10, color: T.inkSoft, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as any }}>{feat.desc}</div>
+                                    {(feat as any).subItems ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+                                            {((feat as any).subItems as string[]).map((item: string) => (
+                                                <div key={item} style={{
+                                                    fontSize: 9.5, color: feat.palette.accent,
+                                                    background: `${feat.palette.bg}cc`,
+                                                    border: `1px solid ${feat.palette.deep}88`,
+                                                    borderRadius: 6, padding: '2px 8px',
+                                                    lineHeight: 1.6, fontWeight: 500,
+                                                }}>{item}</div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div style={{ fontSize: 10, color: T.inkSoft, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as any }}>{feat.desc}</div>
+                                    )}
                                 </div>
                             </div>
                         );
