@@ -638,7 +638,6 @@ const TarotCarousel: React.FC<{
             {/* 트랙 */}
             <div style={{ overflow: 'hidden', padding: '4px 40px' }}>
                 <div
-                    ref={trackRef}
                     style={{
                         display: 'flex', gap: GAP,
                         transform: `translateX(${translateX}px)`,
