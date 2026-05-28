@@ -552,52 +552,60 @@ const TarotCarousel: React.FC<{
     onPersonaClick?: (id: string) => void;
     onFeatureClick?: (key: string) => void;
 }> = ({ mode, personas, onPersonaClick, onFeatureClick }) => {
-    const [offset, setOffset] = useState(0);
-    const trackRef = useRef<HTMLDivElement>(null);
+    const [offset, setOffset] = useState(0);           // 스냅 인덱스
+    const [dragDx, setDragDx] = useState(0);           // 드래그 중 실시간 픽셀 오프셋
+    const [dragging, setDragging] = useState(false);   // 드래그 중 여부 (transition 제어)
     const dragStartX = useRef<number | null>(null);
     const dragStartOffset = useRef(0);
-    const isDragging = useRef(false);
+    const hasDragged = useRef(false);
 
     const items = mode === 'personas' ? personas : FEATURES;
     const count = items.length;
     const maxOffset = Math.max(0, count - VISIBLE);
-
     const clamp = (v: number) => Math.max(0, Math.min(v, maxOffset));
 
-    const goLeft = () => setOffset(o => clamp(o - 1));
+    const goLeft  = () => setOffset(o => clamp(o - 1));
     const goRight = () => setOffset(o => clamp(o + 1));
 
-    // 마우스 드래그
-    const onMouseDown = (e: React.MouseEvent) => {
-        dragStartX.current = e.clientX;
+    const startDrag = (clientX: number) => {
+        dragStartX.current = clientX;
         dragStartOffset.current = offset;
-        isDragging.current = false;
-    };
-    const onMouseMove = (e: React.MouseEvent) => {
-        if (dragStartX.current === null) return;
-        const dx = e.clientX - dragStartX.current;
-        if (Math.abs(dx) > 5) isDragging.current = true;
-    };
-    const onMouseUp = (e: React.MouseEvent) => {
-        if (dragStartX.current === null) return;
-        const dx = e.clientX - dragStartX.current;
-        if (Math.abs(dx) > 40) setOffset(clamp(dragStartOffset.current - Math.round(dx / (CARD_W + GAP))));
-        dragStartX.current = null;
+        hasDragged.current = false;
+        setDragging(true);
+        setDragDx(0);
     };
 
-    // 터치 스와이프
-    const onTouchStart = (e: React.TouchEvent) => {
-        dragStartX.current = e.touches[0].clientX;
-        dragStartOffset.current = offset;
-    };
-    const onTouchEnd = (e: React.TouchEvent) => {
+    const moveDrag = (clientX: number) => {
         if (dragStartX.current === null) return;
-        const dx = e.changedTouches[0].clientX - dragStartX.current;
-        if (Math.abs(dx) > 40) setOffset(clamp(dragStartOffset.current - Math.round(dx / (CARD_W + GAP))));
-        dragStartX.current = null;
+        const dx = clientX - dragStartX.current;
+        if (Math.abs(dx) > 4) hasDragged.current = true;
+        setDragDx(dx);
     };
 
-    const translateX = -(offset * (CARD_W + GAP));
+    const endDrag = (clientX: number) => {
+        if (dragStartX.current === null) return;
+        const dx = clientX - dragStartX.current;
+        setDragging(false);
+        setDragDx(0);
+        if (Math.abs(dx) > 40) {
+            setOffset(clamp(dragStartOffset.current - Math.round(dx / (CARD_W + GAP))));
+        }
+        dragStartX.current = null;
+        // 클릭 억제용 — 약간의 딜레이 후 초기화
+        setTimeout(() => { hasDragged.current = false; }, 50);
+    };
+
+    // 마우스
+    const onMouseDown  = (e: React.MouseEvent) => startDrag(e.clientX);
+    const onMouseMove  = (e: React.MouseEvent) => moveDrag(e.clientX);
+    const onMouseUp    = (e: React.MouseEvent) => endDrag(e.clientX);
+
+    // 터치
+    const onTouchStart = (e: React.TouchEvent) => startDrag(e.touches[0].clientX);
+    const onTouchMove  = (e: React.TouchEvent) => moveDrag(e.touches[0].clientX);
+    const onTouchEnd   = (e: React.TouchEvent) => endDrag(e.changedTouches[0].clientX);
+
+    const translateX = -(offset * (CARD_W + GAP)) + dragDx;
 
     return (
         <div style={{ width: '100%', position: 'relative', padding: '16px 0 28px', userSelect: 'none' }}>
@@ -634,14 +642,16 @@ const TarotCarousel: React.FC<{
                     style={{
                         display: 'flex', gap: GAP,
                         transform: `translateX(${translateX}px)`,
-                        transition: isDragging.current ? 'none' : 'transform 0.35s cubic-bezier(0.4,0,0.2,1)',
-                        cursor: 'grab',
+                        transition: dragging ? 'none' : 'transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94)',
+                        cursor: dragging ? 'grabbing' : 'grab',
+                        willChange: 'transform',
                     }}
                     onMouseDown={onMouseDown}
                     onMouseMove={onMouseMove}
                     onMouseUp={onMouseUp}
                     onMouseLeave={onMouseUp}
                     onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
                 >
                     {items.map((item, i) => {
@@ -649,7 +659,7 @@ const TarotCarousel: React.FC<{
                             const p = item as Persona;
                             return (
                                 <div key={p.id} style={{ flexShrink: 0 }}
-                                    onClick={() => { if (!isDragging.current) onPersonaClick?.(p.id); }}>
+                                    onClick={() => { if (!hasDragged.current) onPersonaClick?.(p.id); }}>
                                     <PersonaTarotCard persona={p} index={i} focused={false} onClick={() => {}} />
                                 </div>
                             );
@@ -657,7 +667,7 @@ const TarotCarousel: React.FC<{
                             const f = item as typeof FEATURES[0];
                             return (
                                 <div key={f.id} style={{ flexShrink: 0 }}
-                                    onClick={() => { if (!isDragging.current) onFeatureClick?.(f.key); }}>
+                                    onClick={() => { if (!hasDragged.current) onFeatureClick?.(f.key); }}>
                                     <FeatureTarotCard feature={f} focused={false} onClick={() => {}} />
                                 </div>
                             );
