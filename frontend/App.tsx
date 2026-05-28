@@ -12,13 +12,7 @@ import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
-import { LandingPage } from './components/LandingPage';
 import { LandingPageNew } from './components/LandingPageNew';
-
-// 뉴페이지 전환 플래그 (true = 뉴페이지, false = 올드페이지)
-const USE_NEW_UI = true;
-import { Theme } from './components/themes';
-import { MainPage } from './components/MainPage';
 import { MainPageNew, FEATURES_GRID } from './components/MainPageNew';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
@@ -74,8 +68,6 @@ const AppContent: React.FC = () => {
     // 뉴UI: 히어로→대기 페이지 포커스 대상
     const [mainFocusPersonaId, setMainFocusPersonaId] = useState<string | null>(null);
     const [mainFocusFeatureKey, setMainFocusFeatureKey] = useState<string | null>(null);
-    const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('ui_theme') as Theme) || 'lavender');
-    const handleThemeChange = (t: Theme) => { setTheme(t); localStorage.setItem('ui_theme', t); };
     const [resetToken, setResetToken] = useState<string | null>(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('token');
@@ -147,7 +139,6 @@ const AppContent: React.FC = () => {
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
     const [commonInstruction, setCommonInstruction] = useState('');
-    const [heroImageUrl, setHeroImageUrl] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
@@ -255,7 +246,6 @@ const AppContent: React.FC = () => {
         settingsApi.get()
             .then(s => {
                 setCommonInstruction(s.commonInstruction || '');
-                setHeroImageUrl(s.heroImageUrl || '');
                 // 서버에 저장된 기억 공유 설정 복원 (localStorage보다 우선)
                 if (s.memory_enabled) {
                     try {
@@ -271,7 +261,7 @@ const AppContent: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); if (USE_NEW_UI) { setShowHero(true); } else { setShowMain(true); } })
+            .then(({ user }) => { setUser(user); setShowHero(true); })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -981,7 +971,13 @@ const AppContent: React.FC = () => {
     if (resetToken) {
         return (
             <>
-                <LandingPage personas={visiblePersonas} isLoading={isPersonasLoading} onStart={() => {}} theme={theme} onThemeChange={handleThemeChange} heroImageUrl={heroImageUrl} categories={categories} />
+                <LandingPageNew
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    onStart={() => {}}
+                    onLoginClick={() => {}}
+                    categories={categories}
+                />
                 <ResetPasswordModal
                     token={resetToken}
                     onClose={() => setResetToken(null)}
@@ -1019,34 +1015,18 @@ const AppContent: React.FC = () => {
 
         return (
             <>
-                {USE_NEW_UI ? (
-                    <LandingPageNew
-                        personas={visiblePersonas}
-                        isLoading={isPersonasLoading}
-                        onStart={() => setShowAuthPage(true)}
-                        onLoginClick={() => setShowAuthModal(true)}
-                        onPersonaClick={handleGuestPersonaClick}
-                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                        unreadAnnouncementCount={unreadAnnouncementCount}
-                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                        onFeatureClick={handleNewPageFeatureClick}
-                        categories={categories}
-                    />
-                ) : (
-                    <LandingPage
-                        personas={visiblePersonas}
-                        isLoading={isPersonasLoading}
-                        onStart={() => setShowAuthPage(true)}
-                        onLoginClick={() => setShowAuthModal(true)}
-                        onPersonaClick={handleGuestPersonaClick}
-                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                        unreadAnnouncementCount={unreadAnnouncementCount}
-                        theme={theme}
-                        onThemeChange={handleThemeChange}
-                        heroImageUrl={heroImageUrl}
-                        categories={categories}
-                    />
-                )}
+                <LandingPageNew
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    onStart={() => setShowAuthPage(true)}
+                    onLoginClick={() => setShowAuthModal(true)}
+                    onPersonaClick={handleGuestPersonaClick}
+                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                    unreadAnnouncementCount={unreadAnnouncementCount}
+                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                    onFeatureClick={handleNewPageFeatureClick}
+                    categories={categories}
+                />
                 {showAuthModal && (
                     <AuthModal
                         onSuccess={handleAuthSuccess}
@@ -1108,8 +1088,7 @@ const AppContent: React.FC = () => {
         );
     }
 
-    // 로그인 후 히어로 페이지 (USE_NEW_UI + showHero=true)
-    if (USE_NEW_UI && user && showHero) {
+    if (user && showHero) {
         return (
             <>
                 <LandingPageNew
@@ -1145,42 +1124,23 @@ const AppContent: React.FC = () => {
     if (showMain) {
         return (
             <>
-                {USE_NEW_UI ? (
-                    <MainPageNew
-                        personas={visiblePersonas}
-                        isLoading={isPersonasLoading}
-                        user={user}
-                        onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
-                        onLogout={handleLogout}
-                        onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
-                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                        unreadAnnouncementCount={unreadAnnouncementCount}
-                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                        onProfileClick={() => setShowUserProfile(true)}
-                        categories={categories}
-                        onGoHome={() => { setShowMain(false); setShowHero(true); }}
-                        initialTab={mainInitialTab}
-                        initialFocusPersonaId={mainFocusPersonaId}
-                        initialFocusFeatureKey={mainFocusFeatureKey}
-                    />
-                ) : (
-                    <MainPage
-                        personas={visiblePersonas}
-                        isLoading={isPersonasLoading}
-                        user={user}
-                        onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
-                        onLogout={handleLogout}
-                        onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
-                        onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                        unreadAnnouncementCount={unreadAnnouncementCount}
-                        onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                        onProfileClick={() => setShowUserProfile(true)}
-                        theme={theme}
-                        onThemeChange={handleThemeChange}
-                        heroImageUrl={heroImageUrl}
-                        categories={categories}
-                    />
-                )}
+                <MainPageNew
+                    personas={visiblePersonas}
+                    isLoading={isPersonasLoading}
+                    user={user}
+                    onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
+                    onLogout={handleLogout}
+                    onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                    onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                    unreadAnnouncementCount={unreadAnnouncementCount}
+                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
+                    onProfileClick={() => setShowUserProfile(true)}
+                    categories={categories}
+                    onGoHome={() => { setShowMain(false); setShowHero(true); }}
+                    initialTab={mainInitialTab}
+                    initialFocusPersonaId={mainFocusPersonaId}
+                    initialFocusFeatureKey={mainFocusFeatureKey}
+                />
                 {showAnnouncementModal && (
                     <AnnouncementModal
                         announcements={announcements}
@@ -1244,8 +1204,7 @@ const AppContent: React.FC = () => {
 
     return (
         <>
-        {USE_NEW_UI && (
-            <style>{`
+        <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&display=swap');
 
                 /* ── 사이드바 뉴테마 ── */
@@ -1304,16 +1263,15 @@ const AppContent: React.FC = () => {
                 }
                 .new-ui-chat-header * { color: #2D2438; }
             `}</style>
-        )}
-        <div className={`flex h-screen w-full ${USE_NEW_UI ? '' : 'bg-gray-950'}`}
-            style={USE_NEW_UI ? {
+        <div className="flex h-screen w-full"
+            style={{
                 background: `
                     radial-gradient(ellipse 50% 30% at 0% 0%, #F5E6F7 0%, transparent 60%),
                     radial-gradient(ellipse 50% 30% at 100% 100%, #FCEADD 0%, transparent 60%),
                     #FBF8F3
                 `,
                 fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif",
-            } : {}}
+            }}
         >
             <Sidebar
                 personas={visiblePersonas}
@@ -1329,9 +1287,9 @@ const AppContent: React.FC = () => {
                 onReorder={handleReorderPersona}
                 user={user}
                 onLogout={handleLogout}
-                onGoHome={() => { if (USE_NEW_UI) { setShowMain(false); setShowHero(true); } else { setShowMain(true); } }}
+                onGoHome={() => { setShowMain(false); setShowHero(true); }}
                 onProfileClick={() => setShowUserProfile(true)}
-                newUi={USE_NEW_UI}
+                newUi={true}
             />
 
             {showAnnouncementModal && (
@@ -1750,7 +1708,7 @@ const AppContent: React.FC = () => {
                         const displayUrl = mainImg?.imageUrl;
                         const displayDesc = mainImg?.description;
                         return displayUrl ? (
-                            <div className={`hidden md:flex w-1/3 p-8 flex-col items-center justify-center ${USE_NEW_UI ? 'border-r border-[#F0E9DE] bg-transparent' : 'border-r border-gray-800 bg-gray-900/30'}`}>
+                            <div className="hidden md:flex w-1/3 p-8 flex-col items-center justify-center border-r border-[#F0E9DE] bg-transparent">
                                 <div className="w-full max-h-[60%] flex items-center justify-center">
                                     <img
                                         src={displayUrl}
@@ -1758,8 +1716,8 @@ const AppContent: React.FC = () => {
                                         className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl transition-all duration-300"
                                     />
                                 </div>
-                                <h3 className={`mt-8 text-2xl font-bold text-center ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-gray-100'}`} style={USE_NEW_UI ? { fontFamily: "'Cormorant Garamond', serif" } : {}}>{activePersona?.name}</h3>
-                                <p className={`mt-3 text-base text-center leading-relaxed ${USE_NEW_UI ? 'text-[#6B5F7A]' : 'text-gray-400'}`}>{activePersona?.description}</p>
+                                <h3 className="mt-8 text-2xl font-bold text-center text-[#2D2438]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>{activePersona?.name}</h3>
+                                <p className="mt-3 text-base text-center leading-relaxed text-[#6B5F7A]">{activePersona?.description}</p>
                             </div>
                         ) : null;
                     })()}
@@ -1789,7 +1747,7 @@ const AppContent: React.FC = () => {
                     })()}
 
                     <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
-                        <header className={`h-16 flex items-center justify-between px-4 shrink-0 z-10 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/80 backdrop-blur-sm'}`}>
+                        <header className="h-16 flex items-center justify-between px-4 shrink-0 z-10 border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             <div className="flex items-center">
                                 <button
                                     className="md:hidden mr-2 flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
@@ -1812,7 +1770,7 @@ const AppContent: React.FC = () => {
                                             );
                                         })()}
                                         <div style={{ letterSpacing: '-0.02em' }}>
-                                            <h2 className={`font-bold text-sm leading-tight flex items-center gap-2 ${USE_NEW_UI ? 'text-[#2D2438]' : 'text-white'}`}>
+                                            <h2 className="font-bold text-sm leading-tight flex items-center gap-2 text-[#2D2438]">
                                                 {activePersona.name}
                                                 {activePersona.name === '신은비' && firstChatMap[activePersonaId] && (() => {
                                                     const days = Math.floor((Date.now() - new Date(firstChatMap[activePersonaId]).getTime()) / (1000 * 60 * 60 * 24));
@@ -1835,7 +1793,7 @@ const AppContent: React.FC = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 {/* 기능 썸네일 (히어로에서 기능카드 클릭 시 표시) */}
-                                {USE_NEW_UI && mainFocusFeatureKey && (() => {
+                                {mainFocusFeatureKey && (() => {
                                     const feat = FEATURES_GRID.find(f => f.key === mainFocusFeatureKey);
                                     if (!feat) return null;
                                     return (
@@ -1946,12 +1904,12 @@ const AppContent: React.FC = () => {
                                     featureCards.push({ icon: 'Clock', label: '스윙 기록', onClick: () => setShowSwingBoard(true), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
                                 }
                             }
-                            return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={USE_NEW_UI} featureCards={featureCards} />;
+                            return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={featureCards} />;
                         })()}
 
                         {/* 트리거 키워드 버튼 */}
                         {(triggerVideos[activePersonaId]?.length ?? 0) > 0 && (
-                            <div className={`px-4 py-2 shrink-0 ${USE_NEW_UI ? 'border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm' : 'border-b border-gray-800 bg-gray-900/60'}`}>
+                            <div className="px-4 py-2 shrink-0 border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm">
                                 <div className="max-w-4xl mx-auto flex items-center gap-2 flex-wrap">
                                     <Icon name="Play" size={11} className="text-purple-400 shrink-0" />
                                     {triggerVideos[activePersonaId]?.map(tv => {
@@ -1961,7 +1919,7 @@ const AppContent: React.FC = () => {
                                             <button
                                                 key={tv.id}
                                                 onClick={() => setTriggerVideoPopup(tv)}
-                                                className={`text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap ${USE_NEW_UI ? 'border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2]' : 'border-purple-700/60 bg-purple-900/20 text-purple-300 hover:bg-purple-800/40 hover:text-purple-100'}`}
+                                                className="text-[11px] font-medium px-2.5 py-1 rounded-full border transition-colors whitespace-nowrap border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2]"
                                             >
                                                 {label}
                                             </button>
@@ -1973,12 +1931,10 @@ const AppContent: React.FC = () => {
 
                         <div className="flex-1 overflow-y-auto p-4 sm:p-6 scroll-smooth"
                             style={chatBgSelected ? {
-                                backgroundImage: USE_NEW_UI
-                                    ? `linear-gradient(rgba(251,248,243,0.55), rgba(251,248,243,0.55)), url(${chatBgSelected})`
-                                    : `linear-gradient(rgba(10,11,15,0.65), rgba(10,11,15,0.65)), url(${chatBgSelected})`,
+                                backgroundImage: `linear-gradient(rgba(251,248,243,0.55), rgba(251,248,243,0.55)), url(${chatBgSelected})`,
                                 backgroundSize: 'cover',
                                 backgroundPosition: 'center',
-                            } : USE_NEW_UI ? { background: 'transparent' } : undefined}
+                            } : { background: 'transparent' }}
                         >
                             {currentSession.messages.length === 0 && isGreeting && (
                                 <div className="h-full flex flex-col items-center justify-center gap-3 opacity-60">
@@ -2009,14 +1965,14 @@ const AppContent: React.FC = () => {
                                         </div>
                                     )}
                                     {currentSession.messages.map(msg => (
-                                        <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} newUi={USE_NEW_UI} />
+                                        <MessageBubble key={msg.id} message={msg} personaName={activePersona?.name || 'AI'} personaImageUrl={activePersona?.imageUrl} newUi={true} />
                                     ))}
                                     <div ref={messagesEndRef} />
                                 </div>
                             )}
                         </div>
 
-                        <div className={`p-4 shrink-0 ${USE_NEW_UI ? 'border-t border-[#F0E9DE] bg-white/75 backdrop-blur-sm' : 'bg-gray-900 border-t border-gray-800'}`}>
+                        <div className="p-4 shrink-0 border-t border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             {/* 퀵메뉴 버튼 */}
                             {(() => {
                                 if (!activePersona?.quickMenuJson) return null;
@@ -2089,67 +2045,41 @@ const AppContent: React.FC = () => {
                                 };
                                 const featuredMenus = config.menus.filter(m => m.featured);
                                 const dropdownMenus = config.menus.filter(m => !m.featured);
-                                const glassBtn = USE_NEW_UI
-                                    ? 'text-xs px-3.5 py-1.5 rounded-full transition-all duration-150 active:scale-95'
-                                    : 'text-xs px-3.5 py-1.5 rounded-full text-gray-200 transition-all duration-150 hover:text-white active:scale-95';
-                                const glassBtnStyle = USE_NEW_UI ? {
+                                const glassBtn = 'text-xs px-3.5 py-1.5 rounded-full transition-all duration-150 active:scale-95';
+                                const glassBtnStyle: React.CSSProperties = {
                                     background: '#FFFFFF',
                                     border: '1px solid #EAE2D3',
                                     color: '#6B5F7A',
-                                } as React.CSSProperties : {
-                                    background: 'rgba(255,255,255,0.07)',
-                                    border: '1px solid rgba(255,255,255,0.13)',
-                                    backdropFilter: 'blur(8px)',
-                                    WebkitBackdropFilter: 'blur(8px)',
-                                } as React.CSSProperties;
-                                const glassBtnHoverStyle = USE_NEW_UI ? {
+                                };
+                                const glassBtnHoverStyle: React.CSSProperties = {
                                     background: '#F5E6F7',
                                     border: '1px solid #B49AC9',
                                     color: '#8E6FB7',
-                                } as React.CSSProperties : {
-                                    background: 'rgba(255,255,255,0.14)',
-                                    border: '1px solid rgba(255,255,255,0.22)',
-                                } as React.CSSProperties;
-                                const featuredBtnStyle = USE_NEW_UI ? {
+                                };
+                                const featuredBtnStyle: React.CSSProperties = {
                                     background: '#FFFFFF',
                                     border: '1px solid #EAE2D3',
                                     borderLeft: '2px solid #8E6FB7',
                                     color: '#6B5F7A',
-                                } as React.CSSProperties : {
-                                    ...glassBtnStyle,
-                                    borderLeft: '2px solid rgba(167,139,250,0.7)',
-                                } as React.CSSProperties;
-                                const featuredBtnHoverStyle = USE_NEW_UI ? {
+                                };
+                                const featuredBtnHoverStyle: React.CSSProperties = {
                                     background: '#F5E6F7',
                                     border: '1px solid #B49AC9',
                                     borderLeft: '2px solid #8E6FB7',
                                     color: '#8E6FB7',
-                                } as React.CSSProperties : {
-                                    ...glassBtnHoverStyle,
-                                    borderLeft: '2px solid rgba(167,139,250,1)',
-                                } as React.CSSProperties;
-                                const featuredBtnActiveStyle = USE_NEW_UI ? {
+                                };
+                                const featuredBtnActiveStyle: React.CSSProperties = {
                                     background: '#FFF3D6',
                                     border: '1px solid #E8C56A',
                                     borderLeft: '2px solid #B89232',
                                     color: '#B89232',
-                                } as React.CSSProperties : {
-                                    ...glassBtnHoverStyle,
-                                    borderLeft: '2px solid rgba(251,191,36,1)',
-                                    boxShadow: '0 0 10px rgba(251,191,36,0.3)',
-                                } as React.CSSProperties;
-                                const featuredBtnSelectedStyle = USE_NEW_UI ? {
+                                };
+                                const featuredBtnSelectedStyle: React.CSSProperties = {
                                     background: '#FFF3D6',
                                     border: '1px solid #E8C56A',
                                     borderLeft: '2px solid #B89232',
                                     color: '#B89232',
-                                } as React.CSSProperties : {
-                                    background: 'rgba(251,191,36,0.15)',
-                                    border: '1px solid rgba(251,191,36,0.5)',
-                                    borderLeft: '2px solid rgba(251,191,36,1)',
-                                    color: '#fbbf24',
-                                    boxShadow: '0 0 10px rgba(251,191,36,0.2)',
-                                } as React.CSSProperties;
+                                };
                                 const stripEmoji = (label: string) => label.replace(/^\p{Emoji}\s*/u, '');
                                 return (
                                     <div className="max-w-4xl mx-auto mb-2 flex items-center gap-2 flex-wrap">
@@ -2192,7 +2122,7 @@ const AppContent: React.FC = () => {
                                 );
                             })()}
 
-                            <div className={`max-w-4xl mx-auto relative flex items-end rounded-2xl transition-all ${USE_NEW_UI ? 'bg-white border border-[#EAE2D3] focus-within:border-[#8E6FB7] focus-within:ring-1 focus-within:ring-[#8E6FB7]/20' : 'bg-gray-800 border border-gray-700 focus-within:border-gray-500 focus-within:ring-1 focus-within:ring-gray-500'}`}>
+                            <div className="max-w-4xl mx-auto relative flex items-end rounded-2xl transition-all bg-white border border-[#EAE2D3] focus-within:border-[#8E6FB7] focus-within:ring-1 focus-within:ring-[#8E6FB7]/20">
                                 {isGolfPersona && user && (
                                     <input
                                         ref={swingVideoRef}
@@ -2208,21 +2138,15 @@ const AppContent: React.FC = () => {
                                     onChange={e => setInputText(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     placeholder={inputPlaceholder ?? (activePersona ? `${activePersona.name}에게 메시지 보내기...` : '메시지를 입력하세요...')}
-                                    className={`w-full max-h-[200px] bg-transparent p-4 pr-12 resize-none focus:outline-none rounded-2xl ${USE_NEW_UI ? 'text-[#2D2438] placeholder-[#9089A1]' : 'text-gray-100 placeholder-gray-500'}`}
+                                    className="w-full max-h-[200px] bg-transparent p-4 pr-12 resize-none focus:outline-none rounded-2xl text-[#2D2438] placeholder-[#9089A1]"
                                     rows={1}
                                     disabled={!activePersona}
                                 />
                                 <button
                                     onClick={handleSendMessage}
                                     disabled={!inputText.trim() || currentSession.isTyping || !activePersona}
-                                    className={`absolute right-2 bottom-2 p-2 rounded-xl transition-colors
-                                        ${inputText.trim() && !currentSession.isTyping && activePersona
-                                            ? USE_NEW_UI
-                                                ? 'text-white shadow-lg'
-                                                : `bg-gradient-to-r ${activePersona.colorClass} text-white shadow-lg`
-                                            : USE_NEW_UI ? 'text-[#9089A1] cursor-not-allowed' : 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                                        }`}
-                                    style={USE_NEW_UI && inputText.trim() && !currentSession.isTyping && activePersona ? {
+                                    className={`absolute right-2 bottom-2 p-2 rounded-xl transition-colors ${inputText.trim() && !currentSession.isTyping && activePersona ? 'text-white shadow-lg' : 'text-[#9089A1] cursor-not-allowed'}`}
+                                    style={inputText.trim() && !currentSession.isTyping && activePersona ? {
                                         background: 'linear-gradient(135deg, #8E6FB7, #E48BB0)',
                                         boxShadow: '0 6px 16px -6px rgba(142,111,183,0.55)',
                                     } : {}}

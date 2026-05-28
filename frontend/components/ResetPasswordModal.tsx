@@ -7,6 +7,18 @@ interface ResetPasswordModalProps {
     onClose: () => void;
 }
 
+const inputStyle: React.CSSProperties = {
+    background: '#FFFDF9',
+    border: '1px solid #D9CEBF',
+    borderRadius: '12px',
+    padding: '12px 16px',
+    color: '#2D2017',
+    fontSize: '14px',
+    width: '100%',
+    outline: 'none',
+    transition: 'border-color 0.2s',
+};
+
 export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ token, onClose }) => {
     const [password, setPassword] = useState('');
     const [confirm, setConfirm] = useState('');
@@ -41,61 +53,82 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ token, o
     };
 
     return (
-        <div className="fixed inset-0 bg-gray-950/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="w-full max-w-sm bg-gray-900 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden">
-
+        <div
+            className="fixed inset-0 flex items-center justify-center z-50 p-4"
+            style={{ background: 'rgba(45,32,23,0.5)', backdropFilter: 'blur(4px)' }}
+        >
+            <div
+                className="w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden"
+                style={{ background: '#FBF8F3', border: '1px solid #E8DDD0', letterSpacing: '-0.02em' }}
+            >
                 {/* 로고 */}
                 <div className="flex items-center justify-center gap-2 pt-8 pb-6">
-                    <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+                    <div
+                        className="p-2 rounded-xl text-white"
+                        style={{ background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)' }}
+                    >
                         <Icon name="Bot" size={24} />
                     </div>
-                    <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-400">
+                    <span
+                        className="text-xl font-bold bg-clip-text text-transparent"
+                        style={{ backgroundImage: 'linear-gradient(135deg, #8E6FB7, #C49A6C)', WebkitBackgroundClip: 'text' }}
+                    >
                         AI 페르소나
                     </span>
                 </div>
 
                 <div className="px-6 pb-2">
-                    <h3 className="text-lg font-bold text-gray-100">새 비밀번호 설정</h3>
-                    <p className="text-sm text-gray-400 mt-1">사용할 새 비밀번호를 입력해주세요.</p>
+                    <h3 className="text-lg font-bold" style={{ color: '#2D2017' }}>새 비밀번호 설정</h3>
+                    <p className="text-sm mt-1" style={{ color: '#A89080' }}>사용할 새 비밀번호를 입력해주세요.</p>
                 </div>
 
                 {done ? (
                     <div className="p-6">
                         <div className="flex flex-col items-center text-center py-4">
-                            <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
-                                <Icon name="CheckCircle" size={24} className="text-green-400" />
+                            <div
+                                className="w-12 h-12 rounded-full flex items-center justify-center mb-4"
+                                style={{ background: '#EDE4D8' }}
+                            >
+                                <Icon name="CheckCircle" size={24} style={{ color: '#8E6FB7' } as React.CSSProperties} />
                             </div>
-                            <p className="text-gray-200 font-semibold mb-2">비밀번호 변경 완료!</p>
-                            <p className="text-sm text-gray-400">잠시 후 로그인 화면으로 이동합니다.</p>
+                            <p className="font-semibold mb-2" style={{ color: '#2D2017' }}>비밀번호 변경 완료!</p>
+                            <p className="text-sm" style={{ color: '#A89080' }}>잠시 후 로그인 화면으로 이동합니다.</p>
                         </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">새 비밀번호</label>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: '#A89080' }}>새 비밀번호</label>
                             <input
                                 type="password"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 placeholder="6자 이상"
                                 required
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                style={inputStyle}
+                                onFocus={e => (e.currentTarget.style.borderColor = '#8E6FB7')}
+                                onBlur={e => (e.currentTarget.style.borderColor = '#D9CEBF')}
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1.5">비밀번호 확인</label>
+                            <label className="block text-xs font-medium mb-1.5" style={{ color: '#A89080' }}>비밀번호 확인</label>
                             <input
                                 type="password"
                                 value={confirm}
                                 onChange={e => setConfirm(e.target.value)}
                                 placeholder="비밀번호 재입력"
                                 required
-                                className="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                                style={inputStyle}
+                                onFocus={e => (e.currentTarget.style.borderColor = '#8E6FB7')}
+                                onBlur={e => (e.currentTarget.style.borderColor = '#D9CEBF')}
                             />
                         </div>
 
                         {error && (
-                            <div className="flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-3">
+                            <div
+                                className="flex items-center gap-2 text-sm rounded-xl px-4 py-3"
+                                style={{ color: '#C0392B', background: '#FDF0ED', border: '1px solid #F5C6C0' }}
+                            >
                                 <Icon name="AlertCircle" size={15} className="shrink-0" />
                                 {error}
                             </div>
@@ -104,7 +137,8 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({ token, o
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+                            className="w-full disabled:opacity-50 text-white font-semibold py-3 rounded-xl transition-all text-sm"
+                            style={{ background: 'linear-gradient(135deg, #8E6FB7, #C49A6C)' }}
                         >
                             {loading ? '처리 중...' : '비밀번호 변경'}
                         </button>
