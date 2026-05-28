@@ -1111,9 +1111,9 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                         style={{
                             background: carouselMode === 'personas'
                                 ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})`
-                                : 'rgba(255,255,255,0.7)',
-                            color: carouselMode === 'personas' ? '#fff' : T.inkSoft,
-                            border: `1.5px solid ${carouselMode === 'personas' ? 'transparent' : T.line}`,
+                                : `linear-gradient(135deg, rgba(142,111,183,0.18), rgba(228,139,176,0.18))`,
+                            color: carouselMode === 'personas' ? '#fff' : T.accent,
+                            border: `1.5px solid ${carouselMode === 'personas' ? 'transparent' : 'rgba(142,111,183,0.3)'}`,
                             boxShadow: carouselMode === 'personas'
                                 ? `0 8px 20px -8px rgba(142,111,183,0.5)`
                                 : 'none',
@@ -1127,12 +1127,12 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                         onClick={() => setCarouselMode('features')}
                         style={{
                             background: carouselMode === 'features'
-                                ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})`
-                                : 'rgba(255,255,255,0.7)',
-                            color: carouselMode === 'features' ? '#fff' : T.inkSoft,
-                            border: `1.5px solid ${carouselMode === 'features' ? 'transparent' : T.line}`,
+                                ? 'linear-gradient(135deg, #4CAF82, #7CC56A)'
+                                : 'linear-gradient(135deg, rgba(76,175,130,0.18), rgba(124,197,106,0.18))',
+                            color: carouselMode === 'features' ? '#fff' : '#3a9e6e',
+                            border: `1.5px solid ${carouselMode === 'features' ? 'transparent' : 'rgba(76,175,130,0.3)'}`,
                             boxShadow: carouselMode === 'features'
-                                ? `0 8px 20px -8px rgba(142,111,183,0.5)`
+                                ? `0 8px 20px -8px rgba(76,175,130,0.5)`
                                 : 'none',
                             backdropFilter: 'blur(6px)',
                         }}
