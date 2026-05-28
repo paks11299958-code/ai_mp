@@ -697,3 +697,56 @@ export const adminApi = {
             `/admin/monitor/logs/${date}?page=${page}&level=${level}`
         ),
 };
+
+export const chatApi = {
+    stream: async (
+        params: {
+            personaId: string;
+            text: string;
+            sessionId?: number;
+            memoryEnabled?: boolean;
+            birthInfo?: { name?: string; year?: string; month?: string; day?: string; time?: string; lunar?: boolean } | null;
+        },
+        onChunk: (text: string) => void,
+        onDone: (fullText: string) => void,
+        onError: (msg: string) => void,
+    ): Promise<void> => {
+        const token = localStorage.getItem('token');
+        const res = await fetch('/api/chat-stream', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body: JSON.stringify(params),
+        });
+
+        if (!res.ok) {
+            const errText = await res.text();
+            try { onError(JSON.parse(errText).error || '서버 오류'); }
+            catch { onError(errText || '서버 오류'); }
+            return;
+        }
+
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() ?? '';
+            for (const line of lines) {
+                if (!line.startsWith('data: ')) continue;
+                try {
+                    const payload = JSON.parse(line.slice(6));
+                    if (payload.error) { onError(payload.error); return; }
+                    if (payload.done) { onDone(payload.fullText); return; }
+                    if (payload.text) onChunk(payload.text);
+                } catch {}
+            }
+        }
+    },
+};

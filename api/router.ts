@@ -11,6 +11,7 @@ import * as personasRoute from './routes/personas.js';
 import * as sessionsRoute from './routes/sessions.js';
 import * as knowledgeRoute from './routes/knowledge.js';
 import * as pointsRoute from './routes/points.js';
+import * as chatRoute from './routes/chat.js';
 
 
 function chunkText(text: string): string[] {
@@ -194,6 +195,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     if (domain === 'personas') {
         return personasRoute.handler(req, res, seg1, seg2, seg3);
+    }
+
+    // ── Chat Stream ───────────────────────────────────────────
+    if (domain === 'chat-stream') {
+        return chatRoute.handler(req, res);
     }
 
     // ── Sessions ──────────────────────────────────────────────

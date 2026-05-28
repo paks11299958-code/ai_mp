@@ -175,6 +175,7 @@ exports.Prisma.PersonaScalarFieldEnum = {
   isDefault: 'isDefault',
   isVisible: 'isVisible',
   adminOnly: 'adminOnly',
+  useGrounding: 'useGrounding',
   createdBy: 'createdBy',
   categoryId: 'categoryId',
   createdAt: 'createdAt'

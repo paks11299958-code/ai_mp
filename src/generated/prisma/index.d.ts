@@ -9128,6 +9128,7 @@ export namespace Prisma {
     isDefault: boolean | null
     isVisible: boolean | null
     adminOnly: boolean | null
+    useGrounding: boolean | null
     createdBy: number | null
     categoryId: number | null
     createdAt: Date | null
@@ -9152,6 +9153,7 @@ export namespace Prisma {
     isDefault: boolean | null
     isVisible: boolean | null
     adminOnly: boolean | null
+    useGrounding: boolean | null
     createdBy: number | null
     categoryId: number | null
     createdAt: Date | null
@@ -9176,6 +9178,7 @@ export namespace Prisma {
     isDefault: number
     isVisible: number
     adminOnly: number
+    useGrounding: number
     createdBy: number
     categoryId: number
     createdAt: number
@@ -9214,6 +9217,7 @@ export namespace Prisma {
     isDefault?: true
     isVisible?: true
     adminOnly?: true
+    useGrounding?: true
     createdBy?: true
     categoryId?: true
     createdAt?: true
@@ -9238,6 +9242,7 @@ export namespace Prisma {
     isDefault?: true
     isVisible?: true
     adminOnly?: true
+    useGrounding?: true
     createdBy?: true
     categoryId?: true
     createdAt?: true
@@ -9262,6 +9267,7 @@ export namespace Prisma {
     isDefault?: true
     isVisible?: true
     adminOnly?: true
+    useGrounding?: true
     createdBy?: true
     categoryId?: true
     createdAt?: true
@@ -9373,6 +9379,7 @@ export namespace Prisma {
     isDefault: boolean
     isVisible: boolean
     adminOnly: boolean
+    useGrounding: boolean
     createdBy: number | null
     categoryId: number | null
     createdAt: Date
@@ -9416,6 +9423,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
@@ -9453,6 +9461,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
@@ -9479,6 +9488,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
@@ -9505,12 +9515,13 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: boolean
     categoryId?: boolean
     createdAt?: boolean
   }
 
-  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "introVideoUrl" | "starVideoUrl" | "faceReadingBgUrl" | "chatBgUrl" | "quickMenuJson" | "isDefault" | "isVisible" | "adminOnly" | "createdBy" | "categoryId" | "createdAt", ExtArgs["result"]["persona"]>
+  export type PersonaOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "jobTitle" | "description" | "systemInstruction" | "identityPrompt" | "iconName" | "colorClass" | "order" | "imageUrl" | "introVideoUrl" | "starVideoUrl" | "faceReadingBgUrl" | "chatBgUrl" | "quickMenuJson" | "isDefault" | "isVisible" | "adminOnly" | "useGrounding" | "createdBy" | "categoryId" | "createdAt", ExtArgs["result"]["persona"]>
   export type PersonaInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Persona$userArgs<ExtArgs>
     category?: boolean | Persona$categoryArgs<ExtArgs>
@@ -9570,6 +9581,7 @@ export namespace Prisma {
       isDefault: boolean
       isVisible: boolean
       adminOnly: boolean
+      useGrounding: boolean
       createdBy: number | null
       categoryId: number | null
       createdAt: Date
@@ -10026,6 +10038,7 @@ export namespace Prisma {
     readonly isDefault: FieldRef<"Persona", 'Boolean'>
     readonly isVisible: FieldRef<"Persona", 'Boolean'>
     readonly adminOnly: FieldRef<"Persona", 'Boolean'>
+    readonly useGrounding: FieldRef<"Persona", 'Boolean'>
     readonly createdBy: FieldRef<"Persona", 'Int'>
     readonly categoryId: FieldRef<"Persona", 'Int'>
     readonly createdAt: FieldRef<"Persona", 'DateTime'>
@@ -42823,6 +42836,7 @@ export namespace Prisma {
     isDefault: 'isDefault',
     isVisible: 'isVisible',
     adminOnly: 'adminOnly',
+    useGrounding: 'useGrounding',
     createdBy: 'createdBy',
     categoryId: 'categoryId',
     createdAt: 'createdAt'
@@ -43664,6 +43678,7 @@ export namespace Prisma {
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
     adminOnly?: BoolFilter<"Persona"> | boolean
+    useGrounding?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
     categoryId?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
@@ -43700,6 +43715,7 @@ export namespace Prisma {
     isDefault?: SortOrder
     isVisible?: SortOrder
     adminOnly?: SortOrder
+    useGrounding?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -43739,6 +43755,7 @@ export namespace Prisma {
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
     adminOnly?: BoolFilter<"Persona"> | boolean
+    useGrounding?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
     categoryId?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
@@ -43775,6 +43792,7 @@ export namespace Prisma {
     isDefault?: SortOrder
     isVisible?: SortOrder
     adminOnly?: SortOrder
+    useGrounding?: SortOrder
     createdBy?: SortOrderInput | SortOrder
     categoryId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
@@ -43807,6 +43825,7 @@ export namespace Prisma {
     isDefault?: BoolWithAggregatesFilter<"Persona"> | boolean
     isVisible?: BoolWithAggregatesFilter<"Persona"> | boolean
     adminOnly?: BoolWithAggregatesFilter<"Persona"> | boolean
+    useGrounding?: BoolWithAggregatesFilter<"Persona"> | boolean
     createdBy?: IntNullableWithAggregatesFilter<"Persona"> | number | null
     categoryId?: IntNullableWithAggregatesFilter<"Persona"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"Persona"> | Date | string
@@ -46307,6 +46326,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -46341,6 +46361,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -46375,6 +46396,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -46409,6 +46431,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46443,6 +46466,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -46467,6 +46491,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -46489,6 +46514,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -49327,6 +49353,7 @@ export namespace Prisma {
     isDefault?: SortOrder
     isVisible?: SortOrder
     adminOnly?: SortOrder
+    useGrounding?: SortOrder
     createdBy?: SortOrder
     categoryId?: SortOrder
     createdAt?: SortOrder
@@ -49357,6 +49384,7 @@ export namespace Prisma {
     isDefault?: SortOrder
     isVisible?: SortOrder
     adminOnly?: SortOrder
+    useGrounding?: SortOrder
     createdBy?: SortOrder
     categoryId?: SortOrder
     createdAt?: SortOrder
@@ -49381,6 +49409,7 @@ export namespace Prisma {
     isDefault?: SortOrder
     isVisible?: SortOrder
     adminOnly?: SortOrder
+    useGrounding?: SortOrder
     createdBy?: SortOrder
     categoryId?: SortOrder
     createdAt?: SortOrder
@@ -52893,6 +52922,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     category?: CategoryCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -52926,6 +52956,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     categoryId?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -53459,6 +53490,7 @@ export namespace Prisma {
     isDefault?: BoolFilter<"Persona"> | boolean
     isVisible?: BoolFilter<"Persona"> | boolean
     adminOnly?: BoolFilter<"Persona"> | boolean
+    useGrounding?: BoolFilter<"Persona"> | boolean
     createdBy?: IntNullableFilter<"Persona"> | number | null
     categoryId?: IntNullableFilter<"Persona"> | number | null
     createdAt?: DateTimeFilter<"Persona"> | Date | string
@@ -53993,6 +54025,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -54026,6 +54059,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -54143,6 +54177,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -54176,6 +54211,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -54339,6 +54375,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     sessions?: ChatSessionCreateNestedManyWithoutPersonaInput
@@ -54372,6 +54409,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     createdAt?: Date | string
     sessions?: ChatSessionUncheckedCreateNestedManyWithoutPersonaInput
@@ -55102,6 +55140,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -55135,6 +55174,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -55211,6 +55251,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -55244,6 +55285,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -55426,6 +55468,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -55459,6 +55502,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -55619,6 +55663,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -55652,6 +55697,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -55846,6 +55892,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -55879,6 +55926,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -55928,6 +55976,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -55961,6 +56010,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -55994,6 +56044,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -56027,6 +56078,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -56076,6 +56128,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -56109,6 +56162,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56204,6 +56258,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -56237,6 +56292,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -56379,6 +56435,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -56412,6 +56469,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56523,6 +56581,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -56556,6 +56615,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -56673,6 +56733,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -56706,6 +56767,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56923,6 +56985,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -56956,6 +57019,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -57005,6 +57069,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -57038,6 +57103,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57133,6 +57199,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -57166,6 +57233,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -57283,6 +57351,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -57316,6 +57385,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57411,6 +57481,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdAt?: Date | string
     user?: UserCreateNestedOneWithoutPersonasInput
     category?: CategoryCreateNestedOneWithoutPersonasInput
@@ -57444,6 +57515,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     categoryId?: number | null
     createdAt?: Date | string
@@ -57561,6 +57633,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     category?: CategoryUpdateOneWithoutPersonasNestedInput
@@ -57594,6 +57667,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58502,6 +58576,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     categoryId?: number | null
     createdAt?: Date | string
   }
@@ -58693,6 +58768,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     category?: CategoryUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -58726,6 +58802,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -58759,6 +58836,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     categoryId?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -59281,6 +59359,7 @@ export namespace Prisma {
     isDefault?: boolean
     isVisible?: boolean
     adminOnly?: boolean
+    useGrounding?: boolean
     createdBy?: number | null
     createdAt?: Date | string
   }
@@ -59304,6 +59383,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneWithoutPersonasNestedInput
     sessions?: ChatSessionUpdateManyWithoutPersonaNestedInput
@@ -59337,6 +59417,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sessions?: ChatSessionUncheckedUpdateManyWithoutPersonaNestedInput
@@ -59370,6 +59451,7 @@ export namespace Prisma {
     isDefault?: BoolFieldUpdateOperationsInput | boolean
     isVisible?: BoolFieldUpdateOperationsInput | boolean
     adminOnly?: BoolFieldUpdateOperationsInput | boolean
+    useGrounding?: BoolFieldUpdateOperationsInput | boolean
     createdBy?: NullableIntFieldUpdateOperationsInput | number | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

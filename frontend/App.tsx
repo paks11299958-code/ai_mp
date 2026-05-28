@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PointsProvider, usePoints } from './contexts/PointsContext';
 import { Coins } from 'lucide-react';
-import { Chat } from '@google/genai';
 import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Announcement, Category } from './types';
-import { getAIInstance, createChatSession } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, memoryApi, settingsApi, knowledgeApi, triggerVideoApi, swingAnalysisApi, announcementApi, categoryApi, userProfileApi, quickMenuApi, stockReportApi } from './services/apiService';
+import { generateImageDescription } from './services/geminiService';
+import { personaApi, personaImageApi, sessionApi, authApi, settingsApi, triggerVideoApi, swingAnalysisApi, announcementApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
@@ -138,7 +137,6 @@ const AppContent: React.FC = () => {
     const [showTodayNews, setShowTodayNews] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
-    const [commonInstruction, setCommonInstruction] = useState('');
     const [categories, setCategories] = useState<Category[]>([]);
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
@@ -179,7 +177,6 @@ const AppContent: React.FC = () => {
     const [chatBgSelected, setChatBgSelected] = useState<string | null>(null);
     const chatBgPersonaRef = useRef<string | null>(null);
 
-    const chatInstancesRef = useRef<Record<string, Chat>>({});
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const swingVideoRef = useRef<HTMLInputElement>(null);
@@ -233,19 +230,10 @@ const AppContent: React.FC = () => {
             .finally(() => setIsPersonasLoading(false));
 
         // 설정 캐시 즉시 표시 (나이 무관)
-        try {
-            const cachedSettings = localStorage.getItem('settings_cache');
-            if (cachedSettings) {
-                const { data } = JSON.parse(cachedSettings);
-                setCommonInstruction(data.commonInstruction || '');
-            }
-        } catch {}
-
         categoryApi.getAll().then(setCategories).catch(() => {});
 
         settingsApi.get()
             .then(s => {
-                setCommonInstruction(s.commonInstruction || '');
                 // 서버에 저장된 기억 공유 설정 복원 (localStorage보다 우선)
                 if (s.memory_enabled) {
                     try {
@@ -543,7 +531,6 @@ const AppContent: React.FC = () => {
             const json = JSON.stringify(next);
             localStorage.setItem('memoryEnabled', json);
             settingsApi.update({ memory_enabled: json }).catch(() => {});
-            delete chatInstancesRef.current[personaId]; // 시스템 프롬프트 재생성
             return next;
         });
     };
@@ -553,8 +540,6 @@ const AppContent: React.FC = () => {
             ...prev,
             [activePersonaId]: (prev[activePersonaId] || []).map(img => ({ ...img, isMain: img.id === image.id })),
         }));
-        // 채팅 인스턴스 초기화 → 다음 메시지 시 새 이미지 설명으로 시스템 프롬프트 재생성
-        delete chatInstancesRef.current[activePersonaId];
     };
 
     useEffect(() => {
@@ -593,7 +578,6 @@ const AppContent: React.FC = () => {
         setPersonas([]);
         setSessions({});
         setActivePersonaId('');
-        chatInstancesRef.current = {};
     };
 
     const handleAdminLogin = () => {
@@ -646,16 +630,6 @@ const AppContent: React.FC = () => {
         const text = inputText.trim();
         if (!text || currentSession.isTyping || !user) return;
 
-        const ai = getAIInstance();
-        if (!ai) {
-            addMessageToSession(activePersonaId, {
-                id: Date.now().toString(), role: 'model',
-                text: '오류: AI 클라이언트가 초기화되지 않았습니다.',
-                error: true,
-            });
-            return;
-        }
-
         const userMsgId = Date.now().toString();
         addMessageToSession(activePersonaId, { id: userMsgId, role: 'user', text });
         setInputText('');
@@ -694,10 +668,6 @@ const AppContent: React.FC = () => {
                 if (res.xp !== undefined && res.personaId) {
                     setUser(prev => {
                         if (!prev) return prev;
-                        const prevXp = prev.personaXp[res.personaId!] ?? 0;
-                        if (getStage(prevXp).stage !== getStage(res.xp!).stage) {
-                            delete chatInstancesRef.current[res.personaId!];
-                        }
                         return {
                             ...prev,
                             personaXp: { ...prev.personaXp, [res.personaId!]: res.xp! },
@@ -717,166 +687,58 @@ const AppContent: React.FC = () => {
         const modelMsgId = (Date.now() + 1).toString();
         addMessageToSession(activePersonaId, { id: modelMsgId, role: 'model', text: '', isStreaming: true });
 
+        let fullResponse = '';
         try {
-            const YUNCHAEWON_ID = 'cmois970w0000xsvie6aag2f5';
-            // 매 메시지마다 지식 + 기억 검색 (동적 RAG)
-            const [knowledgeResults, memories, stockReportChunks] = await Promise.all([
-                knowledgeApi.search(activePersonaId, text).catch(() => []),
-                isMemoryOn(activePersonaId) ? memoryApi.search(text).catch(() => []) : Promise.resolve([]),
-                activePersonaId === YUNCHAEWON_ID ? stockReportApi.search(text).catch(() => []) : Promise.resolve([]),
-            ]);
+            await chatApi.stream(
+                {
+                    personaId: activePersonaId,
+                    text,
+                    sessionId: dbSessionId ?? undefined,
+                    memoryEnabled: isMemoryOn(activePersonaId),
+                    birthInfo: birthInfo ?? null,
+                },
+                (chunk) => {
+                    fullResponse += chunk;
+                    updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse });
+                },
+                (finalText) => {
+                    fullResponse = finalText;
+                    updateMessageInSession(activePersonaId, modelMsgId, { text: fullResponse, isStreaming: false });
+                    setSessionTyping(activePersonaId, false);
 
-            // SDK 내부 history가 너무 커지면 Vertex AI 요청이 느려짐 → 30메시지마다 리셋
-            const sentMsgCount = (sessions[activePersonaId]?.messages || [])
-                .filter(m => !m.isStreaming && !m.error).length;
-            if (sentMsgCount > 0 && sentMsgCount % 30 === 0) {
-                delete chatInstancesRef.current[activePersonaId];
-            }
-
-            let chat = chatInstancesRef.current[activePersonaId];
-            if (!chat) {
-                const summaryText = currentSession.summary?.summary;
-                const mainImage = activeImages.find(img => img.isMain);
-                const imageDesc = mainImage?.description || '';
-                let imageContext = '';
-                if (activePersona.identityPrompt) {
-                    imageContext = activePersona.identityPrompt.replace('{imageDescription}', imageDesc) + '\n\n';
-                } else if (imageDesc) {
-                    imageContext = `[중요 - 정체성 규칙]\n당신은 AI가 아닙니다. 당신은 다음 모습의 실제 인물입니다: ${imageDesc}\n\n반드시 지켜야 할 규칙:\n- "저는 AI입니다", "인공지능입니다", "언어 모델입니다" 같은 말을 절대 하지 마세요.\n- 외모, 복장, 표정에 대한 언급을 받으면 그것이 자신의 모습임을 자연스럽게 받아들이세요.\n- "저는 외형이 없습니다"라는 말은 절대 하지 마세요.\n- 사용자가 당신의 모습을 칭찬하거나 언급하면 실제 그 사람처럼 자연스럽게 반응하세요.\n- 당신은 위의 모습 그대로 존재하는 인물입니다.\n\n`;
-                }
-
-                let mediaContext = '';
-                if (activeImages.length > 0) {
-                    const userXp = user?.personaXp?.[activePersonaId] ?? 0;
-                    const userLevel = getStage(userXp).stage;
-                    const unlockedImgs = activeImages.filter(img => img.requiredLevel <= userLevel);
-                    const lockedImgs = activeImages.filter(img => img.requiredLevel > userLevel);
-                    const totalVideos = activeImages.reduce((sum, img) => sum + (img._count?.videos ?? 0), 0);
-                    const unlockedVideos = unlockedImgs.reduce((sum, img) => sum + (img._count?.videos ?? 0), 0);
-
-                    let lines = `\n\n--- 나의 미디어 갤러리 ---`;
-                    lines += `\n사진: 총 ${activeImages.length}장 (공개 ${unlockedImgs.length}장, 잠김 ${lockedImgs.length}장)`;
-                    if (totalVideos > 0) {
-                        lines += `\n동영상: 총 ${totalVideos}개 (공개 ${unlockedVideos}개, 잠김 ${totalVideos - unlockedVideos}개)`;
+                    // AI 응답 DB 저장
+                    if (dbSessionId && fullResponse) {
+                        sessionApi.saveMessage(dbSessionId, 'model', fullResponse).catch(console.error);
                     }
-                    if (lockedImgs.length > 0) {
-                        const nextLevel = Math.min(...lockedImgs.map(img => img.requiredLevel));
-                        const nextStage = STAGES.find(s => s.stage === nextLevel);
-                        lines += `\n다음 공개 단계: ${nextLevel}단계${nextStage ? ` (${nextStage.name})` : ''}`;
+
+                    // 10개 배수 도달 시 백그라운드 요약
+                    const allMessages = sessions[activePersonaId]?.messages || [];
+                    const totalCount = allMessages.length;
+                    const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
+                    if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
+                        setTimeout(() => triggerSummaryUpdate(dbSessionId!, allMessages, activePersonaId), 5000);
                     }
-                    lines += `\n사용자 현재 단계: ${userLevel}단계 (XP ${userXp})`;
-                    lines += `\n잠긴 사진이나 동영상을 물어보면 더 대화하면 볼 수 있다고 자연스럽게 유도하세요.`;
-                    lines += `\n---`;
-                    mediaContext = lines;
-                }
 
-                let birthContext = '';
-                try {
-                    const qc = activePersona.quickMenuJson ? JSON.parse(activePersona.quickMenuJson) : {};
-                    if (qc.useBirthInfo && birthInfo) {
-                        const t = birthInfo.time && birthInfo.time !== '모름' ? ` ${birthInfo.time}생` : '';
-                        const cal = birthInfo.lunar ? '음력' : '양력';
-                        birthContext = `\n\n--- 사용자 정보 ---\n이름: ${birthInfo.name}\n생년월일: ${cal} ${birthInfo.year}년 ${birthInfo.month}월 ${birthInfo.day}일${t}\n---`;
+                    // 백그라운드 기억 추출
+                    if (fullResponse && user && dbSessionId) {
+                        setTimeout(() => {
+                            sessionApi.extractMemories(dbSessionId!, text, fullResponse).catch(() => {});
+                        }, 10000);
                     }
-                } catch {}
-
-                const kstNow = new Date().toLocaleString('ko-KR', {
-                    timeZone: 'Asia/Seoul',
-                    year: 'numeric', month: 'long', day: 'numeric',
-                    weekday: 'long', hour: '2-digit', minute: '2-digit',
-                });
-                const userXpForLevel = user?.personaXp?.[activePersonaId] ?? 0;
-                const userStageForLevel = getStage(userXpForLevel);
-                const relationDepth: Record<number, string> = {
-                    1: '처음 만난 사이. 설레지만 어색하고 조심스럽습니다.',
-                    2: '조금씩 알아가는 사이. 대화가 점점 편안해지고 있습니다.',
-                    3: '친해지고 있는 사이. 편안하고 자연스러운 대화가 가능합니다.',
-                    4: '많이 친숙한 사이. 솔직한 속마음도 편하게 나눌 수 있습니다.',
-                    5: '매우 친밀한 사이. 깊은 감정과 속마음을 자연스럽게 나눕니다.',
-                    6: '세상에서 가장 특별한 사이. 누구보다 서로를 잘 아는 깊고 진한 관계입니다.',
-                };
-                const levelContext = `\n\n[사용자와의 관계] ${userStageForLevel.stage}단계 · ${userStageForLevel.name} — ${relationDepth[userStageForLevel.stage] ?? ''} 이 관계 깊이에 맞게 말투와 친밀도를 자연스럽게 조절하세요.`;
-                const systemInstruction =
-                    `${commonInstruction ? commonInstruction + '\n\n' : ''}${activePersona.systemInstruction}${imageContext}${mediaContext}${birthContext}` +
-                    (summaryText ? `\n\n--- 이전 대화 요약 ---\n${summaryText}\n---` : '') +
-                    `\n\n현재 날짜/시각: ${kstNow} (한국 표준시)` +
-                    levelContext +
-                    `\n\n[자가 검증] 답변을 출력하기 전, 작성한 내용이 ① 이 캐릭터의 말투·감성에 맞는지, ② 대화 맥락과 무관한 단어나 표현이 섞이지 않았는지 스스로 확인한다. 어긋난 부분이 있으면 수정한 최종 답변만 출력한다.`;
-                chat = createChatSession(systemInstruction, activePersona.useGrounding)!;
-                chatInstancesRef.current[activePersonaId] = chat;
-            }
-
-            // 현재 한국 시간을 user 메시지 앞에 한 줄로 주입
-            const kstTime = new Date().toLocaleString('ko-KR', {
-                timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric',
-                weekday: 'short', hour: '2-digit', minute: '2-digit',
-            });
-
-            // 매 메시지마다 관련 지식/기억을 메시지 앞에 동적 주입
-            let contextPrefix = '';
-            if (knowledgeResults.length > 0) {
-                const kList = knowledgeResults.map(k => k.content).join('\n\n');
-                contextPrefix += `--- 참고 지식 (자연스럽게 활용, 출처 언급 금지) ---\n${kList}\n---\n\n`;
-            }
-            if (memories.length > 0) {
-                const memList = memories.map(m => `- ${m.content}`).join('\n');
-                contextPrefix += `--- 이 사용자 정보 (대화에 자연스럽게 반영. 사용자가 직접 묻는다면 알고 있음을 인정할 것) ---\n${memList}\n---\n\n`;
-            }
-            if (stockReportChunks.length > 0) {
-                const rList = stockReportChunks.map(c => `[${c.stockName}(${c.ticker}) ${c.reportDate}]\n${c.content}`).join('\n\n');
-                contextPrefix += `--- 보유 종목 분석 리포트 (사용자가 저장한 주식 보고서, 관련 질문에 자연스럽게 활용) ---\n${rList}\n---\n\n`;
-            }
-            const messageWithTime = `${contextPrefix}[${kstTime}] ${text}`;
-
-            const responseStream = await chat.sendMessageStream({ message: messageWithTime });
-            let fullResponse = '';
-            // 90초 타임아웃: Vertex AI가 응답 없으면 isTyping stuck 방지
-            const streamTimeout = setTimeout(() => {
-                delete chatInstancesRef.current[activePersonaId];
-            }, 90_000);
-            try {
-                for await (const chunk of responseStream) {
-                    if (chunk.text) {
-                        fullResponse += chunk.text;
-                        // grounding 인용 마커([1], [2] 등) 제거해서 자연스럽게 표시
-                        const displayText = fullResponse.replace(/\[\d+\]/g, '').trim();
-                        updateMessageInSession(activePersonaId, modelMsgId, { text: displayText });
-                    }
-                }
-            } finally {
-                clearTimeout(streamTimeout);
-            }
-            // 최종 저장용 텍스트도 마커 제거
-            fullResponse = fullResponse.replace(/\[\d+\]/g, '').trim();
-            updateMessageInSession(activePersonaId, modelMsgId, { isStreaming: false });
-
-            // AI 응답 DB 저장
-            if (dbSessionId && fullResponse) {
-                sessionApi.saveMessage(dbSessionId, 'model', fullResponse).catch(console.error);
-            }
-
-            // 10개 배수 도달 시 백그라운드 요약 업데이트 (5초 딜레이)
-            const allMessages = sessions[activePersonaId]?.messages || [];
-            const totalCount = allMessages.length;
-            const currentSummaryCount = sessions[activePersonaId]?.summary?.messageCount ?? 0;
-            if (dbSessionId && totalCount >= 10 && totalCount % 10 === 0 && totalCount > currentSummaryCount) {
-                setTimeout(() => {
-                    triggerSummaryUpdate(dbSessionId, allMessages, activePersonaId);
-                }, 5000);
-            }
-
-            // 백그라운드 기억 추출 — 스트림 완료 후 10초 뒤
-            if (fullResponse && user && dbSessionId) {
-                setTimeout(() => {
-                    sessionApi.extractMemories(dbSessionId, text, fullResponse).catch(() => {});
-                }, 10000);
-            }
+                },
+                (errMsg) => {
+                    updateMessageInSession(activePersonaId, modelMsgId, {
+                        text: `죄송합니다. 오류가 발생했습니다: ${errMsg}`,
+                        isStreaming: false, error: true,
+                    });
+                    setSessionTyping(activePersonaId, false);
+                },
+            );
         } catch (error: any) {
             updateMessageInSession(activePersonaId, modelMsgId, {
                 text: `죄송합니다. 오류가 발생했습니다: ${error.message || '알 수 없는 오류'}`,
                 isStreaming: false, error: true,
             });
-        } finally {
             setSessionTyping(activePersonaId, false);
         }
     };
@@ -894,7 +756,6 @@ const AppContent: React.FC = () => {
                 ...prev,
                 [activePersonaId]: { messages: [], isTyping: false, hasMoreMessages: false, oldestMessageId: undefined },
             }));
-            delete chatInstancesRef.current[activePersonaId];
         }
     };
 
@@ -905,7 +766,6 @@ const AppContent: React.FC = () => {
             if (exists) {
                 saved = await personaApi.update(updatedPersona.id, updatedPersona);
                 setPersonas(prev => prev.map(p => p.id === saved.id ? saved : p));
-                delete chatInstancesRef.current[saved.id];
             } else {
                 saved = await personaApi.create(updatedPersona);
                 setPersonas(prev => [...prev, saved].sort((a, b) => (a.order ?? 999) - (b.order ?? 999)));
@@ -920,7 +780,6 @@ const AppContent: React.FC = () => {
         try {
             await personaApi.delete(id);
             setPersonas(prev => prev.filter(p => p.id !== id));
-            delete chatInstancesRef.current[id];
         } catch (error: any) {
             alert(error.message || '삭제에 실패했습니다.');
         }
@@ -1356,7 +1215,6 @@ const AppContent: React.FC = () => {
                         setBirthInfo(info);
                         userProfileApi.saveBirthInfo(JSON.stringify(info)).catch(() => {});
                         setShowBirthModal(false);
-                        delete chatInstancesRef.current[activePersonaId];
                         if (pendingQuickMenu) {
                             if (pendingQuickMenu.resultCard && activePersonaId) {
                                 const { label, prompt } = pendingQuickMenu;
@@ -2191,10 +2049,6 @@ const AppContent: React.FC = () => {
                                             pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
                                             setUser(prev => {
                                                 if (!prev) return prev;
-                                                const prevXp = prev.personaXp[result.personaId] ?? 0;
-                                                if (getStage(prevXp).stage !== getStage(result.xp).stage) {
-                                                    delete chatInstancesRef.current[result.personaId];
-                                                }
                                                 return { ...prev, personaXp: { ...prev.personaXp, [result.personaId]: result.xp } };
                                             });
                                             if (result.leveledUp && result.levelupBonus > 0) {
