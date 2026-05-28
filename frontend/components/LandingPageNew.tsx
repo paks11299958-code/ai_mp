@@ -56,13 +56,6 @@ interface LandingPageNewProps {
 // ─────────────────────────────────────────────
 const FEATURES = [
     {
-        id: 1, numeral: 'I', latin: 'Chat',
-        name: 'AI 친구와 대화', tag: '페르소나 채팅',
-        desc: '나만의 AI 친구를 선택해 자유롭게 대화해요. 각기 다른 성격과 말투로 매번 새로운 만남.',
-        palette: { bg: '#F5E6F7', deep: '#B49AC9', accent: '#8E6FB7' },
-        icon: 'chat', key: 'chat',
-    },
-    {
         id: 2, numeral: 'II', latin: 'News',
         name: '오늘 뉴스', tag: 'AI 뉴스 브리핑',
         desc: '국내·해외·경제 등 9개 카테고리 뉴스를 AI가 핵심만 골라 매일 아침 요약해드려요.',
@@ -718,11 +711,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const handleFeatureClick = (key: string) => {
-        if (key === 'chat') {
-            // 페르소나 캐러셀로 전환
-            setCarouselMode('personas');
-            return;
-        }
         onFeatureClick?.(key);
     };
 
