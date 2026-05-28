@@ -763,7 +763,7 @@ const PersonaSelectPanel: React.FC<{
 
                 {/* 카테고리 - 페르소나 탭, 검색창 아래 별도 행 */}
                 {tab === 'personas' && categories.length > 0 && (
-                    <div style={{
+                    <div className="hide-scrollbar" style={{
                         display: 'flex', gap: 6, marginTop: 10, marginBottom: 14,
                         overflowX: 'auto', paddingBottom: 2,
                     }}>

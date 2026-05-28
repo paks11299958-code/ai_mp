@@ -21,6 +21,9 @@
 ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
 .markdown-body p { margin-bottom: 0.75em; }
 .markdown-body p:last-child { margin-bottom: 0; }
 .markdown-body pre { background-color: #1f2937; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 0.5em; margin-bottom: 0.5em; }
