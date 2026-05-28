@@ -871,9 +871,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 )}
                             </button>
                         )}
-                        {onPartnerBoardClick && (
-                            <button className="lp-nav-btn" onClick={onPartnerBoardClick}>제휴</button>
-                        )}
                         {user ? (
                             <>
                                 <span style={{ fontSize: 13, color: T.inkSoft, fontWeight: 500 }}>
