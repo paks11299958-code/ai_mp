@@ -1,50 +1,78 @@
 import React, { useState, useEffect } from 'react';
-import { X, Trash2, ChevronLeft, Activity, Lock } from 'lucide-react';
+import { X, Trash2, ChevronLeft, Activity, Lock, ChevronDown } from 'lucide-react';
 import { SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis } from '../types';
 import { swingAnalysisApi } from '../services/apiService';
 
-interface Props {
-    onClose: () => void;
-    personaId: string;
-    initialResult?: { id: number; analysis: SwingAnalysis; createdAt: string } | null;
-}
+// ── Design tokens ──────────────────────────────────────────
+const T = {
+    bg: '#FBF8F3',
+    card: '#FFFFFF',
+    border: '#EAE2D3',
+    accent: '#8E6FB7',
+    accentLight: 'rgba(142,111,183,0.10)',
+    accentBorder: 'rgba(142,111,183,0.25)',
+    ink: '#2D2438',
+    muted: '#9089A1',
+    green: '#2E7D32',
+    greenBg: 'rgba(46,125,50,0.08)',
+    greenBorder: 'rgba(46,125,50,0.2)',
+    amber: '#92600A',
+    amberBg: 'rgba(146,96,10,0.08)',
+    amberBorder: 'rgba(146,96,10,0.2)',
+    blue: '#1A5FA8',
+    blueBg: 'rgba(26,95,168,0.08)',
+    blueBorder: 'rgba(26,95,168,0.2)',
+};
 
+// ── Helpers ────────────────────────────────────────────────
+const fmtDate = (s: string) => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+const fmtDateTime = (s: string) => new Date(s).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+const scoreGrade = (s: number) => {
+    if (s >= 80) return { color: T.green, bg: T.greenBg, border: T.greenBorder, label: '우수' };
+    if (s >= 60) return { color: T.amber, bg: T.amberBg, border: T.amberBorder, label: '보통' };
+    return { color: '#C62828', bg: 'rgba(198,40,40,0.08)', border: 'rgba(198,40,40,0.2)', label: '개선필요' };
+};
+
+// ── Pentagon Chart (크림 테마) ──────────────────────────────
 const PentagonChart: React.FC<{ sections: SwingAnalysisSection[] }> = ({ sections }) => {
-    const cx = 120, cy = 120, maxR = 78, labelR = 103;
+    const cx = 130, cy = 130, maxR = 85, labelR = 112;
     const n = 5;
     const ang = (i: number) => (-90 + i * 72) * Math.PI / 180;
-    const pt = (i: number, r: number) => ({ x: cx + r * Math.cos(ang(i)), y: cy + r * Math.sin(ang(i)) });
+    const pt = (r: number, i: number) => ({ x: cx + r * Math.cos(ang(i)), y: cy + r * Math.sin(ang(i)) });
     const grids = [0.25, 0.5, 0.75, 1];
     const dataPath = sections.map((sec, i) => {
-        const p = pt(i, (sec.score / 100) * maxR);
+        const p = pt((sec.score / 100) * maxR, i);
         return `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
     }).join(' ') + 'Z';
+    const labelLines = (name: string) => name.includes('어드레스') ? ['어드레스', '& 셋업'] : [name];
     const getAnchor = (i: number): 'start' | 'end' | 'middle' => {
         const cos = Math.cos(ang(i));
         return cos > 0.2 ? 'start' : cos < -0.2 ? 'end' : 'middle';
     };
-    const labelLines = (name: string) => name.includes('어드레스') ? ['어드레스', '& 셋업'] : [name];
     return (
-        <svg viewBox="0 0 240 240" className="w-48 h-48">
+        <svg viewBox="0 0 260 260" className="w-full h-full" style={{ maxWidth: 260, maxHeight: 260 }}>
             {grids.map((f, gi) => (
                 <polygon key={gi}
-                    points={Array.from({ length: n }, (_, i) => { const p = pt(i, f * maxR); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`; }).join(' ')}
-                    fill="none" stroke={gi === 3 ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.08)'} strokeWidth={gi === 3 ? 0.8 : 0.5}
+                    points={Array.from({ length: n }, (_, i) => { const p = pt(f * maxR, i); return `${p.x.toFixed(1)},${p.y.toFixed(1)}`; }).join(' ')}
+                    fill={gi === 3 ? T.accentLight : 'none'}
+                    stroke={gi === 3 ? T.accentBorder : T.border}
+                    strokeWidth={gi === 3 ? 1 : 0.7}
                 />
             ))}
-            {Array.from({ length: n }, (_, i) => { const o = pt(i, maxR); return <line key={i} x1={cx} y1={cy} x2={o.x} y2={o.y} stroke="rgba(255,255,255,0.12)" strokeWidth="0.5" />; })}
-            <path d={dataPath} fill="rgba(74,222,128,0.18)" stroke="rgb(74,222,128)" strokeWidth="1.5" strokeLinejoin="round" />
-            {sections.map((sec, i) => { const p = pt(i, (sec.score / 100) * maxR); return <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="rgb(74,222,128)" />; })}
+            {Array.from({ length: n }, (_, i) => { const o = pt(maxR, i); return <line key={i} x1={cx} y1={cy} x2={o.x} y2={o.y} stroke={T.border} strokeWidth="0.7" />; })}
+            <path d={dataPath} fill="rgba(142,111,183,0.18)" stroke={T.accent} strokeWidth="2" strokeLinejoin="round" />
+            {sections.map((sec, i) => { const p = pt((sec.score / 100) * maxR, i); return <circle key={i} cx={p.x} cy={p.y} r={3.5} fill={T.accent} />; })}
             {sections.map((sec, i) => {
-                const lp = pt(i, labelR);
+                const lp = pt(labelR, i);
                 const lines = labelLines(sec.name);
                 const anchor = getAnchor(i);
                 const sinA = Math.sin(ang(i));
                 const baselineDy = lines.length > 1 ? '-0.55em' : sinA > 0.3 ? '1em' : sinA < -0.3 ? '-0.2em' : '0.35em';
                 return (
-                    <text key={i} x={lp.x.toFixed(1)} y={lp.y.toFixed(1)} textAnchor={anchor} fontSize="7.5" fill="rgb(156,163,175)">
+                    <text key={i} x={lp.x.toFixed(1)} y={lp.y.toFixed(1)} textAnchor={anchor} fontSize="8.5" fill={T.muted} fontWeight="500">
                         {lines.map((line, li) => (
-                            <tspan key={li} x={lp.x.toFixed(1)} dy={li === 0 ? baselineDy : '1.15em'}>{line}</tspan>
+                            <tspan key={li} x={lp.x.toFixed(1)} dy={li === 0 ? baselineDy : '1.2em'}>{line}</tspan>
                         ))}
                     </text>
                 );
@@ -53,29 +81,32 @@ const PentagonChart: React.FC<{ sections: SwingAnalysisSection[] }> = ({ section
     );
 };
 
+// ── Score Ring ─────────────────────────────────────────────
 const ScoreRing: React.FC<{ score: number }> = ({ score }) => {
-    const r = 44, circ = 2 * Math.PI * r;
+    const r = 46, circ = 2 * Math.PI * r;
     const dash = (score / 100) * circ;
-    const color = score >= 80 ? '#4ade80' : score >= 60 ? '#facc15' : '#f87171';
+    const g = scoreGrade(score);
     return (
         <svg viewBox="0 0 110 110" className="w-28 h-28">
-            <circle cx="55" cy="55" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="9" />
-            <circle cx="55" cy="55" r={r} fill="none" stroke={color} strokeWidth="9"
+            <circle cx="55" cy="55" r={r} fill="none" stroke={T.border} strokeWidth="9" />
+            <circle cx="55" cy="55" r={r} fill="none" stroke={g.color} strokeWidth="9"
                 strokeDasharray={`${dash.toFixed(1)} ${circ.toFixed(1)}`}
                 strokeLinecap="round" strokeDashoffset={circ / 4}
                 style={{ transform: 'rotate(-90deg)', transformOrigin: '55px 55px' }} />
-            <text x="55" y="52" textAnchor="middle" fontSize="22" fontWeight="800" fill={color}>{score}</text>
-            <text x="55" y="66" textAnchor="middle" fontSize="8" fill="rgb(156,163,175)">/ 100</text>
+            <text x="55" y="52" textAnchor="middle" fontSize="22" fontWeight="800" fill={g.color}>{score}</text>
+            <text x="55" y="66" textAnchor="middle" fontSize="8" fill={T.muted}>/ 100</text>
         </svg>
     );
 };
 
-const fmtDate = (s: string) => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' });
-const fmtDateTime = (s: string) => new Date(s).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+// ── Interfaces ─────────────────────────────────────────────
+interface Props {
+    onClose: () => void;
+    personaId: string;
+    initialResult?: { id: number; analysis: SwingAnalysis; createdAt: string } | null;
+}
 
-const scoreColor = (s: number) => s >= 80 ? 'text-green-400' : s >= 60 ? 'text-yellow-400' : 'text-red-400';
-const barColor = (s: number) => s >= 80 ? 'bg-green-500' : s >= 60 ? 'bg-yellow-500' : 'bg-red-500';
-
+// ── Main Component ─────────────────────────────────────────
 export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initialResult }) => {
     const [history, setHistory] = useState<UserSwingAnalysis[]>([]);
     const [loading, setLoading] = useState(true);
@@ -92,13 +123,9 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
     const handleDelete = async (id: number, e: React.MouseEvent) => {
         e.stopPropagation();
         if (!window.confirm('이 분석 기록을 삭제하시겠습니까?')) return;
-        try {
-            await swingAnalysisApi.delete(id);
-            setHistory(prev => prev.filter(r => r.id !== id));
-            if (selected?.id === id) { setSelected(null); setMobileDetail(false); }
-        } catch (err: any) {
-            alert(err.message || '삭제 실패');
-        }
+        await swingAnalysisApi.delete(id).catch(() => {});
+        setHistory(prev => prev.filter(r => r.id !== id));
+        if (selected?.id === id) { setSelected(null); setMobileDetail(false); }
     };
 
     const handleSelect = (record: UserSwingAnalysis) => {
@@ -107,219 +134,283 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
     };
 
     return (
-        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-3 md:p-6">
-            <div className="relative w-full max-w-5xl h-full max-h-[90vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl border border-slate-700/60"
-                style={{ background: 'linear-gradient(160deg,#060b14 0%,#080d18 100%)' }}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6"
+            style={{ background: 'rgba(0,0,0,0.5)' }}>
+            <div className="relative w-full max-w-5xl h-full max-h-[92vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl"
+                style={{ background: T.bg, border: `1px solid ${T.border}` }}>
 
-                {/* Header */}
-                <div className="shrink-0 flex items-center justify-between px-5 py-4 border-b border-slate-700/50"
-                    style={{ background: 'linear-gradient(90deg,#0d1b2e 0%,#0a1628 100%)' }}>
+                {/* ── Header ── */}
+                <div className="shrink-0 flex items-center justify-between px-5 py-4"
+                    style={{ borderBottom: `1px solid ${T.border}`, background: '#FFFFFF' }}>
                     <div className="flex items-center gap-3">
                         {mobileDetail && (
-                            <button onClick={() => setMobileDetail(false)} className="md:hidden text-slate-400 hover:text-white mr-1">
-                                <ChevronLeft size={20} />
+                            <button onClick={() => setMobileDetail(false)} className="md:hidden p-1 rounded-lg hover:bg-black/5 transition-colors">
+                                <ChevronLeft size={18} style={{ color: T.muted }} />
                             </button>
                         )}
-                        <Activity size={18} className="text-green-400" />
-                        <span className="text-white font-bold text-base tracking-wide">골프 스윙 분석 리포트</span>
-                        <span className="hidden md:flex items-center gap-1.5 text-[11px] text-slate-400 bg-slate-800/60 px-2.5 py-1 rounded-full border border-slate-700/40">
-                            <Lock size={10} className="text-emerald-400" />
+                        <Activity size={18} style={{ color: T.accent }} />
+                        <span className="font-bold text-base" style={{ color: T.ink }}>골프 스윙 분석 리포트</span>
+                        <span className="hidden md:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full"
+                            style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, color: T.green }}>
+                            <Lock size={10} />
                             영상은 분석 후 즉시 삭제됩니다
                         </span>
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors p-1">
-                        <X size={20} />
+                    <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-black/5 transition-colors">
+                        <X size={18} style={{ color: T.muted }} />
                     </button>
                 </div>
 
-                {/* Body */}
+                {/* ── Body ── */}
                 <div className="flex flex-1 min-h-0">
-                    {/* Left panel — list */}
-                    <div className={`${mobileDetail ? 'hidden md:flex' : 'flex'} md:flex w-full md:w-64 lg:w-72 flex-col border-r border-slate-700/40`}>
-                        <div className="px-4 py-3 border-b border-slate-700/30">
-                            <p className="text-xs text-slate-500 font-medium uppercase tracking-widest">분석 기록</p>
+
+                    {/* Left — List */}
+                    <div className={`${mobileDetail ? 'hidden md:flex' : 'flex'} md:flex w-full md:w-64 lg:w-72 flex-col`}
+                        style={{ borderRight: `1px solid ${T.border}` }}>
+                        <div className="px-4 py-3" style={{ borderBottom: `1px solid ${T.border}` }}>
+                            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>분석 기록</p>
                         </div>
-                        <div className="flex-1 overflow-y-auto">
+                        <div className="flex-1 overflow-y-auto p-2">
                             {loading ? (
-                                <div className="flex flex-col gap-2 p-3">
-                                    {[0,1,2].map(i => (
-                                        <div key={i} className="h-14 rounded-xl bg-slate-800/40 animate-pulse" />
-                                    ))}
-                                </div>
+                                Array.from({ length: 3 }).map((_, i) => (
+                                    <div key={i} className="h-16 rounded-xl mb-2 animate-pulse" style={{ background: T.border }} />
+                                ))
                             ) : history.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full py-16 px-6 text-center gap-4">
-                                    <div className="w-14 h-14 rounded-2xl bg-slate-800/60 flex items-center justify-center">
-                                        <Activity size={24} className="text-slate-600" />
-                                    </div>
+                                    <Activity size={32} style={{ color: T.border }} />
                                     <div>
-                                        <p className="text-sm text-slate-400 font-medium mb-1">분석 기록이 없습니다</p>
-                                        <p className="text-xs text-slate-600 leading-relaxed">스윙 영상을 업로드하면<br />AI가 자동으로 분석해 드립니다</p>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-[11px] text-emerald-500/80 bg-emerald-900/20 border border-emerald-800/30 px-3 py-2 rounded-full">
-                                        <Lock size={10} />
-                                        영상은 분석 후 즉시 삭제됩니다
+                                        <p className="text-sm font-medium mb-1" style={{ color: T.ink }}>분석 기록이 없습니다</p>
+                                        <p className="text-xs leading-relaxed" style={{ color: T.muted }}>스윙 영상을 업로드하면<br />AI가 자동으로 분석해 드립니다</p>
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex flex-col gap-1 p-2">
-                                    {history.map(record => {
-                                        const isActive = selected?.id === record.id;
-                                        return (
-                                            <button key={record.id}
-                                                onClick={() => handleSelect(record)}
-                                                className={`w-full text-left flex items-center justify-between px-3 py-3 rounded-xl transition-colors group ${
-                                                    isActive
-                                                        ? 'bg-slate-700/60 border border-slate-600/50'
-                                                        : 'hover:bg-slate-800/50 border border-transparent'
-                                                }`}>
-                                                <div className="flex items-center gap-3 min-w-0">
-                                                    <div className={`shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center text-center ${
-                                                        record.analysis.overallScore >= 80 ? 'bg-green-900/30 border border-green-700/30'
-                                                        : record.analysis.overallScore >= 60 ? 'bg-yellow-900/30 border border-yellow-700/30'
-                                                        : 'bg-red-900/30 border border-red-700/30'
-                                                    }`}>
-                                                        <span className={`text-sm font-black leading-none ${scoreColor(record.analysis.overallScore)}`}>
-                                                            {record.analysis.overallScore}
-                                                        </span>
-                                                        <span className="text-[8px] text-slate-500 mt-0.5">점</span>
-                                                    </div>
-                                                    <div className="min-w-0">
-                                                        <p className="text-xs text-slate-300 font-medium truncate">{fmtDate(record.createdAt)}</p>
-                                                        <p className="text-[10px] text-slate-600 mt-0.5 truncate">{record.analysis.overallComment.slice(0, 28)}...</p>
-                                                    </div>
+                                history.map(record => {
+                                    const isActive = selected?.id === record.id;
+                                    const g = scoreGrade(record.analysis.overallScore);
+                                    const title = (record as any).title;
+                                    return (
+                                        <button key={record.id}
+                                            onClick={() => handleSelect(record)}
+                                            className="w-full text-left flex items-center justify-between px-3 py-3 rounded-xl mb-1 transition-all group"
+                                            style={{
+                                                background: isActive ? T.accentLight : 'transparent',
+                                                border: `1px solid ${isActive ? T.accentBorder : 'transparent'}`,
+                                            }}>
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
+                                                    style={{ background: g.bg, border: `1px solid ${g.border}` }}>
+                                                    <span className="text-sm font-black leading-none" style={{ color: g.color }}>{record.analysis.overallScore}</span>
+                                                    <span className="text-[8px]" style={{ color: T.muted }}>점</span>
                                                 </div>
-                                                <button
-                                                    onClick={e => handleDelete(record.id, e)}
-                                                    className="shrink-0 opacity-0 group-hover:opacity-100 text-slate-600 hover:text-red-400 transition-all p-1 ml-1"
-                                                    title="삭제">
-                                                    <Trash2 size={13} />
-                                                </button>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-semibold truncate" style={{ color: T.ink }}>
+                                                        {title || fmtDate(record.createdAt)}
+                                                    </p>
+                                                    {title && (
+                                                        <p className="text-[10px] truncate" style={{ color: T.muted }}>{fmtDate(record.createdAt)}</p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button onClick={e => handleDelete(record.id, e)}
+                                                className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-50 transition-all"
+                                                title="삭제">
+                                                <Trash2 size={13} style={{ color: '#C62828' }} />
                                             </button>
-                                        );
-                                    })}
-                                </div>
+                                        </button>
+                                    );
+                                })
                             )}
                         </div>
                     </div>
 
-                    {/* Right panel — detail */}
-                    <div className={`${mobileDetail ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-h-0`}>
+                    {/* Right — Detail */}
+                    <div className={`${mobileDetail ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-h-0 overflow-y-auto`}>
                         {!selected ? (
-                            <div className="flex flex-col items-center justify-center h-full gap-5 px-8 text-center">
-                                <div className="w-16 h-16 rounded-2xl bg-slate-800/40 border border-slate-700/30 flex items-center justify-center">
-                                    <Activity size={28} className="text-slate-600" />
-                                </div>
+                            <div className="flex flex-col items-center justify-center h-full gap-4 px-8 text-center">
+                                <Activity size={36} style={{ color: T.border }} />
                                 <div>
-                                    <p className="text-slate-400 font-medium mb-1">좌측 목록에서 분석 결과를 선택하세요</p>
-                                    <p className="text-sm text-slate-600">스윙 분석 버튼으로 새 영상을 업로드할 수 있습니다</p>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-emerald-500/80 bg-emerald-900/15 border border-emerald-800/25 px-4 py-2.5 rounded-full">
-                                    <Lock size={11} />
-                                    영상은 분석 후 즉시 삭제됩니다 — 결과 데이터만 안전하게 보관됩니다
+                                    <p className="font-medium mb-1" style={{ color: T.ink }}>좌측 목록에서 분석 결과를 선택하세요</p>
+                                    <p className="text-sm" style={{ color: T.muted }}>스윙 분석 버튼으로 새 영상을 업로드할 수 있습니다</p>
                                 </div>
                             </div>
                         ) : (
-                            <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
-                                {/* Score header */}
-                                <div className="flex items-center gap-5 bg-slate-800/30 rounded-2xl p-5 border border-slate-700/30">
-                                    <ScoreRing score={selected.analysis.overallScore} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-xs text-slate-500 font-medium uppercase tracking-widest">종합 점수</span>
-                                        </div>
-                                        <p className="text-sm text-slate-300 leading-relaxed">{selected.analysis.overallComment}</p>
-                                        <p className="mt-2 text-[11px] text-slate-600">{fmtDateTime(selected.createdAt)}</p>
-                                    </div>
-                                    <div className="hidden lg:flex shrink-0">
-                                        <PentagonChart sections={selected.analysis.sections} />
-                                    </div>
-                                </div>
-
-                                {/* Pentagon chart — mobile/medium */}
-                                <div className="flex justify-center lg:hidden">
-                                    <PentagonChart sections={selected.analysis.sections} />
-                                </div>
-
-                                {/* Section scores */}
-                                <div>
-                                    <p className="text-xs text-slate-500 font-semibold uppercase tracking-widest mb-3 px-1">구간별 분석</p>
-                                    <div className="flex flex-col gap-3">
-                                        {selected.analysis.sections.map(sec => (
-                                            <div key={sec.name} className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/30">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <span className="text-sm font-semibold text-slate-200">{sec.name}</span>
-                                                    <span className={`text-sm font-bold tabular-nums ${scoreColor(sec.score)}`}>{sec.score}점</span>
-                                                </div>
-                                                <div className="w-full bg-slate-700/60 rounded-full h-1.5 mb-2.5">
-                                                    <div className={`h-1.5 rounded-full transition-all ${barColor(sec.score)}`}
-                                                        style={{ width: `${sec.score}%` }} />
-                                                </div>
-                                                <p className="text-xs text-slate-400 mb-2 leading-relaxed">{sec.comment}</p>
-                                                {sec.good.length > 0 && (
-                                                    <div className="flex flex-col gap-0.5 mb-1.5">
-                                                        {sec.good.map((g, i) => (
-                                                            <span key={i} className="text-xs text-green-400 flex items-start gap-1.5">
-                                                                <span className="shrink-0 mt-0.5">✓</span>{g}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                                {sec.improve.length > 0 && (
-                                                    <div className="flex flex-col gap-0.5">
-                                                        {sec.improve.map((im, i) => (
-                                                            <span key={i} className="text-xs text-amber-400 flex items-start gap-1.5">
-                                                                <span className="shrink-0 mt-0.5">△</span>{im}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Top priorities */}
-                                {selected.analysis.topPriorities.length > 0 && (
-                                    <div className="bg-amber-950/30 border border-amber-800/30 rounded-xl p-4">
-                                        <p className="text-xs font-semibold text-amber-400 uppercase tracking-widest mb-3">핵심 우선순위</p>
-                                        <ol className="flex flex-col gap-2">
-                                            {selected.analysis.topPriorities.map((p, i) => (
-                                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
-                                                    <span className="shrink-0 w-5 h-5 rounded-full bg-amber-800/50 text-amber-300 flex items-center justify-center text-[10px] font-bold mt-0.5">
-                                                        {i + 1}
-                                                    </span>
-                                                    {p}
-                                                </li>
-                                            ))}
-                                        </ol>
-                                    </div>
-                                )}
-
-                                {/* Recommended drills */}
-                                {selected.analysis.recommendedDrills.length > 0 && (
-                                    <div className="bg-blue-950/30 border border-blue-800/30 rounded-xl p-4">
-                                        <p className="text-xs font-semibold text-blue-400 uppercase tracking-widest mb-3">추천 드릴</p>
-                                        <ol className="flex flex-col gap-2">
-                                            {selected.analysis.recommendedDrills.map((d, i) => (
-                                                <li key={i} className="flex items-start gap-2.5 text-xs text-slate-300">
-                                                    <span className="shrink-0 w-5 h-5 rounded-full bg-blue-900/50 text-blue-300 flex items-center justify-center text-[10px] font-bold mt-0.5">
-                                                        {i + 1}
-                                                    </span>
-                                                    {d}
-                                                </li>
-                                            ))}
-                                        </ol>
-                                    </div>
-                                )}
-
-                                <div className="flex items-center gap-2 text-[11px] text-emerald-600/70 bg-emerald-900/10 border border-emerald-900/20 px-3 py-2 rounded-full self-start">
-                                    <Lock size={10} />
-                                    영상은 분석 후 즉시 삭제됩니다
-                                </div>
-                            </div>
+                            <DetailView selected={selected} />
                         )}
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+// ── Detail View ────────────────────────────────────────────
+const DetailView: React.FC<{ selected: { id: number; analysis: SwingAnalysis; createdAt: string } }> = ({ selected }) => {
+    const { analysis, createdAt } = selected;
+    const g = scoreGrade(analysis.overallScore);
+    const [expandedSec, setExpandedSec] = useState<string | null>(null);
+
+    return (
+        <div className="flex flex-col gap-0" style={{ padding: '20px 20px 32px' }}>
+
+            {/* ── 헤더: 제목 + 날짜 ── */}
+            <div className="mb-5">
+                <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.accent }}>Vertex AI 골프 스윙 분석 결과</span>
+                </div>
+                <p className="text-[11px]" style={{ color: T.muted }}>{fmtDateTime(createdAt)} 분석 완료</p>
+            </div>
+
+            {/* ── 스코어 + 레이더 차트 ── */}
+            <div className="rounded-2xl p-5 mb-4 flex flex-col md:flex-row items-center gap-6"
+                style={{ background: T.card, border: `1px solid ${T.border}` }}>
+
+                {/* 레이더 */}
+                <div className="shrink-0 w-52 h-52">
+                    <PentagonChart sections={analysis.sections} />
+                </div>
+
+                {/* 점수 카드 3개 */}
+                <div className="flex-1 w-full flex flex-col gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>스윙 레이더 분석</p>
+
+                    {/* 종합 점수 + 구간 요약 */}
+                    <div className="flex items-center gap-4">
+                        <ScoreRing score={analysis.overallScore} />
+                        <div>
+                            <div className="text-[11px] font-semibold mb-1" style={{ color: T.muted }}>종합 점수</div>
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold"
+                                style={{ background: g.bg, color: g.color, border: `1px solid ${g.border}` }}>
+                                {g.label}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* 구간 점수 미니 배지 */}
+                    <div className="flex flex-wrap gap-2">
+                        {analysis.sections.map(sec => {
+                            const sg = scoreGrade(sec.score);
+                            return (
+                                <div key={sec.name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs"
+                                    style={{ background: sg.bg, border: `1px solid ${sg.border}` }}>
+                                    <span style={{ color: T.ink, fontWeight: 500 }}>{sec.name.replace(' & 셋업', '')}</span>
+                                    <span className="font-bold" style={{ color: sg.color }}>{sec.score}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+
+            {/* ── 총평 ── */}
+            <div className="rounded-2xl p-5 mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: T.muted }}>AI 총평</p>
+                <p className="text-sm leading-relaxed" style={{ color: T.ink }}>{analysis.overallComment}</p>
+            </div>
+
+            {/* ── 구간별 분석 테이블 ── */}
+            <div className="rounded-2xl overflow-hidden mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                <div className="px-5 py-3" style={{ borderBottom: `1px solid ${T.border}` }}>
+                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>구간별 분석</p>
+                </div>
+
+                {/* 테이블 헤더 */}
+                <div className="hidden md:grid grid-cols-[140px_60px_1fr_1fr] gap-0 text-[10px] font-semibold uppercase tracking-widest px-4 py-2"
+                    style={{ color: T.muted, borderBottom: `1px solid ${T.border}`, background: T.bg }}>
+                    <span>구간</span>
+                    <span>점수</span>
+                    <span>잘된 점</span>
+                    <span>개선점</span>
+                </div>
+
+                {analysis.sections.map((sec, idx) => {
+                    const sg = scoreGrade(sec.score);
+                    const isLast = idx === analysis.sections.length - 1;
+                    const isExpanded = expandedSec === sec.name;
+                    return (
+                        <div key={sec.name} style={{ borderBottom: isLast ? 'none' : `1px solid ${T.border}` }}>
+                            {/* 모바일: 아코디언 */}
+                            <button className="md:hidden w-full flex items-center justify-between px-4 py-3 text-left"
+                                onClick={() => setExpandedSec(isExpanded ? null : sec.name)}>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-sm font-semibold" style={{ color: T.ink }}>{sec.name}</span>
+                                    <span className="text-xs font-bold px-2 py-0.5 rounded-full"
+                                        style={{ background: sg.bg, color: sg.color }}>{sec.score}점</span>
+                                </div>
+                                <ChevronDown size={14} style={{ color: T.muted, transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+                            </button>
+                            {isExpanded && (
+                                <div className="md:hidden px-4 pb-4">
+                                    <p className="text-xs mb-2 leading-relaxed" style={{ color: T.muted }}>{sec.comment}</p>
+                                    {sec.good.map((g, i) => <p key={i} className="text-xs mb-0.5 flex gap-1.5" style={{ color: T.green }}><span>✓</span>{g}</p>)}
+                                    {sec.improve.map((im, i) => <p key={i} className="text-xs mb-0.5 flex gap-1.5" style={{ color: T.amber }}><span>△</span>{im}</p>)}
+                                </div>
+                            )}
+
+                            {/* 데스크탑: 테이블 행 */}
+                            <div className="hidden md:grid grid-cols-[140px_60px_1fr_1fr] gap-0 px-4 py-4 items-start">
+                                <div>
+                                    <p className="text-sm font-semibold mb-1" style={{ color: T.ink }}>{sec.name}</p>
+                                    <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: T.border }}>
+                                        <div className="h-full rounded-full" style={{ width: `${sec.score}%`, background: sg.color }} />
+                                    </div>
+                                    <p className="text-[10px] mt-1.5 leading-relaxed" style={{ color: T.muted }}>{sec.comment}</p>
+                                </div>
+                                <div className="flex items-start pt-0.5">
+                                    <span className="text-sm font-black" style={{ color: sg.color }}>{sec.score}<span className="text-xs font-normal ml-0.5" style={{ color: T.muted }}>점</span></span>
+                                </div>
+                                <div className="pr-3">
+                                    {sec.good.map((g, i) => (
+                                        <p key={i} className="text-xs mb-1 flex gap-1.5 leading-relaxed" style={{ color: T.green }}>
+                                            <span className="shrink-0">✓</span>{g}
+                                        </p>
+                                    ))}
+                                </div>
+                                <div>
+                                    {sec.improve.map((im, i) => (
+                                        <p key={i} className="text-xs mb-1 flex gap-1.5 leading-relaxed" style={{ color: T.amber }}>
+                                            <span className="shrink-0">△</span>{im}
+                                        </p>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* ── Vertex AI 분석 요약 (총평 상세) ── */}
+            {analysis.topPriorities.length > 0 && (
+                <div className="rounded-2xl p-5 mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: T.muted }}>Vertex AI 분석 요약</p>
+                    <p className="text-sm leading-relaxed" style={{ color: T.ink }}>
+                        {analysis.topPriorities.join(' ')}
+                    </p>
+                </div>
+            )}
+
+            {/* ── 핵심 수순 ── */}
+            {analysis.recommendedDrills.length > 0 && (
+                <div className="rounded-2xl p-5 mb-4" style={{ background: T.amberBg, border: `1px solid ${T.amberBorder}` }}>
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: T.amber }}>핵심 수순</p>
+                    <ol className="flex flex-col gap-3">
+                        {analysis.recommendedDrills.map((d, i) => (
+                            <li key={i} className="flex items-start gap-3 text-sm" style={{ color: T.ink }}>
+                                <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+                                    style={{ background: T.amber, color: '#fff' }}>{i + 1}</span>
+                                <span className="leading-relaxed pt-0.5">{d}</span>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
+            )}
+
+            {/* ── Privacy badge ── */}
+            <div className="flex justify-end">
+                <span className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 rounded-full"
+                    style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, color: T.green }}>
+                    <Lock size={10} />
+                    영상은 분석 후 즉시 삭제됩니다
+                </span>
             </div>
         </div>
     );
