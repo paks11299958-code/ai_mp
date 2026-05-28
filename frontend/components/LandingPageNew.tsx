@@ -43,9 +43,12 @@ interface LandingPageNewProps {
     // 기능 카드 클릭 핸들러
     onFeatureClick?: (featureKey: string) => void;
     // 로그인 상태 전달 (로그인 후 히어로 페이지 표시 시)
-    user?: { username?: string; email: string } | null;
+    user?: { username?: string; email: string; role?: string } | null;
     onGoToChat?: () => void;
     onLogout?: () => void;
+    onAdminClick?: () => void;
+    onPersonaListClick?: () => void;
+    onFeatureListClick?: () => void;
 }
 
 // ─────────────────────────────────────────────
@@ -537,88 +540,145 @@ const FeatureTarotCard: React.FC<{
 };
 
 // ─────────────────────────────────────────────
-// 타로 캐러셀 (무한 마퀴)
+// 타로 캐러셀 (수동 스와이프)
 // ─────────────────────────────────────────────
+const CARD_W = 200;
+const GAP = 16;
+const VISIBLE = 4; // 한 번에 보이는 카드 수 (데스크탑 기준)
+
 const TarotCarousel: React.FC<{
     mode: 'personas' | 'features';
     personas: Persona[];
     onPersonaClick?: (id: string) => void;
     onFeatureClick?: (key: string) => void;
 }> = ({ mode, personas, onPersonaClick, onFeatureClick }) => {
-    const [focusedIdx, setFocusedIdx] = useState(2);
-    const [isPaused, setIsPaused] = useState(false);
-    const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [offset, setOffset] = useState(0);
+    const trackRef = useRef<HTMLDivElement>(null);
+    const dragStartX = useRef<number | null>(null);
+    const dragStartOffset = useRef(0);
+    const isDragging = useRef(false);
 
     const items = mode === 'personas' ? personas : FEATURES;
     const count = items.length;
+    const maxOffset = Math.max(0, count - VISIBLE);
 
-    // 2.8초마다 포커스 이동
-    useEffect(() => {
-        if (isPaused || count === 0) return;
-        timerRef.current = setInterval(() => {
-            setFocusedIdx(i => (i + 1) % count);
-        }, 2800);
-        return () => { if (timerRef.current) clearInterval(timerRef.current); };
-    }, [isPaused, count]);
+    const clamp = (v: number) => Math.max(0, Math.min(v, maxOffset));
 
-    // 카드 3세트 복제 (무한 루프)
-    const displayItems = [...items, ...items, ...items];
-    const CARD_W = 200;
-    const GAP = 20;
-    const UNIT = CARD_W + GAP;
+    const goLeft = () => setOffset(o => clamp(o - 1));
+    const goRight = () => setOffset(o => clamp(o + 1));
+
+    // 마우스 드래그
+    const onMouseDown = (e: React.MouseEvent) => {
+        dragStartX.current = e.clientX;
+        dragStartOffset.current = offset;
+        isDragging.current = false;
+    };
+    const onMouseMove = (e: React.MouseEvent) => {
+        if (dragStartX.current === null) return;
+        const dx = e.clientX - dragStartX.current;
+        if (Math.abs(dx) > 5) isDragging.current = true;
+    };
+    const onMouseUp = (e: React.MouseEvent) => {
+        if (dragStartX.current === null) return;
+        const dx = e.clientX - dragStartX.current;
+        if (Math.abs(dx) > 40) setOffset(clamp(dragStartOffset.current - Math.round(dx / (CARD_W + GAP))));
+        dragStartX.current = null;
+    };
+
+    // 터치 스와이프
+    const onTouchStart = (e: React.TouchEvent) => {
+        dragStartX.current = e.touches[0].clientX;
+        dragStartOffset.current = offset;
+    };
+    const onTouchEnd = (e: React.TouchEvent) => {
+        if (dragStartX.current === null) return;
+        const dx = e.changedTouches[0].clientX - dragStartX.current;
+        if (Math.abs(dx) > 40) setOffset(clamp(dragStartOffset.current - Math.round(dx / (CARD_W + GAP))));
+        dragStartX.current = null;
+    };
+
+    const translateX = -(offset * (CARD_W + GAP));
 
     return (
-        <div
-            style={{ width: '100%', overflow: 'hidden', position: 'relative', padding: '20px 0 32px' }}
-            onMouseEnter={() => setIsPaused(true)}
-            onMouseLeave={() => setIsPaused(false)}
-        >
-            {/* 좌우 페이드 마스크 */}
-            <div style={{
-                position: 'absolute', top: 0, left: 0, bottom: 0, width: 80,
-                background: `linear-gradient(to right, ${T.bg}, transparent)`,
-                zIndex: 10, pointerEvents: 'none',
-            }} />
-            <div style={{
-                position: 'absolute', top: 0, right: 0, bottom: 0, width: 80,
-                background: `linear-gradient(to left, ${T.bg}, transparent)`,
-                zIndex: 10, pointerEvents: 'none',
-            }} />
+        <div style={{ width: '100%', position: 'relative', padding: '16px 0 28px', userSelect: 'none' }}>
+            {/* 좌우 화살표 */}
+            {offset > 0 && (
+                <button onClick={goLeft} style={{
+                    position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
+                    zIndex: 20, width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.92)', border: `1px solid ${T.lineSoft}`,
+                    boxShadow: '0 2px 12px rgba(80,50,110,0.15)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: T.accent, fontSize: 18, transition: 'all 0.15s',
+                }}>‹</button>
+            )}
+            {offset < maxOffset && (
+                <button onClick={goRight} style={{
+                    position: 'absolute', right: 8, top: '50%', transform: 'translateY(-50%)',
+                    zIndex: 20, width: 36, height: 36, borderRadius: '50%',
+                    background: 'rgba(255,255,255,0.92)', border: `1px solid ${T.lineSoft}`,
+                    boxShadow: '0 2px 12px rgba(80,50,110,0.15)',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: T.accent, fontSize: 18, transition: 'all 0.15s',
+                }}>›</button>
+            )}
 
-            {/* 마퀴 트랙 */}
-            <div style={{
-                display: 'flex',
-                gap: GAP,
-                animation: isPaused ? 'none' : `lp-marquee ${count * 3}s linear infinite`,
-                width: `${displayItems.length * UNIT}px`,
-            }}>
-                {displayItems.map((item, i) => {
-                    const origIdx = i % count;
-                    const isFocused = origIdx === focusedIdx;
-                    if (mode === 'personas') {
-                        const p = item as Persona;
-                        return (
-                            <PersonaTarotCard
-                                key={`${p.id}-${i}`}
-                                persona={p}
-                                index={origIdx}
-                                focused={isFocused}
-                                onClick={() => onPersonaClick?.(p.id)}
-                            />
-                        );
-                    } else {
-                        const f = item as typeof FEATURES[0];
-                        return (
-                            <FeatureTarotCard
-                                key={`${f.id}-${i}`}
-                                feature={f}
-                                focused={isFocused}
-                                onClick={() => onFeatureClick?.(f.key)}
-                            />
-                        );
-                    }
-                })}
+            {/* 좌우 페이드 마스크 */}
+            <div style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 60, background: `linear-gradient(to right, ${T.bg}, transparent)`, zIndex: 10, pointerEvents: 'none' }} />
+            <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 60, background: `linear-gradient(to left, ${T.bg}, transparent)`, zIndex: 10, pointerEvents: 'none' }} />
+
+            {/* 트랙 */}
+            <div style={{ overflow: 'hidden', padding: '4px 40px' }}>
+                <div
+                    ref={trackRef}
+                    style={{
+                        display: 'flex', gap: GAP,
+                        transform: `translateX(${translateX}px)`,
+                        transition: isDragging.current ? 'none' : 'transform 0.35s cubic-bezier(0.4,0,0.2,1)',
+                        cursor: 'grab',
+                    }}
+                    onMouseDown={onMouseDown}
+                    onMouseMove={onMouseMove}
+                    onMouseUp={onMouseUp}
+                    onMouseLeave={onMouseUp}
+                    onTouchStart={onTouchStart}
+                    onTouchEnd={onTouchEnd}
+                >
+                    {items.map((item, i) => {
+                        if (mode === 'personas') {
+                            const p = item as Persona;
+                            return (
+                                <div key={p.id} style={{ flexShrink: 0 }}
+                                    onClick={() => { if (!isDragging.current) onPersonaClick?.(p.id); }}>
+                                    <PersonaTarotCard persona={p} index={i} focused={false} onClick={() => {}} />
+                                </div>
+                            );
+                        } else {
+                            const f = item as typeof FEATURES[0];
+                            return (
+                                <div key={f.id} style={{ flexShrink: 0 }}
+                                    onClick={() => { if (!isDragging.current) onFeatureClick?.(f.key); }}>
+                                    <FeatureTarotCard feature={f} focused={false} onClick={() => {}} />
+                                </div>
+                            );
+                        }
+                    })}
+                </div>
             </div>
+
+            {/* 페이지 닷 */}
+            {count > VISIBLE && (
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+                    {Array.from({ length: maxOffset + 1 }).map((_, i) => (
+                        <button key={i} onClick={() => setOffset(i)} style={{
+                            width: i === offset ? 16 : 6, height: 6, borderRadius: 999,
+                            background: i === offset ? T.accent : T.lineSoft,
+                            border: 'none', cursor: 'pointer', padding: 0,
+                            transition: 'all 0.2s',
+                        }} />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
@@ -640,6 +700,9 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     user,
     onGoToChat,
     onLogout,
+    onAdminClick,
+    onPersonaListClick,
+    onFeatureListClick,
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -904,6 +967,34 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 }}>
                                     ✦ 채팅 시작하기
                                 </button>
+                                {onPersonaListClick && (
+                                    <button onClick={() => { setMobileMenuOpen(false); onPersonaListClick(); }} style={{
+                                        padding: '13px 20px', background: 'none', border: 'none',
+                                        textAlign: 'left', fontSize: 14, color: T.inkSoft, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                        borderTop: `1px solid ${T.lineSoft}`, marginTop: 4,
+                                    }}>
+                                        <span style={{ fontSize: 16 }}>🧑‍🤝‍🧑</span> 페르소나 목록
+                                    </button>
+                                )}
+                                {onFeatureListClick && (
+                                    <button onClick={() => { setMobileMenuOpen(false); onFeatureListClick(); }} style={{
+                                        padding: '13px 20px', background: 'none', border: 'none',
+                                        textAlign: 'left', fontSize: 14, color: T.inkSoft, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                    }}>
+                                        <span style={{ fontSize: 16 }}>✨</span> 기능 둘러보기
+                                    </button>
+                                )}
+                                {onAdminClick && user?.role === 'ADMIN' && (
+                                    <button onClick={() => { setMobileMenuOpen(false); onAdminClick(); }} style={{
+                                        padding: '13px 20px', background: 'none', border: 'none',
+                                        textAlign: 'left', fontSize: 14, color: T.inkSoft, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                    }}>
+                                        <span style={{ fontSize: 16 }}>⚙️</span> 어드민
+                                    </button>
+                                )}
                                 {onLogout && (
                                     <button onClick={() => { setMobileMenuOpen(false); onLogout(); }} style={{
                                         padding: '13px 20px', background: 'none', border: 'none',
@@ -959,7 +1050,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
             {/* ── 히어로 섹션 ── */}
             <section style={{
                 position: 'relative', zIndex: 1,
-                paddingTop: 120, paddingBottom: 0,
+                paddingTop: 70, paddingBottom: 0,
                 textAlign: 'center',
             }}>
                 {/* 타로 킥커 */}

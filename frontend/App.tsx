@@ -1125,6 +1125,9 @@ const AppContent: React.FC = () => {
                     user={user}
                     onGoToChat={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
                     onLogout={handleLogout}
+                    onAdminClick={() => { setShowHero(false); handleAdminLogin(); }}
+                    onPersonaListClick={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
+                    onFeatureListClick={() => { setShowHero(false); setMainInitialTab('features'); setShowMain(true); }}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
