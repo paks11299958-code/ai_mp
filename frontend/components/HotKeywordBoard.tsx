@@ -19,6 +19,20 @@ interface Props {
 type Step = 'select' | 'delivery' | 'sending' | 'done';
 type DeliveryMethod = 'email' | 'sms' | 'both';
 
+const T = {
+    bg:        '#FBF8F3',
+    surface:   '#F5F0E8',
+    card:      '#FFFFFF',
+    border:    '#E8DDD0',
+    borderSoft:'#EDE5D8',
+    ink:       '#2D2520',
+    inkSoft:   '#6B5F56',
+    inkMute:   '#A0948A',
+    orange:    '#D46A1A',
+    orangeSoft:'#FEF3E8',
+    orangeBorder:'#F0B882',
+};
+
 export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone }) => {
     const [step, setStep] = useState<Step>('select');
     const [categories, setCategories] = useState<Category[]>([]);
@@ -41,10 +55,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
         setSelected(prev => {
             const exists = prev.find(c => c.code === cat.code);
             if (exists) return prev.filter(c => c.code !== cat.code);
-            if (prev.length >= 3) {
-                setError('최대 3개까지 선택 가능합니다.');
-                return prev;
-            }
+            if (prev.length >= 3) { setError('최대 3개까지 선택 가능합니다.'); return prev; }
             setError('');
             return [...prev, cat];
         });
@@ -52,38 +63,22 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
 
     const handleNext = () => {
         if (selected.length === 0) { setError('카테고리를 1개 이상 선택해주세요.'); return; }
-        setError('');
-        setStep('delivery');
+        setError(''); setStep('delivery');
     };
 
     const handleSend = async () => {
-        if ((deliveryMethod === 'email' || deliveryMethod === 'both') && !email.trim()) {
-            setError('이메일을 입력해주세요.'); return;
-        }
-        if ((deliveryMethod === 'sms' || deliveryMethod === 'both') && !phone.trim()) {
-            setError('전화번호를 입력해주세요.'); return;
-        }
-        setError('');
-        setStep('sending');
-
+        if ((deliveryMethod === 'email' || deliveryMethod === 'both') && !email.trim()) { setError('이메일을 입력해주세요.'); return; }
+        if ((deliveryMethod === 'sms' || deliveryMethod === 'both') && !phone.trim()) { setError('전화번호를 입력해주세요.'); return; }
+        setError(''); setStep('sending');
         const parsedCategories = selected.map(cat => ({
-            code: cat.code,
-            name: cat.name,
-            emoji: cat.emoji,
+            code: cat.code, name: cat.name, emoji: cat.emoji,
             keywords: (() => { try { return JSON.parse(cat.keywords); } catch { return []; } })(),
         }));
-
         try {
             const res = await fetch('/api/hot-keyword/run', {
-                method: 'POST',
-                credentials: 'include',
+                method: 'POST', credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    categories: parsedCategories,
-                    deliveryMethod,
-                    email: email.trim() || null,
-                    phone: phone.trim() || null,
-                }),
+                body: JSON.stringify({ categories: parsedCategories, deliveryMethod, email: email.trim() || null, phone: phone.trim() || null }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || '발송 실패');
@@ -95,76 +90,79 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
         }
     };
 
+    const stepLabel = step === 'delivery' ? '발송 설정' : step === 'sending' ? '발송 중...' : step === 'done' ? '완료' : '';
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
-            <div className="relative w-full max-w-lg bg-gradient-to-b from-slate-900 to-slate-800 rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
-                {/* Header */}
-                <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700 bg-slate-900/60">
-                    <div className="flex items-center gap-2">
-                        <ShoppingBag size={18} className="text-orange-400" />
-                        <span className="text-white font-semibold text-sm">핫쇼핑키워드</span>
-                        {step !== 'select' && (
-                            <span className="text-slate-400 text-xs ml-1">
-                                {step === 'delivery' ? '발송 설정' : step === 'sending' ? '발송 중...' : '완료'}
-                            </span>
-                        )}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(45,37,32,0.55)', backdropFilter: 'blur(6px)', padding: 16, fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif" }}>
+            <div style={{ position: 'relative', width: '100%', maxWidth: 480, background: T.bg, borderRadius: 20, border: `1px solid ${T.border}`, boxShadow: '0 24px 60px rgba(45,37,32,0.2)', overflow: 'hidden' }}>
+
+                {/* 헤더 */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <ShoppingBag size={17} style={{ color: T.orange }} />
+                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>핫쇼핑키워드</span>
+                        {stepLabel && <span style={{ fontSize: 11, color: T.inkMute, marginLeft: 2 }}>{stepLabel}</span>}
                     </div>
-                    <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-                        <X size={18} />
+                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.inkMute, display: 'flex', alignItems: 'center' }}>
+                        <X size={17} />
                     </button>
                 </div>
 
-                <div className="p-5">
+                <div style={{ padding: 20 }}>
+
                     {/* Step 1: 카테고리 선택 */}
                     {step === 'select' && (
                         <>
-                            <p className="text-slate-300 text-xs mb-4">
-                                네이버 쇼핑 카테고리를 <span className="text-orange-400 font-semibold">최대 3개</span> 선택하세요.
+                            <p style={{ fontSize: 12, color: T.inkSoft, marginBottom: 16, lineHeight: 1.6 }}>
+                                네이버 쇼핑 카테고리를 <span style={{ color: T.orange, fontWeight: 700 }}>최대 3개</span> 선택하세요.
                                 선택한 카테고리의 인기 키워드 TOP10을 바로 받아볼 수 있습니다.
                             </p>
+
                             {categories.length === 0 ? (
-                                <div className="flex justify-center py-8">
-                                    <Loader size={20} className="animate-spin text-slate-400" />
+                                <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
+                                    <Loader size={20} style={{ color: T.inkMute, animation: 'spin 1s linear infinite' }} />
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
                                     {categories.map(cat => {
-                                        const isSelected = !!selected.find(c => c.code === cat.code);
+                                        const isSel = !!selected.find(c => c.code === cat.code);
                                         return (
-                                            <button
-                                                key={cat.code}
-                                                onClick={() => toggleCategory(cat)}
-                                                className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                                                    isSelected
-                                                        ? 'bg-orange-500/20 border-orange-500 text-orange-300'
-                                                        : 'bg-slate-800/60 border-slate-600 text-slate-300 hover:border-slate-500'
-                                                }`}
+                                            <button key={cat.code} onClick={() => toggleCategory(cat)}
+                                                style={{
+                                                    display: 'flex', alignItems: 'center', gap: 8,
+                                                    padding: '10px 12px', borderRadius: 12, fontSize: 12, fontWeight: 500,
+                                                    cursor: 'pointer', transition: 'all 0.15s', textAlign: 'left',
+                                                    background: isSel ? T.orangeSoft : T.card,
+                                                    border: isSel ? `1.5px solid ${T.orange}` : `1px solid ${T.border}`,
+                                                    color: isSel ? T.orange : T.inkSoft,
+                                                    boxShadow: isSel ? `0 2px 8px ${T.orange}25` : '0 1px 3px rgba(45,37,32,0.06)',
+                                                }}
+                                                onMouseEnter={e => { if (!isSel) (e.currentTarget as HTMLElement).style.borderColor = T.orangeBorder; }}
+                                                onMouseLeave={e => { if (!isSel) (e.currentTarget as HTMLElement).style.borderColor = T.border; }}
                                             >
-                                                <span className="text-base">{cat.emoji}</span>
-                                                <span className="text-xs">{cat.name}</span>
-                                                {isSelected && (
-                                                    <CheckCircle size={12} className="ml-auto text-orange-400 flex-shrink-0" />
-                                                )}
+                                                <span style={{ fontSize: 18 }}>{cat.emoji}</span>
+                                                <span style={{ flex: 1 }}>{cat.name}</span>
+                                                {isSel && <CheckCircle size={13} style={{ color: T.orange, flexShrink: 0 }} />}
                                             </button>
                                         );
                                     })}
                                 </div>
                             )}
+
                             {selected.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mb-3">
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
                                     {selected.map(cat => (
-                                        <span key={cat.code} className="text-[11px] bg-orange-500/20 text-orange-300 border border-orange-500/40 px-2 py-0.5 rounded-full">
+                                        <span key={cat.code} style={{ fontSize: 11, background: T.orangeSoft, color: T.orange, border: `1px solid ${T.orangeBorder}`, padding: '2px 10px', borderRadius: 999, fontWeight: 600 }}>
                                             {cat.emoji} {cat.name}
                                         </span>
                                     ))}
                                 </div>
                             )}
-                            {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
-                            <button
-                                onClick={handleNext}
-                                disabled={selected.length === 0}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors"
-                            >
+
+                            {error && <p style={{ fontSize: 11, color: '#dc2626', marginBottom: 10 }}>{error}</p>}
+
+                            <button onClick={handleNext} disabled={selected.length === 0}
+                                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '12px 0', borderRadius: 12, background: selected.length === 0 ? T.border : T.orange, border: 'none', color: selected.length === 0 ? T.inkMute : '#fff', fontSize: 13, fontWeight: 700, cursor: selected.length === 0 ? 'not-allowed' : 'pointer', transition: 'all 0.2s' }}>
                                 다음 <ChevronRight size={15} />
                             </button>
                         </>
@@ -173,70 +171,51 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
                     {/* Step 2: 발송 설정 */}
                     {step === 'delivery' && (
                         <>
-                            <p className="text-slate-300 text-xs mb-4">결과를 받을 방법을 선택하세요.</p>
+                            <p style={{ fontSize: 12, color: T.inkSoft, marginBottom: 14 }}>결과를 받을 방법을 선택하세요.</p>
 
-                            {/* 발송 방법 */}
-                            <div className="flex gap-2 mb-4">
-                                {([
-                                    { value: 'email', label: '이메일', icon: Mail },
-                                    { value: 'sms', label: '문자', icon: MessageSquare },
-                                ] as const).map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        onClick={() => setDeliveryMethod(opt.value)}
-                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-xs font-medium transition-all ${
-                                            deliveryMethod === opt.value
-                                                ? 'bg-orange-500/20 border-orange-500 text-orange-300'
-                                                : 'bg-slate-800/60 border-slate-600 text-slate-400 hover:border-slate-500'
-                                        }`}
-                                    >
-                                        {opt.icon && <opt.icon size={13} />}
-                                        {opt.label}
-                                    </button>
-                                ))}
+                            <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+                                {([{ value: 'email', label: '이메일', icon: Mail }, { value: 'sms', label: '문자', icon: MessageSquare }] as const).map(opt => {
+                                    const isActive = deliveryMethod === opt.value;
+                                    return (
+                                        <button key={opt.value} onClick={() => setDeliveryMethod(opt.value)}
+                                            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '9px 0', borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', background: isActive ? T.orangeSoft : T.surface, border: isActive ? `1.5px solid ${T.orange}` : `1px solid ${T.border}`, color: isActive ? T.orange : T.inkSoft }}>
+                                            <opt.icon size={13} /> {opt.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
-                            {/* 이메일 입력 */}
                             {(deliveryMethod === 'email' || deliveryMethod === 'both') && (
-                                <div className="mb-3">
-                                    <label className="text-slate-400 text-xs mb-1 block">이메일 주소</label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        placeholder="example@email.com"
-                                        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+                                <div style={{ marginBottom: 12 }}>
+                                    <label style={{ fontSize: 11, color: T.inkMute, display: 'block', marginBottom: 4 }}>이메일 주소</label>
+                                    <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="example@email.com"
+                                        style={{ width: '100%', background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: '9px 12px', fontSize: 12, color: T.ink, outline: 'none', boxSizing: 'border-box' }}
+                                        onFocus={e => (e.currentTarget as HTMLElement).style.borderColor = T.orange}
+                                        onBlur={e => (e.currentTarget as HTMLElement).style.borderColor = T.border}
                                     />
                                 </div>
                             )}
 
-                            {/* 전화번호 입력 */}
                             {(deliveryMethod === 'sms' || deliveryMethod === 'both') && (
-                                <div className="mb-3">
-                                    <label className="text-slate-400 text-xs mb-1 block">전화번호</label>
-                                    <input
-                                        type="tel"
-                                        value={phone}
-                                        onChange={e => setPhone(e.target.value)}
-                                        placeholder="01012345678"
-                                        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+                                <div style={{ marginBottom: 12 }}>
+                                    <label style={{ fontSize: 11, color: T.inkMute, display: 'block', marginBottom: 4 }}>전화번호</label>
+                                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="01012345678"
+                                        style={{ width: '100%', background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: '9px 12px', fontSize: 12, color: T.ink, outline: 'none', boxSizing: 'border-box' }}
+                                        onFocus={e => (e.currentTarget as HTMLElement).style.borderColor = T.orange}
+                                        onBlur={e => (e.currentTarget as HTMLElement).style.borderColor = T.border}
                                     />
                                 </div>
                             )}
 
-                            {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
+                            {error && <p style={{ fontSize: 11, color: '#dc2626', marginBottom: 10 }}>{error}</p>}
 
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => { setStep('select'); setError(''); }}
-                                    className="flex-1 py-2.5 rounded-xl border border-slate-600 text-slate-300 text-sm hover:border-slate-500 transition-colors"
-                                >
+                            <div style={{ display: 'flex', gap: 8 }}>
+                                <button onClick={() => { setStep('select'); setError(''); }}
+                                    style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: T.surface, border: `1px solid ${T.border}`, color: T.inkSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                                     이전
                                 </button>
-                                <button
-                                    onClick={handleSend}
-                                    className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-400 text-white text-sm font-semibold transition-colors"
-                                >
+                                <button onClick={handleSend}
+                                    style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: T.orange, border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
                                     지금 받기
                                 </button>
                             </div>
@@ -245,56 +224,53 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
 
                     {/* Step 3: 발송 중 */}
                     {step === 'sending' && (
-                        <div className="flex flex-col items-center py-10 gap-4">
-                            <Loader size={32} className="animate-spin text-orange-400" />
-                            <p className="text-slate-300 text-sm">키워드 분석 중입니다...</p>
-                            <p className="text-slate-500 text-xs">네이버 데이터랩에서 데이터를 수집하고 있습니다.</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 0', gap: 14 }}>
+                            <Loader size={30} style={{ color: T.orange, animation: 'spin 1s linear infinite' }} />
+                            <p style={{ fontSize: 13, color: T.ink, fontWeight: 600 }}>키워드 분석 중입니다...</p>
+                            <p style={{ fontSize: 11, color: T.inkMute }}>네이버 데이터랩에서 데이터를 수집하고 있습니다.</p>
                         </div>
                     )}
 
                     {/* Step 4: 완료 */}
                     {step === 'done' && (
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="flex items-center gap-2 pt-4">
-                                <CheckCircle size={22} className="text-green-400 flex-shrink-0" />
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingTop: 8 }}>
+                                <CheckCircle size={22} style={{ color: '#16a34a', flexShrink: 0 }} />
                                 <div>
-                                    <p className="text-white font-semibold text-sm">발송 완료!</p>
-                                    <p className="text-slate-400 text-xs">
+                                    <p style={{ fontSize: 13, fontWeight: 700, color: T.ink, margin: 0 }}>발송 완료!</p>
+                                    <p style={{ fontSize: 11, color: T.inkMute, margin: '2px 0 0' }}>
                                         {deliveryMethod === 'email' && `${email}로 이메일 발송`}
                                         {deliveryMethod === 'sms' && `${phone}으로 문자 발송`}
                                         {deliveryMethod === 'both' && `이메일 + 문자 발송`}
                                     </p>
                                 </div>
                             </div>
+
                             {resultContent && (
-                                <div className="w-full bg-slate-950/60 border border-slate-700 rounded-xl p-3.5 max-h-72 overflow-y-auto">
-                                    <p className="text-slate-400 text-[10px] uppercase tracking-wider mb-2">발송된 내용</p>
-                                    <div className="prose prose-invert prose-sm max-w-none
-                                        [&_h2]:text-orange-400 [&_h2]:text-sm [&_h2]:font-bold [&_h2]:mb-2 [&_h2]:mt-0
-                                        [&_h3]:text-slate-200 [&_h3]:text-xs [&_h3]:font-semibold [&_h3]:mb-1.5 [&_h3]:mt-3
-                                        [&_table]:w-full [&_table]:text-xs [&_table]:border-collapse
-                                        [&_th]:text-slate-400 [&_th]:font-medium [&_th]:pb-1 [&_th]:border-b [&_th]:border-slate-700 [&_th]:px-1.5
-                                        [&_td]:py-1 [&_td]:px-1.5 [&_td]:text-slate-200 [&_td]:border-b [&_td]:border-slate-800
-                                        [&_tr:last-child_td]:border-0
-                                        [&_td:nth-child(1)]:text-center [&_td:nth-child(1)]:text-slate-400
-                                        [&_td:nth-child(3)]:text-right [&_td:nth-child(3)]:text-slate-300
-                                        [&_td:nth-child(4)]:text-right
-                                        [&_hr]:border-slate-700 [&_hr]:my-2
-                                        [&_em]:text-slate-500 [&_em]:text-[10px] [&_p]:text-slate-400 [&_p]:text-xs">
+                                <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: 14, maxHeight: 280, overflowY: 'auto' }}>
+                                    <p style={{ fontSize: 10, color: T.inkMute, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, fontWeight: 700 }}>발송된 내용</p>
+                                    <div style={{ fontSize: 12, color: T.inkSoft, lineHeight: 1.7 }}
+                                        className="[&_h2]:text-[13px] [&_h2]:font-bold [&_h2]:text-[#D46A1A] [&_h2]:mb-2 [&_h2]:mt-0
+                                        [&_h3]:text-[12px] [&_h3]:font-semibold [&_h3]:text-[#2D2520] [&_h3]:mb-1.5 [&_h3]:mt-3
+                                        [&_table]:w-full [&_table]:text-[11px] [&_table]:border-collapse
+                                        [&_th]:text-[#A0948A] [&_th]:font-medium [&_th]:pb-1 [&_th]:border-b [&_th]:border-[#E8DDD0] [&_th]:px-1.5
+                                        [&_td]:py-1 [&_td]:px-1.5 [&_td]:text-[#6B5F56] [&_td]:border-b [&_td]:border-[#EDE5D8]
+                                        [&_tr:last-child_td]:border-0 [&_hr]:border-[#E8DDD0] [&_hr]:my-2
+                                        [&_p]:text-[#6B5F56] [&_p]:text-[11px] [&_em]:text-[#A0948A] [&_em]:text-[10px]">
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{resultContent}</ReactMarkdown>
                                     </div>
                                 </div>
                             )}
-                            <button
-                                onClick={onClose}
-                                className="w-full py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm transition-colors"
-                            >
+
+                            <button onClick={onClose}
+                                style={{ width: '100%', padding: '11px 0', borderRadius: 12, background: T.surface, border: `1px solid ${T.border}`, color: T.inkSoft, fontSize: 13, fontWeight: 600, cursor: 'pointer' }}>
                                 닫기
                             </button>
                         </div>
                     )}
                 </div>
             </div>
+            <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
     );
 };
