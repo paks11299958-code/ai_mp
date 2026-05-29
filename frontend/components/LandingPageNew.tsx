@@ -538,73 +538,61 @@ const FeatureTarotCard: React.FC<{
                 pointerEvents: 'none', zIndex: 2,
             }} />
 
-            {/* 골드 이중 테두리 */}
-            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }}
-                viewBox="0 0 200 310" preserveAspectRatio="none">
-                <rect x="5" y="5" width="190" height="300" rx="9"
-                    fill="none" stroke={gold} strokeWidth="1.2" opacity="0.55" />
-                <rect x="9" y="9" width="182" height="292" rx="6"
-                    fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4" />
+            {/* 트럼프 카드 격자 테두리 */}
+            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
+                viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                <rect x="4" y="4" width={W-8} height={H-8} rx="10" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6"/>
+                <rect x="8" y="8" width={W-16} height={H-16} rx="7" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                {[[16,16],[W-16,16],[16,H-16],[W-16,H-16]].map(([cx,cy],idx) => (
+                    <g key={idx} transform={`translate(${cx},${cy})`}>
+                        <polygon points="0,-5.5 5.5,0 0,5.5 -5.5,0" fill={gold} opacity="0.55"/>
+                        <polygon points="0,-3 3,0 0,3 -3,0" fill={gold} opacity="0.3"/>
+                    </g>
+                ))}
+                <line x1="14" y1={H/2} x2={W-14} y2={H/2} stroke={gold} strokeWidth="0.5" opacity="0.18" strokeDasharray="4 4"/>
             </svg>
 
             {/* 로마 숫자 */}
-            <div style={{
-                position: 'absolute', top: 10, left: 13, zIndex: 3,
-                fontFamily: "'Cinzel', serif", fontSize: 10,
-                color: gold, letterSpacing: '0.18em', opacity: 0.85,
-            }}>{numeral}</div>
-            <div style={{
-                position: 'absolute', bottom: 10, right: 13, zIndex: 3,
-                fontFamily: "'Cinzel', serif", fontSize: 10,
-                color: gold, letterSpacing: '0.18em', opacity: 0.85,
-                transform: 'rotate(180deg)',
-            }}>{numeral}</div>
+            <div style={{ position: 'absolute', top: 9, left: 12, zIndex: 3, fontFamily: "'Cinzel', serif", fontSize: 10, color: gold, letterSpacing: '0.18em', opacity: 0.9 }}>{numeral}</div>
+            <div style={{ position: 'absolute', bottom: 9, right: 12, zIndex: 3, fontFamily: "'Cinzel', serif", fontSize: 10, color: gold, letterSpacing: '0.18em', opacity: 0.9, transform: 'rotate(180deg)' }}>{numeral}</div>
 
             {/* 아이콘 씬 */}
             <div style={{
-                position: 'absolute', top: 24, left: 14, right: 14, height: 160,
-                borderRadius: 8, overflow: 'hidden',
-                border: `1px solid ${gold}55`,
-                background: `radial-gradient(circle at 50% 45%, ${palette.bg} 0%, ${palette.deep}55 95%)`,
+                position: 'absolute', top: 22, left: 12, right: 12, height: 170,
+                borderRadius: 9, border: `1px solid ${gold}40`,
+                background: `radial-gradient(ellipse at 50% 40%, ${palette.bg} 0%, ${palette.deep}50 100%)`,
                 display: 'flex', flexDirection: 'column',
                 alignItems: 'center', justifyContent: 'center',
-                gap: 8, zIndex: 1,
+                gap: 9, zIndex: 1,
             }}>
                 <FeatureIcon kind={icon} size={80} color={palette.accent} bg={palette.bg} />
                 <div style={{
-                    background: palette.accent,
-                    color: '#fff', fontSize: 10, fontWeight: 600,
-                    padding: '4px 12px', borderRadius: 999,
-                    letterSpacing: '0.05em',
+                    background: palette.accent, color: '#fff',
+                    fontSize: 11, fontWeight: 700,
+                    padding: '4px 13px', borderRadius: 999,
+                    letterSpacing: '0.04em',
+                    boxShadow: `0 2px 6px ${palette.accent}50`,
                 }}>{tag}</div>
             </div>
 
             {/* 네임 플레이트 */}
             <div style={{
                 position: 'absolute',
-                top: 192, left: 0, right: 0, bottom: 0,
+                top: 200, left: 0, right: 0, bottom: 0,
                 padding: '8px 14px 14px',
                 textAlign: 'center', zIndex: 3,
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             }}>
                 <div style={{
                     fontSize: 11, color: gold,
-                    letterSpacing: '0.08em', marginBottom: 3,
+                    letterSpacing: '0.08em', marginBottom: 4,
                     opacity: 0.85, fontWeight: 500,
                 }}>{latin}</div>
                 <div style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 18, fontWeight: 700,
-                    color: palette.accent, lineHeight: 1.2,
-                    marginBottom: 6,
+                    fontSize: 22, fontWeight: 700,
+                    color: palette.accent, lineHeight: 1.15,
                 }}>{name}</div>
-                <div style={{
-                    fontSize: 10.5, color: T.inkSoft, lineHeight: 1.55,
-                    overflow: 'hidden',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical' as any,
-                }}>{desc}</div>
             </div>
         </div>
     );
