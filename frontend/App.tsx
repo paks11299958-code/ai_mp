@@ -72,6 +72,19 @@ const AppContent: React.FC = () => {
         return params.get('token');
     });
 
+    // 카카오 로그인 콜백 처리
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('kakao_login') === '1') {
+            window.history.replaceState({}, '', window.location.pathname);
+            window.location.reload();
+        }
+        if (params.get('kakao_error') === '1') {
+            window.history.replaceState({}, '', window.location.pathname);
+            alert('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
+        }
+    }, []);
+
     const [pendingPayment] = useState<{ paymentKey: string; orderId: string; amount: number } | null>(() => {
         const params = new URLSearchParams(window.location.search);
         const paymentKey = params.get('paymentKey');

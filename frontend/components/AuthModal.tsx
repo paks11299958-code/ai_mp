@@ -543,6 +543,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                         : '재설정 링크 전송'
                         }
                     </button>
+
+                    {/* 카카오 로그인 — 로그인/회원가입 탭에서만 표시 */}
+                    {(mode === 'login' || mode === 'register') && (
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '4px 0' }}>
+                                <div style={{ flex: 1, height: 1, background: '#E8DDD0' }} />
+                                <span style={{ fontSize: 11, color: '#A0948A' }}>또는</span>
+                                <div style={{ flex: 1, height: 1, background: '#E8DDD0' }} />
+                            </div>
+                            <a
+                                href="/api/auth/kakao"
+                                style={{
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+                                    width: '100%', padding: '11px 0', borderRadius: 12,
+                                    background: '#FEE500', border: 'none', cursor: 'pointer',
+                                    fontSize: 14, fontWeight: 700, color: '#191919',
+                                    textDecoration: 'none', boxSizing: 'border-box',
+                                    transition: 'opacity 0.15s',
+                                }}
+                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '0.85'}
+                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+                            >
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                                    <path d="M12 3C7.03 3 3 6.36 3 10.5c0 2.67 1.69 5.01 4.24 6.38L6.2 20.1a.5.5 0 00.72.56l4.02-2.68c.35.04.7.06 1.06.06 4.97 0 9-3.36 9-7.54S16.97 3 12 3z" fill="#191919"/>
+                                </svg>
+                                카카오 로그인
+                            </a>
+                        </>
+                    )}
                 </form>
             )}
         </div>
