@@ -9,6 +9,7 @@ interface CategoryItem {
     key: string;
     label: string;
     emoji: string;
+    accent: string;
 }
 
 interface NewsData {
@@ -27,15 +28,14 @@ interface NewsItem {
 }
 
 const CATEGORIES: CategoryItem[] = [
-    { key: '국내뉴스', label: '국내', emoji: '🇰🇷' },
-    { key: '해외뉴스', label: '해외', emoji: '🌍' },
-    { key: '경제증시', label: '경제', emoji: '📈' },
-    { key: 'AI기술',   label: 'AI/기술', emoji: '🤖' },
-    { key: '부동산',   label: '부동산', emoji: '🏢' },
-    { key: '스포츠',   label: '스포츠', emoji: '⚽' },
+    { key: '국내뉴스', label: '국내',   emoji: '🇰🇷', accent: '#5C7BA8' },
+    { key: '해외뉴스', label: '해외',   emoji: '🌍', accent: '#5E9070' },
+    { key: '경제증시', label: '경제',   emoji: '📈', accent: '#A07828' },
+    { key: 'AI기술',   label: 'AI/기술', emoji: '🤖', accent: '#7A5FA0' },
+    { key: '부동산',   label: '부동산', emoji: '🏢', accent: '#C68760' },
+    { key: '스포츠',   label: '스포츠', emoji: '⚽', accent: '#5E7E86' },
 ];
 
-// "### 제목\n- **핵심 내용**: ...\n- **출처**: ..." 패턴 파싱
 function parseNewsItems(report: string): { intro: string; items: NewsItem[] } {
     const lines = report.split('\n');
     let intro = '';
@@ -83,7 +83,6 @@ function useTTS() {
         stop();
         setTtsLoading(true);
         try {
-            // 사전 생성된 TTS mp3 시도
             const res = await fetch(`/api/news/tts?category=${encodeURIComponent(category)}`, {
                 credentials: 'include',
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
@@ -121,6 +120,18 @@ function formatDate(dateStr: string) {
         return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
     } catch { return dateStr; }
 }
+
+// 크림 테마 팔레트
+const T = {
+    bg:       '#FBF8F3',
+    surface:  '#F5F0E8',
+    border:   '#E8DDD0',
+    borderSoft: '#EDE5D8',
+    ink:      '#2D2520',
+    inkSoft:  '#6B5F56',
+    inkMute:  '#A0948A',
+    gold:     '#C9A84C',
+};
 
 export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const [activeKey, setActiveKey] = useState(CATEGORIES[0].key);
@@ -165,176 +176,285 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const current = newsMap[activeKey];
     const isLoading = loadingKey === activeKey;
     const activeCat = CATEGORIES.find(c => c.key === activeKey)!;
-
     const parsed = current ? parseNewsItems(current.report) : null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-            <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl border border-sky-700/40 bg-[#0d1117] shadow-2xl overflow-hidden">
+        <div style={{
+            position: 'fixed', inset: 0, zIndex: 50,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 16,
+            background: 'rgba(45,37,32,0.55)',
+            backdropFilter: 'blur(6px)',
+        }}>
+            <div style={{
+                position: 'relative',
+                width: '100%', maxWidth: 640, maxHeight: '90vh',
+                display: 'flex', flexDirection: 'column',
+                borderRadius: 20,
+                background: T.bg,
+                border: `1px solid ${T.border}`,
+                boxShadow: '0 24px 60px -12px rgba(45,37,32,0.25)',
+                overflow: 'hidden',
+                fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif",
+            }}>
 
                 {/* 헤더 */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-sky-700/30 bg-sky-900/10 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                        <Newspaper size={17} className="text-sky-400" />
-                        <span className="text-sm font-semibold text-sky-200">오늘의 뉴스</span>
+                <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 18px',
+                    borderBottom: `1px solid ${T.border}`,
+                    background: T.surface,
+                    flexShrink: 0,
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Newspaper size={16} style={{ color: activeCat.accent }} />
+                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>오늘의 뉴스</span>
                         {collectedAt && (
-                            <span className="text-[11px] text-sky-600 ml-1">
+                            <span style={{ fontSize: 11, color: T.inkMute, marginLeft: 2 }}>
                                 수집 {formatTime(collectedAt)}
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {current && (
                             <button
                                 onClick={() => speaking ? stop() : speakCategory(activeKey)}
                                 disabled={ttsLoading}
-                                className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full border border-sky-600/50 bg-sky-900/20 text-sky-300 hover:bg-sky-800/40 transition-colors disabled:opacity-50"
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                    fontSize: 11, padding: '4px 10px',
+                                    borderRadius: 999,
+                                    border: `1px solid ${activeCat.accent}55`,
+                                    background: `${activeCat.accent}12`,
+                                    color: activeCat.accent,
+                                    cursor: ttsLoading ? 'not-allowed' : 'pointer',
+                                    opacity: ttsLoading ? 0.5 : 1,
+                                    fontWeight: 600,
+                                    transition: 'all 0.2s',
+                                }}
                             >
-                                {ttsLoading ? <Loader size={12} className="animate-spin" /> : speaking ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                                {ttsLoading ? <Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> : speaking ? <VolumeX size={11} /> : <Volume2 size={11} />}
                                 {ttsLoading ? '준비중' : speaking ? '중지' : '음성'}
                             </button>
                         )}
-                        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
+                        <button
+                            onClick={onClose}
+                            style={{
+                                padding: 6, borderRadius: 8,
+                                border: 'none', background: 'transparent',
+                                color: T.inkMute, cursor: 'pointer',
+                                display: 'flex', alignItems: 'center',
+                            }}
+                        >
                             <X size={16} />
                         </button>
                     </div>
                 </div>
 
                 {/* 카테고리 탭 */}
-                <div className="flex gap-1 px-4 py-2.5 border-b border-sky-700/20 bg-black/20 overflow-x-auto flex-shrink-0 scrollbar-hide">
-                    {CATEGORIES.map(cat => (
-                        <button
-                            key={cat.key}
-                            onClick={() => handleTab(cat.key)}
-                            className={`flex items-center gap-1 text-[11px] font-medium px-3 py-1.5 rounded-full whitespace-nowrap transition-all flex-shrink-0
-                                ${activeKey === cat.key
-                                    ? 'bg-sky-600 text-white shadow-md shadow-sky-900/50'
-                                    : 'bg-white/5 text-sky-400 border border-sky-700/30 hover:bg-sky-900/30'
-                                }`}
-                        >
-                            <span>{cat.emoji}</span>
-                            <span>{cat.label}</span>
-                            {newsMap[cat.key] !== undefined && newsMap[cat.key] !== null && activeKey !== cat.key && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block" />
-                            )}
-                        </button>
-                    ))}
+                <div style={{
+                    display: 'flex', gap: 6, padding: '10px 16px',
+                    borderBottom: `1px solid ${T.borderSoft}`,
+                    background: T.bg,
+                    overflowX: 'auto', flexShrink: 0,
+                }}>
+                    {CATEGORIES.map(cat => {
+                        const isActive = activeKey === cat.key;
+                        return (
+                            <button
+                                key={cat.key}
+                                onClick={() => handleTab(cat.key)}
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 4,
+                                    fontSize: 11, fontWeight: 600,
+                                    padding: '5px 12px', borderRadius: 999,
+                                    whiteSpace: 'nowrap', flexShrink: 0,
+                                    cursor: 'pointer', transition: 'all 0.2s',
+                                    border: isActive ? `1.5px solid ${cat.accent}` : `1px solid ${T.border}`,
+                                    background: isActive ? cat.accent : T.surface,
+                                    color: isActive ? '#fff' : T.inkSoft,
+                                    boxShadow: isActive ? `0 2px 8px ${cat.accent}40` : 'none',
+                                }}
+                            >
+                                <span>{cat.emoji}</span>
+                                <span>{cat.label}</span>
+                                {newsMap[cat.key] !== undefined && newsMap[cat.key] !== null && !isActive && (
+                                    <span style={{ width: 5, height: 5, borderRadius: '50%', background: cat.accent, display: 'inline-block' }} />
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* 컨텐츠 */}
-                <div className="flex-1 overflow-y-auto">
+                <div style={{ flex: 1, overflowY: 'auto' }}>
 
                     {/* 로딩 */}
                     {isLoading && (
-                        <div className="flex flex-col items-center justify-center gap-4 py-20">
-                            <div className="relative">
-                                <div className="w-12 h-12 rounded-full border-2 border-sky-500/30 border-t-sky-400 animate-spin" />
-                                <Newspaper size={18} className="absolute inset-0 m-auto text-sky-400" />
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12, padding: '60px 0' }}>
+                            <div style={{ position: 'relative', width: 44, height: 44 }}>
+                                <div style={{
+                                    position: 'absolute', inset: 0, borderRadius: '50%',
+                                    border: `2px solid ${activeCat.accent}30`,
+                                    borderTopColor: activeCat.accent,
+                                    animation: 'spin 0.9s linear infinite',
+                                }} />
+                                <Newspaper size={16} style={{ position: 'absolute', inset: 0, margin: 'auto', color: activeCat.accent }} />
                             </div>
-                            <p className="text-sm text-sky-300">뉴스를 불러오는 중...</p>
+                            <p style={{ fontSize: 13, color: T.inkSoft }}>뉴스를 불러오는 중...</p>
                         </div>
                     )}
 
                     {/* 에러 */}
                     {!isLoading && error && newsMap[activeKey] === null && (
-                        <div className="flex flex-col items-center gap-4 py-16 text-center">
-                            <div className="text-4xl">⚠️</div>
-                            <p className="text-red-400 text-sm">{error}</p>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '48px 16px', textAlign: 'center' }}>
+                            <span style={{ fontSize: 36 }}>⚠️</span>
+                            <p style={{ fontSize: 13, color: '#C0392B' }}>{error}</p>
                             <button
                                 onClick={() => {
                                     setNewsMap(prev => { const n = { ...prev }; delete n[activeKey]; return n; });
                                     fetchCategory(activeKey);
                                 }}
-                                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-900/30 border border-sky-700/40 text-sky-300 hover:bg-sky-800/40 transition-colors text-sm"
+                                style={{
+                                    display: 'flex', alignItems: 'center', gap: 6,
+                                    padding: '8px 16px', borderRadius: 10,
+                                    border: `1px solid ${T.border}`,
+                                    background: T.surface, color: T.inkSoft,
+                                    fontSize: 13, cursor: 'pointer',
+                                }}
                             >
-                                <RefreshCw size={14} /> 다시 시도
+                                <RefreshCw size={13} /> 다시 시도
                             </button>
                         </div>
                     )}
 
-                    {/* 뉴스 카드 목록 */}
+                    {/* 뉴스 목록 */}
                     {!isLoading && parsed && (
-                        <div className="p-4 space-y-0">
+                        <div style={{ padding: 16 }}>
 
-                            {/* 날짜 + 카테고리 배지 */}
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-900/30 border border-sky-700/30">
-                                    <span className="text-base">{activeCat.emoji}</span>
-                                    <span className="text-xs font-semibold text-sky-300">{activeCat.label}</span>
+                            {/* 날짜 + 출처 수 */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                                <div style={{
+                                    display: 'flex', alignItems: 'center', gap: 6,
+                                    padding: '4px 10px', borderRadius: 8,
+                                    background: `${activeCat.accent}15`,
+                                    border: `1px solid ${activeCat.accent}30`,
+                                }}>
+                                    <span style={{ fontSize: 14 }}>{activeCat.emoji}</span>
+                                    <span style={{ fontSize: 11, fontWeight: 700, color: activeCat.accent }}>{activeCat.label}</span>
                                 </div>
                                 {current && (
-                                    <span className="text-[11px] text-gray-500">{formatDate(current.date)} 뉴스</span>
+                                    <span style={{ fontSize: 11, color: T.inkMute }}>{formatDate(current.date)} 뉴스</span>
                                 )}
                                 {current && (
-                                    <span className="ml-auto text-[11px] text-gray-600">출처 {current.sources_count}개</span>
+                                    <span style={{ marginLeft: 'auto', fontSize: 11, color: T.inkMute }}>출처 {current.sources_count}개</span>
                                 )}
                             </div>
 
-                            {/* 인트로 문장 */}
+                            {/* 인트로 */}
                             {parsed.intro && (
-                                <div className="mb-4 px-3 py-2.5 rounded-lg bg-sky-950/40 border-l-2 border-sky-500/50">
-                                    <p className="text-xs text-sky-300/80 leading-relaxed">{parsed.intro}</p>
+                                <div style={{
+                                    marginBottom: 12, padding: '10px 14px',
+                                    borderRadius: 10,
+                                    background: `${activeCat.accent}08`,
+                                    borderLeft: `3px solid ${activeCat.accent}60`,
+                                }}>
+                                    <p style={{ fontSize: 11.5, color: T.inkSoft, lineHeight: 1.7 }}>{parsed.intro}</p>
                                 </div>
                             )}
 
-                            {/* 뉴스 아이템 카드들 */}
-                            <div className="space-y-2.5">
+                            {/* 뉴스 카드 */}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                 {parsed.items.map((item, idx) => (
-                                    <NewsCard key={idx} item={item} index={idx} />
+                                    <NewsCard key={idx} item={item} index={idx} accent={activeCat.accent} />
                                 ))}
                             </div>
 
                             {parsed.items.length === 0 && (
-                                <div className="text-center py-10 text-gray-500 text-sm">뉴스 항목을 불러올 수 없습니다.</div>
+                                <div style={{ textAlign: 'center', padding: '40px 0', fontSize: 13, color: T.inkMute }}>
+                                    뉴스 항목을 불러올 수 없습니다.
+                                </div>
                             )}
                         </div>
                     )}
                 </div>
             </div>
+
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+            `}</style>
         </div>
     );
 };
 
-const NewsCard: React.FC<{ item: NewsItem; index: number }> = ({ item, index }) => {
+const NewsCard: React.FC<{ item: NewsItem; index: number; accent: string }> = ({ item, index, accent }) => {
     return (
-        <div className="rounded-xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.06] hover:border-sky-700/30 transition-all overflow-hidden">
-            {/* 제목 행 */}
-            <div className="flex items-start gap-3 px-4 py-3">
-                <span className="flex-shrink-0 w-5 h-5 rounded-full bg-sky-800/60 text-sky-300 text-[10px] font-bold flex items-center justify-center mt-0.5">
+        <div style={{
+            borderRadius: 12,
+            border: `1px solid ${T.borderSoft}`,
+            background: '#fff',
+            overflow: 'hidden',
+            boxShadow: '0 2px 8px rgba(45,37,32,0.06)',
+            transition: 'box-shadow 0.2s',
+        }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(45,37,32,0.12)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 8px rgba(45,37,32,0.06)'}
+        >
+            {/* 제목 */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '12px 14px' }}>
+                <span style={{
+                    flexShrink: 0, width: 20, height: 20, borderRadius: '50%',
+                    background: accent, color: '#fff',
+                    fontSize: 10, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginTop: 1,
+                }}>
                     {index + 1}
                 </span>
-                <p className="flex-1 text-sm font-semibold text-gray-100 leading-snug">
+                <p style={{ flex: 1, fontSize: 13, fontWeight: 700, color: T.ink, lineHeight: 1.5, margin: 0 }}>
                     {item.title}
                 </p>
             </div>
 
-            {/* 상세 내용 — 항상 표시 */}
-            <div className="px-4 pb-3.5 space-y-2.5 border-t border-white/5">
-                {item.content && (
-                    <div className="pt-3">
-                        <div className="flex items-start gap-2">
-                            <span className="flex-shrink-0 text-[10px] font-semibold text-sky-400 bg-sky-900/40 px-1.5 py-0.5 rounded mt-0.5">
+            {/* 핵심 + 출처 */}
+            {(item.content || item.sources.length > 0) && (
+                <div style={{
+                    padding: '10px 14px', paddingTop: 0,
+                    borderTop: `1px solid ${T.borderSoft}`,
+                }}>
+                    {item.content && (
+                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, paddingTop: 10, marginBottom: 8 }}>
+                            <span style={{
+                                flexShrink: 0, fontSize: 10, fontWeight: 700,
+                                color: accent, background: `${accent}18`,
+                                padding: '2px 6px', borderRadius: 4, marginTop: 1,
+                            }}>
                                 핵심
                             </span>
-                            <p className="text-xs text-gray-300 leading-relaxed">{item.content}</p>
+                            <p style={{ flex: 1, fontSize: 12, color: T.inkSoft, lineHeight: 1.65, margin: 0 }}>
+                                {item.content}
+                            </p>
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {item.sources.length > 0 && (
-                    <div className="flex items-center flex-wrap gap-1.5">
-                        <span className="text-[10px] text-gray-600">출처</span>
-                        {item.sources.map((src, i) => (
-                            <span
-                                key={i}
-                                className="text-[10px] px-2 py-0.5 rounded-full bg-gray-800/80 text-gray-400 border border-gray-700/50 font-mono"
-                            >
-                                {src}
-                            </span>
-                        ))}
-                    </div>
-                )}
-            </div>
+                    {item.sources.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5 }}>
+                            <span style={{ fontSize: 10, color: T.inkMute }}>출처</span>
+                            {item.sources.map((src, i) => (
+                                <span key={i} style={{
+                                    fontSize: 10, padding: '2px 8px', borderRadius: 999,
+                                    background: T.surface,
+                                    border: `1px solid ${T.border}`,
+                                    color: T.inkSoft,
+                                    fontFamily: 'monospace',
+                                }}>
+                                    {src}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
