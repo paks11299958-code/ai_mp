@@ -815,7 +815,7 @@ const PersonaSelectPanel: React.FC<{
                         const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
                         const isFocused = feat.key === focusFeatureKey;
                         const subItems = (feat as any).subItems as string[] | undefined;
-                        const W = 160, H = 225;
+                        const W = 160, H = 280;
                         return (
                             <div key={feat.key}
                                 ref={isFocused ? focusFeatureRef : undefined}
@@ -868,9 +868,9 @@ const PersonaSelectPanel: React.FC<{
                                 <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1 }}>{numeral}</div>
                                 <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1, transform: 'rotate(180deg)' }}>{numeral}</div>
 
-                                {/* 아이콘 영역 — 카드 상단 55% */}
+                                {/* 아이콘 영역 — 카드 상단 62% */}
                                 <div style={{
-                                    position: 'absolute', top: 18, left: 10, right: 10, height: Math.round(H * 0.53),
+                                    position: 'absolute', top: 18, left: 10, right: 10, height: Math.round(H * 0.62),
                                     borderRadius: 9, border: `1px solid ${gold}40`,
                                     background: `radial-gradient(ellipse at 50% 40%, ${feat.palette.bg} 0%, ${feat.palette.deep}50 100%)`,
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
@@ -888,7 +888,7 @@ const PersonaSelectPanel: React.FC<{
 
                                 {/* 네임 플레이트 — 카드 하단 */}
                                 <div style={{
-                                    position: 'absolute', top: Math.round(H * 0.53) + 22, left: 0, right: 0, bottom: 0,
+                                    position: 'absolute', top: Math.round(H * 0.62) + 22, left: 0, right: 0, bottom: 0,
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                     padding: '4px 10px 10px', zIndex: 4, textAlign: 'center',
                                 }}>
