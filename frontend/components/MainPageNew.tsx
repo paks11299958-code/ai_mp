@@ -818,88 +818,98 @@ const PersonaSelectPanel: React.FC<{
                         const gold = T.gold;
                         const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
                         const isFocused = feat.key === focusFeatureKey;
+                        const subItems = (feat as any).subItems as string[] | undefined;
+                        const W = 160, H = 225;
                         return (
                             <div key={feat.key}
                                 ref={isFocused ? focusFeatureRef : undefined}
                                 onClick={() => feat.personaName && onFeatureSelect?.(feat.personaName)}
                                 style={{
-                                borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
-                                background: `linear-gradient(155deg, ${feat.palette.bg} 0%, #FBF8F3 55%, ${feat.palette.bg} 100%)`,
-                                boxShadow: isFocused
-                                    ? `0 0 0 3px ${feat.palette.accent}, 0 20px 40px -12px rgba(80,50,110,0.45)`
-                                    : '0 8px 24px -12px rgba(80,50,110,0.25)',
-                                transition: 'transform 0.25s, box-shadow 0.25s',
-                                position: 'relative', height: 280,
-                                transform: isFocused ? 'translateY(-6px) scale(1.03)' : 'none',
-                            }}
+                                    borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
+                                    background: `linear-gradient(160deg, ${feat.palette.bg} 0%, #FDFAF6 50%, ${feat.palette.bg} 100%)`,
+                                    boxShadow: isFocused
+                                        ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
+                                        : `0 6px 20px -6px ${feat.palette.accent}40`,
+                                    transition: 'transform 0.22s, box-shadow 0.22s',
+                                    position: 'relative', height: H,
+                                    transform: isFocused ? 'translateY(-5px) scale(1.03)' : 'none',
+                                }}
                                 onMouseEnter={e => {
-                                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px) scale(1.02)';
-                                    (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 40px -15px rgba(80,50,110,0.4)';
+                                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-5px) scale(1.02)';
+                                    (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 36px -8px ${feat.palette.accent}55`;
                                 }}
                                 onMouseLeave={e => {
-                                    (e.currentTarget as HTMLElement).style.transform = isFocused ? 'translateY(-6px) scale(1.03)' : 'translateY(0) scale(1)';
+                                    (e.currentTarget as HTMLElement).style.transform = isFocused ? 'translateY(-5px) scale(1.03)' : 'none';
                                     (e.currentTarget as HTMLElement).style.boxShadow = isFocused
-                                        ? `0 0 0 3px ${feat.palette.accent}, 0 20px 40px -12px rgba(80,50,110,0.45)`
-                                        : '0 8px 24px -12px rgba(80,50,110,0.25)';
+                                        ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
+                                        : `0 6px 20px -6px ${feat.palette.accent}40`;
                                 }}
                             >
                                 {/* 시머 */}
-                                <div style={{
-                                    position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2, pointerEvents: 'none',
-                                    background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
-                                    animation: 'mpn-shimmer 4s ease-in-out infinite',
-                                }} />
-                                {/* 골드 이중 테두리 */}
-                                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }}
-                                    viewBox="0 0 160 280" preserveAspectRatio="none">
-                                    <rect x="4" y="4" width="152" height="272" rx="9" fill="none" stroke={gold} strokeWidth="1.2" opacity="0.55"/>
-                                    <rect x="8" y="8" width="144" height="264" rx="6" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
-                                </svg>
-                                {/* 로마 숫자 */}
-                                <div style={{ position: 'absolute', top: 9, left: 12, zIndex: 3, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.85 }}>{numeral}</div>
-                                <div style={{ position: 'absolute', bottom: 9, right: 12, zIndex: 3, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.85, transform: 'rotate(180deg)' }}>{numeral}</div>
+                                <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', borderRadius: 16,
+                                    background: 'linear-gradient(110deg, transparent 38%, rgba(255,255,255,0.18) 50%, transparent 62%)',
+                                    animation: 'mpn-shimmer 4s ease-in-out infinite' }} />
 
-                                {/* 아이콘 씬 */}
+                                {/* 트럼프 카드 격자 테두리 SVG */}
+                                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }}
+                                    viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                                    {/* 외곽 테두리 */}
+                                    <rect x="3.5" y="3.5" width={W-7} height={H-7} rx="11" fill="none" stroke={gold} strokeWidth="1.2" opacity="0.6"/>
+                                    {/* 안쪽 테두리 */}
+                                    <rect x="7" y="7" width={W-14} height={H-14} rx="8" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                                    {/* 코너 다이아몬드 장식 — 4개 */}
+                                    {[[14,14],[W-14,14],[14,H-14],[W-14,H-14]].map(([cx,cy], idx) => (
+                                        <g key={idx} transform={`translate(${cx},${cy})`}>
+                                            <polygon points="0,-4.5 4.5,0 0,4.5 -4.5,0" fill={gold} opacity="0.55"/>
+                                            <polygon points="0,-2.5 2.5,0 0,2.5 -2.5,0" fill={gold} opacity="0.35"/>
+                                        </g>
+                                    ))}
+                                    {/* 중앙 가로 구분선 */}
+                                    <line x1="12" y1={H/2} x2={W-12} y2={H/2} stroke={gold} strokeWidth="0.5" opacity="0.2" strokeDasharray="3 3"/>
+                                </svg>
+
+                                {/* 로마 숫자 — 좌상 / 우하 (뒤집기) */}
+                                <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1 }}>{numeral}</div>
+                                <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1, transform: 'rotate(180deg)' }}>{numeral}</div>
+
+                                {/* 아이콘 영역 — 카드 상단 55% */}
                                 <div style={{
-                                    position: 'absolute', top: 22, left: 12, right: 12, height: 148,
-                                    borderRadius: 8, border: `1px solid ${gold}55`,
-                                    background: `radial-gradient(circle at 50% 45%, ${feat.palette.bg} 0%, ${feat.palette.deep}55 95%)`,
-                                    display: 'flex', flexDirection: 'column',
-                                    alignItems: 'center', justifyContent: 'center',
-                                    gap: 8, zIndex: 1,
+                                    position: 'absolute', top: 18, left: 10, right: 10, height: Math.round(H * 0.53),
+                                    borderRadius: 9, border: `1px solid ${gold}40`,
+                                    background: `radial-gradient(ellipse at 50% 40%, ${feat.palette.bg} 0%, ${feat.palette.deep}50 100%)`,
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    gap: 7, zIndex: 1,
                                 }}>
-                                    <MpnFeatureIcon kind={feat.icon} size={64} color={feat.palette.accent} bg={feat.palette.bg} />
+                                    <MpnFeatureIcon kind={feat.icon} size={60} color={feat.palette.accent} bg={feat.palette.bg} />
+                                    {/* 태그 뱃지 */}
                                     <div style={{
                                         background: feat.palette.accent, color: '#fff',
-                                        fontSize: 9, fontWeight: 600,
-                                        padding: '3px 10px', borderRadius: 999,
-                                        letterSpacing: '0.05em',
+                                        fontSize: 10, fontWeight: 700,
+                                        padding: '3px 11px', borderRadius: 999,
+                                        letterSpacing: '0.04em', boxShadow: `0 2px 6px ${feat.palette.accent}50`,
                                     }}>{feat.tag}</div>
                                 </div>
 
-                                {/* 네임 플레이트 */}
+                                {/* 네임 플레이트 — 카드 하단 */}
                                 <div style={{
-                                    position: 'absolute', top: 178, left: 0, right: 0, bottom: 0,
-                                    padding: '6px 12px 12px',
-                                    textAlign: 'center', zIndex: 3,
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                                    position: 'absolute', top: Math.round(H * 0.53) + 22, left: 0, right: 0, bottom: 0,
+                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                                    padding: '4px 10px 10px', zIndex: 4, textAlign: 'center',
                                 }}>
-                                    <div style={{ fontFamily: "'Cinzel', serif", fontSize: 7.5, color: gold, letterSpacing: '0.28em', marginBottom: 3, opacity: 0.9 }}>— {feat.latin} —</div>
-                                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 16, fontWeight: 600, color: feat.palette.accent, lineHeight: 1.2, marginBottom: 5 }}>{feat.name}</div>
-                                    {(feat as any).subItems ? (
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-                                            {((feat as any).subItems as string[]).map((item: string) => (
-                                                <div key={item} style={{
-                                                    fontSize: 9.5, color: feat.palette.accent,
-                                                    background: `${feat.palette.bg}cc`,
-                                                    border: `1px solid ${feat.palette.deep}88`,
-                                                    borderRadius: 6, padding: '2px 8px',
-                                                    lineHeight: 1.6, fontWeight: 500,
-                                                }}>{item}</div>
-                                            ))}
+                                    <div style={{ fontFamily: "'Cinzel', serif", fontSize: 7, color: gold, letterSpacing: '0.3em', opacity: 0.85, marginBottom: 4 }}>— {feat.latin} —</div>
+                                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.15 }}>{feat.name}</div>
+                                    {subItems && (
+                                        <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
+                                            {subItems.map((item: string) => (
+                                                <span key={item} style={{ fontSize: 9, color: feat.palette.accent, opacity: 0.75 }}>
+                                                    {item.replace(/^[^\s]+\s/, '')}
+                                                </span>
+                                            )).reduce((acc: React.ReactNode[], el, idx, arr) => {
+                                                acc.push(el);
+                                                if (idx < arr.length - 1) acc.push(<span key={`dot-${idx}`} style={{ fontSize: 9, color: gold, opacity: 0.5 }}>·</span>);
+                                                return acc;
+                                            }, [])}
                                         </div>
-                                    ) : (
-                                        <div style={{ fontSize: 10, color: T.inkSoft, lineHeight: 1.5, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' as any }}>{feat.desc}</div>
                                     )}
                                 </div>
                             </div>
