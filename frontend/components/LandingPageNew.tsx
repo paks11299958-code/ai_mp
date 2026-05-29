@@ -406,26 +406,31 @@ const PersonaTarotCard: React.FC<{
                 pointerEvents: 'none', zIndex: 2,
             }} />
 
-            {/* 골드 이중 테두리 */}
-            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }}
-                viewBox="0 0 200 310" preserveAspectRatio="none">
-                <rect x="5" y="5" width="190" height="300" rx="9"
-                    fill="none" stroke={gold} strokeWidth="1.2" opacity="0.55" />
-                <rect x="9" y="9" width="182" height="292" rx="6"
-                    fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4" />
+            {/* 트럼프 카드 격자 테두리 */}
+            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
+                viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                <rect x="4" y="4" width={W-8} height={H-8} rx="10" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6"/>
+                <rect x="8" y="8" width={W-16} height={H-16} rx="7" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                {[[16,16],[W-16,16],[16,H-16],[W-16,H-16]].map(([cx,cy],idx) => (
+                    <g key={idx} transform={`translate(${cx},${cy})`}>
+                        <polygon points="0,-5.5 5.5,0 0,5.5 -5.5,0" fill={gold} opacity="0.55"/>
+                        <polygon points="0,-3 3,0 0,3 -3,0" fill={gold} opacity="0.3"/>
+                    </g>
+                ))}
+                <line x1="14" y1={H/2} x2={W-14} y2={H/2} stroke={gold} strokeWidth="0.5" opacity="0.18" strokeDasharray="4 4"/>
             </svg>
 
             {/* 로마 숫자 TL */}
             <div style={{
-                position: 'absolute', top: 10, left: 13, zIndex: 3,
+                position: 'absolute', top: 9, left: 12, zIndex: 3,
                 fontFamily: "'Cinzel', serif", fontSize: 10,
-                color: gold, letterSpacing: '0.18em', opacity: 0.85,
+                color: gold, letterSpacing: '0.18em', opacity: 0.9,
             }}>{numeral}</div>
             {/* 로마 숫자 BR */}
             <div style={{
-                position: 'absolute', bottom: 10, right: 13, zIndex: 3,
+                position: 'absolute', bottom: 9, right: 12, zIndex: 3,
                 fontFamily: "'Cinzel', serif", fontSize: 10,
-                color: gold, letterSpacing: '0.18em', opacity: 0.85,
+                color: gold, letterSpacing: '0.18em', opacity: 0.9,
                 transform: 'rotate(180deg)',
             }}>{numeral}</div>
 

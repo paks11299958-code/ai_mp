@@ -331,26 +331,22 @@ const ChatStage: React.FC<{
                         animation: 'mpn-shimmer 4s ease-in-out infinite',
                         pointerEvents: 'none', zIndex: 2,
                     }} />
-                    {/* 골드 테두리 */}
-                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1 }}
+                    {/* 트럼프 카드 격자 테두리 */}
+                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 1, pointerEvents: 'none' }}
                         viewBox="0 0 180 280" preserveAspectRatio="none">
-                        <rect x="4" y="4" width="172" height="272" rx="8"
-                            fill="none" stroke={gold} strokeWidth="1.2" opacity="0.55" />
-                        <rect x="8" y="8" width="164" height="264" rx="5"
-                            fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4" />
+                        <rect x="4" y="4" width="172" height="272" rx="10" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6"/>
+                        <rect x="8" y="8" width="164" height="264" rx="7" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                        {[[15,15],[165,15],[15,265],[165,265]].map(([cx,cy],idx) => (
+                            <g key={idx} transform={`translate(${cx},${cy})`}>
+                                <polygon points="0,-5.5 5.5,0 0,5.5 -5.5,0" fill={gold} opacity="0.55"/>
+                                <polygon points="0,-3 3,0 0,3 -3,0" fill={gold} opacity="0.3"/>
+                            </g>
+                        ))}
+                        <line x1="13" y1="140" x2="167" y2="140" stroke={gold} strokeWidth="0.5" opacity="0.18" strokeDasharray="4 4"/>
                     </svg>
                     {/* 로마 숫자 */}
-                    <div style={{
-                        position: 'absolute', top: 8, left: 10, zIndex: 3,
-                        fontFamily: "'Cinzel', serif", fontSize: 9,
-                        color: gold, letterSpacing: '0.18em', opacity: 0.85,
-                    }}>I</div>
-                    <div style={{
-                        position: 'absolute', bottom: 8, right: 10, zIndex: 3,
-                        fontFamily: "'Cinzel', serif", fontSize: 9,
-                        color: gold, letterSpacing: '0.18em', opacity: 0.85,
-                        transform: 'rotate(180deg)',
-                    }}>I</div>
+                    <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 3, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9 }}>I</div>
+                    <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 3, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9, transform: 'rotate(180deg)' }}>I</div>
 
                     {/* 이미지 영역 */}
                     <div style={{
@@ -968,17 +964,23 @@ const PersonaSelectPanel: React.FC<{
                                 animation: 'mpn-shimmer 4s ease-in-out infinite',
                             }} />
 
-                            {/* 골드 이중 테두리 */}
-                            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3 }}
+                            {/* 트럼프 카드 격자 테두리 */}
+                            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }}
                                 viewBox="0 0 160 280" preserveAspectRatio="none">
-                                <rect x="4" y="4" width="152" height="272" rx="9" fill="none" stroke={gold} strokeWidth="1.2" opacity="0.55"/>
-                                <rect x="8" y="8" width="144" height="264" rx="6" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                                <rect x="4" y="4" width="152" height="272" rx="10" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6"/>
+                                <rect x="8" y="8" width="144" height="264" rx="7" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                                {[[15,15],[145,15],[15,265],[145,265]].map(([cx,cy],idx) => (
+                                    <g key={idx} transform={`translate(${cx},${cy})`}>
+                                        <polygon points="0,-5 5,0 0,5 -5,0" fill={gold} opacity="0.55"/>
+                                        <polygon points="0,-2.8 2.8,0 0,2.8 -2.8,0" fill={gold} opacity="0.3"/>
+                                    </g>
+                                ))}
+                                <line x1="12" y1="140" x2="148" y2="140" stroke={gold} strokeWidth="0.5" opacity="0.18" strokeDasharray="3 3"/>
                             </svg>
 
-                            {/* 로마 숫자 TL */}
-                            <div style={{ position: 'absolute', top: 9, left: 12, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.85 }}>{numeral}</div>
-                            {/* 로마 숫자 BR */}
-                            <div style={{ position: 'absolute', bottom: 9, right: 12, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.85, transform: 'rotate(180deg)' }}>{numeral}</div>
+                            {/* 로마 숫자 TL / BR */}
+                            <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9 }}>{numeral}</div>
+                            <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9, transform: 'rotate(180deg)' }}>{numeral}</div>
 
                             {/* 이미지 영역 */}
                             <div style={{
