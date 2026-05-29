@@ -4,6 +4,21 @@ import { stockReportApi } from '../services/apiService';
 
 const YUNCHAEWON_PERSONA_ID = 'cmois970w0000xsvie6aag2f5';
 
+// ── 크림 팔레트 ──────────────────────────────────────
+const T = {
+    bg:        '#FBF8F3',
+    surface:   '#F5F0E8',
+    card:      '#FFFFFF',
+    border:    '#E8DDD0',
+    borderSoft:'#EDE5D8',
+    ink:       '#2D2520',
+    inkSoft:   '#6B5F56',
+    inkMute:   '#A0948A',
+    gold:      '#C9A84C',
+    accent:    '#2E6B32',   // 주식 = 초록
+    accentSoft:'#E8F4E9',
+};
+
 interface StockTask {
     id: number;
     stockName: string;
@@ -57,57 +72,69 @@ function parseGeminiOpinion(report: string | null): AiOpinion {
 
 function opinionColor(opinion: string, score: number | null): string {
     const s = score ?? (opinion.includes('매수') ? 72 : opinion.includes('매도') ? 30 : 50);
-    if (s >= 85) return '#10b981';
-    if (s >= 65) return '#3b82f6';
-    if (s >= 40) return '#f59e0b';
-    if (s >= 20) return '#f97316';
-    return '#ef4444';
+    if (s >= 85) return '#16a34a';
+    if (s >= 65) return '#2563eb';
+    if (s >= 40) return '#d97706';
+    if (s >= 20) return '#ea580c';
+    return '#dc2626';
 }
 
+// ── AI 투자의견 비교 카드 ────────────────────────────
 const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: string | null; gptReport: string | null }> = ({ geminiReport, claudeReport, gptReport }) => {
     const gemini = parseGeminiOpinion(geminiReport);
     const claude = parseClaudeGptOpinion(claudeReport);
-    const gpt = parseClaudeGptOpinion(gptReport);
+    const gpt    = parseClaudeGptOpinion(gptReport);
 
     const ais = [
-        { label: 'Gemini 2.5', emoji: '🔵', data: gemini, accent: '#60a5fa' },
-        { label: 'Claude Sonnet', emoji: '🟣', data: claude, accent: '#a78bfa' },
-        { label: 'GPT-4o', emoji: '🟢', data: gpt, accent: '#34d399' },
+        { label: 'Gemini 2.5',   dot: '#60a5fa', data: gemini },
+        { label: 'Claude Sonnet', dot: '#a78bfa', data: claude },
+        { label: 'GPT-4o',       dot: '#34d399', data: gpt   },
     ];
 
     return (
-        <div style={{ background: 'linear-gradient(135deg, #0d1b2e 0%, #0a1628 100%)', border: '1px solid rgba(30,58,138,0.35)' }} className="rounded-2xl overflow-hidden mx-5 mt-4">
-            <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-800/80">
-                <BarChart2 size={12} className="text-blue-400" />
-                <span className="text-[10px] font-semibold text-blue-300 uppercase tracking-wider">AI 투자의견 비교</span>
+        <div style={{
+            margin: '16px 20px 0',
+            borderRadius: 14,
+            border: `1px solid ${T.border}`,
+            background: T.card,
+            overflow: 'hidden',
+            boxShadow: '0 2px 8px rgba(45,37,32,0.07)',
+        }}>
+            <div style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                padding: '10px 14px',
+                borderBottom: `1px solid ${T.borderSoft}`,
+                background: T.surface,
+            }}>
+                <BarChart2 size={12} style={{ color: T.accent }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: T.accent, letterSpacing: '0.08em', textTransform: 'uppercase' }}>AI 투자의견 비교</span>
             </div>
-            <div className="grid grid-cols-3 divide-x divide-slate-800/60">
-                {ais.map(({ label, emoji, data, accent }) => {
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
+                {ais.map(({ label, dot, data }, idx) => {
                     const color = opinionColor(data.opinion, data.score);
-                    const pct = data.score != null ? data.score : null;
+                    const pct = data.score ?? null;
                     return (
-                        <div key={label} className="flex flex-col items-center gap-2 px-3 py-4">
-                            <div className="flex items-center gap-1.5">
-                                <span className="text-sm">{emoji}</span>
-                                <span className="text-[10px] font-semibold" style={{ color: accent }}>{label}</span>
+                        <div key={label} style={{
+                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
+                            padding: '14px 10px',
+                            borderRight: idx < 2 ? `1px solid ${T.borderSoft}` : 'none',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                                <span style={{ width: 7, height: 7, borderRadius: '50%', background: dot, display: 'inline-block', flexShrink: 0 }} />
+                                <span style={{ fontSize: 10, fontWeight: 600, color: T.inkSoft }}>{label}</span>
                             </div>
-                            {/* 의견 + 점수 */}
-                            <div className="text-center">
-                                <div className="text-sm font-bold" style={{ color }}>{data.opinion}</div>
-                                {pct != null && (
-                                    <div className="text-[10px] font-semibold mt-0.5" style={{ color }}>{pct}점</div>
-                                )}
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 15, fontWeight: 800, color }}>{data.opinion}</div>
+                                {pct != null && <div style={{ fontSize: 10, fontWeight: 700, color, marginTop: 1 }}>{pct}점</div>}
                             </div>
-                            {/* 점수 바 */}
                             {pct != null && (
-                                <div className="w-full h-1.5 bg-slate-700/60 rounded-full overflow-hidden">
-                                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+                                <div style={{ width: '80%', height: 5, borderRadius: 99, background: T.borderSoft, overflow: 'hidden' }}>
+                                    <div style={{ height: '100%', borderRadius: 99, background: color, width: `${pct}%`, transition: 'width 0.6s ease' }} />
                                 </div>
                             )}
-                            {/* 목표주가 */}
-                            <div className="text-center mt-0.5">
-                                <div className="text-[9px] text-slate-500 mb-0.5">목표주가</div>
-                                <div className="text-[10px] text-slate-300 font-medium leading-tight">{data.target}</div>
+                            <div style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 9, color: T.inkMute, marginBottom: 2 }}>목표주가</div>
+                                <div style={{ fontSize: 10, color: T.inkSoft, fontWeight: 600, lineHeight: 1.4 }}>{data.target}</div>
                             </div>
                         </div>
                     );
@@ -134,49 +161,47 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 const STATUS_CONFIG = {
-    pending:    { label: '대기중',   icon: Clock,        cls: 'text-yellow-400' },
-    processing: { label: '분석중',   icon: Loader,       cls: 'text-blue-400' },
-    completed:  { label: '완료',     icon: CheckCircle,  cls: 'text-green-400' },
-    failed:     { label: '실패',     icon: XCircle,      cls: 'text-red-400' },
+    pending:    { label: '대기중', icon: Clock,       cls: '#d97706' },
+    processing: { label: '분석중', icon: Loader,      cls: '#2563eb' },
+    completed:  { label: '완료',   icon: CheckCircle, cls: '#16a34a' },
+    failed:     { label: '실패',   icon: XCircle,     cls: '#dc2626' },
 };
-
 
 const fmtTime = (d: Date) => d.toTimeString().slice(0, 5);
 
-// Inline formatter: **bold**, *italic*, `code`
+// ── 인라인 렌더러 ─────────────────────────────────────
 function renderInline(text: string): React.ReactNode {
     const parts: React.ReactNode[] = [];
     const regex = /(\*\*[^*\n]+\*\*|\*[^*\n]+\*|`[^`\n]+`)/g;
-    let last = 0;
-    let m: RegExpExecArray | null;
+    let last = 0; let m: RegExpExecArray | null;
     while ((m = regex.exec(text)) !== null) {
         if (m.index > last) parts.push(text.slice(last, m.index));
         const token = m[0];
         if (token.startsWith('**'))
-            parts.push(<strong key={m.index} className="text-white font-semibold">{token.slice(2, -2)}</strong>);
+            parts.push(<strong key={m.index} style={{ color: T.ink, fontWeight: 700 }}>{token.slice(2, -2)}</strong>);
         else if (token.startsWith('*'))
-            parts.push(<em key={m.index} className="italic text-slate-200">{token.slice(1, -1)}</em>);
+            parts.push(<em key={m.index} style={{ color: T.inkSoft }}>{token.slice(1, -1)}</em>);
         else
-            parts.push(<code key={m.index} className="bg-slate-700 text-green-300 px-1 py-0.5 rounded text-xs font-mono">{token.slice(1, -1)}</code>);
+            parts.push(<code key={m.index} style={{ background: T.surface, color: T.accent, padding: '1px 5px', borderRadius: 4, fontSize: 11, fontFamily: 'monospace' }}>{token.slice(1, -1)}</code>);
         last = m.index + token.length;
     }
     if (last < text.length) parts.push(text.slice(last));
     return <>{parts}</>;
 }
 
-// Markdown table block
+// ── 테이블 블록 ──────────────────────────────────────
 const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
     const dataRows = lines.filter(l => !/^\|[\s\-:|]+\|$/.test(l.trim()));
     const rows = dataRows.map(l => l.split('|').slice(1, -1).map(c => c.trim()));
-    if (rows.length === 0) return null;
+    if (!rows.length) return null;
     const [header, ...body] = rows;
     return (
-        <div className="my-3 overflow-x-auto rounded-lg border border-slate-700">
-            <table className="w-full text-xs border-collapse">
+        <div style={{ margin: '10px 0', overflowX: 'auto', borderRadius: 8, border: `1px solid ${T.border}` }}>
+            <table style={{ width: '100%', fontSize: 11, borderCollapse: 'collapse' }}>
                 <thead>
-                    <tr className="bg-slate-700/80">
+                    <tr style={{ background: T.surface }}>
                         {header.map((cell, i) => (
-                            <th key={i} className="px-3 py-2 text-left text-slate-200 font-semibold border-r border-slate-600 last:border-r-0 whitespace-nowrap">
+                            <th key={i} style={{ padding: '7px 12px', textAlign: 'left', color: T.ink, fontWeight: 700, borderRight: i < header.length - 1 ? `1px solid ${T.border}` : 'none', whiteSpace: 'nowrap' }}>
                                 {renderInline(cell)}
                             </th>
                         ))}
@@ -184,9 +209,9 @@ const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
                 </thead>
                 <tbody>
                     {body.map((row, ri) => (
-                        <tr key={ri} className={`border-t border-slate-700/50 ${ri % 2 !== 0 ? 'bg-slate-800/30' : ''}`}>
+                        <tr key={ri} style={{ borderTop: `1px solid ${T.borderSoft}`, background: ri % 2 !== 0 ? T.surface : T.card }}>
                             {row.map((cell, ci) => (
-                                <td key={ci} className="px-3 py-2 text-slate-300 border-r border-slate-700/40 last:border-r-0">
+                                <td key={ci} style={{ padding: '7px 12px', color: T.inkSoft, borderRight: ci < row.length - 1 ? `1px solid ${T.borderSoft}` : 'none' }}>
                                     {renderInline(cell)}
                                 </td>
                             ))}
@@ -198,7 +223,7 @@ const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
     );
 };
 
-// Full markdown-to-JSX renderer
+// ── 마크다운 렌더러 ──────────────────────────────────
 const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
     const lines = content.split('\n');
     const elements: React.ReactNode[] = [];
@@ -208,10 +233,10 @@ const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
     const flushList = () => {
         if (!pendingList.length) return;
         elements.push(
-            <ul key={`ul-${pendingList[0].idx}`} className="my-2 space-y-0.5">
+            <ul key={`ul-${pendingList[0].idx}`} style={{ margin: '6px 0', paddingLeft: 0, listStyle: 'none' }}>
                 {pendingList.map(({ line, idx }) => (
-                    <li key={idx} className="flex gap-2 text-xs text-slate-300 leading-relaxed">
-                        <span className="text-blue-400 shrink-0 mt-0.5">▸</span>
+                    <li key={idx} style={{ display: 'flex', gap: 8, fontSize: 12, color: T.inkSoft, lineHeight: 1.65, marginBottom: 2 }}>
+                        <span style={{ color: T.accent, flexShrink: 0, marginTop: 2 }}>▸</span>
                         <span>{renderInline(line.slice(2))}</span>
                     </li>
                 ))}
@@ -222,8 +247,6 @@ const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
 
     while (i < lines.length) {
         const line = lines[i];
-
-        // Table: collect consecutive | lines
         if (line.startsWith('|')) {
             flushList();
             const tableLines: string[] = [];
@@ -231,55 +254,38 @@ const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
             elements.push(<TableBlock key={`tbl-${i}`} lines={tableLines} />);
             continue;
         }
-
-        // List item accumulation
         if (line.startsWith('- ') || line.startsWith('* ')) {
             pendingList.push({ line, idx: i++ });
             continue;
         }
-
         flushList();
-
         if (line.startsWith('# ')) {
-            elements.push(
-                <h1 key={i} className="text-base font-bold text-white mt-5 mb-2 pb-2 border-b border-slate-700">
-                    {renderInline(line.slice(2))}
-                </h1>
-            );
+            elements.push(<h1 key={i} style={{ fontSize: 15, fontWeight: 800, color: T.ink, margin: '18px 0 8px', paddingBottom: 6, borderBottom: `1px solid ${T.border}` }}>{renderInline(line.slice(2))}</h1>);
         } else if (line.startsWith('## ')) {
             elements.push(
-                <div key={i} className="flex items-center gap-0 mt-5 mb-2 bg-blue-950/40 px-3 py-2 rounded-lg border-l-4 border-blue-500">
-                    <h2 className="text-sm font-bold text-blue-200">{renderInline(line.slice(3))}</h2>
+                <div key={i} style={{ margin: '16px 0 8px', background: T.accentSoft, padding: '7px 12px', borderRadius: 8, borderLeft: `4px solid ${T.accent}` }}>
+                    <h2 style={{ fontSize: 13, fontWeight: 700, color: T.accent, margin: 0 }}>{renderInline(line.slice(3))}</h2>
                 </div>
             );
         } else if (line.startsWith('### ')) {
-            elements.push(
-                <h3 key={i} className="text-xs font-semibold text-slate-300 mt-3 mb-1 pl-2 border-l-2 border-slate-500">
-                    {renderInline(line.slice(4))}
-                </h3>
-            );
+            elements.push(<h3 key={i} style={{ fontSize: 11.5, fontWeight: 700, color: T.ink, margin: '12px 0 4px', paddingLeft: 8, borderLeft: `2px solid ${T.border}` }}>{renderInline(line.slice(4))}</h3>);
         } else if (line.startsWith('> ')) {
             elements.push(
-                <blockquote key={i} className="border-l-2 border-amber-400 pl-3 py-1.5 my-2 bg-amber-400/10 rounded-r text-amber-200/80 text-xs leading-relaxed">
+                <blockquote key={i} style={{ borderLeft: `3px solid ${T.gold}`, paddingLeft: 10, paddingTop: 4, paddingBottom: 4, margin: '8px 0', background: `${T.gold}12`, borderRadius: '0 6px 6px 0', fontSize: 11.5, color: T.inkSoft, lineHeight: 1.6 }}>
                     {renderInline(line.slice(2))}
                 </blockquote>
             );
         } else if (line.startsWith('---')) {
-            elements.push(<hr key={i} className="border-slate-700 my-4" />);
+            elements.push(<hr key={i} style={{ border: 'none', borderTop: `1px solid ${T.border}`, margin: '14px 0' }} />);
         } else if (line.trim() === '') {
-            elements.push(<div key={i} className="h-1" />);
+            elements.push(<div key={i} style={{ height: 4 }} />);
         } else {
-            elements.push(
-                <p key={i} className="text-xs text-slate-300 leading-relaxed">
-                    {renderInline(line)}
-                </p>
-            );
+            elements.push(<p key={i} style={{ fontSize: 12, color: T.inkSoft, lineHeight: 1.7, margin: '2px 0' }}>{renderInline(line)}</p>);
         }
         i++;
     }
-
     flushList();
-    return <div className="space-y-0.5 pb-6">{elements}</div>;
+    return <div style={{ paddingBottom: 24 }}>{elements}</div>;
 };
 
 interface Suggestion { corpName: string; stockCode: string | null; }
@@ -300,27 +306,18 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const reportPanelRef = useRef<HTMLDivElement>(null);
 
     const loadTasks = useCallback(async () => {
-        try {
-            const data = await apiFetch<StockTask[]>(API(''));
-            setTasks(data);
-        } catch { }
-        finally { setLoading(false); }
+        try { const data = await apiFetch<StockTask[]>(API('')); setTasks(data); }
+        catch { } finally { setLoading(false); }
     }, []);
 
     useEffect(() => { loadTasks(); }, [loadTasks]);
-
-    useEffect(() => {
-        return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); };
-    }, []);
-
+    useEffect(() => { return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); }; }, []);
     useEffect(() => {
         const hasActive = tasks.some(t => t.status === 'pending' || t.status === 'processing');
         if (!hasActive) return;
         const t = setTimeout(loadTasks, 10000);
         return () => clearTimeout(t);
     }, [tasks, loadTasks]);
-
-    // 외부 클릭 시 드롭다운 닫기
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (inputWrapRef.current && !inputWrapRef.current.contains(e.target as Node))
@@ -337,32 +334,22 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         suggestTimer.current = setTimeout(async () => {
             try {
                 const data = await apiFetch<Suggestion[]>(`/api/stock-analysis/suggest?q=${encodeURIComponent(value.trim())}`);
-                setSuggestions(data);
-                setShowSuggestions(data.length > 0);
+                setSuggestions(data); setShowSuggestions(data.length > 0);
             } catch { setSuggestions([]); }
         }, 300);
     };
 
     const handleSuggestionSelect = (name: string) => {
-        setStockName(name);
-        setSuggestions([]);
-        setShowSuggestions(false);
+        setStockName(name); setSuggestions([]); setShowSuggestions(false);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!stockName.trim()) return;
-        setShowSuggestions(false);
-        setSubmitting(true);
+        setShowSuggestions(false); setSubmitting(true);
         try {
-            await apiFetch(API(''), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ stockName: stockName.trim() }),
-            });
-            setStockName('');
-            setSuggestions([]);
-            await loadTasks();
+            await apiFetch(API(''), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stockName: stockName.trim() }) });
+            setStockName(''); setSuggestions([]); await loadTasks();
         } catch (e: any) { alert(e.message); }
         finally { setSubmitting(false); }
     };
@@ -371,20 +358,24 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         if (task.status !== 'completed') return;
         setDetailLoading(true);
         reportPanelRef.current?.scrollTo({ top: 0 });
-        try {
-            const detail = await apiFetch<StockDetail>(API(`/${task.id}`));
-            setSelected(detail);
-            setLastUpdated(new Date());
-        } finally { setDetailLoading(false); }
+        try { const detail = await apiFetch<StockDetail>(API(`/${task.id}`)); setSelected(detail); setLastUpdated(new Date()); }
+        finally { setDetailLoading(false); }
     };
 
-    const handleDownload = (task: StockTask) => window.open(API(`/${task.id}/download`), '_blank');
-
     const handleDelete = async (id: number) => {
-        if (!confirm('삭제하시겠습니까?')) return;
         await apiFetch(API(`/${id}`), { method: 'DELETE' });
-        setTasks(prev => prev.filter(t => t.id !== id));
         if (selected?.id === id) setSelected(null);
+        setTasks(prev => prev.filter(t => t.id !== id));
+    };
+
+    const handleDownload = (task: StockTask | StockDetail) => {
+        const detail = selected?.id === task.id ? selected : null;
+        if (!detail?.analysisReport) return;
+        const blob = new Blob([detail.analysisReport], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${task.stockName}_분석보고서.md`; a.click();
+        URL.revokeObjectURL(url);
     };
 
     const handleRetry = async (id: number) => {
@@ -392,65 +383,61 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'pending' } : t));
     };
 
-    const krxSymbol = selected?.yahooSymbol
-        ? `KRX:${selected.yahooSymbol.replace(/\.(KS|KQ)$/i, '')}`
-        : null;
+    const krxSymbol = selected?.yahooSymbol ? `KRX:${selected.yahooSymbol.replace(/\.(KS|KQ)$/i, '')}` : null;
     const naverCode = krxSymbol ? krxSymbol.replace('KRX:', '') : null;
     const naverUrl = naverCode ? `https://finance.naver.com/item/main.naver?code=${naverCode}` : null;
     const naverChartImg = selected?.chartImageUrl ?? null;
 
     return (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center md:p-4">
-            <div className="bg-slate-900 md:border border-slate-700 md:rounded-2xl w-full md:max-w-5xl h-full md:h-auto md:max-h-[95vh] flex flex-col shadow-2xl">
-                {/* 모달 헤더 */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 shrink-0 bg-gradient-to-r from-slate-900 to-blue-950/40 rounded-t-2xl">
-                    <div className="flex items-center gap-2">
-                        <TrendingUp size={17} className="text-blue-400" />
-                        <h2 className="text-sm font-bold text-white">주식 분석</h2>
-                        <span className="text-[10px] text-blue-300/70 bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-full">DART + AI</span>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(45,37,32,0.55)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif" }}>
+            <div style={{ background: T.bg, border: `1px solid ${T.border}`, borderRadius: 20, width: '100%', maxWidth: 960, height: '100%', maxHeight: '95vh', display: 'flex', flexDirection: 'column', boxShadow: '0 24px 60px rgba(45,37,32,0.2)', overflow: 'hidden' }}>
+
+                {/* 헤더 */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <TrendingUp size={16} style={{ color: T.accent }} />
+                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>주식 분석</span>
+                        <span style={{ fontSize: 10, color: T.accent, background: T.accentSoft, border: `1px solid ${T.accent}40`, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>DART + AI</span>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-colors">
+                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', color: T.inkMute, cursor: 'pointer' }}>
                         <X size={17} />
                     </button>
                 </div>
 
-                <div className="flex flex-1 overflow-hidden">
-                    {/* 좌측: 종목 목록 — 모바일: 상세 없을 때만 표시 */}
-                    <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-60 shrink-0 border-r border-slate-800 flex-col`}>
-                        <form onSubmit={handleSubmit} className="p-3 border-b border-slate-800">
-                            <div className="relative" ref={inputWrapRef}>
-                                <div className="flex gap-2">
+                <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+
+                    {/* 좌측 사이드바 */}
+                    <div style={{ display: selected ? 'none' : 'flex', width: 220, flexShrink: 0, borderRight: `1px solid ${T.border}`, flexDirection: 'column', background: T.bg }}
+                        className="md:flex">
+                        <style>{`.stock-sidebar { display: flex !important; } @media (min-width: 768px) { .stock-sidebar-hide { display: none !important; } }`}</style>
+
+                        {/* 검색 폼 */}
+                        <form onSubmit={handleSubmit} style={{ padding: 10, borderBottom: `1px solid ${T.border}` }}>
+                            <div style={{ position: 'relative' }} ref={inputWrapRef}>
+                                <div style={{ display: 'flex', gap: 6 }}>
                                     <input
                                         value={stockName}
                                         onChange={e => handleInputChange(e.target.value)}
                                         onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
                                         placeholder="종목명 (예: 삼성전자)"
-                                        className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                        style={{ flex: 1, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, padding: '7px 10px', fontSize: 11, color: T.ink, outline: 'none' }}
                                         autoComplete="off"
                                     />
-                                    <button
-                                        type="submit"
-                                        disabled={submitting || !stockName.trim()}
-                                        className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 disabled:opacity-40 transition-colors shrink-0"
-                                    >
-                                        {submitting
-                                            ? <Loader size={13} className="animate-spin text-white" />
-                                            : <Plus size={13} className="text-white" />}
+                                    <button type="submit" disabled={submitting || !stockName.trim()}
+                                        style={{ padding: '7px 10px', borderRadius: 10, background: T.accent, border: 'none', cursor: submitting || !stockName.trim() ? 'not-allowed' : 'pointer', opacity: submitting || !stockName.trim() ? 0.4 : 1, flexShrink: 0 }}>
+                                        {submitting ? <Loader size={12} style={{ color: '#fff', animation: 'spin 1s linear infinite' }} /> : <Plus size={12} style={{ color: '#fff' }} />}
                                     </button>
                                 </div>
                                 {showSuggestions && (
-                                    <div className="absolute top-full left-0 right-8 mt-1 bg-slate-800 border border-slate-700 rounded-xl shadow-xl z-10 overflow-hidden">
+                                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 32, marginTop: 4, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(45,37,32,0.15)', zIndex: 10, overflow: 'hidden' }}>
                                         {suggestions.map((s, i) => (
-                                            <button
-                                                key={i}
-                                                type="button"
-                                                onMouseDown={() => handleSuggestionSelect(s.corpName)}
-                                                className="w-full flex items-center justify-between px-3 py-2 text-xs hover:bg-slate-700 transition-colors text-left"
+                                            <button key={i} type="button" onMouseDown={() => handleSuggestionSelect(s.corpName)}
+                                                style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 12px', fontSize: 11, background: 'transparent', border: 'none', cursor: 'pointer', textAlign: 'left', color: T.ink }}
+                                                onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = T.surface}
+                                                onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
                                             >
-                                                <span className="text-white">{s.corpName}</span>
-                                                {s.stockCode && (
-                                                    <span className="text-slate-500 font-mono text-[10px]">{s.stockCode}</span>
-                                                )}
+                                                <span>{s.corpName}</span>
+                                                {s.stockCode && <span style={{ color: T.inkMute, fontSize: 10, fontFamily: 'monospace' }}>{s.stockCode}</span>}
                                             </button>
                                         ))}
                                     </div>
@@ -459,106 +446,65 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         </form>
 
                         {/* 상태 범례 */}
-                        <div className="px-3 py-1.5 border-b border-slate-800 flex items-center gap-3 flex-wrap">
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-yellow-400 shrink-0" />
-                                <span className="text-[10px] text-slate-500">대기중</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
-                                <span className="text-[10px] text-slate-500">분석중</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
-                                <span className="text-[10px] text-slate-500">분석완료</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-red-400 shrink-0" />
-                                <span className="text-[10px] text-slate-500">실패</span>
-                            </div>
+                        <div style={{ padding: '6px 12px', borderBottom: `1px solid ${T.borderSoft}`, display: 'flex', flexWrap: 'wrap', gap: '4px 10px' }}>
+                            {[['#d97706','대기중'],['#2563eb','분석중'],['#16a34a','분석완료'],['#dc2626','실패']].map(([color, label]) => (
+                                <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: color, flexShrink: 0 }} />
+                                    <span style={{ fontSize: 10, color: T.inkMute }}>{label}</span>
+                                </div>
+                            ))}
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {loading && <div className="text-center py-8 text-slate-500 text-xs">불러오는 중...</div>}
+                        {/* 목록 */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+                            {loading && <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 11, color: T.inkMute }}>불러오는 중...</div>}
                             {!loading && tasks.length === 0 && (
-                                <div className="px-3 py-6 space-y-4">
-                                    {/* 설명 */}
-                                    <div className="text-center space-y-1.5">
-                                        <div className="text-slate-300 text-xs font-semibold">📊 주식 분석</div>
-                                        <p className="text-slate-500 text-[11px] leading-relaxed">
-                                            DART 공시 + Yahoo Finance 데이터를<br />AI가 분석해 투자 보고서를 생성합니다.
-                                        </p>
-                                    </div>
-                                    {/* 사용법 */}
-                                    <div className="bg-slate-800/50 rounded-xl px-3 py-2.5 space-y-1">
-                                        <p className="text-slate-400 text-[11px]">종목명 입력 후 <span className="text-blue-400 font-medium">+</span> 버튼 클릭</p>
-                                        <p className="text-slate-600 text-[10px]">예) 삼성전자 · 카카오 · 현대차</p>
-                                        <p className="text-slate-600 text-[10px] mt-1">⏱ 분석은 최대 1분 소요됩니다</p>
-                                    </div>
-                                    {/* 아이콘 범례 */}
-                                    <div className="border-t border-slate-800 pt-3 grid grid-cols-2 gap-1.5">
-                                        <div className="flex items-center gap-1.5">
-                                            <Clock size={11} className="text-yellow-400 shrink-0" />
-                                            <span className="text-[10px] text-slate-500">대기중</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <Loader size={11} className="text-blue-400 shrink-0" />
-                                            <span className="text-[10px] text-slate-500">분석중</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <CheckCircle size={11} className="text-green-400 shrink-0" />
-                                            <span className="text-[10px] text-slate-500">완료</span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <XCircle size={11} className="text-red-400 shrink-0" />
-                                            <span className="text-[10px] text-slate-500">실패 / 재시도</span>
-                                        </div>
+                                <div style={{ padding: '20px 10px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: 11, color: T.ink, fontWeight: 600, marginBottom: 6 }}>📊 주식 분석</div>
+                                    <p style={{ fontSize: 10.5, color: T.inkMute, lineHeight: 1.6, marginBottom: 10 }}>DART 공시 + AI가 분석해<br/>투자 보고서를 생성합니다.</p>
+                                    <div style={{ background: T.surface, borderRadius: 8, padding: '8px 10px', fontSize: 10.5, color: T.inkSoft, lineHeight: 1.6 }}>
+                                        종목명 입력 후 <span style={{ color: T.accent, fontWeight: 700 }}>+</span> 클릭<br />
+                                        <span style={{ color: T.inkMute }}>예) 삼성전자 · 카카오 · 현대차</span>
                                     </div>
                                 </div>
                             )}
                             {tasks.map(task => {
                                 const cfg = STATUS_CONFIG[task.status];
                                 const Icon = cfg.icon;
+                                const isSelected = selected?.id === task.id;
                                 return (
-                                    <div
-                                        key={task.id}
+                                    <div key={task.id}
                                         onClick={() => handleSelect(task)}
-                                        className={`flex items-center gap-2 p-2.5 rounded-xl transition-all ${
-                                            task.status === 'completed' ? 'cursor-pointer hover:bg-slate-800' : 'cursor-default'
-                                        } ${selected?.id === task.id ? 'bg-slate-800 ring-1 ring-blue-500/40' : ''}`}
+                                        style={{
+                                            display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
+                                            borderRadius: 10, marginBottom: 2,
+                                            cursor: task.status === 'completed' ? 'pointer' : 'default',
+                                            background: isSelected ? T.accentSoft : 'transparent',
+                                            border: isSelected ? `1px solid ${T.accent}40` : '1px solid transparent',
+                                            transition: 'all 0.15s',
+                                        }}
+                                        onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = T.surface; }}
+                                        onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                                     >
-                                        <Icon size={13} className={`${cfg.cls} shrink-0 ${task.status === 'processing' ? 'animate-spin' : ''}`} />
-                                        <div className="flex-1 min-w-0">
-                                            <div className="text-xs font-medium text-white truncate">{task.stockName}</div>
-                                            <div className="text-[10px] text-slate-500">{new Date(task.createdAt).toLocaleDateString('ko-KR')}</div>
-                                            {task.status === 'failed' && task.errorMessage && (
-                                                <div className="text-[10px] text-red-400 truncate mt-0.5">{task.errorMessage}</div>
-                                            )}
+                                        <Icon size={12} style={{ color: cfg.cls, flexShrink: 0, ...(task.status === 'processing' ? { animation: 'spin 1s linear infinite' } : {}) }} />
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ fontSize: 11, fontWeight: 600, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.stockName}</div>
+                                            <div style={{ fontSize: 10, color: T.inkMute }}>{new Date(task.createdAt).toLocaleDateString('ko-KR')}</div>
+                                            {task.status === 'failed' && task.errorMessage && <div style={{ fontSize: 10, color: '#dc2626', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.errorMessage}</div>}
                                         </div>
-                                        <div className="flex items-center gap-0.5 shrink-0">
+                                        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
                                             {task.status === 'completed' && (
-                                                <button
-                                                    onClick={e => { e.stopPropagation(); handleDownload(task); }}
-                                                    className="p-1 rounded text-slate-500 hover:text-blue-400 transition-colors"
-                                                    title=".md 다운로드"
-                                                >
-                                                    <Download size={11} />
+                                                <button onClick={e => { e.stopPropagation(); handleDownload(task); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                    <Download size={10} />
                                                 </button>
                                             )}
                                             {(task.status === 'failed' || task.status === 'completed') && (
-                                                <button
-                                                    onClick={e => { e.stopPropagation(); handleRetry(task.id); }}
-                                                    className="p-1 rounded text-slate-500 hover:text-yellow-400 transition-colors"
-                                                    title="재분석"
-                                                >
-                                                    <RotateCcw size={11} />
+                                                <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                    <RotateCcw size={10} />
                                                 </button>
                                             )}
-                                            <button
-                                                onClick={e => { e.stopPropagation(); handleDelete(task.id); }}
-                                                className="p-1 rounded text-slate-500 hover:text-red-400 transition-colors"
-                                            >
-                                                <Trash2 size={11} />
+                                            <button onClick={e => { e.stopPropagation(); handleDelete(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                <Trash2 size={10} />
                                             </button>
                                         </div>
                                     </div>
@@ -566,157 +512,155 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                             })}
                         </div>
 
-                        <div className="p-2 border-t border-slate-800">
-                            <button onClick={loadTasks} className="w-full flex items-center justify-center gap-1.5 py-1.5 text-xs text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 border border-slate-700 rounded-xl transition-colors">
-                                <RefreshCw size={11} /> 새로고침
+                        <div style={{ padding: 8, borderTop: `1px solid ${T.border}` }}>
+                            <button onClick={loadTasks} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: '7px 0', fontSize: 11, color: T.inkSoft, background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, cursor: 'pointer' }}>
+                                <RefreshCw size={10} /> 새로고침
                             </button>
                         </div>
                     </div>
 
-                    {/* 우측: 보고서 패널 — 모바일: 상세 있을 때만 표시 */}
-                    <div ref={reportPanelRef} className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-y-auto`}>
+                    {/* 우측 보고서 패널 */}
+                    <div ref={reportPanelRef} style={{ flex: 1, display: selected ? 'flex' : 'none', flexDirection: 'column', overflowY: 'auto', background: T.bg }}
+                        className="md:flex">
+
                         {/* 모바일 뒤로가기 */}
-                        <div className="md:hidden flex items-center px-4 py-2 border-b border-slate-800 shrink-0">
-                            <button
-                                onClick={() => setSelected(null)}
-                                className="flex items-center gap-1 text-slate-400 hover:text-white text-xs transition-colors"
-                            >
-                                <ChevronLeft size={14} /> 목록으로
+                        <div style={{ display: 'flex', alignItems: 'center', padding: '8px 14px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }} className="md:hidden">
+                            <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: T.inkSoft, background: 'none', border: 'none', cursor: 'pointer' }}>
+                                <ChevronLeft size={13} /> 목록으로
                             </button>
                         </div>
+
                         {detailLoading && (
-                            <div className="flex items-center justify-center h-full text-slate-500 text-sm">
-                                <Loader size={16} className="animate-spin mr-2" /> 불러오는 중...
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.inkMute, gap: 8, fontSize: 13 }}>
+                                <Loader size={15} style={{ animation: 'spin 1s linear infinite' }} /> 불러오는 중...
                             </div>
                         )}
+
                         {!detailLoading && !selected && (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-600 gap-3">
-                                <TrendingUp size={40} className="text-slate-700" />
-                                <p className="text-xs">완료된 분석을 클릭하면 보고서가 표시됩니다</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.inkMute, gap: 10 }}>
+                                <TrendingUp size={36} style={{ color: T.borderSoft }} />
+                                <p style={{ fontSize: 12 }}>완료된 분석을 클릭하면 보고서가 표시됩니다</p>
                             </div>
                         )}
+
                         {!detailLoading && selected && (
                             <div>
                                 {/* 학습하기 안내 */}
-                                <div className="mx-5 mt-4 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/25 rounded-xl px-3 py-2.5">
-                                    <MessageCircle size={13} className="text-emerald-400 shrink-0 mt-0.5" />
-                                    <p className="text-[11px] text-emerald-300/90 leading-relaxed">
-                                        <span className="font-semibold text-emerald-300">학습하기</span> — 현재 보고서를 AI 윤채원에게 학습시켜 보고서 내용으로 토론할 수 있습니다.
+                                <div style={{ margin: '14px 20px 0', display: 'flex', alignItems: 'flex-start', gap: 8, background: T.accentSoft, border: `1px solid ${T.accent}30`, borderRadius: 12, padding: '10px 14px' }}>
+                                    <MessageCircle size={13} style={{ color: T.accent, flexShrink: 0, marginTop: 1 }} />
+                                    <p style={{ fontSize: 11, color: T.accent, lineHeight: 1.6, margin: 0 }}>
+                                        <span style={{ fontWeight: 700 }}>학습하기</span> — 현재 보고서를 AI 윤채원에게 학습시켜 보고서 내용으로 토론할 수 있습니다.
                                     </p>
                                 </div>
-                                {/* 보고서 헤더 */}
-                                <div style={{ background: 'linear-gradient(135deg, #0d1b2e 0%, #0a1628 100%)', borderBottom: '1px solid rgba(30,58,138,0.3)' }} className="px-5 py-4">
-                                    <div className="flex items-start justify-between gap-3 mb-4">
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white tracking-tight">{selected.stockName}</h3>
-                                            <p className="text-xs text-slate-400 mt-1">
+
+                                {/* 보고서 헤더 — 종목명 + 차트 썸네일 나란히 */}
+                                <div style={{ margin: '14px 20px 0', background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '16px', boxShadow: '0 2px 8px rgba(45,37,32,0.06)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+                                        {/* 종목 정보 */}
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <h3 style={{ fontSize: 22, fontWeight: 800, color: T.ink, margin: '0 0 4px', lineHeight: 1.2 }}>{selected.stockName}</h3>
+                                            <p style={{ fontSize: 11, color: T.inkMute, margin: 0 }}>
                                                 주식 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-2 shrink-0 mt-1">
+
+                                        {/* 차트 썸네일 — 작은 다크 카드 */}
+                                        {naverUrl && naverChartImg && (
+                                            <a href={naverUrl} target="_blank" rel="noopener noreferrer"
+                                                style={{ flexShrink: 0, display: 'block', borderRadius: 10, overflow: 'hidden', border: '1px solid #1e3a5f', background: '#0d1628', width: 160, textDecoration: 'none', boxShadow: '0 4px 16px rgba(13,22,40,0.35)', transition: 'transform 0.2s, box-shadow 0.2s' }}
+                                                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1.03)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(13,22,40,0.5)'; }}
+                                                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(13,22,40,0.35)'; }}
+                                            >
+                                                <img src={naverChartImg} alt={`${selected.stockName} 주가 차트`}
+                                                    style={{ width: '100%', display: 'block' }}
+                                                    onError={e => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
+                                                />
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, padding: '4px 0', background: '#0a1628' }}>
+                                                    <TrendingUp size={9} style={{ color: '#60a5fa' }} />
+                                                    <span style={{ fontSize: 9, color: '#60a5fa' }}>네이버 금융 ↗</span>
+                                                </div>
+                                            </a>
+                                        )}
+
+                                        {/* 버튼 그룹 */}
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                                             <button
                                                 onClick={async () => {
                                                     if (consulting || selected.status !== 'completed') return;
                                                     setConsulting(true);
-                                                    try {
-                                                        await stockReportApi.consult(selected.id);
-                                                        onClose();
-                                                        onConsult?.(YUNCHAEWON_PERSONA_ID, selected.stockName);
-                                                    } catch (e: any) {
-                                                        alert(e.message || '학습 저장 실패');
-                                                        setConsulting(false);
-                                                    }
+                                                    try { await stockReportApi.consult(selected.id); onClose(); onConsult?.(YUNCHAEWON_PERSONA_ID, selected.stockName); }
+                                                    catch (e: any) { alert(e.message || '학습 저장 실패'); setConsulting(false); }
                                                 }}
                                                 disabled={consulting || selected.status !== 'completed'}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-xs transition-colors font-medium"
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: T.accent, border: 'none', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: consulting || selected.status !== 'completed' ? 0.5 : 1 }}
                                             >
-                                                {consulting
-                                                    ? <><Loader size={12} className="animate-spin" /> 학습 중...</>
-                                                    : <><MessageCircle size={12} /> 학습하기</>
-                                                }
+                                                {consulting ? <><Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> 학습 중...</> : <><MessageCircle size={11} /> 학습하기</>}
                                             </button>
-                                            <button
-                                                onClick={() => handleDownload(selected)}
-                                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs transition-colors font-medium"
-                                            >
-                                                <Download size={12} /> .md 다운로드
+                                            <button onClick={() => handleDownload(selected)}
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: T.surface, border: `1px solid ${T.border}`, color: T.inkSoft, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
+                                                <Download size={11} /> .md 다운로드
                                             </button>
                                         </div>
                                     </div>
-                                    {/* 데이터 소스 카드 */}
-                                    <div style={{ background: '#0d1628', border: '1px solid #1a2942' }} className="rounded-xl p-3.5">
-                                        <div className="flex items-center gap-1.5 mb-2">
-                                            <BarChart2 size={12} className="text-blue-400" />
-                                            <span className="text-[10px] font-semibold text-blue-300 uppercase tracking-wider">데이터 소스</span>
-                                        </div>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <span className="text-[10px] text-blue-300 bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 rounded font-medium">DART 공시</span>
-                                            <span className="text-[10px] text-slate-500">금융감독원 전자공시</span>
-                                            <span className="text-slate-700">·</span>
-                                            <span className="text-[10px] text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded font-medium">AI 분석</span>
-                                            <span className="text-[10px] text-slate-500">Gemini + Google Search</span>
-                                            {krxSymbol && <span className="text-[10px] text-slate-500 font-mono">{krxSymbol}</span>}
-                                        </div>
+
+                                    {/* 데이터 소스 */}
+                                    <div style={{ background: T.surface, borderRadius: 8, padding: '8px 12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+                                        <BarChart2 size={11} style={{ color: T.inkMute }} />
+                                        <span style={{ fontSize: 10, fontWeight: 700, color: T.inkMute, textTransform: 'uppercase', letterSpacing: '0.06em' }}>데이터 소스</span>
+                                        <span style={{ fontSize: 10, color: '#2563eb', background: '#eff6ff', border: '1px solid #bfdbfe', padding: '1px 7px', borderRadius: 4, fontWeight: 600 }}>DART 공시</span>
+                                        <span style={{ fontSize: 10, color: T.inkMute }}>금융감독원 전자공시</span>
+                                        <span style={{ color: T.border }}>·</span>
+                                        <span style={{ fontSize: 10, color: T.accent, background: T.accentSoft, border: `1px solid ${T.accent}40`, padding: '1px 7px', borderRadius: 4, fontWeight: 600 }}>AI 분석</span>
+                                        <span style={{ fontSize: 10, color: T.inkMute }}>Gemini + Google Search</span>
+                                        {krxSymbol && <span style={{ fontSize: 10, color: T.inkMute, fontFamily: 'monospace' }}>{krxSymbol}</span>}
                                     </div>
                                 </div>
 
-                                {/* AI 투자의견 비교 카드 */}
-                                <AiOpinionCard
-                                    geminiReport={selected.analysisReport}
-                                    claudeReport={selected.claudeReport}
-                                    gptReport={selected.gptReport}
-                                />
-
-                                {/* 주가 차트 — 네이버 금융 이미지 */}
-                                {naverUrl && naverChartImg && (
-                                    <div className="px-5 pt-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <div className="w-1 h-4 bg-blue-500 rounded-full shrink-0" />
-                                            <span className="text-xs font-semibold text-blue-200">주가 차트</span>
-                                            <span className="text-[10px] text-slate-500">by 네이버 금융</span>
-                                        </div>
-                                        <a href={naverUrl} target="_blank" rel="noopener noreferrer"
-                                            className="block rounded-xl overflow-hidden border border-slate-700 hover:border-blue-500/40 transition-colors group">
-                                            <img
-                                                src={naverChartImg}
-                                                alt={`${selected.stockName} 주가 차트`}
-                                                className="w-full block"
-                                                onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                                            />
-                                            <div className="flex items-center justify-center gap-1.5 py-2 bg-slate-800/60 group-hover:bg-slate-700/60 transition-colors">
-                                                <TrendingUp size={11} className="text-blue-400" />
-                                                <span className="text-[11px] text-slate-400 group-hover:text-white transition-colors">네이버 금융에서 자세히 보기 ↗</span>
-                                            </div>
-                                        </a>
-                                    </div>
-                                )}
+                                {/* AI 투자의견 */}
+                                <AiOpinionCard geminiReport={selected.analysisReport} claudeReport={selected.claudeReport} gptReport={selected.gptReport} />
 
                                 {/* 보고서 본문 */}
-                                <div className="px-5 pt-4">
+                                <div style={{ padding: '16px 20px' }}>
                                     {selected.analysisReport
                                         ? <ReportRenderer content={selected.analysisReport} />
-                                        : <p className="text-slate-500 text-sm py-4">보고서 내용이 없습니다.</p>
+                                        : <p style={{ fontSize: 12, color: T.inkMute, padding: '16px 0' }}>보고서 내용이 없습니다.</p>
                                     }
                                 </div>
 
                                 {/* Last updated */}
                                 {lastUpdated && (
-                                    <div className="px-5 pt-2 pb-1 flex items-center gap-2">
-                                        <span className="relative flex h-2 w-2">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                                    <div style={{ padding: '0 20px 8px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ position: 'relative', display: 'flex', width: 8, height: 8 }}>
+                                            <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: '#16a34a', opacity: 0.75, animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite' }} />
+                                            <span style={{ position: 'relative', borderRadius: '50%', width: 8, height: 8, background: '#16a34a' }} />
                                         </span>
-                                        <span className="text-[10px] text-slate-500">last updated {fmtTime(lastUpdated)}</span>
+                                        <span style={{ fontSize: 10, color: T.inkMute }}>last updated {fmtTime(lastUpdated)}</span>
                                     </div>
                                 )}
 
-                                {/* 참고 출처 */}
                                 <SourceLinks raw={selected.sourceLinks} />
                             </div>
                         )}
                     </div>
+
+                    {/* 우측 빈 상태 (선택 없을 때 md 이상) */}
+                    {!selected && (
+                        <div style={{ flex: 1, display: 'none', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: T.inkMute }} className="md:flex">
+                            <TrendingUp size={40} style={{ color: T.borderSoft }} />
+                            <p style={{ fontSize: 12 }}>완료된 분석을 클릭하면 보고서가 표시됩니다</p>
+                        </div>
+                    )}
                 </div>
             </div>
+
+            <style>{`
+                @keyframes spin { to { transform: rotate(360deg); } }
+                @keyframes ping { 75%, 100% { transform: scale(2); opacity: 0; } }
+                @media (min-width: 768px) {
+                    .stock-left { display: flex !important; }
+                    .stock-right { display: flex !important; }
+                }
+            `}</style>
         </div>
     );
 };
@@ -727,14 +671,15 @@ const SourceLinks: React.FC<{ raw: string | null }> = ({ raw }) => {
     try { links = JSON.parse(raw); } catch { return null; }
     if (!links.length) return null;
     return (
-        <div className="px-5 pb-6 pt-3 mt-2 border-t border-slate-800">
-            <div className="text-[10px] text-slate-500 mb-2 font-semibold uppercase tracking-wider">참고 출처 ({links.length})</div>
-            <div className="space-y-1">
+        <div style={{ padding: '12px 20px 24px', borderTop: `1px solid ${T.borderSoft}`, marginTop: 4 }}>
+            <div style={{ fontSize: 10, color: T.inkMute, marginBottom: 6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>참고 출처 ({links.length})</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {links.slice(0, 10).map((url, i) => (
                     <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                        className="block text-[10px] text-blue-400/60 hover:text-blue-400 truncate transition-colors">
-                        {url}
-                    </a>
+                        style={{ fontSize: 10, color: '#2563eb', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.7 }}
+                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
+                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '0.7'}
+                    >{url}</a>
                 ))}
             </div>
         </div>
