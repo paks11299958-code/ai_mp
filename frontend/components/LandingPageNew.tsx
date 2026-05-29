@@ -470,13 +470,13 @@ const PersonaTarotCard: React.FC<{
                 textAlign: 'center', zIndex: 3,
             }}>
                 <div style={{
-                    fontFamily: "'Cinzel', serif", fontSize: 8,
-                    color: gold, letterSpacing: '0.3em', marginBottom: 4,
-                    opacity: 0.9,
-                }}>— {persona.jobTitle || 'PERSONA'} —</div>
+                    fontSize: 11, color: gold,
+                    letterSpacing: '0.08em', marginBottom: 3,
+                    opacity: 0.85, fontWeight: 500,
+                }}>{persona.jobTitle || 'PERSONA'}</div>
                 <div style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 20, fontWeight: 600,
+                    fontSize: 22, fontWeight: 700,
                     color: palette.accent, lineHeight: 1.1,
                     letterSpacing: '-0.01em',
                 }}>{persona.name}</div>
@@ -588,13 +588,13 @@ const FeatureTarotCard: React.FC<{
                 display: 'flex', flexDirection: 'column', alignItems: 'center',
             }}>
                 <div style={{
-                    fontFamily: "'Cinzel', serif", fontSize: 8,
-                    color: gold, letterSpacing: '0.3em', marginBottom: 4,
-                    opacity: 0.9,
-                }}>— {latin} —</div>
+                    fontSize: 11, color: gold,
+                    letterSpacing: '0.08em', marginBottom: 3,
+                    opacity: 0.85, fontWeight: 500,
+                }}>{latin}</div>
                 <div style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 17, fontWeight: 600,
+                    fontSize: 18, fontWeight: 700,
                     color: palette.accent, lineHeight: 1.2,
                     marginBottom: 6,
                 }}>{name}</div>

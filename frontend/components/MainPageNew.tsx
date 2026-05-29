@@ -378,12 +378,12 @@ const ChatStage: React.FC<{
                         padding: '8px 12px 12px', textAlign: 'center', zIndex: 3,
                     }}>
                         <div style={{
-                            fontFamily: "'Cinzel', serif", fontSize: 7,
-                            color: gold, letterSpacing: '0.25em', marginBottom: 3, opacity: 0.85,
-                        }}>— PERSONA —</div>
+                            fontSize: 11, color: gold,
+                            letterSpacing: '0.08em', marginBottom: 3, opacity: 0.85, fontWeight: 500,
+                        }}>{persona.jobTitle || 'PERSONA'}</div>
                         <div style={{
                             fontFamily: "'Cormorant Garamond', serif",
-                            fontSize: 18, fontWeight: 600,
+                            fontSize: 20, fontWeight: 700,
                             color: palette.accent, lineHeight: 1.1,
                         }}>{persona.name}</div>
                     </div>
@@ -892,8 +892,8 @@ const PersonaSelectPanel: React.FC<{
                                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                                     padding: '4px 10px 10px', zIndex: 4, textAlign: 'center',
                                 }}>
-                                    <div style={{ fontFamily: "'Cinzel', serif", fontSize: 7, color: gold, letterSpacing: '0.3em', opacity: 0.85, marginBottom: 4 }}>— {feat.latin} —</div>
-                                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.15 }}>{feat.name}</div>
+                                    <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', opacity: 0.85, marginBottom: 3, fontWeight: 500 }}>{feat.latin}</div>
+                                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.15 }}>{feat.name}</div>
                                     {subItems && (
                                         <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
                                             {subItems.map((item: string) => (
@@ -1017,8 +1017,8 @@ const PersonaSelectPanel: React.FC<{
                                 textAlign: 'center', zIndex: 3,
                                 display: 'flex', flexDirection: 'column', alignItems: 'center',
                             }}>
-                                <div style={{ fontFamily: "'Cinzel', serif", fontSize: 7.5, color: gold, letterSpacing: '0.28em', marginBottom: 3, opacity: 0.9 }}>— {persona.jobTitle || 'PERSONA'} —</div>
-                                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18, fontWeight: 600, color: palette.accent, lineHeight: 1.1 }}>{persona.name}</div>
+                                <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', marginBottom: 3, opacity: 0.85, fontWeight: 500 }}>{persona.jobTitle || 'PERSONA'}</div>
+                                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: palette.accent, lineHeight: 1.1 }}>{persona.name}</div>
                             </div>
                         </div>
                     );
