@@ -99,6 +99,7 @@ export interface User {
     paidPoints: number;
     bonusPoints: number;
     personaXp: Record<string, number>;
+    provider?: string;
 }
 
 export interface PointsInfo {

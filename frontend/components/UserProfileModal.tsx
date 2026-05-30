@@ -182,6 +182,15 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate 
                             </div>
 
                             {/* 비밀번호 변경 */}
+                            {user.provider === 'kakao' ? (
+                                <div className="bg-gray-800/60 rounded-xl px-4 py-3 flex items-center gap-3">
+                                    <Lock size={14} className="text-gray-500 shrink-0" />
+                                    <div>
+                                        <p className="text-sm text-gray-400">비밀번호 변경</p>
+                                        <p className="text-xs text-yellow-500 mt-0.5">카카오 계정은 비밀번호가 없습니다. 카카오 앱에서 관리해주세요.</p>
+                                    </div>
+                                </div>
+                            ) : (
                             <div className="bg-gray-800/60 rounded-xl overflow-hidden">
                                 <button
                                     type="button"
@@ -245,6 +254,7 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate 
                                     </form>
                                 )}
                             </div>
+                            )}
                         </div>
                     )}
 

@@ -67,7 +67,9 @@ export default function KakaoNicknameModal({ defaultNickname, token, onComplete 
                         닉네임을 설정해주세요
                     </div>
                     <div style={{ fontSize: 13, color: '#8B7355', textAlign: 'center', lineHeight: 1.5 }}>
-                        서비스에서 사용할 이름입니다.<br />나중에 프로필에서 변경할 수 있어요.
+                        서비스에서 사용할 별명입니다.<br />
+                        <span style={{ color: '#C07A3A', fontWeight: 600 }}>실명 대신 별명 사용을 권장합니다.</span><br />
+                        나중에 프로필에서 변경할 수 있어요.
                     </div>
                 </div>
 
