@@ -2,17 +2,49 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../types';
 import { authApi, pointsApi, PointsStats } from '../services/apiService';
 import { getStage } from '../utils/level';
-import { X, User as UserIcon, BarChart2, Lock, Eye, EyeOff, ChevronDown, Heart } from 'lucide-react';
+import { X, User as UserIcon, BarChart2, Lock, Eye, EyeOff, ChevronDown, Heart, Pencil, Check } from 'lucide-react';
 
 interface Props {
     user: User;
     onClose: () => void;
+    onUserUpdate?: (updated: Partial<User>) => void;
 }
 
 type Tab = 'info' | 'stats';
 
-export const UserProfileModal: React.FC<Props> = ({ user, onClose }) => {
+export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate }) => {
     const [tab, setTab] = useState<Tab>('info');
+
+    // 닉네임 변경
+    const [nicknameEdit, setNicknameEdit] = useState(false);
+    const [nicknameVal, setNicknameVal] = useState(user.username || '');
+    const [nicknameLoading, setNicknameLoading] = useState(false);
+    const [nicknameMsg, setNicknameMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+    const handleNicknameSave = async () => {
+        const trimmed = nicknameVal.trim();
+        if (!trimmed) { setNicknameMsg({ type: 'err', text: '닉네임을 입력해주세요.' }); return; }
+        if (trimmed === (user.username || '')) { setNicknameEdit(false); return; }
+        setNicknameLoading(true);
+        setNicknameMsg(null);
+        try {
+            const token = localStorage.getItem('token') || '';
+            const res = await fetch('/api/user/username', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ username: trimmed }),
+            });
+            const data = await res.json();
+            if (!res.ok) { setNicknameMsg({ type: 'err', text: data.error || '오류가 발생했습니다.' }); return; }
+            setNicknameMsg({ type: 'ok', text: '닉네임이 변경되었습니다.' });
+            setNicknameEdit(false);
+            onUserUpdate?.({ username: data.user.username });
+        } catch {
+            setNicknameMsg({ type: 'err', text: '네트워크 오류가 발생했습니다.' });
+        } finally {
+            setNicknameLoading(false);
+        }
+    };
 
     // 비밀번호 변경
     const [curPw, setCurPw] = useState('');
@@ -104,7 +136,46 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose }) => {
                             <div>
                                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">기본 정보</h3>
                                 <div className="bg-gray-800/60 rounded-xl divide-y divide-gray-700/50">
-                                    <InfoRow label="이름" value={user.username || '—'} />
+                                    {/* 닉네임 — 인라인 편집 */}
+                                    <div className="px-4 py-2.5">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-xs text-gray-500">닉네임</span>
+                                            {nicknameEdit ? (
+                                                <div className="flex items-center gap-2">
+                                                    <input
+                                                        autoFocus
+                                                        value={nicknameVal}
+                                                        onChange={e => setNicknameVal(e.target.value)}
+                                                        onKeyDown={e => { if (e.key === 'Enter') handleNicknameSave(); if (e.key === 'Escape') { setNicknameEdit(false); setNicknameVal(user.username || ''); } }}
+                                                        maxLength={20}
+                                                        className="bg-gray-900 border border-gray-600 rounded-lg px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-purple-500 w-32"
+                                                    />
+                                                    <button
+                                                        onClick={handleNicknameSave}
+                                                        disabled={nicknameLoading}
+                                                        className="p-1 rounded-lg text-green-400 hover:bg-gray-700 transition-colors disabled:opacity-50"
+                                                    >
+                                                        <Check size={15} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm text-gray-200">{user.username || '—'}</span>
+                                                    <button
+                                                        onClick={() => { setNicknameEdit(true); setNicknameMsg(null); setNicknameVal(user.username || ''); }}
+                                                        className="p-1 rounded-lg text-gray-500 hover:text-gray-300 hover:bg-gray-700 transition-colors"
+                                                    >
+                                                        <Pencil size={13} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {nicknameMsg && (
+                                            <p className={`text-xs mt-1 text-right ${nicknameMsg.type === 'ok' ? 'text-green-400' : 'text-red-400'}`}>
+                                                {nicknameMsg.text}
+                                            </p>
+                                        )}
+                                    </div>
                                     <InfoRow label="이메일" value={user.email || '—'} />
                                     <InfoRow label="전화번호" value={user.phone ? formatPhone(user.phone) : '—'} />
                                 </div>
