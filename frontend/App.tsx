@@ -952,13 +952,14 @@ const AppContent: React.FC = () => {
                     <PartnerBoardPanel user={user} onClose={() => setShowPartnerBoard(false)} />
                 )}
                 {introVideoModal && (
-                    <div className="fixed inset-0 z-[70] bg-black flex flex-col">
-                        <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+                    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
+                        <div className="flex flex-col rounded-2xl overflow-hidden" style={{ width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
                             {introVideoModal.type === 'video' ? (
                                 <video
                                     src={introVideoModal.url}
                                     autoPlay
-                                    className="max-w-full max-h-full object-contain"
+                                    className="w-full object-cover"
+                                    style={{ maxHeight: '65vh' }}
                                     onError={() => {
                                         const persona = personas.find(p => p.id === introVideoModal.personaId);
                                         if (persona?.imageUrl) {
@@ -967,24 +968,24 @@ const AppContent: React.FC = () => {
                                     }}
                                 />
                             ) : (
-                                <img src={introVideoModal.url} alt="프로필" className="max-w-full max-h-full object-contain" />
+                                <img src={introVideoModal.url} alt="프로필" className="w-full object-cover" style={{ maxHeight: '65vh' }} />
                             )}
-                        </div>
-                        <div className="flex-shrink-0 flex gap-3 justify-center px-6 py-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)' }}>
-                            <button
-                                onClick={() => { setIntroVideoModal(null); setShowAuthPage(true); }}
-                                className="min-h-[44px] px-8 py-2.5 text-white font-semibold rounded-xl transition-all hover:scale-105"
-                                style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', boxShadow: '0 0 16px rgba(124,58,237,0.4)' }}
-                            >
-                                입장
-                            </button>
-                            <button
-                                onClick={() => setIntroVideoModal(null)}
-                                className="min-h-[44px] px-8 py-2.5 text-gray-300 font-semibold rounded-xl transition-all hover:text-white"
-                                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
-                            >
-                                취소
-                            </button>
+                            <div className="flex gap-3 justify-center px-5 py-4" style={{ background: 'rgba(15,10,25,0.95)' }}>
+                                <button
+                                    onClick={() => { setIntroVideoModal(null); setShowAuthPage(true); }}
+                                    className="flex-1 min-h-[44px] py-2.5 text-white font-semibold rounded-xl transition-all hover:scale-105"
+                                    style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', boxShadow: '0 0 16px rgba(124,58,237,0.4)' }}
+                                >
+                                    입장
+                                </button>
+                                <button
+                                    onClick={() => setIntroVideoModal(null)}
+                                    className="flex-1 min-h-[44px] py-2.5 text-gray-300 font-semibold rounded-xl transition-all hover:text-white"
+                                    style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+                                >
+                                    취소
+                                </button>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -1518,13 +1519,14 @@ const AppContent: React.FC = () => {
 
             {/* 인트로 영상/이미지 모달 */}
             {introVideoModal && (
-                <div className="fixed inset-0 z-[70] bg-black flex flex-col">
-                    <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
+                    <div className="flex flex-col rounded-2xl overflow-hidden" style={{ width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
                         {introVideoModal.type === 'video' ? (
                             <video
                                 src={introVideoModal.url}
                                 autoPlay
-                                className="max-w-full max-h-full object-contain"
+                                className="w-full object-cover"
+                                style={{ maxHeight: '65vh' }}
                                 onError={() => {
                                     const persona = personas.find(p => p.id === introVideoModal.personaId);
                                     if (persona?.imageUrl) {
@@ -1533,10 +1535,9 @@ const AppContent: React.FC = () => {
                                 }}
                             />
                         ) : (
-                            <img src={introVideoModal.url} alt="프로필" className="max-w-full max-h-full object-contain" />
+                            <img src={introVideoModal.url} alt="프로필" className="w-full object-cover" style={{ maxHeight: '65vh' }} />
                         )}
-                    </div>
-                    <div className="flex-shrink-0 flex gap-3 justify-center px-6 py-4" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(10px)' }}>
+                        <div className="flex gap-3 justify-center px-5 py-4" style={{ background: 'rgba(15,10,25,0.95)' }}>
                         <button
                             onClick={() => {
                                 const id = introVideoModal.personaId;
@@ -1549,7 +1550,7 @@ const AppContent: React.FC = () => {
                                     handleSelectPersona(id);
                                 }
                             }}
-                            className="min-h-[44px] px-8 py-2.5 text-white font-semibold rounded-xl transition-all hover:scale-105"
+                            className="flex-1 min-h-[44px] py-2.5 text-white font-semibold rounded-xl transition-all hover:scale-105"
                             style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', boxShadow: '0 0 16px rgba(124,58,237,0.4)' }}
                         >
                             입장
@@ -1559,11 +1560,12 @@ const AppContent: React.FC = () => {
                                 setIntroVideoModal(null);
                                 if (!introVideoModal.guestMode) setShowMain(true);
                             }}
-                            className="min-h-[44px] px-8 py-2.5 text-gray-300 font-semibold rounded-xl transition-all hover:text-white"
+                            className="flex-1 min-h-[44px] py-2.5 text-gray-300 font-semibold rounded-xl transition-all hover:text-white"
                             style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
                         >
                             취소
                         </button>
+                        </div>
                     </div>
                 </div>
             )}
