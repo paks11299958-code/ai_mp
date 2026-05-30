@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { Persona, Category } from '../types';
+import { TermsModal } from './TermsModal';
 
 // ─────────────────────────────────────────────
 // 디자인 토큰
@@ -774,6 +775,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [termsModal, setTermsModal] = useState<'terms' | 'privacy' | null>(null);
 
     const handleFeatureClick = (key: string) => {
         onFeatureClick?.(key);
@@ -1319,8 +1321,39 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 <span style={{ color: 'rgba(197,168,100,0.3)' }}>|</span>
                 <span>전화: 0502-468-0502</span>
             </div>
+            {/* 약관 링크 */}
             <div style={{
-                marginTop: 14,
+                marginTop: 16,
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 20,
+            }}>
+                <button
+                    onClick={() => setTermsModal('terms')}
+                    style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 11, color: 'rgba(197,168,100,0.6)',
+                        textDecoration: 'underline', textUnderlineOffset: 3,
+                        padding: 0,
+                    }}
+                >
+                    이용약관
+                </button>
+                <button
+                    onClick={() => setTermsModal('privacy')}
+                    style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        fontSize: 11, color: 'rgba(197,168,100,0.8)',
+                        fontWeight: 700,
+                        textDecoration: 'underline', textUnderlineOffset: 3,
+                        padding: 0,
+                    }}
+                >
+                    개인정보처리방침
+                </button>
+            </div>
+            <div style={{
+                marginTop: 12,
                 fontSize: 10,
                 color: 'rgba(255,255,255,0.2)',
                 letterSpacing: '0.1em',
@@ -1328,6 +1361,14 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 © 2026 Whispr. All rights reserved.
             </div>
         </footer>
+
+        {/* 약관 모달 */}
+        {termsModal && (
+            <TermsModal
+                initialTab={termsModal}
+                onClose={() => setTermsModal(null)}
+            />
+        )}
         </div>
     );
 };
