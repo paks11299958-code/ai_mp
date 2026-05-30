@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend && cp -r sites frontend/dist/sites 2>/dev/null || true",
+  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend && cp -r sites frontend/dist/sites 2>/dev/null || true && mkdir -p frontend/dist/sites/_preview",
   "outputDirectory": "frontend/dist",
   "crons": [
     {
