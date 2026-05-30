@@ -220,6 +220,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                             ? '발송된 인증번호와 새 비밀번호를 입력하세요.'
                             : '가입 시 사용한 이메일 또는 전화번호를 입력하세요.'}
                     </p>
+                    {forgotStep === 'input' && (
+                        <div className="mt-3 flex items-start gap-2 rounded-xl px-3 py-2"
+                            style={{ background: '#FEE500', fontSize: 12, color: '#5C4A00', lineHeight: 1.5 }}>
+                            <span style={{ fontSize: 14 }}>💬</span>
+                            <span><b>카카오 로그인</b>으로 가입하셨나요? 카카오 계정은 비밀번호가 없어 이 기능을 사용할 수 없습니다. 로그인 화면에서 카카오 로그인 버튼을 이용해주세요.</span>
+                        </div>
+                    )}
                 </div>
             )}
 
