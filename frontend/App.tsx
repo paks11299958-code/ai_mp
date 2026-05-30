@@ -76,6 +76,8 @@ const AppContent: React.FC = () => {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         if (params.get('kakao_login') === '1') {
+            const kakaoToken = params.get('kakao_token');
+            if (kakaoToken) localStorage.setItem('token', kakaoToken);
             window.history.replaceState({}, '', window.location.pathname);
             window.location.reload();
         }
