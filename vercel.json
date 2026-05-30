@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend",
+  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend && cp -r sites frontend/dist/sites 2>/dev/null || true",
   "outputDirectory": "frontend/dist",
   "crons": [
     {
@@ -42,6 +42,11 @@
   },
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
+
+    { "source": "/sites/:sitename", "destination": "/sites/:sitename/index.html" },
+    { "source": "/sites/:sitename/", "destination": "/sites/:sitename/index.html" },
+    { "source": "/sites/:sitename/:path*", "destination": "/sites/:sitename/:path*" },
+
 
     { "source": "/api/chat-stream", "destination": "http://34.50.27.95:3020/api/aimp/chat-stream" },
 
