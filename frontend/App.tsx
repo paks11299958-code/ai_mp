@@ -76,10 +76,25 @@ const AppContent: React.FC = () => {
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         if (params.get('kakao_login') === '1') {
-            const kakaoToken = params.get('kakao_token');
-            if (kakaoToken) localStorage.setItem('token', kakaoToken);
+            const kakaoCode = params.get('kakao_code');
             window.history.replaceState({}, '', window.location.pathname);
-            window.location.reload();
+            if (kakaoCode) {
+                fetch('/api/auth/kakao/exchange', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: kakaoCode }),
+                })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.token) {
+                            localStorage.setItem('token', data.token);
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => alert('카카오 로그인에 실패했습니다.'));
+            } else {
+                window.location.reload();
+            }
         }
         if (params.get('kakao_error') === '1') {
             window.history.replaceState({}, '', window.location.pathname);
