@@ -42,6 +42,7 @@ import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { FaceReadingResult } from './services/apiService';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
 import { ClubBoard } from './components/ClubBoard';
+import KakaoNicknameModal from './components/KakaoNicknameModal';
 
 
 const AppContent: React.FC = () => {
@@ -58,6 +59,7 @@ const AppContent: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
+    const [kakaoNicknameModal, setKakaoNicknameModal] = useState<{ token: string; defaultNickname: string } | null>(null);
     const [showAuthPage, setShowAuthPage] = useState(false);
     const [showMain, setShowMain] = useState(false);
     // 뉴UI: 로그인 후 히어로 페이지 표시 여부
@@ -88,7 +90,12 @@ const AppContent: React.FC = () => {
                     .then(data => {
                         if (data.token) {
                             localStorage.setItem('token', data.token);
-                            window.location.reload();
+                            if (data.isNewUser) {
+                                // 신규 가입: 닉네임 설정 모달 표시
+                                setKakaoNicknameModal({ token: data.token, defaultNickname: data.kakaoNickname || '' });
+                            } else {
+                                window.location.reload();
+                            }
                         }
                     })
                     .catch(() => alert('카카오 로그인에 실패했습니다.'));
@@ -870,6 +877,16 @@ const AppContent: React.FC = () => {
                     token={resetToken}
                     onClose={() => setResetToken(null)}
                 />
+                {kakaoNicknameModal && (
+                    <KakaoNicknameModal
+                        defaultNickname={kakaoNicknameModal.defaultNickname}
+                        token={kakaoNicknameModal.token}
+                        onComplete={() => {
+                            setKakaoNicknameModal(null);
+                            window.location.reload();
+                        }}
+                    />
+                )}
             </>
         );
     }
@@ -2097,6 +2114,16 @@ const AppContent: React.FC = () => {
                 </div>
             )}
         </div>
+        {kakaoNicknameModal && (
+            <KakaoNicknameModal
+                defaultNickname={kakaoNicknameModal.defaultNickname}
+                token={kakaoNicknameModal.token}
+                onComplete={() => {
+                    setKakaoNicknameModal(null);
+                    window.location.reload();
+                }}
+            />
+        )}
         </>
     );
 };
