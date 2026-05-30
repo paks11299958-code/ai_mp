@@ -1572,22 +1572,23 @@ const AppContent: React.FC = () => {
 
             {/* 트리거 영상 팝업 */}
             {triggerVideoPopup && (
-                <div className="fixed inset-0 z-[60] bg-black flex flex-col">
-                    <div className="flex-shrink-0 flex items-center justify-between px-4 py-3" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)' }}>
-                        <span className="text-sm font-medium text-white">{triggerVideoPopup.title || '영상'}</span>
-                        <button
-                            onClick={() => setTriggerVideoPopup(null)}
-                            className="min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-400 hover:text-white transition-colors"
-                        >
-                            <Icon name="X" size={22} />
-                        </button>
-                    </div>
-                    <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden">
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}>
+                    <div className="flex flex-col rounded-2xl overflow-hidden" style={{ width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+                        <div className="flex items-center justify-between px-4 py-3" style={{ background: 'rgba(15,10,25,0.95)' }}>
+                            <span className="text-sm font-medium text-white">{triggerVideoPopup.title || '영상'}</span>
+                            <button
+                                onClick={() => setTriggerVideoPopup(null)}
+                                className="min-w-[36px] min-h-[36px] flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                            >
+                                <Icon name="X" size={20} />
+                            </button>
+                        </div>
                         <video
                             src={triggerVideoPopup.videoUrl}
                             controls
                             autoPlay
-                            className="max-w-full max-h-full object-contain"
+                            className="w-full object-cover"
+                            style={{ maxHeight: '65vh' }}
                             onEnded={() => setTriggerVideoPopup(null)}
                         />
                     </div>
