@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Trash2, RefreshCw, RotateCcw, ChevronLeft, BarChart2, MessageCircle } from 'lucide-react';
 import { stockReportApi } from '../services/apiService';
+import { boardFetch as apiFetch } from '../lib/boardFetch';
+import { useTaskList } from '../hooks/useTaskList';
 
 const YUNCHAEWON_PERSONA_ID = 'cmois970w0000xsvie6aag2f5';
 
@@ -151,15 +153,6 @@ interface Props {
 
 const API = (path: string) => `/api/stock-analysis${path}`;
 
-async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(url, { credentials: 'include', ...options });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: '오류' }));
-        throw new Error(err.error || '요청 실패');
-    }
-    return res.json();
-}
-
 const STATUS_CONFIG = {
     pending:    { label: '대기중', icon: Clock,       cls: '#d97706' },
     processing: { label: '분석중', icon: Loader,      cls: '#2563eb' },
@@ -291,8 +284,7 @@ const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
 interface Suggestion { corpName: string; stockCode: string | null; }
 
 export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
-    const [tasks, setTasks] = useState<StockTask[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { tasks, setTasks, loading, loadTasks } = useTaskList<StockTask>(API(''));
     const [stockName, setStockName] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [selected, setSelected] = useState<StockDetail | null>(null);
@@ -305,19 +297,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const inputWrapRef = useRef<HTMLDivElement>(null);
     const reportPanelRef = useRef<HTMLDivElement>(null);
 
-    const loadTasks = useCallback(async () => {
-        try { const data = await apiFetch<StockTask[]>(API('')); setTasks(data); }
-        catch { } finally { setLoading(false); }
-    }, []);
-
-    useEffect(() => { loadTasks(); }, [loadTasks]);
     useEffect(() => { return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); }; }, []);
-    useEffect(() => {
-        const hasActive = tasks.some(t => t.status === 'pending' || t.status === 'processing');
-        if (!hasActive) return;
-        const t = setTimeout(loadTasks, 10000);
-        return () => clearTimeout(t);
-    }, [tasks, loadTasks]);
     useEffect(() => {
         const handler = (e: MouseEvent) => {
             if (inputWrapRef.current && !inputWrapRef.current.contains(e.target as Node))

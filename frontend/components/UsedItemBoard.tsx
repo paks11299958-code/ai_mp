@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
     X, Plus, ShoppingBag, Clock, CheckCircle, XCircle, Loader,
     Trash2, RefreshCw, RotateCcw, ChevronLeft, Upload, Copy, Check,
     ImageIcon, Tag, Banknote, Package,
 } from 'lucide-react';
+import { boardFetch as apiFetch } from '../lib/boardFetch';
+import { useTaskList } from '../hooks/useTaskList';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -46,15 +48,6 @@ interface Props {
 
 const API = (path: string) => `/api/used-item${path}`;
 
-async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
-    const res = await fetch(url, { credentials: 'include', ...options });
-    if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: '오류' }));
-        throw new Error(err.error || '요청 실패');
-    }
-    return res.json();
-}
-
 const STATUS_CONFIG = {
     pending:    { label: '대기중',  icon: Clock,        cls: 'text-yellow-400' },
     processing: { label: '분석중',  icon: Loader,       cls: 'text-blue-400' },
@@ -81,8 +74,7 @@ function fmtPrice(n: number | null | undefined) {
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
 export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
-    const [tasks, setTasks] = useState<UsedItemTask[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { tasks, setTasks, loading, loadTasks } = useTaskList<UsedItemTask>(API(''));
     const [selected, setSelected] = useState<UsedItemDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
@@ -99,24 +91,6 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
     const [editDesc, setEditDesc] = useState('');
     const [saving, setSaving] = useState(false);
     const [copied, setCopied] = useState(false);
-
-    const loadTasks = useCallback(async () => {
-        try {
-            const data = await apiFetch<UsedItemTask[]>(API(''));
-            setTasks(data);
-        } catch { }
-        finally { setLoading(false); }
-    }, []);
-
-    useEffect(() => { loadTasks(); }, [loadTasks]);
-
-    // pending/processing 있으면 10초마다 폴링
-    useEffect(() => {
-        const hasActive = tasks.some(t => t.status === 'pending' || t.status === 'processing');
-        if (!hasActive) return;
-        const t = setTimeout(loadTasks, 10000);
-        return () => clearTimeout(t);
-    }, [tasks, loadTasks]);
 
     // 파일 선택
     const handleFiles = (newFiles: FileList | null) => {
