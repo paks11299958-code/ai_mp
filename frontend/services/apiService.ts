@@ -33,6 +33,32 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     return data;
 }
 
+// ── 메서드 헬퍼 (request 래퍼 — boilerplate 축약, 동작은 request와 동일) ──
+// get<T>(path)         = request<T>(path)
+// post<T>(path, body)  = request<T>(path, { method:'POST', body: JSON.stringify(body) })
+// put / del 동일 패턴. body 생략 시 JSON.stringify 안 함(undefined body).
+export function get<T>(path: string): Promise<T> {
+    return request<T>(path);
+}
+export function post<T>(path: string, body?: unknown): Promise<T> {
+    return request<T>(path, {
+        method: 'POST',
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+}
+export function put<T>(path: string, body?: unknown): Promise<T> {
+    return request<T>(path, {
+        method: 'PUT',
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+}
+export function del<T>(path: string, body?: unknown): Promise<T> {
+    return request<T>(path, {
+        method: 'DELETE',
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+}
+
 async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 1500): Promise<T> {
     for (let i = 0; i <= retries; i++) {
         try {
@@ -52,62 +78,38 @@ async function withRetry<T>(fn: () => Promise<T>, retries = 2, delayMs = 1500): 
 // Auth
 export const authApi = {
     register: (emailOrPhone: string, password: string, username?: string, isPhone = false) =>
-        request<{ user: User; token: string }>('/auth/register', {
-            method: 'POST',
-            body: JSON.stringify(
-                isPhone
-                    ? { phone: emailOrPhone, password, username }
-                    : { email: emailOrPhone, password, username }
-            ),
-        }),
+        post<{ user: User; token: string }>('/auth/register',
+            isPhone
+                ? { phone: emailOrPhone, password, username }
+                : { email: emailOrPhone, password, username }
+        ),
 
     login: (identifier: string, password: string) =>
-        request<{ user: User; token: string }>('/auth/login', {
-            method: 'POST',
-            body: JSON.stringify({ identifier, password }),
-        }),
+        post<{ user: User; token: string }>('/auth/login', { identifier, password }),
 
     logout: () =>
-        request<{ message: string }>('/auth/logout', { method: 'POST' }),
+        post<{ message: string }>('/auth/logout'),
 
     me: () =>
-        request<{ user: User }>('/auth/me'),
+        get<{ user: User }>('/auth/me'),
 
     forgotPassword: (email: string) =>
-        request<{ message: string }>('/auth/forgot-password', {
-            method: 'POST',
-            body: JSON.stringify({ email }),
-        }),
+        post<{ message: string }>('/auth/forgot-password', { email }),
 
     sendCode: (phone: string) =>
-        request<{ message: string }>('/auth/send-code', {
-            method: 'POST',
-            body: JSON.stringify({ phone }),
-        }),
+        post<{ message: string }>('/auth/send-code', { phone }),
 
     sendVerify: (type: 'EMAIL' | 'PHONE', identifier: string) =>
-        request<{ message: string }>('/auth/send-verify', {
-            method: 'POST',
-            body: JSON.stringify({ type, identifier }),
-        }),
+        post<{ message: string }>('/auth/send-verify', { type, identifier }),
 
     verifyRegister: (type: 'EMAIL' | 'PHONE', identifier: string, code: string, password: string, username?: string) =>
-        request<{ user: User; token: string }>('/auth/verify-register', {
-            method: 'POST',
-            body: JSON.stringify({ type, identifier, code, password, username }),
-        }),
+        post<{ user: User; token: string }>('/auth/verify-register', { type, identifier, code, password, username }),
 
     resetPassword: (token: string, password: string) =>
-        request<{ message: string }>('/auth/reset-password', {
-            method: 'POST',
-            body: JSON.stringify({ token, password }),
-        }),
+        post<{ message: string }>('/auth/reset-password', { token, password }),
 
     changePassword: (currentPassword: string, newPassword: string) =>
-        request<{ message: string }>('/auth/change-password', {
-            method: 'POST',
-            body: JSON.stringify({ currentPassword, newPassword }),
-        }),
+        post<{ message: string }>('/auth/change-password', { currentPassword, newPassword }),
 };
 
 // Personas
@@ -188,22 +190,16 @@ export const personaApi = {
 // Categories
 export const categoryApi = {
     getAll: () =>
-        request<Category[]>('/categories'),
+        get<Category[]>('/categories'),
 
     create: (name: string, order?: number) =>
-        request<Category>('/categories', {
-            method: 'POST',
-            body: JSON.stringify({ name, order }),
-        }),
+        post<Category>('/categories', { name, order }),
 
     update: (id: number, data: { name?: string; order?: number }) =>
-        request<Category>(`/categories/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        }),
+        put<Category>(`/categories/${id}`, data),
 
     delete: (id: number) =>
-        request<{ message: string }>(`/categories/${id}`, { method: 'DELETE' }),
+        del<{ message: string }>(`/categories/${id}`),
 };
 
 // Persona Images
