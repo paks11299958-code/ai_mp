@@ -3,6 +3,7 @@ import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Tra
 import { stockReportApi } from '../services/apiService';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
 import { useTaskList } from '../hooks/useTaskList';
+import { parseClaudeGptOpinion, parseGeminiOpinion, opinionColor, type AiOpinion } from '../utils/parsing';
 
 const YUNCHAEWON_PERSONA_ID = 'cmois970w0000xsvie6aag2f5';
 
@@ -38,47 +39,6 @@ interface StockDetail extends StockTask {
     sourceLinks: string | null;
     yahooSymbol?: string | null;
     chartImageUrl?: string | null;
-}
-
-interface AiOpinion { opinion: string; score: number | null; target: string; }
-
-function parseClaudeGptOpinion(report: string | null): AiOpinion {
-    if (!report) return { opinion: '—', score: null, target: '—' };
-    const opinionMatch = report.match(/###\s*투자의견\s*\n([^\n]+)/);
-    let opinion = '—'; let score: number | null = null;
-    if (opinionMatch) {
-        const line = opinionMatch[1].trim();
-        const sm = line.match(/([가-힣]+)\s*\((\d+)점\)/);
-        if (sm) { opinion = sm[1]; score = parseInt(sm[2]); }
-        else { opinion = line.split(/[—\-]/)[0].trim() || '—'; }
-    }
-    const targetMatch = report.match(/###\s*목표주가\s*추정\s*\n([^\n]+)/);
-    const target = targetMatch ? targetMatch[1].trim() : '—';
-    return { opinion, score, target };
-}
-
-function parseGeminiOpinion(report: string | null): AiOpinion {
-    if (!report) return { opinion: '—', score: null, target: '—' };
-    let opinion = '—'; let score: number | null = null;
-    const opinionMatch = report.match(/\|\s*투자의견\s*\|\s*\*?\*?([^\n|*]+)/);
-    if (opinionMatch) {
-        const raw = opinionMatch[1].replace(/\*\*/g, '').trim();
-        const sm = raw.match(/([가-힣]+)\s*\((\d+)점\)/);
-        if (sm) { opinion = sm[1]; score = parseInt(sm[2]); }
-        else { opinion = raw.split(/[—\-\s]/)[0] || '—'; }
-    }
-    const targetMatch = report.match(/\|\s*목표주가\s*\|\s*([^|\n]+)/);
-    const target = targetMatch ? targetMatch[1].replace(/\*\*/g, '').trim() : '—';
-    return { opinion, score, target };
-}
-
-function opinionColor(opinion: string, score: number | null): string {
-    const s = score ?? (opinion.includes('매수') ? 72 : opinion.includes('매도') ? 30 : 50);
-    if (s >= 85) return '#16a34a';
-    if (s >= 65) return '#2563eb';
-    if (s >= 40) return '#d97706';
-    if (s >= 20) return '#ea580c';
-    return '#dc2626';
 }
 
 // ── AI 투자의견 비교 카드 ────────────────────────────
