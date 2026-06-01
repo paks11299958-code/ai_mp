@@ -1317,7 +1317,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 <span style={{ color: 'rgba(197,168,100,0.3)' }}>|</span>
                 <span>통신판매업 신고번호: 제 2026-충북청주-0690호</span>
                 <span style={{ color: 'rgba(197,168,100,0.3)', width: '100%', display: 'none' }} className="lp-footer-divider">|</span>
-                <span>주소: 충청북도 청주시 흥덕구 옥산면 오송가락로 1056, 104동 1303호</span>
+                <span>주소: 충청북도 청주시 흥덕구 옥산면 오송가락로 1056</span>
                 <span style={{ color: 'rgba(197,168,100,0.3)' }}>|</span>
                 <span>전화: 0502-468-0502</span>
             </div>
