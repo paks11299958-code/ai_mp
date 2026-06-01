@@ -115,76 +115,55 @@ export const authApi = {
 // Personas
 export const personaApi = {
     getAll: () =>
-        withRetry(() => request<Persona[]>('/personas')),
+        withRetry(() => get<Persona[]>('/personas')),
 
     create: (data: Omit<Persona, 'id'>) =>
-        request<Persona>('/personas', {
-            method: 'POST',
-            body: JSON.stringify(data),
-        }),
+        post<Persona>('/personas', data),
 
     update: (id: string, data: Partial<Persona>) =>
-        request<Persona>(`/personas/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        }),
+        put<Persona>(`/personas/${id}`, data),
 
     delete: (id: string) =>
-        request<{ message: string }>(`/personas/${id}`, { method: 'DELETE' }),
+        del<{ message: string }>(`/personas/${id}`),
 
     getIntroVideoUploadUrl: (id: string, mimeType: string) =>
-        request<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/intro-video/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
+        get<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/intro-video/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
 
     saveIntroVideoUrl: (id: string, videoUrl: string) =>
-        request<Persona>(`/personas/${id}/intro-video`, {
-            method: 'POST',
-            body: JSON.stringify({ videoUrl }),
-        }),
+        post<Persona>(`/personas/${id}/intro-video`, { videoUrl }),
 
     deleteIntroVideo: (id: string) =>
-        request<Persona>(`/personas/${id}/intro-video`, { method: 'DELETE' }),
+        del<Persona>(`/personas/${id}/intro-video`),
 
     getStarVideoUploadUrl: (id: string, mimeType: string) =>
-        request<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/star-video/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
+        get<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/star-video/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
 
     saveStarVideoUrl: (id: string, videoUrl: string) =>
-        request<Persona>(`/personas/${id}/star-video`, {
-            method: 'POST',
-            body: JSON.stringify({ videoUrl }),
-        }),
+        post<Persona>(`/personas/${id}/star-video`, { videoUrl }),
 
     deleteStarVideo: (id: string) =>
-        request<Persona>(`/personas/${id}/star-video`, { method: 'DELETE' }),
+        del<Persona>(`/personas/${id}/star-video`),
 
     getFaceReadingBgUploadUrl: (id: string, mimeType: string) =>
-        request<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/face-reading-bg/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
+        get<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/face-reading-bg/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
 
     saveFaceReadingBgUrl: (id: string, imageUrl: string) =>
-        request<Persona>(`/personas/${id}/face-reading-bg`, {
-            method: 'POST',
-            body: JSON.stringify({ imageUrl }),
-        }),
+        post<Persona>(`/personas/${id}/face-reading-bg`, { imageUrl }),
 
     deleteFaceReadingBg: (id: string) =>
-        request<Persona>(`/personas/${id}/face-reading-bg`, { method: 'DELETE' }),
+        del<Persona>(`/personas/${id}/face-reading-bg`),
 
     getChatBgUploadUrl: (id: string, mimeType: string) =>
-        request<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/chat-bg/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
+        get<{ signedUrl: string; publicUrl: string }>(`/personas/${id}/chat-bg/upload-url?mimeType=${encodeURIComponent(mimeType)}`),
 
     saveChatBgUrl: (id: string, imageUrl: string) =>
-        request<Persona>(`/personas/${id}/chat-bg`, {
-            method: 'POST',
-            body: JSON.stringify({ imageUrl }),
-        }),
+        post<Persona>(`/personas/${id}/chat-bg`, { imageUrl }),
 
     removeChatBgItem: (id: string, url: string) =>
-        request<Persona>(`/personas/${id}/chat-bg/remove`, {
-            method: 'POST',
-            body: JSON.stringify({ url }),
-        }),
+        post<Persona>(`/personas/${id}/chat-bg/remove`, { url }),
 
     deleteChatBg: (id: string) =>
-        request<Persona>(`/personas/${id}/chat-bg`, { method: 'DELETE' }),
+        del<Persona>(`/personas/${id}/chat-bg`),
 };
 
 // Categories
@@ -205,91 +184,58 @@ export const categoryApi = {
 // Persona Images
 export const personaImageApi = {
     getAll: (personaId: string) =>
-        request<PersonaImage[]>(`/personas/${personaId}/images`),
+        get<PersonaImage[]>(`/personas/${personaId}/images`),
 
     getSignedUrl: (personaId: string, mimeType: string, filename: string) =>
-        request<{ signedUrl: string; publicUrl: string }>(`/personas/${personaId}/images/signed-url`, {
-            method: 'POST',
-            body: JSON.stringify({ mimeType, filename }),
-        }),
+        post<{ signedUrl: string; publicUrl: string }>(`/personas/${personaId}/images/signed-url`, { mimeType, filename }),
 
     create: (personaId: string, imageUrl: string, description: string, isMain?: boolean) =>
-        request<PersonaImage>(`/personas/${personaId}/images`, {
-            method: 'POST',
-            body: JSON.stringify({ imageUrl, description, isMain }),
-        }),
+        post<PersonaImage>(`/personas/${personaId}/images`, { imageUrl, description, isMain }),
 
     setMain: (personaId: string, imageId: number) =>
-        request<PersonaImage>(`/personas/${personaId}/images`, {
-            method: 'PUT',
-            body: JSON.stringify({ imageId, isMain: true }),
-        }),
+        put<PersonaImage>(`/personas/${personaId}/images`, { imageId, isMain: true }),
 
     updateDescription: (personaId: string, imageId: number, description: string) =>
-        request<PersonaImage>(`/personas/${personaId}/images`, {
-            method: 'PUT',
-            body: JSON.stringify({ imageId, description }),
-        }),
+        put<PersonaImage>(`/personas/${personaId}/images`, { imageId, description }),
 
     updateRequiredLevel: (personaId: string, imageId: number, requiredLevel: number) =>
-        request<PersonaImage>(`/personas/${personaId}/images`, {
-            method: 'PUT',
-            body: JSON.stringify({ imageId, requiredLevel }),
-        }),
+        put<PersonaImage>(`/personas/${personaId}/images`, { imageId, requiredLevel }),
 
     updateOrder: (personaId: string, imageId: number, order: number) =>
-        request<PersonaImage>(`/personas/${personaId}/images`, {
-            method: 'PUT',
-            body: JSON.stringify({ imageId, order }),
-        }),
+        put<PersonaImage>(`/personas/${personaId}/images`, { imageId, order }),
 
     delete: (personaId: string, imageId: number) =>
-        request<{ message: string }>(`/personas/${personaId}/images`, {
-            method: 'DELETE',
-            body: JSON.stringify({ imageId }),
-        }),
+        del<{ message: string }>(`/personas/${personaId}/images`, { imageId }),
 };
 
 // Persona Videos
 export const personaVideoApi = {
     getAll: (imageId: number) =>
-        request<PersonaVideo[]>(`/persona-videos/${imageId}`),
+        get<PersonaVideo[]>(`/persona-videos/${imageId}`),
 
     getSignedUrl: (mimeType: string, filename: string) =>
-        request<{ signedUrl: string; publicUrl: string }>('/persona-videos/signed-url', {
-            method: 'POST',
-            body: JSON.stringify({ mimeType, filename }),
-        }),
+        post<{ signedUrl: string; publicUrl: string }>('/persona-videos/signed-url', { mimeType, filename }),
 
     create: (imageId: number, data: { videoUrl?: string; videoBase64?: string; mimeType?: string; title?: string }) =>
-        request<PersonaVideo>('/persona-videos', {
-            method: 'POST',
-            body: JSON.stringify({ imageId, ...data }),
-        }),
+        post<PersonaVideo>('/persona-videos', { imageId, ...data }),
 
     update: (videoId: number, data: { title?: string; order?: number; requiredLevel?: number }) =>
-        request<PersonaVideo>(`/persona-videos/${videoId}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        }),
+        put<PersonaVideo>(`/persona-videos/${videoId}`, data),
 
     delete: (videoId: number) =>
-        request<{ message: string }>(`/persona-videos/${videoId}`, { method: 'DELETE' }),
+        del<{ message: string }>(`/persona-videos/${videoId}`),
 };
 
 // Sessions
 export const sessionApi = {
     getAll: () =>
-        request<{ sessions: DbSession[]; firstChatMap: Record<string, string> }>('/sessions'),
+        get<{ sessions: DbSession[]; firstChatMap: Record<string, string> }>('/sessions'),
 
     create: (personaId: string, title?: string) =>
-        request<DbSession>('/sessions', {
-            method: 'POST',
-            body: JSON.stringify({ personaId, title }),
-        }),
+        post<DbSession>('/sessions', { personaId, title }),
 
     getMessages: (sessionId: number, cursor?: number, limit?: number) =>
-        request<{ messages: Message[]; hasMore: boolean }>(
+        get<{ messages: Message[]; hasMore: boolean }>(
             `/sessions/${sessionId}/messages?limit=${limit || 50}${cursor ? `&cursor=${cursor}` : ''}`
         ),
 
@@ -310,154 +256,109 @@ export const sessionApi = {
     },
 
     getSummary: (sessionId: number) =>
-        request<ConversationSummary | null>(`/sessions/${sessionId}/summary`),
+        get<ConversationSummary | null>(`/sessions/${sessionId}/summary`),
 
     saveSummary: (sessionId: number, summary: string, messageCount: number) =>
-        request<ConversationSummary>(`/sessions/${sessionId}/summary`, {
-            method: 'POST',
-            body: JSON.stringify({ summary, messageCount }),
-        }),
+        post<ConversationSummary>(`/sessions/${sessionId}/summary`, { summary, messageCount }),
 
     extractMemories: (sessionId: number, userText: string, aiText: string) =>
-        request<{ saved: number }>(`/sessions/${sessionId}/extract-memories`, {
-            method: 'POST',
-            body: JSON.stringify({ userText, aiText }),
-        }),
+        post<{ saved: number }>(`/sessions/${sessionId}/extract-memories`, { userText, aiText }),
 
     greet: (sessionId: number) =>
-        request<Message>(`/sessions/${sessionId}/greet`, { method: 'POST' }),
+        post<Message>(`/sessions/${sessionId}/greet`),
 
     quickTrigger: (sessionId: number, menuLabel: string, menuPrompt: string) =>
-        request<Message>(`/sessions/${sessionId}/quick-trigger`, {
-            method: 'POST',
-            body: JSON.stringify({ menuLabel, menuPrompt }),
-        }),
+        post<Message>(`/sessions/${sessionId}/quick-trigger`, { menuLabel, menuPrompt }),
 
     summarize: (sessionId: number) =>
-        request<ConversationSummary | null>(`/sessions/${sessionId}/summarize`, {
-            method: 'POST',
-        }),
+        post<ConversationSummary | null>(`/sessions/${sessionId}/summarize`),
 
     starThanks: (personaId: string, amount: number) =>
-        request<{ message: Message; sessionId: number }>('/star-thanks', {
-            method: 'POST',
-            body: JSON.stringify({ personaId, amount }),
-        }),
+        post<{ message: Message; sessionId: number }>('/star-thanks', { personaId, amount }),
 
     cleanup: (days: number = 30, keepCount: number = 10) =>
-        request<{ cleanedSessions: number; deletedMessages: number }>('/sessions/cleanup', {
-            method: 'POST',
-            body: JSON.stringify({ days, keepCount }),
-        }),
+        post<{ cleanedSessions: number; deletedMessages: number }>('/sessions/cleanup', { days, keepCount }),
 };
 
 // Settings
 export const settingsApi = {
     get: () =>
-        request<Record<string, string>>('/settings'),
+        get<Record<string, string>>('/settings'),
 
     update: (data: Record<string, string>) =>
-        request<{ message: string }>('/settings', {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        }),
+        put<{ message: string }>('/settings', data),
 };
 
 // Memory
 export const memoryApi = {
     getAll: () =>
-        request<UserMemory[]>('/memory'),
+        get<UserMemory[]>('/memory'),
 
     save: (content: string, category?: string) =>
-        request<UserMemory>('/memory', {
-            method: 'POST',
-            body: JSON.stringify({ content, category }),
-        }),
+        post<UserMemory>('/memory', { content, category }),
 
     search: (query: string) =>
-        request<UserMemory[]>('/memory/search', {
-            method: 'POST',
-            body: JSON.stringify({ query }),
-        }),
+        post<UserMemory[]>('/memory/search', { query }),
 
     delete: (id: number) =>
-        request<{ message: string }>(`/memory/${id}`, { method: 'DELETE' }),
+        del<{ message: string }>(`/memory/${id}`),
 };
 
 // Knowledge
 export const knowledgeApi = {
     upload: (personaId: string, title: string, text: string) =>
-        request<{ saved: number; total: number; sourceId: string }>('/knowledge', {
-            method: 'POST',
-            body: JSON.stringify({ personaId, title, text }),
-        }),
+        post<{ saved: number; total: number; sourceId: string }>('/knowledge', { personaId, title, text }),
 
     getAll: (personaId: string) =>
-        request<{ sourceId: string | null; title: string | null; chunkCount: number; preview: string; createdAt: string }[]>(
+        get<{ sourceId: string | null; title: string | null; chunkCount: number; preview: string; createdAt: string }[]>(
             `/knowledge/${personaId}`
         ),
 
     deleteSource: (sourceId: string) =>
-        request<{ message: string; deleted: number }>(`/knowledge/source/${sourceId}`, { method: 'DELETE' }),
+        del<{ message: string; deleted: number }>(`/knowledge/source/${sourceId}`),
 
     delete: (id: number) =>
-        request<{ message: string }>(`/knowledge/${id}`, { method: 'DELETE' }),
+        del<{ message: string }>(`/knowledge/${id}`),
 
     search: (personaId: string, query: string) =>
-        request<{ id: number; content: string; similarity: number }[]>('/knowledge/search', {
-            method: 'POST',
-            body: JSON.stringify({ personaId, query }),
-        }),
+        post<{ id: number; content: string; similarity: number }[]>('/knowledge/search', { personaId, query }),
 };
 
 // Trigger Videos
 export const triggerVideoApi = {
     getAll: (personaId: string) =>
-        request<import('../types').TriggerVideo[]>(`/trigger-videos/${personaId}`),
+        get<import('../types').TriggerVideo[]>(`/trigger-videos/${personaId}`),
 
     getSignedUrl: (mimeType: string, filename: string) =>
-        request<{ signedUrl: string; publicUrl: string }>('/trigger-videos/signed-url', {
-            method: 'POST',
-            body: JSON.stringify({ mimeType, filename }),
-        }),
+        post<{ signedUrl: string; publicUrl: string }>('/trigger-videos/signed-url', { mimeType, filename }),
 
     extractKeywords: (title: string, description: string) =>
-        request<{ keywords: string[] }>('/trigger-videos/extract-keywords', {
-            method: 'POST',
-            body: JSON.stringify({ title, description }),
-        }),
+        post<{ keywords: string[] }>('/trigger-videos/extract-keywords', { title, description }),
 
     create: (data: { personaId: string; videoUrl: string; title?: string; description?: string; keywords: string; tag?: string }) =>
-        request<import('../types').TriggerVideo>('/trigger-videos', {
-            method: 'POST',
-            body: JSON.stringify(data),
-        }),
+        post<import('../types').TriggerVideo>('/trigger-videos', data),
 
     update: (id: number, data: { title?: string; description?: string; keywords?: string; tag?: string }) =>
-        request<import('../types').TriggerVideo>(`/trigger-videos/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        }),
+        put<import('../types').TriggerVideo>(`/trigger-videos/${id}`, data),
 
     delete: (id: number) =>
-        request<{ ok: boolean }>(`/trigger-videos/${id}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/trigger-videos/${id}`),
 };
 
 // Stock Report (RAG)
 export const stockReportApi = {
     consult: (analysisId: number) =>
-        request<{ ok: boolean; chunks: number; stockName: string; ticker: string; personaId: string }>(
-            '/stock-report/consult',
-            { method: 'POST', body: JSON.stringify({ analysisId }) }
+        post<{ ok: boolean; chunks: number; stockName: string; ticker: string; personaId: string }>(
+            '/stock-report/consult', { analysisId }
         ),
 
     search: (q: string) =>
-        request<{ content: string; stockName: string; ticker: string; reportDate: string; quarter: string; similarity: number }[]>(
+        get<{ content: string; stockName: string; ticker: string; reportDate: string; quarter: string; similarity: number }[]>(
             `/stock-report/search?q=${encodeURIComponent(q)}`
         ),
 
     list: () =>
-        request<{ ticker: string; stockName: string; reportDate: string; chunkCount: number }[]>(
+        get<{ ticker: string; stockName: string; reportDate: string; chunkCount: number }[]>(
             '/stock-report/list'
         ),
 };
@@ -465,10 +366,7 @@ export const stockReportApi = {
 // Swing Analysis
 export const swingAnalysisApi = {
     getSignedUrl: (mimeType: string, filename: string) =>
-        request<{ signedUrl: string; publicUrl: string }>('/swing-analysis/signed-url', {
-            method: 'POST',
-            body: JSON.stringify({ mimeType, filename }),
-        }),
+        post<{ signedUrl: string; publicUrl: string }>('/swing-analysis/signed-url', { mimeType, filename }),
 
     analyze: async (videoUrl: string, personaId: string, mimeType: string, fileName: string, title?: string, gender?: string, skillLevel?: string): Promise<{ id: number; analysis: SwingAnalysis; createdAt: string }> => {
         const cfUrl = import.meta.env.VITE_GOLF_CF_URL as string | undefined;
@@ -498,17 +396,14 @@ export const swingAnalysisApi = {
             return data;
         }
         // 로컬 개발: Express 서버 사용 (타임아웃 없음)
-        return request<{ id: number; analysis: SwingAnalysis; createdAt: string }>('/swing-analysis/analyze', {
-            method: 'POST',
-            body: JSON.stringify(body),
-        });
+        return post<{ id: number; analysis: SwingAnalysis; createdAt: string }>('/swing-analysis/analyze', body);
     },
 
     getHistory: (personaId: string) =>
-        request<UserSwingAnalysis[]>(`/swing-analysis?personaId=${encodeURIComponent(personaId)}`),
+        get<UserSwingAnalysis[]>(`/swing-analysis?personaId=${encodeURIComponent(personaId)}`),
 
     delete: (id: number) =>
-        request<{ ok: boolean }>(`/swing-analysis/${id}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/swing-analysis/${id}`),
 };
 
 export interface FaceReadingResult {
@@ -522,104 +417,86 @@ export interface FaceReadingResult {
 
 export const faceReadingApi = {
     analyze: (imageBase64: string, mimeType: string, personaId: string) =>
-        request<{ analysis: FaceReadingResult; newBalance: number; paidBalance: number; bonusBalance: number }>('/face-reading', {
-            method: 'POST',
-            body: JSON.stringify({ imageBase64, mimeType, personaId }),
-        }),
+        post<{ analysis: FaceReadingResult; newBalance: number; paidBalance: number; bonusBalance: number }>('/face-reading', { imageBase64, mimeType, personaId }),
 };
 
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
-        request<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', {
-            method: 'POST',
-            body: JSON.stringify({ personaId, prompt }),
-        }),
+        post<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', { personaId, prompt }),
     activate: (cost: number, description: string) =>
-        request<{ newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-activate', {
-            method: 'POST',
-            body: JSON.stringify({ cost, description }),
-        }),
+        post<{ newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-activate', { cost, description }),
 };
 
 // Announcements
 export const announcementApi = {
     getAll: (all?: boolean) =>
-        request<import('../types').Announcement[]>(`/announcements${all ? '?all=true' : ''}`),
+        get<import('../types').Announcement[]>(`/announcements${all ? '?all=true' : ''}`),
 
     create: (data: { title: string; content: string; category: string; isPinned?: boolean; isVisible?: boolean }) =>
-        request<import('../types').Announcement>('/announcements', {
-            method: 'POST',
-            body: JSON.stringify(data),
-        }),
+        post<import('../types').Announcement>('/announcements', data),
 
     update: (id: number, data: Partial<{ title: string; content: string; category: string; isPinned: boolean; isVisible: boolean }>) =>
-        request<import('../types').Announcement>(`/announcements/${id}`, {
-            method: 'PUT',
-            body: JSON.stringify(data),
-        }),
+        put<import('../types').Announcement>(`/announcements/${id}`, data),
 
     delete: (id: number) =>
-        request<{ ok: boolean }>(`/announcements/${id}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/announcements/${id}`),
 };
 
 // User Profile
 export const userProfileApi = {
     getBirthInfo: () =>
-        request<{ birthInfoJson: string | null }>('/user/birth-info'),
+        get<{ birthInfoJson: string | null }>('/user/birth-info'),
 
     saveBirthInfo: (birthInfoJson: string) =>
-        request<{ ok: boolean }>('/user/birth-info', {
-            method: 'PUT',
-            body: JSON.stringify({ birthInfoJson }),
-        }),
+        put<{ ok: boolean }>('/user/birth-info', { birthInfoJson }),
 };
 
 // Board
 export const boardApi = {
     getList: (personaId: string) =>
-        request<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>(`/board?personaId=${encodeURIComponent(personaId)}`),
+        get<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>(`/board?personaId=${encodeURIComponent(personaId)}`),
 
     getPost: (id: number) =>
-        request<import('../types').BoardPost>(`/board/${id}`),
+        get<import('../types').BoardPost>(`/board/${id}`),
 
     create: (title: string, content: string, personaId: string) =>
-        request<{ id: number }>('/board', { method: 'POST', body: JSON.stringify({ title, content, personaId }) }),
+        post<{ id: number }>('/board', { title, content, personaId }),
 
     update: (id: number, title: string, content: string) =>
-        request<{ ok: boolean }>(`/board/${id}`, { method: 'PUT', body: JSON.stringify({ title, content }) }),
+        put<{ ok: boolean }>(`/board/${id}`, { title, content }),
 
     delete: (id: number) =>
-        request<{ ok: boolean }>(`/board/${id}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/board/${id}`),
 
     addReply: (postId: number, content: string) =>
-        request<{ id: number }>(`/board/${postId}/reply`, { method: 'POST', body: JSON.stringify({ content }) }),
+        post<{ id: number }>(`/board/${postId}/reply`, { content }),
 
     deleteReply: (postId: number, replyId: number) =>
-        request<{ ok: boolean }>(`/board/${postId}/reply/${replyId}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/board/${postId}/reply/${replyId}`),
 };
 
 // Partner Board
 export const partnerBoardApi = {
     getList: () =>
-        request<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>('/partner-board'),
+        get<{ id: number; title: string; createdAt: string; userId: number; user: { username?: string; email: string }; _count: { replies: number } }[]>('/partner-board'),
 
     getPost: (id: number) =>
-        request<import('../types').PartnerPost>(`/partner-board/${id}`),
+        get<import('../types').PartnerPost>(`/partner-board/${id}`),
 
     create: (title: string, content: string, contact?: string) =>
-        request<{ id: number }>('/partner-board', { method: 'POST', body: JSON.stringify({ title, content, contact }) }),
+        post<{ id: number }>('/partner-board', { title, content, contact }),
 
     update: (id: number, title: string, content: string) =>
-        request<{ ok: boolean }>(`/partner-board/${id}`, { method: 'PUT', body: JSON.stringify({ title, content }) }),
+        put<{ ok: boolean }>(`/partner-board/${id}`, { title, content }),
 
     delete: (id: number) =>
-        request<{ ok: boolean }>(`/partner-board/${id}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/partner-board/${id}`),
 
     addReply: (postId: number, content: string) =>
-        request<{ id: number }>(`/partner-board/${postId}/reply`, { method: 'POST', body: JSON.stringify({ content }) }),
+        post<{ id: number }>(`/partner-board/${postId}/reply`, { content }),
 
     deleteReply: (postId: number, replyId: number) =>
-        request<{ ok: boolean }>(`/partner-board/${postId}/reply/${replyId}`, { method: 'DELETE' }),
+        del<{ ok: boolean }>(`/partner-board/${postId}/reply/${replyId}`),
 };
 
 export interface AdminUser {
@@ -651,45 +528,36 @@ export interface PointsStats {
 }
 
 export const pointsApi = {
-    getStats: () => request<PointsStats>('/points/stats'),
+    getStats: () => get<PointsStats>('/points/stats'),
 };
 
 export const adminApi = {
     getUsers: () =>
-        request<AdminUser[]>('/admin/users'),
+        get<AdminUser[]>('/admin/users'),
 
     grantPoints: (identifier: string, amount: number, description?: string) => {
         const isPhone = /^[0-9+\-\s]+$/.test(identifier.replace(/\s/g, ''));
         const body = isPhone ? { phone: identifier, amount, description } : { email: identifier, amount, description };
-        return request<{ email: string; granted: number; newBalance: number }>('/points/admin-grant', {
-            method: 'POST',
-            body: JSON.stringify(body),
-        });
+        return post<{ email: string; granted: number; newBalance: number }>('/points/admin-grant', body);
     },
 
     bulkGrant: (amount: number, description?: string) =>
-        request<{ granted: number; userCount: number }>('/admin/bulk-grant', {
-            method: 'POST',
-            body: JSON.stringify({ amount, description }),
-        }),
+        post<{ granted: number; userCount: number }>('/admin/bulk-grant', { amount, description }),
 
     changeRole: (userId: number, role: string) =>
-        request<{ id: number; role: string }>('/admin/change-role', {
-            method: 'POST',
-            body: JSON.stringify({ userId, role }),
-        }),
+        post<{ id: number; role: string }>('/admin/change-role', { userId, role }),
 
     getMonitorMetrics: () =>
-        request<any>('/admin/monitor/metrics'),
+        get<any>('/admin/monitor/metrics'),
 
     getServer2Metrics: () =>
-        request<any>('/admin/monitor/server2/metrics'),
+        get<any>('/admin/monitor/server2/metrics'),
 
     getLogDates: () =>
-        request<{ dates: string[] }>('/admin/monitor/logs'),
+        get<{ dates: string[] }>('/admin/monitor/logs'),
 
     getLogs: (date: string, page = 1, level = '') =>
-        request<{ lines: string[]; total: number; page: number; pageSize: number }>(
+        get<{ lines: string[]; total: number; page: number; pageSize: number }>(
             `/admin/monitor/logs/${date}?page=${page}&level=${level}`
         ),
 };
