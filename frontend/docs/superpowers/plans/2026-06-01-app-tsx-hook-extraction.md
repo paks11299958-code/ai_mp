@@ -37,14 +37,19 @@ App.tsx 실측 기준 71개 useState를 6개 클러스터로 분류:
 
 각 태스크 = 독립 커밋. 완료 정의(DoD): `npx tsc --noEmit` 0 + `npm run build` 통과 + `npm test` 19 유지 + **소스만 add(dist 제외)**.
 
-- [ ] **T0. 준비** — `hooks/` 디렉터리 생성. 베이스라인 기록: `tsc 0 / vitest 19 / build OK` 재확인. App.tsx 현재 줄수 스냅샷.
-- [ ] **T1. usePayment() 추출** (가장 자족적, 워밍업) — pendingPayment/paymentSuccess + 결제 redirect effect 이동. 본체는 `const { paymentSuccess } = usePayment()`만. 커밋.
-- [ ] **T2. useBoardToggles() 추출** — ~15개 show* boolean을 하나의 훅으로(개별 setter 유지 or `open(type)/close(type)` API). 가장 기계적. 커밋.
-- [ ] **T3. useAnnouncements() 추출** — announcements/readAnnouncementIds + fetch effect + handleReadAnnouncements + localStorage 직렬화. 커밋.
-- [ ] **T4. useAuth() 추출** — user/isAuthChecking/showAuthModal/kakaoNicknameModal + auth check effect + handleAuthSuccess/handleLogout/handleAdminLogin + **kakao_code·resetToken 부트스트랩**. ⚠️ lazy init 순서 보존. 커밋 + **사용자 로그인 동선 확인 요청**.
-- [ ] **T5. useQuickMenu() 추출** — birthInfo/quickMenu*/face/subMenu/inputPlaceholder + triggerQuickMenu/handleSubItem/parseBirthInfo. 커밋.
-- [ ] **T6. usePersonaSession() 추출** (최대·최위험, 마지막) — personas/sessions/messages/activePersonaId 등 + handleSelectPersona/handleSendMessage/triggerSummaryUpdate/handleLoadMoreMessages. **먼저 하위 분해 재계획** 후 착수(이 태스크만 별도 미니플랜 권장). 커밋 + 사용자 채팅 동선 확인.
-- [ ] **T7. 정리** — 본체 AppContent가 훅 조립 위주인지 확인. 추출 과정서 나온 순수함수(parseBirthInfo 등) `utils/*.test.ts` 보강. work_index/메모리/핸드오프 갱신.
+- [x] **T0. 준비** — `hooks/` 디렉터리 생성. 베이스라인 `tsc 0 / vitest 19 / build OK` 확인. ✅ (커밋 `01339df`에 포함)
+- [x] **T1. usePayment() 추출** — pendingPayment/paymentSuccess + 결제 redirect effect 이동. 본체는 `const { paymentSuccess } = usePayment(...)`만. ✅ `01339df`
+- [x] **T2. useBoardToggles() 추출** — 15개 기능 보드/다이얼로그 show* boolean 묶음. 본체 구조분해로 호출부 변경 0. ✅ `c47d558`
+- [x] **T3. useAnnouncements() 추출** — announcements/readAnnouncementIds + fetch effect + handleReadAnnouncements + localStorage 직렬화. ✅ `30b9b07`
+- [x] **T4. useAuth() 추출** — user/isAuthChecking/show 진입플래그/kakaoNicknameModal + 카카오 콜백 effect + 토큰 자동로그인 effect(공유 mount effect에서 분리, deps 동일) + handleAuthSuccess/handleLogout. handleAdminLogin은 isAdminMode 의존이라 본체 유지. ✅ `a3e43cb` ⚠️ **로그인 동선 사용자 확인 대기**.
+- [x] **T5. useQuickMenu() 추출 (상태만)** — birthInfo/quickMenu*/face/subMenu/partner 12개 state + birthInfo 로드·자동모달 effect + birthModalSkippedRef. triggerQuickMenu/handleSubItem/모달 핸들러는 sessions·inputText 결합이라 본체 유지(T6에서 정리). ✅ `2597f25` ⚠️ **퀵메뉴 동선 사용자 확인 대기**.
+- [ ] **T6. usePersonaSession() 추출** (최대·최위험, 마지막) — personas/sessions/messages/activePersonaId 등 + handleSelectPersona/handleSendMessage/triggerSummaryUpdate/handleLoadMoreMessages **+ T5에서 본체에 남긴 퀵메뉴 핸들러(sessions/inputText 의존)도 함께 정리**. **먼저 하위 분해 미니플랜 권장**. 커밋 + 사용자 채팅 동선 확인.
+- [ ] **T7. 정리** — 본체 AppContent가 훅 조립 위주인지 확인. 추출 과정서 나온 순수함수 `utils/*.test.ts` 보강. work_index/메모리/핸드오프 갱신.
+
+### 진행 현황 (2026-06-01 기준)
+- **App.tsx 2140→2032줄 (-108), useState 71→31 (-40), useEffect 14→9 (-5).**
+- 추출 완료 훅: `hooks/usePayment.ts` `useBoardToggles.ts` `useAnnouncements.ts` `useAuth.ts` `useQuickMenu.ts`.
+- 전 단계 공통 검증: tsc 0 / vitest 19 / vite build 통과, dist 제외 소스만 커밋, master 푸시.
 
 ## 별도 정리 후보 (이 계획 밖, 잊지 말 것)
 - **dist git 추적 제거**: `.gitignore`에 `frontend/dist` + `git rm -r --cached frontend/dist`. (핸드오프 4번)
