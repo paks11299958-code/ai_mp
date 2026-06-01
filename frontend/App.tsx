@@ -4,6 +4,7 @@ import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
 import { useAuth } from './hooks/useAuth';
+import { useQuickMenu } from './hooks/useQuickMenu';
 import { Coins } from 'lucide-react';
 import { Message, Persona, PersonaImage, ChatSessionState, TriggerVideo, SwingAnalysis, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
@@ -38,12 +39,11 @@ import { PointDisplay } from './components/PointDisplay';
 import { PointModal } from './components/PointModal';
 import { PointDashboard } from './components/PointDashboard';
 import { StarButton, StarRain } from './components/StarBalloonButton';
-import { BirthInfoModal, BirthInfo } from './components/BirthInfoModal';
+import { BirthInfoModal } from './components/BirthInfoModal';
 import { PartnerInfoModal } from './components/PartnerInfoModal';
 import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuModal';
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
-import { FaceReadingResult } from './services/apiService';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
 import { ClubBoard } from './components/ClubBoard';
 import KakaoNicknameModal from './components/KakaoNicknameModal';
@@ -156,21 +156,23 @@ const AppContent: React.FC = () => {
     const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
     const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
 
-    // 퀵메뉴 / 생년월일 폼 상태
-    const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(null);
-    const [showBirthModal, setShowBirthModal] = useState(false);
-    const [pendingQuickMenu, setPendingQuickMenu] = useState<{ label: string; prompt: string; resultCard?: boolean } | null>(null);
-    const [quickMenuResult, setQuickMenuResult] = useState<{ title: string; result: string } | null>(null);
-    const [quickMenuLoading, setQuickMenuLoading] = useState(false);
-    const [inputPlaceholder, setInputPlaceholder] = useState<string | null>(null);
-    const [activeQuickMenu, setActiveQuickMenu] = useState<string | null>(null);
-    const [showPartnerModal, setShowPartnerModal] = useState(false);
-    const [pendingPartnerMenu, setPendingPartnerMenu] = useState<{ label: string; prompt: string } | null>(null);
-    const [showFaceModal, setShowFaceModal] = useState(false);
-    const [faceReadingResult, setFaceReadingResult] = useState<FaceReadingResult | null>(null);
-    const [subMenuConfig, setSubMenuConfig] = useState<SubMenuConfig | null>(null);
+    // 퀵메뉴 / 생년월일 폼 상태 (useQuickMenu로 이동 — 상태만)
+    const {
+        birthInfo, setBirthInfo,
+        showBirthModal, setShowBirthModal,
+        pendingQuickMenu, setPendingQuickMenu,
+        quickMenuResult, setQuickMenuResult,
+        quickMenuLoading, setQuickMenuLoading,
+        inputPlaceholder, setInputPlaceholder,
+        activeQuickMenu, setActiveQuickMenu,
+        showPartnerModal, setShowPartnerModal,
+        pendingPartnerMenu, setPendingPartnerMenu,
+        showFaceModal, setShowFaceModal,
+        faceReadingResult, setFaceReadingResult,
+        subMenuConfig, setSubMenuConfig,
+        birthModalSkippedRef,
+    } = useQuickMenu(user, activePersonaId, personas);
     const subMenuResultCardRef = useRef(false);
-    const birthModalSkippedRef = useRef<Set<string>>(new Set());
     const [isGreeting, setIsGreeting] = useState(false);
     const [chatBgSelected, setChatBgSelected] = useState<string | null>(null);
     const chatBgPersonaRef = useRef<string | null>(null);
@@ -228,29 +230,6 @@ const AppContent: React.FC = () => {
             })
             .catch(() => {});
     }, []);
-
-    // 로그인 후 birth info 로드
-    const [isBirthInfoLoaded, setIsBirthInfoLoaded] = useState(false);
-    useEffect(() => {
-        if (!user) return;
-        userProfileApi.getBirthInfo().then(({ birthInfoJson }) => {
-            if (birthInfoJson) {
-                try { setBirthInfo(JSON.parse(birthInfoJson)); } catch {}
-            }
-        }).catch(() => {}).finally(() => setIsBirthInfoLoaded(true));
-    }, [user?.id]);
-
-    // 채팅 진입 시 birth info 없으면 자동 모달
-    useEffect(() => {
-        if (!activePersonaId || !isBirthInfoLoaded || birthInfo) return;
-        if (birthModalSkippedRef.current.has(activePersonaId)) return;
-        const persona = personas.find(p => p.id === activePersonaId);
-        if (!persona?.quickMenuJson) return;
-        try {
-            const config = JSON.parse(persona.quickMenuJson);
-            if (config.useBirthInfo) setShowBirthModal(true);
-        } catch {}
-    }, [activePersonaId, isBirthInfoLoaded, birthInfo, personas]);
 
     // 로그인 후 포인트 잔액 로드
     useEffect(() => {
