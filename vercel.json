@@ -34,6 +34,8 @@
     { "source": "/api/face-reading/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/face-reading/:path*" },
     { "source": "/api/swing-analysis",             "destination": "http://34.50.27.95:3020/api/aimp/swing-analysis" },
     { "source": "/api/swing-analysis/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/swing-analysis/:path*" },
+    { "source": "/api/dart-import",                "destination": "http://34.50.27.95:3020/api/aimp/dart/import" },
+    { "source": "/api/dart-test",                  "destination": "http://34.50.27.95:3020/api/aimp/dart/test" },
     { "source": "/api/quick-menu-result",          "destination": "http://34.50.27.95:3020/api/aimp/quick-menu/result" },
     { "source": "/api/quick-menu-activate",        "destination": "http://34.50.27.95:3020/api/aimp/quick-menu/activate" },
     { "source": "/api/hot-keyword",                "destination": "http://34.50.27.95:3020/api/aimp/hot-keyword" },
