@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PointsProvider, usePoints } from './contexts/PointsContext';
 import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
+import { useAnnouncements } from './hooks/useAnnouncements';
 import { Coins } from 'lucide-react';
-import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Announcement, Category } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, settingsApi, triggerVideoApi, swingAnalysisApi, announcementApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, authApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
@@ -213,30 +214,14 @@ const AppContent: React.FC = () => {
     const [showHeaderMenu, setShowHeaderMenu] = useState(false);
 
     // 공지사항
-    const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-    const [showAnnouncementModal, setShowAnnouncementModal] = useState(false);
-    const [readAnnouncementIds, setReadAnnouncementIds] = useState<Set<number>>(() => {
-        try { return new Set(JSON.parse(localStorage.getItem('readAnnouncements') || '[]')); } catch { return new Set(); }
-    });
-
-    useEffect(() => {
-        announcementApi.getAll().then(list => {
-            setAnnouncements(list);
-            // 새 공지 있으면 자동 팝업
-            const unread = list.filter(a => !readAnnouncementIds.has(a.id));
-            if (unread.length > 0) setShowAnnouncementModal(true);
-        }).catch(() => {});
-    }, []);
-
-    const handleReadAnnouncements = (ids: number[]) => {
-        setReadAnnouncementIds(prev => {
-            const next = new Set([...prev, ...ids]);
-            localStorage.setItem('readAnnouncements', JSON.stringify([...next]));
-            return next;
-        });
-    };
-
-    const unreadAnnouncementCount = announcements.filter(a => !readAnnouncementIds.has(a.id)).length;
+    const {
+        announcements,
+        readAnnouncementIds,
+        showAnnouncementModal,
+        setShowAnnouncementModal,
+        handleReadAnnouncements,
+        unreadAnnouncementCount,
+    } = useAnnouncements();
 
     const refreshPersonaImages = useCallback((personaId: string) => {
         personaImageApi.getAll(personaId)
