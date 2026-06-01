@@ -1,20 +1,15 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Persona, PersonaImage, PersonaVideo, Category } from '../types';
-import { personaApi, personaImageApi, personaVideoApi, knowledgeApi, triggerVideoApi, categoryApi, adminApi } from '../services/apiService';
-import { TriggerVideo } from '../types';
-import { STAGES } from '../utils/level';
-import { generateImageDescription } from '../services/geminiService';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Persona, Category } from '../types';
+import { categoryApi, adminApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { pointApi } from '../services/pointService';
-import { PersonaInfoTab } from './PersonaInfoTab';
-import { PersonaGalleryTab } from './PersonaGalleryTab';
-import { PersonaKnowledgeTab } from './PersonaKnowledgeTab';
-import { PersonaTriggersTab } from './PersonaTriggersTab';
 import { CleanupPanel } from './admin/CleanupPanel';
 import { ToolsPanel } from './admin/ToolsPanel';
 import { SettingsPanel } from './admin/SettingsPanel';
 import { UsersPanel } from './admin/UsersPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
+import { CategoriesPanel } from './admin/CategoriesPanel';
+import { PersonasPanel } from './admin/PersonasPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -25,31 +20,15 @@ interface AdminPanelProps {
     user?: any;
 }
 
-const DEFAULT_IDS = ['general', 'coder', 'writer', 'translator'];
-
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
     const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage'>('personas');
-    const [selectedId, setSelectedId] = useState<string>(personas[0]?.id || '');
-    const [activeTab, setActiveTab] = useState<'info' | 'gallery' | 'knowledge' | 'triggers'>('info');
 
-
-    // 공지사항 관리 상태
-
-    // 카테고리 관리 상태
+    // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
-    const [newCategoryName, setNewCategoryName] = useState('');
-    const [isSavingCategory, setIsSavingCategory] = useState(false);
 
     useEffect(() => {
         categoryApi.getAll().then(setCategories).catch(() => {});
     }, []);
-
-    useEffect(() => {
-        setActiveTab('info');
-    }, [selectedId]);
-
-    const isDefaultPersona = DEFAULT_IDS.includes(selectedId);
-    const activePersona = personas.find(p => p.id === selectedId);
 
     return (
         <div className="flex-1 flex flex-col h-full bg-gray-900 z-40 relative animate-in fade-in duration-200">
@@ -100,63 +79,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
             {/* ── 바디 ── */}
             <div className="flex-1 flex overflow-hidden">
 
-                {/* 좌측: 페르소나 목록 (페르소나 탭에서만 표시) */}
-                {mainView === 'personas' && <aside className="w-52 shrink-0 border-r border-gray-800 flex flex-col bg-gray-900/60">
-                    <div className="px-4 py-3 border-b border-gray-800">
-                        <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">페르소나</p>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
-                        {personas.map(p => (
-                            <button
-                                key={p.id}
-                                onClick={() => setSelectedId(p.id)}
-                                className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left transition-all group
-                                    ${selectedId === p.id
-                                        ? `bg-gradient-to-r ${p.colorClass} text-white shadow-md`
-                                        : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'
-                                    }`}
-                            >
-                                {p.imageUrl ? (
-                                    <img
-                                        src={p.imageUrl}
-                                        alt={p.name}
-                                        className={`w-8 h-8 rounded-lg object-cover shrink-0 border-2 transition-all ${
-                                            selectedId === p.id ? 'border-white/40' : 'border-transparent'
-                                        }`}
-                                    />
-                                ) : (
-                                    <div className={`p-1.5 rounded-lg shrink-0 transition-colors
-                                        ${selectedId === p.id ? 'bg-white/20' : 'bg-gray-800 group-hover:bg-gray-700'}`}>
-                                        <Icon name={p.iconName} size={15} />
-                                    </div>
-                                )}
-                                <div className="min-w-0">
-                                    <p className="text-sm font-medium truncate">{p.name}</p>
-                                    {p.description && (
-                                        <p className={`text-[10px] truncate ${selectedId === p.id ? 'text-white/70' : 'text-gray-600'}`}>
-                                            {p.description}
-                                        </p>
-                                    )}
-                                </div>
-                            </button>
-                        ))}
-                    </div>
-                    <div className="p-2 border-t border-gray-800">
-                        <button
-                            onClick={() => setSelectedId('new')}
-                            className={`w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium transition-all border border-dashed
-                                ${selectedId === 'new'
-                                    ? 'bg-gray-800 text-white border-blue-500'
-                                    : 'text-gray-500 hover:bg-gray-800 hover:text-gray-300 border-gray-700'
-                                }`}
-                        >
-                            <Icon name="Plus" size={15} />
-                            새 AI 추가
-                        </button>
-                    </div>
-                </aside>}
+                {/* 페르소나 탭: 자체 좌측 목록 + 하위 탭을 모두 포함 */}
+                {mainView === 'personas' && (
+                    <PersonasPanel
+                        personas={personas}
+                        categories={categories}
+                        onSave={onSave}
+                        onDelete={onDelete}
+                        onImagesChanged={onImagesChanged}
+                    />
+                )}
 
-                {/* 우측: 탭 콘텐츠 */}
+                {/* 그 외 탭: 우측 콘텐츠 영역 */}
+                {mainView !== 'personas' && (
                 <div className="flex-1 flex flex-col overflow-hidden">
 
                 {/* 공통 설정 패널 */}
@@ -188,129 +123,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'tools' && <ToolsPanel user={user} />}
 
                 {/* 카테고리 관리 패널 */}
-                {mainView === 'categories' && (
-                    <div className="flex-1 overflow-y-auto p-6">
-                        <h3 className="text-sm font-bold text-white mb-4">카테고리 관리</h3>
-                        <div className="flex gap-2 mb-4">
-                            <input
-                                type="text"
-                                value={newCategoryName}
-                                onChange={e => setNewCategoryName(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && !isSavingCategory && newCategoryName.trim() && (async () => {
-                                    setIsSavingCategory(true);
-                                    try {
-                                        const cat = await categoryApi.create(newCategoryName.trim());
-                                        setCategories(prev => [...prev, cat]);
-                                        setNewCategoryName('');
-                                    } catch (e: any) { alert(e.message); }
-                                    finally { setIsSavingCategory(false); }
-                                })()}
-                                placeholder="새 카테고리 이름"
-                                className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
-                            />
-                            <button
-                                disabled={isSavingCategory || !newCategoryName.trim()}
-                                onClick={async () => {
-                                    if (!newCategoryName.trim()) return;
-                                    setIsSavingCategory(true);
-                                    try {
-                                        const cat = await categoryApi.create(newCategoryName.trim());
-                                        setCategories(prev => [...prev, cat]);
-                                        setNewCategoryName('');
-                                    } catch (e: any) { alert(e.message); }
-                                    finally { setIsSavingCategory(false); }
-                                }}
-                                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors"
-                            >
-                                추가
-                            </button>
-                        </div>
-                        <div className="space-y-2">
-                            {categories.length === 0 && (
-                                <p className="text-gray-500 text-sm text-center py-8">카테고리가 없습니다.</p>
-                            )}
-                            {categories.map(cat => (
-                                <div key={cat.id} className="flex items-center justify-between bg-gray-800 rounded-xl px-4 py-3">
-                                    <div>
-                                        <span className="text-sm font-medium text-white">{cat.name}</span>
-                                        <span className="ml-2 text-xs text-gray-500">({cat._count?.personas ?? 0}개)</span>
-                                    </div>
-                                    <button
-                                        onClick={async () => {
-                                            if (!window.confirm(`'${cat.name}' 카테고리를 삭제하시겠습니까?\n해당 카테고리의 페르소나는 미분류로 변경됩니다.`)) return;
-                                            try {
-                                                await categoryApi.delete(cat.id);
-                                                setCategories(prev => prev.filter(c => c.id !== cat.id));
-                                            } catch (e: any) { alert(e.message); }
-                                        }}
-                                        className="text-gray-500 hover:text-red-400 transition-colors"
-                                    >
-                                        <Icon name="Trash2" size={14} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {mainView === 'categories' && <CategoriesPanel categories={categories} setCategories={setCategories} />}
 
                 {/* 공지사항 관리 패널 */}
                 {mainView === 'announcements' && <AnnouncementsPanel personas={personas} />}
 
-                {mainView === 'personas' && <>
-
-                    {/* 탭 바 */}
-                    {selectedId !== 'new' && (
-                        <div className="border-b border-gray-800 px-6 flex shrink-0">
-                            {(['info', 'gallery', 'knowledge', 'triggers'] as const).map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setActiveTab(tab)}
-                                    className={`px-5 py-3.5 text-sm font-medium border-b-2 transition-all
-                                        ${activeTab === tab
-                                            ? 'border-blue-500 text-white'
-                                            : 'border-transparent text-gray-500 hover:text-gray-300 hover:border-gray-600'
-                                        }`}
-                                >
-                                    {tab === 'info' ? '기본 정보' : tab === 'gallery' ? '이미지 / 동영상' : tab === 'knowledge' ? '지식 창고' : '트리거 영상'}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* 콘텐츠 영역 */}
-                    <div className="flex-1 overflow-y-auto">
-
-                        {/* ── 기본 정보 탭 ── */}
-                        {(activeTab === 'info' || selectedId === 'new') && (
-                            <PersonaInfoTab
-                                selectedId={selectedId}
-                                personas={personas}
-                                categories={categories}
-                                isDefaultPersona={isDefaultPersona}
-                                onSave={onSave}
-                                onDelete={(id) => { onDelete(id); setSelectedId(personas[0]?.id || 'new'); }}
-                                onSelectId={setSelectedId}
-                            />
-                        )}
-
-                        {/* ── 이미지 / 동영상 탭 ── */}
-                        {activeTab === 'gallery' && selectedId !== 'new' && (
-                            <PersonaGalleryTab personaId={selectedId} onImagesChanged={onImagesChanged} />
-                        )}
-
-                        {/* ── 지식 창고 탭 ── */}
-                        {activeTab === 'knowledge' && selectedId !== 'new' && (
-                            <PersonaKnowledgeTab personaId={selectedId} personas={personas} />
-                        )}
-
-                        {/* ── 트리거 영상 탭 ── */}
-                        {activeTab === 'triggers' && selectedId !== 'new' && (
-                            <PersonaTriggersTab personaId={selectedId} />
-                        )}
-
-                    </div>
-                </>}
                 </div>
+                )}
             </div>
         </div>
     );
