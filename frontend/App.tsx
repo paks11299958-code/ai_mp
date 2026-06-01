@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PointsProvider, usePoints } from './contexts/PointsContext';
 import { usePayment } from './hooks/usePayment';
+import { useBoardToggles } from './hooks/useBoardToggles';
 import { Coins } from 'lucide-react';
 import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Announcement, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
@@ -148,18 +149,24 @@ const AppContent: React.FC = () => {
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [inputText, setInputText] = useState('');
     const [isAdminMode, setIsAdminMode] = useState(false);
-    const [showBoard, setShowBoard] = useState(false);
-    const [showPartnerBoard, setShowPartnerBoard] = useState(false);
-    const [showUserProfile, setShowUserProfile] = useState(false);
-    const [showStockAnalysis, setShowStockAnalysis] = useState(false);
-    const [showHotKeyword, setShowHotKeyword] = useState(false);
-    const [showResearch, setShowResearch] = useState(false);
-    const [showProductExtract, setShowProductExtract] = useState(false);
-    const [showGolfReserve, setShowGolfReserve] = useState(false);
+    const {
+        showBoard, setShowBoard,
+        showPartnerBoard, setShowPartnerBoard,
+        showUserProfile, setShowUserProfile,
+        showStockAnalysis, setShowStockAnalysis,
+        showHotKeyword, setShowHotKeyword,
+        showResearch, setShowResearch,
+        showProductExtract, setShowProductExtract,
+        showGolfReserve, setShowGolfReserve,
+        showUsedItem, setShowUsedItem,
+        showLuxuryBoard, setShowLuxuryBoard,
+        showTodayNews, setShowTodayNews,
+        showSwingBoard, setShowSwingBoard,
+        showSwingInput, setShowSwingInput,
+        showMathTutor, setShowMathTutor,
+        showClubBoard, setShowClubBoard,
+    } = useBoardToggles();
     const [comingSoonMsg, setComingSoonMsg] = useState('');
-    const [showUsedItem, setShowUsedItem] = useState(false);
-    const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
-    const [showTodayNews, setShowTodayNews] = useState(false);
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
     const [categories, setCategories] = useState<Category[]>([]);
@@ -178,10 +185,6 @@ const AppContent: React.FC = () => {
     const [swingUploading, setSwingUploading] = useState(false);
     const [swingStep, setSwingStep] = useState<'idle' | 'uploading' | 'analyzing' | 'saving'>('idle');
     const [swingResult, setSwingResult] = useState<{ id: number; analysis: SwingAnalysis; createdAt: string } | null>(null);
-    const [showSwingBoard, setShowSwingBoard] = useState(false);
-    const [showSwingInput, setShowSwingInput] = useState(false);
-    const [showMathTutor, setShowMathTutor] = useState(false);
-    const [showClubBoard, setShowClubBoard] = useState(false);
 
     // 퀵메뉴 / 생년월일 폼 상태
     const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(null);
