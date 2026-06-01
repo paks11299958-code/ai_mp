@@ -3,10 +3,11 @@ import { PointsProvider, usePoints } from './contexts/PointsContext';
 import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
+import { useAuth } from './hooks/useAuth';
 import { Coins } from 'lucide-react';
-import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Category } from './types';
+import { Message, Persona, PersonaImage, ChatSessionState, TriggerVideo, SwingAnalysis, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, authApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
@@ -59,15 +60,18 @@ const AppContent: React.FC = () => {
         setBonusPoints: setUserBonusPoints,
     } = usePoints();
 
-    const [user, setUser] = useState<User | null>(null);
+    const {
+        user, setUser,
+        isAuthChecking,
+        showAuthModal, setShowAuthModal,
+        kakaoNicknameModal, setKakaoNicknameModal,
+        showAuthPage, setShowAuthPage,
+        showMain, setShowMain,
+        showHero, setShowHero,
+        handleAuthSuccess,
+        handleLogout,
+    } = useAuth();
     const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);
-    const [isAuthChecking, setIsAuthChecking] = useState(true);
-    const [showAuthModal, setShowAuthModal] = useState(false);
-    const [kakaoNicknameModal, setKakaoNicknameModal] = useState<{ token: string; defaultNickname: string } | null>(null);
-    const [showAuthPage, setShowAuthPage] = useState(false);
-    const [showMain, setShowMain] = useState(false);
-    // 뉴UI: 로그인 후 히어로 페이지 표시 여부
-    const [showHero, setShowHero] = useState(false);
     // 뉴UI: 페르소나 대기 페이지 초기 탭
     const [mainInitialTab, setMainInitialTab] = useState<'personas' | 'features'>('personas');
     // 뉴UI: 히어로→대기 페이지 포커스 대상
@@ -77,41 +81,6 @@ const AppContent: React.FC = () => {
         const params = new URLSearchParams(window.location.search);
         return params.get('token');
     });
-
-    // 카카오 로그인 콜백 처리
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get('kakao_login') === '1') {
-            const kakaoCode = params.get('kakao_code');
-            window.history.replaceState({}, '', window.location.pathname);
-            if (kakaoCode) {
-                fetch('/api/auth/kakao/exchange', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: kakaoCode }),
-                })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.token) {
-                            localStorage.setItem('token', data.token);
-                            if (data.isNewUser) {
-                                // 신규 가입: 닉네임 설정 모달 표시
-                                setKakaoNicknameModal({ token: data.token, defaultNickname: data.kakaoNickname || '' });
-                            } else {
-                                window.location.reload();
-                            }
-                        }
-                    })
-                    .catch(() => alert('카카오 로그인에 실패했습니다.'));
-            } else {
-                window.location.reload();
-            }
-        }
-        if (params.get('kakao_error') === '1') {
-            window.history.replaceState({}, '', window.location.pathname);
-            alert('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
-        }
-    }, []);
 
     const [personas, setPersonas] = useState<Persona[]>(() => {
         try {
@@ -229,7 +198,7 @@ const AppContent: React.FC = () => {
             .catch(() => {});
     }, []);
 
-    // 앱 시작 시 페르소나 로드 (공개) + 로그인 확인 동시 실행
+    // 앱 시작 시 페르소나/설정 로드 (공개). 로그인 확인은 useAuth로 이동.
     useEffect(() => {
         // 항상 최신 데이터로 백그라운드 갱신 (초기값은 useState lazy init에서 캐시로 처리)
         personaApi.getAll()
@@ -258,13 +227,6 @@ const AppContent: React.FC = () => {
                 localStorage.setItem('settings_cache', JSON.stringify({ data: s, ts: Date.now() }));
             })
             .catch(() => {});
-
-        const token = localStorage.getItem('token');
-        if (!token) { setIsAuthChecking(false); return; }
-        authApi.me()
-            .then(({ user }) => { setUser(user); setShowHero(true); })
-            .catch(() => localStorage.removeItem('token'))
-            .finally(() => setIsAuthChecking(false));
     }, []);
 
     // 로그인 후 birth info 로드
@@ -562,17 +524,6 @@ const AppContent: React.FC = () => {
         document.addEventListener('mousedown', handler);
         return () => document.removeEventListener('mousedown', handler);
     }, [showHeaderMenu]);
-
-    const handleAuthSuccess = (_loggedInUser: User, token: string) => {
-        localStorage.setItem('token', token);
-        window.location.reload();
-    };
-
-    const handleLogout = async () => {
-        await authApi.logout();
-        localStorage.removeItem('token');
-        window.location.reload();
-    };
 
     const handleAdminLogin = () => {
         if (user?.role === 'ADMIN') {
