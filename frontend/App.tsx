@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PointsProvider, usePoints } from './contexts/PointsContext';
+import { usePayment } from './hooks/usePayment';
 import { Coins } from 'lucide-react';
 import { Message, Persona, PersonaImage, ChatSessionState, User, TriggerVideo, SwingAnalysis, Announcement, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
@@ -57,6 +58,7 @@ const AppContent: React.FC = () => {
     } = usePoints();
 
     const [user, setUser] = useState<User | null>(null);
+    const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [kakaoNicknameModal, setKakaoNicknameModal] = useState<{ token: string; defaultNickname: string } | null>(null);
@@ -108,20 +110,6 @@ const AppContent: React.FC = () => {
             alert('카카오 로그인에 실패했습니다. 다시 시도해주세요.');
         }
     }, []);
-
-    const [pendingPayment] = useState<{ paymentKey: string; orderId: string; amount: number } | null>(() => {
-        const params = new URLSearchParams(window.location.search);
-        const paymentKey = params.get('paymentKey');
-        const orderId = params.get('orderId');
-        const amount = params.get('amount');
-        if (paymentKey && orderId && amount) {
-            window.history.replaceState({}, '', window.location.pathname);
-            return { paymentKey, orderId, amount: Number(amount) };
-        }
-        return null;
-    });
-    const [paymentSuccess, setPaymentSuccess] = useState<{ points: number } | null>(null);
-    const paymentProcessedRef = useRef(false);
 
     const [personas, setPersonas] = useState<Persona[]>(() => {
         try {
@@ -324,20 +312,6 @@ const AppContent: React.FC = () => {
             pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
         }
     }, [user?.id]);
-
-    // 결제 리다이렉트 처리
-    useEffect(() => {
-        if (!user || !pendingPayment || paymentProcessedRef.current) return;
-        paymentProcessedRef.current = true;
-        pointApi.confirmPayment(pendingPayment.paymentKey, pendingPayment.orderId, pendingPayment.amount)
-            .then(result => {
-                setUserPaidPoints(result.newPaidBalance);
-                setUserBonusPoints(result.newBonusBalance);
-                setPaymentSuccess({ points: result.points });
-                setTimeout(() => setPaymentSuccess(null), 4000);
-            })
-            .catch(e => console.error('[payment confirm]', e));
-    }, [user?.id]); // eslint-disable-line
 
     // 페르소나 목록 변경 시 세션 상태 동기화
     useEffect(() => {
