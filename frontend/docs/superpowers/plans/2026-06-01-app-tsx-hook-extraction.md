@@ -57,3 +57,23 @@ App.tsx 실측 기준 71개 useState를 6개 클러스터로 분류:
 
 ## 다음 단계
 계획 확정 후 `/superpowers-executing-plans`로 T0부터 순차 실행. T6 착수 직전 미니플랜 1회 더.
+
+---
+
+## T6 미니플랜 — usePersonaSession 단계 분해 (2026-06-01 작성)
+
+### 조사 결과 (커밋 전 정밀 grep)
+- `sessions`/`setSessions`·`activePersonaId` 참조 80+곳. 핸들러 4개 + 순수 세션 헬퍼 3개.
+- **순수 세션 뮤테이터(외부 의존 0, `[]` 콜백)**: `addMessageToSession`/`updateMessageInSession`/`setSessionTyping` (App.tsx 729–756). → 가장 안전한 코어.
+- **handleSelectPersona**(284–345, deps `[sessions]`): sessionApi.getAll/get + greet + triggerSummaryUpdate 호출. `setInputPlaceholder`/`setActiveQuickMenu`(quickMenu setter) 사용.
+- **handleLoadMoreMessages**(375–397, deps `[sessions, activePersonaId]`): 순수 세션.
+- **triggerSummaryUpdate**(400–414): 순수 세션(sessionApi.summarize).
+- **handleSendMessage**(553–669, ~117줄): **최대 결합** — sessions + inputText/textareaRef + **포인트 setter+setLevelUpInfo(PointsContext)** + **setUser(auth)** + setActiveQuickMenu(quickMenu) + isMemoryOn/memoryEnabled + triggerSummaryUpdate + firstChatMap.
+- **triggerQuickMenu**(417–437, T5 잔류): sessions 의존.
+- **persona→session 동기화 effect**(247–259): sessions+activePersonaId.
+
+### 단계 (저결합→고결합, 각 1커밋·tsc0/vitest19/build·dist제외)
+- [ ] **T6a. 순수 세션 코어 추출** — `usePersonaSession` 신설: `sessions`/`setSessions` + `addMessageToSession`/`updateMessageInSession`/`setSessionTyping` + persona-sync effect(activePersonaId 인자 주입). `activePersonaId`는 **본체 유지**(persona 관심사, 여러 훅이 인자로 받음). 본체는 구조분해. handleSendMessage 등은 본체에 남겨 훅이 노출한 setter/헬퍼 호출.
+- [ ] **T6b. 순수 세션 핸들러 이동** — handleLoadMoreMessages + triggerSummaryUpdate를 훅으로(둘 다 sessions만 의존). handleSelectPersona는 quickMenu setter(setInputPlaceholder/setActiveQuickMenu) 의존 → setter 2개 주입받아 훅으로.
+- [ ] **T6c. handleSendMessage/triggerQuickMenu 정리** — 최대 결합. 옵션: (i) 훅에 의존성 대량 주입(포인트/setUser/quickMenu setter), (ii) **본체 유지하고 훅의 세션 헬퍼만 호출**(권장—주입 폭발 회피). T6c 착수 시 재판단. T5 잔류 퀵메뉴 모달 핸들러도 이때 함께 검토.
+- ⚠️ **각 단계 후 채팅 동선 사용자 확인 권장**(메시지 전송/스트리밍/요약/페르소나 전환). 순수 이동이나 결합도 높음.

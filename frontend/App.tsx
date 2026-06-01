@@ -5,8 +5,9 @@ import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
 import { useAuth } from './hooks/useAuth';
 import { useQuickMenu } from './hooks/useQuickMenu';
+import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
-import { Message, Persona, PersonaImage, ChatSessionState, TriggerVideo, SwingAnalysis, Category } from './types';
+import { Message, Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
 import { pointApi } from './services/pointService';
@@ -141,7 +142,13 @@ const AppContent: React.FC = () => {
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [headerImageModal, setHeaderImageModal] = useState(false);
-    const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
+    const {
+        sessions,
+        setSessions,
+        addMessageToSession,
+        updateMessageInSession,
+        setSessionTyping,
+    } = usePersonaSession(personas, activePersonaId, setActivePersonaId);
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
     const [triggerVideoPopup, setTriggerVideoPopup] = useState<TriggerVideo | null>(null);
@@ -242,21 +249,6 @@ const AppContent: React.FC = () => {
         }
     }, [user?.id]);
 
-    // 페르소나 목록 변경 시 세션 상태 동기화
-    useEffect(() => {
-        setSessions(prev => {
-            const newSessions = { ...prev };
-            personas.forEach(p => {
-                if (!newSessions[p.id]) {
-                    newSessions[p.id] = { messages: [], isTyping: false };
-                }
-            });
-            return newSessions;
-        });
-        if (personas.length > 0 && !personas.find(p => p.id === activePersonaId)) {
-            setActivePersonaId(personas[0].id);
-        }
-    }, [personas, activePersonaId]);
 
     // activePersonaId 변경 시 트리거 영상 로드
     useEffect(() => {
@@ -725,35 +717,6 @@ const AppContent: React.FC = () => {
             console.error('순서 저장 실패:', error);
         }
     };
-
-    const addMessageToSession = useCallback((personaId: string, message: Message) => {
-        setSessions(prev => ({
-            ...prev,
-            [personaId]: {
-                ...prev[personaId],
-                messages: [...(prev[personaId]?.messages || []), message],
-            },
-        }));
-    }, []);
-
-    const updateMessageInSession = useCallback((personaId: string, messageId: string, updates: Partial<Message>) => {
-        setSessions(prev => ({
-            ...prev,
-            [personaId]: {
-                ...prev[personaId],
-                messages: prev[personaId].messages.map(msg =>
-                    msg.id === messageId ? { ...msg, ...updates } : msg
-                ),
-            },
-        }));
-    }, []);
-
-    const setSessionTyping = useCallback((personaId: string, isTyping: boolean) => {
-        setSessions(prev => ({
-            ...prev,
-            [personaId]: { ...prev[personaId], isTyping },
-        }));
-    }, []);
 
     if (resetToken) {
         return (
