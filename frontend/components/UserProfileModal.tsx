@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { authApi, pointsApi, PointsStats } from '../services/apiService';
+import { authApi, pointsApi, PointsStats, userProfileApi } from '../services/apiService';
 import { getStage } from '../utils/level';
-import { X, User as UserIcon, BarChart2, Lock, Eye, EyeOff, ChevronDown, Heart, Pencil, Check } from 'lucide-react';
+import { X, User as UserIcon, BarChart2, Lock, Eye, EyeOff, ChevronDown, Heart, Pencil, Check, Trash2 } from 'lucide-react';
 
 interface Props {
     user: User;
     onClose: () => void;
     onUserUpdate?: (updated: Partial<User>) => void;
+    // 탈퇴 완료 시 — App에서 로그아웃(상태 리셋 + 게스트 화면) 처리
+    onAccountDeleted?: () => void;
 }
 
 type Tab = 'info' | 'stats';
 
-export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate }) => {
+export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate, onAccountDeleted }) => {
     const [tab, setTab] = useState<Tab>('info');
+
+    // 회원 탈퇴 (본인) — 2단계 확인
+    const [showWithdraw, setShowWithdraw] = useState(false);
+    const [withdrawing, setWithdrawing] = useState(false);
+    const [withdrawErr, setWithdrawErr] = useState<string | null>(null);
+
+    const handleWithdraw = async () => {
+        setWithdrawing(true);
+        setWithdrawErr(null);
+        try {
+            await userProfileApi.deleteAccount();
+            onAccountDeleted?.();  // App handleLogout: 토큰/상태 리셋 + 게스트 화면
+        } catch (e: any) {
+            setWithdrawErr(e?.message || '탈퇴 처리에 실패했습니다.');
+            setWithdrawing(false);
+        }
+    };
 
     // 닉네임 변경
     const [nicknameEdit, setNicknameEdit] = useState(false);
@@ -255,6 +274,44 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate 
                                 )}
                             </div>
                             )}
+
+                            {/* ── 회원 탈퇴 ── */}
+                            <div className="pt-2 border-t border-gray-800">
+                                {!showWithdraw ? (
+                                    <button
+                                        onClick={() => { setShowWithdraw(true); setWithdrawErr(null); }}
+                                        className="text-xs text-gray-500 hover:text-red-400 transition-colors"
+                                    >
+                                        회원 탈퇴
+                                    </button>
+                                ) : (
+                                    <div className="rounded-xl bg-red-900/15 border border-red-800/40 p-3.5 space-y-3">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-red-300">
+                                            <Trash2 size={15} /> 정말 탈퇴하시겠어요?
+                                        </div>
+                                        <p className="text-xs text-red-200/90 leading-relaxed">
+                                            탈퇴하면 채팅 기록, 포인트, 작성한 글 등 <b>모든 데이터가 영구 삭제</b>되며 복구할 수 없습니다.
+                                        </p>
+                                        {withdrawErr && <p className="text-xs text-red-400">{withdrawErr}</p>}
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setShowWithdraw(false)}
+                                                disabled={withdrawing}
+                                                className="flex-1 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs transition-colors disabled:opacity-50"
+                                            >
+                                                취소
+                                            </button>
+                                            <button
+                                                onClick={handleWithdraw}
+                                                disabled={withdrawing}
+                                                className="flex-1 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-50"
+                                            >
+                                                {withdrawing ? '처리 중...' : '탈퇴하기'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
 

@@ -449,6 +449,10 @@ export const userProfileApi = {
 
     saveBirthInfo: (birthInfoJson: string) =>
         put<{ ok: boolean }>('/user/birth-info', { birthInfoJson }),
+
+    // 본인 회원 탈퇴(하드 삭제)
+    deleteAccount: () =>
+        del<{ deleted: boolean }>('/user'),
 };
 
 // Board
