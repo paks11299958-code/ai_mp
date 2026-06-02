@@ -51,7 +51,7 @@ App.tsx 실측 기준 71개 useState를 6개 클러스터로 분류:
 - 추출 완료 훅 6개: `hooks/` usePayment·useBoardToggles·useAnnouncements·useAuth·useQuickMenu·usePersonaSession.
 - 본체 잔류(의도): persona 목록/UI 상태/이미지·영상/swing/memory + handleSendMessage 등 다도메인 오케스트레이션 핸들러.
 - 전 단계 공통 검증: tsc 0 / vitest 19 / vite build 통과, dist 제외 소스만 커밋, master 푸시.
-- ⚠️ **사용자 화면 확인 미완**(에이전트 불가, 어드민 로그인 필요): T4 로그인 동선, T5 퀵메뉴/생년월일/관상, T6 채팅 전송·스트리밍·페르소나 전환·이전메시지. 순수 이동이라 구조상 동일하나 미확인.
+- ✅ **검증 완료(2026-06-02)**: ① 정적 동등성 — 원본 `542abb5` 대비 6개 훅의 이동 로직·effect deps·핸들러를 git으로 byte 대조(전부 동일), triggerQuickMenu는 원본에서도 호출 0인 죽은코드라 삭제 무해. ② 사용자 런타임 확인 — 로그인/채팅 동선 정상(이상 없음).
 - 후속: #4 prop drilling / #5 모달 컨텍스트(App.tsx 의존, 이제 훅 분리됐으니 진입 용이).
 
 ## 별도 정리 후보 (이 계획 밖, 잊지 말 것)
