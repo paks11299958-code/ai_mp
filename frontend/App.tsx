@@ -309,27 +309,6 @@ const AppContent: React.FC = () => {
 
     // handleLoadMoreMessages / triggerSummaryUpdate는 usePersonaSession(T6b)으로 이동.
 
-    const triggerQuickMenu = useCallback((menu: { label: string; prompt: string }) => {
-        if (!activePersonaId) return;
-        const dbSessionId = sessions[activePersonaId]?.dbSessionId;
-        if (!dbSessionId) return;
-        setSessions(prev => ({ ...prev, [activePersonaId]: { ...prev[activePersonaId], isTyping: true } }));
-        sessionApi.quickTrigger(dbSessionId, menu.label, menu.prompt)
-            .then(msg => {
-                setSessions(prev => ({
-                    ...prev,
-                    [activePersonaId]: {
-                        ...prev[activePersonaId],
-                        isTyping: false,
-                        messages: [...prev[activePersonaId].messages, { ...msg, id: String(msg.id) }],
-                    },
-                }));
-            })
-            .catch(() => {
-                setSessions(prev => ({ ...prev, [activePersonaId]: { ...prev[activePersonaId], isTyping: false } }));
-            });
-    }, [activePersonaId, sessions]);
-
     const handleSubItem = useCallback((item: SubMenuItem) => {
         setSubMenuConfig(null);
         if (item.partnerModal) {

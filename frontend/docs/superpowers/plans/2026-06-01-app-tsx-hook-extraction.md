@@ -73,7 +73,12 @@ App.tsx 실측 기준 71개 useState를 6개 클러스터로 분류:
 - **persona→session 동기화 effect**(247–259): sessions+activePersonaId.
 
 ### 단계 (저결합→고결합, 각 1커밋·tsc0/vitest19/build·dist제외)
-- [ ] **T6a. 순수 세션 코어 추출** — `usePersonaSession` 신설: `sessions`/`setSessions` + `addMessageToSession`/`updateMessageInSession`/`setSessionTyping` + persona-sync effect(activePersonaId 인자 주입). `activePersonaId`는 **본체 유지**(persona 관심사, 여러 훅이 인자로 받음). 본체는 구조분해. handleSendMessage 등은 본체에 남겨 훅이 노출한 setter/헬퍼 호출.
-- [ ] **T6b. 순수 세션 핸들러 이동** — handleLoadMoreMessages + triggerSummaryUpdate를 훅으로(둘 다 sessions만 의존). handleSelectPersona는 quickMenu setter(setInputPlaceholder/setActiveQuickMenu) 의존 → setter 2개 주입받아 훅으로.
-- [ ] **T6c. handleSendMessage/triggerQuickMenu 정리** — 최대 결합. 옵션: (i) 훅에 의존성 대량 주입(포인트/setUser/quickMenu setter), (ii) **본체 유지하고 훅의 세션 헬퍼만 호출**(권장—주입 폭발 회피). T6c 착수 시 재판단. T5 잔류 퀵메뉴 모달 핸들러도 이때 함께 검토.
-- ⚠️ **각 단계 후 채팅 동선 사용자 확인 권장**(메시지 전송/스트리밍/요약/페르소나 전환). 순수 이동이나 결합도 높음.
+- [x] **T6a. 순수 세션 코어 추출** ✅ `4e483a0` — `usePersonaSession` 신설: sessions/setSessions + 3 뮤테이터 + persona-sync effect(activePersonaId 인자 주입). activePersonaId 본체 유지.
+- [x] **T6b. 순수 세션 핸들러 이동** ✅ `aec4756` — triggerSummaryUpdate + handleLoadMoreMessages + handleSelectPersona를 훅으로. handleSelectPersona의 타 관심사 의존(quickMenu setter·이미지·firstChatMap·isGreeting)은 deps 객체 주입. 훅 호출을 refreshPersonaImages 뒤로 재배치.
+- [x] **T6c. 최대 결합 정리 — (ii) 채택** ✅ `<this>` — **handleSendMessage 본체 유지 확정**(여러 도메인 오케스트레이션 함수라 세션훅에 가두면 결합 증가. 훅의 addMessageToSession/setSessionTyping/triggerSummaryUpdate를 받아 쓰는 현 구조가 깔끔). **triggerQuickMenu는 죽은 코드로 판명(레포 전체 호출부 0)→이동 대신 삭제**. T5 잔류 모달 핸들러도 본체 유지(이미 훅 setter로 동작). → **#1 핵심 분해 완료**.
+- ⚠️ **사용자 채팅 동선 확인 권장**(메시지 전송/스트리밍/요약/페르소나 전환/이전메시지). 순수 이동이나 결합도 높음.
+
+### T6 결과 (2026-06-02)
+- App.tsx 1897→**1876줄**(T6a/b/c 누적 2032→1876, -156). useState 31→30, useEffect 9→8.
+- `usePersonaSession`이 세션 상태+순수 핸들러 소유. handleSendMessage/모달 핸들러는 의도적으로 본체 오케스트레이션 유지.
+- triggerQuickMenu 죽은코드 제거.
