@@ -44,12 +44,15 @@ App.tsx 실측 기준 71개 useState를 6개 클러스터로 분류:
 - [x] **T4. useAuth() 추출** — user/isAuthChecking/show 진입플래그/kakaoNicknameModal + 카카오 콜백 effect + 토큰 자동로그인 effect(공유 mount effect에서 분리, deps 동일) + handleAuthSuccess/handleLogout. handleAdminLogin은 isAdminMode 의존이라 본체 유지. ✅ `a3e43cb` ⚠️ **로그인 동선 사용자 확인 대기**.
 - [x] **T5. useQuickMenu() 추출 (상태만)** — birthInfo/quickMenu*/face/subMenu/partner 12개 state + birthInfo 로드·자동모달 effect + birthModalSkippedRef. triggerQuickMenu/handleSubItem/모달 핸들러는 sessions·inputText 결합이라 본체 유지(T6에서 정리). ✅ `2597f25` ⚠️ **퀵메뉴 동선 사용자 확인 대기**.
 - [ ] **T6. usePersonaSession() 추출** (최대·최위험, 마지막) — personas/sessions/messages/activePersonaId 등 + handleSelectPersona/handleSendMessage/triggerSummaryUpdate/handleLoadMoreMessages **+ T5에서 본체에 남긴 퀵메뉴 핸들러(sessions/inputText 의존)도 함께 정리**. **먼저 하위 분해 미니플랜 권장**. 커밋 + 사용자 채팅 동선 확인.
-- [ ] **T7. 정리** — 본체 AppContent가 훅 조립 위주인지 확인. 추출 과정서 나온 순수함수 `utils/*.test.ts` 보강. work_index/메모리/핸드오프 갱신.
+- [x] **T7. 정리** ✅ `43d7fe8` — 본체 AppContent = 7개 훅 조립 + 본체 고유 상태(28 useState)만. 미사용 Message import 제거. 추출은 전부 stateful 훅이라 신규 순수함수 없음(테스트 보강 불요). 문서/메모리 갱신.
 
-### 진행 현황 (2026-06-01 기준)
-- **App.tsx 2140→2032줄 (-108), useState 71→31 (-40), useEffect 14→9 (-5).**
-- 추출 완료 훅: `hooks/usePayment.ts` `useBoardToggles.ts` `useAnnouncements.ts` `useAuth.ts` `useQuickMenu.ts`.
+### 최종 현황 (2026-06-02 — #1 완료)
+- **App.tsx 2140→1876줄 (-264, -12%), useState 71→30 (-41), useEffect 14→8 (-6).**
+- 추출 완료 훅 6개: `hooks/` usePayment·useBoardToggles·useAnnouncements·useAuth·useQuickMenu·usePersonaSession.
+- 본체 잔류(의도): persona 목록/UI 상태/이미지·영상/swing/memory + handleSendMessage 등 다도메인 오케스트레이션 핸들러.
 - 전 단계 공통 검증: tsc 0 / vitest 19 / vite build 통과, dist 제외 소스만 커밋, master 푸시.
+- ⚠️ **사용자 화면 확인 미완**(에이전트 불가, 어드민 로그인 필요): T4 로그인 동선, T5 퀵메뉴/생년월일/관상, T6 채팅 전송·스트리밍·페르소나 전환·이전메시지. 순수 이동이라 구조상 동일하나 미확인.
+- 후속: #4 prop drilling / #5 모달 컨텍스트(App.tsx 의존, 이제 훅 분리됐으니 진입 용이).
 
 ## 별도 정리 후보 (이 계획 밖, 잊지 말 것)
 - **dist git 추적 제거**: `.gitignore`에 `frontend/dist` + `git rm -r --cached frontend/dist`. (핸드오프 4번)
