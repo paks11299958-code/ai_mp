@@ -460,7 +460,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                     </div>
 
                     {/* 우측 보고서 패널 */}
-                    <div ref={reportPanelRef} style={{ flex: 1, display: selected ? 'flex' : 'none', flexDirection: 'column', overflowY: 'auto', background: T.bg }}
+                    <div ref={reportPanelRef} style={{ flex: 1, minWidth: 0, display: selected ? 'flex' : 'none', flexDirection: 'column', overflowY: 'auto', background: T.bg }}
                         className="md:flex">
 
                         {/* 모바일 뒤로가기 */}
@@ -495,9 +495,9 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
 
                                 {/* 보고서 헤더 — 종목명 + 차트 썸네일 나란히 */}
                                 <div style={{ margin: '14px 20px 0', background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '16px', boxShadow: '0 2px 8px rgba(45,37,32,0.06)' }}>
-                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
                                         {/* 종목 정보 */}
-                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ flex: '1 1 160px', minWidth: 0 }}>
                                             <h3 style={{ fontSize: 22, fontWeight: 800, color: T.ink, margin: '0 0 4px', lineHeight: 1.2 }}>{selected.stockName}</h3>
                                             <p style={{ fontSize: 11, color: T.inkMute, margin: 0 }}>
                                                 주식 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -560,7 +560,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 <AiOpinionCard geminiReport={selected.analysisReport} claudeReport={selected.claudeReport} gptReport={selected.gptReport} />
 
                                 {/* 보고서 본문 */}
-                                <div style={{ padding: '16px 20px' }}>
+                                <div style={{ padding: '16px 20px', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                                     {selected.analysisReport
                                         ? <ReportRenderer content={selected.analysisReport} />
                                         : <p style={{ fontSize: 12, color: T.inkMute, padding: '16px 0' }}>보고서 내용이 없습니다.</p>
@@ -613,10 +613,10 @@ const SourceLinks: React.FC<{ raw: string | null }> = ({ raw }) => {
     return (
         <div style={{ padding: '12px 20px 24px', borderTop: `1px solid ${T.borderSoft}`, marginTop: 4 }}>
             <div style={{ fontSize: 10, color: T.inkMute, marginBottom: 6, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em' }}>참고 출처 ({links.length})</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0 }}>
                 {links.slice(0, 10).map((url, i) => (
                     <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-                        style={{ fontSize: 10, color: '#2563eb', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.7 }}
+                        style={{ display: 'block', maxWidth: '100%', fontSize: 10, color: '#2563eb', textDecoration: 'none', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', opacity: 0.7 }}
                         onMouseEnter={e => (e.currentTarget as HTMLElement).style.opacity = '1'}
                         onMouseLeave={e => (e.currentTarget as HTMLElement).style.opacity = '0.7'}
                     >{url}</a>
