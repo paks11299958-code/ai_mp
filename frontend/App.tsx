@@ -13,6 +13,7 @@ import { generateImageDescription } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
+import { getPersonaFeatureKeys, FEATURE_BY_KEY } from './personaFeatures';
 import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
@@ -1605,29 +1606,24 @@ const AppContent: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (() => {
-                            const featureCards: { icon: string; label: string; onClick: () => void; color?: string; bgColor?: string; borderColor?: string }[] = [];
-                            if (user) {
-                                if (activePersona?.name === '서아')
-                                    featureCards.push({ icon: 'Newspaper', label: '오늘뉴스', onClick: () => setShowTodayNews(true), borderColor: '#9AAFCB', bgColor: '#E8EEF7', color: '#5C7BA8' });
-                                if (activePersona?.name === '윤채원') {
-                                    featureCards.push({ icon: 'TrendingUp', label: '주식 분석', onClick: () => setShowStockAnalysis(true), borderColor: '#9EC4A0', bgColor: '#EAF5EB', color: '#2E6B32' });
-                                    featureCards.push({ icon: 'ShoppingBag', label: '핫쇼핑키워드', onClick: () => setShowHotKeyword(true), borderColor: '#E2C9A0', bgColor: '#FEF6E8', color: '#8B6020' });
-                                }
-                                if (activePersona?.name === '이아린') {
-                                    featureCards.push({ icon: 'ShoppingBag', label: '중고 판매', onClick: () => setShowUsedItem(true), borderColor: '#E2C9A0', bgColor: '#FEF6E8', color: '#8B6020' });
-                                    featureCards.push({ icon: 'ShoppingBag', label: '핫쇼핑키워드', onClick: () => setShowHotKeyword(true), borderColor: '#E2C9A0', bgColor: '#FEF6E8', color: '#8B6020' });
-                                }
-                                if (activePersona?.name === '신은비')
-                                    featureCards.push({ icon: 'Shield', label: '명품 검증', onClick: () => setShowLuxuryBoard(true), borderColor: '#B49AC9', bgColor: '#F5E6F7', color: '#7A5FA0' });
-                                if (activePersona?.name === '지우') {
-                                    featureCards.push({ icon: 'BookOpen', label: 'AI쌤', onClick: () => setShowMathTutor(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
-                                    featureCards.push({ icon: 'Handshake', label: '모임(출첵)', onClick: () => setShowClubBoard(true), borderColor: '#FFB3D1', bgColor: 'rgba(255,107,157,0.12)', color: '#FF6B9D' });
-                                }
-                                if (isGolfPersona) {
-                                    featureCards.push({ icon: 'Activity', label: '스윙 분석', onClick: () => setShowSwingInput(true), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
-                                    featureCards.push({ icon: 'Clock', label: '스윙 기록', onClick: () => setShowSwingBoard(true), borderColor: '#F5A623', bgColor: 'rgba(245,166,35,0.12)', color: '#C47D0A' });
-                                }
-                            }
+                            // 기능 키 → 보드 열기 핸들러 바인딩 (메타데이터는 FEATURE_REGISTRY가 단일 출처)
+                            const FEATURE_ACTIONS: Record<string, () => void> = {
+                                news: () => setShowTodayNews(true),
+                                stock: () => setShowStockAnalysis(true),
+                                hotkeyword: () => setShowHotKeyword(true),
+                                used: () => setShowUsedItem(true),
+                                luxury: () => setShowLuxuryBoard(true),
+                                mathtutor: () => setShowMathTutor(true),
+                                club: () => setShowClubBoard(true),
+                                'golf-swing': () => setShowSwingInput(true),
+                                'golf-record': () => setShowSwingBoard(true),
+                            };
+                            const featureCards = user
+                                ? getPersonaFeatureKeys(activePersona).map(key => {
+                                    const meta = FEATURE_BY_KEY[key];
+                                    return { icon: meta.icon, label: meta.label, onClick: FEATURE_ACTIONS[key] ?? (() => {}), color: meta.color, bgColor: meta.bgColor, borderColor: meta.borderColor };
+                                })
+                                : [];
                             return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={featureCards} />;
                         })()}
 

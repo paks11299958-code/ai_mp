@@ -32,6 +32,7 @@ export interface Persona {
     faceReadingBgUrl?: string;
     chatBgUrl?: string;
     quickMenuJson?: string;
+    features?: string;  // 활성 기능 키 JSON 배열 문자열, 예: '["stock","hotkeyword"]'. 없으면 이름 기반 폴백
     isDefault?: boolean;
     isVisible?: boolean;
     adminOnly?: boolean;

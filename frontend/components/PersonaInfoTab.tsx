@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Persona, Category } from '../types';
 import { personaApi } from '../services/apiService';
 import { Icon } from './Icons';
+import { FEATURE_REGISTRY } from '../personaFeatures';
 
 interface PersonaInfoTabProps {
     selectedId: string;
@@ -79,6 +80,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
     const chatBgInputRef = useRef<HTMLInputElement>(null);
     const [isVisible, setIsVisible] = useState(true);
     const [useGrounding, setUseGrounding] = useState(false);
+    const [features, setFeatures] = useState<string[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -93,6 +95,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl(''); setIntroVideoUrl(''); setStarVideoUrl(''); setFaceReadingBgUrl('');
             setChatBgUrls([]); setQuickMenuJson(''); setIsVisible(true); setUseGrounding(false);
+            setFeatures([]);
             setSelectedCategoryId(null); setShowSuccess(false);
         } else {
             const p = personas.find(p => p.id === selectedId);
@@ -105,6 +108,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                 try { setChatBgUrls(p.chatBgUrl ? (p.chatBgUrl.startsWith('[') ? JSON.parse(p.chatBgUrl) : [p.chatBgUrl]) : []); }
                 catch { setChatBgUrls(p.chatBgUrl ? [p.chatBgUrl] : []); }
                 setQuickMenuJson(p.quickMenuJson || ''); setIsVisible(p.isVisible !== false); setUseGrounding(p.useGrounding ?? false);
+                try { const f = p.features ? JSON.parse(p.features) : []; setFeatures(Array.isArray(f) ? f : []); } catch { setFeatures([]); }
                 setSelectedCategoryId(p.categoryId ?? null); setShowSuccess(false);
             }
         }
@@ -117,7 +121,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
         setIsSaving(true); setSaveError(null);
         try {
             const chatBgUrlValue = chatBgUrls.length ? JSON.stringify(chatBgUrls) : undefined;
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, useGrounding, categoryId: selectedCategoryId });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, useGrounding, features: JSON.stringify(features), categoryId: selectedCategoryId });
             localStorage.removeItem('personas_cache');
             if (isNew) onSelectId(idToSave);
             setShowSuccess(true);
@@ -595,6 +599,26 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                         className="w-4 h-4 accent-green-500 cursor-pointer" />
                     <label htmlFor="useGrounding" className="text-sm text-gray-300 cursor-pointer select-none">Google Search Grounding 사용</label>
                     {useGrounding && <span className="text-xs text-green-400 ml-1">실시간 검색 활성화</span>}
+                </div>
+
+                {/* 활성 기능 (채팅 화면 기능 버튼) */}
+                <div className="p-3.5 bg-gray-800/40 rounded-xl border border-gray-700/50">
+                    <div className="text-sm text-gray-300 mb-1">활성 기능</div>
+                    <div className="text-xs text-gray-500 mb-3">이 페르소나의 채팅 화면에 표시할 기능 버튼을 선택하세요. (이름과 무관하게 동작)</div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {FEATURE_REGISTRY.map(feat => {
+                            const checked = features.includes(feat.key);
+                            return (
+                                <label key={feat.key}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors text-sm ${checked ? 'bg-blue-500/15 border-blue-500/50 text-blue-300' : 'bg-gray-900/30 border-gray-700/50 text-gray-400 hover:border-gray-600'}`}>
+                                    <input type="checkbox" checked={checked}
+                                        onChange={e => setFeatures(prev => e.target.checked ? [...prev, feat.key] : prev.filter(k => k !== feat.key))}
+                                        className="w-4 h-4 accent-blue-500 cursor-pointer" />
+                                    <span className="select-none">{feat.label}</span>
+                                </label>
+                            );
+                        })}
+                    </div>
                 </div>
 
                 {/* 저장 / 삭제 */}
