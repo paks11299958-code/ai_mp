@@ -547,6 +547,9 @@ export const adminApi = {
     changeRole: (userId: number, role: string) =>
         post<{ id: number; role: string }>('/admin/change-role', { userId, role }),
 
+    deleteUser: (userId: number) =>
+        del<{ deleted: boolean; id: number; identifier: string }>(`/admin/users/${userId}`),
+
     getMonitorMetrics: () =>
         get<any>('/admin/monitor/metrics'),
 

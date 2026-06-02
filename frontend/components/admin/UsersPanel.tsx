@@ -18,6 +18,11 @@ export const UsersPanel: React.FC = () => {
     const [bulkDesc, setBulkDesc] = useState('');
     const [bulkGranting, setBulkGranting] = useState(false);
     const [bulkMsg, setBulkMsg] = useState<string | null>(null);
+    // 회원 탈퇴(하드 삭제) — 복구 불가라 이메일/식별자 타이핑 2단계 확인
+    const [deleteTarget, setDeleteTarget] = useState<AdminUser | null>(null);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleting, setDeleting] = useState(false);
+    const [deleteError, setDeleteError] = useState<string | null>(null);
 
     useEffect(() => {
         setUserListLoading(true);
@@ -181,12 +186,20 @@ export const UsersPanel: React.FC = () => {
                                                 </select>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <button
-                                                    onClick={() => { setGrantTarget(u); setGrantMsg(null); setGrantAmount(''); setGrantDesc(''); }}
-                                                    className="px-3 py-1 rounded-lg bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 text-xs transition-colors"
-                                                >
-                                                    포인트 지급
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => { setGrantTarget(u); setGrantMsg(null); setGrantAmount(''); setGrantDesc(''); }}
+                                                        className="px-3 py-1 rounded-lg bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 text-xs transition-colors"
+                                                    >
+                                                        포인트 지급
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setDeleteTarget(u); setDeleteConfirmText(''); setDeleteError(null); }}
+                                                        className="px-3 py-1 rounded-lg bg-red-900/40 hover:bg-red-800/60 text-red-300 text-xs transition-colors"
+                                                    >
+                                                        탈퇴
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -198,6 +211,75 @@ export const UsersPanel: React.FC = () => {
                     </div>
                 )}
             </div>
+
+            {/* 회원 탈퇴(하드 삭제) 확인 모달 — 복구 불가라 식별자 타이핑 2단계 확인 */}
+            {deleteTarget && (() => {
+                const identifier = deleteTarget.email ?? deleteTarget.phone ?? String(deleteTarget.id);
+                const confirmed = deleteConfirmText.trim() === identifier;
+                const hasPaid = (deleteTarget.paidPoints ?? 0) > 0;
+                return (
+                    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60" onClick={() => !deleting && setDeleteTarget(null)}>
+                        <div className="w-full max-w-md bg-gray-900 border border-red-800/60 rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                            <div className="px-5 py-4 border-b border-gray-700 flex items-center gap-2">
+                                <Icon name="Trash2" size={16} className="text-red-400" />
+                                <h3 className="text-sm font-semibold text-red-300">회원 탈퇴 (완전 삭제)</h3>
+                            </div>
+                            <div className="px-5 py-4 space-y-3 text-sm">
+                                <p className="text-gray-300">
+                                    <span className="font-semibold text-white">{identifier}</span> 회원을 영구 삭제합니다.
+                                </p>
+                                <div className="rounded-lg bg-red-900/20 border border-red-800/40 p-3 text-xs text-red-200 space-y-1">
+                                    <div>⚠️ 이 작업은 <b>되돌릴 수 없습니다.</b></div>
+                                    <div>채팅 세션({deleteTarget.sessionCount}개)·포인트·게시글·기록이 모두 삭제됩니다.</div>
+                                    {hasPaid && <div className="text-yellow-300">💰 유료 포인트 {deleteTarget.paidPoints.toLocaleString()}P 보유 — 결제 이력도 함께 삭제됩니다. 정산 확인 후 진행하세요.</div>}
+                                </div>
+                                <div>
+                                    <label className="block text-xs text-gray-400 mb-1.5">
+                                        확인을 위해 <span className="font-mono text-gray-200">{identifier}</span> 를 입력하세요
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={deleteConfirmText}
+                                        onChange={e => setDeleteConfirmText(e.target.value)}
+                                        placeholder={identifier}
+                                        autoFocus
+                                        className="w-full px-3 py-2 rounded-lg bg-gray-800 border border-gray-600 text-white text-sm focus:outline-none focus:border-red-500"
+                                    />
+                                </div>
+                                {deleteError && <div className="text-xs text-red-400">{deleteError}</div>}
+                            </div>
+                            <div className="px-5 py-3 border-t border-gray-700 flex items-center justify-end gap-2">
+                                <button
+                                    onClick={() => setDeleteTarget(null)}
+                                    disabled={deleting}
+                                    className="px-4 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 text-xs transition-colors disabled:opacity-50"
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        if (!confirmed) return;
+                                        setDeleting(true); setDeleteError(null);
+                                        try {
+                                            await adminApi.deleteUser(deleteTarget.id);
+                                            setDeleteTarget(null);
+                                            adminApi.getUsers().then(setUserList).catch(() => {});
+                                        } catch (e: any) {
+                                            setDeleteError(e?.message || '삭제에 실패했습니다.');
+                                        } finally {
+                                            setDeleting(false);
+                                        }
+                                    }}
+                                    disabled={!confirmed || deleting}
+                                    className="px-4 py-1.5 rounded-lg bg-red-700 hover:bg-red-600 text-white text-xs font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                                >
+                                    {deleting ? '삭제 중...' : '영구 삭제'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
         </div>
     );
 };
