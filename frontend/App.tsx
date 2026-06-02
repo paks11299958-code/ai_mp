@@ -7,7 +7,7 @@ import { useAuth } from './hooks/useAuth';
 import { useQuickMenu } from './hooks/useQuickMenu';
 import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
-import { Message, Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category } from './types';
+import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
 import { pointApi } from './services/pointService';
