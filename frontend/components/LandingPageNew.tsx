@@ -50,6 +50,7 @@ interface LandingPageNewProps {
     onAdminClick?: () => void;
     onPersonaListClick?: () => void;
     onFeatureListClick?: () => void;
+    onProfileClick?: () => void;
     // 재방문 바로진입: 마지막 대화 페르소나 이름 + "이어서 대화" 핸들러 (있을 때만 배너 표시)
     continuePersonaName?: string;
     onContinueChat?: () => void;
@@ -775,6 +776,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     onAdminClick,
     onPersonaListClick,
     onFeatureListClick,
+    onProfileClick,
     continuePersonaName,
     onContinueChat,
 }) => {
@@ -934,9 +936,18 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                         )}
                         {user ? (
                             <>
-                                <span style={{ fontSize: 13, color: T.inkSoft, fontWeight: 500 }}>
-                                    {user.username || user.email.split('@')[0]}님 ✦
-                                </span>
+                                {onProfileClick ? (
+                                    <button onClick={onProfileClick} title="내 정보" style={{
+                                        fontSize: 13, color: T.inkSoft, fontWeight: 500,
+                                        background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
+                                    }}>
+                                        {user.username || user.email.split('@')[0]}님 ✦
+                                    </button>
+                                ) : (
+                                    <span style={{ fontSize: 13, color: T.inkSoft, fontWeight: 500 }}>
+                                        {user.username || user.email.split('@')[0]}님 ✦
+                                    </span>
+                                )}
                                 <button onClick={onGoToChat ?? onStart} style={{
                                     padding: '8px 20px', borderRadius: 999,
                                     background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
@@ -1051,6 +1062,16 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                         display: 'flex', alignItems: 'center', gap: 8,
                                     }}>
                                         <span style={{ fontSize: 16 }}>✨</span> 기능 둘러보기
+                                    </button>
+                                )}
+                                {onProfileClick && (
+                                    <button onClick={() => { setMobileMenuOpen(false); onProfileClick(); }} style={{
+                                        padding: '13px 20px', background: 'none', border: 'none',
+                                        textAlign: 'left', fontSize: 14, color: T.inkSoft, cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', gap: 8,
+                                        borderTop: `1px solid ${T.lineSoft}`, marginTop: 4,
+                                    }}>
+                                        <span style={{ fontSize: 16 }}>👤</span> 내 정보
                                     </button>
                                 )}
                                 {onAdminClick && user?.role === 'ADMIN' && (

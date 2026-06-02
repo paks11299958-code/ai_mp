@@ -794,6 +794,7 @@ const AppContent: React.FC = () => {
                     onAdminClick={() => handleAdminLogin()}
                     onPersonaListClick={() => goMain('personas')}
                     onFeatureListClick={() => goMain('features')}
+                    onProfileClick={() => setShowUserProfile(true)}
                     continuePersonaName={continuePersona?.name}
                     onContinueChat={onContinueChat}
                 />
@@ -804,6 +805,9 @@ const AppContent: React.FC = () => {
                         onRead={handleReadAnnouncements}
                         onClose={() => setShowAnnouncementModal(false)}
                     />
+                )}
+                {showUserProfile && (
+                    <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} onUserUpdate={updated => setUser(prev => prev ? { ...prev, ...updated } : prev)} onAccountDeleted={() => { setShowUserProfile(false); handleLogout(); }} />
                 )}
             </>
         );
