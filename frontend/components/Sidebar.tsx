@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Persona, User } from '../types';
+import { Persona } from '../types';
 import { Icon } from './Icons';
 import { getStage, getStageProgress, getXpToNextStage, STAGES } from '../utils/level';
+import { useAuthContext } from '../contexts/AuthContext';
 
 interface SidebarProps {
     personas: Persona[];
@@ -16,8 +17,6 @@ interface SidebarProps {
     onAnnouncementClick: () => void;
     unreadAnnouncementCount: number;
     onReorder: (index: number, direction: 'up' | 'down') => void;
-    user: User | null;
-    onLogout: () => void;
     onGoHome: () => void;
     onProfileClick?: () => void;
 }
@@ -26,8 +25,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     personas, activePersonaId, onSelectPersona,
     isOpen, setIsOpen, isCollapsed, onToggleCollapse,
     onAdminClick, onAnnouncementClick, unreadAnnouncementCount, onReorder,
-    user, onLogout, onGoHome, onProfileClick, newUi = false,
+    onGoHome, onProfileClick, newUi = false,
 }) => {
+    const { user, onLogout } = useAuthContext();
     const nb = newUi ? 'rgba(255,255,255,0.65)' : '';
     const nbBorder = newUi ? '#F0E9DE' : '';
     const [searchQuery, setSearchQuery] = useState('');

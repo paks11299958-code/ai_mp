@@ -9,8 +9,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
-import { Persona, User, Category } from '../types';
+import { Persona, Category } from '../types';
 import { Icon } from './Icons';
+import { useAuthContext } from '../contexts/AuthContext';
 
 // ─────────────────────────────────────────────
 // 디자인 토큰
@@ -49,9 +50,7 @@ const PALETTE_CYCLE = [
 interface MainPageNewProps {
     personas: Persona[];
     isLoading: boolean;
-    user: User;
     onSelectPersona: (personaId: string) => void;
-    onLogout: () => void;
     onAdminClick: () => void;
     onAnnouncementClick?: () => void;
     unreadAnnouncementCount?: number;
@@ -137,14 +136,14 @@ const ChatRail: React.FC<{
     personas: Persona[];
     activeId: string | null;
     onSelect: (id: string) => void;
-    onLogout: () => void;
     onAdminClick: () => void;
     onAnnouncementClick?: () => void;
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
-    user: User;
     onGoHome?: () => void;
-}> = ({ personas, activeId, onSelect, onLogout, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, user, onGoHome }) => (
+}> = ({ personas, activeId, onSelect, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onGoHome }) => {
+    const { user, onLogout } = useAuthContext();
+    return (
     <aside style={{
         width: 80,
         flexShrink: 0,
@@ -279,7 +278,8 @@ const ChatRail: React.FC<{
             </button>
         </div>
     </aside>
-);
+    );
+};
 
 // ─────────────────────────────────────────────
 // Middle Stage — 타로카드 + 페르소나 정보
@@ -526,15 +526,14 @@ const PersonaSelectPanel: React.FC<{
     focusPersonaId?: string | null;
     focusFeatureKey?: string | null;
     // 햄버거 메뉴용
-    user?: { username?: string; email: string; role?: string } | null;
     onGoHome?: () => void;
-    onLogout?: () => void;
     onAdminClick?: () => void;
     onAnnouncementClick?: () => void;
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
     onPartnerBoardClick?: () => void;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, user, onGoHome, onLogout, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick }) => {
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick }) => {
+    const { user, onLogout } = useAuthContext();
     const [tab, setTab] = useState<'personas' | 'features'>(initialTab);
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1034,9 +1033,7 @@ const PersonaSelectPanel: React.FC<{
 export const MainPageNew: React.FC<MainPageNewProps> = ({
     personas,
     isLoading,
-    user,
     onSelectPersona,
-    onLogout,
     onAdminClick,
     onAnnouncementClick,
     unreadAnnouncementCount = 0,
@@ -1113,12 +1110,10 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                     personas={personas}
                     activeId={activePersonaId}
                     onSelect={handleSelectPersona}
-                    onLogout={onLogout}
                     onAdminClick={onAdminClick}
                     onAnnouncementClick={onAnnouncementClick}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={onProfileClick}
-                    user={user}
                     onGoHome={onGoHome}
                 />
             </div>
@@ -1143,9 +1138,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 initialTab={initialTab}
                 focusPersonaId={initialFocusPersonaId}
                 focusFeatureKey={initialFocusFeatureKey}
-                user={user}
                 onGoHome={onGoHome}
-                onLogout={onLogout}
                 onAdminClick={onAdminClick}
                 onAnnouncementClick={onAnnouncementClick}
                 unreadAnnouncementCount={unreadAnnouncementCount}

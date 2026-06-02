@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PointsProvider, usePoints } from './contexts/PointsContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
@@ -327,6 +328,9 @@ const AppContent: React.FC = () => {
     }, []);
 
     const isAdmin = user?.role === 'ADMIN';
+    // #4: 자식(Sidebar/MainPageNew/LandingPageNew)에 prop drilling 대신 Context로 공급.
+    // onAdminClick은 화면별 전환 부수효과가 달라 prop 유지(AuthContext 미포함).
+    const authCtxValue = { user, isAdmin, onLogout: handleLogout };
     const visiblePersonas = isAdmin
         ? personas
         : personas.filter(p => p.isVisible !== false);
@@ -766,12 +770,11 @@ const AppContent: React.FC = () => {
     if (showMain) {
         return (
             <>
+                <AuthProvider value={authCtxValue}>
                 <MainPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    user={user}
                     onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
-                    onLogout={handleLogout}
                     onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
@@ -783,6 +786,7 @@ const AppContent: React.FC = () => {
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
                 />
+                </AuthProvider>
                 {showAnnouncementModal && (
                     <AnnouncementModal
                         announcements={announcements}
@@ -915,6 +919,7 @@ const AppContent: React.FC = () => {
                 fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif",
             }}
         >
+            <AuthProvider value={authCtxValue}>
             <Sidebar
                 personas={visiblePersonas}
                 activePersonaId={activePersonaId}
@@ -927,12 +932,11 @@ const AppContent: React.FC = () => {
                 onAnnouncementClick={() => setShowAnnouncementModal(true)}
                 unreadAnnouncementCount={unreadAnnouncementCount}
                 onReorder={handleReorderPersona}
-                user={user}
-                onLogout={handleLogout}
                 onGoHome={() => { setShowMain(false); setShowHero(true); }}
                 onProfileClick={() => setShowUserProfile(true)}
                 newUi={true}
             />
+            </AuthProvider>
 
             {showAnnouncementModal && (
                 <AnnouncementModal
