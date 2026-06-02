@@ -50,6 +50,9 @@ interface LandingPageNewProps {
     onAdminClick?: () => void;
     onPersonaListClick?: () => void;
     onFeatureListClick?: () => void;
+    // 재방문 바로진입: 마지막 대화 페르소나 이름 + "이어서 대화" 핸들러 (있을 때만 배너 표시)
+    continuePersonaName?: string;
+    onContinueChat?: () => void;
 }
 
 // ─────────────────────────────────────────────
@@ -772,6 +775,8 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     onAdminClick,
     onPersonaListClick,
     onFeatureListClick,
+    continuePersonaName,
+    onContinueChat,
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1151,6 +1156,33 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     페르소나에 숨겨진 기능을 찾아보세요.<br />
                     대화 한 마디가 새로운 세계로 이어집니다.
                 </p>
+
+                {/* 재방문 바로진입: 마지막 대화 페르소나와 "이어서 대화" 제안 (강제 이동 아님) */}
+                {user && onContinueChat && continuePersonaName && (
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, padding: '0 20px' }}>
+                        <button
+                            onClick={onContinueChat}
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 10,
+                                padding: '12px 22px', borderRadius: 999,
+                                background: 'rgba(255,255,255,0.85)',
+                                border: `1.5px solid ${T.accent}55`,
+                                boxShadow: `0 6px 20px -8px rgba(142,111,183,0.4)`,
+                                backdropFilter: 'blur(8px)',
+                                cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
+                                maxWidth: '100%',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 10px 26px -8px rgba(142,111,183,0.55)`; }}
+                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 20px -8px rgba(142,111,183,0.4)`; }}
+                        >
+                            <span style={{ fontSize: 18 }}>💬</span>
+                            <span style={{ fontSize: 14, color: T.ink, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                <span style={{ color: T.accent, fontWeight: 700 }}>{continuePersonaName}</span>님과 이어서 대화하기
+                            </span>
+                            <span style={{ fontSize: 14, color: T.accent, fontWeight: 700 }}>→</span>
+                        </button>
+                    </div>
+                )}
 
                 {/* CTA 토글 버튼 */}
                 <div style={{

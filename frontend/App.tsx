@@ -309,6 +309,11 @@ const AppContent: React.FC = () => {
             .catch(() => {});
     }, [kakaoNicknameModal, setKakaoNicknameModal, setUser, goTo]);
 
+    // 마지막으로 실제 대화한 페르소나 기억 (재방문 시 Hero에 "이어서 대화" 제안용)
+    const rememberLastPersona = useCallback((personaId: string) => {
+        try { localStorage.setItem('lastPersonaId', personaId); } catch {}
+    }, []);
+
     const handlePersonaClick = useCallback((personaId: string) => {
         setIsSidebarCollapsed(true);
         const persona = personas.find(p => p.id === personaId);
@@ -319,9 +324,10 @@ const AppContent: React.FC = () => {
             setIntroVideoModal({ personaId, type: 'image', url: persona.imageUrl });
             handleSelectPersona(personaId, { prefetchOnly: true }); // 인트로 보는 동안 인사말 미리 준비
         } else {
+            rememberLastPersona(personaId);
             handleSelectPersona(personaId);
         }
-    }, [personas, handleSelectPersona]);
+    }, [personas, handleSelectPersona, rememberLastPersona]);
 
     // 비회원이 페르소나 클릭 → 인트로 표시, 입장 시 회원가입 유도
     const handleGuestPersonaClick = useCallback((personaId: string) => {
@@ -762,6 +768,16 @@ const AppContent: React.FC = () => {
     if (user && screen === 'hero') {
         // 'main'으로 가면서 초기 탭/포커스 설정. screen이 단일이라 별도 false 토글 불필요.
         const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
+        // 재방문 바로진입: 마지막 대화 페르소나가 현재 보이는 목록에 있으면 "이어서 대화" 제안.
+        let lastPersonaId: string | null = null;
+        try { lastPersonaId = localStorage.getItem('lastPersonaId'); } catch {}
+        const continuePersona = lastPersonaId ? visiblePersonas.find(p => p.id === lastPersonaId) ?? null : null;
+        // "이어서 대화" 클릭 → 인트로 스킵하고 바로 채팅 진입 (재방문 마찰 최소화).
+        const onContinueChat = continuePersona ? () => {
+            rememberLastPersona(continuePersona.id);
+            goTo('chat');
+            handleSelectPersona(continuePersona.id);
+        } : undefined;
         return (
             <>
                 <LandingPageNew
@@ -781,6 +797,8 @@ const AppContent: React.FC = () => {
                     onAdminClick={() => handleAdminLogin()}
                     onPersonaListClick={() => goMain('personas')}
                     onFeatureListClick={() => goMain('features')}
+                    continuePersonaName={continuePersona?.name}
+                    onContinueChat={onContinueChat}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
@@ -1313,6 +1331,7 @@ const AppContent: React.FC = () => {
                                 if (isGuest) {
                                     goTo('authPage');
                                 } else {
+                                    rememberLastPersona(id);
                                     goTo('chat');
                                     handleSelectPersona(id);
                                 }
@@ -1796,7 +1815,7 @@ const AppContent: React.FC = () => {
                                                     if (menu) handleMenuSelect(menu);
                                                     e.target.value = '';
                                                 }}
-                                                className="text-xs px-3 py-1.5 rounded-full text-gray-200 cursor-pointer focus:outline-none transition-all"
+                                                className="text-xs px-3 py-1.5 rounded-full cursor-pointer focus:outline-none transition-all"
                                                 style={{ ...glassBtnStyle, minWidth: 120 }}
                                             >
                                                 <option value="" disabled>주제 선택</option>
