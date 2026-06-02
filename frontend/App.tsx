@@ -49,7 +49,6 @@ import { FaceReadingModal } from './components/FaceReadingModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
 import { ClubBoard } from './components/ClubBoard';
-import KakaoNicknameModal from './components/KakaoNicknameModal';
 
 
 const AppContent: React.FC = () => {
@@ -67,7 +66,6 @@ const AppContent: React.FC = () => {
         user, setUser,
         isAuthChecking,
         showAuthModal, setShowAuthModal,
-        kakaoNicknameModal, setKakaoNicknameModal,
         screen, goTo,
         handleAuthSuccess,
         resetAuth,
@@ -299,16 +297,6 @@ const AppContent: React.FC = () => {
         // token/user 제거 + guest 화면 (마지막에 호출해 화면 전환을 한 번에)
         resetAuth();
     }, [resetAuth, setSessions, setUserPaidPoints, setUserBonusPoints]);
-
-    // 카카오 신규가입 닉네임 설정 완료 → reload 대신 me() 조회 후 hero 진입.
-    const handleKakaoNicknameComplete = useCallback(() => {
-        const token = kakaoNicknameModal?.token;
-        setKakaoNicknameModal(null);
-        if (token) localStorage.setItem('token', token);
-        authApi.me()
-            .then(({ user }) => { setUser(user); goTo('hero'); })
-            .catch(() => {});
-    }, [kakaoNicknameModal, setKakaoNicknameModal, setUser, goTo]);
 
     // 최근 대화한 페르소나 ID 목록(최근순, 최대 5). Hero "이어서 대화" 배너 + MainPageNew "최근 대화" 줄용.
     // localStorage 'recentPersonaIds'에 영속, 화면 갱신 위해 state로도 보유.
@@ -668,13 +656,6 @@ const AppContent: React.FC = () => {
                     token={resetToken}
                     onClose={() => setResetToken(null)}
                 />
-                {kakaoNicknameModal && (
-                    <KakaoNicknameModal
-                        defaultNickname={kakaoNicknameModal.defaultNickname}
-                        token={kakaoNicknameModal.token}
-                        onComplete={handleKakaoNicknameComplete}
-                    />
-                )}
             </>
         );
     }
@@ -1950,13 +1931,6 @@ const AppContent: React.FC = () => {
                 </div>
             )}
         </div>
-        {kakaoNicknameModal && (
-            <KakaoNicknameModal
-                defaultNickname={kakaoNicknameModal.defaultNickname}
-                token={kakaoNicknameModal.token}
-                onComplete={handleKakaoNicknameComplete}
-            />
-        )}
         </>
     );
 };

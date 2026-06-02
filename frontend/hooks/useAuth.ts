@@ -19,8 +19,8 @@ export type Screen = 'guest' | 'authPage' | 'hero' | 'main' | 'chat';
  * 소유 범위:
  * - user/setUser (앱 전역에서 참조), isAuthChecking
  * - 진입 화면 단일 상태: screen + goTo() (이전 showAuthPage/showMain/showHero 통합)
- * - 카카오 신규가입 닉네임 모달: kakaoNicknameModal
  * - 카카오 OAuth 콜백 처리 effect (kakao_login/kakao_code/kakao_error)
+ *   — 신규/기존 구분 없이 즉시 로그인(서버가 유효 JWT 발급, 닉네임 모달 제거됨)
  * - 토큰 기반 자동 로그인 확인 effect (authApi.me)
  * - handleAuthSuccess (로그인 성공 → 상태 전환, reload 없음)
  *
@@ -33,7 +33,6 @@ export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
-    const [kakaoNicknameModal, setKakaoNicknameModal] = useState<{ token: string; defaultNickname: string } | null>(null);
     const [screen, setScreen] = useState<Screen>('guest');
 
     const goTo = (next: Screen) => setScreen(next);
@@ -53,16 +52,12 @@ export function useAuth() {
                     .then(r => r.json())
                     .then(data => {
                         if (data.token) {
+                            // 신규/기존 구분 없이 즉시 로그인 — 서버가 이미 유효 JWT를 발급함.
+                            // 신규 가입자도 카카오 닉네임을 그대로 사용하고 바로 hero 진입(닉네임 변경은 '내 정보'에서).
                             localStorage.setItem('token', data.token);
-                            if (data.isNewUser) {
-                                // 신규 가입: 닉네임 설정 모달 표시 (완료 시 본체에서 me() 재조회 → hero)
-                                setKakaoNicknameModal({ token: data.token, defaultNickname: data.kakaoNickname || '' });
-                            } else {
-                                // 기존 회원: 토큰으로 즉시 me() 조회 후 hero 진입 (reload 대신)
-                                authApi.me()
-                                    .then(({ user }) => { setUser(user); goTo('hero'); })
-                                    .catch(() => localStorage.removeItem('token'));
-                            }
+                            authApi.me()
+                                .then(({ user }) => { setUser(user); goTo('hero'); })
+                                .catch(() => localStorage.removeItem('token'));
                         }
                     })
                     .catch(() => alert('카카오 로그인에 실패했습니다.'));
@@ -96,7 +91,6 @@ export function useAuth() {
         localStorage.removeItem('token');
         setUser(null);
         setShowAuthModal(false);
-        setKakaoNicknameModal(null);
         goTo('guest');
     };
 
@@ -104,7 +98,6 @@ export function useAuth() {
         user, setUser,
         isAuthChecking,
         showAuthModal, setShowAuthModal,
-        kakaoNicknameModal, setKakaoNicknameModal,
         screen, goTo,
         handleAuthSuccess,
         resetAuth,
