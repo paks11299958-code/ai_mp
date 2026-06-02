@@ -238,7 +238,7 @@ const ChatRail: React.FC<{
                     )}
                 </button>
             )}
-            {(user.role === 'ADMIN' || user.role === 'MANAGE') && (
+            {user.role === 'ADMIN' && (
                 <button onClick={onAdminClick} title="관리자"
                     style={{
                         width: 34, height: 34, borderRadius: 10,

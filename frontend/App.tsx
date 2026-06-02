@@ -10,7 +10,7 @@ import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
 import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category } from './types';
 import { generateImageDescription } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { Sidebar } from './components/Sidebar';
@@ -67,11 +67,9 @@ const AppContent: React.FC = () => {
         isAuthChecking,
         showAuthModal, setShowAuthModal,
         kakaoNicknameModal, setKakaoNicknameModal,
-        showAuthPage, setShowAuthPage,
-        showMain, setShowMain,
-        showHero, setShowHero,
+        screen, goTo,
         handleAuthSuccess,
-        handleLogout,
+        resetAuth,
     } = useAuth();
     const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);
     // 뉴UI: 페르소나 대기 페이지 초기 탭
@@ -282,6 +280,35 @@ const AppContent: React.FC = () => {
     // handleSelectPersona는 usePersonaSession(T6b)으로 이동.
 
     // 인트로 영상/이미지 확인 후 채팅 진입 (없으면 바로 진입)
+    // 로그아웃: reload() 대신 명시적 전체 리셋.
+    // reload가 암묵적으로 초기화하던 유저 종속 상태(세션/포인트/어드민/이미지/기억)를
+    // 직접 비워 이전 유저 잔존을 차단한다. (① reload 제거 리팩토링)
+    const handleLogout = useCallback(async () => {
+        try { await authApi.logout(); } catch {}
+        // 유저 종속 상태 리셋
+        setSessions({});
+        setUserPaidPoints(0);
+        setUserBonusPoints(0);
+        setIsAdminMode(false);
+        setPersonaImages({});
+        setTriggerVideos({});
+        setMemoryEnabled({});
+        setActiveQuickMenu(null);
+        setShowHeaderMenu(false);
+        // token/user 제거 + guest 화면 (마지막에 호출해 화면 전환을 한 번에)
+        resetAuth();
+    }, [resetAuth, setSessions, setUserPaidPoints, setUserBonusPoints]);
+
+    // 카카오 신규가입 닉네임 설정 완료 → reload 대신 me() 조회 후 hero 진입.
+    const handleKakaoNicknameComplete = useCallback(() => {
+        const token = kakaoNicknameModal?.token;
+        setKakaoNicknameModal(null);
+        if (token) localStorage.setItem('token', token);
+        authApi.me()
+            .then(({ user }) => { setUser(user); goTo('hero'); })
+            .catch(() => {});
+    }, [kakaoNicknameModal, setKakaoNicknameModal, setUser, goTo]);
+
     const handlePersonaClick = useCallback((personaId: string) => {
         setIsSidebarCollapsed(true);
         const persona = personas.find(p => p.id === personaId);
@@ -304,9 +331,9 @@ const AppContent: React.FC = () => {
         } else if (persona?.imageUrl) {
             setIntroVideoModal({ personaId, type: 'image', url: persona.imageUrl, guestMode: true });
         } else {
-            setShowAuthPage(true);
+            goTo('authPage');
         }
-    }, [personas]);
+    }, [personas, goTo]);
 
     // handleLoadMoreMessages / triggerSummaryUpdate는 usePersonaSession(T6b)으로 이동.
 
@@ -384,6 +411,7 @@ const AppContent: React.FC = () => {
     const handleAdminLogin = () => {
         if (user?.role === 'ADMIN') {
             setIsAdminMode(true);
+            goTo('chat'); // AdminPanel은 'chat' 화면 내부에서 isAdminMode로 렌더됨
         } else {
             alert('관리자 권한이 없습니다.');
         }
@@ -621,10 +649,7 @@ const AppContent: React.FC = () => {
                     <KakaoNicknameModal
                         defaultNickname={kakaoNicknameModal.defaultNickname}
                         token={kakaoNicknameModal.token}
-                        onComplete={() => {
-                            setKakaoNicknameModal(null);
-                            window.location.reload();
-                        }}
+                        onComplete={handleKakaoNicknameComplete}
                     />
                 )}
             </>
@@ -643,11 +668,11 @@ const AppContent: React.FC = () => {
     }
 
     if (!user) {
-        if (showAuthPage) {
+        if (screen === 'authPage') {
             return (
                 <AuthModal
                     onSuccess={handleAuthSuccess}
-                    onBack={() => setShowAuthPage(false)}
+                    onBack={() => goTo('guest')}
                     defaultMode="register"
                     fullScreen
                 />
@@ -663,7 +688,7 @@ const AppContent: React.FC = () => {
                 <LandingPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    onStart={() => setShowAuthPage(true)}
+                    onStart={() => goTo('authPage')}
                     onLoginClick={() => setShowAuthModal(true)}
                     onPersonaClick={handleGuestPersonaClick}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
@@ -712,7 +737,7 @@ const AppContent: React.FC = () => {
                             )}
                             <div className="flex gap-3 justify-center px-5 py-4" style={{ background: 'rgba(15,10,25,0.95)' }}>
                                 <button
-                                    onClick={() => { setIntroVideoModal(null); setShowAuthPage(true); }}
+                                    onClick={() => { setIntroVideoModal(null); goTo('authPage'); }}
                                     className="flex-1 min-h-[44px] py-2.5 text-white font-semibold rounded-xl transition-all hover:scale-105"
                                     style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)', boxShadow: '0 0 16px rgba(124,58,237,0.4)' }}
                                 >
@@ -734,26 +759,28 @@ const AppContent: React.FC = () => {
         );
     }
 
-    if (user && showHero) {
+    if (user && screen === 'hero') {
+        // 'main'으로 가면서 초기 탭/포커스 설정. screen이 단일이라 별도 false 토글 불필요.
+        const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
         return (
             <>
                 <LandingPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    onStart={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
-                    onLoginClick={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
-                    onPersonaClick={(id) => { setMainFocusPersonaId(id); setMainFocusFeatureKey(null); setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
+                    onStart={() => goMain('personas')}
+                    onLoginClick={() => goMain('personas')}
+                    onPersonaClick={(id) => { setMainFocusPersonaId(id); setMainFocusFeatureKey(null); goMain('personas'); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onPartnerBoardClick={() => setShowPartnerBoard(true)}
-                    onFeatureClick={(key) => { setMainFocusFeatureKey(key); setMainFocusPersonaId(null); setShowHero(false); setMainInitialTab('features'); setShowMain(true); }}
+                    onFeatureClick={(key) => { setMainFocusFeatureKey(key); setMainFocusPersonaId(null); goMain('features'); }}
                     categories={categories}
                     user={user}
-                    onGoToChat={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
+                    onGoToChat={() => goMain('personas')}
                     onLogout={handleLogout}
-                    onAdminClick={() => { setShowHero(false); handleAdminLogin(); }}
-                    onPersonaListClick={() => { setShowHero(false); setMainInitialTab('personas'); setShowMain(true); }}
-                    onFeatureListClick={() => { setShowHero(false); setMainInitialTab('features'); setShowMain(true); }}
+                    onAdminClick={() => handleAdminLogin()}
+                    onPersonaListClick={() => goMain('personas')}
+                    onFeatureListClick={() => goMain('features')}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
@@ -767,21 +794,21 @@ const AppContent: React.FC = () => {
         );
     }
 
-    if (showMain) {
+    if (screen === 'main') {
         return (
             <>
                 <AuthProvider value={authCtxValue}>
                 <MainPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
-                    onSelectPersona={(id) => { setShowMain(false); handlePersonaClick(id); }}
-                    onAdminClick={() => { setShowMain(false); handleAdminLogin(); }}
+                    onSelectPersona={(id) => { goTo('chat'); handlePersonaClick(id); }}
+                    onAdminClick={() => handleAdminLogin()}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onPartnerBoardClick={() => setShowPartnerBoard(true)}
                     onProfileClick={() => setShowUserProfile(true)}
                     categories={categories}
-                    onGoHome={() => { setShowMain(false); setShowHero(true); }}
+                    onGoHome={() => goTo('hero')}
                     initialTab={mainInitialTab}
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
@@ -932,7 +959,7 @@ const AppContent: React.FC = () => {
                 onAnnouncementClick={() => setShowAnnouncementModal(true)}
                 unreadAnnouncementCount={unreadAnnouncementCount}
                 onReorder={handleReorderPersona}
-                onGoHome={() => { setShowMain(false); setShowHero(true); }}
+                onGoHome={() => goTo('hero')}
                 onProfileClick={() => setShowUserProfile(true)}
                 newUi={true}
             />
@@ -1284,9 +1311,9 @@ const AppContent: React.FC = () => {
                                 const isGuest = introVideoModal.guestMode;
                                 setIntroVideoModal(null);
                                 if (isGuest) {
-                                    setShowAuthPage(true);
+                                    goTo('authPage');
                                 } else {
-                                    setShowMain(false);
+                                    goTo('chat');
                                     handleSelectPersona(id);
                                 }
                             }}
@@ -1298,7 +1325,7 @@ const AppContent: React.FC = () => {
                         <button
                             onClick={() => {
                                 setIntroVideoModal(null);
-                                if (!introVideoModal.guestMode) setShowMain(true);
+                                if (!introVideoModal.guestMode) goTo('main');
                             }}
                             className="flex-1 min-h-[44px] py-2.5 text-gray-300 font-semibold rounded-xl transition-all hover:text-white"
                             style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
@@ -1397,8 +1424,8 @@ const AppContent: React.FC = () => {
                         <header className="h-16 flex items-center justify-between px-4 shrink-0 z-10 border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             <div className="flex items-center">
                                 <button
-                                    className="md:hidden mr-2 flex items-center gap-1 text-gray-400 hover:text-white transition-colors"
-                                    onClick={() => setShowMain(true)}
+                                    className="md:hidden mr-2 flex items-center gap-1 text-[#5C5468] hover:text-[#2D2438] transition-colors"
+                                    onClick={() => goTo('main')}
                                 >
                                     <Icon name="ChevronLeft" size={22} />
                                 </button>
@@ -1486,41 +1513,72 @@ const AppContent: React.FC = () => {
                                 <div ref={headerMenuRef} className="relative">
                                     <button
                                         onClick={() => setShowHeaderMenu(v => !v)}
-                                        className={`p-2 rounded-xl border border-transparent transition-all ${showHeaderMenu ? 'bg-gray-700/60 text-white' : 'bg-transparent text-gray-500 hover:bg-gray-700/40 hover:text-gray-200'}`}
+                                        className={`p-2 rounded-xl border border-transparent transition-all ${showHeaderMenu ? 'bg-[#F0E9DE] text-[#2D2438]' : 'bg-transparent text-gray-500 hover:bg-[#F5EFE6] hover:text-[#2D2438]'}`}
                                         title="메뉴"
                                     >
                                         <Icon name="MoreVertical" size={16} />
                                     </button>
                                     {showHeaderMenu && (
-                                        <div className="absolute right-0 top-full mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl z-50 overflow-hidden">
+                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#F0E9DE] rounded-xl shadow-[0_8px_32px_-8px_rgba(80,50,110,0.18)] z-50 overflow-hidden">
+                                            {/* 첫 화면(홈) */}
+                                            <button
+                                                onClick={() => { setShowHeaderMenu(false); goTo('hero'); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
+                                            >
+                                                <Icon name="Home" size={15} className="text-[#8E6FB7]" />
+                                                첫 화면
+                                            </button>
+                                            {/* 페르소나 목록 */}
+                                            <button
+                                                onClick={() => { setShowHeaderMenu(false); setMainInitialTab('personas'); goTo('main'); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
+                                            >
+                                                <Icon name="Users" size={15} className="text-[#8E6FB7]" />
+                                                페르소나 목록
+                                            </button>
+                                            {/* 내 정보 */}
+                                            <button
+                                                onClick={() => { setShowHeaderMenu(false); setShowUserProfile(true); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors border-t border-[#F0E9DE]"
+                                            >
+                                                <Icon name="UserCircle" size={15} className="text-[#8E6FB7]" />
+                                                내 정보
+                                            </button>
                                             {/* 게시판 */}
                                             <button
                                                 onClick={() => { setShowHeaderMenu(false); setShowBoard(true); }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
                                             >
-                                                <Icon name="MessageSquare" size={15} className="text-gray-400" />
+                                                <Icon name="MessageSquare" size={15} className="text-[#8E6FB7]" />
                                                 게시판
                                             </button>
                                             {/* 제휴 게시판 */}
                                             <button
                                                 onClick={() => { setShowHeaderMenu(false); setShowPartnerBoard(true); }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
                                             >
-                                                <Icon name="Handshake" size={15} className="text-gray-400" />
+                                                <Icon name="Handshake" size={15} className="text-[#8E6FB7]" />
                                                 제휴 게시판
                                             </button>
-{/* 기억 공유 바로 위 — 골프 관련 버튼은 상단 바로 이동됨 */}
                                             {/* 기억 공유 */}
                                             {activePersona && (
                                                 <button
                                                     onClick={() => { setShowHeaderMenu(false); handleToggleMemory(activePersonaId); }}
-                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-800 transition-colors border-t border-gray-800"
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-[#F5EFE6] transition-colors border-t border-[#F0E9DE]"
                                                 >
-                                                    <Icon name="Brain" size={15} className={isMemoryOn(activePersonaId) ? 'text-blue-400' : 'text-gray-500'} />
-                                                    <span className={isMemoryOn(activePersonaId) ? 'text-blue-400' : 'text-gray-400'}>기억 공유</span>
-                                                    <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isMemoryOn(activePersonaId) ? 'bg-blue-400' : 'bg-gray-600'}`} />
+                                                    <Icon name="Brain" size={15} className={isMemoryOn(activePersonaId) ? 'text-[#8E6FB7]' : 'text-gray-400'} />
+                                                    <span className={isMemoryOn(activePersonaId) ? 'text-[#8E6FB7]' : 'text-[#5C5468]'}>기억 공유</span>
+                                                    <span className={`ml-auto w-1.5 h-1.5 rounded-full ${isMemoryOn(activePersonaId) ? 'bg-[#8E6FB7]' : 'bg-gray-300'}`} />
                                                 </button>
                                             )}
+                                            {/* 로그아웃 */}
+                                            <button
+                                                onClick={() => { setShowHeaderMenu(false); handleLogout(); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#C0505A] hover:bg-[#FBEDED] transition-colors border-t border-[#F0E9DE]"
+                                            >
+                                                <Icon name="LogOut" size={15} className="text-[#C0505A]" />
+                                                로그아웃
+                                            </button>
                                         </div>
                                     )}
                                 </div>
@@ -1596,8 +1654,8 @@ const AppContent: React.FC = () => {
                                             <Icon name={activePersona.iconName} size={56} />
                                         </div>
                                     )}
-                                    <h3 className="text-2xl font-bold text-gray-100 mb-3">{activePersona.name}</h3>
-                                    <p className="text-gray-400 max-w-md mb-6 text-lg">{activePersona.description}</p>
+                                    <h3 className="text-2xl font-bold text-[#2D2438] mb-3">{activePersona.name}</h3>
+                                    <p className="text-[#5C5468] max-w-md mb-6 text-lg">{activePersona.description}</p>
                                 </div>
                             ) : (
                                 <div className="max-w-4xl mx-auto">
@@ -1605,7 +1663,7 @@ const AppContent: React.FC = () => {
                                         <div className="flex justify-center mb-4">
                                             <button
                                                 onClick={handleLoadMoreMessages}
-                                                className="text-sm text-gray-400 hover:text-gray-200 bg-gray-800 hover:bg-gray-700 border border-gray-700 px-4 py-2 rounded-full transition-colors"
+                                                className="text-sm text-[#5C5468] hover:text-[#2D2438] bg-white/70 hover:bg-white border border-[#F0E9DE] px-4 py-2 rounded-full transition-colors"
                                             >
                                                 이전 대화 불러오기
                                             </button>
@@ -1861,10 +1919,7 @@ const AppContent: React.FC = () => {
             <KakaoNicknameModal
                 defaultNickname={kakaoNicknameModal.defaultNickname}
                 token={kakaoNicknameModal.token}
-                onComplete={() => {
-                    setKakaoNicknameModal(null);
-                    window.location.reload();
-                }}
+                onComplete={handleKakaoNicknameComplete}
             />
         )}
         </>
