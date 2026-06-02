@@ -12,6 +12,7 @@ import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from '
 import { Persona, Category } from '../types';
 import { Icon } from './Icons';
 import { useAuthContext } from '../contexts/AuthContext';
+import { usePoints } from '../contexts/PointsContext';
 
 // ─────────────────────────────────────────────
 // 디자인 토큰
@@ -65,6 +66,8 @@ interface MainPageNewProps {
     // 히어로에서 클릭한 포커스 대상
     initialFocusPersonaId?: string | null;
     initialFocusFeatureKey?: string | null;
+    // 최근 대화 페르소나(최근순) — "최근 대화" 줄 + 개인화 인사용
+    recentPersonas?: Persona[];
 }
 
 // ─────────────────────────────────────────────
@@ -532,8 +535,11 @@ const PersonaSelectPanel: React.FC<{
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
     onPartnerBoardClick?: () => void;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick }) => {
+    recentPersonas?: Persona[];
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [] }) => {
     const { user, onLogout } = useAuthContext();
+    const { paidPoints, bonusPoints } = usePoints();
+    const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
     const [tab, setTab] = useState<'personas' | 'features'>(initialTab);
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -688,6 +694,52 @@ const PersonaSelectPanel: React.FC<{
                     margin: '0 0 14px', color: T.ink,
                     letterSpacing: '-0.01em',
                 }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
+
+                {/* ② 개인화 인사 — 로그인 사용자 + personas 탭에서만 */}
+                {user && tab === 'personas' && (
+                    <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 14, color: T.inkSoft }}>
+                            <span style={{ color: T.accent, fontWeight: 700 }}>{user.username || user.email.split('@')[0]}</span>님, 다시 만나 반가워요 ✦
+                        </span>
+                        <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 4,
+                            fontSize: 12, fontWeight: 600, color: '#B89232',
+                            background: '#FFF3D6', border: '1px solid #E8C56A',
+                            borderRadius: 999, padding: '2px 10px',
+                        }}>
+                            <span style={{ fontSize: 13 }}>✦</span> {totalPoints.toLocaleString()}P
+                        </span>
+                    </div>
+                )}
+
+                {/* ③ 최근 대화 줄 — 최근 대화한 페르소나 바로가기 */}
+                {user && tab === 'personas' && recentPersonas.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                        <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>최근 대화</div>
+                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+                            {recentPersonas.map(p => (
+                                <button key={p.id} onClick={() => onSelect(p.id)} style={{
+                                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                                    flexShrink: 0, cursor: 'pointer',
+                                    padding: '6px 12px 6px 6px', borderRadius: 999,
+                                    background: 'rgba(255,255,255,0.85)',
+                                    border: `1px solid ${T.lineSoft}`,
+                                    transition: 'border-color 0.15s, box-shadow 0.15s',
+                                }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.accent}77`; e.currentTarget.style.boxShadow = `0 4px 14px -6px rgba(142,111,183,0.4)`; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.lineSoft; e.currentTarget.style.boxShadow = 'none'; }}
+                                >
+                                    {p.imageUrl ? (
+                                        <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <span style={{ width: 26, height: 26, borderRadius: '50%', background: `${T.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: T.accent, fontWeight: 700 }}>{p.name.charAt(0)}</span>
+                                    )}
+                                    <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{p.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* 탭 */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
@@ -1045,6 +1097,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     initialTab = 'personas',
     initialFocusPersonaId = null,
     initialFocusFeatureKey = null,
+    recentPersonas = [],
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1144,6 +1197,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 unreadAnnouncementCount={unreadAnnouncementCount}
                 onProfileClick={onProfileClick}
                 onPartnerBoardClick={onPartnerBoardClick}
+                recentPersonas={recentPersonas}
             />
         </div>
     );

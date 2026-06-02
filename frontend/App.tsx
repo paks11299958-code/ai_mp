@@ -310,9 +310,25 @@ const AppContent: React.FC = () => {
             .catch(() => {});
     }, [kakaoNicknameModal, setKakaoNicknameModal, setUser, goTo]);
 
-    // 마지막으로 실제 대화한 페르소나 기억 (재방문 시 Hero에 "이어서 대화" 제안용)
+    // 최근 대화한 페르소나 ID 목록(최근순, 최대 5). Hero "이어서 대화" 배너 + MainPageNew "최근 대화" 줄용.
+    // localStorage 'recentPersonaIds'에 영속, 화면 갱신 위해 state로도 보유.
+    const [recentPersonaIds, setRecentPersonaIds] = useState<string[]>(() => {
+        try {
+            const raw = localStorage.getItem('recentPersonaIds');
+            if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) return arr.filter((x): x is string => typeof x === 'string'); }
+            // 레거시 단일 키 마이그레이션
+            const legacy = localStorage.getItem('lastPersonaId');
+            return legacy ? [legacy] : [];
+        } catch { return []; }
+    });
+
+    // 실제 대화 진입 시 호출 — 해당 페르소나를 최근 목록 맨 앞으로(중복 제거, 최대 5).
     const rememberLastPersona = useCallback((personaId: string) => {
-        try { localStorage.setItem('lastPersonaId', personaId); } catch {}
+        setRecentPersonaIds(prev => {
+            const next = [personaId, ...prev.filter(id => id !== personaId)].slice(0, 5);
+            try { localStorage.setItem('recentPersonaIds', JSON.stringify(next)); localStorage.setItem('lastPersonaId', personaId); } catch {}
+            return next;
+        });
     }, []);
 
     const handlePersonaClick = useCallback((personaId: string) => {
@@ -769,9 +785,8 @@ const AppContent: React.FC = () => {
     if (user && screen === 'hero') {
         // 'main'으로 가면서 초기 탭/포커스 설정. screen이 단일이라 별도 false 토글 불필요.
         const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
-        // 재방문 바로진입: 마지막 대화 페르소나가 현재 보이는 목록에 있으면 "이어서 대화" 제안.
-        let lastPersonaId: string | null = null;
-        try { lastPersonaId = localStorage.getItem('lastPersonaId'); } catch {}
+        // 재방문 바로진입: 최근 대화 페르소나(맨 앞)가 현재 보이는 목록에 있으면 "이어서 대화" 제안.
+        const lastPersonaId = recentPersonaIds[0] ?? null;
         const continuePersona = lastPersonaId ? visiblePersonas.find(p => p.id === lastPersonaId) ?? null : null;
         // "이어서 대화" 클릭 → 인트로 스킵하고 바로 채팅 진입 (재방문 마찰 최소화).
         const onContinueChat = continuePersona ? () => {
@@ -814,6 +829,10 @@ const AppContent: React.FC = () => {
     }
 
     if (screen === 'main') {
+        // 최근 대화 페르소나(보이는 것만, 최근순). "최근 대화" 줄 + 개인화 인사용.
+        const recentPersonas = recentPersonaIds
+            .map(id => visiblePersonas.find(p => p.id === id))
+            .filter((p): p is Persona => !!p);
         return (
             <>
                 <AuthProvider value={authCtxValue}>
@@ -831,6 +850,7 @@ const AppContent: React.FC = () => {
                     initialTab={mainInitialTab}
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
+                    recentPersonas={recentPersonas}
                 />
                 </AuthProvider>
                 {showAnnouncementModal && (
