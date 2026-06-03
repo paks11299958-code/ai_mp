@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DBZone — Reliable Oracle Database Partner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --cream:#FBF6EE;
+    --cream-2:#F4ECDC;
+    --sand:#E9DCC2;
+    --paper:#FFFCF6;
+    --ink:#2C2A26;
+    --ink-soft:#5B574E;
+    --muted:#8C8678;
+    --line:#E3D9C4;
+    --navy:#1F3A5F;
+    --navy-deep:#152844;
+    --teal:#3E8E7E;
+    --rust:#C46A3F;
+    --leaf:#7FA46B;
+  }
+  html,body{font-family:'Pretendard',system-ui,-apple-system,sans-serif;color:var(--ink);background:var(--cream);line-height:1.6;-webkit-font-smoothing:antialiased}
+  body{background-image:radial-gradient(circle at 12% 8%,rgba(196,106,63,.05),transparent 35%),radial-gradient(circle at 88% 30%,rgba(62,142,126,.05),transparent 40%)}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  .container{max-width:1180px;margin:0 auto;padding:0 26px}
+  .serif{font-family:'Fraunces',Georgia,serif;font-weight:500;letter-spacing:-.01em}
+
+  /* NAV */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(251,246,238,.88);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid rgba(227,217,196,.6)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:78px}
+  .logo{display:flex;align-items:center;gap:12px;color:var(--ink);font-weight:700;letter-spacing:-.01em}
+  .logo-mark{width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%,var(--leaf),var(--teal));display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;box-shadow:inset 0 -3px 8px rgba(0,0,0,.12)}
+  .logo .nm{font-family:'Fraunces',serif;font-size:22px;font-weight:600}
+  .logo .nm small{font-family:'Pretendard',sans-serif;font-size:11px;color:var(--muted);letter-spacing:.18em;display:block;margin-top:-2px}
+  nav ul{display:flex;gap:30px;list-style:none}
+  nav a{color:var(--ink-soft);font-weight:500;font-size:15px;transition:color .2s}
+  nav a:hover{color:var(--rust)}
+  .nav-cta{display:flex;gap:10px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:600;font-size:14.5px;transition:all .25s;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--ink);color:var(--cream)}
+  .btn-primary:hover{background:var(--rust);transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--ink);background:var(--paper)}
+  .mobile-toggle{display:none;background:none;border:none;font-size:28px;color:var(--ink);cursor:pointer}
+
+  /* HERO */
+  .hero{padding:88px 0 100px;position:relative;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:60px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;background:var(--paper);color:var(--ink-soft);font-weight:500;font-size:13px;border-radius:999px;border:1px solid var(--line);margin-bottom:26px}
+  .eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--leaf)}
+  h1{font-size:clamp(38px,5vw,64px);line-height:1.1;letter-spacing:-.025em;color:var(--ink);margin-bottom:24px}
+  h1 .it{font-family:'Fraunces',serif;font-style:italic;font-weight:500;color:var(--rust)}
+  .lead{font-size:18px;color:var(--ink-soft);max-width:540px;margin-bottom:36px}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:48px}
+  .hero-meta{display:flex;align-items:center;gap:26px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+  .hero-meta b{color:var(--ink);font-weight:600}
+  .sep{width:6px;height:6px;border-radius:50%;background:var(--sand)}
+
+  .hero-art{position:relative;height:540px}
+  .blob{position:absolute;inset:0;border-radius:48% 52% 38% 62% / 52% 38% 62% 48%;background:linear-gradient(135deg,var(--sand),var(--cream-2));z-index:1}
+  .photo{position:absolute;border-radius:24px;overflow:hidden;box-shadow:0 30px 60px -25px rgba(44,42,38,.3);z-index:2}
+  .photo-main{top:30px;left:30px;width:78%;height:80%}
+  .photo-main img{width:100%;height:100%;object-fit:cover}
+  .badge-stamp{position:absolute;bottom:18px;right:-10px;width:130px;height:130px;border-radius:50%;background:var(--ink);color:var(--cream);display:grid;place-items:center;text-align:center;font-size:12.5px;line-height:1.4;z-index:3;box-shadow:0 18px 36px -10px rgba(44,42,38,.4);transform:rotate(-8deg)}
+  .badge-stamp .big{font-family:'Fraunces',serif;font-size:30px;font-style:italic;display:block;color:var(--rust);font-weight:600}
+  .floating{position:absolute;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:14px 18px;font-size:13.5px;color:var(--ink);box-shadow:0 14px 28px -14px rgba(44,42,38,.3);z-index:4;display:flex;align-items:center;gap:12px}
+  .floating .ic{width:32px;height:32px;border-radius:50%;background:var(--cream-2);display:grid;place-items:center;font-size:15px}
+  .float-tl{top:-10px;left:-12px}
+  .float-bl{bottom:50px;left:-32px}
+
+  /* SECTION */
+  section{padding:110px 0}
+  .sec-head{max-width:680px;margin:0 auto 64px;text-align:center}
+  .sec-tag{display:inline-flex;align-items:center;gap:8px;color:var(--rust);font-family:'Fraunces',serif;font-style:italic;font-size:17px;margin-bottom:14px;font-weight:500}
+  .sec-tag::before,.sec-tag::after{content:"";width:30px;height:1px;background:var(--rust);opacity:.5}
+  .sec-title{font-family:'Fraunces',serif;font-size:clamp(30px,3.6vw,46px);font-weight:600;color:var(--ink);letter-spacing:-.02em;line-height:1.2}
+  .sec-title em{font-style:italic;color:var(--teal);font-weight:500}
+  .sec-sub{margin-top:16px;font-size:16.5px;color:var(--ink-soft)}
+
+  /* SERVICES */
+  .services{background:var(--cream)}
+  .svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+  .svc-card{background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:38px 34px;position:relative;transition:all .3s}
+  .svc-card:hover{transform:translateY(-4px);box-shadow:0 30px 60px -28px rgba(44,42,38,.22);border-color:var(--sand)}
+  .svc-num{font-family:'Fraunces',serif;font-style:italic;font-size:18px;color:var(--rust);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+  .svc-num::before{content:"";width:24px;height:1px;background:var(--rust)}
+  .svc-card h3{font-family:'Fraunces',serif;font-size:24px;color:var(--ink);font-weight:600;margin-bottom:12px;letter-spacing:-.015em}
+  .svc-card p{font-size:15px;color:var(--ink-soft);line-height:1.7;margin-bottom:20px}
+  .svc-tags{display:flex;flex-wrap:wrap;gap:8px}
+  .svc-tags span{font-size:12.5px;color:var(--ink);background:var(--cream-2);padding:5px 12px;border-radius:999px;border:1px solid var(--line)}
+
+  /* TECH (story) */
+  .tech{background:var(--cream-2);position:relative;overflow:hidden}
+  .tech::before{content:"";position:absolute;top:-100px;right:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(62,142,126,.12),transparent 70%)}
+  .tech-grid{display:grid;grid-template-columns:.95fr 1.05fr;gap:70px;align-items:center;position:relative}
+  .tech-img{border-radius:32px;overflow:hidden;box-shadow:0 40px 70px -30px rgba(44,42,38,.35);position:relative}
+  .tech-img img{width:100%;height:540px;object-fit:cover;filter:saturate(.92) contrast(1.02)}
+  .tech-img::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 50%,rgba(31,58,95,.35) 100%)}
+  .tech-list{display:grid;gap:22px}
+  .tech-item{display:flex;gap:22px;padding-bottom:22px;border-bottom:1px dashed var(--line)}
+  .tech-item:last-child{border:none;padding-bottom:0}
+  .tech-num{flex-shrink:0;width:56px;height:56px;border-radius:50%;background:var(--paper);border:1px solid var(--line);color:var(--rust);font-family:'Fraunces',serif;font-style:italic;font-weight:600;display:grid;place-items:center;font-size:18px}
+  .tech-item h4{font-family:'Fraunces',serif;font-size:22px;color:var(--ink);margin-bottom:6px;font-weight:600;letter-spacing:-.01em}
+  .tech-item p{font-size:14.5px;color:var(--ink-soft);line-height:1.7}
+
+  /* PROCESS */
+  .process{background:var(--cream)}
+  .proc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;position:relative}
+  .proc-grid::before{content:"";position:absolute;top:38px;left:5%;right:5%;height:1px;background:repeating-linear-gradient(90deg,var(--sand) 0 8px,transparent 8px 16px);z-index:0}
+  .proc-card{text-align:center;position:relative;z-index:1}
+  .proc-circle{width:76px;height:76px;border-radius:50%;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center;margin:0 auto 18px;font-family:'Fraunces',serif;font-style:italic;font-size:24px;color:var(--rust);box-shadow:0 8px 22px -10px rgba(44,42,38,.2);font-weight:600}
+  .proc-card h4{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);margin-bottom:8px;font-weight:600}
+  .proc-card p{font-size:14px;color:var(--ink-soft);line-height:1.65;max-width:240px;margin:0 auto}
+
+  /* CLIENTS */
+  .clients{background:var(--cream-2);padding:80px 0}
+  .client-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:18px;align-items:center}
+  .client-logo{height:70px;border-radius:14px;background:var(--paper);border:1px solid var(--line);display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:600;color:var(--muted);font-size:15px;letter-spacing:.04em;transition:all .25s}
+  .client-logo:hover{color:var(--ink);border-color:var(--rust);transform:translateY(-3px)}
+
+  /* CTA / CONTACT */
+  .contact{background:var(--ink);color:var(--cream);position:relative;overflow:hidden;border-radius:0}
+  .contact::before{content:"";position:absolute;top:-200px;left:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(196,106,63,.18),transparent 70%)}
+  .contact::after{content:"";position:absolute;bottom:-200px;right:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(62,142,126,.18),transparent 70%)}
+  .contact-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+  .contact .sec-tag{color:#E3B48B}
+  .contact .sec-tag::before,.contact .sec-tag::after{background:#E3B48B;opacity:.6}
+  .contact h2{font-family:'Fraunces',serif;font-size:clamp(30px,3.6vw,46px);font-weight:500;letter-spacing:-.02em;line-height:1.2;margin-bottom:20px;color:var(--cream)}
+  .contact h2 em{font-style:italic;color:#E3B48B}
+  .contact p{color:rgba(251,246,238,.78);font-size:16.5px;margin-bottom:30px;max-width:480px}
+  .contact-info{display:grid;gap:14px;margin-top:30px}
+  .ci-row{display:flex;align-items:center;gap:14px;font-size:14.5px;color:rgba(251,246,238,.86)}
+  .ci-icon{width:40px;height:40px;border-radius:50%;background:rgba(251,246,238,.08);display:grid;place-items:center;font-size:15px;border:1px solid rgba(251,246,238,.14)}
+  .form{background:var(--paper);color:var(--ink);border-radius:28px;padding:36px;box-shadow:0 40px 80px -30px rgba(0,0,0,.5)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+  .field{display:block;margin-bottom:14px}
+  .field label{display:block;font-size:13px;color:var(--ink);margin-bottom:6px;font-weight:600;font-family:'Fraunces',serif;font-style:italic}
+  .field input,.field textarea,.field select{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:14px;font-family:inherit;font-size:14.5px;background:var(--cream);transition:border-color .2s,background .2s;color:var(--ink)}
+  .field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--rust);background:var(--paper)}
+  .field textarea{resize:vertical;min-height:110px}
+  .submit{width:100%;padding:15px;background:var(--ink);color:var(--cream);border:none;border-radius:999px;font-weight:700;font-size:15px;cursor:pointer;transition:all .25s;letter-spacing:-.005em}
+  .submit:hover{background:var(--rust)}
+
+  /* FOOTER */
+  footer{background:var(--cream);color:var(--ink-soft);padding:60px 0 28px;font-size:14px;border-top:1px solid var(--line)}
+  .foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+  .foot-brand p{margin-top:16px;line-height:1.7;max-width:320px;color:var(--ink-soft)}
+  .foot-col h5{font-family:'Fraunces',serif;color:var(--ink);font-size:16px;margin-bottom:16px;font-weight:600;font-style:italic}
+  .foot-col ul{list-style:none;display:grid;gap:9px}
+  .foot-col a{color:var(--ink-soft);transition:color .2s}
+  .foot-col a:hover{color:var(--rust)}
+  .foot-bot{border-top:1px solid var(--line);padding-top:24px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:13px}
+
+  @media (max-width: 960px){
+    .hero{padding:60px 0 70px}
+    .hero-grid,.tech-grid,.contact-grid{grid-template-columns:1fr;gap:54px}
+    .svc-grid{grid-template-columns:1fr}
+    .proc-grid{grid-template-columns:repeat(2,1fr)}
+    .proc-grid::before{display:none}
+    .client-grid{grid-template-columns:repeat(3,1fr)}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:30px}
+    nav ul{display:none}
+    .mobile-toggle{display:block}
+    section{padding:72px 0}
+    .hero-art{height:430px}
+    .badge-stamp{width:104px;height:104px;font-size:11px}
+    .badge-stamp .big{font-size:24px}
+    .float-bl{left:-8px}
+  }
+  @media (max-width: 560px){
+    .client-grid{grid-template-columns:repeat(2,1fr)}
+    .form-row{grid-template-columns:1fr}
+    .foot-bot{flex-direction:column;gap:8px;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="container nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">dz</span>
+      <span class="nm">DBZone<small>Database Care since 2008</small></span>
+    </a>
+    <nav>
+      <ul>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#tech">Expertise</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#clients">Clients</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="nav-cta">
+      <a href="#contact" class="btn btn-primary">상담 신청</a>
+    </div>
+    <button class="mobile-toggle" aria-label="menu">≡</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container hero-grid">
+    <div>
+      <span class="eyebrow"><span class="dot"></span> Oracle 데이터베이스 큐레이팅 파트너</span>
+      <h1>오래 함께 흐를 수 있도록,<br/>당신의 <span class="it">데이터를 돌봅니다</span>.</h1>
+      <p class="lead">18년간 한 가지 일에만 집중해 온 Oracle 전문가들. 디비존은 시스템을 그저 유지하는 것이 아닌 — 기업과 함께 자라는 데이터의 정원을 가꿉니다.</p>
+      <div class="hero-cta">
+        <a href="#contact" class="btn btn-primary">무료 진단 신청 →</a>
+        <a href="#services" class="btn btn-ghost">서비스 둘러보기</a>
+      </div>
+      <div class="hero-meta">
+        <span><b>230+</b> 운영 사이트</span>
+        <span class="sep"></span>
+        <span><b>99.99%</b> 가동률</span>
+        <span class="sep"></span>
+        <span><b>5분 내</b> 1차 응답</span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="blob"></div>
+      <div class="photo photo-main"><img src="https://images.unsplash.com/photo-1573164574572-cb89e39749b4?w=1100&q=80" alt="DBA at work" /></div>
+      <div class="badge-stamp"><div><span class="big">18+</span>년의<br/>한결같음</div></div>
+      <div class="floating float-tl"><div class="ic">✿</div><div><b>오늘의 점검</b><br/><span style="color:var(--muted);font-size:12.5px">모두 정상 · 14:32</span></div></div>
+      <div class="floating float-bl"><div class="ic">♡</div><div><b>고객 만족도</b><br/><span style="color:var(--muted);font-size:12.5px">96.4% · 2025 기준</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">What we do</span>
+      <h2 class="sec-title">한 그루의 시스템처럼,<br/><em>정성스러운 4가지 케어</em></h2>
+      <p class="sec-sub">유행에 휘둘리지 않는 정통 DBA 워크플로우. 기본기에 충실한 운영으로 시스템 수명을 늘립니다.</p>
+    </div>
+    <div class="svc-grid">
+      <div class="svc-card">
+        <div class="svc-num">No. 01</div>
+        <h3>Oracle 유지보수</h3>
+        <p>정기 헬스체크, 패치 매니지먼트, 백업·복구 검증, 라이선스 점검까지 — 시스템이 늘 단단한 뿌리 위에 서 있도록.</p>
+        <div class="svc-tags"><span>PES</span><span>RMAN</span><span>Health Check</span><span>License</span></div>
+      </div>
+      <div class="svc-card">
+        <div class="svc-icon">⚡</div>
+        <div class="svc-num">No. 02</div>
+        <h3>성능 튜닝</h3>
+        <p>증상이 아닌 원인을 봅니다. AWR/ASH 분석부터 SQL·인덱스 재설계까지 — 무거워진 시스템이 다시 가벼워지도록.</p>
+        <div class="svc-tags"><span>AWR/ASH</span><span>SQL Tuning</span><span>Index 설계</span><span>SGA/PGA</span></div>
+      </div>
+      <div class="svc-card">
+        <div class="svc-num">No. 03</div>
+        <h3>마이그레이션 · 업그레이드</h3>
+        <p>11g·12c·19c에서 23ai까지, 그리고 OCI·AWS로의 여정. 익숙한 길도 새로운 길도 함께 걷는 동반자.</p>
+        <div class="svc-tags"><span>11g → 19c</span><span>OCI</span><span>GoldenGate</span><span>DMS</span></div>
+      </div>
+      <div class="svc-card">
+        <div class="svc-num">No. 04</div>
+        <h3>24×365 모니터링</h3>
+        <p>밤에도 새벽에도 — 우리의 등불은 켜져 있습니다. 임계치 기반 실시간 감시와 5분 내 1차 응답.</p>
+        <div class="svc-tags"><span>Real-time</span><span>NOC</span><span>SLA 5min</span><span>Alert</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section class="tech" id="tech">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">Our Expertise</span>
+      <h2 class="sec-title">엔터프라이즈 기술,<br/><em>장인의 손길로</em></h2>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-img">
+        <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1100&q=80" alt="Engineer hands" />
+      </div>
+      <ul class="tech-list">
+        <li class="tech-item">
+          <div class="tech-num">I</div>
+          <div><h4>Real Application Clusters</h4><p>다중 인스턴스 클러스터 운영, 노드 페일오버, Cache Fusion 튜닝까지 단단하게.</p></div>
+        </li>
+        <li class="tech-item">
+          <div class="tech-num">II</div>
+          <div><h4>Data Guard / DR</h4><p>물리·논리 스탠바이 설계와 DR 사이트 운영. 일어나지 않을 일을 대비하는 사람들.</p></div>
+        </li>
+        <li class="tech-item">
+          <div class="tech-num">III</div>
+          <div><h4>Exadata X8M / X9M</h4><p>Storage Cell 최적화, Smart Scan·Flash Cache 활용까지 — 고성능 인프라의 진짜 가치 끌어내기.</p></div>
+        </li>
+        <li class="tech-item">
+          <div class="tech-num">IV</div>
+          <div><h4>Cloud Migration</h4><p>온프레미스에서 OCI·AWS·하이브리드까지. 시스템에게 새 옷을 입혀드립니다.</p></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section class="process" id="process">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">How we work</span>
+      <h2 class="sec-title">서두르지 않고,<br/><em>정확하게 함께</em></h2>
+      <p class="sec-sub">진단부터 운영까지 — 디비존이 일하는 네 단계.</p>
+    </div>
+    <div class="proc-grid">
+      <div class="proc-card">
+        <div class="proc-circle">i</div>
+        <h4>무료 진단</h4>
+        <p>현 시스템 상태를 들여다 보고, 가능성과 위험을 함께 정리합니다.</p>
+      </div>
+      <div class="proc-card">
+        <div class="proc-circle">ii</div>
+        <h4>맞춤 설계</h4>
+        <p>비즈니스 흐름에 어울리는 운영 모델과 SLA를 함께 그립니다.</p>
+      </div>
+      <div class="proc-card">
+        <div class="proc-circle">iii</div>
+        <h4>안정 전환</h4>
+        <p>무중단을 원칙으로, 손에 익은 작업을 정성스럽게 옮깁니다.</p>
+      </div>
+      <div class="proc-card">
+        <div class="proc-circle">iv</div>
+        <h4>지속 케어</h4>
+        <p>24×365 — 한결같은 눈빛으로 데이터의 흐름을 돌봅니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLIENTS -->
+<section class="clients" id="clients">
+  <div class="container">
+    <div class="sec-head">
+      <span class="sec-tag">Our partners</span>
+      <h2 class="sec-title">함께 자라온 <em>이름들</em></h2>
+    </div>
+    <div class="client-grid">
+      <div class="client-logo">Fintech &amp; Co</div>
+      <div class="client-logo">Medi Group</div>
+      <div class="client-logo">Korlog</div>
+      <div class="client-logo">Nexa Retail</div>
+      <div class="client-logo">Seoul Bank</div>
+      <div class="client-logo">Hanse Inc.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="container contact-grid">
+    <div>
+      <span class="sec-tag" style="justify-content:flex-start">Let's talk</span>
+      <h2>당신의 데이터,<br/><em>한 잔의 차처럼</em><br/>편안하게 다뤄질 수 있도록.</h2>
+      <p>지금 운영 중인 환경을 알려 주시면, 영업일 24시간 이내에 전담 DBA가 정성껏 회신드립니다.</p>
+      <div class="contact-info">
+        <div class="ci-row"><div class="ci-icon">☎</div> 02-000-0000 (평일 09:00–18:00)</div>
+        <div class="ci-row"><div class="ci-icon">✉</div> hello@dbzone.kr</div>
+        <div class="ci-row"><div class="ci-icon">⌖</div> 서울 강남구 테헤란로 000, DBZone Tower 12F</div>
+      </div>
+    </div>
+    <form class="form" onsubmit="event.preventDefault();alert('문의가 접수되었습니다. 곧 연락드리겠습니다.');">
+      <div class="form-row">
+        <div class="field"><label>회사명</label><input type="text" placeholder="(주)디비존" required></div>
+        <div class="field"><label>담당자</label><input type="text" placeholder="홍길동" required></div>
+      </div>
+      <div class="form-row">
+        <div class="field"><label>이메일</label><input type="email" placeholder="name@company.com" required></div>
+        <div class="field"><label>연락처</label><input type="tel" placeholder="010-0000-0000"></div>
+      </div>
+      <div class="field"><label>문의 유형</label>
+        <select>
+          <option>유지보수 견적 문의</option>
+          <option>성능 튜닝</option>
+          <option>마이그레이션 / 업그레이드</option>
+          <option>24×365 모니터링 가입</option>
+          <option>기타 상담</option>
+        </select>
+      </div>
+      <div class="field"><label>전하고 싶은 말</label><textarea placeholder="현재 환경(Oracle 버전, RAC/SE 등)과 문의 사항을 편안하게 적어주세요."></textarea></div>
+      <button class="submit" type="submit">정성껏 보내기 ✿</button>
+    </form>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="logo"><span class="logo-mark">dz</span><span class="nm">DBZone<small>Database Care since 2008</small></span></a>
+        <p>오래 함께 흐를 수 있도록, 우리는 한 자리에서 데이터를 돌봅니다.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Services</h5>
+        <ul><li><a href="#">유지보수</a></li><li><a href="#">튜닝</a></li><li><a href="#">마이그레이션</a></li><li><a href="#">모니터링</a></li></ul>
+      </div>
+      <div class="foot-col">
+        <h5>Company</h5>
+        <ul><li><a href="#">회사 이야기</a></li><li><a href="#">기술 노트</a></li><li><a href="#">함께하기</a></li><li><a href="#">파트너십</a></li></ul>
+      </div>
+      <div class="foot-col">
+        <h5>Support</h5>
+        <ul><li><a href="#">긴급 장애 신고</a></li><li><a href="#">자료 다운로드</a></li><li><a href="#">개인정보 처리방침</a></li><li><a href="#">이용약관</a></li></ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <div>© 2026 DBZone Inc. Cared with patience in Seoul.</div>
+      <div>대표 홍길동 · 사업자등록번호 000-00-00000</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
