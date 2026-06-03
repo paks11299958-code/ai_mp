@@ -26,8 +26,10 @@ chatBgUrl           ← JSON 배열 문자열 (배경 이미지 최대 5개)
 faceReadingBgUrl    ← 관상 결과카드 배경 (String?)
 isDefault, isVisible, categoryId
 quickMenuJson       ← 퀵메뉴 설정 JSON 문자열
+features            ← 활성 기능 키 JSON 배열, 예: ["stock","hotkeyword"] (String?, null이면 프론트 이름 폴백)
 ```
 - `starVideoUrl`: 별스타 100개 이상 수신 시 재생할 감사 영상 URL (GCS)
+- `features`: 채팅 화면에 노출할 기능 버튼 키 목록. 키→라벨/아이콘/색은 `frontend/personaFeatures.ts` FEATURE_REGISTRY가 단일 출처(news/stock/hotkeyword/used/luxury/mathtutor/club/golf-swing/golf-record). null/빈배열이면 이름 기반 폴백(레거시 보존). 어드민 PersonaInfoTab "활성 기능" 체크박스로 관리.
 
 ## ChatSession / Message
 ```
@@ -176,10 +178,14 @@ AppConfig           ← 앱 전역 설정
 ```sql
 -- 컬럼 추가
 ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "faceReadingBgUrl" TEXT;
+ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "features" TEXT;  -- 2026-06-02, 활성 기능 키 JSON 배열
 
 -- User phone 컬럼
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
 CREATE UNIQUE INDEX IF NOT EXISTS "User_phone_key" ON "User"(phone);
 ALTER TABLE "User" ALTER COLUMN email DROP NOT NULL;
 ```
+
+### 회원 탈퇴(하드 삭제) 주의
+User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardReply / PartnerReply는 onDelete 미지정(Restrict)** → User 삭제 전 트랜잭션에서 선삭제 필요. 라우트(`DELETE /admin/users/:id` 어드민, `DELETE /api/aimp/user` 본인)가 이를 처리하므로 스키마/FK 변경 없이 무중단.
 
