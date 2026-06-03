@@ -1,5 +1,11 @@
 # UI 개선 이력
 
+## 오늘뉴스 오전/오후 분리 (2026-06-03)
+- 뉴스 하루 2회 수집(KST 00시=오전판, 13시=오후판)을 `news_YYYYMMDD_{am|pm}.json`으로 분리 보관(기존 1파일 덮어쓰기 → 오전이 가려지던 문제 해결).
+- **웹**: TodayNewsBoard에 오전/오후 토글(둘 다 수집됐을 때만 노출, 모바일 우선). 슬롯별 캐시로 중복 과금 방지.
+- **텔레그램**: `/news 국내뉴스 오전`(또는 오후) 형식 + 헤더에 🌅/🌇 표기.
+- 하위호환: 슬롯 파일 없으면 기존 `news_YYYYMMDD.json` 폴백(토글 숨김). agent-api `_load_cache(date, slot)` + status `slots[]`.
+
 ## 로그인/계정 UX 대정비 (2026-06-02)
 - **화면 단일상태**: `useAuth`의 showAuthPage/showMain/showHero 3 boolean → `screen`('guest'|'authPage'|'hero'|'main'|'chat') 단일상태 + `goTo()`. 화면 전환 시 플래그 누락으로 인한 빈/이중 화면 구조적 차단.
 - **reload 제거**: 로그인/로그아웃/카카오 콜백의 `window.location.reload()` 6곳 제거 → 상태 전환. 로그아웃은 명시적 전체 리셋(세션/포인트/어드민/이미지/기억)으로 이전 유저 누수 차단.
