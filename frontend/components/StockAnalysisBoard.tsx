@@ -399,11 +399,24 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
                             {loading && <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 11, color: T.inkMute }}>불러오는 중...</div>}
                             {!loading && tasks.length === 0 && (
-                                <div style={{ padding: '20px 10px', textAlign: 'center' }}>
-                                    <div style={{ fontSize: 11, color: T.ink, fontWeight: 600, marginBottom: 6 }}>📊 주식 분석</div>
-                                    <p style={{ fontSize: 10.5, color: T.inkMute, lineHeight: 1.6, marginBottom: 10 }}>DART 공시 + AI가 분석해<br/>투자 보고서를 생성합니다.</p>
-                                    <div style={{ background: T.surface, borderRadius: 8, padding: '8px 10px', fontSize: 10.5, color: T.inkSoft, lineHeight: 1.6 }}>
-                                        종목명 입력 후 <span style={{ color: T.accent, fontWeight: 700 }}>+</span> 클릭<br />
+                                <div style={{ padding: '18px 10px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: 12, color: T.ink, fontWeight: 700, marginBottom: 6 }}>📊 주식 분석</div>
+                                    <p style={{ fontSize: 10.5, color: T.inkMute, lineHeight: 1.6, marginBottom: 12 }}>DART 공시 + AI가 분석해<br/>투자 보고서를 생성합니다.</p>
+                                    {/* 진행 흐름 안내 */}
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 12, flexWrap: 'wrap' }}>
+                                        {[['대기중','#d97706'],['분석중','#2563eb'],['완료','#16a34a']].map(([lbl,c], i) => (
+                                            <React.Fragment key={lbl}>
+                                                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 9.5, fontWeight: 700, color: c as string }}>
+                                                    <span style={{ width: 7, height: 7, borderRadius: '50%', background: c as string }} />{lbl}
+                                                </span>
+                                                {i < 2 && <span style={{ color: T.inkMute, fontSize: 10 }}>→</span>}
+                                            </React.Fragment>
+                                        ))}
+                                    </div>
+                                    <div style={{ background: T.surface, borderRadius: 8, padding: '9px 10px', fontSize: 10.5, color: T.inkSoft, lineHeight: 1.7 }}>
+                                        ① 종목명 입력 후 <span style={{ color: T.accent, fontWeight: 700 }}>+</span> 클릭<br />
+                                        ② 분석은 <b>1~2분</b> 걸려요 (자동 갱신)<br />
+                                        ③ <b style={{ color: '#16a34a' }}>완료</b> 시 클릭하면 보고서 확인<br />
                                         <span style={{ color: T.inkMute }}>예) 삼성전자 · 카카오 · 현대차</span>
                                     </div>
                                 </div>
@@ -412,41 +425,96 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 const cfg = STATUS_CONFIG[task.status];
                                 const Icon = cfg.icon;
                                 const isSelected = selected?.id === task.id;
+                                const isDone = task.status === 'completed';
+                                const isFail = task.status === 'failed';
+                                // 진행 단계 인덱스: 대기중(0) → 분석중(1) → 완료(2). 실패는 스텝퍼 대신 실패 배지.
+                                const stepIdx = task.status === 'pending' ? 0 : task.status === 'processing' ? 1 : 2;
                                 return (
                                     <div key={task.id}
                                         onClick={() => handleSelect(task)}
                                         style={{
-                                            display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px',
-                                            borderRadius: 10, marginBottom: 2,
-                                            cursor: task.status === 'completed' ? 'pointer' : 'default',
+                                            padding: '9px 10px',
+                                            borderRadius: 10, marginBottom: 3,
+                                            cursor: isDone ? 'pointer' : 'default',
                                             background: isSelected ? T.accentSoft : 'transparent',
-                                            border: isSelected ? `1px solid ${T.accent}40` : '1px solid transparent',
+                                            border: isSelected ? `1px solid ${T.accent}40` : `1px solid ${T.borderSoft}`,
                                             transition: 'all 0.15s',
                                         }}
                                         onMouseEnter={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = T.surface; }}
                                         onMouseLeave={e => { if (!isSelected) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                                     >
-                                        <Icon size={12} style={{ color: cfg.cls, flexShrink: 0, ...(task.status === 'processing' ? { animation: 'spin 1s linear infinite' } : {}) }} />
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ fontSize: 11, fontWeight: 600, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.stockName}</div>
-                                            <div style={{ fontSize: 10, color: T.inkMute }}>{new Date(task.createdAt).toLocaleDateString('ko-KR')}</div>
-                                            {task.status === 'failed' && task.errorMessage && <div style={{ fontSize: 10, color: '#dc2626', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{task.errorMessage}</div>}
-                                        </div>
-                                        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-                                            {task.status === 'completed' && (
-                                                <button onClick={e => { e.stopPropagation(); handleDownload(task); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
-                                                    <Download size={10} />
+                                        {/* 상단: 종목명 + 상태 배지 + 액션 */}
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.stockName}</div>
+                                                <div style={{ fontSize: 9.5, color: T.inkMute }}>{new Date(task.createdAt).toLocaleDateString('ko-KR')}</div>
+                                            </div>
+                                            {/* 상태 배지 */}
+                                            <span style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: 3, flexShrink: 0,
+                                                padding: '2px 8px', borderRadius: 999,
+                                                fontSize: 10, fontWeight: 700,
+                                                color: cfg.cls, background: `${cfg.cls}18`, border: `1px solid ${cfg.cls}40`,
+                                            }}>
+                                                <Icon size={10} style={task.status === 'processing' ? { animation: 'spin 1s linear infinite' } : undefined} />
+                                                {cfg.label}
+                                            </span>
+                                            <div style={{ display: 'flex', gap: 1, flexShrink: 0 }}>
+                                                {isDone && (
+                                                    <button onClick={e => { e.stopPropagation(); handleDownload(task); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                        <Download size={11} />
+                                                    </button>
+                                                )}
+                                                {(isFail || isDone) && (
+                                                    <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                        <RotateCcw size={11} />
+                                                    </button>
+                                                )}
+                                                <button onClick={e => { e.stopPropagation(); handleDelete(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                    <Trash2 size={11} />
                                                 </button>
-                                            )}
-                                            {(task.status === 'failed' || task.status === 'completed') && (
-                                                <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
-                                                    <RotateCcw size={10} />
-                                                </button>
-                                            )}
-                                            <button onClick={e => { e.stopPropagation(); handleDelete(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
-                                                <Trash2 size={10} />
-                                            </button>
+                                            </div>
                                         </div>
+
+                                        {/* 진행 단계 스텝퍼 (실패가 아닐 때) */}
+                                        {!isFail ? (
+                                            <div style={{ display: 'flex', alignItems: 'center', marginTop: 7 }}>
+                                                {['대기중', '분석중', '완료'].map((stepLabel, i) => {
+                                                    const reached = i <= stepIdx;
+                                                    const active = i === stepIdx && !isDone;
+                                                    const stepColor = i === 2 ? '#16a34a' : i === 1 ? '#2563eb' : '#d97706';
+                                                    return (
+                                                        <React.Fragment key={stepLabel}>
+                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                                                <span style={{
+                                                                    width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+                                                                    background: reached ? stepColor : T.borderSoft,
+                                                                    boxShadow: active ? `0 0 0 3px ${stepColor}33` : 'none',
+                                                                    transition: 'all 0.2s',
+                                                                }} />
+                                                                <span style={{ fontSize: 8.5, fontWeight: reached ? 700 : 500, color: reached ? stepColor : T.inkMute, whiteSpace: 'nowrap' }}>{stepLabel}</span>
+                                                            </div>
+                                                            {i < 2 && (
+                                                                <span style={{ flex: 1, height: 2, margin: '0 3px', marginBottom: 11, borderRadius: 2, background: i < stepIdx ? stepColor : T.borderSoft, transition: 'all 0.2s' }} />
+                                                            )}
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            task.errorMessage && <div style={{ fontSize: 10, color: '#dc2626', marginTop: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>⚠ {task.errorMessage}</div>
+                                        )}
+
+                                        {/* 분석중 자동 갱신 안내 */}
+                                        {task.status === 'processing' && (
+                                            <div style={{ fontSize: 9, color: T.inkMute, marginTop: 5, textAlign: 'center' }}>⏳ 분석 중이에요 · 자동으로 갱신됩니다 (1~2분 소요)</div>
+                                        )}
+                                        {task.status === 'pending' && (
+                                            <div style={{ fontSize: 9, color: T.inkMute, marginTop: 5, textAlign: 'center' }}>순서를 기다리는 중이에요 · 자동 시작됩니다</div>
+                                        )}
+                                        {isDone && (
+                                            <div style={{ fontSize: 9, color: '#16a34a', marginTop: 5, textAlign: 'center' }}>✓ 클릭하면 보고서를 볼 수 있어요</div>
+                                        )}
                                     </div>
                                 );
                             })}
