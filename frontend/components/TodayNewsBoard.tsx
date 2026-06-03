@@ -135,18 +135,36 @@ const T = {
 
 export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const [activeKey, setActiveKey] = useState(CATEGORIES[0].key);
+    // 오전(am)/오후(pm) 슬롯 — 기본은 현재 시각 기준(12시 전=am). 가용 슬롯은 status로 확인.
+    const [slot, setSlot] = useState<'am' | 'pm'>(new Date().getHours() < 12 ? 'am' : 'pm');
+    const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+    // 캐시 키를 'slot:category'로 → 오전/오후 따로 캐시(중복 호출·중복 과금 방지)
     const [newsMap, setNewsMap] = useState<Record<string, NewsData | null>>({});
     const [loadingKey, setLoadingKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [collectedAt, setCollectedAt] = useState<string | null>(null);
     const { speaking, ttsLoading, speakCategory, stop } = useTTS();
 
-    const fetchCategory = useCallback(async (key: string) => {
-        if (newsMap[key] !== undefined) return;
-        setLoadingKey(key);
+    // mount 시 가용 슬롯 조회 → 둘 다 있으면 토글 노출, 하나뿐이면 그 슬롯으로
+    useEffect(() => {
+        fetch('/api/news/status', { credentials: 'include', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+            .then(r => r.json())
+            .then((d: any) => {
+                const slots: string[] = Array.isArray(d?.slots) ? d.slots : [];
+                setAvailableSlots(slots);
+                // 현재 선택 슬롯이 없으면 가용한 것으로 보정
+                if (slots.length && !slots.includes(slot)) setSlot(slots[slots.length - 1] as 'am' | 'pm');
+            })
+            .catch(() => {});
+    }, []);
+
+    const fetchCategory = useCallback(async (key: string, s: 'am' | 'pm') => {
+        const cacheKey = `${s}:${key}`;
+        if (newsMap[cacheKey] !== undefined) return;
+        setLoadingKey(cacheKey);
         setError(null);
         try {
-            const res = await fetch(`/api/news/today?category=${encodeURIComponent(key)}`, {
+            const res = await fetch(`/api/news/today?category=${encodeURIComponent(key)}&slot=${s}`, {
                 credentials: 'include',
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
@@ -155,26 +173,31 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                 throw new Error(d.error || `오류 ${res.status}`);
             }
             const data: NewsData = await res.json();
-            setNewsMap(prev => ({ ...prev, [key]: data }));
-            if (!collectedAt) setCollectedAt(data.collected_at);
+            setNewsMap(prev => ({ ...prev, [cacheKey]: data }));
+            setCollectedAt(data.collected_at);
         } catch (e: any) {
-            setNewsMap(prev => ({ ...prev, [key]: null }));
+            setNewsMap(prev => ({ ...prev, [cacheKey]: null }));
             setError(e.message);
         } finally {
             setLoadingKey(null);
         }
-    }, [newsMap, collectedAt]);
+    }, [newsMap]);
 
-    useEffect(() => { fetchCategory(activeKey); }, [activeKey]);
+    useEffect(() => { fetchCategory(activeKey, slot); }, [activeKey, slot]);
 
     const handleTab = (key: string) => {
         if (key !== activeKey) stop();
         setActiveKey(key);
-        fetchCategory(key);
+        fetchCategory(key, slot);
     };
 
-    const current = newsMap[activeKey];
-    const isLoading = loadingKey === activeKey;
+    const handleSlot = (s: 'am' | 'pm') => {
+        if (s !== slot) { stop(); setSlot(s); }
+    };
+
+    const cacheKey = `${slot}:${activeKey}`;
+    const current = newsMap[cacheKey];
+    const isLoading = loadingKey === cacheKey;
     const activeCat = CATEGORIES.find(c => c.key === activeKey)!;
     const parsed = current ? parseNewsItems(current.report) : null;
 
@@ -250,6 +273,38 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                         </button>
                     </div>
                 </div>
+
+                {/* 오전/오후 슬롯 토글 — 둘 다 수집됐을 때만 노출 */}
+                {availableSlots.length > 1 && (
+                    <div style={{
+                        display: 'flex', gap: 6, padding: '10px 16px 0',
+                        background: T.bg, flexShrink: 0,
+                    }}>
+                        {([['am', '🌅 오전'], ['pm', '🌇 오후']] as const).map(([s, label]) => {
+                            const on = slot === s;
+                            const has = availableSlots.includes(s);
+                            return (
+                                <button
+                                    key={s}
+                                    onClick={() => has && handleSlot(s)}
+                                    disabled={!has}
+                                    style={{
+                                        flex: 1, padding: '7px 12px', borderRadius: 999,
+                                        fontSize: 12, fontWeight: 700,
+                                        border: `1px solid ${on ? activeCat.accent : T.borderSoft}`,
+                                        background: on ? `${activeCat.accent}15` : 'transparent',
+                                        color: on ? activeCat.accent : (has ? T.inkSoft : T.inkMute),
+                                        cursor: has ? 'pointer' : 'not-allowed',
+                                        opacity: has ? 1 : 0.4,
+                                        transition: 'all 0.2s',
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
 
                 {/* 카테고리 탭 */}
                 <div style={{
