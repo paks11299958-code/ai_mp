@@ -22,7 +22,7 @@ const NAVER_CLIENT_ID     = process.env.NAVER_CLIENT_ID     || 'GQTM16ASwMR5e817
 const NAVER_CLIENT_SECRET = process.env.NAVER_CLIENT_SECRET || 'iz7FciCCdG';
 const DOMEGGOOK_ID        = process.env.DOMEGGOOK_ID        || 'c2clo';
 const DOMEGGOOK_PW        = process.env.DOMEGGOOK_PASSWORD;
-const NOTIFY_EMAIL        = 'sjy4926@hanmail.net';
+const NOTIFY_EMAIL        = ['sjy4926@hanmail.net', 'paks11299958@gmail.com'];
 const NOTIFY_PHONE        = '01050294926';
 const COUPANG_VENDOR_ID   = process.env.COUPANG_VENDOR_ID   || 'A01662881';
 const COUPANG_ACCESS_KEY  = process.env.COUPANG_ACCESS_KEY;
@@ -600,7 +600,8 @@ async function saveExtracted(itemNo, keyword, title) {
 // ── 이메일 발송 ───────────────────────────────────────────
 
 async function sendEmail(to, subject, html, attachmentPath) {
-    if (!BREVO_API_KEY || !to) { log('이메일 설정 없음 — 로컬 저장만 완료'); return; }
+    const recipients = (Array.isArray(to) ? to : [to]).filter(Boolean);
+    if (!BREVO_API_KEY || recipients.length === 0) { log('이메일 설정 없음 — 로컬 저장만 완료'); return; }
     const content  = fs.readFileSync(attachmentPath).toString('base64');
     const filename = path.basename(attachmentPath);
     const res = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -608,12 +609,12 @@ async function sendEmail(to, subject, html, attachmentPath) {
         headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
         body: JSON.stringify({
             sender: { name: '제품추출', email: SENDER_EMAIL },
-            to: [{ email: to }], subject, htmlContent: html,
+            to: recipients.map(email => ({ email })), subject, htmlContent: html,
             attachment: [{ name: filename, content }],
         }),
     });
     if (!res.ok) log(`이메일 발송 실패: ${await res.text()}`);
-    else log(`이메일 발송 완료 → ${to}`);
+    else log(`이메일 발송 완료 → ${recipients.join(', ')}`);
 }
 
 // ── 메인 ─────────────────────────────────────────────────
