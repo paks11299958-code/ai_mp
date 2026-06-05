@@ -51,6 +51,17 @@ import { QuickMenuResultCard } from './components/QuickMenuResultCard';
 import { QuickMenuLoading } from './components/QuickMenuLoading';
 import { ClubBoard } from './components/ClubBoard';
 
+// 퀵메뉴 분석 실패 시 사용자에게 보여줄 안내. 백엔드의 한글 메시지는 그대로 쓰되,
+// 날것의 에러(영문/JSON, 쿼터 초과 등)는 친절한 문구로 치환한다.
+function quickMenuErrorMessage(e: any): string {
+    const raw = String(e?.message ?? '');
+    if (/429|RESOURCE_EXHAUSTED|exhausted|이용자가 많/i.test(raw)) {
+        return '지금 이용자가 많아요. 잠시 후 다시 시도해 주세요. 🙏\n(포인트는 차감되지 않았습니다)';
+    }
+    // 한글이 포함된 안내성 메시지는 그대로 신뢰, 아니면 일반 문구로.
+    if (/[가-힣]/.test(raw) && !raw.includes('{') && raw.length < 120) return raw;
+    return '분석에 실패했습니다. 잠시 후 다시 시도해 주세요.';
+}
 
 const AppContent: React.FC = () => {
     const {
@@ -1062,7 +1073,7 @@ const AppContent: React.FC = () => {
                                         setUserBonusPoints(bonusBalance);
                                         setQuickMenuResult({ title: label, result });
                                     })
-                                    .catch(e => alert(e.message || '분석에 실패했습니다.'))
+                                    .catch(e => alert(quickMenuErrorMessage(e)))
                                     .finally(() => setQuickMenuLoading(false));
                             } else {
                                 setInputText(pendingQuickMenu.prompt);
@@ -1102,7 +1113,7 @@ const AppContent: React.FC = () => {
                                     setUserBonusPoints(bonusBalance);
                                     setQuickMenuResult({ title: item.label, result });
                                 })
-                                .catch(e => alert(e.message || '분석에 실패했습니다.'))
+                                .catch(e => alert(quickMenuErrorMessage(e)))
                                 .finally(() => setQuickMenuLoading(false));
                         } else {
                             handleSubItem(item);
@@ -1748,7 +1759,7 @@ const AppContent: React.FC = () => {
                                                 setUserBonusPoints(bonusBalance);
                                                 setQuickMenuResult({ title: menu.label, result });
                                             })
-                                            .catch(e => alert(e.message || '분석에 실패했습니다.'))
+                                            .catch(e => alert(quickMenuErrorMessage(e)))
                                             .finally(() => setQuickMenuLoading(false));
                                         return;
                                     }
