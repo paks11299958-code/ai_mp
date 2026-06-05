@@ -48,6 +48,7 @@ import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuMo
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
+import { QuickMenuLoading } from './components/QuickMenuLoading';
 import { ClubBoard } from './components/ClubBoard';
 
 
@@ -1053,6 +1054,7 @@ const AppContent: React.FC = () => {
                             if (pendingQuickMenu.resultCard && activePersonaId) {
                                 const { label, prompt } = pendingQuickMenu;
                                 setPendingQuickMenu(null);
+                                setActiveQuickMenu(label); // 로딩 멘트 주제 매칭용
                                 setQuickMenuLoading(true);
                                 quickMenuApi.generate(activePersonaId, prompt)
                                     .then(({ result, paidBalance, bonusBalance }) => {
@@ -1092,6 +1094,7 @@ const AppContent: React.FC = () => {
                                 const cal = birthInfo.lunar ? '음력' : '양력';
                                 fullPrompt += `\n\n사용자 정보 — 이름: ${birthInfo.name}, 생년월일: ${cal} ${birthInfo.year}년 ${birthInfo.month}월 ${birthInfo.day}일${t}`;
                             }
+                            setActiveQuickMenu(item.label); // 로딩 멘트 주제 매칭용
                             setQuickMenuLoading(true);
                             quickMenuApi.generate(activePersonaId, fullPrompt)
                                 .then(({ result, paidBalance, bonusBalance }) => {
@@ -1153,19 +1156,12 @@ const AppContent: React.FC = () => {
                     result={quickMenuResult.result}
                     personaName={activePersona?.name ?? ''}
                     bgUrl={activePersona?.faceReadingBgUrl}
-                    onClose={() => setQuickMenuResult(null)}
+                    onClose={() => { setQuickMenuResult(null); setActiveQuickMenu(null); }}
                 />
             )}
 
-            {/* 퀵메뉴 로딩 오버레이 */}
-            {quickMenuLoading && (
-                <div className="fixed inset-0 z-[75] flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                    <div className="text-center">
-                        <div className="w-10 h-10 border-2 border-amber-400/30 border-t-amber-400 rounded-full animate-spin mx-auto mb-3" />
-                        <p className="text-amber-200 text-sm" style={{ fontFamily: '"Noto Serif KR", serif' }}>감정 중...</p>
-                    </div>
-                </div>
-            )}
+            {/* 퀵메뉴 로딩 오버레이 — 명리학 감정서 컨셉(팔괘 링 + 주제별 멘트) */}
+            {quickMenuLoading && <QuickMenuLoading title={activeQuickMenu ?? ''} />}
 
             {/* 포인트 모달 */}
             {showPointModal && (
@@ -1744,6 +1740,7 @@ const AppContent: React.FC = () => {
                                             const cal = birthInfo.lunar ? '음력' : '양력';
                                             fullPrompt += `\n\n사용자 정보 — 이름: ${birthInfo.name}, 생년월일: ${cal} ${birthInfo.year}년 ${birthInfo.month}월 ${birthInfo.day}일${t}`;
                                         }
+                                        setActiveQuickMenu(menu.label); // 로딩 멘트 주제 매칭용
                                         setQuickMenuLoading(true);
                                         quickMenuApi.generate(activePersonaId, fullPrompt)
                                             .then(({ result, paidBalance, bonusBalance }) => {

@@ -13,11 +13,15 @@ const TITLE_META: Record<string, { hanja: string; subtitle: string; icon: string
     '📅 시운의 흐름': { hanja: '時運流勢', subtitle: '운의 흐름과 때의 기운', icon: '🌊' },
     '💰 성취와 재물': { hanja: '成就財物', subtitle: '성취운 · 재물운 · 사업운', icon: '💎' },
     '❤️ 인연의 결': { hanja: '因緣之結', subtitle: '인연 · 관계 · 연분', icon: '🪢' },
+    '🪷 나의 전생': { hanja: '前生宿命', subtitle: '전생 · 인연 · 타고난 업', icon: '🪷' },
+    '🌙 꿈해몽': { hanja: '夢中解夢', subtitle: '꿈에 깃든 조짐', icon: '🌙' },
+    '🔮 관상학': { hanja: '觀相之鑑', subtitle: '얼굴에 깃든 운', icon: '🔮' },
 };
 
 export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title, result, personaName, bgUrl, onClose }) => {
     const cardRef = useRef<HTMLDivElement>(null);
     const [saving, setSaving] = useState(false);
+    const [opened, setOpened] = useState(false); // 봉인 뒷면 → 클릭 시 펼침(플립)
     const hasBg = !!bgUrl;
 
     const meta = TITLE_META[title] ?? { hanja: '', subtitle: '', icon: '✨' };
@@ -71,10 +75,68 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
 
     const c = hasBg ? withBg : noBg;
 
+    // 봉인된 뒷면(표지) — 클릭하면 카드가 뒤집히며 감정 내용(앞면)이 드러난다.
+    const sealBack = (
+        <div
+            onClick={() => setOpened(true)}
+            style={{
+                position: 'absolute', inset: 0,
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+                borderRadius: '10px',
+                border: '1px solid rgba(139,94,60,0.5)',
+                background: 'radial-gradient(circle at 50% 38%, rgba(60,36,14,0.98), rgba(14,8,3,0.99))',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                padding: '40px 28px', cursor: 'pointer',
+                fontFamily: '"Nanum Myeongjo", serif',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+            }}
+        >
+            <p style={{ fontSize: 12, color: '#b89060', letterSpacing: '0.3em', marginBottom: 18 }}>四柱命理 鑑定書</p>
+            <div style={{
+                width: 92, height: 92, borderRadius: '50%',
+                border: '1.5px solid rgba(200,148,60,0.55)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                marginBottom: 20, boxShadow: 'inset 0 0 24px rgba(200,148,60,0.18)',
+            }}>
+                <span style={{ fontSize: 40 }}>{meta.icon}</span>
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fde68a', letterSpacing: '0.12em', marginBottom: 6 }}>
+                {title}
+            </h2>
+            {meta.hanja && (
+                <p style={{ fontSize: 13, color: '#c8943c', letterSpacing: '0.3em', marginBottom: 26 }}>{meta.hanja}</p>
+            )}
+            <div style={{
+                padding: '9px 22px', borderRadius: 999,
+                border: '1px solid rgba(200,148,60,0.5)',
+                background: 'rgba(200,148,60,0.08)',
+                color: '#fde68a', fontSize: 13, letterSpacing: '0.06em',
+                animation: 'qmSealPulse 2s ease-in-out infinite',
+            }}>
+                ✦ 눌러서 펼치기 ✦
+            </div>
+            <p style={{ fontSize: 11, color: '#8a6a3c', marginTop: 14 }}>{personaName}이(가) 봉(封)함</p>
+        </div>
+    );
+
     return (
         <div className="fixed inset-0 z-[75] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm overflow-y-auto">
+            <style>{`
+                @keyframes qmSealPulse { 0%,100% { opacity:.7; transform:scale(1); } 50% { opacity:1; transform:scale(1.04); } }
+            `}</style>
             <div className="w-full max-w-lg my-auto">
 
+              {/* 플립 무대(원근감) */}
+              <div style={{ perspective: '1600px' }}>
+                <div style={{
+                    position: 'relative',
+                    transformStyle: 'preserve-3d',
+                    WebkitTransformStyle: 'preserve-3d',
+                    transition: 'transform 0.85s cubic-bezier(0.4,0.15,0.2,1)',
+                    transform: opened ? 'rotateY(0deg)' : 'rotateY(180deg)',
+                }}>
                 <div
                     ref={cardRef}
                     style={{
@@ -92,6 +154,8 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
                         padding: '36px 32px 32px',
                         fontFamily: '"Noto Serif KR", Georgia, serif',
                         boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
+                        backfaceVisibility: 'hidden',
+                        WebkitBackfaceVisibility: 'hidden',
                     }}
                 >
                     {hasBg && (
@@ -152,8 +216,20 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
                         </p>
                     </div>
                 </div>
+                {/* 봉인 뒷면 (플립 전 표지) */}
+                {sealBack}
+                </div>{/* /flip card */}
+              </div>{/* /perspective */}
 
-                <div className="flex gap-3 mt-4 px-1">
+                {/* 펼친 후에만 액션 버튼 노출 */}
+                <div
+                    className="flex gap-3 mt-4 px-1"
+                    style={{
+                        opacity: opened ? 1 : 0,
+                        pointerEvents: opened ? 'auto' : 'none',
+                        transition: 'opacity 0.4s ease 0.5s',
+                    }}
+                >
                     <button
                         onClick={handleSave}
                         disabled={saving}
