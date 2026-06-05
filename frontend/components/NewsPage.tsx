@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { TodayNewsBoard } from './TodayNewsBoard';
+import { InstallNewsButton } from './InstallNewsButton';
 
 /**
  * /news 전용 진입 페이지 (홈화면 바로가기 아이콘 대상).
@@ -53,6 +54,9 @@ export const NewsPage: React.FC = () => {
                 >
                     로그인하고 보기 →
                 </button>
+                <div style={{ marginTop: 16 }}>
+                    <InstallNewsButton />
+                </div>
             </div>
         );
     }
@@ -80,6 +84,10 @@ export const NewsPage: React.FC = () => {
                 }
             `}</style>
             <TodayNewsBoard onClose={goHome} />
+            {/* 바탕화면에 추가 — 우하단 floating */}
+            <div style={{ position: 'fixed', right: 16, bottom: 20, zIndex: 60 }}>
+                <InstallNewsButton />
+            </div>
         </div>
     );
 };
