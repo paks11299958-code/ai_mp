@@ -88,6 +88,7 @@
     { "source": "/api/news",                 "destination": "http://34.50.27.95:3020/api/aimp/news" },
     { "source": "/api/news/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/news/:path*" },
     { "source": "/attend/:sheetUuid", "destination": "/index.html" },
+    { "source": "/news", "destination": "/index.html" },
 
     { "source": "/api/clubs",               "destination": "http://34.50.27.95:3020/api/aimp/clubs" },
     { "source": "/api/clubs/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/clubs/:path*" },
