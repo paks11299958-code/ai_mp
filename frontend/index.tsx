@@ -6,6 +6,17 @@ import App from './App';
 import { AttendPage } from './components/AttendPage';
 import { NewsPage } from './components/NewsPage';
 
+// PWA 설치 이벤트는 페이지 로드 직후 1회만 발생한다.
+// 컴포넌트가 뒤늦게(서아 채팅 등) 리스너를 달면 놓치므로, 앱 진입 시점에 전역으로 잡아 보관한다.
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    (window as any).__deferredInstallPrompt = e;
+    window.dispatchEvent(new Event('pwa-install-available'));
+});
+window.addEventListener('appinstalled', () => {
+    (window as any).__deferredInstallPrompt = null;
+});
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
     throw new Error("Could not find root element to mount to");
