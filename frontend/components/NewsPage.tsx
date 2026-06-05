@@ -83,11 +83,8 @@ export const NewsPage: React.FC = () => {
                     box-shadow: none !important;
                 }
             `}</style>
+            {/* 바탕화면에 추가 버튼은 TodayNewsBoard 내부에 포함됨(서아 채팅/전용페이지 공통) */}
             <TodayNewsBoard onClose={goHome} />
-            {/* 바탕화면에 추가 — 우하단 floating */}
-            <div style={{ position: 'fixed', right: 16, bottom: 20, zIndex: 60 }}>
-                <InstallNewsButton />
-            </div>
         </div>
     );
 };

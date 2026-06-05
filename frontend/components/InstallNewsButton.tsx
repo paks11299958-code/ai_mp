@@ -13,7 +13,7 @@ const isStandalone = () =>
     window.matchMedia?.('(display-mode: standalone)').matches ||
     (navigator as any).standalone === true;
 
-export const InstallNewsButton: React.FC = () => {
+export const InstallNewsButton: React.FC<{ compact?: boolean }> = ({ compact = false }) => {
     const [deferred, setDeferred] = useState<BIPEvent | null>(null);
     const [showIosGuide, setShowIosGuide] = useState(false);
     const [hidden, setHidden] = useState(isStandalone());
@@ -50,14 +50,20 @@ export const InstallNewsButton: React.FC = () => {
         <>
             <button
                 onClick={handleClick}
-                style={{
+                title="바탕화면에 추가"
+                style={compact ? {
+                    display: 'inline-flex', alignItems: 'center', gap: 3,
+                    padding: '4px 9px', borderRadius: 999,
+                    border: '1px solid #B49AC9', background: '#F5E6F7', color: '#6E5DA3',
+                    fontSize: 11, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+                } : {
                     display: 'inline-flex', alignItems: 'center', gap: 6,
                     padding: '9px 16px', borderRadius: 999,
                     border: '1px solid #B49AC9', background: '#F5E6F7', color: '#6E5DA3',
                     fontSize: 13, fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
                 }}
             >
-                <span style={{ fontSize: 15 }}>📲</span> 바탕화면에 추가
+                <span style={{ fontSize: compact ? 12 : 15 }}>📲</span>{compact ? '추가' : ' 바탕화면에 추가'}
             </button>
 
             {showIosGuide && (

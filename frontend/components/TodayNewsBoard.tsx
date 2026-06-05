@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Newspaper, Volume2, VolumeX, Loader, RefreshCw } from 'lucide-react';
+import { InstallNewsButton } from './InstallNewsButton';
 
 interface Props {
     onClose: () => void;
@@ -229,16 +230,19 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                     background: T.surface,
                     flexShrink: 0,
                 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Newspaper size={16} style={{ color: activeCat.accent }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>오늘의 뉴스</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <Newspaper size={16} style={{ color: activeCat.accent }} />
+                            <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>오늘뉴스</span>
+                        </div>
                         {collectedAt && (
-                            <span style={{ fontSize: 11, color: T.inkMute, marginLeft: 2 }}>
+                            <span style={{ fontSize: 10, color: T.inkMute, marginLeft: 24 }}>
                                 수집 {formatTime(collectedAt)}
                             </span>
                         )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <InstallNewsButton compact />
                         {current && (
                             <button
                                 onClick={() => speaking ? stop() : speakCategory(activeKey)}
