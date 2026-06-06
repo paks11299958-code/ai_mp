@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, ChevronLeft, Plus, Users, QrCode, ClipboardList, RefreshCw, Loader, Copy, Check } from 'lucide-react';
+import { X, ChevronLeft, Plus, Users, QrCode, ClipboardList, RefreshCw, Loader, Copy, Check, Save, Trash2 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 
 // ── 타입 ─────────────────────────────────────────────────
@@ -41,7 +41,8 @@ interface SheetRecord {
     attendedAt: string;
 }
 
-type View = 'list' | 'create' | 'detail' | 'members' | 'sheets' | 'sheet_records';
+type View = 'list' | 'create' | 'detail' | 'sheet_records';
+type DetailTab = 'info' | 'members' | 'sheets' | 'settings';
 
 interface Props { onClose: () => void; }
 
@@ -83,6 +84,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     const [records, setRecords]         = useState<SheetRecord[]>([]);
     const [copied, setCopied]           = useState<string | null>(null);
     const [qrSheet, setQrSheet]         = useState<Sheet | null>(null);  // QR 팝업 대상 출석부
+    const [detailTab, setDetailTab]     = useState<DetailTab>('info');   // 모임 상세 내 탭
 
     // 모임 목록 로드
     const loadClubs = useCallback(async () => {
@@ -137,6 +139,13 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         setTimeout(() => setCopied(null), 2000);
     };
 
+    // 모임 삭제 (OWNER)
+    const handleDeleteClub = useCallback(async (club: Club) => {
+        await apiFetch(`/api/clubs/${club.id}`, { method: 'DELETE' });
+        await loadClubs();
+        setView('list');
+    }, [loadClubs]);
+
     // ── 뷰별 렌더링 ─────────────────────────────────────────
 
     const renderHeader = (title: string, onBack?: () => void) => (
@@ -179,7 +188,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                         {clubs.map(club => (
                             <button
                                 key={club.id}
-                                onClick={() => { setSelectedClub(club); setView('detail'); }}
+                                onClick={() => { setSelectedClub(club); setDetailTab('info'); setView('detail'); if (club.myRole === 'OWNER') { loadMembers(club); loadSheets(club); } }}
                                 className="w-full text-left p-3.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
                             >
                                 <div className="flex items-center justify-between">
@@ -215,164 +224,169 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         );
     }
 
-    // 모임 상세
+    // 모임 상세 — 탭(정보/회원/출석부/설정) 통합
     if (view === 'detail' && selectedClub) {
         const isOwner = selectedClub.myRole === 'OWNER';
-        return (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    {renderHeader(selectedClub.name, () => setView('list'))}
+        const tabs: { key: DetailTab; label: string }[] = isOwner
+            ? [
+                { key: 'info',     label: '정보' },
+                { key: 'members',  label: '회원' },
+                { key: 'sheets',   label: '출석부' },
+                { key: 'settings', label: '설정' },
+              ]
+            : [{ key: 'info', label: '정보' }];
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                        {selectedClub.region && (
-                            <p className="text-xs text-white/40">📍 {selectedClub.region}</p>
-                        )}
-                        {selectedClub.description && (
-                            <p className="text-sm text-white/60 leading-relaxed">{selectedClub.description}</p>
-                        )}
-
-                        {/* 메뉴 카드 */}
-                        {isOwner && (
-                            <button
-                                onClick={() => { loadMembers(selectedClub); setView('members'); }}
-                                className="w-full p-3.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 flex items-center gap-3"
-                            >
-                                <Users size={18} className="text-pink-400" />
-                                <div className="text-left">
-                                    <p className="text-sm font-medium text-white">회원 명부</p>
-                                    <p className="text-xs text-white/40">전체 회원 {selectedClub.memberCount}명</p>
-                                </div>
-                            </button>
-                        )}
-
-                        {isOwner && (
-                            <button
-                                onClick={() => { loadSheets(selectedClub); setView('sheets'); }}
-                                className="w-full p-3.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10 flex items-center gap-3"
-                            >
-                                <QrCode size={18} className="text-pink-400" />
-                                <div className="text-left">
-                                    <p className="text-sm font-medium text-white">출석부 관리</p>
-                                    <p className="text-xs text-white/40">QR 출석 생성 및 명단 확인</p>
-                                </div>
-                            </button>
-                        )}
-
-                        {!isOwner && (
-                            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-center">
-                                <p className="text-sm text-white/50">가입된 모임입니다</p>
-                                <p className="text-xs text-white/30 mt-1">가입일: {formatDate(selectedClub.createdAt)}</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // 회원 명부
-    if (view === 'members' && selectedClub) {
-        return (
-            <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    {renderHeader(`회원 명부 (${members.length}명)`, () => setView('detail'))}
-
-                    <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                        {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
-                        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-                        {!loading && members.length === 0 && (
-                            <p className="text-center text-white/40 text-sm py-8">회원이 없습니다.</p>
-                        )}
-                        {members.map(m => (
-                            <div key={m.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <p className="text-sm font-medium text-white">{m.nickname}</p>
-                                        {m.role === 'OWNER' && (
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-400 font-medium">관리자</span>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-white/40 mt-0.5">{m.phone} · 가입 {formatDate(m.joinedAt)}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-lg font-bold text-pink-400">{m.attendanceCount}</p>
-                                    <p className="text-[10px] text-white/30">출석</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    // 출석부 목록
-    if (view === 'sheets' && selectedClub) {
         return (
           <>
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
                 <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    {renderHeader('출석부 관리', () => setView('detail'))}
+                    {renderHeader(selectedClub.name, () => setView('list'))}
 
-                    <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                        {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
-                        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
-                        {!loading && sheets.length === 0 && (
-                            <div className="text-center py-10 text-white/40">
-                                <ClipboardList size={36} className="mx-auto mb-3 opacity-40" />
-                                <p className="text-sm">출석부가 없습니다.</p>
+                    {/* 상단 탭 */}
+                    {isOwner && (
+                        <div className="flex border-b border-white/10 px-2">
+                            {tabs.map(t => (
+                                <button
+                                    key={t.key}
+                                    onClick={() => { setError(''); setDetailTab(t.key); }}
+                                    className={`flex-1 py-2.5 text-sm font-medium transition-colors relative ${
+                                        detailTab === t.key ? 'text-pink-400' : 'text-white/40 hover:text-white/70'
+                                    }`}
+                                >
+                                    {t.label}
+                                    {detailTab === t.key && (
+                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-pink-400" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* ── 정보 탭 ── */}
+                    {detailTab === 'info' && (
+                        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                            {selectedClub.region && (
+                                <p className="text-xs text-white/40">📍 {selectedClub.region}</p>
+                            )}
+                            {selectedClub.description && (
+                                <p className="text-sm text-white/60 leading-relaxed whitespace-pre-wrap">{selectedClub.description}</p>
+                            )}
+                            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Users size={16} className="text-pink-400" />
+                                    <span className="text-sm text-white/70">전체 회원</span>
+                                </div>
+                                <span className="text-sm font-bold text-white">{selectedClub.memberCount}명</span>
                             </div>
-                        )}
-                        {sheets.map(s => {
-                            const url = getAttendanceUrl(s.qrUuid);
-                            return (
-                                <div key={s.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-sm font-medium text-white">{s.title}</p>
-                                        <span className="text-xs text-pink-400 font-bold">{s.attendeeCount}명 출석</span>
-                                    </div>
-                                    <p className="text-xs text-white/30">{formatDate(s.createdAt)}</p>
+                            {!isOwner && (
+                                <p className="text-xs text-white/30 text-center pt-1">가입일: {formatDate(selectedClub.createdAt)}</p>
+                            )}
+                        </div>
+                    )}
 
-                                    {/* QR URL 복사 */}
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <input
-                                            readOnly
-                                            value={url}
-                                            className="flex-1 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-white/50 border border-white/10 truncate"
-                                        />
-                                        <button
-                                            onClick={() => copyUrl(url, s.id)}
-                                            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                                            title="출석 링크 복사"
-                                        >
-                                            {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-white/60" />}
-                                        </button>
-                                        <button
-                                            onClick={() => setQrSheet(s)}
-                                            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
-                                            title="QR 코드 보기"
-                                        >
-                                            <QrCode size={14} className="text-white/60" />
-                                        </button>
-                                        <button
-                                            onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
-                                            className="p-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors"
-                                            title="출석 명단 보기"
-                                        >
-                                            <Users size={14} className="text-pink-400" />
-                                        </button>
+                    {/* ── 회원 탭 ── */}
+                    {isOwner && detailTab === 'members' && (
+                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                            {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
+                            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                            {!loading && members.length === 0 && (
+                                <p className="text-center text-white/40 text-sm py-8">회원이 없습니다.</p>
+                            )}
+                            {members.map(m => (
+                                <div key={m.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <p className="text-sm font-medium text-white">{m.nickname}</p>
+                                            {m.role === 'OWNER' && (
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-400 font-medium">관리자</span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-white/40 mt-0.5">{m.phone} · 가입 {formatDate(m.joinedAt)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-lg font-bold text-pink-400">{m.attendanceCount}</p>
+                                        <p className="text-[10px] text-white/30">출석</p>
                                     </div>
                                 </div>
-                            );
-                        })}
-                    </div>
+                            ))}
+                        </div>
+                    )}
 
-                    <div className="p-4 border-t border-white/10">
-                        <SheetCreateForm
-                            clubId={selectedClub.id}
-                            onCreated={() => loadSheets(selectedClub)}
+                    {/* ── 출석부 탭 ── */}
+                    {isOwner && detailTab === 'sheets' && (
+                        <>
+                            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                                {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
+                                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                                {!loading && sheets.length === 0 && (
+                                    <div className="text-center py-10 text-white/40">
+                                        <ClipboardList size={36} className="mx-auto mb-3 opacity-40" />
+                                        <p className="text-sm">출석부가 없습니다.</p>
+                                    </div>
+                                )}
+                                {sheets.map(s => {
+                                    const url = getAttendanceUrl(s.qrUuid);
+                                    return (
+                                        <div key={s.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm font-medium text-white">{s.title}</p>
+                                                <span className="text-xs text-pink-400 font-bold">{s.attendeeCount}명 출석</span>
+                                            </div>
+                                            <p className="text-xs text-white/30">{formatDate(s.createdAt)}</p>
+
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <input
+                                                    readOnly
+                                                    value={url}
+                                                    className="flex-1 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-white/50 border border-white/10 truncate"
+                                                />
+                                                <button
+                                                    onClick={() => copyUrl(url, s.id)}
+                                                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                                                    title="출석 링크 복사"
+                                                >
+                                                    {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-white/60" />}
+                                                </button>
+                                                <button
+                                                    onClick={() => setQrSheet(s)}
+                                                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                                                    title="QR 코드 보기"
+                                                >
+                                                    <QrCode size={14} className="text-white/60" />
+                                                </button>
+                                                <button
+                                                    onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
+                                                    className="p-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors"
+                                                    title="출석 명단 보기"
+                                                >
+                                                    <Users size={14} className="text-pink-400" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="p-4 border-t border-white/10">
+                                <SheetCreateForm
+                                    clubId={selectedClub.id}
+                                    onCreated={() => loadSheets(selectedClub)}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {/* ── 설정 탭 (수정/삭제) ── */}
+                    {isOwner && detailTab === 'settings' && (
+                        <ClubSettingsTab
+                            club={selectedClub}
+                            onUpdated={(updated) => {
+                                setSelectedClub({ ...selectedClub, ...updated });
+                                loadClubs();
+                            }}
+                            onDelete={() => handleDeleteClub(selectedClub)}
                         />
-                    </div>
+                    )}
                 </div>
             </div>
 
@@ -414,7 +428,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         return (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
                 <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                    {renderHeader(`출석 명단 (${records.length}명)`, () => { setView('sheets'); })}
+                    {renderHeader(`출석 명단 (${records.length}명)`, () => { setDetailTab('sheets'); setView('detail'); })}
 
                     <div className="px-4 py-2 border-b border-white/10">
                         <p className="text-sm text-white/60">{selectedSheet.title}</p>
@@ -622,6 +636,130 @@ const SheetCreateForm: React.FC<SheetCreateFormProps> = ({ clubId, onCreated }) 
                     {loading ? <Loader size={14} className="animate-spin" /> : <Plus size={14} />}
                     생성
                 </button>
+            </div>
+        </div>
+    );
+};
+
+// ── 설정 탭: 모임 수정 + 삭제 (OWNER) ─────────────────────
+
+interface ClubSettingsTabProps {
+    club: Club;
+    onUpdated: (patch: { name: string; region: string; description: string }) => void;
+    onDelete: () => Promise<void>;
+}
+
+const ClubSettingsTab: React.FC<ClubSettingsTabProps> = ({ club, onUpdated, onDelete }) => {
+    const [name, setName]        = useState(club.name);
+    const [region, setRegion]    = useState(club.region ?? '');
+    const [description, setDesc] = useState(club.description ?? '');
+    const [saving, setSaving]    = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [error, setError]      = useState('');
+    const [saved, setSaved]      = useState(false);
+
+    const dirty = name !== club.name || region !== (club.region ?? '') || description !== (club.description ?? '');
+
+    const handleSave = async () => {
+        if (!name.trim()) return setError('모임 이름을 입력해주세요.');
+        setSaving(true); setError(''); setSaved(false);
+        try {
+            await apiFetch(`/api/clubs/${club.id}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: name.trim(), region: region.trim(), description: description.trim() }),
+            });
+            onUpdated({ name: name.trim(), region: region.trim(), description: description.trim() });
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        } catch (e: any) { setError(e.message); }
+        finally { setSaving(false); }
+    };
+
+    const handleDelete = async () => {
+        setDeleting(true); setError('');
+        try {
+            await onDelete();
+        } catch (e: any) { setError(e.message); setDeleting(false); }
+    };
+
+    return (
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+
+            <label className="block">
+                <span className="text-xs text-white/50 mb-1 block">모임 이름 *</span>
+                <input
+                    value={name} onChange={e => setName(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                />
+            </label>
+
+            <label className="block">
+                <span className="text-xs text-white/50 mb-1 block">활동 지역</span>
+                <input
+                    value={region} onChange={e => setRegion(e.target.value)}
+                    placeholder="예: 서울 강남"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                />
+            </label>
+
+            <label className="block">
+                <span className="text-xs text-white/50 mb-1 block">모임 소개</span>
+                <textarea
+                    value={description} onChange={e => setDesc(e.target.value)}
+                    placeholder="모임에 대해 간단히 소개해주세요."
+                    rows={3}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50 resize-none"
+                />
+            </label>
+
+            <button
+                onClick={handleSave}
+                disabled={saving || !dirty}
+                className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors disabled:opacity-40"
+                style={{ background: 'rgba(255,107,157,0.25)', color: '#FF6B9D', border: '1px solid rgba(255,107,157,0.4)' }}
+            >
+                {saving ? <Loader size={16} className="animate-spin" /> : saved ? <Check size={16} /> : <Save size={16} />}
+                {saved ? '저장됨' : '변경사항 저장'}
+            </button>
+
+            {/* 위험 구역: 삭제 */}
+            <div className="border-t border-white/10 pt-4 mt-2">
+                {!confirmDelete ? (
+                    <button
+                        onClick={() => setConfirmDelete(true)}
+                        className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors"
+                    >
+                        <Trash2 size={16} />
+                        모임 삭제
+                    </button>
+                ) : (
+                    <div className="space-y-2 p-3 rounded-xl bg-red-500/10 border border-red-500/30">
+                        <p className="text-sm text-red-300 font-medium">정말 삭제할까요?</p>
+                        <p className="text-xs text-red-300/70 leading-relaxed">
+                            모임의 <b>회원 명부·출석부·출석 기록·공지</b>가 모두 영구 삭제됩니다. 되돌릴 수 없습니다.
+                        </p>
+                        <div className="flex gap-2 pt-1">
+                            <button
+                                onClick={() => setConfirmDelete(false)}
+                                disabled={deleting}
+                                className="flex-1 py-2 rounded-lg text-sm bg-white/10 text-white/70 hover:bg-white/20 transition-colors disabled:opacity-50"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={handleDelete}
+                                disabled={deleting}
+                                className="flex-1 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                            >
+                                {deleting ? <Loader size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
