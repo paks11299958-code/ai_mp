@@ -1204,14 +1204,14 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
                             </div>
                             {favoriteChips && favoriteChips.length > 0 ? (
-                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4 }}>
+                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4, justifyContent: 'center' }}>
                                     {favoriteChips.map(chip => (
                                         <button key={chip.key} onClick={chip.onClick}
-                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', width: 64 }}>
+                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', width: 58 }}>
                                             <span style={{
-                                                width: 54, height: 54, borderRadius: '50%',
+                                                width: 46, height: 46, borderRadius: '50%',
                                                 background: chip.bgColor, border: `2px solid ${chip.borderColor}`,
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
                                             }}>{FEATURE_EMOJI[chip.key] ?? '✨'}</span>
                                             <span style={{ fontSize: 11.5, color: T.ink, fontWeight: 600, whiteSpace: 'nowrap', maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis' }}>{chip.label}</span>
                                         </button>
@@ -1233,12 +1233,12 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 페르소나</span>
                             </div>
                             {personaChips && personaChips.length > 0 ? (
-                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4 }}>
+                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4, justifyContent: 'center' }}>
                                     {personaChips.map(pc => (
                                         <button key={pc.id} onClick={pc.onClick}
-                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', width: 66, position: 'relative' }}>
+                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', width: 58, position: 'relative' }}>
                                             <span style={{
-                                                width: 56, height: 56, borderRadius: '50%', overflow: 'hidden',
+                                                width: 48, height: 48, borderRadius: '50%', overflow: 'hidden',
                                                 border: pc.highlight ? `2.5px solid ${T.accent}` : `2px solid ${T.accent2}55`,
                                                 boxShadow: pc.highlight ? `0 0 0 3px ${T.accent}22` : 'none',
                                                 background: `${T.accent2}14`,
@@ -1246,9 +1246,9 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                             }}>
                                                 {pc.imageUrl
                                                     ? <img src={pc.imageUrl} alt={pc.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                    : <span style={{ fontSize: 22 }}>💬</span>}
+                                                    : <span style={{ fontSize: 20 }}>💬</span>}
                                             </span>
-                                            <span style={{ fontSize: 11.5, color: pc.highlight ? T.accent : T.ink, fontWeight: pc.highlight ? 800 : 600, whiteSpace: 'nowrap', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                            <span style={{ fontSize: 11, color: pc.highlight ? T.accent : T.ink, fontWeight: pc.highlight ? 800 : 600, whiteSpace: 'nowrap', maxWidth: 58, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                                                 {pc.highlight ? '✨' : ''}{pc.name}
                                             </span>
                                         </button>
