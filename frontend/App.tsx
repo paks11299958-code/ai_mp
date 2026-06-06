@@ -15,7 +15,6 @@ import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, 
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { getPersonaFeatureKeys, FEATURE_BY_KEY } from './personaFeatures';
-import { Sidebar } from './components/Sidebar';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
@@ -129,8 +128,6 @@ const AppContent: React.FC = () => {
         } catch {}
         return '';
     });
-    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [inputText, setInputText] = useState('');
     const [isAdminMode, setIsAdminMode] = useState(false);
     const {
@@ -335,7 +332,6 @@ const AppContent: React.FC = () => {
     }, []);
 
     const handlePersonaClick = useCallback((personaId: string) => {
-        setIsSidebarCollapsed(true);
         const persona = personas.find(p => p.id === personaId);
         if (persona?.introVideoUrl) {
             setIntroVideoModal({ personaId, type: 'video', url: persona.introVideoUrl });
@@ -381,7 +377,7 @@ const AppContent: React.FC = () => {
     }, []);
 
     const isAdmin = user?.role === 'ADMIN';
-    // #4: 자식(Sidebar/MainPageNew/LandingPageNew)에 prop drilling 대신 Context로 공급.
+    // #4: 자식(MainPageNew/LandingPageNew)에 prop drilling 대신 Context로 공급.
     // onAdminClick은 화면별 전환 부수효과가 달라 prop 유지(AuthContext 미포함).
     const authCtxValue = { user, isAdmin, onLogout: handleLogout };
     const visiblePersonas = isAdmin
@@ -637,23 +633,6 @@ const AppContent: React.FC = () => {
             setPersonas(prev => prev.filter(p => p.id !== id));
         } catch (error: any) {
             alert(error.message || '삭제에 실패했습니다.');
-        }
-    };
-
-    const handleReorderPersona = async (index: number, direction: 'up' | 'down') => {
-        if (direction === 'up' && index === 0) return;
-        if (direction === 'down' && index === personas.length - 1) return;
-
-        const newPersonas = [...personas];
-        const swapIndex = direction === 'up' ? index - 1 : index + 1;
-        [newPersonas[index], newPersonas[swapIndex]] = [newPersonas[swapIndex], newPersonas[index]];
-        const updated = newPersonas.map((p, i) => ({ ...p, order: i }));
-        setPersonas(updated);
-
-        try {
-            await Promise.all(updated.map(p => personaApi.update(p.id, { order: p.order })));
-        } catch (error) {
-            console.error('순서 저장 실패:', error);
         }
     };
 
@@ -1035,25 +1014,6 @@ const AppContent: React.FC = () => {
                 fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif",
             }}
         >
-            <AuthProvider value={authCtxValue}>
-            <Sidebar
-                personas={visiblePersonas}
-                activePersonaId={activePersonaId}
-                onSelectPersona={handlePersonaClick}
-                isOpen={isSidebarOpen}
-                setIsOpen={setIsSidebarOpen}
-                isCollapsed={isSidebarCollapsed}
-                onToggleCollapse={() => setIsSidebarCollapsed(v => !v)}
-                onAdminClick={handleAdminLogin}
-                onAnnouncementClick={() => setShowAnnouncementModal(true)}
-                unreadAnnouncementCount={unreadAnnouncementCount}
-                onReorder={handleReorderPersona}
-                onGoHome={() => goTo('hero')}
-                onProfileClick={() => setShowUserProfile(true)}
-                newUi={true}
-            />
-            </AuthProvider>
-
             {showAnnouncementModal && (
                 <AnnouncementModal
                     announcements={announcements}
@@ -1669,6 +1629,40 @@ const AppContent: React.FC = () => {
                                 </div>
                             </div>
                         </header>
+
+                        {/* 최근 페르소나 빠른 전환 칩 (현재 페르소나 제외, 사이드바 대체) */}
+                        {(() => {
+                            const recentOthers = recentPersonaIds
+                                .filter(id => id !== activePersonaId)
+                                .map(id => visiblePersonas.find(p => p.id === id))
+                                .filter((p): p is NonNullable<typeof p> => !!p)
+                                .slice(0, 8);
+                            if (recentOthers.length === 0) return null;
+                            return (
+                                <div className="shrink-0 border-b border-[#F0E9DE] bg-white/55 backdrop-blur-sm">
+                                    <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+                                        <span className="text-[10px] text-[#9089A1] shrink-0 mr-0.5 hidden sm:inline">최근</span>
+                                        {recentOthers.map(p => (
+                                            <button
+                                                key={p.id}
+                                                onClick={() => handlePersonaClick(p.id)}
+                                                className="flex items-center gap-1.5 shrink-0 pl-1 pr-2.5 py-1 rounded-full bg-white border border-[#EAE2D3] hover:border-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors"
+                                                title={`${p.name}와 대화`}
+                                            >
+                                                {p.imageUrl ? (
+                                                    <img src={p.imageUrl} alt={p.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
+                                                ) : (
+                                                    <span className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-white bg-gradient-to-br ${p.colorClass}`}>
+                                                        <Icon name={p.iconName} size={12} />
+                                                    </span>
+                                                )}
+                                                <span className="text-xs font-medium text-[#2D2438] whitespace-nowrap">{p.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {activeImages.length > 0 && (() => {
                             // 기능 키 → 보드 열기 핸들러는 본체 FEATURE_ACTIONS 재사용(메타는 FEATURE_REGISTRY 단일출처)
