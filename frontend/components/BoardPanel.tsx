@@ -131,7 +131,8 @@ export const BoardPanel: React.FC<Props> = ({ user, personaId, onClose }) => {
     const goList = () => { setView('list'); setSelectedPost(null); setError(''); loadList(); };
 
     return (
-        <div className="fixed inset-0 bg-gray-950 flex flex-col z-40">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-black/60" onClick={onClose}>
+        <div className="w-full max-w-2xl max-h-[80vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl" style={{ background: '#0e1117', border: '1px solid #1e2330' }} onClick={e => e.stopPropagation()}>
             {/* 헤더 */}
             <div className="flex items-center justify-between px-4 h-14 border-b border-gray-800 bg-gray-950 shrink-0">
                 <div className="flex items-center gap-3">
@@ -142,7 +143,7 @@ export const BoardPanel: React.FC<Props> = ({ user, personaId, onClose }) => {
                         </button>
                     )}
                     <h2 className="text-base font-bold text-white">
-                        {view === 'list' ? '소통게시판' : view === 'write' ? '글쓰기' : view === 'edit' ? '수정' : '게시글'}
+                        {view === 'list' ? '건의 게시판' : view === 'write' ? '글쓰기' : view === 'edit' ? '수정' : '게시글'}
                     </h2>
                 </div>
                 <div className="flex items-center gap-2">
@@ -334,6 +335,7 @@ export const BoardPanel: React.FC<Props> = ({ user, personaId, onClose }) => {
                     </div>
                 )}
             </div>
+        </div>
         </div>
     );
 };

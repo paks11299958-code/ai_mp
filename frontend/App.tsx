@@ -691,7 +691,6 @@ const AppContent: React.FC = () => {
                     onPersonaClick={handleGuestPersonaClick}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
-                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
                     onFeatureClick={handleNewPageFeatureClick}
                     categories={categories}
                 />
@@ -812,7 +811,6 @@ const AppContent: React.FC = () => {
                     onPersonaClick={(id) => { setMainFocusPersonaId(id); setMainFocusFeatureKey(null); goMain('personas'); }}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
-                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
                     onFeatureClick={(key) => { setMainFocusFeatureKey(key); setMainFocusPersonaId(null); goMain('features'); }}
                     categories={categories}
                     user={user}
@@ -867,7 +865,6 @@ const AppContent: React.FC = () => {
                     onAdminClick={() => handleAdminLogin()}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
-                    onPartnerBoardClick={() => setShowPartnerBoard(true)}
                     onProfileClick={() => setShowUserProfile(true)}
                     categories={categories}
                     onGoHome={() => goTo('hero')}
@@ -1598,21 +1595,13 @@ const AppContent: React.FC = () => {
                                                 <Icon name="UserCircle" size={15} className="text-[#8E6FB7]" />
                                                 내 정보
                                             </button>
-                                            {/* 게시판 */}
+                                            {/* 건의 게시판 */}
                                             <button
                                                 onClick={() => { setShowHeaderMenu(false); setShowBoard(true); }}
                                                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
                                             >
                                                 <Icon name="MessageSquare" size={15} className="text-[#8E6FB7]" />
-                                                게시판
-                                            </button>
-                                            {/* 제휴 게시판 */}
-                                            <button
-                                                onClick={() => { setShowHeaderMenu(false); setShowPartnerBoard(true); }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
-                                            >
-                                                <Icon name="Handshake" size={15} className="text-[#8E6FB7]" />
-                                                제휴 게시판
+                                                건의 게시판
                                             </button>
                                             {/* 기억 공유 */}
                                             {activePersona && (
