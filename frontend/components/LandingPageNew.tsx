@@ -56,6 +56,8 @@ interface LandingPageNewProps {
     onContinueChat?: () => void;
     // 즐겨찾기(자주가는 메뉴) 칩 — 담은 게 있을 때만 표시
     favoriteChips?: { key: string; label: string; icon: string; color: string; bgColor: string; borderColor: string; onClick: () => void }[];
+    // 나의 AI 페르소나 칩 (1단계: 최근 대화 페르소나)
+    personaChips?: { id: string; name: string; onClick: () => void }[];
 }
 
 // ─────────────────────────────────────────────
@@ -782,6 +784,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     continuePersonaName,
     onContinueChat,
     favoriteChips,
+    personaChips,
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -843,6 +846,14 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 }
                 .lp-cta-toggle:hover {
                     transform: translateY(-1px);
+                }
+                /* 히어로 3등분: 모바일=세로 1칼럼, PC=왼50 | 오른쪽(상25·하25) */
+                .lp-hero-grid { grid-template-columns: 1fr; }
+                .lp-hero-left { text-align: center; }
+                @media (min-width: 860px) {
+                    .lp-hero-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
+                    .lp-hero-left { text-align: left !important; }
+                    .lp-hero-left h1, .lp-hero-left .lp-kicker { text-align: left; }
                 }
                 .lp-chip {
                     display: inline-flex;
@@ -951,14 +962,14 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                         {user.username || user.email.split('@')[0]}님 ✦
                                     </span>
                                 )}
-                                <button onClick={onGoToChat ?? onStart} style={{
+                                <button onClick={onProfileClick} style={{
                                     padding: '8px 20px', borderRadius: 999,
                                     background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
                                     color: '#fff', fontSize: 13, fontWeight: 700,
                                     border: 'none', cursor: 'pointer',
                                     boxShadow: `0 6px 18px -6px rgba(142,111,183,0.55)`,
                                     transition: 'transform 0.15s', letterSpacing: '0.03em',
-                                }}>채팅 시작 →</button>
+                                }}>내 정보 보기</button>
                             </>
                         ) : (
                             <>
@@ -1154,6 +1165,14 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, letterSpacing: '0.25em' }}>✦</span>
                 </div>
 
+                {/* 3등분 레이아웃: PC는 좌(홍보) | 우상(나의 AI 기능)·우하(나의 AI 페르소나), 모바일은 세로 */}
+                <div className="lp-hero-grid" style={{
+                    maxWidth: 1080, margin: '0 auto', padding: '0 24px',
+                    display: 'grid', gap: 24, alignItems: 'start',
+                }}>
+                    {/* ── 왼쪽: 홍보 ── */}
+                    <div className="lp-hero-left" style={{ textAlign: 'center' }}>
+
                 {/* 메인 타이틀 */}
                 <h1 style={{
                     fontFamily: "'Cormorant Garamond', serif",
@@ -1180,37 +1199,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     페르소나에 숨겨진 기능을 찾아보세요.<br />
                     대화 한 마디가 새로운 세계로 이어집니다.
                 </p>
-
-                {/* 즐겨찾기(자주가는 메뉴): 담은 게 있을 때만, 한 번 클릭으로 바로 실행 */}
-                {user && favoriteChips && favoriteChips.length > 0 && (
-                    <div style={{ marginBottom: 20, padding: '0 20px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, justifyContent: 'center' }}>
-                            <span style={{ fontSize: 13 }}>⭐</span>
-                            <span style={{ fontSize: 13, color: T.ink, fontWeight: 700 }}>내 바로가기</span>
-                        </div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-                            {favoriteChips.map(chip => (
-                                <button
-                                    key={chip.key}
-                                    onClick={chip.onClick}
-                                    style={{
-                                        display: 'inline-flex', alignItems: 'center', gap: 6,
-                                        padding: '9px 16px', borderRadius: 999,
-                                        background: chip.bgColor,
-                                        border: `1.5px solid ${chip.borderColor}`,
-                                        color: chip.color, fontSize: 13.5, fontWeight: 700,
-                                        cursor: 'pointer', whiteSpace: 'nowrap',
-                                        transition: 'transform 0.12s',
-                                    }}
-                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
-                                >
-                                    {chip.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
 
                 {/* 재방문 바로진입: 마지막 대화 페르소나와 "이어서 대화" 제안 (강제 이동 아님) */}
                 {user && onContinueChat && continuePersonaName && (
@@ -1281,30 +1269,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     </button>
                 </div>
 
-                {/* 로그인 상태 CTA */}
-                {user && (
-                    <div style={{ marginBottom: 20 }}>
-                        <button
-                            onClick={onGoToChat ?? onStart}
-                            style={{
-                                padding: '14px 36px',
-                                borderRadius: 999,
-                                background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
-                                color: '#fff',
-                                fontSize: 16, fontWeight: 700,
-                                border: 'none', cursor: 'pointer',
-                                boxShadow: `0 10px 28px -8px rgba(142,111,183,0.65)`,
-                                letterSpacing: '0.04em',
-                                transition: 'transform 0.15s, box-shadow 0.15s',
-                            }}
-                            onMouseEnter={e => { (e.target as HTMLElement).style.transform = 'translateY(-2px) scale(1.02)'; }}
-                            onMouseLeave={e => { (e.target as HTMLElement).style.transform = 'translateY(0) scale(1)'; }}
-                        >
-                            채팅 시작하기 →
-                        </button>
-                    </div>
-                )}
-
                 {/* 신뢰 칩 */}
                 <div style={{
                     display: 'flex', justifyContent: 'center',
@@ -1315,6 +1279,80 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     <span className="lp-chip">♦ 다양한 페르소나</span>
                     <span className="lp-chip">✧ 무료로 시작</span>
                 </div>
+
+                    </div>{/* ── /왼쪽 ── */}
+
+                    {/* ── 오른쪽: 나의 AI 기능(상) + 나의 AI 페르소나(하) ── */}
+                    {user && (
+                    <div className="lp-hero-right" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        {/* 우상: 나의 AI 기능 */}
+                        <div style={{
+                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent}22`,
+                            borderRadius: 16, padding: '16px 16px 18px', backdropFilter: 'blur(8px)',
+                            boxShadow: '0 6px 20px -10px rgba(142,111,183,0.35)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                <span style={{ fontSize: 14 }}>⭐</span>
+                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
+                            </div>
+                            {favoriteChips && favoriteChips.length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    {favoriteChips.map(chip => (
+                                        <button key={chip.key} onClick={chip.onClick}
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                                padding: '8px 14px', borderRadius: 999,
+                                                background: chip.bgColor, border: `1.5px solid ${chip.borderColor}`,
+                                                color: chip.color, fontSize: 13, fontWeight: 700,
+                                                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'transform 0.12s',
+                                            }}
+                                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+                                        >{chip.label}</button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>
+                                    기능 둘러보기에서 ⭐를 눌러 자주 쓰는 기능을 담아보세요.
+                                </p>
+                            )}
+                        </div>
+
+                        {/* 우하: 나의 AI 페르소나 */}
+                        <div style={{
+                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent2}22`,
+                            borderRadius: 16, padding: '16px 16px 18px', backdropFilter: 'blur(8px)',
+                            boxShadow: '0 6px 20px -10px rgba(228,139,176,0.3)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                <span style={{ fontSize: 14 }}>👤</span>
+                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 페르소나</span>
+                            </div>
+                            {personaChips && personaChips.length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                                    {personaChips.map(pc => (
+                                        <button key={pc.id} onClick={pc.onClick}
+                                            style={{
+                                                display: 'inline-flex', alignItems: 'center', gap: 6,
+                                                padding: '8px 14px', borderRadius: 999,
+                                                background: `${T.accent2}14`, border: `1.5px solid ${T.accent2}55`,
+                                                color: T.accent, fontSize: 13, fontWeight: 700,
+                                                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'transform 0.12s',
+                                            }}
+                                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+                                        >💬 {pc.name}</button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>
+                                    자주 대화하는 페르소나가 여기에 모여요.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                    )}
+                </div>{/* ── /3등분 grid ── */}
 
                 {/* 캐러셀 */}
                 {isLoading ? (
