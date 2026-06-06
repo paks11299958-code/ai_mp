@@ -5,7 +5,7 @@ import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
 import { useAuth } from './hooks/useAuth';
-import { useFavorites } from './hooks/useFavorites';
+import { useFavorites, useFavoritePersonas } from './hooks/useFavorites';
 import { useQuickMenu } from './hooks/useQuickMenu';
 import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
@@ -84,6 +84,7 @@ const AppContent: React.FC = () => {
         resetAuth,
     } = useAuth();
     const { isFavorite, toggleFavorite, favorites } = useFavorites(!!user);
+    const { isFavorite: isFavoritePersona, toggleFavorite: toggleFavoritePersona, favorites: favoritePersonaIds } = useFavoritePersonas(!!user);
     const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);
     // 뉴UI: 페르소나 대기 페이지 초기 탭
     const [mainInitialTab, setMainInitialTab] = useState<'personas' | 'features'>('personas');
@@ -810,16 +811,16 @@ const AppContent: React.FC = () => {
             goTo('chat');
             handleSelectPersona(continuePersona.id);
         } : undefined;
-        // 나의 AI 페르소나 칩 (1단계: 최근 대화 페르소나, 최대 8개). 최근=맨앞 강조, 이미지 썸네일.
-        const personaChips = recentPersonaIds
+        // 나의 AI 페르소나 칩 (☆로 직접 담은 페르소나). 가장 최근 대화한 것이 담겨 있으면 강조.
+        const recentTop = recentPersonaIds[0] ?? null;
+        const personaChips = favoritePersonaIds
             .map(id => visiblePersonas.find(p => p.id === id))
             .filter((p): p is NonNullable<typeof p> => !!p)
-            .slice(0, 8)
-            .map((p, i) => ({
+            .map(p => ({
                 id: p.id,
                 name: p.name,
                 imageUrl: p.imageUrl,
-                highlight: i === 0,
+                highlight: p.id === recentTop,
                 onClick: () => { rememberLastPersona(p.id); goTo('chat'); handleSelectPersona(p.id); },
             }));
         return (
@@ -898,6 +899,8 @@ const AppContent: React.FC = () => {
                     isFavorite={isFavorite}
                     onToggleFavorite={toggleFavorite}
                     favoritableKeys={FAVORITABLE_KEYS}
+                    isFavoritePersona={isFavoritePersona}
+                    onToggleFavoritePersona={toggleFavoritePersona}
                 />
                 </AuthProvider>
                 {showAnnouncementModal && (

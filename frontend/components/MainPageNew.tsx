@@ -72,6 +72,9 @@ interface MainPageNewProps {
     isFavorite?: (key: string) => boolean;
     onToggleFavorite?: (key: string) => void;
     favoritableKeys?: string[]; // 즐겨찾기 가능한 키만 ⭐ 표시
+    // 페르소나 즐겨찾기 (페르소나 카드 ☆ 토글)
+    isFavoritePersona?: (id: string) => boolean;
+    onToggleFavoritePersona?: (id: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -543,7 +546,9 @@ const PersonaSelectPanel: React.FC<{
     isFavorite?: (key: string) => boolean;
     onToggleFavorite?: (key: string) => void;
     favoritableKeys?: string[];
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], isFavorite, onToggleFavorite, favoritableKeys }) => {
+    isFavoritePersona?: (id: string) => boolean;
+    onToggleFavoritePersona?: (id: string) => void;
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -1032,6 +1037,22 @@ const PersonaSelectPanel: React.FC<{
                                     : '0 8px 24px -12px rgba(80,50,110,0.25)';
                             }}
                         >
+                            {/* 즐겨찾기 ⭐ 토글 (우상단) */}
+                            {onToggleFavoritePersona && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onToggleFavoritePersona(persona.id); }}
+                                    title={isFavoritePersona?.(persona.id) ? '내 페르소나에서 빼기' : '내 페르소나에 추가'}
+                                    style={{
+                                        position: 'absolute', top: 6, right: 6, zIndex: 6,
+                                        width: 30, height: 30, borderRadius: '50%', border: 'none',
+                                        background: 'rgba(255,255,255,0.85)', cursor: 'pointer',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: 16, lineHeight: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                                    }}
+                                >
+                                    {isFavoritePersona?.(persona.id) ? '⭐' : '☆'}
+                                </button>
+                            )}
                             {/* 시머 */}
                             <div style={{
                                 position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2, pointerEvents: 'none',
@@ -1125,6 +1146,8 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     isFavorite,
     onToggleFavorite,
     favoritableKeys,
+    isFavoritePersona,
+    onToggleFavoritePersona,
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1228,6 +1251,8 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 isFavorite={isFavorite}
                 onToggleFavorite={onToggleFavorite}
                 favoritableKeys={favoritableKeys}
+                isFavoritePersona={isFavoritePersona}
+                onToggleFavoritePersona={onToggleFavoritePersona}
             />
         </div>
     );

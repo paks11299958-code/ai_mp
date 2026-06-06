@@ -457,6 +457,13 @@ export const userProfileApi = {
     saveFavorites: (favoritesJson: string) =>
         put<{ ok: boolean }>('/user/favorites', { favoritesJson }),
 
+    // 즐겨찾기 페르소나 — 페르소나 id 배열의 JSON
+    getFavoritePersonas: () =>
+        get<{ favoritePersonasJson: string | null }>('/user/favorite-personas'),
+
+    saveFavoritePersonas: (favoritePersonasJson: string) =>
+        put<{ ok: boolean }>('/user/favorite-personas', { favoritePersonasJson }),
+
     // 본인 회원 탈퇴(하드 삭제)
     deleteAccount: () =>
         del<{ deleted: boolean }>('/user'),
