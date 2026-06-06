@@ -139,157 +139,6 @@ const PersonaAvatar: React.FC<{
     );
 };
 
-// ─────────────────────────────────────────────
-// Left Rail — 브랜드 로고 + 페르소나 목록 + 하단 아이콘
-// ─────────────────────────────────────────────
-const ChatRail: React.FC<{
-    personas: Persona[];
-    activeId: string | null;
-    onSelect: (id: string) => void;
-    onAdminClick: () => void;
-    onAnnouncementClick?: () => void;
-    unreadAnnouncementCount?: number;
-    onProfileClick?: () => void;
-    onGoHome?: () => void;
-}> = ({ personas, activeId, onSelect, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onGoHome }) => {
-    const { user, onLogout } = useAuthContext();
-    return (
-    <aside style={{
-        width: 80,
-        flexShrink: 0,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        padding: '16px 0',
-        borderRight: `1px solid ${T.lineSoft}`,
-        background: 'rgba(255,255,255,0.55)',
-        backdropFilter: 'blur(10px)',
-        height: '100vh',
-        position: 'sticky',
-        top: 0,
-        overflowY: 'auto',
-        zIndex: 10,
-    }}>
-
-        {/* HOME 버튼 */}
-        <button onClick={onGoHome} style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            marginBottom: 10, paddingBottom: 10,
-            borderBottom: `1px solid ${T.lineSoft}`,
-            width: '100%', textAlign: 'center',
-            padding: '0 0 10px',
-        }}>
-            <span style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: 28, fontWeight: 700,
-                color: T.gold,
-                lineHeight: 1,
-                display: 'block',
-            }}>H</span>
-        </button>
-
-        {/* 페르소나 목록 */}
-        <div style={{
-            flex: 1, display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 10, overflowY: 'auto',
-            paddingBottom: 8, width: '100%',
-        }}>
-            {personas.map((p, i) => (
-                <div key={p.id} style={{ position: 'relative' }}>
-                    {/* active 인디케이터 바 */}
-                    {p.id === activeId && (
-                        <div style={{
-                            position: 'absolute',
-                            left: -14, top: '50%',
-                            width: 3, height: 22,
-                            background: `linear-gradient(180deg, ${T.accent}, ${T.accent2})`,
-                            borderRadius: '0 4px 4px 0',
-                            transform: 'translateY(-50%)',
-                        }} />
-                    )}
-                    <PersonaAvatar
-                        persona={p} index={i}
-                        active={p.id === activeId}
-                        onClick={() => onSelect(p.id)}
-                    />
-                </div>
-            ))}
-        </div>
-
-        {/* 하단 아이콘 버튼들 */}
-        <div style={{
-            borderTop: `1px solid ${T.lineSoft}`,
-            paddingTop: 10,
-            display: 'flex', flexDirection: 'column',
-            alignItems: 'center', gap: 6,
-        }}>
-            {onAnnouncementClick && (
-                <button
-                    onClick={onAnnouncementClick}
-                    title="공지사항"
-                    style={{
-                        position: 'relative',
-                        width: 34, height: 34, borderRadius: 10,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: T.inkSoft, background: 'none', border: 'none', cursor: 'pointer',
-                        transition: 'background 0.15s, color 0.15s',
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `rgba(142,111,183,0.1)`; (e.currentTarget as HTMLElement).style.color = T.accent; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = T.inkSoft; }}
-                >
-                    <Bell size={18} />
-                    {unreadAnnouncementCount > 0 && (
-                        <span style={{
-                            position: 'absolute', top: 2, right: 2,
-                            width: 8, height: 8,
-                            background: T.accent2, borderRadius: '50%',
-                            border: '1.5px solid #fff',
-                        }} />
-                    )}
-                </button>
-            )}
-            {user.role === 'ADMIN' && (
-                <button onClick={onAdminClick} title="관리자"
-                    style={{
-                        width: 34, height: 34, borderRadius: 10,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: T.inkSoft, background: 'none', border: 'none', cursor: 'pointer',
-                        transition: 'background 0.15s, color 0.15s',
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `rgba(142,111,183,0.1)`; (e.currentTarget as HTMLElement).style.color = T.accent; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = T.inkSoft; }}
-                >
-                    <Settings size={18} />
-                </button>
-            )}
-            <button onClick={onProfileClick ?? onLogout} title="프로필"
-                style={{
-                    width: 34, height: 34, borderRadius: 10,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: T.inkSoft, background: 'none', border: 'none', cursor: 'pointer',
-                    transition: 'background 0.15s, color 0.15s',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `rgba(142,111,183,0.1)`; (e.currentTarget as HTMLElement).style.color = T.accent; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = T.inkSoft; }}
-            >
-                <UserCircle size={18} />
-            </button>
-            <button onClick={onLogout} title="로그아웃"
-                style={{
-                    width: 34, height: 34, borderRadius: 10,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: T.inkSoft, background: 'none', border: 'none', cursor: 'pointer',
-                    transition: 'background 0.15s, color 0.15s',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = `rgba(142,111,183,0.1)`; (e.currentTarget as HTMLElement).style.color = T.accent; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'none'; (e.currentTarget as HTMLElement).style.color = T.inkSoft; }}
-            >
-                <LogOut size={18} />
-            </button>
-        </div>
-    </aside>
-    );
-};
 
 // ─────────────────────────────────────────────
 // Middle Stage — 타로카드 + 페르소나 정보
@@ -676,15 +525,14 @@ const PersonaSelectPanel: React.FC<{
                 backdropFilter: 'blur(8px)',
                 position: 'relative',
             }}>
-                {/* 모바일 햄버거 버튼 — mpn-rail 숨겨질 때만 표시 */}
+                {/* 메뉴 햄버거 버튼 — 좌측 Rail 제거로 데스크탑·모바일 공통 노출(어드민/공지/프로필/로그아웃 접근) */}
                 <button
-                    className="mpn-hamburger"
                     onClick={() => setMobileMenuOpen(true)}
                     style={{
                         position: 'absolute', top: 18, right: 20,
                         background: 'none', border: 'none', cursor: 'pointer',
                         padding: 6, borderRadius: 8,
-                        display: 'none', // CSS로 모바일만 표시
+                        display: 'flex',
                     }}
                 >
                     <Menu size={22} color={T.ink} />
@@ -1206,20 +1054,6 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                     .mpn-hamburger { display: flex !important; }
                 }
             `}</style>
-
-            {/* Left Rail */}
-            <div className="mpn-rail">
-                <ChatRail
-                    personas={personas}
-                    activeId={activePersonaId}
-                    onSelect={handleSelectPersona}
-                    onAdminClick={onAdminClick}
-                    onAnnouncementClick={onAnnouncementClick}
-                    unreadAnnouncementCount={unreadAnnouncementCount}
-                    onProfileClick={onProfileClick}
-                    onGoHome={onGoHome}
-                />
-            </div>
 
             {/* Middle Stage (active persona 선택 시) */}
             {activePersona && (
