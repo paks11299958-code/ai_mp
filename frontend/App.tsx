@@ -1468,11 +1468,20 @@ const AppContent: React.FC = () => {
                     <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
                         <header className="h-16 flex items-center justify-between px-4 shrink-0 z-10 border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             <div className="flex items-center">
+                                {/* 모바일: 뒤로가기(페르소나 목록) */}
                                 <button
                                     className="md:hidden mr-2 flex items-center gap-1 text-[#5C5468] hover:text-[#2D2438] transition-colors"
                                     onClick={() => goTo('main')}
                                 >
                                     <Icon name="ChevronLeft" size={22} />
+                                </button>
+                                {/* 데스크탑: 홈(첫 화면) — 사이드바 제거로 빠진 진입점 복구 */}
+                                <button
+                                    className="hidden md:flex mr-2 p-2 rounded-xl text-[#5C5468] hover:text-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors"
+                                    onClick={() => goTo('hero')}
+                                    title="첫 화면"
+                                >
+                                    <Icon name="Home" size={18} />
                                 </button>
                                 {activePersona && (
                                     <>
