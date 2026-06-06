@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Users, Sparkles } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { TermsModal } from './TermsModal';
 
@@ -1200,7 +1200,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                             boxShadow: '0 6px 20px -10px rgba(142,111,183,0.3)',
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                                <span style={{ fontSize: 14 }}>⭐</span>
+                                <Sparkles size={16} style={{ color: T.accent }} strokeWidth={2.4} />
                                 <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
                             </div>
                             {favoriteChips && favoriteChips.length > 0 ? (
@@ -1229,7 +1229,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                             boxShadow: '0 6px 20px -10px rgba(228,139,176,0.28)',
                         }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                                <span style={{ fontSize: 14 }}>👤</span>
+                                <Users size={16} style={{ color: T.accent }} strokeWidth={2.4} />
                                 <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 페르소나</span>
                             </div>
                             {personaChips && personaChips.length > 0 ? (
