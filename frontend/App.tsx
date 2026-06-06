@@ -810,12 +810,18 @@ const AppContent: React.FC = () => {
             goTo('chat');
             handleSelectPersona(continuePersona.id);
         } : undefined;
-        // 나의 AI 페르소나 칩 (1단계: 최근 대화 페르소나, 최대 6개) — 클릭 시 해당 페르소나 채팅 진입
+        // 나의 AI 페르소나 칩 (1단계: 최근 대화 페르소나, 최대 8개). 최근=맨앞 강조, 이미지 썸네일.
         const personaChips = recentPersonaIds
             .map(id => visiblePersonas.find(p => p.id === id))
             .filter((p): p is NonNullable<typeof p> => !!p)
-            .slice(0, 6)
-            .map(p => ({ id: p.id, name: p.name, onClick: () => { rememberLastPersona(p.id); goTo('chat'); handleSelectPersona(p.id); } }));
+            .slice(0, 8)
+            .map((p, i) => ({
+                id: p.id,
+                name: p.name,
+                imageUrl: p.imageUrl,
+                highlight: i === 0,
+                onClick: () => { rememberLastPersona(p.id); goTo('chat'); handleSelectPersona(p.id); },
+            }));
         return (
             <>
                 <LandingPageNew

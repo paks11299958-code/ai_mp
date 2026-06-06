@@ -9,6 +9,12 @@ import { Bell } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { TermsModal } from './TermsModal';
 
+// 나의 AI 기능 썸네일 이모지(기능은 사진이 없어 아이콘 썸네일로)
+const FEATURE_EMOJI: Record<string, string> = {
+    news: '📰', stock: '📈', hotkeyword: '🛍️', used: '🏷️',
+    luxury: '💎', mathtutor: '🧮', club: '🤝',
+};
+
 // ─────────────────────────────────────────────
 // 디자인 토큰
 // ─────────────────────────────────────────────
@@ -56,8 +62,8 @@ interface LandingPageNewProps {
     onContinueChat?: () => void;
     // 즐겨찾기(자주가는 메뉴) 칩 — 담은 게 있을 때만 표시
     favoriteChips?: { key: string; label: string; icon: string; color: string; bgColor: string; borderColor: string; onClick: () => void }[];
-    // 나의 AI 페르소나 칩 (1단계: 최근 대화 페르소나)
-    personaChips?: { id: string; name: string; onClick: () => void }[];
+    // 나의 AI 페르소나 칩 (최근 대화 페르소나, 썸네일+강조)
+    personaChips?: { id: string; name: string; imageUrl?: string; highlight?: boolean; onClick: () => void }[];
 }
 
 // ─────────────────────────────────────────────
@@ -847,14 +853,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 .lp-cta-toggle:hover {
                     transform: translateY(-1px);
                 }
-                /* 히어로 3등분: 모바일=세로 1칼럼, PC=왼50 | 오른쪽(상25·하25) */
-                .lp-hero-grid { grid-template-columns: 1fr; }
-                .lp-hero-left { text-align: center; }
-                @media (min-width: 860px) {
-                    .lp-hero-grid { grid-template-columns: 1fr 1fr; align-items: stretch; }
-                    .lp-hero-left { text-align: left !important; }
-                    .lp-hero-left h1, .lp-hero-left .lp-kicker { text-align: left; }
-                }
                 .lp-chip {
                     display: inline-flex;
                     align-items: center;
@@ -1165,18 +1163,10 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     <span style={{ fontFamily: "'Cinzel', serif", fontSize: 16, letterSpacing: '0.25em' }}>✦</span>
                 </div>
 
-                {/* 3등분 레이아웃: PC는 좌(홍보) | 우상(나의 AI 기능)·우하(나의 AI 페르소나), 모바일은 세로 */}
-                <div className="lp-hero-grid" style={{
-                    maxWidth: 1080, margin: '0 auto', padding: '0 24px',
-                    display: 'grid', gap: 24, alignItems: 'start',
-                }}>
-                    {/* ── 왼쪽: 홍보 ── */}
-                    <div className="lp-hero-left" style={{ textAlign: 'center' }}>
-
-                {/* 메인 타이틀 */}
+                {/* 메인 타이틀 (나의 AI 기능·페르소나가 추가돼 폰트 축소) */}
                 <h1 style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 'clamp(36px, 6vw, 68px)',
+                    fontSize: 'clamp(30px, 4.5vw, 50px)',
                     fontWeight: 600, lineHeight: 1.1,
                     letterSpacing: '-0.02em',
                     margin: '0 0 14px',
@@ -1200,30 +1190,74 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     대화 한 마디가 새로운 세계로 이어집니다.
                 </p>
 
-                {/* 재방문 바로진입: 마지막 대화 페르소나와 "이어서 대화" 제안 (강제 이동 아님) */}
-                {user && onContinueChat && continuePersonaName && (
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24, padding: '0 20px' }}>
-                        <button
-                            onClick={onContinueChat}
-                            style={{
-                                display: 'inline-flex', alignItems: 'center', gap: 10,
-                                padding: '12px 22px', borderRadius: 999,
-                                background: 'rgba(255,255,255,0.85)',
-                                border: `1.5px solid ${T.accent}55`,
-                                boxShadow: `0 6px 20px -8px rgba(142,111,183,0.4)`,
-                                backdropFilter: 'blur(8px)',
-                                cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s',
-                                maxWidth: '100%',
-                            }}
-                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = `0 10px 26px -8px rgba(142,111,183,0.55)`; }}
-                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = `0 6px 20px -8px rgba(142,111,183,0.4)`; }}
-                        >
-                            <span style={{ fontSize: 18 }}>💬</span>
-                            <span style={{ fontSize: 14, color: T.ink, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                <span style={{ color: T.accent, fontWeight: 700 }}>{continuePersonaName}</span>님과 이어서 대화하기
-                            </span>
-                            <span style={{ fontSize: 14, color: T.accent, fontWeight: 700 }}>→</span>
-                        </button>
+                {/* 나의 AI 기능 + 나의 AI 페르소나 (세로, 동그라미 썸네일) */}
+                {user && (
+                    <div style={{ maxWidth: 560, margin: '0 auto 24px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+                        {/* 나의 AI 기능 */}
+                        <div style={{
+                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent}22`,
+                            borderRadius: 16, padding: '14px 16px', backdropFilter: 'blur(8px)',
+                            boxShadow: '0 6px 20px -10px rgba(142,111,183,0.3)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                <span style={{ fontSize: 14 }}>⭐</span>
+                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
+                            </div>
+                            {favoriteChips && favoriteChips.length > 0 ? (
+                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4 }}>
+                                    {favoriteChips.map(chip => (
+                                        <button key={chip.key} onClick={chip.onClick}
+                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', width: 64 }}>
+                                            <span style={{
+                                                width: 54, height: 54, borderRadius: '50%',
+                                                background: chip.bgColor, border: `2px solid ${chip.borderColor}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24,
+                                            }}>{FEATURE_EMOJI[chip.key] ?? '✨'}</span>
+                                            <span style={{ fontSize: 11.5, color: T.ink, fontWeight: 600, whiteSpace: 'nowrap', maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis' }}>{chip.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>기능 둘러보기에서 ⭐를 눌러 담아보세요.</p>
+                            )}
+                        </div>
+
+                        {/* 나의 AI 페르소나 */}
+                        <div style={{
+                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent2}22`,
+                            borderRadius: 16, padding: '14px 16px', backdropFilter: 'blur(8px)',
+                            boxShadow: '0 6px 20px -10px rgba(228,139,176,0.28)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                <span style={{ fontSize: 14 }}>👤</span>
+                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 페르소나</span>
+                            </div>
+                            {personaChips && personaChips.length > 0 ? (
+                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4 }}>
+                                    {personaChips.map(pc => (
+                                        <button key={pc.id} onClick={pc.onClick}
+                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', width: 66, position: 'relative' }}>
+                                            <span style={{
+                                                width: 56, height: 56, borderRadius: '50%', overflow: 'hidden',
+                                                border: pc.highlight ? `2.5px solid ${T.accent}` : `2px solid ${T.accent2}55`,
+                                                boxShadow: pc.highlight ? `0 0 0 3px ${T.accent}22` : 'none',
+                                                background: `${T.accent2}14`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            }}>
+                                                {pc.imageUrl
+                                                    ? <img src={pc.imageUrl} alt={pc.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                    : <span style={{ fontSize: 22 }}>💬</span>}
+                                            </span>
+                                            <span style={{ fontSize: 11.5, color: pc.highlight ? T.accent : T.ink, fontWeight: pc.highlight ? 800 : 600, whiteSpace: 'nowrap', maxWidth: 66, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                {pc.highlight ? '✨' : ''}{pc.name}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>자주 대화하는 페르소나가 여기에 모여요.</p>
+                            )}
+                        </div>
                     </div>
                 )}
 
@@ -1279,80 +1313,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     <span className="lp-chip">♦ 다양한 페르소나</span>
                     <span className="lp-chip">✧ 무료로 시작</span>
                 </div>
-
-                    </div>{/* ── /왼쪽 ── */}
-
-                    {/* ── 오른쪽: 나의 AI 기능(상) + 나의 AI 페르소나(하) ── */}
-                    {user && (
-                    <div className="lp-hero-right" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        {/* 우상: 나의 AI 기능 */}
-                        <div style={{
-                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent}22`,
-                            borderRadius: 16, padding: '16px 16px 18px', backdropFilter: 'blur(8px)',
-                            boxShadow: '0 6px 20px -10px rgba(142,111,183,0.35)',
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                                <span style={{ fontSize: 14 }}>⭐</span>
-                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
-                            </div>
-                            {favoriteChips && favoriteChips.length > 0 ? (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                    {favoriteChips.map(chip => (
-                                        <button key={chip.key} onClick={chip.onClick}
-                                            style={{
-                                                display: 'inline-flex', alignItems: 'center', gap: 6,
-                                                padding: '8px 14px', borderRadius: 999,
-                                                background: chip.bgColor, border: `1.5px solid ${chip.borderColor}`,
-                                                color: chip.color, fontSize: 13, fontWeight: 700,
-                                                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'transform 0.12s',
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
-                                        >{chip.label}</button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>
-                                    기능 둘러보기에서 ⭐를 눌러 자주 쓰는 기능을 담아보세요.
-                                </p>
-                            )}
-                        </div>
-
-                        {/* 우하: 나의 AI 페르소나 */}
-                        <div style={{
-                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent2}22`,
-                            borderRadius: 16, padding: '16px 16px 18px', backdropFilter: 'blur(8px)',
-                            boxShadow: '0 6px 20px -10px rgba(228,139,176,0.3)',
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                                <span style={{ fontSize: 14 }}>👤</span>
-                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 페르소나</span>
-                            </div>
-                            {personaChips && personaChips.length > 0 ? (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                                    {personaChips.map(pc => (
-                                        <button key={pc.id} onClick={pc.onClick}
-                                            style={{
-                                                display: 'inline-flex', alignItems: 'center', gap: 6,
-                                                padding: '8px 14px', borderRadius: 999,
-                                                background: `${T.accent2}14`, border: `1.5px solid ${T.accent2}55`,
-                                                color: T.accent, fontSize: 13, fontWeight: 700,
-                                                cursor: 'pointer', whiteSpace: 'nowrap', transition: 'transform 0.12s',
-                                            }}
-                                            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-                                            onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
-                                        >💬 {pc.name}</button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>
-                                    자주 대화하는 페르소나가 여기에 모여요.
-                                </p>
-                            )}
-                        </div>
-                    </div>
-                    )}
-                </div>{/* ── /3등분 grid ── */}
 
                 {/* 캐러셀 */}
                 {isLoading ? (
