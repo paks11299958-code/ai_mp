@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, Plus, Users, QrCode, ClipboardList, RefreshCw, Loader, Copy, Check } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
 
 // ── 타입 ─────────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     const [selectedSheet, setSelectedSheet] = useState<Sheet | null>(null);
     const [records, setRecords]         = useState<SheetRecord[]>([]);
     const [copied, setCopied]           = useState<string | null>(null);
+    const [qrSheet, setQrSheet]         = useState<Sheet | null>(null);  // QR 팝업 대상 출석부
 
     // 모임 목록 로드
     const loadClubs = useCallback(async () => {
@@ -307,6 +309,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     // 출석부 목록
     if (view === 'sheets' && selectedClub) {
         return (
+          <>
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
                 <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col max-h-[90vh]">
                     {renderHeader('출석부 관리', () => setView('detail'))}
@@ -345,6 +348,13 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                             {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-white/60" />}
                                         </button>
                                         <button
+                                            onClick={() => setQrSheet(s)}
+                                            className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                                            title="QR 코드 보기"
+                                        >
+                                            <QrCode size={14} className="text-white/60" />
+                                        </button>
+                                        <button
                                             onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
                                             className="p-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors"
                                             title="출석 명단 보기"
@@ -365,6 +375,37 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                     </div>
                 </div>
             </div>
+
+            {/* QR 코드 큰 화면 팝업 (출석 현장에서 스캔용) */}
+            {qrSheet && (
+                <div
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+                    onClick={() => setQrSheet(null)}
+                >
+                    <div
+                        className="bg-white rounded-2xl p-6 flex flex-col items-center gap-4 max-w-[90vw]"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <p className="text-base font-bold text-gray-900 text-center break-keep">{qrSheet.title}</p>
+                        <div className="bg-white p-3 rounded-xl">
+                            <QRCodeCanvas
+                                value={getAttendanceUrl(qrSheet.qrUuid)}
+                                size={240}
+                                level="M"
+                                marginSize={2}
+                            />
+                        </div>
+                        <p className="text-xs text-gray-500 text-center">휴대폰 카메라로 QR을 스캔하면 출석됩니다.</p>
+                        <button
+                            onClick={() => setQrSheet(null)}
+                            className="mt-1 px-6 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors"
+                        >
+                            닫기
+                        </button>
+                    </div>
+                </div>
+            )}
+          </>
         );
     }
 
