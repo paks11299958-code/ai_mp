@@ -71,6 +71,7 @@ interface MainPageNewProps {
     // 즐겨찾기(자주가는 메뉴): 기능카드 ⭐ 토글
     isFavorite?: (key: string) => boolean;
     onToggleFavorite?: (key: string) => void;
+    favoritableKeys?: string[]; // 즐겨찾기 가능한 키만 ⭐ 표시
 }
 
 // ─────────────────────────────────────────────
@@ -541,7 +542,8 @@ const PersonaSelectPanel: React.FC<{
     recentPersonas?: Persona[];
     isFavorite?: (key: string) => boolean;
     onToggleFavorite?: (key: string) => void;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], isFavorite, onToggleFavorite }) => {
+    favoritableKeys?: string[];
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], isFavorite, onToggleFavorite, favoritableKeys }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -897,8 +899,8 @@ const PersonaSelectPanel: React.FC<{
                                         : `0 6px 20px -6px ${feat.palette.accent}40`;
                                 }}
                             >
-                                {/* 즐겨찾기 ⭐ 토글 (우상단) */}
-                                {onToggleFavorite && (
+                                {/* 즐겨찾기 ⭐ 토글 (우상단) — 즐겨찾기 가능한 기능만 */}
+                                {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(feat.key)) && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); onToggleFavorite(feat.key); }}
                                         title={isFavorite?.(feat.key) ? '바로가기에서 빼기' : '바로가기에 추가'}
@@ -1122,6 +1124,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     recentPersonas = [],
     isFavorite,
     onToggleFavorite,
+    favoritableKeys,
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1224,6 +1227,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 recentPersonas={recentPersonas}
                 isFavorite={isFavorite}
                 onToggleFavorite={onToggleFavorite}
+                favoritableKeys={favoritableKeys}
             />
         </div>
     );

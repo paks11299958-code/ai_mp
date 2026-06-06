@@ -777,6 +777,8 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 즐겨찾기로 담을 수 있는 기능(Hero에서 단독으로 뜨는 것만). 골프는 페르소나 의존이라 제외.
+    const FAVORITABLE_KEYS = ['news', 'stock', 'hotkeyword', 'used', 'luxury', 'mathtutor', 'club'];
     // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용)
     const FEATURE_ACTIONS: Record<string, () => void> = {
         news: () => setShowTodayNews(true),
@@ -795,6 +797,7 @@ const AppContent: React.FC = () => {
         const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
         // 즐겨찾기 칩: 담은 기능 키 → 메타 + 실행 핸들러
         const favoriteChips = favorites
+            .filter(key => FAVORITABLE_KEYS.includes(key))
             .map(key => ({ key, meta: FEATURE_BY_KEY[key] }))
             .filter(f => f.meta)
             .map(f => ({ key: f.key, label: f.meta.label, icon: f.meta.icon, color: f.meta.color, bgColor: f.meta.bgColor, borderColor: f.meta.borderColor, onClick: FEATURE_ACTIONS[f.key] ?? (() => {}) }));
@@ -842,6 +845,16 @@ const AppContent: React.FC = () => {
                 {showUserProfile && (
                     <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} onUserUpdate={updated => setUser(prev => prev ? { ...prev, ...updated } : prev)} onAccountDeleted={() => { setShowUserProfile(false); handleLogout(); }} />
                 )}
+                {/* 즐겨찾기 칩 클릭 시 Hero 위에 바로 뜨도록 보드 렌더 (main과 동일) */}
+                {showTodayNews && <TodayNewsBoard onClose={() => setShowTodayNews(false)} />}
+                {showStockAnalysis && (
+                    <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
+                )}
+                {showHotKeyword && <HotKeywordBoard onClose={() => setShowHotKeyword(false)} userEmail={user?.email} userPhone={user?.phone} />}
+                {showUsedItem && <UsedItemBoard onClose={() => setShowUsedItem(false)} />}
+                {showLuxuryBoard && <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />}
+                {showMathTutor && <MathTutorBoard onClose={() => setShowMathTutor(false)} />}
+                {showClubBoard && <ClubBoard onClose={() => setShowClubBoard(false)} />}
             </>
         );
     }
@@ -871,6 +884,7 @@ const AppContent: React.FC = () => {
                     recentPersonas={recentPersonas}
                     isFavorite={isFavorite}
                     onToggleFavorite={toggleFavorite}
+                    favoritableKeys={FAVORITABLE_KEYS}
                 />
                 </AuthProvider>
                 {showAnnouncementModal && (
