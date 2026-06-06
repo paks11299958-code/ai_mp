@@ -131,24 +131,24 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 px-4 bg-black/60" onClick={onClose}>
-        <div className="w-full max-w-2xl max-h-[80vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl" style={{ background: '#0e1117', border: '1px solid #1e2330' }} onClick={e => e.stopPropagation()}>
+        <div className="w-full max-w-2xl max-h-[80vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl" style={{ background: '#FBF8F3', border: '1px solid #F0E9DE' }} onClick={e => e.stopPropagation()}>
             {/* 헤더 */}
-            <div className="flex items-center justify-between px-4 h-14 border-b shrink-0" style={{ borderColor: '#1e2330' }}>
+            <div className="flex items-center justify-between px-4 h-14 border-b shrink-0" style={{ borderColor: '#F0E9DE' }}>
                 <div className="flex items-center gap-3">
                     {view !== 'list' && (
                         <button onClick={view === 'detail' ? goList : () => { setView(selectedPost ? 'detail' : 'list'); setError(''); }}
-                            className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors">
+                            className="text-[#9089A1] hover:text-[#2D2438] p-1 rounded-lg hover:bg-[#F5EFE6] transition-colors">
                             <Icon name="ChevronLeft" size={20} />
                         </button>
                     )}
-                    <h2 className="text-base font-bold text-white">
+                    <h2 className="text-base font-bold text-[#2D2438]">
                         {view === 'list' ? '제휴 게시판' : view === 'write' ? '제휴 문의 작성' : view === 'edit' ? '수정' : '제휴 문의'}
                     </h2>
                 </div>
                 <div className="flex items-center gap-2">
                     {view === 'list' && (
                         <button onClick={goWrite}
-                            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                            className="flex items-center gap-1.5 bg-[#8E6FB7] hover:bg-[#7d5ea6] text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
                             <Icon name="PenLine" size={13} /> 문의 작성
                         </button>
                     )}
@@ -156,15 +156,15 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
                         <>
                             {(selectedPost.userId === user.id || isAdmin) && (
                                 <button onClick={goEdit}
-                                    className="text-xs text-gray-400 hover:text-white px-2 py-1 rounded hover:bg-gray-800 transition-colors">수정</button>
+                                    className="text-xs text-[#9089A1] hover:text-[#2D2438] px-2 py-1 rounded hover:bg-[#F5EFE6] transition-colors">수정</button>
                             )}
                             {(selectedPost.userId === user.id || isAdmin) && (
                                 <button onClick={() => handleDelete(selectedPost.id)}
-                                    className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-gray-800 transition-colors">삭제</button>
+                                    className="text-xs text-red-400 hover:text-red-300 px-2 py-1 rounded hover:bg-[#F5EFE6] transition-colors">삭제</button>
                             )}
                         </>
                     )}
-                    <button onClick={onClose} className="text-gray-400 hover:text-white p-1.5 rounded-lg hover:bg-gray-800 transition-colors">
+                    <button onClick={onClose} className="text-[#9089A1] hover:text-[#2D2438] p-1.5 rounded-lg hover:bg-[#F5EFE6] transition-colors">
                         <Icon name="X" size={18} />
                     </button>
                 </div>
@@ -172,7 +172,7 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
 
             {/* 에러 */}
             {error && (
-                <div className="mx-4 mt-3 flex items-center gap-2 text-red-400 text-sm bg-red-900/20 border border-red-800/50 rounded-xl px-4 py-2">
+                <div className="mx-4 mt-3 flex items-center gap-2 text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl px-4 py-2">
                     <Icon name="AlertCircle" size={14} className="shrink-0" />{error}
                 </div>
             )}
@@ -183,31 +183,31 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
                 {/* 목록 */}
                 {view === 'list' && (
                     <div className="max-w-2xl mx-auto px-4 py-4">
-                        <p className="text-xs text-gray-500 mb-4">제휴·협력 문의를 남겨주세요. 관리자가 직접 답변드립니다. 비밀글로 운영됩니다.</p>
+                        <p className="text-xs text-[#9089A1] mb-4">제휴·협력 문의를 남겨주세요. 관리자가 직접 답변드립니다. 비밀글로 운영됩니다.</p>
                         {loading ? (
                             <div className="flex justify-center py-16">
-                                <Icon name="Bot" size={36} className="text-blue-500 animate-bounce" />
+                                <Icon name="Bot" size={36} className="text-[#8E6FB7] animate-bounce" />
                             </div>
                         ) : posts.length === 0 ? (
-                            <div className="text-center py-16 text-gray-500 text-sm">
-                                <Icon name="MessageSquare" size={36} className="mx-auto mb-3 text-gray-700" />
+                            <div className="text-center py-16 text-[#9089A1] text-sm">
+                                <Icon name="MessageSquare" size={36} className="mx-auto mb-3 text-[#C9BEDB]" />
                                 아직 문의가 없습니다. 첫 번째 문의를 남겨보세요!
                             </div>
                         ) : (
-                            <div className="border border-gray-800 rounded-xl overflow-hidden">
+                            <div className="border border-[#F0E9DE] rounded-xl overflow-hidden">
                                 {posts.map((post, i) => (
                                     <div key={post.id}
-                                        className={`flex items-center gap-3 px-4 py-3.5 ${i < posts.length - 1 ? 'border-b border-gray-800' : ''} hover:bg-gray-900 cursor-pointer transition-colors`}
+                                        className={`flex items-center gap-3 px-4 py-3.5 ${i < posts.length - 1 ? 'border-b border-[#F0E9DE]' : ''} hover:bg-[#F5EFE6] cursor-pointer transition-colors`}
                                         onClick={() => openPost(post.id)}>
-                                        <Icon name="Lock" size={13} className="text-blue-500 shrink-0" />
+                                        <Icon name="Lock" size={13} className="text-[#8E6FB7] shrink-0" />
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium truncate text-gray-100">{post.title}</span>
+                                                <span className="text-sm font-medium truncate text-[#2D2438]">{post.title}</span>
                                                 {post._count.replies > 0 && (
-                                                    <span className="text-xs font-semibold text-blue-400 bg-blue-900/40 border border-blue-800/50 px-2 py-0.5 rounded-full shrink-0">답변완료</span>
+                                                    <span className="text-xs font-semibold text-[#8E6FB7] bg-[#F5E6F7] border border-[#D4B8E8] px-2 py-0.5 rounded-full shrink-0">답변완료</span>
                                                 )}
                                             </div>
-                                            <div className="text-xs text-gray-500 mt-0.5">
+                                            <div className="text-xs text-[#9089A1] mt-0.5">
                                                 {post.user.username || post.user.email} · {formatDate(post.createdAt)}
                                             </div>
                                         </div>
@@ -221,16 +221,16 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
                 {/* 상세 */}
                 {view === 'detail' && selectedPost && (
                     <div className="max-w-2xl mx-auto px-4 py-4 space-y-4">
-                        <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
-                            <h3 className="text-lg font-bold text-white mb-2">{selectedPost.title}</h3>
-                            <div className="text-xs text-gray-500 mb-4">
+                        <div className="bg-white border border-[#F0E9DE] rounded-xl p-5">
+                            <h3 className="text-lg font-bold text-[#2D2438] mb-2">{selectedPost.title}</h3>
+                            <div className="text-xs text-[#9089A1] mb-4">
                                 {selectedPost.user.username || selectedPost.user.email} · {formatDate(selectedPost.createdAt)}
                             </div>
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{selectedPost.content}</p>
+                            <p className="text-sm text-[#5C5468] whitespace-pre-wrap leading-relaxed">{selectedPost.content}</p>
                             {selectedPost.contact && (
-                                <div className="mt-4 pt-4 border-t border-gray-700">
-                                    <span className="text-xs text-gray-500">연락처: </span>
-                                    <span className="text-xs text-gray-300">{selectedPost.contact}</span>
+                                <div className="mt-4 pt-4 border-t border-[#EAE2D3]">
+                                    <span className="text-xs text-[#9089A1]">연락처: </span>
+                                    <span className="text-xs text-[#5C5468]">{selectedPost.contact}</span>
                                 </div>
                             )}
                         </div>
@@ -239,20 +239,20 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
                         {selectedPost.replies.length > 0 && (
                             <div className="space-y-2">
                                 {selectedPost.replies.map(reply => (
-                                    <div key={reply.id} className={`rounded-xl p-4 border ${reply.isAdminReply ? 'bg-blue-950/30 border-blue-800/40' : 'bg-gray-900 border-gray-800'}`}>
+                                    <div key={reply.id} className={`rounded-xl p-4 border ${reply.isAdminReply ? 'bg-[#F5E6F7] border-[#D4B8E8]' : 'bg-white border-[#F0E9DE]'}`}>
                                         <div className="flex items-center justify-between mb-2">
                                             <div className="flex items-center gap-2">
                                                 {reply.isAdminReply && (
-                                                    <span className="text-xs font-semibold text-blue-400 bg-blue-900/40 border border-blue-800/50 px-2 py-0.5 rounded-full">관리자</span>
+                                                    <span className="text-xs font-semibold text-[#8E6FB7] bg-[#F5E6F7] border border-[#D4B8E8] px-2 py-0.5 rounded-full">관리자</span>
                                                 )}
-                                                <span className="text-xs text-gray-500">{reply.user.username || reply.user.email} · {formatDate(reply.createdAt)}</span>
+                                                <span className="text-xs text-[#9089A1]">{reply.user.username || reply.user.email} · {formatDate(reply.createdAt)}</span>
                                             </div>
                                             {(reply.userId === user.id || isAdmin) && (
                                                 <button onClick={() => handleDeleteReply(reply.id)}
                                                     className="text-xs text-red-400 hover:text-red-300 transition-colors">삭제</button>
                                             )}
                                         </div>
-                                        <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{reply.content}</p>
+                                        <p className="text-sm text-[#5C5468] whitespace-pre-wrap leading-relaxed">{reply.content}</p>
                                     </div>
                                 ))}
                             </div>
@@ -260,18 +260,18 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
 
                         {/* 답글 작성 (작성자 또는 관리자) */}
                         {(selectedPost.userId === user.id || isAdmin) && (
-                            <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                                <p className="text-xs text-gray-500 mb-2">{isAdmin ? '관리자 답글' : '추가 문의'}</p>
+                            <div className="bg-white border border-[#F0E9DE] rounded-xl p-4">
+                                <p className="text-xs text-[#9089A1] mb-2">{isAdmin ? '관리자 답글' : '추가 문의'}</p>
                                 <textarea
                                     value={replyContent}
                                     onChange={e => setReplyContent(e.target.value)}
                                     placeholder="내용을 입력하세요..."
                                     rows={3}
-                                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
+                                    className="w-full bg-white border border-[#EAE2D3] rounded-lg px-3 py-2 text-sm text-[#2D2438] placeholder-[#9089A1] focus:outline-none focus:border-[#8E6FB7] resize-none"
                                 />
                                 <div className="flex justify-end mt-2">
                                     <button onClick={handleReply} disabled={submitting || !replyContent.trim()}
-                                        className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors">
+                                        className="bg-[#8E6FB7] hover:bg-[#7d5ea6] disabled:opacity-50 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors">
                                         {submitting ? '등록 중...' : '답글 등록'}
                                     </button>
                                 </div>
@@ -284,43 +284,43 @@ export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
                 {(view === 'write' || view === 'edit') && (
                     <div className="max-w-2xl mx-auto px-4 py-4 space-y-3">
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1.5">제목</label>
+                            <label className="block text-xs text-[#9089A1] mb-1.5">제목</label>
                             <input
                                 type="text"
                                 value={formTitle}
                                 onChange={e => setFormTitle(e.target.value)}
                                 placeholder="제목을 입력하세요"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                className="w-full bg-white border border-[#EAE2D3] rounded-xl px-4 py-3 text-sm text-[#2D2438] placeholder-[#9089A1] focus:outline-none focus:border-[#8E6FB7]"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs text-gray-400 mb-1.5">내용</label>
+                            <label className="block text-xs text-[#9089A1] mb-1.5">내용</label>
                             <textarea
                                 value={formContent}
                                 onChange={e => setFormContent(e.target.value)}
                                 placeholder="제휴·협력 관련 내용을 자세히 적어주세요..."
                                 rows={10}
-                                className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
+                                className="w-full bg-white border border-[#EAE2D3] rounded-xl px-4 py-3 text-sm text-[#2D2438] placeholder-[#9089A1] focus:outline-none focus:border-[#8E6FB7] resize-none"
                             />
                         </div>
                         {view === 'write' && (
                             <div>
-                                <label className="block text-xs text-gray-400 mb-1.5">연락처 <span className="text-gray-600">(선택)</span></label>
+                                <label className="block text-xs text-[#9089A1] mb-1.5">연락처 <span className="text-[#9089A1]">(선택)</span></label>
                                 <input
                                     type="text"
                                     value={formContact}
                                     onChange={e => setFormContact(e.target.value)}
                                     placeholder="이메일 또는 연락처를 입력하세요"
-                                    className="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                                    className="w-full bg-white border border-[#EAE2D3] rounded-xl px-4 py-3 text-sm text-[#2D2438] placeholder-[#9089A1] focus:outline-none focus:border-[#8E6FB7]"
                                 />
                             </div>
                         )}
                         <div className="flex gap-2 justify-end">
                             <button onClick={() => { setView(selectedPost ? 'detail' : 'list'); setError(''); }}
-                                className="text-sm text-gray-400 hover:text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition-colors">취소</button>
+                                className="text-sm text-[#9089A1] hover:text-[#2D2438] px-4 py-2 rounded-lg hover:bg-[#F5EFE6] transition-colors">취소</button>
                             <button onClick={view === 'write' ? handleWrite : handleEdit}
                                 disabled={submitting || !formTitle.trim() || !formContent.trim()}
-                                className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors">
+                                className="bg-[#8E6FB7] hover:bg-[#7d5ea6] disabled:opacity-50 text-white text-sm font-semibold px-5 py-2 rounded-lg transition-colors">
                                 {submitting ? '저장 중...' : view === 'write' ? '등록' : '수정 완료'}
                             </button>
                         </div>
