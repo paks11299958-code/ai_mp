@@ -5,6 +5,7 @@ import { usePayment } from './hooks/usePayment';
 import { useBoardToggles } from './hooks/useBoardToggles';
 import { useAnnouncements } from './hooks/useAnnouncements';
 import { useAuth } from './hooks/useAuth';
+import { useFavorites } from './hooks/useFavorites';
 import { useQuickMenu } from './hooks/useQuickMenu';
 import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
@@ -82,6 +83,7 @@ const AppContent: React.FC = () => {
         handleAuthSuccess,
         resetAuth,
     } = useAuth();
+    const { isFavorite, toggleFavorite, favorites } = useFavorites(!!user);
     const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);
     // 뉴UI: 페르소나 대기 페이지 초기 탭
     const [mainInitialTab, setMainInitialTab] = useState<'personas' | 'features'>('personas');
@@ -775,9 +777,27 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용)
+    const FEATURE_ACTIONS: Record<string, () => void> = {
+        news: () => setShowTodayNews(true),
+        stock: () => setShowStockAnalysis(true),
+        hotkeyword: () => setShowHotKeyword(true),
+        used: () => setShowUsedItem(true),
+        luxury: () => setShowLuxuryBoard(true),
+        mathtutor: () => setShowMathTutor(true),
+        club: () => setShowClubBoard(true),
+        'golf-swing': () => setShowSwingInput(true),
+        'golf-record': () => setShowSwingBoard(true),
+    };
+
     if (user && screen === 'hero') {
         // 'main'으로 가면서 초기 탭/포커스 설정. screen이 단일이라 별도 false 토글 불필요.
         const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
+        // 즐겨찾기 칩: 담은 기능 키 → 메타 + 실행 핸들러
+        const favoriteChips = favorites
+            .map(key => ({ key, meta: FEATURE_BY_KEY[key] }))
+            .filter(f => f.meta)
+            .map(f => ({ key: f.key, label: f.meta.label, icon: f.meta.icon, color: f.meta.color, bgColor: f.meta.bgColor, borderColor: f.meta.borderColor, onClick: FEATURE_ACTIONS[f.key] ?? (() => {}) }));
         // 재방문 바로진입: 최근 대화 페르소나(맨 앞)가 현재 보이는 목록에 있으면 "이어서 대화" 제안.
         const lastPersonaId = recentPersonaIds[0] ?? null;
         const continuePersona = lastPersonaId ? visiblePersonas.find(p => p.id === lastPersonaId) ?? null : null;
@@ -809,6 +829,7 @@ const AppContent: React.FC = () => {
                     onProfileClick={() => setShowUserProfile(true)}
                     continuePersonaName={continuePersona?.name}
                     onContinueChat={onContinueChat}
+                    favoriteChips={favoriteChips}
                 />
                 {showAnnouncementModal && (
                     <AnnouncementModal
@@ -848,6 +869,8 @@ const AppContent: React.FC = () => {
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
                     recentPersonas={recentPersonas}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
                 />
                 </AuthProvider>
                 {showAnnouncementModal && (
@@ -1618,18 +1641,7 @@ const AppContent: React.FC = () => {
                         </header>
 
                         {activeImages.length > 0 && (() => {
-                            // 기능 키 → 보드 열기 핸들러 바인딩 (메타데이터는 FEATURE_REGISTRY가 단일 출처)
-                            const FEATURE_ACTIONS: Record<string, () => void> = {
-                                news: () => setShowTodayNews(true),
-                                stock: () => setShowStockAnalysis(true),
-                                hotkeyword: () => setShowHotKeyword(true),
-                                used: () => setShowUsedItem(true),
-                                luxury: () => setShowLuxuryBoard(true),
-                                mathtutor: () => setShowMathTutor(true),
-                                club: () => setShowClubBoard(true),
-                                'golf-swing': () => setShowSwingInput(true),
-                                'golf-record': () => setShowSwingBoard(true),
-                            };
+                            // 기능 키 → 보드 열기 핸들러는 본체 FEATURE_ACTIONS 재사용(메타는 FEATURE_REGISTRY 단일출처)
                             const featureCards = user
                                 ? getPersonaFeatureKeys(activePersona).map(key => {
                                     const meta = FEATURE_BY_KEY[key];

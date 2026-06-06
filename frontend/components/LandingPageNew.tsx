@@ -54,6 +54,8 @@ interface LandingPageNewProps {
     // 재방문 바로진입: 마지막 대화 페르소나 이름 + "이어서 대화" 핸들러 (있을 때만 배너 표시)
     continuePersonaName?: string;
     onContinueChat?: () => void;
+    // 즐겨찾기(자주가는 메뉴) 칩 — 담은 게 있을 때만 표시
+    favoriteChips?: { key: string; label: string; icon: string; color: string; bgColor: string; borderColor: string; onClick: () => void }[];
 }
 
 // ─────────────────────────────────────────────
@@ -779,6 +781,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     onProfileClick,
     continuePersonaName,
     onContinueChat,
+    favoriteChips,
 }) => {
     const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1177,6 +1180,37 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     페르소나에 숨겨진 기능을 찾아보세요.<br />
                     대화 한 마디가 새로운 세계로 이어집니다.
                 </p>
+
+                {/* 즐겨찾기(자주가는 메뉴): 담은 게 있을 때만, 한 번 클릭으로 바로 실행 */}
+                {user && favoriteChips && favoriteChips.length > 0 && (
+                    <div style={{ marginBottom: 20, padding: '0 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10, justifyContent: 'center' }}>
+                            <span style={{ fontSize: 13 }}>⭐</span>
+                            <span style={{ fontSize: 13, color: T.ink, fontWeight: 700 }}>내 바로가기</span>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                            {favoriteChips.map(chip => (
+                                <button
+                                    key={chip.key}
+                                    onClick={chip.onClick}
+                                    style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: 6,
+                                        padding: '9px 16px', borderRadius: 999,
+                                        background: chip.bgColor,
+                                        border: `1.5px solid ${chip.borderColor}`,
+                                        color: chip.color, fontSize: 13.5, fontWeight: 700,
+                                        cursor: 'pointer', whiteSpace: 'nowrap',
+                                        transition: 'transform 0.12s',
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = 'none'; }}
+                                >
+                                    {chip.label}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* 재방문 바로진입: 마지막 대화 페르소나와 "이어서 대화" 제안 (강제 이동 아님) */}
                 {user && onContinueChat && continuePersonaName && (

@@ -68,6 +68,9 @@ interface MainPageNewProps {
     initialFocusFeatureKey?: string | null;
     // 최근 대화 페르소나(최근순) — "최근 대화" 줄 + 개인화 인사용
     recentPersonas?: Persona[];
+    // 즐겨찾기(자주가는 메뉴): 기능카드 ⭐ 토글
+    isFavorite?: (key: string) => boolean;
+    onToggleFavorite?: (key: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -536,7 +539,9 @@ const PersonaSelectPanel: React.FC<{
     onProfileClick?: () => void;
     onPartnerBoardClick?: () => void;
     recentPersonas?: Persona[];
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [] }) => {
+    isFavorite?: (key: string) => boolean;
+    onToggleFavorite?: (key: string) => void;
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], isFavorite, onToggleFavorite }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -892,6 +897,23 @@ const PersonaSelectPanel: React.FC<{
                                         : `0 6px 20px -6px ${feat.palette.accent}40`;
                                 }}
                             >
+                                {/* 즐겨찾기 ⭐ 토글 (우상단) */}
+                                {onToggleFavorite && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(feat.key); }}
+                                        title={isFavorite?.(feat.key) ? '바로가기에서 빼기' : '바로가기에 추가'}
+                                        style={{
+                                            position: 'absolute', top: 6, right: 6, zIndex: 5,
+                                            width: 30, height: 30, borderRadius: '50%', border: 'none',
+                                            background: 'rgba(255,255,255,0.82)', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: 16, lineHeight: 1,
+                                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                                        }}
+                                    >
+                                        {isFavorite?.(feat.key) ? '⭐' : '☆'}
+                                    </button>
+                                )}
                                 {/* 시머 */}
                                 <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', borderRadius: 16,
                                     background: 'linear-gradient(110deg, transparent 38%, rgba(255,255,255,0.18) 50%, transparent 62%)',
@@ -1098,6 +1120,8 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     initialFocusPersonaId = null,
     initialFocusFeatureKey = null,
     recentPersonas = [],
+    isFavorite,
+    onToggleFavorite,
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1198,6 +1222,8 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 onProfileClick={onProfileClick}
                 onPartnerBoardClick={onPartnerBoardClick}
                 recentPersonas={recentPersonas}
+                isFavorite={isFavorite}
+                onToggleFavorite={onToggleFavorite}
             />
         </div>
     );

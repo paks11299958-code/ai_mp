@@ -450,6 +450,13 @@ export const userProfileApi = {
     saveBirthInfo: (birthInfoJson: string) =>
         put<{ ok: boolean }>('/user/birth-info', { birthInfoJson }),
 
+    // 즐겨찾기(자주가는 메뉴) — 기능 키 문자열 배열의 JSON
+    getFavorites: () =>
+        get<{ favoritesJson: string | null }>('/user/favorites'),
+
+    saveFavorites: (favoritesJson: string) =>
+        put<{ ok: boolean }>('/user/favorites', { favoritesJson }),
+
     // 본인 회원 탈퇴(하드 삭제)
     deleteAccount: () =>
         del<{ deleted: boolean }>('/user'),
