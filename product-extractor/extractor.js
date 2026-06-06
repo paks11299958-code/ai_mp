@@ -14,6 +14,7 @@ const path   = require('path');
 const fs     = require('fs');
 const crypto = require('crypto');
 const { Pool } = require('pg');
+const { GoogleGenAI } = require('@google/genai');
 
 const BREVO_API_KEY       = process.env.BREVO_API_KEY;
 const SENDER_EMAIL        = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
@@ -144,20 +145,55 @@ async function analyzeBlueOcean(keywords) {
 }
 
 // ── Gemini AI 제목 생성 ───────────────────────────────────
+// Vertex AI(서비스계정) 우선 — AI Studio 키(GEMINI_API_KEY)는 선결제 크레딧 소진(429)으로
+// 불안정하므로 creds(GOOGLE_APPLICATION_CREDENTIALS_JSON, shared-api/.env에서 로드)가 있으면
+// 무조건 Vertex 사용. creds 없으면 AI Studio 키로 폴백.
+
+let _genaiClient = null;
+function getGenaiClient() {
+    if (_genaiClient !== null) return _genaiClient;  // null=미초기화, false=Vertex 불가
+    const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+    if (!credsJson) { _genaiClient = false; return false; }
+    try {
+        const creds = JSON.parse(credsJson);
+        _genaiClient = new GoogleGenAI({
+            vertexai: true,
+            project: creds.project_id || process.env.VERTEX_PROJECT_ID,
+            location: 'us-central1',
+            googleAuthOptions: { credentials: creds },
+        });
+        log(`Gemini Vertex AI 사용 (project=${creds.project_id})`);
+    } catch (e) {
+        log(`Vertex creds 파싱 실패 → AI Studio 폴백: ${e.message}`);
+        _genaiClient = false;
+    }
+    return _genaiClient;
+}
 
 async function generateTitle(keyword, productName, price) {
+    const prompt = `쿠팡에서 잘 팔리는 상품 제목을 만들어주세요.\n\n검색 키워드: ${keyword}\n도매꾹 상품명: ${productName}\n도매가: ${price}원\n\n규칙:\n- 소비자가 검색할 법한 자연스러운 한국어 제목\n- 키워드를 자연스럽게 포함\n- 40~60자 사이\n- 상품코드/모델번호 제거\n- 브랜드명 제거\n\n제목만 출력하세요.`;
     try {
+        const ai = getGenaiClient();
+        if (ai) {
+            const res = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: { temperature: 0.3, maxOutputTokens: 200 },
+            });
+            return res.text?.trim() || productName;
+        }
+        // 폴백: AI Studio 키 REST
         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: `쿠팡에서 잘 팔리는 상품 제목을 만들어주세요.\n\n검색 키워드: ${keyword}\n도매꾹 상품명: ${productName}\n도매가: ${price}원\n\n규칙:\n- 소비자가 검색할 법한 자연스러운 한국어 제목\n- 키워드를 자연스럽게 포함\n- 40~60자 사이\n- 상품코드/모델번호 제거\n- 브랜드명 제거\n\n제목만 출력하세요.` }] }],
+                contents: [{ parts: [{ text: prompt }] }],
                 generationConfig: { temperature: 0.3, maxOutputTokens: 200 },
             }),
         });
         const data = await res.json();
         return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || productName;
-    } catch { return productName; }
+    } catch (e) { log(`제목생성 실패(원본 사용): ${e.message || e}`); return productName; }
 }
 
 // ── 도매매 스크래퍼 ───────────────────────────────────────

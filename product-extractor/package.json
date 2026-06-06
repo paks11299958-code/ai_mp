@@ -4,6 +4,7 @@
   "description": "제품추출 - 서버 실행용 (네이버 DataLab 블루오션 분석)",
   "main": "extractor.js",
   "dependencies": {
+    "@google/genai": "^2.8.0",
     "dotenv": "^16.4.5",
     "pg": "^8.21.0",
     "playwright": "^1.44.0",
