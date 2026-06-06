@@ -4,7 +4,7 @@
  * 디자인 레퍼런스: AI Persona Hero.html (Anthropic Design)
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Bell, Users, Sparkles } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { TermsModal } from './TermsModal';
@@ -620,12 +620,16 @@ const CARD_W = 200;
 const GAP = 16;
 const VISIBLE = 4; // 한 번에 보이는 카드 수 (데스크탑 기준)
 
+// 캐러셀에 페르소나·기능을 섞어서 보여주기 위한 혼합 아이템 타입
+type MixedItem =
+    | { type: 'persona'; persona: Persona }
+    | { type: 'feature'; feature: typeof FEATURES[0] };
+
 const TarotCarousel: React.FC<{
-    mode: 'personas' | 'features';
     personas: Persona[];
     onPersonaClick?: (id: string) => void;
     onFeatureClick?: (key: string) => void;
-}> = ({ mode, personas, onPersonaClick, onFeatureClick }) => {
+}> = ({ personas, onPersonaClick, onFeatureClick }) => {
     const [offset, setOffset] = useState(0);           // 스냅 인덱스
     const [dragDx, setDragDx] = useState(0);           // 드래그 중 실시간 픽셀 오프셋
     const [dragging, setDragging] = useState(false);   // 드래그 중 여부 (transition 제어)
@@ -633,7 +637,18 @@ const TarotCarousel: React.FC<{
     const dragStartOffset = useRef(0);
     const hasDragged = useRef(false);
 
-    const items = mode === 'personas' ? personas : FEATURES;
+    // 페르소나 + 기능을 한 캐러셀에 번갈아 섞어서 배치(페르소나 먼저 노출, 이후 교차)
+    const items: MixedItem[] = useMemo(() => {
+        const ps: MixedItem[] = personas.map(p => ({ type: 'persona', persona: p }));
+        const fs: MixedItem[] = FEATURES.map(f => ({ type: 'feature', feature: f }));
+        const mixed: MixedItem[] = [];
+        const max = Math.max(ps.length, fs.length);
+        for (let i = 0; i < max; i++) {
+            if (i < ps.length) mixed.push(ps[i]);
+            if (i < fs.length) mixed.push(fs[i]);
+        }
+        return mixed;
+    }, [personas]);
     const count = items.length;
     const maxOffset = Math.max(0, count - VISIBLE);
     const clamp = (v: number) => Math.max(0, Math.min(v, maxOffset));
@@ -728,18 +743,18 @@ const TarotCarousel: React.FC<{
                     onTouchEnd={onTouchEnd}
                 >
                     {items.map((item, i) => {
-                        if (mode === 'personas') {
-                            const p = item as Persona;
+                        if (item.type === 'persona') {
+                            const p = item.persona;
                             return (
-                                <div key={p.id} style={{ flexShrink: 0 }}
+                                <div key={`p-${p.id}`} style={{ flexShrink: 0 }}
                                     onClick={() => { if (!hasDragged.current) onPersonaClick?.(p.id); }}>
                                     <PersonaTarotCard persona={p} index={i} focused={false} onClick={() => {}} />
                                 </div>
                             );
                         } else {
-                            const f = item as typeof FEATURES[0];
+                            const f = item.feature;
                             return (
-                                <div key={f.id} style={{ flexShrink: 0 }}
+                                <div key={`f-${f.id}`} style={{ flexShrink: 0 }}
                                     onClick={() => { if (!hasDragged.current) onFeatureClick?.(f.key); }}>
                                     <FeatureTarotCard feature={f} focused={false} onClick={() => {}} />
                                 </div>
@@ -792,7 +807,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     favoriteChips,
     personaChips,
 }) => {
-    const [carouselMode, setCarouselMode] = useState<'personas' | 'features'>('personas');
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [termsModal, setTermsModal] = useState<'terms' | 'privacy' | null>(null);
 
@@ -1289,16 +1303,12 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 }}>
                     <button
                         className="lp-cta-toggle"
-                        onClick={() => setCarouselMode('personas')}
+                        onClick={() => onPersonaListClick?.()}
                         style={{
-                            background: carouselMode === 'personas'
-                                ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})`
-                                : `linear-gradient(135deg, rgba(142,111,183,0.18), rgba(228,139,176,0.18))`,
-                            color: carouselMode === 'personas' ? '#fff' : T.accent,
-                            border: `1.5px solid ${carouselMode === 'personas' ? 'transparent' : 'rgba(142,111,183,0.3)'}`,
-                            boxShadow: carouselMode === 'personas'
-                                ? `0 8px 20px -8px rgba(142,111,183,0.5)`
-                                : 'none',
+                            background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                            color: '#fff',
+                            border: '1.5px solid transparent',
+                            boxShadow: `0 8px 20px -8px rgba(142,111,183,0.5)`,
                             backdropFilter: 'blur(6px)',
                         }}
                     >
@@ -1306,16 +1316,12 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     </button>
                     <button
                         className="lp-cta-toggle"
-                        onClick={() => setCarouselMode('features')}
+                        onClick={() => onFeatureListClick?.()}
                         style={{
-                            background: carouselMode === 'features'
-                                ? 'linear-gradient(135deg, #4CAF82, #7CC56A)'
-                                : 'linear-gradient(135deg, rgba(76,175,130,0.18), rgba(124,197,106,0.18))',
-                            color: carouselMode === 'features' ? '#fff' : '#3a9e6e',
-                            border: `1.5px solid ${carouselMode === 'features' ? 'transparent' : 'rgba(76,175,130,0.3)'}`,
-                            boxShadow: carouselMode === 'features'
-                                ? `0 8px 20px -8px rgba(76,175,130,0.5)`
-                                : 'none',
+                            background: 'linear-gradient(135deg, #4CAF82, #7CC56A)',
+                            color: '#fff',
+                            border: '1.5px solid transparent',
+                            boxShadow: `0 8px 20px -8px rgba(76,175,130,0.5)`,
                             backdropFilter: 'blur(6px)',
                         }}
                     >
@@ -1347,7 +1353,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     </div>
                 ) : (
                     <TarotCarousel
-                        mode={carouselMode}
                         personas={personas}
                         onPersonaClick={onPersonaClick}
                         onFeatureClick={handleFeatureClick}
