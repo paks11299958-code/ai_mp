@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Code2, PenTool, PenLine, Languages, Send, Menu, X, Trash2, AlertCircle, CheckCircle, Settings, Save, Plus, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Image as ImageIcon, Upload, LogOut, Brain, Play, Search, Lock, Zap, MessageSquare, Bell, Megaphone, Pin, Eye, EyeOff, Newspaper, MoreVertical, ArrowLeftToLine, Handshake, UserCircle, TrendingUp, ShoppingBag, Shield, Activity, RefreshCw, Package, BookOpen, Server, Cpu, Clock, GitCommit, Home, Users } from 'lucide-react';
+import { Bot, Code2, PenTool, PenLine, Languages, Send, Menu, X, Trash2, AlertCircle, CheckCircle, Settings, Save, Plus, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Image as ImageIcon, Upload, LogOut, Brain, Play, Search, Lock, Zap, MessageSquare, Bell, Megaphone, Pin, Eye, EyeOff, Newspaper, MoreVertical, ArrowLeftToLine, Handshake, UserCircle, TrendingUp, ShoppingBag, Shield, Activity, RefreshCw, Package, BookOpen, Server, Cpu, Clock, GitCommit, Home, Users, Compass } from 'lucide-react';
 
 interface IconProps {
     name: string;
@@ -59,6 +59,7 @@ export const Icon: React.FC<IconProps> = ({ name, className, size = 24 }) => {
         GitCommit,
         Home,
         Users,
+        Compass,
     };
 
     const SelectedIcon = icons[name] || Bot;

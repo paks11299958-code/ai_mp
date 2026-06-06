@@ -1475,13 +1475,20 @@ const AppContent: React.FC = () => {
                                 >
                                     <Icon name="ChevronLeft" size={22} />
                                 </button>
-                                {/* 데스크탑: 홈(첫 화면) — 사이드바 제거로 빠진 진입점 복구 */}
+                                {/* 데스크탑: 홈(첫 화면) + 대기페이지 — 사이드바 제거로 빠진 진입점 복구 */}
                                 <button
-                                    className="hidden md:flex mr-2 p-2 rounded-xl text-[#5C5468] hover:text-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors"
+                                    className="hidden md:flex mr-1 p-2 rounded-xl text-[#5C5468] hover:text-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors"
                                     onClick={() => goTo('hero')}
                                     title="첫 화면"
                                 >
                                     <Icon name="Home" size={18} />
+                                </button>
+                                <button
+                                    className="hidden md:flex mr-2 p-2 rounded-xl text-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors"
+                                    onClick={() => { setMainInitialTab('personas'); goTo('main'); }}
+                                    title="페르소나·기능 둘러보기"
+                                >
+                                    <Icon name="Compass" size={18} />
                                 </button>
                                 {activePersona && (
                                     <>
