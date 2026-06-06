@@ -538,7 +538,7 @@ const PersonaSelectPanel: React.FC<{
                     <Menu size={22} color={T.ink} />
                 </button>
 
-                <button onClick={() => { setTab('personas'); setFeatureSearchQuery(''); onSearchChange(''); }} style={{
+                <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
                     background: 'none', border: 'none', cursor: 'pointer',
                     padding: 0, marginBottom: 8, display: 'block',
                 }}>
