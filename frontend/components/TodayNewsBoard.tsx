@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Newspaper, Volume2, VolumeX, Loader, RefreshCw } from 'lucide-react';
-import { InstallNewsButton } from './InstallNewsButton';
 
 interface Props {
     onClose: () => void;
@@ -242,7 +241,6 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                         )}
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <InstallNewsButton compact />
                         {current && (
                             <button
                                 onClick={() => speaking ? stop() : speakCategory(activeKey)}
