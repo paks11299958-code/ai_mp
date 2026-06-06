@@ -122,11 +122,11 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
     );
 
     return (
-        <div className="fixed inset-0 z-[75] flex items-center justify-center p-3 bg-black/80 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 z-[75] flex items-start justify-center p-3 pt-8 sm:pt-12 bg-black/80 backdrop-blur-sm overflow-y-auto">
             <style>{`
                 @keyframes qmSealPulse { 0%,100% { opacity:.7; transform:scale(1); } 50% { opacity:1; transform:scale(1.04); } }
             `}</style>
-            <div className="w-full max-w-lg my-auto">
+            <div className="w-full max-w-lg">
 
               {/* 플립 무대(원근감) */}
               <div style={{ perspective: '1600px' }}>
