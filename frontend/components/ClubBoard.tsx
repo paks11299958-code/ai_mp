@@ -149,17 +149,17 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     // ── 뷰별 렌더링 ─────────────────────────────────────────
 
     const renderHeader = (title: string, onBack?: () => void) => (
-        <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0E9DE]">
             <div className="flex items-center gap-2">
                 {onBack && (
-                    <button onClick={onBack} className="p-1 rounded-full hover:bg-white/10 transition-colors">
-                        <ChevronLeft size={20} className="text-white/70" />
+                    <button onClick={onBack} className="p-1 rounded-full hover:bg-[#F0E9DE] transition-colors">
+                        <ChevronLeft size={20} className="text-[#5C5468]" />
                     </button>
                 )}
-                <h2 className="text-base font-semibold text-white">{title}</h2>
+                <h2 className="text-base font-semibold text-[#2D2438]">{title}</h2>
             </div>
-            <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10 transition-colors">
-                <X size={20} className="text-white/70" />
+            <button onClick={onClose} className="p-1 rounded-full hover:bg-[#F0E9DE] transition-colors">
+                <X size={20} className="text-[#5C5468]" />
             </button>
         </div>
     );
@@ -168,18 +168,18 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     if (view === 'list') {
         return (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                <div className="w-full sm:max-w-lg bg-[#FBF8F3] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
                     {renderHeader('🤝 모임')}
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         {loading && (
                             <div className="flex justify-center py-8">
-                                <Loader size={24} className="text-pink-400 animate-spin" />
+                                <Loader size={24} className="text-[#8E6FB7] animate-spin" />
                             </div>
                         )}
                         {!loading && clubs.length === 0 && (
-                            <div className="text-center py-10 text-white/40">
+                            <div className="text-center py-10 text-[#9089A1]">
                                 <Users size={40} className="mx-auto mb-3 opacity-40" />
                                 <p className="text-sm">아직 모임이 없습니다.</p>
                                 <p className="text-xs mt-1">새 모임을 만들어 보세요!</p>
@@ -189,17 +189,17 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                             <button
                                 key={club.id}
                                 onClick={() => { setSelectedClub(club); setDetailTab('info'); setView('detail'); if (club.myRole === 'OWNER') { loadMembers(club); loadSheets(club); } }}
-                                className="w-full text-left p-3.5 rounded-xl bg-white/5 hover:bg-white/10 transition-colors border border-white/10"
+                                className="w-full text-left p-3.5 rounded-xl bg-white hover:bg-[#F0E9DE] transition-colors border border-[#F0E9DE]"
                             >
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="text-sm font-medium text-white">{club.name}</p>
-                                        {club.region && <p className="text-xs text-white/40 mt-0.5">{club.region}</p>}
+                                        <p className="text-sm font-medium text-[#2D2438]">{club.name}</p>
+                                        {club.region && <p className="text-xs text-[#9089A1] mt-0.5">{club.region}</p>}
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-xs text-white/40">{club.memberCount}명</span>
+                                        <span className="text-xs text-[#9089A1]">{club.memberCount}명</span>
                                         {club.myRole === 'OWNER' && (
-                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-400 font-medium">
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#F5E6F7] text-[#8E6FB7] font-medium">
                                                 관리자
                                             </span>
                                         )}
@@ -209,7 +209,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                         ))}
                     </div>
 
-                    <div className="p-4 border-t border-white/10">
+                    <div className="p-4 border-t border-[#F0E9DE]">
                         <button
                             onClick={() => setView('create')}
                             className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors"
@@ -239,23 +239,23 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
         return (
           <>
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                <div className="w-full sm:max-w-lg bg-[#FBF8F3] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
                     {renderHeader(selectedClub.name, () => setView('list'))}
 
                     {/* 상단 탭 */}
                     {isOwner && (
-                        <div className="flex border-b border-white/10 px-2">
+                        <div className="flex border-b border-[#F0E9DE] px-2">
                             {tabs.map(t => (
                                 <button
                                     key={t.key}
                                     onClick={() => { setError(''); setDetailTab(t.key); }}
                                     className={`flex-1 py-2.5 text-sm font-medium transition-colors relative ${
-                                        detailTab === t.key ? 'text-pink-400' : 'text-white/40 hover:text-white/70'
+                                        detailTab === t.key ? 'text-[#8E6FB7]' : 'text-[#9089A1] hover:text-[#5C5468]'
                                     }`}
                                 >
                                     {t.label}
                                     {detailTab === t.key && (
-                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-pink-400" />
+                                        <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-[#8E6FB7]" />
                                     )}
                                 </button>
                             ))}
@@ -266,20 +266,20 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                     {detailTab === 'info' && (
                         <div className="flex-1 overflow-y-auto p-4 space-y-3">
                             {selectedClub.region && (
-                                <p className="text-xs text-white/40">📍 {selectedClub.region}</p>
+                                <p className="text-xs text-[#9089A1]">📍 {selectedClub.region}</p>
                             )}
                             {selectedClub.description && (
-                                <p className="text-sm text-white/60 leading-relaxed whitespace-pre-wrap">{selectedClub.description}</p>
+                                <p className="text-sm text-[#5C5468] leading-relaxed whitespace-pre-wrap">{selectedClub.description}</p>
                             )}
-                            <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                            <div className="p-3.5 rounded-xl bg-white border border-[#F0E9DE] flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                    <Users size={16} className="text-pink-400" />
-                                    <span className="text-sm text-white/70">전체 회원</span>
+                                    <Users size={16} className="text-[#8E6FB7]" />
+                                    <span className="text-sm text-[#5C5468]">전체 회원</span>
                                 </div>
-                                <span className="text-sm font-bold text-white">{selectedClub.memberCount}명</span>
+                                <span className="text-sm font-bold text-[#2D2438]">{selectedClub.memberCount}명</span>
                             </div>
                             {!isOwner && (
-                                <p className="text-xs text-white/30 text-center pt-1">가입일: {formatDate(selectedClub.createdAt)}</p>
+                                <p className="text-xs text-[#C9BEDB] text-center pt-1">가입일: {formatDate(selectedClub.createdAt)}</p>
                             )}
                         </div>
                     )}
@@ -287,25 +287,25 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                     {/* ── 회원 탭 ── */}
                     {isOwner && detailTab === 'members' && (
                         <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                            {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
-                            {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                            {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-[#8E6FB7] animate-spin" /></div>}
+                            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                             {!loading && members.length === 0 && (
-                                <p className="text-center text-white/40 text-sm py-8">회원이 없습니다.</p>
+                                <p className="text-center text-[#9089A1] text-sm py-8">회원이 없습니다.</p>
                             )}
                             {members.map(m => (
-                                <div key={m.id} className="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                                <div key={m.id} className="p-3 rounded-xl bg-white border border-[#F0E9DE] flex items-center justify-between">
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <p className="text-sm font-medium text-white">{m.nickname}</p>
+                                            <p className="text-sm font-medium text-[#2D2438]">{m.nickname}</p>
                                             {m.role === 'OWNER' && (
-                                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-pink-500/20 text-pink-400 font-medium">관리자</span>
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#F5E6F7] text-[#8E6FB7] font-medium">관리자</span>
                                             )}
                                         </div>
-                                        <p className="text-xs text-white/40 mt-0.5">{m.phone} · 가입 {formatDate(m.joinedAt)}</p>
+                                        <p className="text-xs text-[#9089A1] mt-0.5">{m.phone} · 가입 {formatDate(m.joinedAt)}</p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-lg font-bold text-pink-400">{m.attendanceCount}</p>
-                                        <p className="text-[10px] text-white/30">출석</p>
+                                        <p className="text-lg font-bold text-[#8E6FB7]">{m.attendanceCount}</p>
+                                        <p className="text-[10px] text-[#C9BEDB]">출석</p>
                                     </div>
                                 </div>
                             ))}
@@ -316,10 +316,10 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                     {isOwner && detailTab === 'sheets' && (
                         <>
                             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                                {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
-                                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                                {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-[#8E6FB7] animate-spin" /></div>}
+                                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                                 {!loading && sheets.length === 0 && (
-                                    <div className="text-center py-10 text-white/40">
+                                    <div className="text-center py-10 text-[#9089A1]">
                                         <ClipboardList size={36} className="mx-auto mb-3 opacity-40" />
                                         <p className="text-sm">출석부가 없습니다.</p>
                                     </div>
@@ -327,39 +327,39 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                 {sheets.map(s => {
                                     const url = getAttendanceUrl(s.qrUuid);
                                     return (
-                                        <div key={s.id} className="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2">
+                                        <div key={s.id} className="p-3.5 rounded-xl bg-white border border-[#F0E9DE] space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <p className="text-sm font-medium text-white">{s.title}</p>
-                                                <span className="text-xs text-pink-400 font-bold">{s.attendeeCount}명 출석</span>
+                                                <p className="text-sm font-medium text-[#2D2438]">{s.title}</p>
+                                                <span className="text-xs text-[#8E6FB7] font-bold">{s.attendeeCount}명 출석</span>
                                             </div>
-                                            <p className="text-xs text-white/30">{formatDate(s.createdAt)}</p>
+                                            <p className="text-xs text-[#C9BEDB]">{formatDate(s.createdAt)}</p>
 
                                             <div className="flex items-center gap-2 mt-1">
                                                 <input
                                                     readOnly
                                                     value={url}
-                                                    className="flex-1 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-white/50 border border-white/10 truncate"
+                                                    className="flex-1 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-[#9089A1] border border-[#F0E9DE] truncate"
                                                 />
                                                 <button
                                                     onClick={() => copyUrl(url, s.id)}
-                                                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                                                    className="p-1.5 rounded-lg bg-[#F0E9DE] hover:bg-[#EAE2D3] transition-colors"
                                                     title="출석 링크 복사"
                                                 >
-                                                    {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-white/60" />}
+                                                    {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-[#5C5468]" />}
                                                 </button>
                                                 <button
                                                     onClick={() => setQrSheet(s)}
-                                                    className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                                                    className="p-1.5 rounded-lg bg-[#F0E9DE] hover:bg-[#EAE2D3] transition-colors"
                                                     title="QR 코드 보기"
                                                 >
-                                                    <QrCode size={14} className="text-white/60" />
+                                                    <QrCode size={14} className="text-[#5C5468]" />
                                                 </button>
                                                 <button
                                                     onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
-                                                    className="p-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 transition-colors"
+                                                    className="p-1.5 rounded-lg bg-[#F5E6F7] hover:bg-[#EADBF5] transition-colors"
                                                     title="출석 명단 보기"
                                                 >
-                                                    <Users size={14} className="text-pink-400" />
+                                                    <Users size={14} className="text-[#8E6FB7]" />
                                                 </button>
                                             </div>
                                         </div>
@@ -367,7 +367,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                 })}
                             </div>
 
-                            <div className="p-4 border-t border-white/10">
+                            <div className="p-4 border-t border-[#F0E9DE]">
                                 <SheetCreateForm
                                     clubId={selectedClub.id}
                                     onCreated={() => loadSheets(selectedClub)}
@@ -412,7 +412,7 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                         <p className="text-xs text-gray-500 text-center">휴대폰 카메라로 QR을 스캔하면 출석됩니다.</p>
                         <button
                             onClick={() => setQrSheet(null)}
-                            className="mt-1 px-6 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white text-sm font-medium transition-colors"
+                            className="mt-1 px-6 py-2 rounded-xl bg-[#8E6FB7] hover:bg-[#7d5ea6] text-[#2D2438] text-sm font-medium transition-colors"
                         >
                             닫기
                         </button>
@@ -427,28 +427,28 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
     if (view === 'sheet_records' && selectedSheet) {
         return (
             <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-                <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                <div className="w-full sm:max-w-lg bg-[#FBF8F3] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
                     {renderHeader(`출석 명단 (${records.length}명)`, () => { setDetailTab('sheets'); setView('detail'); })}
 
-                    <div className="px-4 py-2 border-b border-white/10">
-                        <p className="text-sm text-white/60">{selectedSheet.title}</p>
-                        <p className="text-xs text-white/30">{formatDate(selectedSheet.createdAt)}</p>
+                    <div className="px-4 py-2 border-b border-[#F0E9DE]">
+                        <p className="text-sm text-[#5C5468]">{selectedSheet.title}</p>
+                        <p className="text-xs text-[#C9BEDB]">{formatDate(selectedSheet.createdAt)}</p>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                        {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-pink-400 animate-spin" /></div>}
-                        {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                        {loading && <div className="flex justify-center py-8"><Loader size={24} className="text-[#8E6FB7] animate-spin" /></div>}
+                        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
                         {!loading && records.length === 0 && (
-                            <p className="text-center text-white/40 text-sm py-8">아직 출석한 회원이 없습니다.</p>
+                            <p className="text-center text-[#9089A1] text-sm py-8">아직 출석한 회원이 없습니다.</p>
                         )}
                         {records.map((r, i) => (
-                            <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/10">
-                                <span className="text-xs font-bold text-pink-400 w-5 text-center">{i + 1}</span>
+                            <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-[#F0E9DE]">
+                                <span className="text-xs font-bold text-[#8E6FB7] w-5 text-center">{i + 1}</span>
                                 <div className="flex-1">
-                                    <p className="text-sm text-white">{r.nickname}</p>
-                                    <p className="text-[11px] text-white/40">{r.phone}</p>
+                                    <p className="text-sm text-[#2D2438]">{r.nickname}</p>
+                                    <p className="text-[11px] text-[#9089A1]">{r.phone}</p>
                                 </div>
-                                <p className="text-[11px] text-white/30">{formatDateTime(r.attendedAt)}</p>
+                                <p className="text-[11px] text-[#C9BEDB]">{formatDateTime(r.attendedAt)}</p>
                             </div>
                         ))}
                     </div>
@@ -508,73 +508,73 @@ const ClubCreateForm: React.FC<ClubCreateFormProps> = ({ onClose, onBack, onCrea
 
     return (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4">
-            <div className="w-full sm:max-w-lg bg-[#1a1b23] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
+            <div className="w-full sm:max-w-lg bg-[#FBF8F3] rounded-t-2xl sm:rounded-2xl overflow-hidden flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0E9DE]">
                     <div className="flex items-center gap-2">
-                        <button onClick={onBack} className="p-1 rounded-full hover:bg-white/10 transition-colors">
-                            <ChevronLeft size={20} className="text-white/70" />
+                        <button onClick={onBack} className="p-1 rounded-full hover:bg-[#F0E9DE] transition-colors">
+                            <ChevronLeft size={20} className="text-[#5C5468]" />
                         </button>
-                        <h2 className="text-base font-semibold text-white">새 모임 만들기</h2>
+                        <h2 className="text-base font-semibold text-[#2D2438]">새 모임 만들기</h2>
                     </div>
-                    <button onClick={onClose} className="p-1 rounded-full hover:bg-white/10 transition-colors">
-                        <X size={20} className="text-white/70" />
+                    <button onClick={onClose} className="p-1 rounded-full hover:bg-[#F0E9DE] transition-colors">
+                        <X size={20} className="text-[#5C5468]" />
                     </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                    {error && <p className="text-red-400 text-sm">{error}</p>}
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
 
                     <label className="block">
-                        <span className="text-xs text-white/50 mb-1 block">모임 이름 *</span>
+                        <span className="text-xs text-[#9089A1] mb-1 block">모임 이름 *</span>
                         <input
                             value={name} onChange={e => setName(e.target.value)}
                             placeholder="예: 수요 테니스 모임"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                            className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                         />
                     </label>
 
                     <label className="block">
-                        <span className="text-xs text-white/50 mb-1 block">활동 지역</span>
+                        <span className="text-xs text-[#9089A1] mb-1 block">활동 지역</span>
                         <input
                             value={region} onChange={e => setRegion(e.target.value)}
                             placeholder="예: 서울 강남"
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                            className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                         />
                     </label>
 
                     <label className="block">
-                        <span className="text-xs text-white/50 mb-1 block">모임 소개</span>
+                        <span className="text-xs text-[#9089A1] mb-1 block">모임 소개</span>
                         <textarea
                             value={description} onChange={e => setDesc(e.target.value)}
                             placeholder="모임에 대해 간단히 소개해주세요."
                             rows={3}
-                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50 resize-none"
+                            className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50 resize-none"
                         />
                     </label>
 
-                    <div className="border-t border-white/10 pt-3">
-                        <p className="text-xs text-white/40 mb-2">개설자 정보 (회원 명부 등록용)</p>
+                    <div className="border-t border-[#F0E9DE] pt-3">
+                        <p className="text-xs text-[#9089A1] mb-2">개설자 정보 (회원 명부 등록용)</p>
                         <label className="block mb-3">
-                            <span className="text-xs text-white/50 mb-1 block">이름 / 별명 *</span>
+                            <span className="text-xs text-[#9089A1] mb-1 block">이름 / 별명 *</span>
                             <input
                                 value={ownerNickname} onChange={e => setOwnerNickname(e.target.value)}
                                 placeholder="예: 홍길동"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                                className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                             />
                         </label>
                         <label className="block">
-                            <span className="text-xs text-white/50 mb-1 block">연락처 *</span>
+                            <span className="text-xs text-[#9089A1] mb-1 block">연락처 *</span>
                             <input
                                 value={ownerPhone} onChange={e => setOwnerPhone(e.target.value)}
                                 placeholder="01012345678"
                                 inputMode="tel"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                                className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                             />
                         </label>
                     </div>
                 </div>
 
-                <div className="p-4 border-t border-white/10">
+                <div className="p-4 border-t border-[#F0E9DE]">
                     <button
                         onClick={handleSubmit}
                         disabled={loading}
@@ -619,12 +619,12 @@ const SheetCreateForm: React.FC<SheetCreateFormProps> = ({ clubId, onCreated }) 
 
     return (
         <div className="space-y-2">
-            {error && <p className="text-red-400 text-xs">{error}</p>}
+            {error && <p className="text-red-500 text-xs">{error}</p>}
             <div className="flex gap-2">
                 <input
                     value={title} onChange={e => setTitle(e.target.value)}
                     placeholder="예: 5월 26일 정기 모임 출석"
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                    className="flex-1 bg-white border border-[#F0E9DE] rounded-xl px-3 py-2 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                     onKeyDown={e => e.key === 'Enter' && handleCreate()}
                 />
                 <button
@@ -686,32 +686,32 @@ const ClubSettingsTab: React.FC<ClubSettingsTabProps> = ({ club, onUpdated, onDe
 
     return (
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {error && <p className="text-red-400 text-sm">{error}</p>}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
 
             <label className="block">
-                <span className="text-xs text-white/50 mb-1 block">모임 이름 *</span>
+                <span className="text-xs text-[#9089A1] mb-1 block">모임 이름 *</span>
                 <input
                     value={name} onChange={e => setName(e.target.value)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                    className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                 />
             </label>
 
             <label className="block">
-                <span className="text-xs text-white/50 mb-1 block">활동 지역</span>
+                <span className="text-xs text-[#9089A1] mb-1 block">활동 지역</span>
                 <input
                     value={region} onChange={e => setRegion(e.target.value)}
                     placeholder="예: 서울 강남"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50"
+                    className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50"
                 />
             </label>
 
             <label className="block">
-                <span className="text-xs text-white/50 mb-1 block">모임 소개</span>
+                <span className="text-xs text-[#9089A1] mb-1 block">모임 소개</span>
                 <textarea
                     value={description} onChange={e => setDesc(e.target.value)}
                     placeholder="모임에 대해 간단히 소개해주세요."
                     rows={3}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-pink-500/50 resize-none"
+                    className="w-full bg-white border border-[#F0E9DE] rounded-xl px-3 py-2.5 text-sm text-[#2D2438] placeholder:text-[#C9BEDB] focus:outline-none focus:border-[#8E6FB7]/50 resize-none"
                 />
             </label>
 
@@ -726,11 +726,11 @@ const ClubSettingsTab: React.FC<ClubSettingsTabProps> = ({ club, onUpdated, onDe
             </button>
 
             {/* 위험 구역: 삭제 */}
-            <div className="border-t border-white/10 pt-4 mt-2">
+            <div className="border-t border-[#F0E9DE] pt-4 mt-2">
                 {!confirmDelete ? (
                     <button
                         onClick={() => setConfirmDelete(true)}
-                        className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="w-full py-2.5 rounded-xl text-sm font-medium flex items-center justify-center gap-2 border border-red-500/40 text-red-500 hover:bg-red-500/10 transition-colors"
                     >
                         <Trash2 size={16} />
                         모임 삭제
@@ -745,14 +745,14 @@ const ClubSettingsTab: React.FC<ClubSettingsTabProps> = ({ club, onUpdated, onDe
                             <button
                                 onClick={() => setConfirmDelete(false)}
                                 disabled={deleting}
-                                className="flex-1 py-2 rounded-lg text-sm bg-white/10 text-white/70 hover:bg-white/20 transition-colors disabled:opacity-50"
+                                className="flex-1 py-2 rounded-lg text-sm bg-[#F0E9DE] text-[#5C5468] hover:bg-[#EAE2D3] transition-colors disabled:opacity-50"
                             >
                                 취소
                             </button>
                             <button
                                 onClick={handleDelete}
                                 disabled={deleting}
-                                className="flex-1 py-2 rounded-lg text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                                className="flex-1 py-2 rounded-lg text-sm font-medium bg-red-500 text-[#2D2438] hover:bg-red-600 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                             >
                                 {deleting ? <Loader size={14} className="animate-spin" /> : <Trash2 size={14} />}
                                 삭제
