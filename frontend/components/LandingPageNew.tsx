@@ -1218,7 +1218,17 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                     ))}
                                 </div>
                             ) : (
-                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>기능 둘러보기에서 ⭐를 눌러 담아보세요.</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '4px 0 2px' }}>
+                                    <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
+                                        아직 담은 기능이 없어요.<br />자주 쓰는 기능에 ⭐를 눌러 담아보세요.
+                                    </p>
+                                    <button onClick={onFeatureListClick}
+                                        style={{
+                                            padding: '8px 18px', borderRadius: 999, cursor: 'pointer',
+                                            background: `${T.accent}14`, border: `1.5px solid ${T.accent}55`,
+                                            color: T.accent, fontSize: 12.5, fontWeight: 700,
+                                        }}>기능 둘러보기 →</button>
+                                </div>
                             )}
                         </div>
 
@@ -1255,7 +1265,17 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                     ))}
                                 </div>
                             ) : (
-                                <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0 }}>자주 대화하는 페르소나가 여기에 모여요.</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '4px 0 2px' }}>
+                                    <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
+                                        아직 대화한 페르소나가 없어요.<br />마음에 드는 친구와 대화를 시작해보세요.
+                                    </p>
+                                    <button onClick={onPersonaListClick}
+                                        style={{
+                                            padding: '8px 18px', borderRadius: 999, cursor: 'pointer',
+                                            background: `${T.accent2}14`, border: `1.5px solid ${T.accent2}66`,
+                                            color: T.accent, fontSize: 12.5, fontWeight: 700,
+                                        }}>페르소나 둘러보기 →</button>
+                                </div>
                             )}
                         </div>
                     </div>
