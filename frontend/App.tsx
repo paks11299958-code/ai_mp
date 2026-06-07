@@ -31,6 +31,7 @@ import { HotKeywordBoard } from './components/HotKeywordBoard';
 import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
+import { EbookBoard } from './components/EbookBoard';
 import { MathTutorBoard } from './components/MathTutorBoard';
 import { TodayNewsBoard } from './components/TodayNewsBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
@@ -775,6 +776,8 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal)
+    const [showEbookBoard, setShowEbookBoard] = useState(false);
     // 즐겨찾기로 담을 수 있는 기능(Hero에서 단독으로 뜨는 것만). 골프는 페르소나 의존이라 제외.
     const FAVORITABLE_KEYS = ['news', 'stock', 'hotkeyword', 'used', 'luxury', 'mathtutor', 'club'];
     // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용)
@@ -792,7 +795,7 @@ const AppContent: React.FC = () => {
 
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
     // (예전엔 하단 IIFE 안에만 있었으나 상단에서도 쓰려고 컴포넌트 레벨로 승격)
-    type QuickMenuItem = { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig };
+    type QuickMenuItem = { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; ebookModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig };
     const handleQuickMenuSelect = (menu: QuickMenuItem, useBirthInfo: boolean) => {
         if (menu.subMenu) {
             subMenuResultCardRef.current = menu.resultCard ?? false;
@@ -801,6 +804,7 @@ const AppContent: React.FC = () => {
         }
         if (menu.faceModal) { setShowFaceModal(true); return; }
         if (menu.palmModal) { setShowPalmModal(true); return; }
+        if (menu.ebookModal) { setShowEbookBoard(true); return; }
         if (menu.partnerModal) {
             setPendingPartnerMenu({ label: menu.label, prompt: menu.prompt ?? '' });
             setShowPartnerModal(true);
@@ -1285,6 +1289,9 @@ const AppContent: React.FC = () => {
                     onClose={() => setPalmReadingResult(null)}
                 />
             )}
+
+            {/* 전자책 만들기 보드 (강지훈) */}
+            {showEbookBoard && <EbookBoard onClose={() => setShowEbookBoard(false)} />}
 
             {/* 퀵메뉴 결과 카드 */}
             {quickMenuResult && (

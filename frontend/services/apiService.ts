@@ -463,6 +463,23 @@ export const palmReadingApi = {
     },
 };
 
+// ── 전자책 만들기 (강지훈) ──
+export interface EbookTocChapter { no: number; title: string; summary: string; }
+export interface EbookProject {
+    id: number; topic: string; title: string | null; status: string;
+    createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
+}
+export const ebookApi = {
+    create: (topic: string) =>
+        post<{ project: EbookProject }>('/ebook', { topic }),
+    list: () =>
+        get<EbookProject[]>('/ebook'),
+    get: (id: number) =>
+        get<EbookProject>(`/ebook/${id}`),
+    remove: (id: number) =>
+        del<{ deleted: boolean }>(`/ebook/${id}`),
+};
+
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
         post<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', { personaId, prompt }),
