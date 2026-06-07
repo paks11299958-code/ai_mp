@@ -13,15 +13,21 @@ interface FeatureCard {
     color?: string;
 }
 
+interface FeatureChip {
+    label: string;       // 이모지 포함 라벨(텍스트 칩)
+    onClick: () => void;
+}
+
 interface PersonaImageViewerProps {
     images: PersonaImage[];
     onSelectMain: (image: PersonaImage) => void;
     userXp: number;
     newUi?: boolean;
-    featureCards?: FeatureCard[];
+    featureCards?: FeatureCard[];   // 표준 기능: 아이콘 카드(사진 행 인라인)
+    featureChips?: FeatureChip[];   // 도결 퀵메뉴: 텍스트 칩(사진 아래 전체폭)
 }
 
-export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, featureCards }) => {
+export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, onSelectMain, userXp, newUi, featureCards, featureChips }) => {
     const [videosByImage, setVideosByImage] = useState<Record<number, PersonaVideo[]>>({});
     const [playingVideo, setPlayingVideo] = useState<PersonaVideo | null>(null);
     const [previewImage, setPreviewImage] = useState<PersonaImage | null>(null);
@@ -117,23 +123,39 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                         })}
                     </div>
 
+                    {/* 표준 기능 — 사진 썸네일 행 인라인 아이콘 카드(서아·윤채원 등 1~2개) */}
+                    {featureCards && featureCards.length > 0 && (
+                        <div className="flex gap-1.5 shrink-0">
+                            {featureCards.map((card, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={card.onClick}
+                                    className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-xl border transition-all shrink-0"
+                                    style={{
+                                        borderColor: card.borderColor ?? '#B49AC9',
+                                        background: card.bgColor ?? '#F5E6F7',
+                                        color: card.color ?? '#8E6FB7',
+                                    }}
+                                >
+                                    <Icon name={card.icon as any} size={16} />
+                                    <span className="text-[10px] font-medium whitespace-nowrap">{card.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                {/* 기능 — 사진 행 아래 전체 폭 텍스트 칩(가로 나열, 넘치면 줄바꿈) */}
-                {featureCards && featureCards.length > 0 && (
+                {/* 도결 퀵메뉴 — 사진 행 아래 전체 폭 텍스트 칩(메뉴 많음, 줄바꿈) */}
+                {featureChips && featureChips.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                        {featureCards.map((card, idx) => (
+                        {featureChips.map((chip, idx) => (
                             <button
                                 key={idx}
-                                onClick={card.onClick}
+                                onClick={chip.onClick}
                                 className="text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 whitespace-nowrap"
-                                style={{
-                                    borderColor: card.borderColor ?? '#B49AC9',
-                                    background: card.bgColor ?? '#F5E6F7',
-                                    color: card.color ?? '#8E6FB7',
-                                }}
+                                style={{ borderColor: '#B49AC9', background: '#F5E6F7', color: '#8E6FB7' }}
                             >
-                                {card.label}
+                                {chip.label}
                             </button>
                         ))}
                     </div>

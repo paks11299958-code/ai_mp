@@ -1786,22 +1786,19 @@ const AppContent: React.FC = () => {
                                     return { icon: meta.icon, label: meta.label, onClick: FEATURE_ACTIONS[key] ?? (() => {}), color: meta.color, bgColor: meta.bgColor, borderColor: meta.borderColor };
                                 })
                                 : [];
-                            // 도결처럼 quickMenuJson을 쓰는 페르소나: 퀵메뉴도 상단 카드로(이모지 라벨→lucide 아이콘 매핑)
-                            const quickMenuCards = (() => {
+                            // 도결처럼 quickMenuJson을 쓰는 페르소나: 퀵메뉴는 텍스트 칩으로(메뉴 많음).
+                            // 표준 기능(서아·윤채원 등 1~2개)은 기존 아이콘 카드 유지.
+                            const quickMenuChips = (() => {
                                 if (!user || !activePersona?.quickMenuJson) return [];
                                 let cfg: { menus?: QuickMenuItem[]; useBirthInfo?: boolean } = {};
                                 try { cfg = JSON.parse(activePersona.quickMenuJson); } catch { return []; }
                                 if (!cfg.menus?.length) return [];
-                                // 텍스트 칩이라 아이콘 불필요. 이모지 포함 원본 라벨 그대로 사용.
                                 return cfg.menus.map(menu => ({
-                                    icon: '',
-                                    label: menu.label,
+                                    label: menu.label, // 이모지 포함 원본 라벨
                                     onClick: () => handleQuickMenuSelect(menu, !!cfg.useBirthInfo),
-                                    color: '#8E6FB7', bgColor: '#F5E6F7', borderColor: '#B49AC9',
                                 }));
                             })();
-                            const featureCards = [...standardCards, ...quickMenuCards];
-                            return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={featureCards} />;
+                            return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={standardCards} featureChips={quickMenuChips} />;
                         })()}
 
                         {/* 트리거 키워드 버튼 */}
