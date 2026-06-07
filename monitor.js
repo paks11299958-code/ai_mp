@@ -11,10 +11,13 @@ require('dotenv').config({ path: '/home/paks11299958/shared-api/.env' });
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // ── 설정 ──────────────────────────────────────────────
 const TARGET_URL       = 'https://aichat.dbzone.kr';
 const SCREENSHOT_PATH  = path.join(__dirname, 'site_status.png');
+// 점검 결과 요약 — 어드민 대시보드가 "마지막 실행 시각/성공여부"를 읽는다
+const STATUS_PATH      = path.join(__dirname, 'monitor-status.json');
 const TIMEOUT_MS       = 15_000;
 const RECIPIENT_EMAIL  = 'paks11299958@gmail.com';
 const BREVO_API_KEY    = process.env.BREVO_API_KEY;
@@ -57,6 +60,7 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
 
 (async () => {
     const now     = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+    const startedAt = Date.now();
     const browser = await chromium.launch({ headless: true });
     const page    = await browser.newPage();
 
@@ -118,11 +122,13 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
                     timeout: TIMEOUT_MS,
                 });
 
-                // 로그인 후 히어로 페이지 노출 확인
-                await page.waitForSelector('text=채팅 시작하기', { timeout: 10_000 });
+                // 로그인 후 첫화면(LandingPageNew) 노출 확인
+                // 로그인 시 헤더에 "{username}님 ✦"이 항상 뜨므로 이를 성공 지표로 사용.
+                // (구버전 '채팅 시작하기' 버튼은 2026-06 첫화면 개편으로 제거됨)
+                await page.waitForSelector('text=님 ✦', { timeout: 10_000 });
 
-                results.login = { ok: true, detail: '로그인 성공 — 히어로 페이지 확인' };
-                console.log('✅ [로그인] 성공 — 페르소나 목록 확인');
+                results.login = { ok: true, detail: '로그인 성공 — 첫화면 확인' };
+                console.log('✅ [로그인] 성공 — 첫화면 노출 확인');
             } catch (err) {
                 results.login = { ok: false, detail: err.message };
                 console.error(`❌ [로그인] ${err.message}`);
@@ -171,6 +177,23 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
 
     } finally {
         await browser.close();
+
+        // ── 결과 요약 기록 (대시보드용) ─────────────────────
+        // try 안에서 예외가 나도 results는 부분 채워진 상태로 남기 위해 finally에서 기록.
+        try {
+            const ok = results.site.ok && results.login.ok;
+            fs.writeFileSync(STATUS_PATH, JSON.stringify({
+                lastRun:    new Date().toISOString(),
+                lastRunKST: now,
+                ok,
+                site:       results.site,
+                login:      results.login,
+                durationMs: Date.now() - startedAt,
+                host:       os.hostname(),
+            }, null, 2));
+        } catch (e) {
+            console.error(`⚠️ monitor-status.json 기록 실패: ${e.message}`);
+        }
     }
 })();
 

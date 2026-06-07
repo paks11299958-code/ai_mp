@@ -10,3 +10,8 @@ product-extractor/*.zip
 # 보고서/뉴스 요약 파일 (reports/ 디렉토리에 저장)
 /*.md
 reports/
+
+# 사이트 모니터 런타임 산출물
+monitor-status.json
+monitor.log
+site_status.png
