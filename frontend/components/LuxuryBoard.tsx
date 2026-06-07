@@ -106,21 +106,21 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 const STATUS_CONFIG = {
-    pending:    { label: '대기중',  icon: Clock,        cls: 'text-yellow-400' },
+    pending:    { label: '대기중',  icon: Clock,        cls: 'text-orange-500' },
     processing: { label: '분석중',  icon: Loader,       cls: 'text-[#8E6FB7]' },
-    completed:  { label: '완료',    icon: CheckCircle,  cls: 'text-green-400' },
+    completed:  { label: '완료',    icon: CheckCircle,  cls: 'text-emerald-600' },
     failed:     { label: '실패',    icon: XCircle,      cls: 'text-red-400' },
 };
 
 const VERDICT_CONFIG: Record<string, { label: string; cls: string; bg: string; icon: React.ElementType }> = {
-    '정품가능':     { label: '정품 고유 특성 일치',  cls: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/30', icon: CheckCircle },
-    '전문감정권고': { label: '전문 감정 권고',       cls: 'text-amber-300',   bg: 'bg-amber-500/10 border-amber-500/30',     icon: AlertTriangle },
-    '위조의심':     { label: '가품 징후 관찰',       cls: 'text-rose-300',    bg: 'bg-rose-500/10 border-rose-500/30',       icon: XCircle },
+    '정품가능':     { label: '정품 고유 특성 일치',  cls: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-600/40', icon: CheckCircle },
+    '전문감정권고': { label: '전문 감정 권고',       cls: 'text-amber-800',   bg: 'bg-amber-50 border-amber-600/50',     icon: AlertTriangle },
+    '위조의심':     { label: '가품 징후 관찰',       cls: 'text-rose-700',    bg: 'bg-rose-50 border-rose-600/40',       icon: XCircle },
 };
 
 const POINT_RESULT_CLS: Record<string, string> = {
-    '정상':   'text-green-400',
-    '이상':   'text-red-400',
+    '정상':   'text-emerald-600',
+    '이상':   'text-rose-600',
     '확인불가': 'text-[#9089A1]',
 };
 
@@ -349,7 +349,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                     </div>
 
                                     <div className="bg-amber-950/30 border border-amber-700/30 rounded-xl px-3 py-2">
-                                        <p className="text-[10px] text-amber-400/80">⏱ 분석 최대 1분 · AI 결과는 참고용입니다</p>
+                                        <p className="text-[10px] text-orange-600">⏱ 분석 최대 1분 · AI 결과는 참고용입니다</p>
                                     </div>
                                 </div>
                             )}
@@ -415,7 +415,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                         </div>
                                         <div className="flex items-center gap-0.5 shrink-0">
                                             {task.status === 'failed' && (
-                                                <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} className="p-1 rounded text-[#9089A1] hover:text-yellow-400 transition-colors" title="재분석">
+                                                <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} className="p-1 rounded text-[#9089A1] hover:text-orange-500 transition-colors" title="재분석">
                                                     <RotateCcw size={11} />
                                                 </button>
                                             )}
@@ -458,10 +458,15 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                         {!detailLoading && selected && (
                             <div className="flex-1 overflow-y-auto">
                                 {/* 헤더 */}
-                                <div className="px-5 py-4 border-b border-[#F0E9DE] bg-gradient-to-r from-white to-[#F5E6F7]/40">
-                                    <div className="flex items-start justify-between gap-3">
+                                <div className="px-5 py-4">
+                                    {/* 진단명 헤더 — 명품 보증서 카드(골드 테두리) */}
+                                    <div className="flex items-start justify-between gap-3 rounded-2xl px-4 py-3.5" style={{
+                                        background: 'linear-gradient(135deg, #ffffff 0%, #faf6ec 100%)',
+                                        border: '1px solid rgba(184,152,90,0.4)',
+                                        boxShadow: '0 4px 16px -8px rgba(184,152,90,0.4)',
+                                    }}>
                                         <div>
-                                            <h3 className="text-lg font-bold text-[#2D2438]">
+                                            <h3 className="text-lg font-bold text-[#2D2438]" style={{ fontFamily: '"Nanum Myeongjo", serif' }}>
                                                 {selected.geminiBrand || selected.brandHint || '명품'}
                                                 {selected.geminiModel && <span className="text-[#9089A1] font-normal text-base ml-2">{selected.geminiModel}</span>}
                                             </h3>
@@ -521,9 +526,9 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                     {/* 일치/불일치 */}
                                     <CompareCard agreements={selected.agreements} disagreements={selected.disagreements} />
 
-                                    {/* 면책 문구 */}
-                                    <div className="bg-amber-950/20 border border-amber-700/20 rounded-xl px-4 py-3">
-                                        <p className="text-[11px] text-amber-400/70 leading-relaxed">
+                                    {/* 면책 문구 — 차분한 베이지 카드 + 진한 글씨(가독성) */}
+                                    <div className="rounded-xl px-4 py-3" style={{ background: '#F5EFE3', border: '1px solid #E0D3B8' }}>
+                                        <p className="text-[11px] leading-relaxed" style={{ color: '#6B5A3E' }}>
                                             ⚠️ 본 분석은 AI가 사진만으로 제공하는 참고 정보입니다. 100% 정확하지 않으며, 고가 명품 구매 시 반드시 공식 매장 또는 전문 감정 기관의 검증을 받으시기 바랍니다.
                                         </p>
                                     </div>
@@ -649,17 +654,17 @@ const CompareCard: React.FC<{ agreements: string | null; disagreements: string |
             <span className="text-xs font-semibold text-[#2D2438]">3중 AI 비교</span>
             {agr.length > 0 && (
                 <div>
-                    <div className="text-[10px] text-green-400 font-semibold mb-1">✅ 일치 항목 ({agr.length})</div>
+                    <div className="text-[11px] text-emerald-700 font-bold mb-1">✅ 일치 항목 ({agr.length})</div>
                     <div className="space-y-0.5">
-                        {agr.map((a, i) => <div key={i} className="text-[11px] text-[#9089A1]">{a}</div>)}
+                        {agr.map((a, i) => <div key={i} className="text-[11px] text-[#5C5468]">{a}</div>)}
                     </div>
                 </div>
             )}
             {dis.length > 0 && (
                 <div>
-                    <div className="text-[10px] text-yellow-400 font-semibold mb-1">⚠️ 불일치 항목 ({dis.length}) — 주의 필요</div>
+                    <div className="text-[11px] text-orange-600 font-bold mb-1">⚠️ 불일치 항목 ({dis.length}) — 주의 필요</div>
                     <div className="space-y-0.5">
-                        {dis.map((d, i) => <div key={i} className="text-[11px] text-yellow-300/70">{d}</div>)}
+                        {dis.map((d, i) => <div key={i} className="text-[11px] text-orange-700/90">{d}</div>)}
                     </div>
                 </div>
             )}
