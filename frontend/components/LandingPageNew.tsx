@@ -1242,7 +1242,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '4px 0 2px' }}>
                                     <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
-                                        아직 담은 페르소나가 없어요.<br />마음에 드는 친구에 ☆를 눌러 담아보세요.
+                                        아직 담은 페르소나가 없어요.<br />마음에 드는 친구에 ☆를 눌러 담으면 <b style={{ color: T.accent }}>+500P</b> 🎁
                                     </p>
                                     <button onClick={onPersonaListClick}
                                         style={{
@@ -1281,7 +1281,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '4px 0 2px' }}>
                                     <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
-                                        아직 담은 기능이 없어요.<br />자주 쓰는 기능에 ⭐를 눌러 담아보세요.
+                                        아직 담은 기능이 없어요.<br />자주 쓰는 기능에 ⭐를 눌러 담으면 <b style={{ color: T.accent }}>+500P</b> 🎁
                                     </p>
                                     <button onClick={onFeatureListClick}
                                         style={{

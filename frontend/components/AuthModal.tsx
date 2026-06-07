@@ -4,7 +4,7 @@ import { User } from '../types';
 import { Icon } from './Icons';
 
 interface AuthModalProps {
-    onSuccess: (user: User, token: string) => void;
+    onSuccess: (user: User, token: string, isNewUser?: boolean) => void;
     onClose?: () => void;
     onBack?: () => void;
     defaultMode?: 'login' | 'register';
@@ -124,7 +124,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     const id = registerTab === 'phone' ? rawDigits(phone) : email;
                     const result = await authApi.verifyRegister(type, id, regVerifyCode, password, username || undefined);
                     localStorage.setItem('token', result.token);
-                    onSuccess(result.user, result.token);
+                    onSuccess(result.user, result.token, true); // 신규 가입 → 환영 알럿
+
                 }
             }
         } catch (err: any) {

@@ -442,6 +442,17 @@ export const announcementApi = {
         del<{ ok: boolean }>(`/announcements/${id}`),
 };
 
+// 온보딩 미션 보상 결과(즐겨찾기 저장 응답에 포함)
+export interface MissionResult {
+    awarded: boolean;       // 이번에 새로 지급됐는지
+    amount: number;
+    balanceAfter?: number;
+}
+export interface FavoriteSaveResult {
+    ok: boolean;
+    mission: MissionResult | null;
+}
+
 // User Profile
 export const userProfileApi = {
     getBirthInfo: () =>
@@ -455,14 +466,14 @@ export const userProfileApi = {
         get<{ favoritesJson: string | null }>('/user/favorites'),
 
     saveFavorites: (favoritesJson: string) =>
-        put<{ ok: boolean }>('/user/favorites', { favoritesJson }),
+        put<FavoriteSaveResult>('/user/favorites', { favoritesJson }),
 
     // 즐겨찾기 페르소나 — 페르소나 id 배열의 JSON
     getFavoritePersonas: () =>
         get<{ favoritePersonasJson: string | null }>('/user/favorite-personas'),
 
     saveFavoritePersonas: (favoritePersonasJson: string) =>
-        put<{ ok: boolean }>('/user/favorite-personas', { favoritePersonasJson }),
+        put<FavoriteSaveResult>('/user/favorite-personas', { favoritePersonasJson }),
 
     // 본인 회원 탈퇴(하드 삭제)
     deleteAccount: () =>

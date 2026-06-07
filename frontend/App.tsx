@@ -9,7 +9,7 @@ import { useFavorites, useFavoritePersonas } from './hooks/useFavorites';
 import { useQuickMenu } from './hooks/useQuickMenu';
 import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
-import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category } from './types';
+import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category, User } from './types';
 import { generateImageDescription } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi } from './services/apiService';
 import { pointApi } from './services/pointService';
@@ -25,6 +25,7 @@ import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
+import { RewardAlertModal } from './components/RewardAlertModal';
 import { StockAnalysisBoard } from './components/StockAnalysisBoard';
 import { HotKeywordBoard } from './components/HotKeywordBoard';
 import { ResearchBoard } from './components/ResearchBoard';
@@ -82,8 +83,22 @@ const AppContent: React.FC = () => {
         handleAuthSuccess,
         resetAuth,
     } = useAuth();
-    const { isFavorite, toggleFavorite, favorites } = useFavorites(!!user);
-    const { isFavorite: isFavoritePersona, toggleFavorite: toggleFavoritePersona, favorites: favoritePersonaIds } = useFavoritePersonas(!!user);
+    // 온보딩 알럿: 가입 환영 / 미션 달성 축하 (한 모달로 공용)
+    const [rewardAlert, setRewardAlert] = useState<{ kind: 'welcome' | 'mission'; amount: number } | null>(null);
+    const handleMissionAwarded = useCallback((amount: number) => {
+        setRewardAlert({ kind: 'mission', amount });
+        // 잔액 즉시 갱신
+        pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
+    }, [setUserPaidPoints, setUserBonusPoints]);
+
+    // 로그인/가입 성공 — 신규 가입이면 환영 알럿(가입 보너스 500P) 표시
+    const handleAuthSuccessWithWelcome = useCallback((u: User, token: string, isNewUser?: boolean) => {
+        handleAuthSuccess(u, token);
+        if (isNewUser) setRewardAlert({ kind: 'welcome', amount: 500 });
+    }, [handleAuthSuccess]);
+
+    const { isFavorite, toggleFavorite, favorites } = useFavorites(!!user, handleMissionAwarded);
+    const { isFavorite: isFavoritePersona, toggleFavorite: toggleFavoritePersona, favorites: favoritePersonaIds } = useFavoritePersonas(!!user, handleMissionAwarded);
     const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);
     // 뉴UI: 페르소나 대기 페이지 초기 탭
     const [mainInitialTab, setMainInitialTab] = useState<'personas' | 'features'>('personas');
@@ -669,7 +684,7 @@ const AppContent: React.FC = () => {
         if (screen === 'authPage') {
             return (
                 <AuthModal
-                    onSuccess={handleAuthSuccess}
+                    onSuccess={handleAuthSuccessWithWelcome}
                     onBack={() => goTo('guest')}
                     defaultMode="register"
                     fullScreen
@@ -696,7 +711,7 @@ const AppContent: React.FC = () => {
                 />
                 {showAuthModal && (
                     <AuthModal
-                        onSuccess={handleAuthSuccess}
+                        onSuccess={handleAuthSuccessWithWelcome}
                         onClose={() => setShowAuthModal(false)}
                         defaultMode="login"
                         personas={personas}
@@ -803,6 +818,9 @@ const AppContent: React.FC = () => {
             }));
         return (
             <>
+                {rewardAlert && (
+                    <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
+                )}
                 <LandingPageNew
                     personas={visiblePersonas}
                     isLoading={isPersonasLoading}
@@ -857,6 +875,9 @@ const AppContent: React.FC = () => {
             .filter((p): p is Persona => !!p);
         return (
             <>
+                {rewardAlert && (
+                    <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
+                )}
                 <AuthProvider value={authCtxValue}>
                 <MainPageNew
                     personas={visiblePersonas}
@@ -942,6 +963,9 @@ const AppContent: React.FC = () => {
 
     return (
         <>
+        {rewardAlert && (
+            <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
+        )}
         <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Cinzel:wght@400;500;600&display=swap');
 

@@ -17,12 +17,9 @@ export function useAnnouncements() {
     });
 
     useEffect(() => {
-        announcementApi.getAll().then(list => {
-            setAnnouncements(list);
-            // 새 공지 있으면 자동 팝업
-            const unread = list.filter(a => !readAnnouncementIds.has(a.id));
-            if (unread.length > 0) setShowAnnouncementModal(true);
-        }).catch(() => {});
+        // 공지 목록만 불러옴(미읽음 배지용). 자동 팝업은 하지 않음
+        // — 사용자 요청: 공지는 종(🔔) 버튼 클릭 시에만 표시.
+        announcementApi.getAll().then(setAnnouncements).catch(() => {});
     }, []);
 
     const handleReadAnnouncements = (ids: number[]) => {

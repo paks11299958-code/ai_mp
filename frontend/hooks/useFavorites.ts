@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { userProfileApi } from '../services/apiService';
+import type { FavoriteSaveResult } from '../services/apiService';
+
+// 미션 달성 시 호출되는 콜백(축하 알럿 표시용)
+export type OnMissionAwarded = (amount: number) => void;
 
 /**
  * 즐겨찾기 목록 상태 훅(범용). 기능/페르소나 양쪽에서 재사용.
@@ -10,7 +14,8 @@ import { userProfileApi } from '../services/apiService';
 function useFavoriteList(
     isLoggedIn: boolean,
     load: () => Promise<string | null>,
-    save: (json: string) => Promise<unknown>,
+    save: (json: string) => Promise<FavoriteSaveResult>,
+    onMissionAwarded?: OnMissionAwarded,
 ) {
     const [favorites, setFavorites] = useState<string[]>([]);
     const [loaded, setLoaded] = useState(false);
@@ -36,13 +41,15 @@ function useFavoriteList(
         if (savingRef.current) return;
         savingRef.current = true;
         try {
-            await save(JSON.stringify(next));
+            const res = await save(JSON.stringify(next));
+            // 미션 첫 달성 시 축하 콜백
+            if (res?.mission?.awarded) onMissionAwarded?.(res.mission.amount);
         } catch {
             setFavorites(prev); // 실패 시 롤백
         } finally {
             savingRef.current = false;
         }
-    }, [save]);
+    }, [save, onMissionAwarded]);
 
     const toggleFavorite = useCallback((key: string) => {
         setFavorites(prev => {
@@ -60,19 +67,21 @@ function useFavoriteList(
 }
 
 /** 기능 즐겨찾기(자주가는 메뉴) */
-export function useFavorites(isLoggedIn: boolean) {
+export function useFavorites(isLoggedIn: boolean, onMissionAwarded?: OnMissionAwarded) {
     return useFavoriteList(
         isLoggedIn,
         () => userProfileApi.getFavorites().then(r => r.favoritesJson),
         (json) => userProfileApi.saveFavorites(json),
+        onMissionAwarded,
     );
 }
 
 /** 페르소나 즐겨찾기 */
-export function useFavoritePersonas(isLoggedIn: boolean) {
+export function useFavoritePersonas(isLoggedIn: boolean, onMissionAwarded?: OnMissionAwarded) {
     return useFavoriteList(
         isLoggedIn,
         () => userProfileApi.getFavoritePersonas().then(r => r.favoritePersonasJson),
         (json) => userProfileApi.saveFavoritePersonas(json),
+        onMissionAwarded,
     );
 }
