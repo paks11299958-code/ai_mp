@@ -117,14 +117,14 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                         })}
                     </div>
 
-                    {/* 기능 카드 */}
+                    {/* 기능 카드 — 많으면(5개+) 가로 스크롤(모바일 대응) */}
                     {featureCards && featureCards.length > 0 && (
-                        <div className="flex gap-1.5 shrink-0">
+                        <div className={`flex gap-1.5 ${featureCards.length > 4 ? 'overflow-x-auto flex-1 min-w-0 pb-1' : 'shrink-0'}`}>
                             {featureCards.map((card, idx) => (
                                 <button
                                     key={idx}
                                     onClick={card.onClick}
-                                    className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-xl border transition-all"
+                                    className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-xl border transition-all shrink-0"
                                     style={{
                                         borderColor: card.borderColor ?? '#B49AC9',
                                         background: card.bgColor ?? '#F5E6F7',

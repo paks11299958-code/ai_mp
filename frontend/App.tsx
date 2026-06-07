@@ -790,6 +790,73 @@ const AppContent: React.FC = () => {
         'golf-record': () => setShowSwingBoard(true),
     };
 
+    // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
+    // (예전엔 하단 IIFE 안에만 있었으나 상단에서도 쓰려고 컴포넌트 레벨로 승격)
+    type QuickMenuItem = { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig };
+    const handleQuickMenuSelect = (menu: QuickMenuItem, useBirthInfo: boolean) => {
+        if (menu.subMenu) {
+            subMenuResultCardRef.current = menu.resultCard ?? false;
+            setSubMenuConfig(menu.subMenu);
+            return;
+        }
+        if (menu.faceModal) { setShowFaceModal(true); return; }
+        if (menu.palmModal) { setShowPalmModal(true); return; }
+        if (menu.partnerModal) {
+            setPendingPartnerMenu({ label: menu.label, prompt: menu.prompt ?? '' });
+            setShowPartnerModal(true);
+            return;
+        }
+        if (menu.placeholder) {
+            quickMenuApi.activate(50, '꿈해몽')
+                .then(({ paidBalance, bonusBalance }) => {
+                    setUserPaidPoints(paidBalance);
+                    setUserBonusPoints(bonusBalance);
+                    setInputText('');
+                    setInputPlaceholder(menu.placeholder!);
+                    setActiveQuickMenu(menu.label);
+                    setTimeout(() => textareaRef.current?.focus(), 0);
+                })
+                .catch(e => alert(e.message || '포인트 차감에 실패했습니다.'));
+            return;
+        }
+        if (menu.resultCard) {
+            if (useBirthInfo && !birthInfo) {
+                setPendingQuickMenu({ label: menu.label, prompt: menu.prompt ?? '', resultCard: true });
+                setShowBirthModal(true);
+                return;
+            }
+            let fullPrompt = menu.prompt ?? '';
+            if (useBirthInfo && birthInfo) {
+                const t = birthInfo.time && birthInfo.time !== '모름' ? ` ${birthInfo.time}생` : '';
+                const cal = birthInfo.lunar ? '음력' : '양력';
+                fullPrompt += `\n\n사용자 정보 — 이름: ${birthInfo.name}, 생년월일: ${cal} ${birthInfo.year}년 ${birthInfo.month}월 ${birthInfo.day}일${t}`;
+            }
+            setActiveQuickMenu(menu.label);
+            setQuickMenuLoading(true);
+            quickMenuApi.generate(activePersonaId, fullPrompt)
+                .then(({ result, paidBalance, bonusBalance }) => {
+                    setUserPaidPoints(paidBalance);
+                    setUserBonusPoints(bonusBalance);
+                    setQuickMenuResult({ title: menu.label, result });
+                })
+                .catch(e => alert(quickMenuErrorMessage(e)))
+                .finally(() => setQuickMenuLoading(false));
+            return;
+        }
+        if (useBirthInfo) {
+            if (birthInfo) {
+                setInputText(menu.prompt ?? '');
+                setTimeout(() => textareaRef.current?.focus(), 0);
+            } else {
+                setPendingQuickMenu({ label: menu.label, prompt: menu.prompt ?? '' });
+                setShowBirthModal(true);
+            }
+        } else {
+            setInputText(menu.prompt ?? '');
+            textareaRef.current?.focus();
+        }
+    };
+
     if (user && screen === 'hero') {
         // 'main'으로 가면서 초기 탭/포커스 설정. screen이 단일이라 별도 false 토글 불필요.
         const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
@@ -1712,12 +1779,38 @@ const AppContent: React.FC = () => {
 
                         {activeImages.length > 0 && (() => {
                             // 기능 키 → 보드 열기 핸들러는 본체 FEATURE_ACTIONS 재사용(메타는 FEATURE_REGISTRY 단일출처)
-                            const featureCards = user
+                            const standardCards = user
                                 ? getPersonaFeatureKeys(activePersona).map(key => {
                                     const meta = FEATURE_BY_KEY[key];
                                     return { icon: meta.icon, label: meta.label, onClick: FEATURE_ACTIONS[key] ?? (() => {}), color: meta.color, bgColor: meta.bgColor, borderColor: meta.borderColor };
                                 })
                                 : [];
+                            // 도결처럼 quickMenuJson을 쓰는 페르소나: 퀵메뉴도 상단 카드로(이모지 라벨→lucide 아이콘 매핑)
+                            const quickMenuCards = (() => {
+                                if (!user || !activePersona?.quickMenuJson) return [];
+                                let cfg: { menus?: QuickMenuItem[]; useBirthInfo?: boolean } = {};
+                                try { cfg = JSON.parse(activePersona.quickMenuJson); } catch { return []; }
+                                if (!cfg.menus?.length) return [];
+                                // 메뉴 라벨 키워드 → lucide 아이콘
+                                const iconFor = (label: string): string => {
+                                    if (label.includes('시운') || label.includes('운세') || label.includes('흐름')) return 'Clock';
+                                    if (label.includes('재물') || label.includes('성취')) return 'TrendingUp';
+                                    if (label.includes('인연') || label.includes('연애') || label.includes('사랑')) return 'MessageSquare';
+                                    if (label.includes('전생')) return 'Sparkles';
+                                    if (label.includes('꿈')) return 'BookOpen';
+                                    if (label.includes('관상')) return 'Eye';
+                                    if (label.includes('손금')) return 'Activity';
+                                    return 'Sparkles';
+                                };
+                                const stripEmoji = (s: string) => s.replace(/^\p{Emoji}\s*/u, '').trim();
+                                return cfg.menus.map(menu => ({
+                                    icon: iconFor(menu.label),
+                                    label: stripEmoji(menu.label),
+                                    onClick: () => handleQuickMenuSelect(menu, !!cfg.useBirthInfo),
+                                    color: '#8E6FB7', bgColor: '#F5E6F7', borderColor: '#B49AC9',
+                                }));
+                            })();
+                            const featureCards = [...standardCards, ...quickMenuCards];
                             return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={featureCards} />;
                         })()}
 
@@ -1787,81 +1880,14 @@ const AppContent: React.FC = () => {
                         </div>
 
                         <div className="p-4 shrink-0 border-t border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
-                            {/* 퀵메뉴 버튼 */}
-                            {(() => {
+                            {/* 퀵메뉴 버튼 (하단) — 이미지가 있으면 상단 기능카드로 표시되므로 하단은 폴백(이미지 없을 때만) */}
+                            {activeImages.length === 0 && (() => {
                                 if (!activePersona?.quickMenuJson) return null;
                                 let config: { menus?: { label: string; prompt?: string; featured?: boolean; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig }[]; useBirthInfo?: boolean } = {};
                                 try { config = JSON.parse(activePersona.quickMenuJson); } catch { return null; }
                                 if (!config.menus?.length) return null;
-                                const handleMenuSelect = (menu: { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig }) => {
-                                    if (menu.subMenu) {
-                                        subMenuResultCardRef.current = menu.resultCard ?? false;
-                                        setSubMenuConfig(menu.subMenu);
-                                        return;
-                                    }
-                                    if (menu.faceModal) {
-                                        setShowFaceModal(true);
-                                        return;
-                                    }
-                                    if (menu.palmModal) {
-                                        setShowPalmModal(true);
-                                        return;
-                                    }
-                                    if (menu.partnerModal) {
-                                        setPendingPartnerMenu({ label: menu.label, prompt: menu.prompt ?? '' });
-                                        setShowPartnerModal(true);
-                                        return;
-                                    }
-                                    if (menu.placeholder) {
-                                        quickMenuApi.activate(50, '꿈해몽')
-                                            .then(({ paidBalance, bonusBalance }) => {
-                                                setUserPaidPoints(paidBalance);
-                                                setUserBonusPoints(bonusBalance);
-                                                setInputText('');
-                                                setInputPlaceholder(menu.placeholder!);
-                                                setActiveQuickMenu(menu.label);
-                                                setTimeout(() => textareaRef.current?.focus(), 0);
-                                            })
-                                            .catch(e => alert(e.message || '포인트 차감에 실패했습니다.'));
-                                        return;
-                                    }
-                                    if (menu.resultCard) {
-                                        if (config.useBirthInfo && !birthInfo) {
-                                            setPendingQuickMenu({ label: menu.label, prompt: menu.prompt ?? '', resultCard: true });
-                                            setShowBirthModal(true);
-                                            return;
-                                        }
-                                        let fullPrompt = menu.prompt ?? '';
-                                        if (config.useBirthInfo && birthInfo) {
-                                            const t = birthInfo.time && birthInfo.time !== '모름' ? ` ${birthInfo.time}생` : '';
-                                            const cal = birthInfo.lunar ? '음력' : '양력';
-                                            fullPrompt += `\n\n사용자 정보 — 이름: ${birthInfo.name}, 생년월일: ${cal} ${birthInfo.year}년 ${birthInfo.month}월 ${birthInfo.day}일${t}`;
-                                        }
-                                        setActiveQuickMenu(menu.label); // 로딩 멘트 주제 매칭용
-                                        setQuickMenuLoading(true);
-                                        quickMenuApi.generate(activePersonaId, fullPrompt)
-                                            .then(({ result, paidBalance, bonusBalance }) => {
-                                                setUserPaidPoints(paidBalance);
-                                                setUserBonusPoints(bonusBalance);
-                                                setQuickMenuResult({ title: menu.label, result });
-                                            })
-                                            .catch(e => alert(quickMenuErrorMessage(e)))
-                                            .finally(() => setQuickMenuLoading(false));
-                                        return;
-                                    }
-                                    if (config.useBirthInfo) {
-                                        if (birthInfo) {
-                                            setInputText(menu.prompt ?? '');
-                                            setTimeout(() => textareaRef.current?.focus(), 0);
-                                        } else {
-                                            setPendingQuickMenu({ label: menu.label, prompt: menu.prompt ?? '' });
-                                            setShowBirthModal(true);
-                                        }
-                                    } else {
-                                        setInputText(menu.prompt ?? '');
-                                        textareaRef.current?.focus();
-                                    }
-                                };
+                                // 컴포넌트 레벨 핸들러 재사용(상단 아이콘과 동일 동작). config.useBirthInfo 전달.
+                                const handleMenuSelect = (menu: QuickMenuItem) => handleQuickMenuSelect(menu, !!config.useBirthInfo);
                                 const featuredMenus = config.menus.filter(m => m.featured);
                                 const dropdownMenus = config.menus.filter(m => !m.featured);
                                 const glassBtn = 'text-xs px-3.5 py-1.5 rounded-full transition-all duration-150 active:scale-95';
