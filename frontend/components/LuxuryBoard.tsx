@@ -369,7 +369,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                                 <cfg.icon size={10} className={`${cfg.cls} shrink-0 ${task.status === 'processing' ? 'animate-spin' : ''}`} />
                                                 {grade
                                                     ? <>
-                                                        <span className={`text-[10px] font-bold ${grade.cls}`}>{grade.grade}</span>
+                                                        <span className={`text-[10px] font-bold ${grade.lightCls}`}>{grade.grade}</span>
                                                         <span className="text-[10px] text-[#9089A1]">{task.finalScore}점</span>
                                                       </>
                                                     : <span className={`text-[10px] ${cfg.cls}`}>{cfg.label}</span>
@@ -556,12 +556,13 @@ const ImageGallery: React.FC<{ raw: string }> = ({ raw }) => {
     );
 };
 
+// cls = 다크 배경(점수카드)용 밝은 톤 / lightCls = 밝은 배경(좌측 목록)용 진한 톤
 function getMarketGrade(score: number) {
-    if (score >= 90) return { grade: '정품예상', desc: '정품으로 추정 (만에 하나 오류 가능)', cls: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/40' };
-    if (score >= 80) return { grade: '미러급',   desc: '1:1 정밀 복제 수준 · 전문가도 육안 구분 어려움', cls: 'text-amber-200', bg: 'bg-amber-500/10 border-amber-400/40' };
-    if (score >= 70) return { grade: 'S급',      desc: '커스텀급 · 외관 거의 완벽, 정밀 검사 필요', cls: 'text-amber-300', bg: 'bg-amber-500/10 border-amber-500/30' };
-    if (score >= 60) return { grade: 'A급',      desc: '하이퀄리티 · 일반인 식별 어려움', cls: 'text-orange-300', bg: 'bg-orange-500/10 border-orange-500/30' };
-    return                  { grade: 'B급',      desc: '일반 가품 · AI가 99% 이상 식별 가능', cls: 'text-rose-300',   bg: 'bg-rose-500/10 border-rose-500/30' };
+    if (score >= 90) return { grade: '정품예상', desc: '정품으로 추정 (만에 하나 오류 가능)', cls: 'text-emerald-300', lightCls: 'text-emerald-700', bg: 'bg-emerald-500/10 border-emerald-500/40' };
+    if (score >= 80) return { grade: '미러급',   desc: '1:1 정밀 복제 수준 · 전문가도 육안 구분 어려움', cls: 'text-amber-200', lightCls: 'text-amber-800', bg: 'bg-amber-500/10 border-amber-400/40' };
+    if (score >= 70) return { grade: 'S급',      desc: '커스텀급 · 외관 거의 완벽, 정밀 검사 필요', cls: 'text-amber-300', lightCls: 'text-amber-700', bg: 'bg-amber-500/10 border-amber-500/30' };
+    if (score >= 60) return { grade: 'A급',      desc: '하이퀄리티 · 일반인 식별 어려움', cls: 'text-orange-300', lightCls: 'text-orange-600', bg: 'bg-orange-500/10 border-orange-500/30' };
+    return                  { grade: 'B급',      desc: '일반 가품 · AI가 99% 이상 식별 가능', cls: 'text-rose-300', lightCls: 'text-rose-600', bg: 'bg-rose-500/10 border-rose-500/30' };
 }
 
 const FinalScoreCard: React.FC<{ detail: LuxuryDetail }> = ({ detail }) => {
