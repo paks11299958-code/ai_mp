@@ -15,6 +15,9 @@ type Step = 'loading' | 'phone' | 'nickname' | 'done' | 'already' | 'error';
 
 // ── 유틸 ─────────────────────────────────────────────────
 
+// 같은 폰에서 재방문 시 전화번호를 자동입력하기 위한 로컬 저장 키
+const SAVED_PHONE_KEY = 'attend_phone';
+
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     const res = await fetch(url, options);
     if (!res.ok) {
@@ -36,15 +39,32 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
     const [doneNickname, setDoneNickname] = useState('');
     const [attendedAt, setAttendedAt]     = useState('');
     const [alreadyAt, setAlreadyAt]       = useState('');
+    const [phoneAutofilled, setPhoneAutofilled] = useState(false);
     const phoneRef    = useRef<HTMLInputElement>(null);
     const nicknameRef = useRef<HTMLInputElement>(null);
 
-    // 출석부 정보 로드
+    // 출석부 정보 로드 + 저장된 전화번호 자동입력
     useEffect(() => {
+        try {
+            const saved = localStorage.getItem(SAVED_PHONE_KEY);
+            if (saved) { setPhone(saved); setPhoneAutofilled(true); }
+        } catch { /* 시크릿모드 등 localStorage 불가 — 무시 */ }
         apiFetch<SheetInfo>(`/api/attendance/${sheetUuid}`)
             .then(data => { setSheetInfo(data); setStep('phone'); })
             .catch(e  => { setError(e.message); setStep('error'); });
     }, [sheetUuid]);
+
+    // 저장된 번호 지우고 직접 입력
+    const clearSavedPhone = () => {
+        try { localStorage.removeItem(SAVED_PHONE_KEY); } catch { /* 무시 */ }
+        setPhone(''); setPhoneAutofilled(false); setError('');
+        setTimeout(() => phoneRef.current?.focus(), 50);
+    };
+
+    // 출석 성공 시 전화번호 저장 (다음 재방문 자동입력)
+    const savePhone = (p: string) => {
+        try { localStorage.setItem(SAVED_PHONE_KEY, p); } catch { /* 무시 */ }
+    };
 
     useEffect(() => {
         if (step === 'phone')    setTimeout(() => phoneRef.current?.focus(), 100);
@@ -67,10 +87,12 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
             });
 
             if (res.status === 'existing' && res.attended) {
+                savePhone(cleaned);
                 setDoneNickname(res.nickname);
                 setAttendedAt(res.attendedAt);
                 setStep('done');
             } else if (res.status === 'existing' && res.alreadyAttended) {
+                savePhone(cleaned);
                 setDoneNickname(res.nickname);
                 setAlreadyAt(res.attendedAt);
                 setStep('already');
@@ -94,6 +116,7 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
                 body: JSON.stringify({ phone: cleaned, nickname: nickname.trim() }),
             });
             if (res.status === 'new' && res.attended) {
+                savePhone(cleaned);
                 setDoneNickname(res.member.nickname);
                 setAttendedAt(res.attendedAt);
                 setStep('done');
@@ -143,19 +166,29 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
                     <>
                         <div>
                             <p className="text-white/70 text-sm font-medium mb-1">연락처 입력</p>
-                            <p className="text-white/40 text-xs mb-4">출석 확인을 위해 연락처를 입력해주세요.</p>
+                            <p className="text-white/40 text-xs mb-4">
+                                {phoneAutofilled
+                                    ? '저장된 번호로 바로 출석할 수 있어요.'
+                                    : '출석 확인을 위해 연락처를 입력해주세요.'}
+                            </p>
                             <input
                                 ref={phoneRef}
                                 type="tel"
                                 inputMode="numeric"
                                 value={phone}
-                                onChange={e => setPhone(e.target.value)}
+                                onChange={e => { setPhone(e.target.value); setPhoneAutofilled(false); }}
                                 placeholder="01012345678"
                                 maxLength={13}
                                 onKeyDown={e => e.key === 'Enter' && handlePhoneSubmit()}
                                 className="w-full rounded-xl px-4 py-3 text-white text-base font-medium placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-pink-500/50"
                                 style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.15)' }}
                             />
+                            {phoneAutofilled && (
+                                <button onClick={clearSavedPhone}
+                                    className="mt-2 text-xs text-white/40 hover:text-white/70 underline underline-offset-2">
+                                    다른 번호로 출석하기
+                                </button>
+                            )}
                         </div>
                         {error && <p className="text-red-400 text-xs">{error}</p>}
                         <button
