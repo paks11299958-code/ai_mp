@@ -9,8 +9,15 @@ interface PalmReadingModalProps {
 }
 
 export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, onResult, onPointsUpdated, onClose }) => {
+    const [gender, setGender] = useState<'male' | 'female' | null>(null);
     const [hand, setHand] = useState<'left' | 'right'>('right');
     const [preview, setPreview] = useState<string | null>(null);
+
+    // 남좌여우(男左女右): 남성=왼손, 여성=오른손. 성별 선택 시 해당 손 자동 선택.
+    const pickGender = (g: 'male' | 'female') => {
+        setGender(g);
+        setHand(g === 'male' ? 'left' : 'right');
+    };
     const [mimeType, setMimeType] = useState<string>('image/jpeg');
     const [base64, setBase64] = useState<string | null>(null);
     const [analyzing, setAnalyzing] = useState(false);
@@ -40,7 +47,7 @@ export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, o
         setAnalyzing(true);
         setError(null);
         try {
-            const res = await palmReadingApi.analyze(base64, mimeType, personaId, hand);
+            const res = await palmReadingApi.analyze(base64, mimeType, personaId, hand, gender);
             if (!res.ok) {
                 // 사진 불명확 → 저장 안 함, 포인트 환불됨. 다시 촬영 안내(모달 유지).
                 if (res.paidBalance !== undefined && res.bonusBalance !== undefined) {
@@ -82,6 +89,30 @@ export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, o
 
                 <div className="p-5 space-y-4">
                     {/* 손 선택 */}
+                    {/* 성별 선택 (남좌여우 기준 손 자동 추천) */}
+                    <div>
+                        <p className="text-yellow-200/80 text-xs mb-2">성별을 선택하세요</p>
+                        <div className="flex gap-2">
+                            {([['male', '남성'], ['female', '여성']] as const).map(([val, ko]) => (
+                                <button
+                                    key={val}
+                                    onClick={() => pickGender(val)}
+                                    className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                                    style={gender === val
+                                        ? { background: 'linear-gradient(135deg, rgba(251,191,36,0.9), rgba(245,158,11,0.9))', color: '#1a0f00', border: '1px solid transparent' }
+                                        : { background: 'rgba(255,255,255,0.04)', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
+                                >{ko}</button>
+                            ))}
+                        </div>
+                        {gender && (
+                            <p className="text-yellow-200/55 text-[11px] mt-2 leading-relaxed">
+                                ☯ 전통 수상학의 <strong className="text-yellow-300">남좌여우(男左女右)</strong>에 따라
+                                {gender === 'male' ? ' 남성은 왼손' : ' 여성은 오른손'}을 주로 봅니다.
+                            </p>
+                        )}
+                    </div>
+
+                    {/* 손 선택 (성별로 자동 추천되며, 직접 변경도 가능) */}
                     <div>
                         <p className="text-yellow-200/80 text-xs mb-2">분석할 손을 선택하세요</p>
                         <div className="flex gap-2">

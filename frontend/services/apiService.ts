@@ -446,11 +446,12 @@ export const palmReadingApi = {
     // 422(사진 불명확)는 에러가 아닌 정상 분기로 반환. 그 외 오류만 throw.
     analyze: async (
         imageBase64: string, mimeType: string, personaId: string, hand: 'left' | 'right',
+        gender?: 'male' | 'female' | null,
     ): Promise<PalmAnalyzeOk | PalmAnalyzeUnclear> => {
         const res = await fetch(`${BASE}/palm-reading`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', ...authHeaders() },
-            body: JSON.stringify({ imageBase64, mimeType, personaId, hand }),
+            body: JSON.stringify({ imageBase64, mimeType, personaId, hand, gender }),
         });
         const text = await res.text();
         const data: any = text ? JSON.parse(text) : {};
