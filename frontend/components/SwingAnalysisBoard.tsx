@@ -138,9 +138,9 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
     };
 
     return (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-3 md:p-6"
+        <div className="fixed inset-0 z-[60] flex items-stretch md:items-center justify-center md:p-6"
             style={{ background: 'rgba(0,0,0,0.5)' }}>
-            <div className="relative w-full max-w-5xl h-full max-h-[92vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl"
+            <div className="relative w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] flex flex-col md:rounded-2xl overflow-hidden shadow-2xl"
                 style={{ background: T.bg, border: `1px solid ${T.border}` }}>
 
                 {/* ── Header ── */}
