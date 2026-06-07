@@ -569,6 +569,16 @@ const fmtUptime = (s: number) => {
     return d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
 };
 
+// ISO 시각을 "N분/시간 전"으로, maxAgeMin 초과 시 stale(오래됨) 판정.
+const agoInfo = (iso?: string | null, maxAgeMin = 0) => {
+    if (!iso) return { text: '기록 없음', stale: true };
+    const ms = Date.now() - new Date(iso).getTime();
+    if (isNaN(ms)) return { text: '기록 없음', stale: true };
+    const min = Math.floor(ms / 60000);
+    const text = min < 60 ? `${min}분 전` : min < 1440 ? `${Math.floor(min / 60)}시간 전` : `${Math.floor(min / 1440)}일 전`;
+    return { text, stale: maxAgeMin > 0 && min > maxAgeMin };
+};
+
 const Gauge: React.FC<{ label: string; value: number; color: string; sub?: string }> = ({ label, value, color, sub }) => (
     <div className="bg-gray-800 rounded-xl p-4">
         <p className="text-xs text-gray-400 mb-2">{label}</p>
@@ -593,6 +603,7 @@ const Server1MonitorView: React.FC = () => {
     const [logLevel, setLogLevel] = useState('');
     const [logLoading, setLogLoading] = useState(false);
     const [metricsLoading, setMetricsLoading] = useState(true);
+    const [errorSummary, setErrorSummary] = useState<{ today: number; yesterday: number; recent: string[] } | null>(null);
 
     const fetchMetrics = useCallback(() => {
         setMetricsLoading(true);
@@ -600,6 +611,7 @@ const Server1MonitorView: React.FC = () => {
             .then(setMetrics)
             .catch(() => {})
             .finally(() => setMetricsLoading(false));
+        adminApi.getErrorSummary().then(setErrorSummary).catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -726,6 +738,38 @@ const Server1MonitorView: React.FC = () => {
                             <span className="text-xs text-gray-400">🌐 Nginx 리버스 프록시</span>
                             <span className="text-xs text-gray-200 font-medium">{metrics.status.nginx}</span>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 에러 로그 요약 (최근 24h) */}
+            {errorSummary && (
+                <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <Icon name="AlertTriangle" size={11} />
+                        에러 로그 요약
+                    </p>
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                        <div className="flex items-center gap-4 py-3 px-3 border-b border-gray-800/50">
+                            <div className="flex items-baseline gap-1.5">
+                                <span className={`text-2xl font-bold ${errorSummary.today > 0 ? 'text-red-400' : 'text-green-400'}`}>{errorSummary.today}</span>
+                                <span className="text-xs text-gray-400">오늘</span>
+                            </div>
+                            <div className="flex items-baseline gap-1.5">
+                                <span className="text-lg font-semibold text-gray-300">{errorSummary.yesterday}</span>
+                                <span className="text-xs text-gray-500">어제</span>
+                            </div>
+                            {errorSummary.today === 0 && errorSummary.yesterday === 0 && (
+                                <span className="text-xs text-green-400 ml-auto">✓ 에러 없음</span>
+                            )}
+                        </div>
+                        {errorSummary.recent.length > 0 && (
+                            <div className="font-mono text-[11px] leading-5 p-3 max-h-40 overflow-y-auto space-y-1">
+                                {errorSummary.recent.map((l, i) => (
+                                    <div key={i} className="text-red-300/90 truncate" title={l}>{l}</div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -938,6 +982,54 @@ const Server2MonitorView: React.FC = () => {
                             <StatusRow label="💾 wiki 백업" value={data.status.wikiBackup} />
                         </div>
                     </div>
+
+                    {/* 사이트 점검 결과 (monitor.js — 서버2 이전) */}
+                    {(() => {
+                        const ms = data.monitorStatus;
+                        const ago = agoInfo(ms?.lastRun, 200); // 3시간 주기 → 200분 넘으면 stale
+                        return (
+                            <div>
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                    <Icon name="Globe" size={11} />
+                                    사이트 점검 (3시간 주기)
+                                </p>
+                                <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                                    <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
+                                        <span className="text-xs text-gray-400">마지막 점검</span>
+                                        <span className={`text-xs font-medium ${ago.stale ? 'text-yellow-400' : 'text-gray-200'}`}>
+                                            {ms?.lastRunKST || ago.text}{ago.stale && ms ? ' ⚠️ 지연' : ''}
+                                        </span>
+                                    </div>
+                                    <StatusRow label="🌐 사이트 접속" value={ms ? (ms.site?.ok ? '🟢 정상' : '🔴 실패') : '⚪ 기록 없음'} />
+                                    <StatusRow label="🔑 로그인 점검" value={ms ? (ms.login?.ok ? '🟢 정상' : '🔴 실패') : '⚪ 기록 없음'} />
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    {/* 뉴스 수집 결과 (오전/오후 슬롯) */}
+                    {data.news && (
+                        <div>
+                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <Icon name="Newspaper" size={11} />
+                                오늘뉴스 수집
+                            </p>
+                            <div className="bg-gray-800/60 border border-gray-700 rounded-xl overflow-hidden">
+                                {(['am', 'pm'] as const).map(slot => {
+                                    const s = data.news.slots?.[slot];
+                                    const ago = agoInfo(s?.collectedAt, 0);
+                                    return (
+                                        <div key={slot} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
+                                            <span className="text-xs text-gray-400">{slot === 'am' ? '🌅 오전 (00시)' : '🌇 오후 (13시)'}</span>
+                                            <span className={`text-xs font-medium ${s ? 'text-gray-200' : 'text-gray-500'}`}>
+                                                {s ? `🟢 ${s.categoryCount}개 · ${ago.text}` : '⚪ 미수집'}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
 
                     {/* 텔레그램 /status 원본 텍스트 */}
                     {data.statusText && (

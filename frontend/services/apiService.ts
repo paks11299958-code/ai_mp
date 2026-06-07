@@ -581,6 +581,9 @@ export const adminApi = {
         get<{ lines: string[]; total: number; page: number; pageSize: number }>(
             `/admin/monitor/logs/${date}?page=${page}&level=${level}`
         ),
+
+    getErrorSummary: () =>
+        get<{ today: number; yesterday: number; recent: string[] }>('/admin/monitor/error-summary'),
 };
 
 export const chatApi = {
