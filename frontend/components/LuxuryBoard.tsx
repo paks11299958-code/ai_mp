@@ -113,9 +113,9 @@ const STATUS_CONFIG = {
 };
 
 const VERDICT_CONFIG: Record<string, { label: string; cls: string; bg: string; icon: React.ElementType }> = {
-    '정품가능':     { label: '정품 가능성 높음', cls: 'text-green-400',  bg: 'bg-green-500/10 border-green-500/30',  icon: CheckCircle },
-    '전문감정권고': { label: '전문 감정 권고',   cls: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30', icon: AlertTriangle },
-    '위조의심':     { label: '위조 의심',         cls: 'text-red-400',    bg: 'bg-red-500/10 border-red-500/30',       icon: XCircle },
+    '정품가능':     { label: '정품 고유 특성 일치',  cls: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/30', icon: CheckCircle },
+    '전문감정권고': { label: '전문 감정 권고',       cls: 'text-amber-300',   bg: 'bg-amber-500/10 border-amber-500/30',     icon: AlertTriangle },
+    '위조의심':     { label: '가품 징후 관찰',       cls: 'text-rose-300',    bg: 'bg-rose-500/10 border-rose-500/30',       icon: XCircle },
 };
 
 const POINT_RESULT_CLS: Record<string, string> = {
@@ -246,9 +246,11 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
                     <div className="flex items-center gap-2">
-                        <Shield size={17} className="text-purple-400" />
-                        <h2 className="text-sm font-bold text-[#2D2438]">명품 진위 검증</h2>
-                        <span className="text-[10px] text-purple-300/70 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full">Gemini + Claude</span>
+                        <Shield size={17} style={{ color: '#B8985A' }} />
+                        <h2 className="text-sm font-bold" style={{ color: '#2D2438', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
+                            명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#B8985A' }}>LUXE VERIFY</span>
+                        </h2>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: '#B8985A', background: 'rgba(184,152,90,0.1)', border: '1px solid rgba(184,152,90,0.3)' }}>Gemini + Claude</span>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded-lg text-[#9089A1] hover:text-[#2D2438] hover:bg-white transition-colors">
                         <X size={17} />
@@ -550,11 +552,11 @@ const ImageGallery: React.FC<{ raw: string }> = ({ raw }) => {
 };
 
 function getMarketGrade(score: number) {
-    if (score >= 90) return { grade: '정품예상', desc: '정품으로 추정 (만에 하나 오류 가능)', cls: 'text-green-400',  bg: 'bg-green-500/10 border-green-500/30' };
-    if (score >= 80) return { grade: '미러급',   desc: '1:1 정밀 복제 수준 · 전문가도 육안 구분 어려움', cls: 'text-purple-300', bg: 'bg-purple-500/10 border-purple-500/30' };
-    if (score >= 70) return { grade: 'S급',      desc: '커스텀급 · 외관 거의 완벽, 정밀 검사 필요', cls: 'text-yellow-400', bg: 'bg-yellow-500/10 border-yellow-500/30' };
-    if (score >= 60) return { grade: 'A급',      desc: '하이퀄리티 · 일반인 식별 어려움', cls: 'text-orange-400', bg: 'bg-orange-500/10 border-orange-500/30' };
-    return                  { grade: 'B급',      desc: '일반 가품 · AI가 99% 이상 식별 가능', cls: 'text-red-400',    bg: 'bg-red-500/10 border-red-500/30' };
+    if (score >= 90) return { grade: '정품예상', desc: '정품으로 추정 (만에 하나 오류 가능)', cls: 'text-emerald-300', bg: 'bg-emerald-500/10 border-emerald-500/40' };
+    if (score >= 80) return { grade: '미러급',   desc: '1:1 정밀 복제 수준 · 전문가도 육안 구분 어려움', cls: 'text-amber-200', bg: 'bg-amber-500/10 border-amber-400/40' };
+    if (score >= 70) return { grade: 'S급',      desc: '커스텀급 · 외관 거의 완벽, 정밀 검사 필요', cls: 'text-amber-300', bg: 'bg-amber-500/10 border-amber-500/30' };
+    if (score >= 60) return { grade: 'A급',      desc: '하이퀄리티 · 일반인 식별 어려움', cls: 'text-orange-300', bg: 'bg-orange-500/10 border-orange-500/30' };
+    return                  { grade: 'B급',      desc: '일반 가품 · AI가 99% 이상 식별 가능', cls: 'text-rose-300',   bg: 'bg-rose-500/10 border-rose-500/30' };
 }
 
 const FinalScoreCard: React.FC<{ detail: LuxuryDetail }> = ({ detail }) => {
@@ -563,24 +565,30 @@ const FinalScoreCard: React.FC<{ detail: LuxuryDetail }> = ({ detail }) => {
     const barColor = score >= 75 ? 'bg-green-500' : score >= 50 ? 'bg-yellow-500' : 'bg-red-500';
     const grade = getMarketGrade(score);
     return (
-        <div className="bg-white/40 rounded-2xl border border-[#EAE2D3] p-4 space-y-3">
+        <div className="rounded-2xl p-4 space-y-3" style={{
+            background: 'linear-gradient(160deg, #1e2436 0%, #161b29 100%)',
+            border: '1px solid rgba(184,152,90,0.3)',
+            boxShadow: '0 8px 28px -10px rgba(0,0,0,0.5)',
+        }}>
             <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-[#2D2438]">3중 AI 종합 점수</span>
-                <span className="text-2xl font-bold text-[#2D2438]">{score}<span className="text-sm text-[#9089A1]">/100</span></span>
+                <span className="text-xs font-semibold" style={{ color: '#D9C9A3', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.03em' }}>
+                    AI 정밀 감정 지수
+                </span>
+                <span className="text-2xl font-bold" style={{ color: '#E8DCC0' }}>{score}<span className="text-sm" style={{ color: '#8A7E63' }}>/100</span></span>
             </div>
-            <div className="w-full bg-[#EAE2D3] rounded-full h-2">
+            <div className="w-full rounded-full h-2" style={{ background: 'rgba(255,255,255,0.08)' }}>
                 <div className={`${barColor} h-2 rounded-full transition-all`} style={{ width: `${score}%` }} />
             </div>
-            <div className="flex justify-between mt-1 text-[10px] text-[#9089A1]">
-                <span>위조 의심</span>
-                <span>정품 가능</span>
+            <div className="flex justify-between mt-1 text-[10px]" style={{ color: '#8A7E63' }}>
+                <span>가품 징후</span>
+                <span>정품 헤리티지 충족</span>
             </div>
             <div className={`flex items-center justify-between px-3 py-2 rounded-xl border ${grade.bg}`}>
                 <div>
-                    <span className="text-[10px] text-[#9089A1]">시장 등급 추정</span>
+                    <span className="text-[10px]" style={{ color: '#8A7E63' }}>정밀 복제도 평가</span>
                     <p className={`text-xs font-semibold ${grade.cls}`}>{grade.desc}</p>
                 </div>
-                <span className={`text-2xl font-black ${grade.cls}`}>{grade.grade}</span>
+                <span className={`text-2xl font-black ${grade.cls}`} style={{ fontFamily: '"Nanum Myeongjo", serif' }}>{grade.grade}</span>
             </div>
         </div>
     );
