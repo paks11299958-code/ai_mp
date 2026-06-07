@@ -11,6 +11,23 @@
 
 ---
 
+## 가입 보너스 & 온보딩 미션 (2026-06-07)
+
+신규 가입 시 무료 bonusPoints 지급 + 행동 유도 미션:
+
+| 항목 | 지급 | 함수 | 비고 |
+|------|------|------|------|
+| 가입 축하금 | 500P | `grantSignupPoints` | 일반/인증/카카오 3경로 모두 호출 |
+| 미션1 — 페르소나 첫 등록 | 500P | `grantMissionPoints(.., 'persona')` | 즐겨찾기 페르소나(`PUT /user/favorite-personas`) 첫 등록 |
+| 미션2 — AI 기능 첫 등록 | 500P | `grantMissionPoints(.., 'feature')` | 즐겨찾기 기능(`PUT /user/favorites`) 첫 등록 |
+
+- **중복방지**: `pointTransaction`에 `type='MISSION'` + description 기록이 이미 있으면 재지급 안 함(`awarded:false`) — 즐겨찾기 넣다뺐다 반복해도 1회만. **스키마 변경 없음**.
+- bonusPoints는 `{increment:500}`로 누적(가입 500P 덮어쓰기 방지). ⚠️ `grantSignupPoints`는 `=500` 고정인 것과 다름.
+- 즐겨찾기 PUT 응답: `{ok, mission:{awarded, amount, balanceAfter}|null}`. 프론트 `useFavorites` onMissionAwarded 콜백 → `RewardAlertModal`(축하) + 잔액 갱신.
+- 가입 직후 환영 모달(welcome): 축하금 + 남은 미션 안내. `lib/points.ts grantMissionPoints`, `routes/aimp/user.ts`, `frontend/components/RewardAlertModal.tsx`.
+
+---
+
 ## XP & 레벨별 비용
 
 | Lv | XP 범위 | 메시지 비용 | 레벨업 보너스 |

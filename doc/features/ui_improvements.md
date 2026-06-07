@@ -1,5 +1,35 @@
 # UI 개선 이력
 
+## 명품/게시판/모임 크림화 + 명품 단계표시 / 퀵메뉴 정렬 / 대기페이지 Rail 제거 / 로고 홈링크 (2026-06-06)
+- **모임(출첵, ClubBoard) 크림 전환**: 옛 다크 글래스(#1a1b23 배경 + text-white/N 반투명 + 핑크 accent)→크림 토큰(#FBF8F3/흰색, 구분선 #F0E9DE, 잉크 #2D2438, 보조 #9089A1). **accent 핑크→퍼플 #8E6FB7로 앱 통일**. QR 팝업(흰 카드+gray, QR 가독성)은 보존. 색만 변경, 로직 무변경.
+- **명품 검증(LuxuryBoard) 크림 전환 + 단계 표시**: 다크(slate+blue)→크림 디자인 토큰(#FBF8F3/흰색, accent 퍼플 #8E6FB7, purple accent 유지). 좌측 목록 task에 주식분석과 동일한 진행 스텝퍼(대기중→분석중→완료, 현재단계 글로우) + 상태별 안내문(분석중=자동갱신/대기중=순서대기/완료=클릭안내). status·10초 폴링은 기존 그대로, 시각화만 강화.
+- **건의/제휴 게시판 크림 전환**: BoardPanel/PartnerBoardPanel만 옛 다크(gray+blue+#0e1117)였음→크림 토큰으로 일괄(배경 #FBF8F3/흰색, accent 퍼플, 에러 연빨강). 색만 변경, 로직 무변경.
+- **퀵메뉴 결과카드(QuickMenuResultCard) 위 정렬**: items-center+my-auto(세로 중앙)라 긴 봉인 감정서 카드가 화면 아래로 쏠려 안 보였음→items-start+pt-8/12(위 정렬, 게시판 모달과 동일), 길면 overflow-y-auto 스크롤.
+- **대기페이지(MainPageNew) 좌측 세로 Rail(ChatRail) 제거**: 채팅 사이드바 제거와 동일 논리(데스크탑 전용+본문에 페르소나 그리드/카테고리/검색 중복). ChatRail 정의+렌더 삭제(-168줄). 메뉴 접근(어드민/공지/내정보/로그아웃)은 햄버거 메뉴가 이미 포함→햄버거를 display:none(모바일만)→flex(데/모 공통) 상시 노출.
+- **대기페이지 '✦ AI PERSONAS' 로고 클릭→첫 화면**: 기존 페르소나 탭 전환(중복)→onGoHome(goTo hero). 웹 표준 로고=홈.
+
+## 건의 게시판 개편 + 제휴 게시판 숨김 (2026-06-06)
+- **게시판 → '건의 게시판'**: 이름 변경(채팅 ⋮메뉴 라벨 + BoardPanel 패널 제목). MessageSquare 아이콘.
+- **전체화면 → 작은 중앙 모달**: BoardPanel 래퍼를 PartnerBoardPanel과 동일 구조로(`fixed inset-0 bg-black/60 flex items-start justify-center pt-16` + 내부 `max-w-2xl max-h-[80vh] rounded-2xl` 카드).
+- **비밀글 일관화**: BoardPanel은 원래 비밀글 컨셉(자물쇠 🔒, `canRead = 본인 || 어드민`, "비밀글" 표시)이었는데 백엔드 board.ts 목록만 전체공개라 어긋나 있었음 → 백엔드 GET / 목록을 `!isAdmin → where.userId=me.id`로 수정(일반 회원 본인 글만, 어드민 전체). 단일 글 GET/:id는 이미 열람권한 체크 있었음. shared-api 변경이라 서버1 배포 필요.
+- **제휴 게시판 숨김**: App.tsx의 `onPartnerBoardClick` prop 전달 3곳 제거 → 메뉴/랜딩/메인의 "제휴 문의" 버튼 자동 숨김(`{onPartnerBoardClick && ...}` + `.filter(item=>item.onClick)`). PartnerBoardPanel 컴포넌트·`showPartnerBoard` 상태는 보존(재노출 쉬움).
+
+## 채팅 UX 개편: 사이드바 제거 + 최근 페르소나 칩 + 헤더 진입버튼 (2026-06-06)
+- **좌측 페르소나 사이드바(Sidebar.tsx) 제거**: 사이드바는 `hidden md:flex`라 데스크탑만 표시되고, 모바일은 여는 트리거(`setIsOpen(true)`)가 없어 **죽은 기능**이었음 → 모바일에선 채팅 중 페르소나 전환 불가. 목록/검색은 대기페이지(MainPageNew, 카테고리까지)에, 어드민/공지/프로필은 채팅 ⋮메뉴에 중복이라 통째로 제거.
+- **채팅 헤더 아래 '최근 페르소나' 빠른전환 칩**: `recentPersonaIds`(localStorage) 재활용, 현재 페르소나 제외·최대 8, 썸네일+이름. 클릭→`handlePersonaClick`(인트로 처리 포함). **데스크탑·모바일 공통** → 모바일에서도 채팅 중 1클릭 전환 가능.
+- **헤더 왼쪽 진입버튼 2개**(데스크탑·모바일 공통): 🏠 홈(첫 화면) + 🧭 둘러보기(대기페이지, lucide Compass 퍼플). 사이드바 제거로 "점 세 개 메뉴 눌러야 보이던" 불편 해소. (처음엔 `hidden md:flex`로 데스크탑만→모바일서 안 보인다는 지적으로 공통화, 중복이던 모바일 뒤로가기 ChevronLeft는 제거=둘러보기가 동일 역할).
+- 정리: isSidebarOpen/Collapsed 상태, handleReorderPersona(사이드바 전용 어드민 순서변경), 빈 AuthProvider 제거.
+
+## 히어로 둘러보기 토글→대기페이지 이동 + 캐러셀 혼합 (2026-06-06)
+- 히어로(LandingPageNew) '캐릭터/기능 둘러보기' 토글이 제자리 캐러셀 모드만 바꾸던 것 → 클릭 시 각 **대기페이지로 즉시 이동**(onPersonaListClick/onFeatureListClick).
+- TarotCarousel `mode` 제거 → 페르소나+기능을 번갈아 섞은 한 캐러셀(MixedItem)로 표시.
+
+## 모임(출첵) 보강: QR 표시 + 정보보기 탭 통합 + 수정/삭제 (2026-06-06)
+- **QR 실제 표시**: qrcode.react가 그동안 미설치였음(설치 기록만 있고 실제 없었음) → 설치 + 출석부 카드에 QR 버튼→클릭 시 큰 QR 팝업(QRCodeCanvas 240px, 현장 스캔용).
+- **정보 보기 상단 탭 통합**: detail view를 정보/회원/출석부/설정 가로 탭으로(OWNER만 4탭). 이전엔 회원명부·출석부가 별도 화면 전환이라 동선 길었음.
+- **설정 탭 신설**: 모임 이름/지역/소개 수정(PATCH) + 모임 삭제(DELETE, 확인단계+연쇄삭제 경고). 백엔드 API는 기존에 있었고 프론트만 연결. Club 자식관계 전부 onDelete:Cascade.
+- **모바일 바텀시트 높이**: 탭으로 콘텐츠 길어져 아래 몰리던 것 → 모바일 `h-[90vh]`로 키워 상단부터 보이게(모달 래퍼 4곳).
+
 ## 주식분석 진행상황 시각화 (2026-06-03)
 - 종목 등록 후 진행 단계를 못 봐 답답하던 문제 → StockAnalysisBoard 각 종목 행에:
   - **단계 스텝퍼**(대기중→분석중→완료, 현재 단계까지 색칠+활성 글로우), 실패는 에러 배지
@@ -251,3 +281,37 @@
 - 선택 즉시 자동 분석 (기존 확인 버튼 제거) — `handleFileSelect`가 압축+분석 일괄 처리
 - 분석 중: 촬영된 사진 미리보기 + 핑크 스피너
 - 에러 시: "다시 찍기" 버튼만 표시
+
+## 첫화면(Hero) 개편 + 즐겨찾기 (2026-06-06)
+
+로그인 후 첫화면(`LandingPageNew.tsx`)을 "자주 쓰는 기능·페르소나를 바로 누르는" 허브로 재구성.
+
+**즐겨찾기 (기능 ⭐ + 페르소나 ☆)**
+- 저장: `User.favoritesJson`(기능 키 배열) + `favoritePersonasJson`(페르소나 id 배열) — **2개 별도 컬럼**(키 충돌 방지). 서버1 ALTER + `prisma generate`.
+- API: `GET/PUT /api/aimp/user/favorites`, `GET/PUT /api/aimp/user/favorite-personas` (`shared-api/routes/aimp/user.ts`, router.use 인증, PUT 문자열배열·최대20개 검증). vercel `/api/user/:path*` 와일드카드로 프록시 자동.
+- 훅: `frontend/hooks/useFavorites.ts` 범용화(`useFavoriteList(load, save)`) → `useFavorites`(기능)·`useFavoritePersonas`(페르소나). 서버 로드 + 낙관적 토글 + 실패 롤백.
+- 토글 UI: 메뉴/페르소나 카드(`MainPageNew.tsx`) 우상단 ⭐/☆ 버튼(stopPropagation). 기능은 `FAVORITABLE_KEYS`(news/stock/hotkeyword/used/luxury/mathtutor/club)만 — **골프는 페르소나 의존이라 제외**.
+- ⚠️ **함정**: `App.tsx`는 화면별 분리된 return 3개(hero/main/채팅). 기능 보드 렌더(`{showTodayNews && <TodayNewsBoard/>}` 등)가 main·채팅에만 있어 **Hero 칩 클릭 시 안 떴음** → hero 분기에도 보드 렌더 추가. `FEATURE_ACTIONS`(키→setShow)는 본체로 승격해 Hero칩·채팅기능카드 공용.
+
+**첫화면 레이아웃**
+- 세로 중앙 정렬. 홍보문구(폰트 `clamp(30~50px)` 축소) 아래 '나의 AI 기능' + '나의 AI 페르소나' 카드.
+- 동그라미 썸네일: 기능=컬러 아이콘(`FEATURE_EMOJI`, 46px), 페르소나=얼굴 사진(`imageUrl`, 48px) + 이름. 가운데 정렬. 최근 대화 페르소나는 맨앞 ✨강조(퍼플 링).
+- 빈 상태: 안내문 + '기능/페르소나 둘러보기 →' 버튼(바로 담으러 이동).
+- 탑메뉴 '채팅 시작'→'내 정보 보기'(onProfileClick), 가운데 '채팅 시작하기' 제거.
+- 카드 제목 아이콘: 검정 이모지(👤⭐) 대신 lucide `Sparkles`/`Users` 퍼플(크림 톤 일관).
+- ⚠️ 좌우 3등분 시도했다 "산만/제목 깨짐" 피드백으로 세로 복귀 — **큰 레이아웃 변경은 한 번에 확정 말고 피드백 받기**.
+- PC/모바일(390폭) 캡처 검증, 오버플로우 0.
+
+## 채팅 상단 기능칩 통일 + 첫화면 잔손질 + 공지 마크다운 (2026-06-07)
+- **채팅 상단 기능 텍스트칩**(`PersonaImageViewer`): 도결처럼 quickMenuJson 쓰는 페르소나도 기능을 채팅 상단에 표시(다른 페르소나와 통일). 기능을 사진 썸네일 행에서 **분리해 그 아래 전체 폭 텍스트칩**(flex-wrap, 둥근 알약형). ⚠️처음 아이콘 세로카드로 했다 "사진 옆 반폭이라 답답" 피드백→텍스트칩+전체폭 재작업. `handleQuickMenuSelect`를 App 컴포넌트 레벨로 승격해 상단/하단 공용(서브메뉴/모달/포인트/생일 동작 유지). 하단 칩은 이미지 없는 페르소나 폴백.
+- **첫화면(LandingPageNew)**: 카드 순서 '나의 AI 페르소나'를 '나의 AI 기능' 위로. 미션 안내 별 ☆(흰색으로 보임)→⭐(노란 채움). 빈 카드에 '담으면 +500P 🎁' 미션 유도.
+- **즐겨찾기 별 누락 버그 수정**: FEATURES_GRID/캐러셀 key가 정본(personaFeatures FEATURE_BY_KEY)과 불일치(`keyword/math/attend`)해 핫키워드·수학·모임 카드에 ⭐가 안 떴음 → `hotkeyword/mathtutor/club`로 통일. 카드 클릭 실행은 personaName 기반이라 key 변경 영향 없음.
+- **공지사항 마크다운**(`AnnouncementModal`): 평문→ReactMarkdown+remark-gfm(굵게/목록/제목/링크). `.announcement-md` 경량 스타일. 자동 팝업 제거(종🔔 버튼 클릭 시에만, 미읽음 배지 유지).
+- **QR 출석 전화번호 자동입력**(`AttendPage`): 같은 폰 재방문 시 localStorage에서 이전 번호 자동채움 + '다른 번호로' 초기화. 자동제출 안 함(타인 단말 오용 방지).
+
+## 분석화면 보증서 톤 통일 + 디테일 (2026-06-07 오후)
+- **명품·주식·골프 분석 UI 보증서 톤**(LuxuryBoard/StockAnalysisBoard/SwingAnalysisBoard): 명조(Nanum Myeongjo) 타이틀 + 카드 구조 + 라벨 격상(한글주+영문보조 — 명품감정원 LUXE VERIFY / 주식 정밀분석 INVEST VERIFY / 정밀 스윙진단 SWING MASTER). ⚠️**골드 실험했으나 밝은 크림 배경 가독성 약함 → 앱 기본 퍼플(#8E6FB7)로 통일**. 명조·카드구조는 고급감 유지. **교훈: 밝은 배경엔 골드보다 앱 정체성색(퍼플)이 선명·일관.**
+- **명품 노란색 가독성**: 밝은배경 위 노랑(yellow/amber-300·400) 안 보임 → 주황(orange-600)·진한 emerald/rose. 등급배지는 다크 점수카드용 cls와 밝은 목록용 lightCls 분리. 진단명 카드화, 면책 베이지 배경.
+- **손금 결과카드**: 전생식 봉인→클릭 3D플립 + 맨 위 손금사진(dataURL 메모리만) + 번호매긴 설명. 성별+남좌여우 손 자동추천.
+- **투자의견 색**: 한국 관습 매수=빨강/매도=파랑(opinionColor 의견텍스트 기반).
+- **페르소나별 기능표시 분기**(PersonaImageViewer featureCards/featureChips): 도결(quickMenuJson 메뉴 많음)=텍스트칩 / 나머지=아이콘카드.
