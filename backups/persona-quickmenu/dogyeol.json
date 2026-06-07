@@ -1,86 +1,91 @@
 {
-  "_comment": "도결(道潔) 선생 퀵메뉴 복원용 스냅샷. 정본은 DB(Persona.quickMenuJson). 평소 수정은 어드민 화면에서. 이 파일은 DB 유실 시 복원용 백업일 뿐 자동 실행되지 않음.",
-  "personaId": "cmopfkd4o000004la2q5p3nle",
-  "personaName": "도결(道潔) 선생",
-  "snapshotAt": "2026-06-05",
-  "quickMenuJson": {
-    "menus": [
+ "_comment": "도결(道潔) 선생 퀵메뉴 복원용 스냅샷. 정본은 DB(Persona.quickMenuJson). 평소 수정은 어드민 화면에서. 이 파일은 DB 유실 시 복원용 백업일 뿐 자동 실행되지 않음.",
+ "personaId": "cmopfkd4o000004la2q5p3nle",
+ "personaName": "도결(道潔) 선생",
+ "snapshotAt": "2026-06-07",
+ "quickMenuJson": {
+  "menus": [
+   {
+    "label": "📅 시운의 흐름",
+    "subMenu": {
+     "items": [
       {
-        "label": "📅 시운의 흐름",
-        "subMenu": {
-          "items": [
-            {
-              "label": "오늘의 운세",
-              "prompt": "오늘의 운세를 봐주세요."
-            },
-            {
-              "label": "이달의 흐름",
-              "prompt": "이달의 운세를 봐주세요."
-            },
-            {
-              "label": "올해의 비결",
-              "prompt": "올해의 운세와 토정비결을 봐주세요."
-            }
-          ],
-          "dialog": "자네, 가까운 하루의 기운을 보러 왔는가, 아니면 한 해의 큰 물길을 읽으러 왔는가?"
-        },
-        "featured": true,
-        "resultCard": true
+       "label": "오늘의 운세",
+       "prompt": "오늘의 운세를 봐주세요."
       },
       {
-        "label": "💰 성취와 재물",
-        "subMenu": {
-          "items": [
-            {
-              "label": "재물 흐름",
-              "prompt": "재물 흐름을 봐주세요."
-            },
-            {
-              "label": "사업/성취",
-              "prompt": "사업과 성취 운을 봐주세요."
-            }
-          ],
-          "dialog": "자네의 곳간이 차오를 시기인지, 아니면 성(城)을 쌓고 지켜야 할 때인지 내 명부를 깊이 살펴보겠네."
-        },
-        "featured": true,
-        "resultCard": true
+       "label": "이달의 흐름",
+       "prompt": "이달의 운세를 봐주세요."
       },
       {
-        "label": "❤️ 인연의 결",
-        "subMenu": {
-          "items": [
-            {
-              "label": "연애 운세",
-              "prompt": "연애 운세를 봐주세요."
-            },
-            {
-              "label": "인연 궁합",
-              "prompt": "궁합을 봐주세요.",
-              "partnerModal": true
-            }
-          ],
-          "dialog": "사람과 사람 사이에도 결이 있는 법이지. 자네를 스쳐 가는 인연인가, 아니면 머무를 인연인가?"
-        },
-        "featured": true,
-        "resultCard": true
-      },
-      {
-        "label": "🪷 나의 전생",
-        "prompt": "나의 전생(前生)이 어떤 존재였는지 도결 선생의 입담으로 흥미진진하게 풀어주게나. 전생의 신분과 성격, 살았던 시대와 장소, 어떤 삶을 살다 어찌 생을 마쳤는지, 그리고 그 전생이 지금의 나에게 남긴 인연과 업(業)·타고난 기질을 이야기처럼 들려주게. 마지막엔 전생의 교훈을 한 줄로 정리해 주시게.",
-        "featured": true,
-        "resultCard": true
-      },
-      {
-        "label": "🌙 꿈해몽",
-        "featured": true,
-        "placeholder": "어젯밤 꾼 꿈의 내용을 상세히 들려주게나."
-      },
-      {
-        "label": "🔮 관상학",
-        "featured": true,
-        "faceModal": true
+       "label": "올해의 비결",
+       "prompt": "올해의 운세와 토정비결을 봐주세요."
       }
-    ],
-    "useBirthInfo": true
-  }
+     ],
+     "dialog": "자네, 가까운 하루의 기운을 보러 왔는가, 아니면 한 해의 큰 물길을 읽으러 왔는가?"
+    },
+    "featured": true,
+    "resultCard": true
+   },
+   {
+    "label": "💰 성취와 재물",
+    "subMenu": {
+     "items": [
+      {
+       "label": "재물 흐름",
+       "prompt": "재물 흐름을 봐주세요."
+      },
+      {
+       "label": "사업/성취",
+       "prompt": "사업과 성취 운을 봐주세요."
+      }
+     ],
+     "dialog": "자네의 곳간이 차오를 시기인지, 아니면 성(城)을 쌓고 지켜야 할 때인지 내 명부를 깊이 살펴보겠네."
+    },
+    "featured": true,
+    "resultCard": true
+   },
+   {
+    "label": "❤️ 인연의 결",
+    "subMenu": {
+     "items": [
+      {
+       "label": "연애 운세",
+       "prompt": "연애 운세를 봐주세요."
+      },
+      {
+       "label": "인연 궁합",
+       "prompt": "궁합을 봐주세요.",
+       "partnerModal": true
+      }
+     ],
+     "dialog": "사람과 사람 사이에도 결이 있는 법이지. 자네를 스쳐 가는 인연인가, 아니면 머무를 인연인가?"
+    },
+    "featured": true,
+    "resultCard": true
+   },
+   {
+    "label": "🪷 나의 전생",
+    "prompt": "나의 전생(前生)이 어떤 존재였는지 도결 선생의 입담으로 흥미진진하게 풀어주게나. 전생의 신분과 성격, 살았던 시대와 장소, 어떤 삶을 살다 어찌 생을 마쳤는지, 그리고 그 전생이 지금의 나에게 남긴 인연과 업(業)·타고난 기질을 이야기처럼 들려주게. 마지막엔 전생의 교훈을 한 줄로 정리해 주시게.",
+    "featured": true,
+    "resultCard": true
+   },
+   {
+    "label": "🌙 꿈해몽",
+    "featured": true,
+    "placeholder": "어젯밤 꾼 꿈의 내용을 상세히 들려주게나."
+   },
+   {
+    "label": "🔮 관상학",
+    "featured": true,
+    "faceModal": true
+   },
+   {
+    "label": "🖐 손금",
+    "featured": true,
+    "palmModal": true
+   }
+  ],
+  "useBirthInfo": true
+ }
 }
