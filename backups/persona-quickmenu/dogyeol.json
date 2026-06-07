@@ -6,7 +6,7 @@
  "quickMenuJson": {
   "menus": [
    {
-    "label": "📅 운세 보기",
+    "label": "📅 운세",
     "subMenu": {
      "items": [
       {
@@ -28,7 +28,7 @@
     "resultCard": true
    },
    {
-    "label": "💰 성취와 재물",
+    "label": "💰 재물",
     "subMenu": {
      "items": [
       {
@@ -46,7 +46,7 @@
     "resultCard": true
    },
    {
-    "label": "❤️ 인연의 결",
+    "label": "❤️ 인연",
     "subMenu": {
      "items": [
       {
@@ -65,18 +65,18 @@
     "resultCard": true
    },
    {
-    "label": "🪷 나의 전생",
+    "label": "🕉️ 전생",
     "prompt": "나의 전생(前生)이 어떤 존재였는지 도결 선생의 입담으로 흥미진진하게 풀어주게나. 전생의 신분과 성격, 살았던 시대와 장소, 어떤 삶을 살다 어찌 생을 마쳤는지, 그리고 그 전생이 지금의 나에게 남긴 인연과 업(業)·타고난 기질을 이야기처럼 들려주게. 마지막엔 전생의 교훈을 한 줄로 정리해 주시게.",
     "featured": true,
     "resultCard": true
    },
    {
-    "label": "🌙 꿈해몽",
+    "label": "🌙 해몽",
     "featured": true,
     "placeholder": "어젯밤 꾼 꿈의 내용을 상세히 들려주게나."
    },
    {
-    "label": "🔮 관상학",
+    "label": "🔮 관상",
     "featured": true,
     "faceModal": true
    },
