@@ -476,6 +476,8 @@ export const ebookApi = {
         get<EbookProject[]>('/ebook'),
     get: (id: number) =>
         get<EbookProject>(`/ebook/${id}`),
+    updateToc: (id: number, title: string, chapters: EbookTocChapter[]) =>
+        put<EbookProject>(`/ebook/${id}/toc`, { title, chapters }),
     remove: (id: number) =>
         del<{ deleted: boolean }>(`/ebook/${id}`),
 };

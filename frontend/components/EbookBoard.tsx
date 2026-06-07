@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft } from 'lucide-react';
-import { ebookApi, EbookProject } from '../services/apiService';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil } from 'lucide-react';
+import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
 const T = {
@@ -18,6 +18,41 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(true);
+    // 목차 편집 모드
+    const [editing, setEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState('');
+    const [editChapters, setEditChapters] = useState<EbookTocChapter[]>([]);
+    const [savingToc, setSavingToc] = useState(false);
+
+    const startEdit = () => {
+        if (!selected) return;
+        setEditTitle(selected.title || '');
+        setEditChapters((selected.chapters ?? []).map(c => ({ ...c })));
+        setEditing(true);
+    };
+    const cancelEdit = () => setEditing(false);
+    const setCh = (i: number, key: 'title' | 'summary', v: string) =>
+        setEditChapters(prev => prev.map((c, idx) => idx === i ? { ...c, [key]: v } : c));
+    const addCh = () => setEditChapters(prev => [...prev, { no: prev.length + 1, title: '', summary: '' }]);
+    const delCh = (i: number) => setEditChapters(prev => prev.filter((_, idx) => idx !== i));
+    const moveCh = (i: number, dir: -1 | 1) => setEditChapters(prev => {
+        const j = i + dir;
+        if (j < 0 || j >= prev.length) return prev;
+        const next = [...prev]; [next[i], next[j]] = [next[j], next[i]]; return next;
+    });
+    const saveToc = async () => {
+        if (!selected || savingToc) return;
+        const clean = editChapters.filter(c => c.title.trim());
+        if (!clean.length) { setError('챕터가 최소 1개는 있어야 해요.'); return; }
+        setSavingToc(true); setError(null);
+        try {
+            const updated = await ebookApi.updateToc(selected.id, editTitle.trim() || selected.topic, clean);
+            setSelected(updated);
+            setEditing(false);
+            loadList();
+        } catch (e: any) { setError(e.message || '목차 저장 실패'); }
+        finally { setSavingToc(false); }
+    };
 
     const loadList = useCallback(() => {
         ebookApi.list().then(setList).catch(() => {});
@@ -118,25 +153,63 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 </button>
                                 {/* 책 제목 카드 */}
                                 <div className="rounded-2xl p-5 mb-4" style={{ background: 'linear-gradient(135deg, #ffffff, #f7f3fb)', border: `1px solid ${T.accentBorder}`, boxShadow: '0 4px 16px -8px rgba(142,111,183,0.4)' }}>
-                                    <p className="text-[10px] tracking-widest mb-1" style={{ color: T.accent }}>전자책 목차</p>
-                                    <h2 className="text-xl font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{selected.title || selected.topic}</h2>
-                                    <p className="text-xs mt-1" style={{ color: T.inkMute }}>주제: {selected.topic}</p>
-                                </div>
-                                {/* 목차 */}
-                                <div className="space-y-2">
-                                    {(selected.chapters ?? []).map(ch => (
-                                        <div key={ch.no} className="flex gap-3 rounded-xl p-3" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                            <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: T.accentSoft, color: T.accent, border: `1px solid ${T.accentBorder}` }}>{ch.no}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold" style={{ color: T.ink }}>{ch.title}</p>
-                                                <p className="text-xs mt-0.5" style={{ color: T.inkSoft }}>{ch.summary}</p>
-                                            </div>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] tracking-widest mb-1" style={{ color: T.accent }}>전자책 목차</p>
+                                            {editing
+                                                ? <input value={editTitle} onChange={e => setEditTitle(e.target.value)}
+                                                    className="w-full text-xl font-bold rounded-lg px-2 py-1" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
+                                                : <h2 className="text-xl font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{selected.title || selected.topic}</h2>}
+                                            <p className="text-xs mt-1" style={{ color: T.inkMute }}>주제: {selected.topic}</p>
                                         </div>
-                                    ))}
+                                        {!editing
+                                            ? <button onClick={startEdit} className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}><Pencil size={12} /> 목차 수정</button>
+                                            : <div className="flex gap-1.5 shrink-0">
+                                                <button onClick={saveToc} disabled={savingToc} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: '#fff', background: T.accent }}>{savingToc ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 저장</button>
+                                                <button onClick={cancelEdit} className="text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
+                                              </div>}
+                                    </div>
                                 </div>
-                                <p className="text-[11px] text-center mt-4" style={{ color: T.inkMute }}>
-                                    📖 목차가 마음에 들면, 다음 단계에서 챕터별 본문을 만들 수 있어요. (준비 중)
-                                </p>
+                                {error && editing && <p className="text-xs text-red-500 mb-2">{error}</p>}
+                                {/* 목차 — 보기/편집 */}
+                                {!editing ? (
+                                    <div className="space-y-2">
+                                        {(selected.chapters ?? []).map(ch => (
+                                            <div key={ch.no} className="flex gap-3 rounded-xl p-3" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                                <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: T.accentSoft, color: T.accent, border: `1px solid ${T.accentBorder}` }}>{ch.no}</span>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-semibold" style={{ color: T.ink }}>{ch.title}</p>
+                                                    <p className="text-xs mt-0.5" style={{ color: T.inkSoft }}>{ch.summary}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {editChapters.map((ch, i) => (
+                                            <div key={i} className="flex gap-2 rounded-xl p-3" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                                <div className="flex flex-col gap-0.5 shrink-0 pt-0.5">
+                                                    <button onClick={() => moveCh(i, -1)} disabled={i === 0} className="disabled:opacity-30"><ChevronUp size={14} style={{ color: T.inkMute }} /></button>
+                                                    <span className="text-[10px] text-center" style={{ color: T.accent }}>{i + 1}</span>
+                                                    <button onClick={() => moveCh(i, 1)} disabled={i === editChapters.length - 1} className="disabled:opacity-30"><ChevronDown size={14} style={{ color: T.inkMute }} /></button>
+                                                </div>
+                                                <div className="flex-1 min-w-0 space-y-1">
+                                                    <input value={ch.title} onChange={e => setCh(i, 'title', e.target.value)} placeholder="챕터 제목"
+                                                        className="w-full text-sm font-semibold rounded-lg px-2 py-1" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
+                                                    <input value={ch.summary} onChange={e => setCh(i, 'summary', e.target.value)} placeholder="한 줄 요약"
+                                                        className="w-full text-xs rounded-lg px-2 py-1" style={{ color: T.inkSoft, border: `1px solid ${T.border}`, background: '#fff' }} />
+                                                </div>
+                                                <button onClick={() => delCh(i)} className="shrink-0 self-start"><Trash2 size={14} style={{ color: '#C62828' }} /></button>
+                                            </div>
+                                        ))}
+                                        <button onClick={addCh} className="w-full py-2 rounded-xl text-xs font-medium flex items-center justify-center gap-1" style={{ color: T.accent, border: `1px dashed ${T.accentBorder}`, background: T.accentSoft }}>
+                                            <Plus size={13} /> 챕터 추가
+                                        </button>
+                                    </div>
+                                )}
+                                {!editing && <p className="text-[11px] text-center mt-4" style={{ color: T.inkMute }}>
+                                    ✏️ 목차를 수정하거나, 다음 단계에서 챕터별 자료 수집·본문 생성을 할 수 있어요. (준비 중)
+                                </p>}
                             </div>
                         )}
                     </div>
