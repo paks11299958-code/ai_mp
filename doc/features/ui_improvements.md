@@ -315,3 +315,7 @@
 - **손금 결과카드**: 전생식 봉인→클릭 3D플립 + 맨 위 손금사진(dataURL 메모리만) + 번호매긴 설명. 성별+남좌여우 손 자동추천.
 - **투자의견 색**: 한국 관습 매수=빨강/매도=파랑(opinionColor 의견텍스트 기반).
 - **페르소나별 기능표시 분기**(PersonaImageViewer featureCards/featureChips): 도결(quickMenuJson 메뉴 많음)=텍스트칩 / 나머지=아이콘카드.
+
+## 보드 모달 레이아웃 통일 + 전자책 아이콘화 (2026-06-08)
+- **강지훈 전자책 → 기능 아이콘 카드**: 기능 1개라 텍스트칩 대신 아이콘카드. personaFeatures에 'ebook' 등록(NAME_FALLBACK 강지훈), quickMenuJson null로 칩 제거.
+- **분석 보드 모달 닫기버튼 잘림 수정**: 명품·주식·골프가 `items-center`+`max-h-95vh`라 작은 데스크탑 창에서 헤더(닫기 X)가 화면 위로 잘림 → **골프 스윙 보드 기준으로 통일**: 모바일=전체화면(items-stretch), 데스크탑=중앙(md:items-center)+`md:p-6`+`max-w-5xl`+`md:max-h-90vh`. 헤더 shrink-0이라 항상 보임. **교훈: 모달은 items-center+큰 max-h면 작은창에서 헤더 잘림. 모바일 전체화면+데스크탑 90vh가 안전.**
