@@ -791,6 +791,7 @@ const AppContent: React.FC = () => {
         club: () => setShowClubBoard(true),
         'golf-swing': () => setShowSwingInput(true),
         'golf-record': () => setShowSwingBoard(true),
+        ebook: () => setShowEbookBoard(true),
     };
 
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
