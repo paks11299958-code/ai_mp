@@ -117,27 +117,27 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                         })}
                     </div>
 
-                    {/* 기능 카드 — 많으면(5개+) 가로 스크롤(모바일 대응) */}
-                    {featureCards && featureCards.length > 0 && (
-                        <div className={`flex gap-1.5 ${featureCards.length > 4 ? 'overflow-x-auto flex-1 min-w-0 pb-1' : 'shrink-0'}`}>
-                            {featureCards.map((card, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={card.onClick}
-                                    className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-xl border transition-all shrink-0"
-                                    style={{
-                                        borderColor: card.borderColor ?? '#B49AC9',
-                                        background: card.bgColor ?? '#F5E6F7',
-                                        color: card.color ?? '#8E6FB7',
-                                    }}
-                                >
-                                    <Icon name={card.icon as any} size={16} />
-                                    <span className="text-[10px] font-medium whitespace-nowrap">{card.label}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
                 </div>
+
+                {/* 기능 — 사진 행 아래 전체 폭 텍스트 칩(가로 나열, 넘치면 줄바꿈) */}
+                {featureCards && featureCards.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                        {featureCards.map((card, idx) => (
+                            <button
+                                key={idx}
+                                onClick={card.onClick}
+                                className="text-xs font-medium px-3 py-1.5 rounded-full border transition-all active:scale-95 whitespace-nowrap"
+                                style={{
+                                    borderColor: card.borderColor ?? '#B49AC9',
+                                    background: card.bgColor ?? '#F5E6F7',
+                                    color: card.color ?? '#8E6FB7',
+                                }}
+                            >
+                                {card.label}
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* 이미지 전체보기 모달 */}

@@ -1791,21 +1791,10 @@ const AppContent: React.FC = () => {
                                 let cfg: { menus?: QuickMenuItem[]; useBirthInfo?: boolean } = {};
                                 try { cfg = JSON.parse(activePersona.quickMenuJson); } catch { return []; }
                                 if (!cfg.menus?.length) return [];
-                                // 메뉴 라벨 키워드 → lucide 아이콘
-                                const iconFor = (label: string): string => {
-                                    if (label.includes('시운') || label.includes('운세') || label.includes('흐름')) return 'Clock';
-                                    if (label.includes('재물') || label.includes('성취')) return 'TrendingUp';
-                                    if (label.includes('인연') || label.includes('연애') || label.includes('사랑')) return 'MessageSquare';
-                                    if (label.includes('전생')) return 'Sparkles';
-                                    if (label.includes('꿈')) return 'BookOpen';
-                                    if (label.includes('관상')) return 'Eye';
-                                    if (label.includes('손금')) return 'Activity';
-                                    return 'Sparkles';
-                                };
-                                const stripEmoji = (s: string) => s.replace(/^\p{Emoji}\s*/u, '').trim();
+                                // 텍스트 칩이라 아이콘 불필요. 이모지 포함 원본 라벨 그대로 사용.
                                 return cfg.menus.map(menu => ({
-                                    icon: iconFor(menu.label),
-                                    label: stripEmoji(menu.label),
+                                    icon: '',
+                                    label: menu.label,
                                     onClick: () => handleQuickMenuSelect(menu, !!cfg.useBirthInfo),
                                     color: '#8E6FB7', bgColor: '#F5E6F7', borderColor: '#B49AC9',
                                 }));
