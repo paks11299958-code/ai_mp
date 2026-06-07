@@ -1016,7 +1016,7 @@ const Server2MonitorView: React.FC = () => {
                                     const ago = agoInfo(s?.collectedAt, 0);
                                     return (
                                         <div key={slot} className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50 last:border-0">
-                                            <span className="text-xs text-gray-400">{slot === 'am' ? '🌅 오전 (00시)' : '🌇 오후 (13시)'}</span>
+                                            <span className="text-xs text-gray-400">{slot === 'am' ? '🌅 오전 (06시)' : '🌇 오후 (18시)'}</span>
                                             <span className={`text-xs font-medium ${s ? 'text-gray-200' : 'text-gray-500'}`}>
                                                 {s ? `🟢 ${s.categoryCount}개 · ${ago.text}` : '⚪ 미수집'}
                                             </span>
