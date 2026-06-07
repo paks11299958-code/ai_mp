@@ -13,9 +13,10 @@ const T = {
     accentBorder: 'rgba(142,111,183,0.25)',
     ink: '#2D2438',
     muted: '#9089A1',
-    gold: '#C9A84C',
-    goldSoft: 'rgba(201,168,76,0.10)',
-    goldBorder: 'rgba(201,168,76,0.45)',
+    gold: '#A8842F',        // 텍스트용 진한 딥골드(밝은 배경 가독성)
+    goldLine: '#C9A84C',    // 차트 라인/장식용 밝은 골드
+    goldSoft: 'rgba(168,132,47,0.10)',
+    goldBorder: 'rgba(168,132,47,0.5)',
     green: '#2E7D32',
     greenBg: 'rgba(46,125,50,0.08)',
     greenBorder: 'rgba(46,125,50,0.2)',
@@ -64,8 +65,8 @@ const PentagonChart: React.FC<{ sections: SwingAnalysisSection[] }> = ({ section
                 />
             ))}
             {Array.from({ length: n }, (_, i) => { const o = pt(maxR, i); return <line key={i} x1={cx} y1={cy} x2={o.x} y2={o.y} stroke={T.border} strokeWidth="0.7" />; })}
-            <path d={dataPath} fill="rgba(201,168,76,0.16)" stroke={T.gold} strokeWidth="1.8" strokeLinejoin="round" />
-            {sections.map((sec, i) => { const p = pt((sec.score / 100) * maxR, i); return <circle key={i} cx={p.x} cy={p.y} r={3.2} fill={T.gold} />; })}
+            <path d={dataPath} fill="rgba(201,168,76,0.2)" stroke={T.goldLine} strokeWidth="2.2" strokeLinejoin="round" />
+            {sections.map((sec, i) => { const p = pt((sec.score / 100) * maxR, i); return <circle key={i} cx={p.x} cy={p.y} r={3.4} fill={T.goldLine} />; })}
             {sections.map((sec, i) => {
                 const lp = pt(labelR, i);
                 const lines = labelLines(sec.name);

@@ -246,11 +246,11 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
                     <div className="flex items-center gap-2">
-                        <Shield size={17} style={{ color: '#B8985A' }} />
+                        <Shield size={17} style={{ color: '#A8842F' }} />
                         <h2 className="text-sm font-bold" style={{ color: '#2D2438', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
-                            명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#B8985A' }}>LUXE VERIFY</span>
+                            명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#A8842F' }}>LUXE VERIFY</span>
                         </h2>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: '#B8985A', background: 'rgba(184,152,90,0.1)', border: '1px solid rgba(184,152,90,0.3)' }}>Gemini + Claude</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: '#A8842F', background: 'rgba(184,152,90,0.1)', border: '1px solid rgba(184,152,90,0.3)' }}>Gemini + Claude</span>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded-lg text-[#9089A1] hover:text-[#2D2438] hover:bg-white transition-colors">
                         <X size={17} />

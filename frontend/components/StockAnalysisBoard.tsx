@@ -17,7 +17,7 @@ const T = {
     ink:       '#2D2520',
     inkSoft:   '#6B5F56',
     inkMute:   '#A0948A',
-    gold:      '#C9A84C',
+    gold:      '#A8842F',   // 진한 딥골드(밝은 배경 가독성)
     accent:    '#2E6B32',   // 주식 = 초록
     accentSoft:'#E8F4E9',
 };
