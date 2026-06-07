@@ -37,7 +37,7 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
     const [showFaceModal, setShowFaceModal] = useState(false);
     const [faceReadingResult, setFaceReadingResult] = useState<FaceReadingResult | null>(null);
     const [showPalmModal, setShowPalmModal] = useState(false);
-    const [palmReadingResult, setPalmReadingResult] = useState<PalmReadingResult | null>(null);
+    const [palmReadingResult, setPalmReadingResult] = useState<{ result: PalmReadingResult; imageUrl: string | null; hand: 'left' | 'right' } | null>(null);
     const [subMenuConfig, setSubMenuConfig] = useState<SubMenuConfig | null>(null);
     const [isBirthInfoLoaded, setIsBirthInfoLoaded] = useState(false);
     const birthModalSkippedRef = useRef<Set<string>>(new Set());

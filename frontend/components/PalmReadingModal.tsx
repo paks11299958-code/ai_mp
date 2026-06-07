@@ -3,7 +3,7 @@ import { palmReadingApi, PalmReadingResult } from '../services/apiService';
 
 interface PalmReadingModalProps {
     personaId: string;
-    onResult: (result: PalmReadingResult) => void;
+    onResult: (result: PalmReadingResult, imageDataUrl: string | null, hand: 'left' | 'right') => void;
     onPointsUpdated?: (paidPoints: number, bonusPoints: number) => void;
     onClose: () => void;
 }
@@ -51,10 +51,11 @@ export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, o
                 setError(res.message);
                 return;
             }
+            const imageDataUrl = preview; // 결과카드 상단에 보여줄 올린 사진(메모리만, 서버 저장 안 함)
             setPreview(null);
             setBase64(null);
             onPointsUpdated?.(res.paidBalance, res.bonusBalance);
-            onResult(res.analysis);
+            onResult(res.analysis, imageDataUrl, hand);
             onClose();
         } catch (e: any) {
             setError(e.message || '분석에 실패했습니다. 다시 시도해주세요.');

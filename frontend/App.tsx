@@ -1269,18 +1269,19 @@ const AppContent: React.FC = () => {
             {showPalmModal && (
                 <PalmReadingModal
                     personaId={activePersonaId}
-                    onResult={result => { setPalmReadingResult(result); }}
+                    onResult={(result, imageUrl, hand) => { setPalmReadingResult({ result, imageUrl, hand }); }}
                     onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
                     onClose={() => setShowPalmModal(false)}
                 />
             )}
 
-            {/* 손금 분석 결과 카드 (관상 배경 재사용) */}
+            {/* 손금 분석 결과 카드 (전생처럼 봉인→클릭 플립, 맨 위에 올린 사진) */}
             {palmReadingResult && (
                 <PalmReadingResultCard
-                    result={palmReadingResult}
+                    result={palmReadingResult.result}
+                    imageUrl={palmReadingResult.imageUrl}
+                    hand={palmReadingResult.hand}
                     personaName={activePersona?.name ?? ''}
-                    bgUrl={activePersona?.faceReadingBgUrl}
                     onClose={() => setPalmReadingResult(null)}
                 />
             )}
