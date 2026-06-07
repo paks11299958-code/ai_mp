@@ -79,11 +79,12 @@ function useTTS() {
         setTtsLoading(false);
     }, []);
 
-    const speakCategory = useCallback(async (category: string) => {
+    const speakCategory = useCallback(async (category: string, slot?: 'am' | 'pm') => {
         stop();
         setTtsLoading(true);
         try {
-            const res = await fetch(`/api/news/tts?category=${encodeURIComponent(category)}`, {
+            const slotQs = slot ? `&slot=${slot}` : '';
+            const res = await fetch(`/api/news/tts?category=${encodeURIComponent(category)}${slotQs}`, {
                 credentials: 'include',
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
@@ -243,7 +244,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {current && (
                             <button
-                                onClick={() => speaking ? stop() : speakCategory(activeKey)}
+                                onClick={() => speaking ? stop() : speakCategory(activeKey, slot)}
                                 disabled={ttsLoading}
                                 style={{
                                     display: 'flex', alignItems: 'center', gap: 4,
