@@ -329,8 +329,8 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const naverChartImg = selected?.chartImageUrl ?? null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center md:p-4" style={{ background: 'rgba(45,37,32,0.55)', fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif" }}>
-            <div className="w-full h-full md:h-auto md:max-w-[960px] md:max-h-[90vh] md:rounded-[20px] flex flex-col overflow-hidden" style={{ background: T.bg, border: `1px solid ${T.border}`, boxShadow: '0 24px 60px rgba(45,37,32,0.2)' }}>
+        <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center md:p-6" style={{ background: 'rgba(45,37,32,0.55)', fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif" }}>
+            <div className="w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] md:rounded-[20px] flex flex-col overflow-hidden" style={{ background: T.bg, border: `1px solid ${T.border}`, boxShadow: '0 24px 60px rgba(45,37,32,0.2)' }}>
 
                 {/* 헤더 */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
