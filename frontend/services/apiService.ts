@@ -420,6 +420,48 @@ export const faceReadingApi = {
         post<{ analysis: FaceReadingResult; newBalance: number; paidBalance: number; bonusBalance: number }>('/face-reading', { imageBase64, mimeType, personaId }),
 };
 
+// ── 손금(手相) 분석 ──
+export interface PalmReadingResult {
+    lifeLine: string;
+    headLine: string;
+    heartLine: string;
+    fateLine: string;
+    moneyMarriage: string;
+    overall: string;
+    advice: string;
+}
+export interface PalmAnalyzeOk {
+    ok: true;
+    analysis: PalmReadingResult;
+    paidBalance: number;
+    bonusBalance: number;
+}
+export interface PalmAnalyzeUnclear {
+    ok: false;
+    message: string;       // 사진 불명확 안내(저장 안 됨, 포인트 환불됨)
+    paidBalance?: number;
+    bonusBalance?: number;
+}
+export const palmReadingApi = {
+    // 422(사진 불명확)는 에러가 아닌 정상 분기로 반환. 그 외 오류만 throw.
+    analyze: async (
+        imageBase64: string, mimeType: string, personaId: string, hand: 'left' | 'right',
+    ): Promise<PalmAnalyzeOk | PalmAnalyzeUnclear> => {
+        const res = await fetch(`${BASE}/palm-reading`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            body: JSON.stringify({ imageBase64, mimeType, personaId, hand }),
+        });
+        const text = await res.text();
+        const data: any = text ? JSON.parse(text) : {};
+        if (res.status === 422) {
+            return { ok: false, message: data.message || '사진이 선명하지 않아 분석할 수 없어요.', paidBalance: data.paidBalance, bonusBalance: data.bonusBalance };
+        }
+        if (!res.ok) throw new Error(data.error || `서버 오류 (${res.status})`);
+        return { ok: true, analysis: data.analysis, paidBalance: data.paidBalance, bonusBalance: data.bonusBalance };
+    },
+};
+
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
         post<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', { personaId, prompt }),

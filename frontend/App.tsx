@@ -48,6 +48,8 @@ import { PartnerInfoModal } from './components/PartnerInfoModal';
 import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuModal';
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
+import { PalmReadingModal } from './components/PalmReadingModal';
+import { PalmReadingResultCard } from './components/PalmReadingResultCard';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
 import { QuickMenuLoading } from './components/QuickMenuLoading';
 import { ClubBoard } from './components/ClubBoard';
@@ -194,6 +196,8 @@ const AppContent: React.FC = () => {
         pendingPartnerMenu, setPendingPartnerMenu,
         showFaceModal, setShowFaceModal,
         faceReadingResult, setFaceReadingResult,
+        showPalmModal, setShowPalmModal,
+        palmReadingResult, setPalmReadingResult,
         subMenuConfig, setSubMenuConfig,
         birthModalSkippedRef,
     } = useQuickMenu(user, activePersonaId, personas);
@@ -1194,6 +1198,26 @@ const AppContent: React.FC = () => {
                 />
             )}
 
+            {/* 손금 분석 업로드 모달 */}
+            {showPalmModal && (
+                <PalmReadingModal
+                    personaId={activePersonaId}
+                    onResult={result => { setPalmReadingResult(result); }}
+                    onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
+                    onClose={() => setShowPalmModal(false)}
+                />
+            )}
+
+            {/* 손금 분석 결과 카드 (관상 배경 재사용) */}
+            {palmReadingResult && (
+                <PalmReadingResultCard
+                    result={palmReadingResult}
+                    personaName={activePersona?.name ?? ''}
+                    bgUrl={activePersona?.faceReadingBgUrl}
+                    onClose={() => setPalmReadingResult(null)}
+                />
+            )}
+
             {/* 퀵메뉴 결과 카드 */}
             {quickMenuResult && (
                 <QuickMenuResultCard
@@ -1766,10 +1790,10 @@ const AppContent: React.FC = () => {
                             {/* 퀵메뉴 버튼 */}
                             {(() => {
                                 if (!activePersona?.quickMenuJson) return null;
-                                let config: { menus?: { label: string; prompt?: string; featured?: boolean; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig }[]; useBirthInfo?: boolean } = {};
+                                let config: { menus?: { label: string; prompt?: string; featured?: boolean; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig }[]; useBirthInfo?: boolean } = {};
                                 try { config = JSON.parse(activePersona.quickMenuJson); } catch { return null; }
                                 if (!config.menus?.length) return null;
-                                const handleMenuSelect = (menu: { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig }) => {
+                                const handleMenuSelect = (menu: { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig }) => {
                                     if (menu.subMenu) {
                                         subMenuResultCardRef.current = menu.resultCard ?? false;
                                         setSubMenuConfig(menu.subMenu);
@@ -1777,6 +1801,10 @@ const AppContent: React.FC = () => {
                                     }
                                     if (menu.faceModal) {
                                         setShowFaceModal(true);
+                                        return;
+                                    }
+                                    if (menu.palmModal) {
+                                        setShowPalmModal(true);
                                         return;
                                     }
                                     if (menu.partnerModal) {

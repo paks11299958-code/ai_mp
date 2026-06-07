@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { userProfileApi, FaceReadingResult } from '../services/apiService';
+import { userProfileApi, FaceReadingResult, PalmReadingResult } from '../services/apiService';
 import { BirthInfo } from '../components/BirthInfoModal';
 import { SubMenuConfig } from '../components/SubMenuModal';
 import { Persona, User } from '../types';
@@ -36,6 +36,8 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
     const [pendingPartnerMenu, setPendingPartnerMenu] = useState<{ label: string; prompt: string } | null>(null);
     const [showFaceModal, setShowFaceModal] = useState(false);
     const [faceReadingResult, setFaceReadingResult] = useState<FaceReadingResult | null>(null);
+    const [showPalmModal, setShowPalmModal] = useState(false);
+    const [palmReadingResult, setPalmReadingResult] = useState<PalmReadingResult | null>(null);
     const [subMenuConfig, setSubMenuConfig] = useState<SubMenuConfig | null>(null);
     const [isBirthInfoLoaded, setIsBirthInfoLoaded] = useState(false);
     const birthModalSkippedRef = useRef<Set<string>>(new Set());
@@ -74,6 +76,8 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
         pendingPartnerMenu, setPendingPartnerMenu,
         showFaceModal, setShowFaceModal,
         faceReadingResult, setFaceReadingResult,
+        showPalmModal, setShowPalmModal,
+        palmReadingResult, setPalmReadingResult,
         subMenuConfig, setSubMenuConfig,
         birthModalSkippedRef,
     };

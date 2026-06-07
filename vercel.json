@@ -32,6 +32,8 @@
     { "source": "/api/trigger-videos/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/trigger-videos/:path*" },
     { "source": "/api/face-reading",               "destination": "http://34.50.27.95:3020/api/aimp/face-reading" },
     { "source": "/api/face-reading/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/face-reading/:path*" },
+    { "source": "/api/palm-reading",               "destination": "http://34.50.27.95:3020/api/aimp/palm-reading" },
+    { "source": "/api/palm-reading/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/palm-reading/:path*" },
     { "source": "/api/swing-analysis",             "destination": "http://34.50.27.95:3020/api/aimp/swing-analysis" },
     { "source": "/api/swing-analysis/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/swing-analysis/:path*" },
     { "source": "/api/dart-import",                "destination": "http://34.50.27.95:3020/api/aimp/dart/import" },
