@@ -43,11 +43,12 @@ export function parseGeminiOpinion(report: string | null): AiOpinion {
 }
 
 /** 투자의견/점수 → 색상 코드 (점수 없으면 의견 키워드로 추정) */
-export function opinionColor(opinion: string, score: number | null): string {
-  const s = score ?? (opinion.includes('매수') ? 72 : opinion.includes('매도') ? 30 : 50);
-  if (s >= 85) return '#16a34a';
-  if (s >= 65) return '#2563eb';
-  if (s >= 40) return '#d97706';
-  if (s >= 20) return '#ea580c';
-  return '#dc2626';
+export function opinionColor(opinion: string, _score: number | null): string {
+  // 한국 주식 관습: 매수=빨강(상승), 매도=파랑(하락). 의견 텍스트 기준 결정.
+  const o = opinion || '';
+  if (o.includes('적극매수') || o.includes('강력매수') || o.includes('비중확대')) return '#dc2626'; // 진한 빨강
+  if (o.includes('매수')) return '#e11d48';                                                          // 빨강
+  if (o.includes('적극매도') || o.includes('강력매도')) return '#1d4ed8';                            // 진한 파랑
+  if (o.includes('매도') || o.includes('비중축소')) return '#2563eb';                                // 파랑
+  return '#6b7280'; // 중립/관망/보유 = 회색
 }
