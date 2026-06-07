@@ -95,6 +95,12 @@ export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, o
                                 >{ko}</button>
                             ))}
                         </div>
+                        {/* 손에 따른 속설 한 줄 (선천운/후천운) */}
+                        <p className="text-yellow-200/55 text-[11px] mt-2 leading-relaxed">
+                            {hand === 'left'
+                                ? '🖐 왼손은 타고난 기질과 잠재된 운명(선천운)을 봅니다.'
+                                : '🖐 오른손은 살아오며 만들어가는 현재와 미래의 운(후천운)을 봅니다.'}
+                        </p>
                     </div>
 
                     {/* 안내 문구 */}

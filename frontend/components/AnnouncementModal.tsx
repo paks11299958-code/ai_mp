@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Announcement } from '../types';
 import { Icon } from './Icons';
 import { Play } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 interface AnnouncementModalProps {
     announcements: Announcement[];
@@ -33,6 +35,18 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
     const isPlaying = playingVideoId !== null;
 
     return (
+        <>
+        <style>{`
+            .announcement-md p { margin: 0 0 8px; }
+            .announcement-md p:last-child { margin-bottom: 0; }
+            .announcement-md ul, .announcement-md ol { margin: 4px 0 8px; padding-left: 18px; }
+            .announcement-md li { margin: 2px 0; }
+            .announcement-md strong { font-weight: 700; color: #3d2817; }
+            .announcement-md h1, .announcement-md h2, .announcement-md h3 { font-weight: 700; margin: 6px 0 4px; color: #3d2817; }
+            .announcement-md a { color: #8b5e3c; text-decoration: underline; }
+            .announcement-md code { background: rgba(139,94,60,0.12); padding: 1px 4px; border-radius: 4px; font-size: 0.92em; }
+            .announcement-md hr { border: none; border-top: 1px solid #E8DDD0; margin: 8px 0; }
+        `}</style>
         <div
             className={`fixed inset-0 z-50 flex justify-center px-4 transition-all duration-300 ${isPlaying ? 'items-center' : 'items-start pt-16'}`}
             onClick={onClose}
@@ -129,10 +143,10 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
                                         {isExpanded && (
                                             <div className="px-4 pb-4">
                                                 <div
-                                                    className="text-sm leading-relaxed whitespace-pre-wrap rounded-xl px-4 py-3"
+                                                    className="text-sm leading-relaxed rounded-xl px-4 py-3 announcement-md"
                                                     style={{ background: '#F5EFE6', color: '#5C4033', border: '1px solid #E8DDD0' }}
                                                 >
-                                                    {a.content}
+                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{a.content}</ReactMarkdown>
                                                 </div>
                                                 {a.category === 'persona' && a.persona && (a.persona.introVideoUrl || a.persona.imageUrl) && (
                                                     <div className="mt-3">
@@ -179,5 +193,6 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
                 </div>
             </div>
         </div>
+        </>
     );
 };
