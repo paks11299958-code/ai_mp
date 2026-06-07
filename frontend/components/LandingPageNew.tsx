@@ -1207,45 +1207,6 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 {/* 나의 AI 기능 + 나의 AI 페르소나 (세로, 동그라미 썸네일) */}
                 {user && (
                     <div style={{ maxWidth: 560, margin: '0 auto 24px', padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
-                        {/* 나의 AI 기능 */}
-                        <div style={{
-                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent}22`,
-                            borderRadius: 16, padding: '14px 16px', backdropFilter: 'blur(8px)',
-                            boxShadow: '0 6px 20px -10px rgba(142,111,183,0.3)',
-                        }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
-                                <Sparkles size={16} style={{ color: T.accent }} strokeWidth={2.4} />
-                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
-                            </div>
-                            {favoriteChips && favoriteChips.length > 0 ? (
-                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4, justifyContent: 'center' }}>
-                                    {favoriteChips.map(chip => (
-                                        <button key={chip.key} onClick={chip.onClick}
-                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', width: 58 }}>
-                                            <span style={{
-                                                width: 46, height: 46, borderRadius: '50%',
-                                                background: chip.bgColor, border: `2px solid ${chip.borderColor}`,
-                                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
-                                            }}>{FEATURE_EMOJI[chip.key] ?? '✨'}</span>
-                                            <span style={{ fontSize: 11.5, color: T.ink, fontWeight: 600, whiteSpace: 'nowrap', maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis' }}>{chip.label}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '4px 0 2px' }}>
-                                    <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
-                                        아직 담은 기능이 없어요.<br />자주 쓰는 기능에 ⭐를 눌러 담아보세요.
-                                    </p>
-                                    <button onClick={onFeatureListClick}
-                                        style={{
-                                            padding: '8px 18px', borderRadius: 999, cursor: 'pointer',
-                                            background: `${T.accent}14`, border: `1.5px solid ${T.accent}55`,
-                                            color: T.accent, fontSize: 12.5, fontWeight: 700,
-                                        }}>기능 둘러보기 →</button>
-                                </div>
-                            )}
-                        </div>
-
                         {/* 나의 AI 페르소나 */}
                         <div style={{
                             background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent2}22`,
@@ -1289,6 +1250,45 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                             background: `${T.accent2}14`, border: `1.5px solid ${T.accent2}66`,
                                             color: T.accent, fontSize: 12.5, fontWeight: 700,
                                         }}>페르소나 둘러보기 →</button>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 나의 AI 기능 */}
+                        <div style={{
+                            background: 'rgba(255,255,255,0.7)', border: `1px solid ${T.accent}22`,
+                            borderRadius: 16, padding: '14px 16px', backdropFilter: 'blur(8px)',
+                            boxShadow: '0 6px 20px -10px rgba(142,111,183,0.3)',
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                                <Sparkles size={16} style={{ color: T.accent }} strokeWidth={2.4} />
+                                <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
+                            </div>
+                            {favoriteChips && favoriteChips.length > 0 ? (
+                                <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4, justifyContent: 'center' }}>
+                                    {favoriteChips.map(chip => (
+                                        <button key={chip.key} onClick={chip.onClick}
+                                            style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', width: 58 }}>
+                                            <span style={{
+                                                width: 46, height: 46, borderRadius: '50%',
+                                                background: chip.bgColor, border: `2px solid ${chip.borderColor}`,
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
+                                            }}>{FEATURE_EMOJI[chip.key] ?? '✨'}</span>
+                                            <span style={{ fontSize: 11.5, color: T.ink, fontWeight: 600, whiteSpace: 'nowrap', maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis' }}>{chip.label}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, padding: '4px 0 2px' }}>
+                                    <p style={{ fontSize: 12.5, color: T.inkMute, lineHeight: 1.6, margin: 0, textAlign: 'center' }}>
+                                        아직 담은 기능이 없어요.<br />자주 쓰는 기능에 ⭐를 눌러 담아보세요.
+                                    </p>
+                                    <button onClick={onFeatureListClick}
+                                        style={{
+                                            padding: '8px 18px', borderRadius: 999, cursor: 'pointer',
+                                            background: `${T.accent}14`, border: `1.5px solid ${T.accent}55`,
+                                            color: T.accent, fontSize: 12.5, fontWeight: 700,
+                                        }}>기능 둘러보기 →</button>
                                 </div>
                             )}
                         </div>
