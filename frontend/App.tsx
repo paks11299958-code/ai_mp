@@ -213,6 +213,8 @@ const AppContent: React.FC = () => {
     const headerMenuRef = useRef<HTMLDivElement>(null);
     const starThanksPromiseRef = useRef<{ promise: Promise<{ message: { text: string }; sessionId: string }>; personaId: string } | null>(null);
     const [showHeaderMenu, setShowHeaderMenu] = useState(false);
+    // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal) — 훅은 조건부 return보다 위에 있어야 함
+    const [showEbookBoard, setShowEbookBoard] = useState(false);
 
     // 공지사항
     const {
@@ -776,8 +778,6 @@ const AppContent: React.FC = () => {
         );
     }
 
-    // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal)
-    const [showEbookBoard, setShowEbookBoard] = useState(false);
     // 즐겨찾기로 담을 수 있는 기능(Hero에서 단독으로 뜨는 것만). 골프는 페르소나 의존이라 제외.
     const FAVORITABLE_KEYS = ['news', 'stock', 'hotkeyword', 'used', 'luxury', 'mathtutor', 'club'];
     // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용)
