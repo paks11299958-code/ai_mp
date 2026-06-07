@@ -68,8 +68,8 @@ const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: strin
                 borderBottom: `1px solid ${T.borderSoft}`,
                 background: T.surface,
             }}>
-                <BarChart2 size={12} style={{ color: T.accent }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: T.accent, letterSpacing: '0.08em', textTransform: 'uppercase' }}>AI 투자의견 비교</span>
+                <BarChart2 size={12} style={{ color: T.gold }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: T.gold, letterSpacing: '0.08em' }}>다각도 AI 교차검증 · MULTI-AI</span>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
                 {ais.map(({ label, dot, data }, idx) => {
@@ -335,9 +335,11 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 {/* 헤더 */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <TrendingUp size={16} style={{ color: T.accent }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>주식 분석</span>
-                        <span style={{ fontSize: 10, color: T.accent, background: T.accentSoft, border: `1px solid ${T.accent}40`, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>DART + AI</span>
+                        <TrendingUp size={16} style={{ color: T.gold }} />
+                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
+                            주식 정밀분석 <span style={{ fontSize: 10, letterSpacing: '0.2em', color: T.gold }}>INVEST VERIFY</span>
+                        </span>
+                        <span style={{ fontSize: 10, color: T.gold, background: 'rgba(201,168,76,0.1)', border: `1px solid ${T.gold}55`, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>DART + AI</span>
                     </div>
                     <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', color: T.inkMute, cursor: 'pointer' }}>
                         <X size={17} />
@@ -554,21 +556,21 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         {!detailLoading && selected && (
                             <div>
                                 {/* 학습하기 안내 */}
-                                <div style={{ margin: '14px 20px 0', display: 'flex', alignItems: 'flex-start', gap: 8, background: T.accentSoft, border: `1px solid ${T.accent}30`, borderRadius: 12, padding: '10px 14px' }}>
-                                    <MessageCircle size={13} style={{ color: T.accent, flexShrink: 0, marginTop: 1 }} />
-                                    <p style={{ fontSize: 11, color: T.accent, lineHeight: 1.6, margin: 0 }}>
-                                        <span style={{ fontWeight: 700 }}>학습하기</span> — 현재 보고서를 AI 윤채원에게 학습시켜 보고서 내용으로 토론할 수 있습니다.
+                                <div style={{ margin: '14px 20px 0', display: 'flex', alignItems: 'flex-start', gap: 8, background: 'rgba(201,168,76,0.08)', border: `1px solid ${T.gold}45`, borderRadius: 12, padding: '10px 14px' }}>
+                                    <MessageCircle size={13} style={{ color: T.gold, flexShrink: 0, marginTop: 1 }} />
+                                    <p style={{ fontSize: 11, color: T.inkSoft, lineHeight: 1.6, margin: 0 }}>
+                                        <span style={{ fontWeight: 700, color: T.gold }}>학습하기</span> — 본 보고서를 전담 AI 애널리스트 윤채원에게 학습시켜, 심층 질의응답과 인사이트 토론을 활성화할 수 있습니다.
                                     </p>
                                 </div>
 
                                 {/* 보고서 헤더 — 종목명 + 차트 썸네일 나란히 */}
-                                <div style={{ margin: '14px 20px 0', background: T.card, border: `1px solid ${T.border}`, borderRadius: 14, padding: '16px', boxShadow: '0 2px 8px rgba(45,37,32,0.06)' }}>
+                                <div style={{ margin: '14px 20px 0', background: 'linear-gradient(135deg, #ffffff 0%, #faf6ec 100%)', border: `1px solid ${T.gold}55`, borderRadius: 14, padding: '16px', boxShadow: '0 4px 16px -8px rgba(201,168,76,0.4)' }}>
                                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
                                         {/* 종목 정보 */}
                                         <div style={{ flex: '1 1 160px', minWidth: 0 }}>
-                                            <h3 style={{ fontSize: 22, fontWeight: 800, color: T.ink, margin: '0 0 4px', lineHeight: 1.2 }}>{selected.stockName}</h3>
+                                            <h3 style={{ fontSize: 22, fontWeight: 800, color: T.ink, margin: '0 0 4px', lineHeight: 1.2, fontFamily: '"Nanum Myeongjo", serif' }}>{selected.stockName}</h3>
                                             <p style={{ fontSize: 11, color: T.inkMute, margin: 0 }}>
-                                                주식 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                정밀 투자 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
                                             </p>
                                         </div>
 
@@ -600,7 +602,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                     catch (e: any) { alert(e.message || '학습 저장 실패'); setConsulting(false); }
                                                 }}
                                                 disabled={consulting || selected.status !== 'completed'}
-                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: T.accent, border: 'none', color: '#fff', fontSize: 11, fontWeight: 600, cursor: 'pointer', opacity: consulting || selected.status !== 'completed' ? 0.5 : 1 }}
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'rgba(201,168,76,0.1)', border: `1.5px solid ${T.gold}`, color: T.gold, fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: consulting || selected.status !== 'completed' ? 0.5 : 1 }}
                                             >
                                                 {consulting ? <><Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> 학습 중...</> : <><MessageCircle size={11} /> 학습하기</>}
                                             </button>
