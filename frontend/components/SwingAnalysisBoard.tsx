@@ -13,6 +13,9 @@ const T = {
     accentBorder: 'rgba(142,111,183,0.25)',
     ink: '#2D2438',
     muted: '#9089A1',
+    gold: '#C9A84C',
+    goldSoft: 'rgba(201,168,76,0.10)',
+    goldBorder: 'rgba(201,168,76,0.45)',
     green: '#2E7D32',
     greenBg: 'rgba(46,125,50,0.08)',
     greenBorder: 'rgba(46,125,50,0.2)',
@@ -61,8 +64,8 @@ const PentagonChart: React.FC<{ sections: SwingAnalysisSection[] }> = ({ section
                 />
             ))}
             {Array.from({ length: n }, (_, i) => { const o = pt(maxR, i); return <line key={i} x1={cx} y1={cy} x2={o.x} y2={o.y} stroke={T.border} strokeWidth="0.7" />; })}
-            <path d={dataPath} fill="rgba(142,111,183,0.18)" stroke={T.accent} strokeWidth="2" strokeLinejoin="round" />
-            {sections.map((sec, i) => { const p = pt((sec.score / 100) * maxR, i); return <circle key={i} cx={p.x} cy={p.y} r={3.5} fill={T.accent} />; })}
+            <path d={dataPath} fill="rgba(201,168,76,0.16)" stroke={T.gold} strokeWidth="1.8" strokeLinejoin="round" />
+            {sections.map((sec, i) => { const p = pt((sec.score / 100) * maxR, i); return <circle key={i} cx={p.x} cy={p.y} r={3.2} fill={T.gold} />; })}
             {sections.map((sec, i) => {
                 const lp = pt(labelR, i);
                 const lines = labelLines(sec.name);
@@ -148,8 +151,10 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                 <ChevronLeft size={18} style={{ color: T.muted }} />
                             </button>
                         )}
-                        <Activity size={18} style={{ color: T.accent }} />
-                        <span className="font-bold text-base" style={{ color: T.ink }}>골프 스윙 분석 리포트</span>
+                        <Activity size={18} style={{ color: T.gold }} />
+                        <span className="font-bold text-base" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
+                            정밀 스윙 진단 <span className="text-[11px] tracking-[0.2em]" style={{ color: T.gold }}>SWING MASTER</span>
+                        </span>
                         <span className="hidden md:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full"
                             style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, color: T.green }}>
                             <Lock size={10} />
@@ -251,7 +256,9 @@ const DetailView: React.FC<{ selected: { id: number; analysis: SwingAnalysis; cr
             {/* ── 헤더: 제목 + 날짜 ── */}
             <div className="mb-5">
                 <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.accent }}>Vertex AI 골프 스윙 분석 결과</span>
+                    <span className="text-sm font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.03em' }}>
+                        통합 스윙 정밀 진단 <span className="text-[10px] tracking-[0.18em]" style={{ color: T.gold }}>SWING INTELLIGENCE</span>
+                    </span>
                 </div>
                 <p className="text-[11px]" style={{ color: T.muted }}>{fmtDateTime(createdAt)} 분석 완료</p>
             </div>
@@ -267,7 +274,7 @@ const DetailView: React.FC<{ selected: { id: number; analysis: SwingAnalysis; cr
 
                 {/* 점수 카드 3개 */}
                 <div className="flex-1 w-full flex flex-col gap-3">
-                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>스윙 레이더 분석</p>
+                    <p className="text-xs font-semibold tracking-wider" style={{ color: T.gold }}>스윙 지오메트리 분석 · GEOMETRY</p>
 
                     {/* 종합 점수 + 구간 요약 */}
                     <div className="flex items-center gap-4">
@@ -287,7 +294,7 @@ const DetailView: React.FC<{ selected: { id: number; analysis: SwingAnalysis; cr
                             const sg = scoreGrade(sec.score);
                             return (
                                 <div key={sec.name} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs"
-                                    style={{ background: sg.bg, border: `1px solid ${sg.border}` }}>
+                                    style={{ background: T.goldSoft, border: `1px solid ${T.goldBorder}` }}>
                                     <span style={{ color: T.ink, fontWeight: 500 }}>{sec.name.replace(' & 셋업', '')}</span>
                                     <span className="font-bold" style={{ color: sg.color }}>{sec.score}</span>
                                 </div>
@@ -299,14 +306,14 @@ const DetailView: React.FC<{ selected: { id: number; analysis: SwingAnalysis; cr
 
             {/* ── 총평 ── */}
             <div className="rounded-2xl p-5 mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: T.muted }}>AI 총평</p>
+                <p className="text-xs font-bold tracking-wider mb-3" style={{ color: T.gold, fontFamily: '"Nanum Myeongjo", serif' }}>AI 마스터 소견 · MASTER VERDICT</p>
                 <p className="text-sm leading-relaxed" style={{ color: T.ink }}>{analysis.overallComment}</p>
             </div>
 
             {/* ── 구간별 분석 테이블 ── */}
             <div className="rounded-2xl overflow-hidden mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                 <div className="px-5 py-3" style={{ borderBottom: `1px solid ${T.border}` }}>
-                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>구간별 분석</p>
+                    <p className="text-xs font-bold tracking-wider" style={{ color: T.gold, fontFamily: '"Nanum Myeongjo", serif' }}>세부 지표 정밀 진단 · DETAIL</p>
                 </div>
 
                 {/* 테이블 헤더 */}
