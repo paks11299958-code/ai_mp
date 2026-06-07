@@ -246,11 +246,11 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
                     <div className="flex items-center gap-2">
-                        <Shield size={17} style={{ color: '#A8842F' }} />
+                        <Shield size={17} style={{ color: '#8E6FB7' }} />
                         <h2 className="text-sm font-bold" style={{ color: '#2D2438', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
-                            명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#A8842F' }}>LUXE VERIFY</span>
+                            명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#8E6FB7' }}>LUXE VERIFY</span>
                         </h2>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: '#A8842F', background: 'rgba(184,152,90,0.1)', border: '1px solid rgba(184,152,90,0.3)' }}>Gemini + Claude</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: '#8E6FB7', background: 'rgba(142,111,183,0.1)', border: '1px solid rgba(142,111,183,0.3)' }}>Gemini + Claude</span>
                     </div>
                     <button onClick={onClose} className="p-1.5 rounded-lg text-[#9089A1] hover:text-[#2D2438] hover:bg-white transition-colors">
                         <X size={17} />
@@ -461,9 +461,9 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                 <div className="px-5 py-4">
                                     {/* 진단명 헤더 — 명품 보증서 카드(골드 테두리) */}
                                     <div className="flex items-start justify-between gap-3 rounded-2xl px-4 py-3.5" style={{
-                                        background: 'linear-gradient(135deg, #ffffff 0%, #faf6ec 100%)',
-                                        border: '1px solid rgba(184,152,90,0.4)',
-                                        boxShadow: '0 4px 16px -8px rgba(184,152,90,0.4)',
+                                        background: 'linear-gradient(135deg, #ffffff 0%, #f7f3fb 100%)',
+                                        border: '1px solid rgba(142,111,183,0.4)',
+                                        boxShadow: '0 4px 16px -8px rgba(142,111,183,0.4)',
                                     }}>
                                         <div>
                                             <h3 className="text-lg font-bold text-[#2D2438]" style={{ fontFamily: '"Nanum Myeongjo", serif' }}>
@@ -573,7 +573,7 @@ const FinalScoreCard: React.FC<{ detail: LuxuryDetail }> = ({ detail }) => {
     return (
         <div className="rounded-2xl p-4 space-y-3" style={{
             background: 'linear-gradient(160deg, #1e2436 0%, #161b29 100%)',
-            border: '1px solid rgba(184,152,90,0.3)',
+            border: '1px solid rgba(142,111,183,0.3)',
             boxShadow: '0 8px 28px -10px rgba(0,0,0,0.5)',
         }}>
             <div className="flex items-center justify-between">

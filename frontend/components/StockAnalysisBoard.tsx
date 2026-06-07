@@ -17,7 +17,7 @@ const T = {
     ink:       '#2D2520',
     inkSoft:   '#6B5F56',
     inkMute:   '#A0948A',
-    gold:      '#A8842F',   // 진한 딥골드(밝은 배경 가독성)
+    gold:      '#8E6FB7',   // 포인트 컬러(앱 퍼플로 통일)
     accent:    '#2E6B32',   // 주식 = 초록
     accentSoft:'#E8F4E9',
 };
@@ -339,7 +339,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         <span style={{ fontSize: 14, fontWeight: 700, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             주식 정밀분석 <span style={{ fontSize: 10, letterSpacing: '0.2em', color: T.gold }}>INVEST VERIFY</span>
                         </span>
-                        <span style={{ fontSize: 10, color: T.gold, background: 'rgba(201,168,76,0.1)', border: `1px solid ${T.gold}55`, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>DART + AI</span>
+                        <span style={{ fontSize: 10, color: T.gold, background: 'rgba(142,111,183,0.1)', border: `1px solid ${T.gold}55`, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>DART + AI</span>
                     </div>
                     <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', color: T.inkMute, cursor: 'pointer' }}>
                         <X size={17} />
@@ -556,7 +556,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         {!detailLoading && selected && (
                             <div>
                                 {/* 학습하기 안내 */}
-                                <div style={{ margin: '14px 20px 0', display: 'flex', alignItems: 'flex-start', gap: 8, background: 'rgba(201,168,76,0.08)', border: `1px solid ${T.gold}45`, borderRadius: 12, padding: '10px 14px' }}>
+                                <div style={{ margin: '14px 20px 0', display: 'flex', alignItems: 'flex-start', gap: 8, background: 'rgba(142,111,183,0.08)', border: `1px solid ${T.gold}45`, borderRadius: 12, padding: '10px 14px' }}>
                                     <MessageCircle size={13} style={{ color: T.gold, flexShrink: 0, marginTop: 1 }} />
                                     <p style={{ fontSize: 11, color: T.inkSoft, lineHeight: 1.6, margin: 0 }}>
                                         <span style={{ fontWeight: 700, color: T.gold }}>학습하기</span> — 본 보고서를 전담 AI 애널리스트 윤채원에게 학습시켜, 심층 질의응답과 인사이트 토론을 활성화할 수 있습니다.
@@ -564,7 +564,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 </div>
 
                                 {/* 보고서 헤더 — 종목명 + 차트 썸네일 나란히 */}
-                                <div style={{ margin: '14px 20px 0', background: 'linear-gradient(135deg, #ffffff 0%, #faf6ec 100%)', border: `1px solid ${T.gold}55`, borderRadius: 14, padding: '16px', boxShadow: '0 4px 16px -8px rgba(201,168,76,0.4)' }}>
+                                <div style={{ margin: '14px 20px 0', background: 'linear-gradient(135deg, #ffffff 0%, #f7f3fb 100%)', border: `1px solid ${T.gold}55`, borderRadius: 14, padding: '16px', boxShadow: '0 4px 16px -8px rgba(142,111,183,0.4)' }}>
                                     <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
                                         {/* 종목 정보 */}
                                         <div style={{ flex: '1 1 160px', minWidth: 0 }}>
@@ -602,7 +602,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                     catch (e: any) { alert(e.message || '학습 저장 실패'); setConsulting(false); }
                                                 }}
                                                 disabled={consulting || selected.status !== 'completed'}
-                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'rgba(201,168,76,0.1)', border: `1.5px solid ${T.gold}`, color: T.gold, fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: consulting || selected.status !== 'completed' ? 0.5 : 1 }}
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'rgba(142,111,183,0.1)', border: `1.5px solid ${T.gold}`, color: T.gold, fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: consulting || selected.status !== 'completed' ? 0.5 : 1 }}
                                             >
                                                 {consulting ? <><Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> 학습 중...</> : <><MessageCircle size={11} /> 학습하기</>}
                                             </button>
