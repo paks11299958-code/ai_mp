@@ -727,10 +727,6 @@ const Server1MonitorView: React.FC = () => {
                             <span className="text-xs text-gray-200 font-medium">{metrics.status.database}</span>
                         </div>
                         <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
-                            <span className="text-xs text-gray-400">🔍 monitor.js cron (3시간)</span>
-                            <span className="text-xs text-gray-200 font-medium">{metrics.status.monitorCron}</span>
-                        </div>
-                        <div className="flex items-center justify-between py-2 px-3 border-b border-gray-800/50">
                             <span className="text-xs text-gray-400">📦 제품추출 cron (KST 08시)</span>
                             <span className="text-xs text-gray-200 font-medium">{metrics.status.extractCron}</span>
                         </div>
