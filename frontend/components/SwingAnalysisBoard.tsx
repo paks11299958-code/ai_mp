@@ -197,27 +197,43 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                     return (
                                         <button key={record.id}
                                             onClick={() => handleSelect(record)}
-                                            className="w-full text-left flex items-center justify-between px-3 py-3 rounded-xl mb-1 transition-all group"
+                                            className="w-full text-left flex flex-col gap-2 px-3 py-3 rounded-xl mb-1 transition-all group"
                                             style={{
                                                 background: isActive ? T.accentLight : 'transparent',
-                                                border: `1px solid ${isActive ? T.accentBorder : 'transparent'}`,
+                                                border: `1px solid ${isActive ? T.accentBorder : T.border}`,
                                             }}>
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className="shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
-                                                    style={{ background: g.bg, border: `1px solid ${g.border}` }}>
-                                                    <span className="text-sm font-black leading-none" style={{ color: g.color }}>{record.analysis.overallScore}</span>
-                                                    <span className="text-[8px]" style={{ color: T.muted }}>점</span>
+                                            <div className="flex items-center justify-between gap-2">
+                                                <div className="flex items-center gap-3 min-w-0">
+                                                    <div className="shrink-0 w-10 h-10 rounded-xl flex flex-col items-center justify-center"
+                                                        style={{ background: g.bg, border: `1px solid ${g.border}` }}>
+                                                        <span className="text-sm font-black leading-none" style={{ color: g.color }}>{record.analysis.overallScore}</span>
+                                                        <span className="text-[8px]" style={{ color: T.muted }}>점</span>
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-semibold truncate" style={{ color: T.ink }}>{title}</p>
+                                                        <p className="text-[10px] truncate" style={{ color: T.muted }}>{fmtDate(record.createdAt)} · <span style={{ color: g.color, fontWeight: 700 }}>{g.label}</span></p>
+                                                    </div>
                                                 </div>
-                                                <div className="min-w-0">
-                                                    <p className="text-xs font-semibold truncate" style={{ color: T.ink }}>{title}</p>
-                                                    <p className="text-[10px] truncate" style={{ color: T.muted }}>{fmtDate(record.createdAt)}</p>
-                                                </div>
+                                                <span onClick={e => handleDelete(record.id, e)}
+                                                    className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-50 transition-all"
+                                                    title="삭제">
+                                                    <Trash2 size={13} style={{ color: '#C62828' }} />
+                                                </span>
                                             </div>
-                                            <button onClick={e => handleDelete(record.id, e)}
-                                                className="shrink-0 opacity-0 group-hover:opacity-100 p-1 rounded-lg hover:bg-red-50 transition-all"
-                                                title="삭제">
-                                                <Trash2 size={13} style={{ color: '#C62828' }} />
-                                            </button>
+                                            {/* 단계별 점수 요약 (어드레스·백스윙 등) */}
+                                            {record.analysis.sections?.length > 0 && (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {record.analysis.sections.map((sec, i) => {
+                                                        const sg = scoreGrade(sec.score);
+                                                        return (
+                                                            <span key={i} className="text-[10px] px-1.5 py-0.5 rounded-md"
+                                                                style={{ background: T.goldSoft, border: `1px solid ${T.border}`, color: T.inkSoft }}>
+                                                                {sec.name.replace(' & 셋업', '')} <b style={{ color: sg.color }}>{sec.score}</b>
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </button>
                                     );
                                 })
@@ -236,7 +252,15 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                 </div>
                             </div>
                         ) : (
-                            <DetailView selected={selected} />
+                            <>
+                                {/* 목록으로 버튼 (상세 보기 상단) */}
+                                <button onClick={() => { setSelected(null); setMobileDetail(false); }}
+                                    className="flex items-center gap-1 text-xs font-medium px-4 pt-4 pb-1 shrink-0 self-start"
+                                    style={{ color: T.accent }}>
+                                    <ChevronLeft size={15} /> 목록으로
+                                </button>
+                                <DetailView selected={selected} />
+                            </>
                         )}
                     </div>
                 </div>
