@@ -144,25 +144,25 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                 style={{ background: T.bg, border: `1px solid ${T.border}` }}>
 
                 {/* ── Header ── */}
-                <div className="shrink-0 flex items-center justify-between px-5 py-4"
+                <div className="shrink-0 flex items-center justify-between gap-2 px-5 py-4"
                     style={{ borderBottom: `1px solid ${T.border}`, background: '#FFFFFF' }}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                         {mobileDetail && (
-                            <button onClick={() => setMobileDetail(false)} className="md:hidden p-1 rounded-lg hover:bg-black/5 transition-colors">
+                            <button onClick={() => setMobileDetail(false)} className="md:hidden p-1 rounded-lg hover:bg-black/5 transition-colors shrink-0">
                                 <ChevronLeft size={18} style={{ color: T.muted }} />
                             </button>
                         )}
-                        <Activity size={18} style={{ color: T.gold }} />
-                        <span className="font-bold text-base" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
+                        <Activity size={18} style={{ color: T.gold, flexShrink: 0 }} />
+                        <span className="font-bold text-base truncate" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             정밀 스윙 진단 <span className="text-[11px] tracking-[0.2em]" style={{ color: T.gold }}>SWING MASTER</span>
                         </span>
-                        <span className="hidden md:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full"
+                        <span className="hidden md:flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap"
                             style={{ background: T.greenBg, border: `1px solid ${T.greenBorder}`, color: T.green }}>
                             <Lock size={10} />
                             영상은 분석 후 즉시 삭제됩니다
                         </span>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-black/5 transition-colors">
+                    <button onClick={onClose} className="shrink-0 p-1.5 rounded-xl hover:bg-black/5 transition-colors">
                         <X size={18} style={{ color: T.muted }} />
                     </button>
                 </div>

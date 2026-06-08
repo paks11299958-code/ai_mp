@@ -333,15 +333,15 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
             <div className="w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] md:rounded-[20px] flex flex-col overflow-hidden" style={{ background: T.bg, border: `1px solid ${T.border}`, boxShadow: '0 24px 60px rgba(45,37,32,0.2)' }}>
 
                 {/* 헤더 */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <TrendingUp size={16} style={{ color: T.gold }} />
-                        <span style={{ fontSize: 14, fontWeight: 700, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+                        <TrendingUp size={16} style={{ color: T.gold, flexShrink: 0 }} />
+                        <span className="truncate" style={{ fontSize: 14, fontWeight: 700, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             주식 정밀분석 <span style={{ fontSize: 10, letterSpacing: '0.2em', color: T.gold }}>INVEST VERIFY</span>
                         </span>
-                        <span style={{ fontSize: 10, color: T.gold, background: 'rgba(142,111,183,0.1)', border: `1px solid ${T.gold}55`, padding: '2px 8px', borderRadius: 999, fontWeight: 600 }}>DART + AI</span>
+                        <span className="hidden sm:inline-block" style={{ fontSize: 10, color: T.gold, background: 'rgba(142,111,183,0.1)', border: `1px solid ${T.gold}55`, padding: '2px 8px', borderRadius: 999, fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}>DART + AI</span>
                     </div>
-                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', color: T.inkMute, cursor: 'pointer' }}>
+                    <button onClick={onClose} style={{ padding: 6, borderRadius: 8, border: 'none', background: 'transparent', color: T.inkMute, cursor: 'pointer', flexShrink: 0 }}>
                         <X size={17} />
                     </button>
                 </div>

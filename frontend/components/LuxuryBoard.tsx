@@ -244,15 +244,15 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
             <div className="bg-[#FBF8F3] md:border border-[#F0E9DE] md:rounded-2xl w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
 
                 {/* 헤더 */}
-                <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
-                    <div className="flex items-center gap-2">
-                        <Shield size={17} style={{ color: '#8E6FB7' }} />
-                        <h2 className="text-sm font-bold" style={{ color: '#2D2438', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
+                <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <Shield size={17} style={{ color: '#8E6FB7', flexShrink: 0 }} />
+                        <h2 className="text-sm font-bold truncate" style={{ color: '#2D2438', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#8E6FB7' }}>LUXE VERIFY</span>
                         </h2>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ color: '#8E6FB7', background: 'rgba(142,111,183,0.1)', border: '1px solid rgba(142,111,183,0.3)' }}>Gemini + Claude</span>
+                        <span className="hidden sm:inline-block text-[10px] px-2 py-0.5 rounded-full shrink-0" style={{ color: '#8E6FB7', background: 'rgba(142,111,183,0.1)', border: '1px solid rgba(142,111,183,0.3)' }}>Gemini + Claude</span>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg text-[#9089A1] hover:text-[#2D2438] hover:bg-white transition-colors">
+                    <button onClick={onClose} className="shrink-0 p-1.5 rounded-lg text-[#9089A1] hover:text-[#2D2438] hover:bg-white transition-colors">
                         <X size={17} />
                     </button>
                 </div>
