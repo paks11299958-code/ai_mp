@@ -203,16 +203,16 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const parsed = current ? parseNewsItems(current.report) : null;
 
     return (
-        <div style={{
+        <div className="news-modal-overlay" style={{
             position: 'fixed', inset: 0, zIndex: 50,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            padding: 16,
+            display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
+            paddingTop: 72, paddingBottom: 16, paddingLeft: 16, paddingRight: 16,
             background: 'rgba(45,37,32,0.55)',
             backdropFilter: 'blur(6px)',
         }}>
             <div style={{
                 position: 'relative',
-                width: '100%', maxWidth: 640, maxHeight: '90vh',
+                width: '100%', maxWidth: 640, maxHeight: 'calc(100vh - 88px)',
                 display: 'flex', flexDirection: 'column',
                 borderRadius: 20,
                 background: T.bg,
