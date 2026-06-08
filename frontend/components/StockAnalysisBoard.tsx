@@ -330,8 +330,8 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const naverChartImg = selected?.chartImageUrl ?? null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-stretch md:items-center justify-center md:p-6" style={{ background: 'rgba(45,37,32,0.55)', fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif" }}>
-            <div className="w-full max-w-5xl h-full md:h-auto md:max-h-[90vh] md:rounded-[20px] flex flex-col overflow-hidden" style={{ background: T.bg, border: `1px solid ${T.border}`, boxShadow: '0 24px 60px rgba(45,37,32,0.2)' }}>
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center pt-[60px] md:pt-0 md:p-6" style={{ background: 'rgba(45,37,32,0.55)', fontFamily: "'Pretendard Variable', Pretendard, -apple-system, system-ui, sans-serif" }}>
+            <div className="w-full max-w-5xl h-[calc(100vh-60px)] md:h-auto md:max-h-[90vh] rounded-t-[20px] md:rounded-[20px] flex flex-col overflow-hidden" style={{ background: T.bg, border: `1px solid ${T.border}`, boxShadow: '0 24px 60px rgba(45,37,32,0.2)' }}>
 
                 {/* 헤더 */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
@@ -349,8 +349,8 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
 
                 <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
 
-                    {/* 좌측 사이드바 */}
-                    <div style={{ display: selected ? 'none' : 'flex', width: 220, flexShrink: 0, borderRight: `1px solid ${T.border}`, flexDirection: 'column', background: T.bg }}
+                    {/* 좌측 사이드바 — 선택 전엔 전체 폭, 선택 후엔 220px */}
+                    <div style={{ display: selected ? 'none' : 'flex', width: selected ? 220 : '100%', flexShrink: 0, borderRight: selected ? `1px solid ${T.border}` : 'none', flexDirection: 'column', background: T.bg }}
                         className="md:flex">
                         <style>{`.stock-sidebar { display: flex !important; } @media (min-width: 768px) { .stock-sidebar-hide { display: none !important; } }`}</style>
 
@@ -398,8 +398,9 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                             ))}
                         </div>
 
-                        {/* 목록 */}
-                        <div style={{ flex: 1, overflowY: 'auto', padding: 8 }}>
+                        {/* 목록 — 선택 전 전체폭일 땐 2열 그리드, 선택 후 좁은 사이드바일 땐 1열 */}
+                        <div style={{ flex: 1, overflowY: 'auto', padding: selected ? 8 : 16 }}>
+                          <div style={selected ? {} : { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 10, maxWidth: 1100, margin: '0 auto' }}>
                             {loading && <div style={{ textAlign: 'center', padding: '32px 0', fontSize: 11, color: T.inkMute }}>불러오는 중...</div>}
                             {!loading && tasks.length === 0 && (
                                 <div style={{ padding: '18px 10px', textAlign: 'center' }}>
@@ -531,6 +532,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                     </div>
                                 );
                             })}
+                          </div>
                         </div>
 
                         <div style={{ padding: 8, borderTop: `1px solid ${T.border}` }}>
@@ -664,13 +666,6 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         )}
                     </div>
 
-                    {/* 우측 빈 상태 (선택 없을 때 md 이상) */}
-                    {!selected && (
-                        <div style={{ flex: 1, display: 'none', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10, color: T.inkMute }} className="md:flex">
-                            <TrendingUp size={40} style={{ color: T.borderSoft }} />
-                            <p style={{ fontSize: 12 }}>완료된 분석을 클릭하면 보고서가 표시됩니다</p>
-                        </div>
-                    )}
                 </div>
             </div>
 
