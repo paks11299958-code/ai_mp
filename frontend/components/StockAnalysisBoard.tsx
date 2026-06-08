@@ -30,6 +30,7 @@ interface StockTask {
     updatedAt: string;
     corpCode?: string;
     errorMessage?: string | null;
+    analysisReport?: string | null;  // Gemini 리포트(완료 종목 투자의견+점수 요약 파싱용)
 }
 
 interface StockDetail extends StockTask {
@@ -478,44 +479,54 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                             </div>
                                         </div>
 
-                                        {/* 진행 단계 스텝퍼 (실패가 아닐 때) */}
-                                        {!isFail ? (
-                                            <div style={{ display: 'flex', alignItems: 'center', marginTop: 7 }}>
-                                                {['대기중', '분석중', '완료'].map((stepLabel, i) => {
-                                                    const reached = i <= stepIdx;
-                                                    const active = i === stepIdx && !isDone;
-                                                    const stepColor = i === 2 ? '#16a34a' : i === 1 ? '#2563eb' : '#d97706';
-                                                    return (
-                                                        <React.Fragment key={stepLabel}>
-                                                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                                                                <span style={{
-                                                                    width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
-                                                                    background: reached ? stepColor : T.borderSoft,
-                                                                    boxShadow: active ? `0 0 0 3px ${stepColor}33` : 'none',
-                                                                    transition: 'all 0.2s',
-                                                                }} />
-                                                                <span style={{ fontSize: 8.5, fontWeight: reached ? 700 : 500, color: reached ? stepColor : T.inkMute, whiteSpace: 'nowrap' }}>{stepLabel}</span>
-                                                            </div>
-                                                            {i < 2 && (
-                                                                <span style={{ flex: 1, height: 2, margin: '0 3px', marginBottom: 11, borderRadius: 2, background: i < stepIdx ? stepColor : T.borderSoft, transition: 'all 0.2s' }} />
-                                                            )}
-                                                        </React.Fragment>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
+                                        {/* 완료: 투자의견+점수 요약 / 분석중·대기중: 스텝퍼 / 실패: 에러 */}
+                                        {isFail ? (
                                             task.errorMessage && <div style={{ fontSize: 10, color: '#dc2626', marginTop: 5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>⚠ {task.errorMessage}</div>
-                                        )}
-
-                                        {/* 분석중 자동 갱신 안내 */}
-                                        {task.status === 'processing' && (
-                                            <div style={{ fontSize: 9, color: T.inkMute, marginTop: 5, textAlign: 'center' }}>⏳ 분석 중이에요 · 자동으로 갱신됩니다 (1~2분 소요)</div>
-                                        )}
-                                        {task.status === 'pending' && (
-                                            <div style={{ fontSize: 9, color: T.inkMute, marginTop: 5, textAlign: 'center' }}>순서를 기다리는 중이에요 · 자동 시작됩니다</div>
-                                        )}
-                                        {isDone && (
-                                            <div style={{ fontSize: 9, color: '#16a34a', marginTop: 5, textAlign: 'center' }}>✓ 클릭하면 보고서를 볼 수 있어요</div>
+                                        ) : isDone ? (
+                                            (() => {
+                                                // Gemini 리포트에서 투자의견+점수 파싱(명품 등급배지처럼 한눈에)
+                                                const op = parseGeminiOpinion(task.analysisReport ?? null);
+                                                const opColor = opinionColor(op.opinion, op.score);
+                                                return (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                                                        <span style={{ fontSize: 13, fontWeight: 800, color: opColor }}>{op.opinion || '분석 완료'}</span>
+                                                        {op.score != null && <span style={{ fontSize: 11, fontWeight: 700, color: opColor }}>{op.score}점</span>}
+                                                        <span style={{ marginLeft: 'auto', fontSize: 9, color: '#16a34a' }}>클릭 ›</span>
+                                                    </div>
+                                                );
+                                            })()
+                                        ) : (
+                                            <>
+                                                <div style={{ display: 'flex', alignItems: 'center', marginTop: 7 }}>
+                                                    {['대기중', '분석중', '완료'].map((stepLabel, i) => {
+                                                        const reached = i <= stepIdx;
+                                                        const active = i === stepIdx && !isDone;
+                                                        const stepColor = i === 2 ? '#16a34a' : i === 1 ? '#2563eb' : '#d97706';
+                                                        return (
+                                                            <React.Fragment key={stepLabel}>
+                                                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                                                                    <span style={{
+                                                                        width: 9, height: 9, borderRadius: '50%', flexShrink: 0,
+                                                                        background: reached ? stepColor : T.borderSoft,
+                                                                        boxShadow: active ? `0 0 0 3px ${stepColor}33` : 'none',
+                                                                        transition: 'all 0.2s',
+                                                                    }} />
+                                                                    <span style={{ fontSize: 8.5, fontWeight: reached ? 700 : 500, color: reached ? stepColor : T.inkMute, whiteSpace: 'nowrap' }}>{stepLabel}</span>
+                                                                </div>
+                                                                {i < 2 && (
+                                                                    <span style={{ flex: 1, height: 2, margin: '0 3px', marginBottom: 11, borderRadius: 2, background: i < stepIdx ? stepColor : T.borderSoft, transition: 'all 0.2s' }} />
+                                                                )}
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
+                                                </div>
+                                                {task.status === 'processing' && (
+                                                    <div style={{ fontSize: 9, color: T.inkMute, marginTop: 5, textAlign: 'center' }}>⏳ 분석 중이에요 · 자동으로 갱신됩니다 (1~2분 소요)</div>
+                                                )}
+                                                {task.status === 'pending' && (
+                                                    <div style={{ fontSize: 9, color: T.inkMute, marginTop: 5, textAlign: 'center' }}>순서를 기다리는 중이에요 · 자동 시작됩니다</div>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                 );
