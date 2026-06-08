@@ -170,13 +170,14 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                 {/* ── Body ── */}
                 <div className="flex flex-1 min-h-0">
 
-                    {/* Left — List */}
-                    <div className={`${mobileDetail ? 'hidden md:flex' : 'flex'} md:flex w-full md:w-64 lg:w-72 flex-col`}
-                        style={{ borderRight: `1px solid ${T.border}` }}>
+                    {/* Left — List (선택 전 전체폭, 선택 후 좁은 사이드바) */}
+                    <div className={`${mobileDetail ? 'hidden md:flex' : 'flex'} md:flex w-full ${selected ? 'md:w-64 lg:w-72' : ''} flex-col`}
+                        style={{ borderRight: selected ? `1px solid ${T.border}` : 'none' }}>
                         <div className="px-4 py-3" style={{ borderBottom: `1px solid ${T.border}` }}>
                             <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>분석 기록</p>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-2">
+                        <div className="flex-1 overflow-y-auto" style={selected ? { padding: 8 } : { padding: 16 }}>
+                          <div style={selected ? {} : { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10, maxWidth: 1100, margin: '0 auto' }}>
                             {loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <div key={i} className="h-16 rounded-xl mb-2 animate-pulse" style={{ background: T.border }} />
@@ -227,7 +228,7 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                                         const sg = scoreGrade(sec.score);
                                                         return (
                                                             <span key={i} className="text-[10px] px-1.5 py-0.5 rounded-md"
-                                                                style={{ background: T.goldSoft, border: `1px solid ${T.border}`, color: T.inkSoft }}>
+                                                                style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontWeight: 600 }}>
                                                                 {sec.name.replace(' & 셋업', '')} <b style={{ color: sg.color }}>{sec.score}</b>
                                                             </span>
                                                         );
@@ -238,20 +239,14 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                                     );
                                 })
                             )}
+                          </div>
                         </div>
                     </div>
 
-                    {/* Right — Detail */}
+                    {/* Right — Detail (선택했을 때만 표시. 선택 전엔 좌측 목록이 전체폭) */}
+                    {selected && (
                     <div className={`${mobileDetail ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-h-0 overflow-y-auto`}>
-                        {!selected ? (
-                            <div className="flex flex-col items-center justify-center h-full gap-4 px-8 text-center">
-                                <Activity size={36} style={{ color: T.border }} />
-                                <div>
-                                    <p className="font-medium mb-1" style={{ color: T.ink }}>좌측 목록에서 분석 결과를 선택하세요</p>
-                                    <p className="text-sm" style={{ color: T.muted }}>스윙 분석 버튼으로 새 영상을 업로드할 수 있습니다</p>
-                                </div>
-                            </div>
-                        ) : (
+                        {(
                             <>
                                 {/* 목록으로 버튼 (상세 보기 상단) */}
                                 <button onClick={() => { setSelected(null); setMobileDetail(false); }}
@@ -263,6 +258,7 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                             </>
                         )}
                     </div>
+                    )}
                 </div>
             </div>
         </div>
