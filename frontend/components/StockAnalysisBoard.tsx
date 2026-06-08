@@ -336,6 +336,11 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 {/* 헤더 */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
+                        {selected && (
+                            <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 12, fontWeight: 600, color: T.accent, background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '2px 4px' }}>
+                                <ChevronLeft size={16} /> 목록으로
+                            </button>
+                        )}
                         <TrendingUp size={16} style={{ color: T.gold, flexShrink: 0 }} />
                         <span className="truncate" style={{ fontSize: 14, fontWeight: 700, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             주식 정밀분석 <span style={{ fontSize: 10, letterSpacing: '0.2em', color: T.gold }}>INVEST VERIFY</span>
@@ -545,13 +550,6 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                     {/* 우측 보고서 패널 */}
                     <div ref={reportPanelRef} style={{ flex: 1, minWidth: 0, display: selected ? 'flex' : 'none', flexDirection: 'column', overflowY: 'auto', background: T.bg }}
                         className="md:flex">
-
-                        {/* 모바일 뒤로가기 */}
-                        <div style={{ display: 'flex', alignItems: 'center', padding: '8px 14px', borderBottom: `1px solid ${T.border}`, flexShrink: 0 }} className="md:hidden">
-                            <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: T.inkSoft, background: 'none', border: 'none', cursor: 'pointer' }}>
-                                <ChevronLeft size={13} /> 목록으로
-                            </button>
-                        </div>
 
                         {detailLoading && (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: T.inkMute, gap: 8, fontSize: 13 }}>

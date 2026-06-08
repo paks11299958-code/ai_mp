@@ -147,11 +147,13 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                 <div className="shrink-0 flex items-center justify-between gap-2 px-5 py-4"
                     style={{ borderBottom: `1px solid ${T.border}`, background: '#FFFFFF' }}>
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                        {mobileDetail && (
-                            <button onClick={() => setMobileDetail(false)} className="md:hidden p-1 rounded-lg hover:bg-black/5 transition-colors shrink-0">
-                                <ChevronLeft size={18} style={{ color: T.muted }} />
+                        {selected ? (
+                            <button onClick={() => { setSelected(null); setMobileDetail(false); }}
+                                className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg hover:bg-black/5 transition-colors shrink-0"
+                                style={{ color: T.accent }}>
+                                <ChevronLeft size={16} /> 목록으로
                             </button>
-                        )}
+                        ) : null}
                         <Activity size={18} style={{ color: T.gold, flexShrink: 0 }} />
                         <span className="font-bold text-base truncate" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             정밀 스윙 진단 <span className="text-[11px] tracking-[0.2em]" style={{ color: T.gold }}>SWING MASTER</span>
@@ -246,17 +248,7 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                     {/* Right — Detail (선택했을 때만 표시. 선택 전엔 좌측 목록이 전체폭) */}
                     {selected && (
                     <div className={`${mobileDetail ? 'flex' : 'hidden md:flex'} flex-1 flex-col min-h-0 overflow-y-auto`}>
-                        {(
-                            <>
-                                {/* 목록으로 버튼 (상세 보기 상단) */}
-                                <button onClick={() => { setSelected(null); setMobileDetail(false); }}
-                                    className="flex items-center gap-1 text-xs font-medium px-4 pt-4 pb-1 shrink-0 self-start"
-                                    style={{ color: T.accent }}>
-                                    <ChevronLeft size={15} /> 목록으로
-                                </button>
-                                <DetailView selected={selected} />
-                            </>
-                        )}
+                        <DetailView selected={selected} />
                     </div>
                     )}
                 </div>

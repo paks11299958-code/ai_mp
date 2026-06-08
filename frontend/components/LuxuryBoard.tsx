@@ -246,6 +246,11 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                 {/* 헤더 */}
                 <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {selected && (
+                            <button onClick={() => setSelected(null)} className="flex items-center gap-0.5 text-xs font-semibold shrink-0 px-1 py-0.5 rounded-lg hover:bg-black/5 transition-colors" style={{ color: '#8E6FB7' }}>
+                                <ChevronLeft size={16} /> 목록으로
+                            </button>
+                        )}
                         <Shield size={17} style={{ color: '#8E6FB7', flexShrink: 0 }} />
                         <h2 className="text-sm font-bold truncate" style={{ color: '#2D2438', fontFamily: '"Nanum Myeongjo", serif', letterSpacing: '0.02em' }}>
                             명품 감정원 <span className="text-[10px] tracking-[0.2em]" style={{ color: '#8E6FB7' }}>LUXE VERIFY</span>
@@ -437,11 +442,6 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
 
                     {/* ── 우측: 결과 패널 ── */}
                     <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 flex-col overflow-hidden`}>
-                        <div className="md:hidden flex items-center px-4 py-2 border-b border-[#F0E9DE] shrink-0">
-                            <button onClick={() => setSelected(null)} className="flex items-center gap-1 text-[#9089A1] hover:text-[#2D2438] text-xs transition-colors">
-                                <ChevronLeft size={14} /> 목록으로
-                            </button>
-                        </div>
 
                         {detailLoading && (
                             <div className="flex items-center justify-center h-full text-[#9089A1] text-sm">
