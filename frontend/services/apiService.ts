@@ -464,7 +464,13 @@ export const palmReadingApi = {
 };
 
 // ── 전자책 만들기 (강지훈) ──
-export interface EbookTocChapter { no: number; title: string; summary: string; }
+export interface EbookSource { title: string; summary: string; url?: string; tableData?: string; }
+export type EbookSourceStatus = 'idle' | 'queued' | 'collecting' | 'done' | 'failed';
+export interface EbookTocChapter {
+    no: number; title: string; summary: string;
+    sources?: EbookSource[];
+    sourceStatus?: EbookSourceStatus;
+}
 export interface EbookProject {
     id: number; topic: string; title: string | null; status: string;
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
@@ -480,6 +486,8 @@ export const ebookApi = {
         put<EbookProject>(`/ebook/${id}/toc`, { title, chapters }),
     remove: (id: number) =>
         del<{ deleted: boolean }>(`/ebook/${id}`),
+    collectSources: (id: number, no: number) =>
+        post<{ no: number; sourceStatus: EbookSourceStatus; sources: EbookSource[] }>(`/ebook/${id}/chapters/${no}/sources`, {}),
 };
 
 export const quickMenuApi = {

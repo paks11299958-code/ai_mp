@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil } from 'lucide-react';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
@@ -8,6 +8,19 @@ const T = {
     ink: '#2D2438', inkSoft: '#6B5F56', inkMute: '#9089A1',
     accent: '#8E6FB7', accentSoft: 'rgba(142,111,183,0.10)', accentBorder: 'rgba(142,111,183,0.4)',
 };
+
+// 자료수집 단계 칩 (접수→수집→완료)
+const Stage: React.FC<{ label: string; active?: boolean; done?: boolean; spin?: boolean }> = ({ label, active, done, spin }) => (
+    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full" style={{
+        color: active ? T.accent : T.inkMute,
+        background: active ? T.accentSoft : 'transparent',
+        border: `1px solid ${active ? T.accentBorder : T.border}`,
+        fontWeight: active ? 700 : 500,
+    }}>
+        {spin ? <Loader size={9} className="animate-spin" /> : done ? <Check size={9} /> : null}
+        {label}
+    </span>
+);
 
 interface Props { onClose: () => void; }
 
@@ -23,6 +36,34 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [editTitle, setEditTitle] = useState('');
     const [editChapters, setEditChapters] = useState<EbookTocChapter[]>([]);
     const [savingToc, setSavingToc] = useState(false);
+    // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
+    const [collectingNo, setCollectingNo] = useState<number | null>(null);
+    const [expandedNo, setExpandedNo] = useState<number | null>(null);
+
+    // 챕터별 자료수집: 호출 → 접수→수집→완료. selected.chapters를 즉시 갱신해 단계 표시.
+    const collectSources = async (no: number) => {
+        if (!selected || collectingNo !== null) return;
+        setCollectingNo(no);
+        setError(null);
+        // 낙관적 상태: 해당 챕터를 collecting으로
+        const patch = (status: EbookTocChapter['sourceStatus'], sources?: EbookTocChapter['sources']) =>
+            setSelected(prev => prev ? {
+                ...prev,
+                chapters: (prev.chapters ?? []).map(c =>
+                    c.no === no ? { ...c, sourceStatus: status, ...(sources ? { sources } : {}) } : c),
+            } : prev);
+        patch('collecting');
+        try {
+            const res = await ebookApi.collectSources(selected.id, no);
+            patch('done', res.sources);
+            setExpandedNo(no); // 완료되면 자동으로 펼쳐 보여줌
+        } catch (e: any) {
+            patch('failed');
+            setError(e?.message || '자료 수집에 실패했어요. 잠시 후 다시 시도해주세요.');
+        } finally {
+            setCollectingNo(null);
+        }
+    };
 
     const startEdit = () => {
         if (!selected) return;
@@ -174,15 +215,85 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 {/* 목차 — 보기/편집 */}
                                 {!editing ? (
                                     <div className="space-y-2">
-                                        {(selected.chapters ?? []).map(ch => (
-                                            <div key={ch.no} className="flex gap-3 rounded-xl p-3" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                                <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: T.accentSoft, color: T.accent, border: `1px solid ${T.accentBorder}` }}>{ch.no}</span>
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-semibold" style={{ color: T.ink }}>{ch.title}</p>
-                                                    <p className="text-xs mt-0.5" style={{ color: T.inkSoft }}>{ch.summary}</p>
+                                        {(selected.chapters ?? []).map(ch => {
+                                            const st = ch.sourceStatus ?? 'idle';
+                                            const isCollecting = st === 'collecting' || collectingNo === ch.no;
+                                            const isDone = st === 'done';
+                                            const isFailed = st === 'failed';
+                                            const open = expandedNo === ch.no;
+                                            return (
+                                            <div key={ch.no} className="rounded-xl p-3" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                                <div className="flex gap-3">
+                                                    <span className="shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ background: T.accentSoft, color: T.accent, border: `1px solid ${T.accentBorder}` }}>{ch.no}</span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold" style={{ color: T.ink }}>{ch.title}</p>
+                                                        <p className="text-xs mt-0.5" style={{ color: T.inkSoft }}>{ch.summary}</p>
+
+                                                        {/* 자료수집 단계 표시: 접수→수집→완료 */}
+                                                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                                            {!isDone && !isFailed && (
+                                                                <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null}
+                                                                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40"
+                                                                    style={{ color: '#fff', background: T.accent }}>
+                                                                    {isCollecting ? <Loader size={12} className="animate-spin" /> : <Search size={12} />}
+                                                                    {isCollecting ? '수집 중…' : '자료 수집'}
+                                                                </button>
+                                                            )}
+                                                            {/* 단계 칩 */}
+                                                            {isCollecting && (
+                                                                <span className="inline-flex items-center gap-1.5 text-[10px]">
+                                                                    <Stage label="접수" active done />
+                                                                    <Stage label="수집" active spin />
+                                                                    <Stage label="완료" />
+                                                                </span>
+                                                            )}
+                                                            {isDone && (
+                                                                <>
+                                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ color: '#2E7D32', background: 'rgba(46,125,50,0.1)' }}>
+                                                                        <Check size={12} /> 수집 완료 · 자료 {ch.sources?.length ?? 0}건
+                                                                    </span>
+                                                                    <button onClick={() => setExpandedNo(open ? null : ch.no)} className="text-[11px] font-medium px-2 py-1 rounded-lg" style={{ color: T.accent, background: T.accentSoft }}>
+                                                                        {open ? '접기' : '자료 보기'}
+                                                                    </button>
+                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="text-[11px] px-2 py-1 rounded-lg disabled:opacity-40" style={{ color: T.inkMute }}>다시 수집</button>
+                                                                </>
+                                                            )}
+                                                            {isFailed && (
+                                                                <>
+                                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ color: '#C62828', background: 'rgba(198,40,40,0.08)' }}>
+                                                                        <AlertCircle size={12} /> 실패
+                                                                    </span>
+                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="text-[11px] font-semibold px-2 py-1 rounded-lg disabled:opacity-40" style={{ color: '#fff', background: T.accent }}>다시 시도</button>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
+
+                                                {/* 수집된 자료 목록 (펼치기) */}
+                                                {open && isDone && (ch.sources?.length ?? 0) > 0 && (
+                                                    <div className="mt-3 ml-10 space-y-2">
+                                                        {ch.sources!.map((s, si) => (
+                                                            <div key={si} className="rounded-lg p-2.5" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                                                                <p className="text-xs font-semibold flex items-start gap-1.5" style={{ color: T.ink }}>
+                                                                    <FileText size={12} className="shrink-0 mt-0.5" style={{ color: T.accent }} />{s.title}
+                                                                </p>
+                                                                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: T.inkSoft }}>{s.summary}</p>
+                                                                {s.tableData && (
+                                                                    <p className="text-[10px] mt-1 px-2 py-1 rounded" style={{ color: T.inkSoft, background: '#fff', border: `1px dashed ${T.border}` }}>📊 {s.tableData}</p>
+                                                                )}
+                                                                {s.url && (
+                                                                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] mt-1.5" style={{ color: T.accent }}>
+                                                                        <ExternalLink size={10} /> 출처 보기
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
@@ -208,7 +319,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     </div>
                                 )}
                                 {!editing && <p className="text-[11px] text-center mt-4" style={{ color: T.inkMute }}>
-                                    ✏️ 목차를 수정하거나, 다음 단계에서 챕터별 자료 수집·본문 생성을 할 수 있어요. (준비 중)
+                                    ✏️ 목차를 수정하거나, 챕터별 <b style={{ color: T.accent }}>자료 수집</b>을 해보세요. 본문 생성은 곧 추가됩니다.
                                 </p>}
                             </div>
                         )}
