@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, FileEdit, RefreshCw } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
@@ -46,6 +48,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
     const [collectingNo, setCollectingNo] = useState<number | null>(null);
     const [expandedNo, setExpandedNo] = useState<number | null>(null);
+    // 2-C 본문생성: 현재 생성 중인 챕터, 본문 펼침, 피드백 입력값
+    const [writingNo, setWritingNo] = useState<number | null>(null);
+    const [contentOpenNo, setContentOpenNo] = useState<number | null>(null);
+    const [feedbackText, setFeedbackText] = useState<Record<number, string>>({});
 
     // 챕터별 자료수집: 호출 → 접수→수집→완료. selected.chapters를 즉시 갱신해 단계 표시.
     const collectSources = async (no: number) => {
@@ -69,6 +75,31 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setError(e?.message || '자료 수집에 실패했어요. 잠시 후 다시 시도해주세요.');
         } finally {
             setCollectingNo(null);
+        }
+    };
+
+    // 2-C 챕터 본문 생성 (피드백 있으면 재생성). 한 번에 한 챕터.
+    const generateContent = async (no: number, feedback?: string) => {
+        if (!selected || writingNo !== null) return;
+        setWritingNo(no);
+        setError(null);
+        const patch = (status: EbookTocChapter['contentStatus'], contentMd?: string) =>
+            setSelected(prev => prev ? {
+                ...prev,
+                chapters: (prev.chapters ?? []).map(c =>
+                    c.no === no ? { ...c, contentStatus: status, ...(contentMd !== undefined ? { contentMd } : {}) } : c),
+            } : prev);
+        patch('generating');
+        try {
+            const res = await ebookApi.generateContent(selected.id, no, feedback);
+            patch('done', res.contentMd);
+            setContentOpenNo(no);          // 완료 시 본문 펼쳐 보여줌
+            setFeedbackText(prev => ({ ...prev, [no]: '' })); // 피드백칸 비움
+        } catch (e: any) {
+            patch('failed');
+            setError(e?.message || '본문 생성에 실패했어요. 잠시 후 다시 시도해주세요.');
+        } finally {
+            setWritingNo(null);
         }
     };
 
@@ -316,6 +347,81 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                         })}
                                                     </div>
                                                 )}
+
+                                                {/* 2-C 본문 생성 — 자료수집 완료(isDone)한 챕터만 */}
+                                                {isDone && (() => {
+                                                    const cst = ch.contentStatus ?? 'idle';
+                                                    const isWriting = cst === 'generating' || writingNo === ch.no;
+                                                    const hasContent = cst === 'done' && !!ch.contentMd;
+                                                    const cFailed = cst === 'failed';
+                                                    const cOpen = contentOpenNo === ch.no;
+                                                    return (
+                                                    <div className="mt-3 ml-10 pt-3" style={{ borderTop: `1px dashed ${T.border}` }}>
+                                                        {/* 본문 생성 전 */}
+                                                        {!isWriting && !hasContent && !cFailed && (
+                                                            <button onClick={() => generateContent(ch.no)} disabled={writingNo !== null}
+                                                                className="inline-flex items-center gap-1.5 font-bold rounded-xl disabled:opacity-40"
+                                                                style={{ fontSize: 13, padding: '8px 16px', color: '#fff', background: '#3F7E5B', boxShadow: '0 3px 10px -3px rgba(63,126,91,0.6)' }}>
+                                                                <FileEdit size={15} /> 본문 만들기
+                                                            </button>
+                                                        )}
+                                                        {/* 생성 중 */}
+                                                        {isWriting && (
+                                                            <div className="rounded-xl p-3" style={{ background: 'rgba(63,126,91,0.08)', border: '1.5px solid rgba(63,126,91,0.4)' }}>
+                                                                <span className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 800, color: '#3F7E5B' }}>
+                                                                    <Loader size={14} className="animate-spin" /> 본문을 쓰고 있어요…
+                                                                </span>
+                                                                <p className="mt-1" style={{ fontSize: 12, color: '#3F7E5B' }}>수집한 자료를 근거로 챕터 본문을 작성 중입니다 (보통 10~30초)</p>
+                                                            </div>
+                                                        )}
+                                                        {/* 실패 */}
+                                                        {cFailed && !isWriting && (
+                                                            <div className="flex items-center gap-2 flex-wrap">
+                                                                <span className="inline-flex items-center gap-1.5 rounded-xl" style={{ fontSize: 13, fontWeight: 700, padding: '7px 14px', color: '#fff', background: '#D04545' }}>
+                                                                    <AlertCircle size={15} /> 본문 생성 실패
+                                                                </span>
+                                                                <button onClick={() => generateContent(ch.no)} disabled={writingNo !== null} className="font-bold rounded-xl disabled:opacity-40" style={{ fontSize: 13, padding: '7px 14px', color: '#fff', background: '#3F7E5B' }}>다시 시도</button>
+                                                            </div>
+                                                        )}
+                                                        {/* 완료: 본문 보기/접기 + 피드백 다시 만들기 */}
+                                                        {hasContent && !isWriting && (
+                                                            <>
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="inline-flex items-center gap-1.5 rounded-xl" style={{ fontSize: 13, fontWeight: 800, padding: '7px 14px', color: '#fff', background: '#3F7E5B' }}>
+                                                                        <Check size={16} strokeWidth={3} /> 본문 완성
+                                                                    </span>
+                                                                    <button onClick={() => setContentOpenNo(cOpen ? null : ch.no)} className="font-bold rounded-xl" style={{ fontSize: 13, padding: '7px 14px', color: '#3F7E5B', background: 'rgba(63,126,91,0.1)', border: '1.5px solid rgba(63,126,91,0.4)' }}>
+                                                                        {cOpen ? '본문 접기 ▲' : '본문 보기 ▼'}
+                                                                    </button>
+                                                                </div>
+
+                                                                {cOpen && (
+                                                                    <>
+                                                                        {/* 본문 (마크다운) */}
+                                                                        <div className="mt-3 rounded-xl p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
+                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd}</ReactMarkdown>
+                                                                        </div>
+                                                                        {/* 피드백 → 다시 만들기 */}
+                                                                        <div className="mt-2 flex gap-2 items-end">
+                                                                            <textarea
+                                                                                value={feedbackText[ch.no] ?? ''}
+                                                                                onChange={e => setFeedbackText(prev => ({ ...prev, [ch.no]: e.target.value }))}
+                                                                                placeholder="고치고 싶은 점을 적어주세요. 예: 더 쉽게 / 예시 추가 / 더 짧게"
+                                                                                rows={2}
+                                                                                className="flex-1 text-xs rounded-lg px-2.5 py-2 resize-none" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
+                                                                            <button onClick={() => generateContent(ch.no, (feedbackText[ch.no] ?? '').trim() || undefined)} disabled={writingNo !== null}
+                                                                                className="shrink-0 inline-flex items-center gap-1 font-bold rounded-xl disabled:opacity-40" style={{ fontSize: 12, padding: '8px 12px', color: '#fff', background: '#B58F4A' }}>
+                                                                                <RefreshCw size={13} /> 다시 만들기
+                                                                            </button>
+                                                                        </div>
+                                                                        <p className="mt-1 text-[10px]" style={{ color: T.inkMute }}>피드백을 비우고 누르면 같은 자료로 새로 씁니다.</p>
+                                                                    </>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    );
+                                                })()}
                                             </div>
                                             );
                                         })}
