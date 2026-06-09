@@ -240,7 +240,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
     const displayName = (t: LuxuryTask) => t.brandHint || t.geminiBrand || '명품 분석중...';
 
     return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-start md:items-center justify-center pt-[60px] md:pt-0 md:p-6">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-[60px] md:pt-[5vh] md:px-6 md:pb-6">
             <div className="bg-[#FBF8F3] md:border border-[#F0E9DE] rounded-t-2xl md:rounded-2xl w-full max-w-5xl h-[calc(100vh-60px)] md:h-auto md:max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
 
                 {/* 헤더 */}
