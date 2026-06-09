@@ -270,7 +270,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                     <button onClick={() => setExpandedNo(open ? null : ch.no)} className="font-bold rounded-xl" style={{ fontSize: 13, padding: '7px 14px', color: T.accent, background: T.accentSoft, border: `1.5px solid ${T.accentBorder}` }}>
                                                                         {open ? '자료 접기 ▲' : '자료 보기 ▼'}
                                                                     </button>
-                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="rounded-xl disabled:opacity-40" style={{ fontSize: 12, padding: '7px 12px', color: T.inkMute, border: `1px solid ${T.border}` }}>다시 수집</button>
+                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="inline-flex items-center gap-1 font-bold rounded-xl disabled:opacity-40" style={{ fontSize: 13, padding: '7px 14px', color: '#fff', background: '#B58F4A', boxShadow: '0 3px 10px -3px rgba(181,143,74,0.6)' }}>
+                                                                        <Search size={14} /> 다시 수집
+                                                                    </button>
                                                                 </div>
                                                             )}
 
