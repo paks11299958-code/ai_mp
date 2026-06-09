@@ -10,17 +10,24 @@ const T = {
 };
 
 // 자료수집 단계 칩 (접수→수집→완료)
-const Stage: React.FC<{ label: string; active?: boolean; done?: boolean; spin?: boolean }> = ({ label, active, done, spin }) => (
-    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full" style={{
-        color: active ? T.accent : T.inkMute,
-        background: active ? T.accentSoft : 'transparent',
-        border: `1px solid ${active ? T.accentBorder : T.border}`,
-        fontWeight: active ? 700 : 500,
-    }}>
-        {spin ? <Loader size={9} className="animate-spin" /> : done ? <Check size={9} /> : null}
-        {label}
-    </span>
-);
+// 단계 칩 (접수 → 수집 → 완료). state: 'done'(지난단계) | 'current'(진행중) | 'todo'(예정)
+const Stage: React.FC<{ label: string; state: 'done' | 'current' | 'todo' }> = ({ label, state }) => {
+    const isDone = state === 'done';
+    const isCur = state === 'current';
+    return (
+        <span className="inline-flex items-center gap-1 rounded-full" style={{
+            fontSize: 12, fontWeight: isCur ? 800 : isDone ? 700 : 500,
+            padding: '4px 10px',
+            color: isCur ? '#fff' : isDone ? '#fff' : T.inkMute,
+            background: isCur ? T.accent : isDone ? '#7BAE7F' : '#EFE9F2',
+            border: `1px solid ${isCur ? T.accent : isDone ? '#7BAE7F' : T.border}`,
+            boxShadow: isCur ? '0 2px 8px -2px rgba(142,111,183,0.6)' : 'none',
+        }}>
+            {isCur ? <Loader size={12} className="animate-spin" /> : isDone ? <Check size={12} /> : null}
+            {label}
+        </span>
+    );
+};
 
 interface Props { onClose: () => void; }
 
@@ -229,42 +236,52 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                         <p className="text-sm font-semibold" style={{ color: T.ink }}>{ch.title}</p>
                                                         <p className="text-xs mt-0.5" style={{ color: T.inkSoft }}>{ch.summary}</p>
 
-                                                        {/* 자료수집 단계 표시: 접수→수집→완료 */}
-                                                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                                            {!isDone && !isFailed && (
+                                                        {/* 자료수집 영역 */}
+                                                        <div className="mt-3">
+                                                            {/* 수집 전: 큰 버튼 */}
+                                                            {!isCollecting && !isDone && !isFailed && (
                                                                 <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null}
-                                                                    className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-lg disabled:opacity-40"
-                                                                    style={{ color: '#fff', background: T.accent }}>
-                                                                    {isCollecting ? <Loader size={12} className="animate-spin" /> : <Search size={12} />}
-                                                                    {isCollecting ? '수집 중…' : '자료 수집'}
+                                                                    className="inline-flex items-center gap-1.5 font-bold rounded-xl disabled:opacity-40"
+                                                                    style={{ fontSize: 13, padding: '8px 16px', color: '#fff', background: T.accent, boxShadow: '0 3px 10px -3px rgba(142,111,183,0.6)' }}>
+                                                                    <Search size={15} /> 자료 수집하기
                                                                 </button>
                                                             )}
-                                                            {/* 단계 칩 */}
+
+                                                            {/* 수집 중: 또렷한 단계 표시줄 (접수 → 수집 → 완료) */}
                                                             {isCollecting && (
-                                                                <span className="inline-flex items-center gap-1.5 text-[10px]">
-                                                                    <Stage label="접수" active done />
-                                                                    <Stage label="수집" active spin />
-                                                                    <Stage label="완료" />
-                                                                </span>
+                                                                <div className="rounded-xl p-3" style={{ background: T.accentSoft, border: `1.5px solid ${T.accentBorder}` }}>
+                                                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                                                        <Stage label="접수" state="done" />
+                                                                        <span style={{ color: T.accent, fontWeight: 700 }}>›</span>
+                                                                        <Stage label="자료 수집 중" state="current" />
+                                                                        <span style={{ color: T.inkMute, fontWeight: 700 }}>›</span>
+                                                                        <Stage label="완료" state="todo" />
+                                                                    </div>
+                                                                    <p className="mt-2" style={{ fontSize: 12, color: T.accent, fontWeight: 600 }}>웹에서 자료를 찾고 있어요… 잠시만 기다려 주세요 (보통 5~15초)</p>
+                                                                </div>
                                                             )}
+
+                                                            {/* 완료: 또렷한 완료 배지 + 액션 */}
                                                             {isDone && (
-                                                                <>
-                                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ color: '#2E7D32', background: 'rgba(46,125,50,0.1)' }}>
-                                                                        <Check size={12} /> 수집 완료 · 자료 {ch.sources?.length ?? 0}건
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="inline-flex items-center gap-1.5 rounded-xl" style={{ fontSize: 13, fontWeight: 800, padding: '7px 14px', color: '#fff', background: '#5BA36A', boxShadow: '0 3px 10px -3px rgba(91,163,106,0.6)' }}>
+                                                                        <Check size={16} strokeWidth={3} /> 수집 완료 · {ch.sources?.length ?? 0}건
                                                                     </span>
-                                                                    <button onClick={() => setExpandedNo(open ? null : ch.no)} className="text-[11px] font-medium px-2 py-1 rounded-lg" style={{ color: T.accent, background: T.accentSoft }}>
-                                                                        {open ? '접기' : '자료 보기'}
+                                                                    <button onClick={() => setExpandedNo(open ? null : ch.no)} className="font-bold rounded-xl" style={{ fontSize: 13, padding: '7px 14px', color: T.accent, background: T.accentSoft, border: `1.5px solid ${T.accentBorder}` }}>
+                                                                        {open ? '자료 접기 ▲' : '자료 보기 ▼'}
                                                                     </button>
-                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="text-[11px] px-2 py-1 rounded-lg disabled:opacity-40" style={{ color: T.inkMute }}>다시 수집</button>
-                                                                </>
+                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="rounded-xl disabled:opacity-40" style={{ fontSize: 12, padding: '7px 12px', color: T.inkMute, border: `1px solid ${T.border}` }}>다시 수집</button>
+                                                                </div>
                                                             )}
+
+                                                            {/* 실패 */}
                                                             {isFailed && (
-                                                                <>
-                                                                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg" style={{ color: '#C62828', background: 'rgba(198,40,40,0.08)' }}>
-                                                                        <AlertCircle size={12} /> 실패
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    <span className="inline-flex items-center gap-1.5 rounded-xl" style={{ fontSize: 13, fontWeight: 700, padding: '7px 14px', color: '#fff', background: '#D04545' }}>
+                                                                        <AlertCircle size={15} /> 수집 실패
                                                                     </span>
-                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="text-[11px] font-semibold px-2 py-1 rounded-lg disabled:opacity-40" style={{ color: '#fff', background: T.accent }}>다시 시도</button>
-                                                                </>
+                                                                    <button onClick={() => collectSources(ch.no)} disabled={collectingNo !== null} className="font-bold rounded-xl disabled:opacity-40" style={{ fontSize: 13, padding: '7px 14px', color: '#fff', background: T.accent }}>다시 시도</button>
+                                                                </div>
                                                             )}
                                                         </div>
                                                     </div>
