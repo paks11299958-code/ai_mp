@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, FileEdit, RefreshCw } from 'lucide-react';
-import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
+import { ebookApi, EbookProject, EbookTocChapter, EbookProvider, EbookVariant } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
 const T = {
@@ -31,6 +31,13 @@ const Stage: React.FC<{ label: string; state: 'done' | 'current' | 'todo' }> = (
     );
 };
 
+// 본문 생성 AI 3종 (비교용)
+const AI_PROVIDERS: { key: EbookProvider; label: string; emoji: string; color: string }[] = [
+    { key: 'gemini', label: '제미나이', emoji: '✨', color: '#4285F4' },
+    { key: 'claude', label: '클로드 Opus', emoji: '🅰️', color: '#C96442' },
+    { key: 'gpt', label: '챗GPT', emoji: '🟢', color: '#10A37F' },
+];
+
 interface Props { onClose: () => void; }
 
 export const EbookBoard: React.FC<Props> = ({ onClose }) => {
@@ -48,10 +55,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
     const [collectingNo, setCollectingNo] = useState<number | null>(null);
     const [expandedNo, setExpandedNo] = useState<number | null>(null);
-    // 2-C 본문생성: 현재 생성 중인 챕터, 본문 펼침, 피드백 입력값
-    const [writingNo, setWritingNo] = useState<number | null>(null);
+    // 2-C 본문생성(3 AI 비교): 현재 생성 중인 "챕터:provider" 키, 본문 펼침, 피드백
+    const [writingKey, setWritingKey] = useState<string | null>(null); // "no:provider"
     const [contentOpenNo, setContentOpenNo] = useState<number | null>(null);
-    const [feedbackText, setFeedbackText] = useState<Record<number, string>>({});
+    const [feedbackText, setFeedbackText] = useState<Record<string, string>>({}); // key "no:provider"
 
     // 챕터별 자료수집: 호출 → 접수→수집→완료. selected.chapters를 즉시 갱신해 단계 표시.
     const collectSources = async (no: number) => {
@@ -78,28 +85,33 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
-    // 2-C 챕터 본문 생성 (피드백 있으면 재생성). 한 번에 한 챕터.
-    const generateContent = async (no: number, feedback?: string) => {
-        if (!selected || writingNo !== null) return;
-        setWritingNo(no);
+    // 2-C 챕터 본문 생성 (provider별 비교). 한 번에 하나(어느 AI든 진행 중이면 막음).
+    const generateContent = async (no: number, provider: EbookProvider, feedback?: string) => {
+        if (!selected || writingKey !== null) return;
+        const key = `${no}:${provider}`;
+        setWritingKey(key);
         setError(null);
-        const patch = (status: EbookTocChapter['contentStatus'], contentMd?: string) =>
+        const patchVariant = (status: EbookVariant['status'], md?: string) =>
             setSelected(prev => prev ? {
                 ...prev,
-                chapters: (prev.chapters ?? []).map(c =>
-                    c.no === no ? { ...c, contentStatus: status, ...(contentMd !== undefined ? { contentMd } : {}) } : c),
+                chapters: (prev.chapters ?? []).map(c => {
+                    if (c.no !== no) return c;
+                    const cv = { ...(c.contentVariants ?? {}) };
+                    cv[provider] = { status, md: md !== undefined ? md : cv[provider]?.md };
+                    return { ...c, contentVariants: cv };
+                }),
             } : prev);
-        patch('generating');
+        patchVariant('generating');
         try {
-            const res = await ebookApi.generateContent(selected.id, no, feedback);
-            patch('done', res.contentMd);
-            setContentOpenNo(no);          // 완료 시 본문 펼쳐 보여줌
-            setFeedbackText(prev => ({ ...prev, [no]: '' })); // 피드백칸 비움
+            const res = await ebookApi.generateContent(selected.id, no, provider, feedback);
+            patchVariant('done', res.contentMd);
+            setContentOpenNo(no);
+            setFeedbackText(prev => ({ ...prev, [key]: '' }));
         } catch (e: any) {
-            patch('failed');
+            patchVariant('failed');
             setError(e?.message || '본문 생성에 실패했어요. 잠시 후 다시 시도해주세요.');
         } finally {
-            setWritingNo(null);
+            setWritingKey(null);
         }
     };
 
@@ -348,76 +360,80 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     </div>
                                                 )}
 
-                                                {/* 2-C 본문 생성 — 자료수집 완료(isDone)한 챕터만 */}
+                                                {/* 2-C 본문 생성 — 3개 AI 비교 (자료수집 완료 챕터만) */}
                                                 {isDone && (() => {
-                                                    const cst = ch.contentStatus ?? 'idle';
-                                                    const isWriting = cst === 'generating' || writingNo === ch.no;
-                                                    const hasContent = cst === 'done' && !!ch.contentMd;
-                                                    const cFailed = cst === 'failed';
                                                     const cOpen = contentOpenNo === ch.no;
+                                                    const anyWriting = writingKey?.startsWith(`${ch.no}:`);
                                                     return (
                                                     <div className="mt-3 ml-10 pt-3" style={{ borderTop: `1px dashed ${T.border}` }}>
-                                                        {/* 본문 생성 전 */}
-                                                        {!isWriting && !hasContent && !cFailed && (
-                                                            <button onClick={() => generateContent(ch.no)} disabled={writingNo !== null}
-                                                                className="inline-flex items-center gap-1.5 font-bold rounded-xl disabled:opacity-40"
-                                                                style={{ fontSize: 13, padding: '8px 16px', color: '#fff', background: '#3F7E5B', boxShadow: '0 3px 10px -3px rgba(63,126,91,0.6)' }}>
-                                                                <FileEdit size={15} /> 본문 만들기
+                                                        <p className="text-xs font-bold mb-2" style={{ color: T.ink }}>✍️ 본문 만들기 — AI별로 써보고 비교하세요</p>
+                                                        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
+                                                            {AI_PROVIDERS.map(ai => {
+                                                                const v = ch.contentVariants?.[ai.key];
+                                                                const st = v?.status ?? 'idle';
+                                                                const writing = writingKey === `${ch.no}:${ai.key}`;
+                                                                const done = st === 'done' && !!v?.md;
+                                                                const failed = st === 'failed';
+                                                                return (
+                                                                <div key={ai.key} className="rounded-xl p-2.5" style={{ background: '#fff', border: `1.5px solid ${ai.color}55` }}>
+                                                                    <div className="flex items-center gap-1.5 mb-1.5">
+                                                                        <span className="text-sm">{ai.emoji}</span>
+                                                                        <span className="text-xs font-bold" style={{ color: ai.color }}>{ai.label}</span>
+                                                                        {done && <Check size={13} strokeWidth={3} style={{ color: ai.color, marginLeft: 'auto' }} />}
+                                                                    </div>
+                                                                    {writing ? (
+                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold" style={{ color: ai.color }}>
+                                                                            <Loader size={11} className="animate-spin" /> 작성 중…
+                                                                        </span>
+                                                                    ) : (
+                                                                        <button onClick={() => generateContent(ch.no, ai.key)} disabled={writingKey !== null}
+                                                                            className="w-full text-[11px] font-bold rounded-lg py-1.5 disabled:opacity-40"
+                                                                            style={{ color: '#fff', background: ai.color }}>
+                                                                            {done ? '다시 쓰기' : failed ? '다시 시도' : '본문 작성'}
+                                                                        </button>
+                                                                    )}
+                                                                    {failed && <p className="text-[10px] mt-1" style={{ color: '#C62828' }}>실패</p>}
+                                                                </div>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        {/* 결과 보기 토글 (하나라도 완료되면) */}
+                                                        {AI_PROVIDERS.some(ai => ch.contentVariants?.[ai.key]?.status === 'done') && (
+                                                            <button onClick={() => setContentOpenNo(cOpen ? null : ch.no)} className="mt-2 text-xs font-bold rounded-lg" style={{ padding: '6px 12px', color: T.accent, background: T.accentSoft, border: `1.5px solid ${T.accentBorder}` }}>
+                                                                {cOpen ? '본문 비교 접기 ▲' : '본문 비교 보기 ▼'}
                                                             </button>
                                                         )}
-                                                        {/* 생성 중 */}
-                                                        {isWriting && (
-                                                            <div className="rounded-xl p-3" style={{ background: 'rgba(63,126,91,0.08)', border: '1.5px solid rgba(63,126,91,0.4)' }}>
-                                                                <span className="inline-flex items-center gap-1.5" style={{ fontSize: 13, fontWeight: 800, color: '#3F7E5B' }}>
-                                                                    <Loader size={14} className="animate-spin" /> 본문을 쓰고 있어요…
-                                                                </span>
-                                                                <p className="mt-1" style={{ fontSize: 12, color: '#3F7E5B' }}>수집한 자료를 근거로 챕터 본문을 작성 중입니다 (보통 10~30초)</p>
-                                                            </div>
-                                                        )}
-                                                        {/* 실패 */}
-                                                        {cFailed && !isWriting && (
-                                                            <div className="flex items-center gap-2 flex-wrap">
-                                                                <span className="inline-flex items-center gap-1.5 rounded-xl" style={{ fontSize: 13, fontWeight: 700, padding: '7px 14px', color: '#fff', background: '#D04545' }}>
-                                                                    <AlertCircle size={15} /> 본문 생성 실패
-                                                                </span>
-                                                                <button onClick={() => generateContent(ch.no)} disabled={writingNo !== null} className="font-bold rounded-xl disabled:opacity-40" style={{ fontSize: 13, padding: '7px 14px', color: '#fff', background: '#3F7E5B' }}>다시 시도</button>
-                                                            </div>
-                                                        )}
-                                                        {/* 완료: 본문 보기/접기 + 피드백 다시 만들기 */}
-                                                        {hasContent && !isWriting && (
-                                                            <>
-                                                                <div className="flex items-center gap-2 flex-wrap">
-                                                                    <span className="inline-flex items-center gap-1.5 rounded-xl" style={{ fontSize: 13, fontWeight: 800, padding: '7px 14px', color: '#fff', background: '#3F7E5B' }}>
-                                                                        <Check size={16} strokeWidth={3} /> 본문 완성
-                                                                    </span>
-                                                                    <button onClick={() => setContentOpenNo(cOpen ? null : ch.no)} className="font-bold rounded-xl" style={{ fontSize: 13, padding: '7px 14px', color: '#3F7E5B', background: 'rgba(63,126,91,0.1)', border: '1.5px solid rgba(63,126,91,0.4)' }}>
-                                                                        {cOpen ? '본문 접기 ▲' : '본문 보기 ▼'}
-                                                                    </button>
-                                                                </div>
 
-                                                                {cOpen && (
-                                                                    <>
-                                                                        {/* 본문 (마크다운) */}
-                                                                        <div className="mt-3 rounded-xl p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
-                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd}</ReactMarkdown>
+                                                        {cOpen && (
+                                                            <div className="mt-3 space-y-3">
+                                                                {AI_PROVIDERS.filter(ai => ch.contentVariants?.[ai.key]?.md).map(ai => {
+                                                                    const md = ch.contentVariants![ai.key]!.md!;
+                                                                    const fbKey = `${ch.no}:${ai.key}`;
+                                                                    return (
+                                                                    <div key={ai.key} className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${ai.color}55` }}>
+                                                                        <div className="flex items-center gap-1.5 px-3 py-2" style={{ background: `${ai.color}14` }}>
+                                                                            <span>{ai.emoji}</span>
+                                                                            <span className="text-xs font-bold" style={{ color: ai.color }}>{ai.label} 본문</span>
+                                                                            <span className="text-[10px] ml-auto" style={{ color: T.inkMute }}>{md.length.toLocaleString()}자</span>
                                                                         </div>
-                                                                        {/* 피드백 → 다시 만들기 */}
-                                                                        <div className="mt-2 flex gap-2 items-end">
-                                                                            <textarea
-                                                                                value={feedbackText[ch.no] ?? ''}
-                                                                                onChange={e => setFeedbackText(prev => ({ ...prev, [ch.no]: e.target.value }))}
-                                                                                placeholder="고치고 싶은 점을 적어주세요. 예: 더 쉽게 / 예시 추가 / 더 짧게"
-                                                                                rows={2}
-                                                                                className="flex-1 text-xs rounded-lg px-2.5 py-2 resize-none" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
-                                                                            <button onClick={() => generateContent(ch.no, (feedbackText[ch.no] ?? '').trim() || undefined)} disabled={writingNo !== null}
-                                                                                className="shrink-0 inline-flex items-center gap-1 font-bold rounded-xl disabled:opacity-40" style={{ fontSize: 12, padding: '8px 12px', color: '#fff', background: '#B58F4A' }}>
-                                                                                <RefreshCw size={13} /> 다시 만들기
+                                                                        <div className="p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
+                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{md}</ReactMarkdown>
+                                                                        </div>
+                                                                        {/* AI별 피드백 → 다시 쓰기 */}
+                                                                        <div className="px-3 py-2 flex gap-2 items-end" style={{ background: `${ai.color}08` }}>
+                                                                            <textarea value={feedbackText[fbKey] ?? ''} onChange={e => setFeedbackText(prev => ({ ...prev, [fbKey]: e.target.value }))}
+                                                                                placeholder="이 본문 고칠 점 (예: 더 쉽게)" rows={1}
+                                                                                className="flex-1 text-xs rounded-lg px-2 py-1.5 resize-none" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
+                                                                            <button onClick={() => generateContent(ch.no, ai.key, (feedbackText[fbKey] ?? '').trim() || undefined)} disabled={writingKey !== null}
+                                                                                className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '7px 10px', color: '#fff', background: ai.color }}>
+                                                                                <RefreshCw size={12} /> 다시
                                                                             </button>
                                                                         </div>
-                                                                        <p className="mt-1 text-[10px]" style={{ color: T.inkMute }}>피드백을 비우고 누르면 같은 자료로 새로 씁니다.</p>
-                                                                    </>
-                                                                )}
-                                                            </>
+                                                                    </div>
+                                                                    );
+                                                                })}
+                                                            </div>
                                                         )}
                                                     </div>
                                                     );

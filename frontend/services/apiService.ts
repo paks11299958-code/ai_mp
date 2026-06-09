@@ -467,12 +467,15 @@ export const palmReadingApi = {
 export interface EbookSource { title: string; summary: string; url?: string; tableData?: string; }
 export type EbookSourceStatus = 'idle' | 'queued' | 'collecting' | 'done' | 'failed';
 export type EbookContentStatus = 'idle' | 'generating' | 'done' | 'failed';
+export type EbookProvider = 'gemini' | 'gpt' | 'claude';
+export interface EbookVariant { status: EbookContentStatus; md?: string; }
 export interface EbookTocChapter {
     no: number; title: string; summary: string;
     sources?: EbookSource[];
     sourceStatus?: EbookSourceStatus;
     contentMd?: string;
     contentStatus?: EbookContentStatus;
+    contentVariants?: Partial<Record<EbookProvider, EbookVariant>>;
 }
 export interface EbookProject {
     id: number; topic: string; title: string | null; status: string;
@@ -491,8 +494,9 @@ export const ebookApi = {
         del<{ deleted: boolean }>(`/ebook/${id}`),
     collectSources: (id: number, no: number) =>
         post<{ no: number; sourceStatus: EbookSourceStatus; sources: EbookSource[] }>(`/ebook/${id}/chapters/${no}/sources`, {}),
-    generateContent: (id: number, no: number, feedback?: string) =>
-        post<{ no: number; contentStatus: EbookContentStatus; contentMd: string }>(`/ebook/${id}/chapters/${no}/content`, feedback ? { feedback } : {}),
+    generateContent: (id: number, no: number, provider: EbookProvider = 'gemini', feedback?: string) =>
+        post<{ no: number; provider: EbookProvider; contentStatus: EbookContentStatus; contentMd: string }>(
+            `/ebook/${id}/chapters/${no}/content`, { provider, ...(feedback ? { feedback } : {}) }),
 };
 
 export const quickMenuApi = {
