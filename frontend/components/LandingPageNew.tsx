@@ -1270,7 +1270,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                         <button key={chip.key} onClick={chip.onClick}
                                             style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5, background: 'none', border: 'none', cursor: 'pointer', width: 58 }}>
                                             <span style={{
-                                                width: 46, height: 46, borderRadius: '50%',
+                                                width: 46, height: 46, borderRadius: 14,
                                                 background: chip.bgColor, border: `2px solid ${chip.borderColor}`,
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20,
                                             }}>{FEATURE_EMOJI[chip.key] ?? '✨'}</span>
