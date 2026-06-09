@@ -15,3 +15,6 @@ reports/
 monitor-status.json
 monitor.log
 site_status.png
+
+# 프론트 빌드 산출물 (Vercel이 빌드로 재생성, 원본은 frontend/public)
+frontend/dist/
