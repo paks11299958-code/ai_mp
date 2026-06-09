@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, FileEdit, RefreshCw } from 'lucide-react';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, FileEdit, RefreshCw, ImagePlus } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter, EbookProvider, EbookVariant } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
@@ -113,6 +113,54 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         } finally {
             setWritingKey(null);
         }
+    };
+
+    // 최종본 선택/편집 상태
+    const [editingMdNo, setEditingMdNo] = useState<number | null>(null); // 본문 편집 중인 챕터
+    const [editMdText, setEditMdText] = useState('');
+    const [savingMd, setSavingMd] = useState(false);
+    const [uploadingImgNo, setUploadingImgNo] = useState<number | null>(null);
+
+    const patchChapter = (no: number, patch: Partial<EbookTocChapter>) =>
+        setSelected(prev => prev ? { ...prev, chapters: (prev.chapters ?? []).map(c => c.no === no ? { ...c, ...patch } : c) } : prev);
+
+    // 비교본 → 최종본 선택
+    const selectContent = async (no: number, provider: EbookProvider) => {
+        if (!selected) return;
+        try {
+            const res = await ebookApi.selectContent(selected.id, no, provider);
+            patchChapter(no, { contentMd: res.contentMd, finalProvider: provider });
+        } catch (e: any) { setError(e?.message || '선택 실패'); }
+    };
+
+    // 최종본 편집 시작/저장
+    const startEditMd = (no: number, md: string) => { setEditingMdNo(no); setEditMdText(md); };
+    const saveMd = async (no: number) => {
+        if (!selected || savingMd) return;
+        setSavingMd(true); setError(null);
+        try {
+            const res = await ebookApi.saveContentMd(selected.id, no, editMdText);
+            patchChapter(no, { contentMd: res.contentMd });
+            setEditingMdNo(null);
+        } catch (e: any) { setError(e?.message || '저장 실패'); }
+        finally { setSavingMd(false); }
+    };
+
+    // 그림 자리에 이미지 업로드 → GCS → 본문의 [그림: ...]을 마크다운 이미지로 치환
+    const uploadImage = async (no: number, file: File, placeholderText: string) => {
+        if (!selected || uploadingImgNo !== null) return;
+        setUploadingImgNo(no); setError(null);
+        try {
+            const { signedUrl, publicUrl } = await ebookApi.imageUploadUrl(selected.id, file.type);
+            await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+            // 본문에서 해당 [그림: ...] 한 줄을 마크다운 이미지로 교체
+            const ch = (selected.chapters ?? []).find(c => c.no === no);
+            const md = ch?.contentMd ?? '';
+            const replaced = md.replace(placeholderText, `![${placeholderText.replace(/^\[그림:\s*|\]$/g, '')}](${publicUrl})`);
+            const res = await ebookApi.saveContentMd(selected.id, no, replaced);
+            patchChapter(no, { contentMd: res.contentMd });
+        } catch (e: any) { setError(e?.message || '이미지 업로드 실패'); }
+        finally { setUploadingImgNo(null); }
     };
 
     const startEdit = () => {
@@ -411,11 +459,15 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                     const md = ch.contentVariants![ai.key]!.md!;
                                                                     const fbKey = `${ch.no}:${ai.key}`;
                                                                     return (
-                                                                    <div key={ai.key} className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${ai.color}55` }}>
+                                                                    <div key={ai.key} className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${ch.finalProvider === ai.key ? ai.color : ai.color + '55'}`, boxShadow: ch.finalProvider === ai.key ? `0 0 0 2px ${ai.color}44` : 'none' }}>
                                                                         <div className="flex items-center gap-1.5 px-3 py-2" style={{ background: `${ai.color}14` }}>
                                                                             <span>{ai.emoji}</span>
                                                                             <span className="text-xs font-bold" style={{ color: ai.color }}>{ai.label} 본문</span>
-                                                                            <span className="text-[10px] ml-auto" style={{ color: T.inkMute }}>{md.length.toLocaleString()}자</span>
+                                                                            <span className="text-[10px]" style={{ color: T.inkMute }}>{md.length.toLocaleString()}자</span>
+                                                                            <button onClick={() => selectContent(ch.no, ai.key)}
+                                                                                className="ml-auto text-[11px] font-bold rounded-lg" style={{ padding: '4px 10px', color: ch.finalProvider === ai.key ? '#fff' : ai.color, background: ch.finalProvider === ai.key ? ai.color : `${ai.color}1a`, border: `1px solid ${ai.color}` }}>
+                                                                                {ch.finalProvider === ai.key ? '✓ 선택됨' : '이 본문 선택'}
+                                                                            </button>
                                                                         </div>
                                                                         <div className="p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
                                                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{md}</ReactMarkdown>
@@ -435,6 +487,61 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                 })}
                                                             </div>
                                                         )}
+
+                                                        {/* ── 최종본: 선택된 본문 편집 + 그림 자리 이미지 ── */}
+                                                        {ch.contentMd && (() => {
+                                                            const isEdit = editingMdNo === ch.no;
+                                                            // 본문에 남은 [그림: 설명] 자리 추출(아직 이미지 안 넣은 것)
+                                                            const placeholders = (ch.contentMd.match(/\[그림:[^\]]*\]/g)) ?? [];
+                                                            return (
+                                                            <div className="mt-3 rounded-xl overflow-hidden" style={{ border: `2px solid ${T.accent}` }}>
+                                                                <div className="flex items-center gap-1.5 px-3 py-2" style={{ background: T.accentSoft }}>
+                                                                    <Check size={14} strokeWidth={3} style={{ color: T.accent }} />
+                                                                    <span className="text-xs font-bold" style={{ color: T.accent }}>최종 본문{ch.finalProvider ? ` (${AI_PROVIDERS.find(a => a.key === ch.finalProvider)?.label})` : ''}</span>
+                                                                    {!isEdit && (
+                                                                        <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '4px 10px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
+                                                                            <Pencil size={11} /> 글 수정
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                {isEdit ? (
+                                                                    <div className="p-3">
+                                                                        <textarea value={editMdText} onChange={e => setEditMdText(e.target.value)} rows={16}
+                                                                            className="w-full text-xs rounded-lg px-3 py-2 resize-y" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', fontFamily: 'monospace', lineHeight: 1.6 }} />
+                                                                        <div className="flex gap-2 mt-2">
+                                                                            <button onClick={() => saveMd(ch.no)} disabled={savingMd} className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '7px 14px', color: '#fff', background: T.accent }}>
+                                                                                {savingMd ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 저장
+                                                                            </button>
+                                                                            <button onClick={() => setEditingMdNo(null)} className="text-xs rounded-lg" style={{ padding: '7px 14px', color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <div className="p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
+                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd}</ReactMarkdown>
+                                                                        </div>
+                                                                        {/* 그림 자리: 이미지 업로드 */}
+                                                                        {placeholders.length > 0 && (
+                                                                            <div className="px-3 pb-3 space-y-2">
+                                                                                <p className="text-[11px] font-bold" style={{ color: T.inkSoft }}>🖼 이미지 넣을 자리 {placeholders.length}곳</p>
+                                                                                {placeholders.map((ph, pi) => (
+                                                                                    <div key={pi} className="flex items-center gap-2 rounded-lg p-2" style={{ background: T.surface, border: `1px dashed ${T.accentBorder}` }}>
+                                                                                        <span className="flex-1 text-[11px] truncate" style={{ color: T.inkSoft }}>{ph}</span>
+                                                                                        <label className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg cursor-pointer" style={{ padding: '5px 10px', color: '#fff', background: T.accent, opacity: uploadingImgNo === ch.no ? 0.5 : 1 }}>
+                                                                                            {uploadingImgNo === ch.no ? <Loader size={11} className="animate-spin" /> : <ImagePlus size={12} />} 이미지 추가
+                                                                                            <input type="file" accept="image/*" className="hidden" disabled={uploadingImgNo !== null}
+                                                                                                onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(ch.no, f, ph); e.currentTarget.value = ''; }} />
+                                                                                        </label>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            );
+                                                        })()}
                                                     </div>
                                                     );
                                                 })()}

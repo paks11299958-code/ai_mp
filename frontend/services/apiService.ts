@@ -476,6 +476,7 @@ export interface EbookTocChapter {
     contentMd?: string;
     contentStatus?: EbookContentStatus;
     contentVariants?: Partial<Record<EbookProvider, EbookVariant>>;
+    finalProvider?: EbookProvider;
 }
 export interface EbookProject {
     id: number; topic: string; title: string | null; status: string;
@@ -497,6 +498,15 @@ export const ebookApi = {
     generateContent: (id: number, no: number, provider: EbookProvider = 'gemini', feedback?: string) =>
         post<{ no: number; provider: EbookProvider; contentStatus: EbookContentStatus; contentMd: string }>(
             `/ebook/${id}/chapters/${no}/content`, { provider, ...(feedback ? { feedback } : {}) }),
+    // 비교본 중 하나를 최종본으로 선택
+    selectContent: (id: number, no: number, provider: EbookProvider) =>
+        put<{ no: number; finalProvider: EbookProvider; contentMd: string }>(`/ebook/${id}/chapters/${no}/select`, { provider }),
+    // 최종본 직접 수정 저장
+    saveContentMd: (id: number, no: number, contentMd: string) =>
+        put<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/content-md`, { contentMd }),
+    // 그림 이미지 GCS 업로드용 signed-url
+    imageUploadUrl: (id: number, mimeType: string) =>
+        post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/image-url`, { mimeType }),
 };
 
 export const quickMenuApi = {
