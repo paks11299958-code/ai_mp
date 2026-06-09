@@ -32,6 +32,7 @@ import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { EbookBoard } from './components/EbookBoard';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { MathTutorBoard } from './components/MathTutorBoard';
 import { TodayNewsBoard } from './components/TodayNewsBoard';
 import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
@@ -1292,7 +1293,11 @@ const AppContent: React.FC = () => {
             )}
 
             {/* 전자책 만들기 보드 (강지훈) */}
-            {showEbookBoard && <EbookBoard onClose={() => setShowEbookBoard(false)} />}
+            {showEbookBoard && (
+                <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
+                    <EbookBoard onClose={() => setShowEbookBoard(false)} />
+                </ErrorBoundary>
+            )}
 
             {/* 퀵메뉴 결과 카드 */}
             {quickMenuResult && (

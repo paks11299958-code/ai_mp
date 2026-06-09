@@ -287,25 +287,31 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     </div>
                                                 </div>
 
-                                                {/* 수집된 자료 목록 (펼치기) */}
-                                                {open && isDone && (ch.sources?.length ?? 0) > 0 && (
+                                                {/* 수집된 자료 목록 (펼치기) — 어떤 형태로 와도 안전하게 문자열화 */}
+                                                {open && isDone && Array.isArray(ch.sources) && ch.sources.length > 0 && (
                                                     <div className="mt-3 ml-10 space-y-2">
-                                                        {ch.sources!.map((s, si) => (
+                                                        {ch.sources.map((s: any, si) => {
+                                                            const sTitle = typeof s?.title === 'string' ? s.title : (s == null ? '' : String(s));
+                                                            const sSummary = typeof s?.summary === 'string' ? s.summary : '';
+                                                            const sTable = typeof s?.tableData === 'string' ? s.tableData : '';
+                                                            const sUrl = typeof s?.url === 'string' ? s.url : '';
+                                                            return (
                                                             <div key={si} className="rounded-lg p-2.5" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
                                                                 <p className="text-xs font-semibold flex items-start gap-1.5" style={{ color: T.ink }}>
-                                                                    <FileText size={12} className="shrink-0 mt-0.5" style={{ color: T.accent }} />{s.title}
+                                                                    <FileText size={12} className="shrink-0 mt-0.5" style={{ color: T.accent }} />{sTitle}
                                                                 </p>
-                                                                <p className="text-[11px] mt-1 leading-relaxed" style={{ color: T.inkSoft }}>{s.summary}</p>
-                                                                {s.tableData && (
-                                                                    <p className="text-[10px] mt-1 px-2 py-1 rounded" style={{ color: T.inkSoft, background: '#fff', border: `1px dashed ${T.border}` }}>📊 {s.tableData}</p>
+                                                                {sSummary && <p className="text-[11px] mt-1 leading-relaxed" style={{ color: T.inkSoft }}>{sSummary}</p>}
+                                                                {sTable && (
+                                                                    <p className="text-[10px] mt-1 px-2 py-1 rounded" style={{ color: T.inkSoft, background: '#fff', border: `1px dashed ${T.border}` }}>📊 {sTable}</p>
                                                                 )}
-                                                                {s.url && (
-                                                                    <a href={s.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] mt-1.5" style={{ color: T.accent }}>
+                                                                {sUrl && (
+                                                                    <a href={sUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-[10px] mt-1.5" style={{ color: T.accent }}>
                                                                         <ExternalLink size={10} /> 출처 보기
                                                                     </a>
                                                                 )}
                                                             </div>
-                                                        ))}
+                                                            );
+                                                        })}
                                                     </div>
                                                 )}
                                             </div>
