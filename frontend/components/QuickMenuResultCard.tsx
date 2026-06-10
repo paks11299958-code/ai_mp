@@ -76,10 +76,9 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
     const c = hasBg ? withBg : noBg;
 
     // 봉인된 뒷면(표지) — 클릭하면 카드가 뒤집히며 감정 내용(앞면)이 드러난다.
-    // 변경(2026-06-10): [이전] 카드 뒷면 전체가 onClick → 어디를 눌러도 플립
-    //                  [현재] 상단 헤더 영역(아이콘+제목+한자+'눌러서 펼치기' 버튼)만 클릭 가능
-    //                         하단 서명 영역은 e.stopPropagation()으로 플립 차단
-    //                         상단 클릭 영역은 minHeight 44px 보장(모바일 접근성)
+    // 변경(2026-06-10): 내용(아이콘+제목+한자+'탭하여 펼치기' 버튼)을 카드 위쪽으로 모아
+    //                  클릭 버튼이 카드 상단에 오게 함(justifyContent center→flex-start).
+    //                  손가락이 닿기 쉬운 위치로. 헤더 영역만 클릭 가능, 하단 서명은 플립 차단.
     const handleOpen = (e: React.MouseEvent) => {
         e.stopPropagation();
         setOpened(true);
@@ -94,8 +93,8 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
                 borderRadius: '10px',
                 border: '1px solid rgba(139,94,60,0.5)',
                 background: 'radial-gradient(circle at 50% 38%, rgba(60,36,14,0.98), rgba(14,8,3,0.99))',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                padding: '40px 28px', cursor: 'default',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start',
+                padding: '28px 28px 40px', cursor: 'default',
                 fontFamily: '"Nanum Myeongjo", serif',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
             }}
