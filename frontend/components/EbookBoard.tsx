@@ -57,7 +57,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [topic, setTopic] = useState('');
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [showForm, setShowForm] = useState(true);
+    const [showForm, setShowForm] = useState(false); // 초기엔 목록 화면(주식분석 패턴). 새 전자책 클릭 시 폼
     // 진행 탭: 1제목 2목차 3수정 4자료(배치) 5초안PDF 6완성본 (1~6 순서 진행)
     const [activeTab, setActiveTab] = useState<EbookTab>(1);
     // 목차 편집 모드 (탭3)
@@ -381,7 +381,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
     return (
         <div className="fixed inset-0 z-[70] flex items-stretch md:items-center justify-center md:p-4" style={{ background: 'rgba(20,12,30,0.5)' }}>
-            <div className="w-full md:max-w-4xl h-full md:h-auto md:max-h-[92vh] flex flex-col md:rounded-2xl overflow-hidden shadow-2xl" style={{ background: T.bg }}>
+            <div className="w-full md:max-w-5xl h-full md:h-auto md:max-h-[92vh] flex flex-col md:rounded-2xl overflow-hidden shadow-2xl" style={{ background: T.bg }}>
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-3.5 shrink-0" style={{ borderBottom: `1px solid ${T.border}`, background: T.card }}>
                     <div className="flex items-center gap-2">
@@ -392,38 +392,50 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">
-                    {/* 좌측: 목록 */}
-                    <div className={`${selected && !showForm ? 'hidden md:flex' : 'flex'} w-full md:w-60 shrink-0 flex-col`} style={{ borderRight: `1px solid ${T.border}` }}>
-                        <div className="p-3" style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <button onClick={() => { setShowForm(true); setSelected(null); }}
-                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold"
-                                style={{ background: T.accent, color: '#fff' }}>
-                                <Plus size={14} /> 새 전자책
-                            </button>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                            {list.length === 0 && <div className="text-center text-xs py-8" style={{ color: T.inkMute }}>아직 만든 전자책이 없어요</div>}
-                            {list.map(p => (
-                                <button key={p.id} onClick={() => openProject(p.id)}
-                                    className="w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 group"
-                                    style={{ background: selected?.id === p.id ? T.accentSoft : 'transparent', border: `1px solid ${selected?.id === p.id ? T.accentBorder : 'transparent'}` }}>
-                                    <BookOpen size={13} style={{ color: T.accent, flexShrink: 0 }} />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-semibold truncate" style={{ color: T.ink }}>{p.title || p.topic}</p>
-                                        <p className="text-[10px] truncate" style={{ color: T.inkMute }}>{new Date(p.updatedAt).toLocaleDateString('ko-KR')}</p>
+                    {/* 목록 화면: 전체폭 (선택·작성 전에만). 선택/작성 시 숨기고 풀폭 전환(주식분석 패턴) */}
+                    <div className={`${!selected && !showForm ? 'flex' : 'hidden'} w-full shrink-0 flex-col`}>
+                        <div className="flex-1 overflow-y-auto p-5">
+                            <div className="max-w-4xl mx-auto">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-base font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>내 전자책</h3>
+                                    <button onClick={() => { setShowForm(true); setSelected(null); }}
+                                        className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold"
+                                        style={{ background: T.accent, color: '#fff' }}>
+                                        <Plus size={15} /> 새 전자책
+                                    </button>
+                                </div>
+                                {list.length === 0
+                                    ? <div className="text-center text-sm py-16" style={{ color: T.inkMute }}>아직 만든 전자책이 없어요. <b style={{ color: T.accent }}>새 전자책</b>으로 시작해 보세요.</div>
+                                    : (
+                                    <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
+                                        {list.map(p => (
+                                            <button key={p.id} onClick={() => openProject(p.id)}
+                                                className="text-left p-4 rounded-2xl flex flex-col gap-2 group transition hover:shadow-md"
+                                                style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <BookOpen size={18} style={{ color: T.accent, flexShrink: 0 }} />
+                                                    <Trash2 size={14} className="opacity-0 group-hover:opacity-100 transition" style={{ color: '#C62828' }} onClick={(e) => handleDelete(p.id, e)} />
+                                                </div>
+                                                <p className="text-sm font-bold leading-snug" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{p.title || p.topic}</p>
+                                                <p className="text-[11px] mt-auto" style={{ color: T.inkMute }}>{new Date(p.updatedAt).toLocaleDateString('ko-KR')}</p>
+                                            </button>
+                                        ))}
                                     </div>
-                                    <Trash2 size={12} className="opacity-0 group-hover:opacity-100" style={{ color: '#C62828' }} onClick={(e) => handleDelete(p.id, e)} />
-                                </button>
-                            ))}
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {/* 우측: 폼 또는 상세 */}
-                    <div className="flex-1 overflow-y-auto">
-                        {showForm || !selected ? (
+                    {/* 폼(새 전자책) 또는 상세(작업) — 목록일 땐 숨김 */}
+                    <div className={`${showForm || selected ? 'flex-1' : 'hidden'} overflow-y-auto`}>
+                        {showForm ? (
                             <div className="p-6 max-w-lg mx-auto">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <button onClick={onClose} className="md:hidden p-1 -ml-1"><ChevronLeft size={18} style={{ color: T.inkMute }} /></button>
+                                    {list.length > 0 && (
+                                        <button onClick={() => setShowForm(false)} className="inline-flex items-center gap-1 text-xs font-bold mr-1" style={{ color: T.inkMute }}>
+                                            <ChevronLeft size={15} /> 목록으로
+                                        </button>
+                                    )}
                                     <h3 className="text-lg font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>어떤 책을 만들까요?</h3>
                                 </div>
                                 <p className="text-xs mb-4" style={{ color: T.inkSoft }}>주제를 입력하면 강지훈 작가가 초보자용 책 목차를 설계해 드려요.</p>
@@ -442,10 +454,11 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     {creating ? <><Loader size={15} className="animate-spin" /> 목차 설계 중...</> : <><BookOpen size={15} /> 목차 만들기</>}
                                 </button>
                             </div>
-                        ) : (
-                            <div className="p-6">
-                                <button onClick={() => setShowForm(true)} className="md:hidden mb-3 flex items-center gap-1 text-xs" style={{ color: T.inkMute }}>
-                                    <ChevronLeft size={14} /> 목록
+                        ) : selected ? (
+                            <div className="p-5 md:p-6 max-w-4xl mx-auto">
+                                {/* 목록으로 복귀 (데스크탑·모바일 공통, 주식분석 패턴) */}
+                                <button onClick={() => { setSelected(null); setEditing(false); }} className="mb-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: T.inkMute }}>
+                                    <ChevronLeft size={15} /> 목록으로
                                 </button>
 
                                 {/* ── 진행 탭 네비게이션 (1제목 → 6완성본) ── */}
@@ -1082,7 +1095,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 )}
                                 </>}
                             </div>
-                        )}
+                        ) : null}
                     </div>
                 </div>
             </div>
