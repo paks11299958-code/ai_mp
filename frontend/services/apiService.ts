@@ -508,6 +508,9 @@ export const ebookApi = {
     // 그림 이미지 GCS 업로드용 signed-url
     imageUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/image-url`, { mimeType }),
+    // 탭5: [그림: 설명] 자리를 Imagen으로 자동 생성 → 본문에 ![](url) 삽입
+    generateImage: (id: number, no: number, placeholder: string) =>
+        post<{ no: number; url: string; contentMd: string }>(`/ebook/${id}/chapters/${no}/image`, { placeholder }),
     // 탭5: 자료 수집된 챕터 본문을 클로드로 일괄 생성 (본문 있으면 건너뜀)
     generateDraft: (id: number, force = false) =>
         post<{ results: EbookDraftResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/draft`, { force }),

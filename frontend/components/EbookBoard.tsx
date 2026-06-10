@@ -154,6 +154,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [editMdText, setEditMdText] = useState('');
     const [savingMd, setSavingMd] = useState(false);
     const [uploadingImgNo, setUploadingImgNo] = useState<number | null>(null);
+    const [genImgKey, setGenImgKey] = useState<string | null>(null); // 'no:placeholderIndex' Imagen 생성 중
 
     const patchChapter = (no: number, patch: Partial<EbookTocChapter>) =>
         setSelected(prev => prev ? { ...prev, chapters: (prev.chapters ?? []).map(c => c.no === no ? { ...c, ...patch } : c) } : prev);
@@ -195,6 +196,44 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             patchChapter(no, { contentMd: res.contentMd });
         } catch (e: any) { setError(e?.message || '이미지 업로드 실패'); }
         finally { setUploadingImgNo(null); }
+    };
+
+    // [그림: 설명] 자리를 Imagen으로 자동 생성 → 본문에 ![](url) 삽입
+    const generateImage = async (no: number, placeholder: string, key: string) => {
+        if (!selected || genImgKey !== null) return;
+        setGenImgKey(key); setError(null);
+        try {
+            const res = await ebookApi.generateImage(selected.id, no, placeholder);
+            patchChapter(no, { contentMd: res.contentMd });
+        } catch (e: any) { setError(e?.message || '그림 생성 실패'); }
+        finally { setGenImgKey(null); }
+    };
+
+    // 그림 자리 삭제: 본문에서 해당 [그림: ...] 한 줄 제거
+    const removePlaceholder = async (no: number, placeholder: string) => {
+        if (!selected) return;
+        const ch = (selected.chapters ?? []).find(c => c.no === no);
+        const md = ch?.contentMd ?? '';
+        // 그림 자리 한 줄(앞뒤 빈 줄 정리) 제거
+        const next = md.replace(new RegExp(`\\n*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n*`), '\n\n').trim();
+        try {
+            const res = await ebookApi.saveContentMd(selected.id, no, next);
+            patchChapter(no, { contentMd: res.contentMd });
+        } catch (e: any) { setError(e?.message || '삭제 실패'); }
+    };
+
+    // 그림 자리 추가: 본문 끝에 [그림: ] 한 줄 추가(편집기로 설명 채우도록 유도)
+    const addPlaceholder = async (no: number) => {
+        if (!selected) return;
+        const ch = (selected.chapters ?? []).find(c => c.no === no);
+        const md = ch?.contentMd ?? '';
+        const next = `${md.trim()}\n\n[그림: 여기에 그릴 내용을 적어주세요]`;
+        try {
+            const res = await ebookApi.saveContentMd(selected.id, no, next);
+            patchChapter(no, { contentMd: res.contentMd });
+            // 바로 편집 모드로 열어 설명 채우게
+            startEditMd(no, res.contentMd);
+        } catch (e: any) { setError(e?.message || '추가 실패'); }
     };
 
     const startEdit = () => {
@@ -648,6 +687,36 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                                 <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '5px 12px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
                                                                                     <Pencil size={11} /> 글 수정
                                                                                 </button>
+
+                                                                                {/* 그림 자리 관리: [그림: ...] 자동 생성 / 삭제 / 추가 */}
+                                                                                {(() => {
+                                                                                    const phs = (ch.contentMd!.match(/\[그림:[^\]]*\]/g)) ?? [];
+                                                                                    const imgCount = (ch.contentMd!.match(/!\[[^\]]*\]\([^)]+\)/g) ?? []).length;
+                                                                                    return (
+                                                                                        <div className="mt-3 rounded-lg p-2.5" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                                                                                            <p className="text-[11px] font-bold mb-1.5" style={{ color: T.ink }}>🖼 그림 {imgCount > 0 ? `(${imgCount}개 완성, ` : '('}자리 {phs.length}개)</p>
+                                                                                            {phs.length === 0 && imgCount === 0 && <p className="text-[10px]" style={{ color: T.inkMute }}>그림 자리가 없어요. 아래 버튼으로 추가할 수 있어요.</p>}
+                                                                                            {phs.map((ph, pi) => {
+                                                                                                const key = `${ch.no}:${pi}`;
+                                                                                                const gen = genImgKey === key;
+                                                                                                const desc = ph.replace(/^\[그림:\s*|\]$/g, '');
+                                                                                                return (
+                                                                                                    <div key={pi} className="flex items-center gap-1.5 mb-1.5 rounded-md p-1.5" style={{ background: '#fff', border: `1px dashed ${T.accentBorder}` }}>
+                                                                                                        <span className="flex-1 text-[10px] truncate" style={{ color: T.inkSoft }}>{desc || '(설명 없음)'}</span>
+                                                                                                        <button onClick={() => generateImage(ch.no, ph, key)} disabled={genImgKey !== null}
+                                                                                                            className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold rounded-md disabled:opacity-40" style={{ padding: '4px 8px', color: '#fff', background: T.accent }}>
+                                                                                                            {gen ? <><Loader size={10} className="animate-spin" /> 그리는 중…</> : <>✨ 그림 만들기</>}
+                                                                                                        </button>
+                                                                                                        <button onClick={() => removePlaceholder(ch.no, ph)} disabled={genImgKey !== null} className="shrink-0 p-1 disabled:opacity-40"><Trash2 size={12} style={{ color: '#C62828' }} /></button>
+                                                                                                    </div>
+                                                                                                );
+                                                                                            })}
+                                                                                            <button onClick={() => addPlaceholder(ch.no)} className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold rounded-md" style={{ padding: '4px 10px', color: T.accent, background: T.accentSoft, border: `1px dashed ${T.accentBorder}` }}>
+                                                                                                <Plus size={11} /> 그림 자리 추가
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    );
+                                                                                })()}
                                                                             </>
                                                                         )}
                                                                     </div>
