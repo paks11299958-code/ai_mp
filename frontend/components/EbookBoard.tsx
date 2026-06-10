@@ -514,7 +514,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         {error && <p className="text-xs text-red-500">{error}</p>}
                                         <div className="rounded-2xl p-4" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
                                             <p className="text-xs leading-relaxed" style={{ color: T.inkSoft }}>
-                                                <b style={{ color: T.accent }}>초안 만들기</b>에서 받은 PDF를 직접 다듬은 뒤 여기에 올리면, <b>표지</b>를 입혀 최종 PDF로 만들어 드려요.
+                                                글 수정은 <b style={{ color: T.accent }}>초안 만들기</b> 탭에서 끝내는 게 좋아요(PDF는 수정이 어려워요).
+                                                여기서는 <b>표지</b>를 입혀 최종본을 완성해요. 초안 PDF를 그대로 올리거나, 더 손본 PDF를 올려도 돼요.
                                             </p>
                                         </div>
 
@@ -598,7 +599,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </div>
                                             {withSrc === 0 && <p className="text-[11px] mt-2" style={{ color: '#C62828' }}>먼저 <b>자료 수집</b> 탭에서 자료를 모아주세요.</p>}
 
-                                            {/* 챕터별 결과/상태 */}
+                                            {/* 챕터별 결과/상태 + 본문 보기·글 수정 */}
                                             {(draftResults || total > 0) && (
                                                 <div className="mt-3 space-y-1.5">
                                                     {chs.map(ch => {
@@ -608,16 +609,57 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                             ? (r.status === 'done' ? `완성 · ${r.chars?.toLocaleString()}자` : r.status === 'skipped' ? '기존 본문 유지' : r.status === 'no-sources' ? '자료 없음' : '실패')
                                                             : (hasBody ? '본문 있음' : ch.sourceStatus === 'done' ? '대기' : '자료 없음');
                                                         const color = r?.status === 'failed' || (!hasBody && ch.sourceStatus !== 'done') ? '#C62828' : hasBody || r?.status === 'done' || r?.status === 'skipped' ? '#5BA36A' : T.inkMute;
+                                                        const open = contentOpenNo === ch.no;
+                                                        const isEdit = editingMdNo === ch.no;
                                                         return (
-                                                            <div key={ch.no} className="flex items-center gap-2 text-xs">
-                                                                <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
-                                                                <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
-                                                                <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
+                                                            <div key={ch.no} className="rounded-lg" style={{ border: open ? `1px solid ${T.border}` : 'none' }}>
+                                                                <div className="flex items-center gap-2 text-xs px-1 py-1">
+                                                                    <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
+                                                                    <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
+                                                                    {hasBody && (
+                                                                        <button onClick={() => { setContentOpenNo(open ? null : ch.no); setEditingMdNo(null); }}
+                                                                            className="shrink-0 text-[11px] font-bold rounded-md" style={{ padding: '3px 8px', color: T.accent, background: T.accentSoft }}>
+                                                                            {open ? '접기 ▲' : '글 보기·수정 ▼'}
+                                                                        </button>
+                                                                    )}
+                                                                    <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
+                                                                </div>
+
+                                                                {/* 펼침: 본문 미리보기 / 편집기 */}
+                                                                {open && hasBody && (
+                                                                    <div className="px-2 pb-2">
+                                                                        {isEdit ? (
+                                                                            <>
+                                                                                <textarea value={editMdText} onChange={e => setEditMdText(e.target.value)} rows={14}
+                                                                                    className="w-full text-xs rounded-lg px-3 py-2 resize-y" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', fontFamily: 'monospace', lineHeight: 1.6 }} />
+                                                                                <div className="flex gap-2 mt-2">
+                                                                                    <button onClick={() => saveMd(ch.no)} disabled={savingMd} className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '7px 14px', color: '#fff', background: T.accent }}>
+                                                                                        {savingMd ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 저장
+                                                                                    </button>
+                                                                                    <button onClick={() => setEditingMdNo(null)} className="text-xs rounded-lg" style={{ padding: '7px 14px', color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
+                                                                                </div>
+                                                                                <p className="text-[10px] mt-1.5" style={{ color: T.inkMute }}>※ 마크다운: ## 소제목 / **굵게** / &gt; 핵심 / 표 | / [그림: 설명]</p>
+                                                                            </>
+                                                                        ) : (
+                                                                            <>
+                                                                                <div className="rounded-lg p-3 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', maxHeight: 280, overflowY: 'auto' }}>
+                                                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd!}</ReactMarkdown>
+                                                                                </div>
+                                                                                <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '5px 12px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
+                                                                                    <Pencil size={11} /> 글 수정
+                                                                                </button>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                         );
                                                     })}
                                                 </div>
                                             )}
+                                            <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>
+                                                💡 PDF로 만들기 전에 <b style={{ color: T.accent }}>글 보기·수정</b>에서 내용을 다듬으세요. PDF는 수정이 어려우니 여기서 미리 고치는 게 좋아요.
+                                            </p>
                                         </div>
 
                                         {/* 2단계: PDF 만들기 */}
