@@ -506,6 +506,9 @@ export const ebookApi = {
     // 최종본 직접 수정 저장
     saveContentMd: (id: number, no: number, contentMd: string) =>
         put<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/content-md`, { contentMd }),
+    // 탭3: 이 챕터만 클로드로 본문 다시 쓰기(contentMd 직접 반영)
+    rewriteChapter: (id: number, no: number, feedback?: string) =>
+        post<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/rewrite`, feedback ? { feedback } : {}),
     // 그림 이미지 GCS 업로드용 signed-url
     imageUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/image-url`, { mimeType }),

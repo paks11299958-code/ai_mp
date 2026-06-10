@@ -70,6 +70,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [savingTitle, setSavingTitle] = useState(false);
     // 탭5 초안: 본문 일괄 생성 + PDF
     const [drafting, setDrafting] = useState(false);
+    const [rewritingNo, setRewritingNo] = useState<number | null>(null); // 챕터별 다시쓰기 중
     const [draftResults, setDraftResults] = useState<import('../services/apiService').EbookDraftResult[] | null>(null);
     const [pdfMaking, setPdfMaking] = useState(false);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
@@ -290,6 +291,19 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setPdfUrl(null); // 본문 바뀌면 이전 PDF 무효
         } catch (e: any) { setError(e?.message || '본문 생성 실패'); }
         finally { setDrafting(false); }
+    };
+
+    // 탭3: 이 챕터만 클로드로 본문 다시 쓰기
+    const rewriteChapter = async (no: number) => {
+        if (!selected || rewritingNo !== null) return;
+        if (!confirm(`${no}장 본문을 클로드로 다시 쓸까요? (현재 본문은 새 본문으로 교체돼요)`)) return;
+        setRewritingNo(no); setError(null);
+        try {
+            const res = await ebookApi.rewriteChapter(selected.id, no);
+            patchChapter(no, { contentMd: res.contentMd, finalProvider: 'claude' });
+            setPdfUrl(null);
+        } catch (e: any) { setError(e?.message || '다시 쓰기 실패'); }
+        finally { setRewritingNo(null); }
     };
 
     // 탭5: PDF 생성
@@ -717,18 +731,24 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                                 <div className="rounded-lg p-3 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', maxHeight: 280, overflowY: 'auto' }}>
                                                                                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd!}</ReactMarkdown>
                                                                                 </div>
-                                                                                <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '5px 12px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
-                                                                                    <Pencil size={11} /> 글 수정
-                                                                                </button>
+                                                                                <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                                                                    <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '5px 12px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
+                                                                                        <Pencil size={11} /> 글 수정
+                                                                                    </button>
+                                                                                    <button onClick={() => rewriteChapter(ch.no)} disabled={rewritingNo !== null}
+                                                                                        className="inline-flex items-center gap-1 text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '5px 12px', color: '#fff', background: '#C96442' }}>
+                                                                                        {rewritingNo === ch.no ? <><Loader size={11} className="animate-spin" /> 다시 쓰는 중…</> : <><RefreshCw size={11} /> 클로드로 다시 쓰기</>}
+                                                                                    </button>
+                                                                                </div>
 
                                                                                 {/* 그림 자리 관리: [그림: ...] 자동 생성 / 삭제 / 추가 */}
                                                                                 {(() => {
                                                                                     const phs = (ch.contentMd!.match(/\[그림:[^\]]*\]/g)) ?? [];
                                                                                     const imgCount = (ch.contentMd!.match(/!\[[^\]]*\]\([^)]+\)/g) ?? []).length;
                                                                                     return (
-                                                                                        <div className="mt-3 rounded-lg p-2.5" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
-                                                                                            <p className="text-[11px] font-bold mb-1.5" style={{ color: T.ink }}>🖼 그림 {imgCount > 0 ? `(${imgCount}개 완성, ` : '('}자리 {phs.length}개)</p>
-                                                                                            {phs.length === 0 && imgCount === 0 && <p className="text-[10px]" style={{ color: T.inkMute }}>그림 자리가 없어요. 아래 버튼으로 추가할 수 있어요.</p>}
+                                                                                        <div className="mt-3 rounded-lg p-2.5" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                                                            <p className="text-[11px] font-bold mb-1.5" style={{ color: T.accent }}>🖼 이미지 {imgCount > 0 ? `· 완성 ${imgCount}개 ` : ''}· 그림 자리 {phs.length}개</p>
+                                                                                            {phs.length === 0 && imgCount === 0 && <p className="text-[10px] mb-1" style={{ color: T.inkSoft }}>그림 자리가 없어요. 아래 <b style={{ color: T.accent }}>그림 자리 추가</b>로 넣고 ✨로 만들 수 있어요.</p>}
                                                                                             {phs.map((ph, pi) => {
                                                                                                 const key = `${ch.no}:${pi}`;
                                                                                                 const gen = genImgKey === key;
