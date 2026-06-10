@@ -510,29 +510,24 @@ export const ebookApi = {
     rewriteChapter: (id: number, no: number, feedback?: string) =>
         post<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/rewrite`, feedback ? { feedback } : {}),
     // 그림 이미지 GCS 업로드용 signed-url
-    imageUploadUrl: (id: number, mimeType: string) =>
-        post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/image-url`, { mimeType }),
-    // 탭5: [그림: 설명] 자리를 Imagen으로 자동 생성 → 본문에 ![](url) 삽입
-    generateImage: (id: number, no: number, placeholder: string) =>
-        post<{ no: number; url: string; contentMd: string }>(`/ebook/${id}/chapters/${no}/image`, { placeholder }),
-    // 탭5: 자료 수집된 챕터 본문을 클로드로 일괄 생성 (본문 있으면 건너뜀)
+    // 탭3: 자료 수집된 챕터 본문을 클로드로 일괄 생성 (본문 있으면 건너뜀)
     generateDraft: (id: number, force = false) =>
         post<{ results: EbookDraftResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/draft`, { force }),
-    // 탭5: 전체 본문 → 북크크 양식 PDF → GCS URL
-    generatePdf: (id: number, font?: EbookPdfFont, author?: string) =>
-        post<{ url: string; bytes: number }>(`/ebook/${id}/pdf`, { ...(font ? { font } : {}), ...(author ? { author } : {}) }),
-    // 탭4: 자료 일괄수집 예약 시각 저장(KST 1~5시, null=해제)
+    // 탭3: 전체 본문 → 북크크 양식 .docx(구글 독스용) → GCS URL
+    generateDocx: (id: number) =>
+        post<{ url: string; bytes: number }>(`/ebook/${id}/docx`, {}),
+    // 탭3: 전체 본문 → PDF → GCS URL
+    generatePdf: (id: number, font?: EbookPdfFont) =>
+        post<{ url: string; bytes: number }>(`/ebook/${id}/pdf`, { ...(font ? { font } : {}) }),
+    // 탭2: 자료 일괄수집 예약 시각 저장(KST 1~5시, null=해제)
     setSchedule: (id: number, hour: number | null) =>
         put<{ scheduledHour: number | null }>(`/ebook/${id}/schedule`, { hour }),
-    // 탭4: 체크된 챕터 자료 지금 바로 일괄수집(체크 안 된 챕터·수집된 챕터는 건너뜀)
+    // 탭2: 체크된 챕터 자료 지금 바로 일괄수집(체크 안 된 챕터·수집된 챕터는 건너뜀)
     collectAll: (id: number, force = false) =>
         post<{ results: EbookCollectResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-all`, { force }),
     // 탭2: 챕터별 자료수집 체크 상태 저장 ({ "1": true, "2": false, ... })
     setCollectFlags: (id: number, flags: Record<string, boolean>) =>
         put<{ chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-flags`, { flags }),
-    // 탭6: 표지(이미지+제목) + 수정 본문 PDF 병합 → 최종 PDF
-    finalize: (id: number, bodyPdfDataUrl: string, coverImageDataUrl?: string, author?: string) =>
-        post<{ url: string; bytes: number }>(`/ebook/${id}/final`, { bodyPdfDataUrl, ...(coverImageDataUrl ? { coverImageDataUrl } : {}), ...(author ? { author } : {}) }),
 };
 
 export interface EbookCollectResult { no: number; status: 'done' | 'skipped' | 'failed' | 'unchecked'; }

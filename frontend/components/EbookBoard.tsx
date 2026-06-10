@@ -39,13 +39,12 @@ const AI_PROVIDERS: { key: EbookProvider; label: string; emoji: string; color: s
 ];
 
 // 진행 탭 정의 (1~6 순서대로 진행)
-// 탭 콘텐츠 ID는 기존(1책정보 / 4자료 / 5초안 / 6완성본) 유지. 2·3은 1로 통합.
+// 탭 콘텐츠 ID는 기존(1책정보 / 4자료 / 5초안) 유지. 2·3은 1로 통합, 6완성본은 제거.
 type EbookTab = 1 | 2 | 3 | 4 | 5 | 6;
 const TABS: { id: EbookTab; label: string }[] = [
     { id: 1, label: '제목·목차' },
     { id: 4, label: '자료 수집' },
     { id: 5, label: '초안 만들기' },
-    { id: 6, label: '완성본' },
 ];
 
 interface Props { onClose: () => void; }
@@ -72,20 +71,17 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [drafting, setDrafting] = useState(false);
     const [rewritingNo, setRewritingNo] = useState<number | null>(null); // 챕터별 다시쓰기 중
     const [draftResults, setDraftResults] = useState<import('../services/apiService').EbookDraftResult[] | null>(null);
+    const [docxMaking, setDocxMaking] = useState(false);
+    const [docxUrl, setDocxUrl] = useState<string | null>(null);
     const [pdfMaking, setPdfMaking] = useState(false);
     const [pdfUrl, setPdfUrl] = useState<string | null>(null);
     const [fontH1, setFontH1] = useState(24);
     const [fontH2, setFontH2] = useState(15);
     const [fontBody, setFontBody] = useState(11);
-    // 탭4 자료 일괄수집(예약 + 즉시)
+    // 탭2 자료 일괄수집(예약 + 즉시)
     const [collectingAll, setCollectingAll] = useState(false);
     const [collectResults, setCollectResults] = useState<import('../services/apiService').EbookCollectResult[] | null>(null);
     const [savingSchedule, setSavingSchedule] = useState(false);
-    // 탭6 완성본(표지 + 수정 PDF 병합)
-    const [coverImage, setCoverImage] = useState<string | null>(null); // dataURL
-    const [bodyPdf, setBodyPdf] = useState<{ dataUrl: string; name: string } | null>(null);
-    const [finalizing, setFinalizing] = useState(false);
-    const [finalUrl, setFinalUrl] = useState<string | null>(null);
     // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
     const [collectingNo, setCollectingNo] = useState<number | null>(null);
     const [expandedNo, setExpandedNo] = useState<number | null>(null);
@@ -149,92 +145,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
-    // 최종본 선택/편집 상태
-    const [editingMdNo, setEditingMdNo] = useState<number | null>(null); // 본문 편집 중인 챕터
-    const [editMdText, setEditMdText] = useState('');
-    const [savingMd, setSavingMd] = useState(false);
-    const [uploadingImgNo, setUploadingImgNo] = useState<number | null>(null);
-    const [genImgKey, setGenImgKey] = useState<string | null>(null); // 'no:placeholderIndex' Imagen 생성 중
-
     const patchChapter = (no: number, patch: Partial<EbookTocChapter>) =>
         setSelected(prev => prev ? { ...prev, chapters: (prev.chapters ?? []).map(c => c.no === no ? { ...c, ...patch } : c) } : prev);
-
-    // 비교본 → 최종본 선택
-    const selectContent = async (no: number, provider: EbookProvider) => {
-        if (!selected) return;
-        try {
-            const res = await ebookApi.selectContent(selected.id, no, provider);
-            patchChapter(no, { contentMd: res.contentMd, finalProvider: provider });
-        } catch (e: any) { setError(e?.message || '선택 실패'); }
-    };
-
-    // 최종본 편집 시작/저장
-    const startEditMd = (no: number, md: string) => { setEditingMdNo(no); setEditMdText(md); };
-    const saveMd = async (no: number) => {
-        if (!selected || savingMd) return;
-        setSavingMd(true); setError(null);
-        try {
-            const res = await ebookApi.saveContentMd(selected.id, no, editMdText);
-            patchChapter(no, { contentMd: res.contentMd });
-            setEditingMdNo(null);
-        } catch (e: any) { setError(e?.message || '저장 실패'); }
-        finally { setSavingMd(false); }
-    };
-
-    // 그림 자리에 이미지 업로드 → GCS → 본문의 [그림: ...]을 마크다운 이미지로 치환
-    const uploadImage = async (no: number, file: File, placeholderText: string) => {
-        if (!selected || uploadingImgNo !== null) return;
-        setUploadingImgNo(no); setError(null);
-        try {
-            const { signedUrl, publicUrl } = await ebookApi.imageUploadUrl(selected.id, file.type);
-            await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
-            // 본문에서 해당 [그림: ...] 한 줄을 마크다운 이미지로 교체
-            const ch = (selected.chapters ?? []).find(c => c.no === no);
-            const md = ch?.contentMd ?? '';
-            const replaced = md.replace(placeholderText, `![${placeholderText.replace(/^\[그림:\s*|\]$/g, '')}](${publicUrl})`);
-            const res = await ebookApi.saveContentMd(selected.id, no, replaced);
-            patchChapter(no, { contentMd: res.contentMd });
-        } catch (e: any) { setError(e?.message || '이미지 업로드 실패'); }
-        finally { setUploadingImgNo(null); }
-    };
-
-    // [그림: 설명] 자리를 Imagen으로 자동 생성 → 본문에 ![](url) 삽입
-    const generateImage = async (no: number, placeholder: string, key: string) => {
-        if (!selected || genImgKey !== null) return;
-        setGenImgKey(key); setError(null);
-        try {
-            const res = await ebookApi.generateImage(selected.id, no, placeholder);
-            patchChapter(no, { contentMd: res.contentMd });
-        } catch (e: any) { setError(e?.message || '그림 생성 실패'); }
-        finally { setGenImgKey(null); }
-    };
-
-    // 그림 자리 삭제: 본문에서 해당 [그림: ...] 한 줄 제거
-    const removePlaceholder = async (no: number, placeholder: string) => {
-        if (!selected) return;
-        const ch = (selected.chapters ?? []).find(c => c.no === no);
-        const md = ch?.contentMd ?? '';
-        // 그림 자리 한 줄(앞뒤 빈 줄 정리) 제거
-        const next = md.replace(new RegExp(`\\n*${placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\n*`), '\n\n').trim();
-        try {
-            const res = await ebookApi.saveContentMd(selected.id, no, next);
-            patchChapter(no, { contentMd: res.contentMd });
-        } catch (e: any) { setError(e?.message || '삭제 실패'); }
-    };
-
-    // 그림 자리 추가: 본문 끝에 [그림: ] 한 줄 추가(편집기로 설명 채우도록 유도)
-    const addPlaceholder = async (no: number) => {
-        if (!selected) return;
-        const ch = (selected.chapters ?? []).find(c => c.no === no);
-        const md = ch?.contentMd ?? '';
-        const next = `${md.trim()}\n\n[그림: 여기에 그릴 내용을 적어주세요]`;
-        try {
-            const res = await ebookApi.saveContentMd(selected.id, no, next);
-            patchChapter(no, { contentMd: res.contentMd });
-            // 바로 편집 모드로 열어 설명 채우게
-            startEditMd(no, res.contentMd);
-        } catch (e: any) { setError(e?.message || '추가 실패'); }
-    };
 
     const startEdit = () => {
         if (!selected) return;
@@ -306,12 +218,23 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setRewritingNo(null); }
     };
 
-    // 탭5: PDF 생성
+    // 탭3: 구글 독스용 .docx 생성(북크크 양식)
+    const makeDocx = async () => {
+        if (!selected || docxMaking) return;
+        setDocxMaking(true); setError(null);
+        try {
+            const res = await ebookApi.generateDocx(selected.id);
+            setDocxUrl(res.url);
+        } catch (e: any) { setError(e?.message || '문서 생성 실패'); }
+        finally { setDocxMaking(false); }
+    };
+
+    // 탭3: PDF 생성(보조)
     const makePdf = async () => {
         if (!selected || pdfMaking) return;
         setPdfMaking(true); setError(null);
         try {
-            const res = await ebookApi.generatePdf(selected.id, { h1: fontH1, h2: fontH2, body: fontBody }); // 저자명은 DB(탭1에서 저장)에서 사용
+            const res = await ebookApi.generatePdf(selected.id, { h1: fontH1, h2: fontH2, body: fontBody });
             setPdfUrl(res.url);
         } catch (e: any) { setError(e?.message || 'PDF 생성 실패'); }
         finally { setPdfMaking(false); }
@@ -353,25 +276,6 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         const flags: Record<string, boolean> = {};
         (selected?.chapters ?? []).forEach(c => { flags[String(c.no)] = checked; });
         saveCollectFlags(flags);
-    };
-
-    // 탭6: 파일 → dataURL
-    const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-        const r = new FileReader();
-        r.onload = () => resolve(String(r.result));
-        r.onerror = reject;
-        r.readAsDataURL(file);
-    });
-
-    // 탭6: 최종본 생성(표지 + 수정 PDF 병합)
-    const finalize = async () => {
-        if (!selected || finalizing || !bodyPdf) return;
-        setFinalizing(true); setError(null);
-        try {
-            const res = await ebookApi.finalize(selected.id, bodyPdf.dataUrl, coverImage ?? undefined); // 저자명은 DB(탭1)에서 사용
-            setFinalUrl(res.url);
-        } catch (e: any) { setError(e?.message || '최종본 생성 실패'); }
-        finally { setFinalizing(false); }
     };
 
     const loadList = useCallback(() => {
@@ -596,61 +500,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     );
                                 })()}
 
-                                {/* ── 탭6: 완성본 만들기 (표지 + 수정 PDF 병합) ── */}
-                                {activeTab === 6 && (
-                                    <div className="space-y-4">
-                                        {error && <p className="text-xs text-red-500">{error}</p>}
-                                        <div className="rounded-2xl p-4" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                            <p className="text-xs leading-relaxed" style={{ color: T.inkSoft }}>
-                                                글 수정은 <b style={{ color: T.accent }}>초안 만들기</b> 탭에서 끝내는 게 좋아요(PDF는 수정이 어려워요).
-                                                여기서는 <b>표지</b>를 입혀 최종본을 완성해요. 초안 PDF를 그대로 올리거나, 더 손본 PDF를 올려도 돼요.
-                                            </p>
-                                        </div>
-
-                                        {/* 표지 이미지 */}
-                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>① 표지 이미지 (선택)</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>책 표지에 꽉 차게 들어갈 이미지를 올려요. 없으면 기본 배경으로 만들어요.</p>
-                                            <div className="flex items-center gap-3">
-                                                <label className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl cursor-pointer" style={{ padding: '8px 14px', color: '#fff', background: T.accent }}>
-                                                    <ImagePlus size={14} /> 표지 이미지 선택
-                                                    <input type="file" accept="image/*" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) setCoverImage(await fileToDataUrl(f)); e.currentTarget.value = ''; }} />
-                                                </label>
-                                                {coverImage && <img src={coverImage} alt="표지" className="rounded-lg" style={{ width: 44, height: 60, objectFit: 'cover', border: `1px solid ${T.border}` }} />}
-                                                {coverImage && <button onClick={() => setCoverImage(null)} className="text-xs" style={{ color: T.inkMute }}>제거</button>}
-                                            </div>
-                                            <p className="text-[11px] mt-3" style={{ color: T.inkSoft }}>저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> (제목·목차 탭에서 변경)</p>
-                                        </div>
-
-                                        {/* 본문 PDF 업로드 */}
-                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>② 수정한 본문 PDF</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>초안 PDF를 다듬어 다시 올려주세요. (최대 30MB)</p>
-                                            <label className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl cursor-pointer" style={{ padding: '8px 14px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                <FileText size={14} /> {bodyPdf ? '다른 PDF 선택' : 'PDF 선택'}
-                                                <input type="file" accept="application/pdf" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) setBodyPdf({ dataUrl: await fileToDataUrl(f), name: f.name }); e.currentTarget.value = ''; }} />
-                                            </label>
-                                            {bodyPdf && <p className="text-[11px] mt-2 truncate" style={{ color: T.ink }}>📄 {bodyPdf.name}</p>}
-                                        </div>
-
-                                        {/* 최종본 생성 */}
-                                        <div>
-                                            <button onClick={finalize} disabled={finalizing || !bodyPdf}
-                                                className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                {finalizing ? <><Loader size={14} className="animate-spin" /> 최종본 만드는 중…</> : <><BookOpen size={14} /> 완성본 PDF 만들기</>}
-                                            </button>
-                                            {finalUrl && (
-                                                <a href={finalUrl} target="_blank" rel="noopener noreferrer" download
-                                                    className="ml-2 inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
-                                                    <ExternalLink size={14} /> 완성본 다운로드
-                                                </a>
-                                            )}
-                                            {!bodyPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문 PDF를 먼저 올려주세요.</p>}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* ── 탭5: 초안 만들기 (본문 일괄 생성 → PDF) ── */}
+                                {/* ── 탭3(초안): 본문 일괄 생성 → 문서(.docx)/PDF ── */}
                                 {activeTab === 5 && (() => {
                                     const chs = selected.chapters ?? [];
                                     const total = chs.length;
@@ -696,82 +546,30 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                             : (hasBody ? '본문 있음' : ch.sourceStatus === 'done' ? '대기' : '자료 없음');
                                                         const color = r?.status === 'failed' || (!hasBody && ch.sourceStatus !== 'done') ? '#C62828' : hasBody || r?.status === 'done' || r?.status === 'skipped' ? '#5BA36A' : T.inkMute;
                                                         const open = contentOpenNo === ch.no;
-                                                        const isEdit = editingMdNo === ch.no;
                                                         return (
                                                             <div key={ch.no} className="rounded-lg" style={{ border: open ? `1px solid ${T.border}` : 'none' }}>
                                                                 <div className="flex items-center gap-2 text-xs px-1 py-1">
                                                                     <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
                                                                     <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
                                                                     {hasBody && (
-                                                                        <button onClick={() => { setContentOpenNo(open ? null : ch.no); setEditingMdNo(null); }}
+                                                                        <button onClick={() => setContentOpenNo(open ? null : ch.no)}
                                                                             className="shrink-0 text-[11px] font-bold rounded-md" style={{ padding: '3px 8px', color: T.accent, background: T.accentSoft }}>
-                                                                            {open ? '접기 ▲' : '글 보기·수정 ▼'}
+                                                                            {open ? '접기 ▲' : '본문 보기 ▼'}
                                                                         </button>
                                                                     )}
                                                                     <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
                                                                 </div>
 
-                                                                {/* 펼침: 본문 미리보기 / 편집기 */}
+                                                                {/* 펼침: 본문 미리보기 + 다시 쓰기 */}
                                                                 {open && hasBody && (
                                                                     <div className="px-2 pb-2">
-                                                                        {isEdit ? (
-                                                                            <>
-                                                                                <textarea value={editMdText} onChange={e => setEditMdText(e.target.value)} rows={14}
-                                                                                    className="w-full text-xs rounded-lg px-3 py-2 resize-y" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', fontFamily: 'monospace', lineHeight: 1.6 }} />
-                                                                                <div className="flex gap-2 mt-2">
-                                                                                    <button onClick={() => saveMd(ch.no)} disabled={savingMd} className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '7px 14px', color: '#fff', background: T.accent }}>
-                                                                                        {savingMd ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 저장
-                                                                                    </button>
-                                                                                    <button onClick={() => setEditingMdNo(null)} className="text-xs rounded-lg" style={{ padding: '7px 14px', color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
-                                                                                </div>
-                                                                                <p className="text-[10px] mt-1.5" style={{ color: T.inkMute }}>※ 마크다운: ## 소제목 / **굵게** / &gt; 핵심 / 표 | / [그림: 설명]</p>
-                                                                            </>
-                                                                        ) : (
-                                                                            <>
-                                                                                <div className="rounded-lg p-3 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', maxHeight: 280, overflowY: 'auto' }}>
-                                                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd!}</ReactMarkdown>
-                                                                                </div>
-                                                                                <div className="flex items-center gap-2 mt-2 flex-wrap">
-                                                                                    <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '5px 12px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
-                                                                                        <Pencil size={11} /> 글 수정
-                                                                                    </button>
-                                                                                    <button onClick={() => rewriteChapter(ch.no)} disabled={rewritingNo !== null}
-                                                                                        className="inline-flex items-center gap-1 text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '5px 12px', color: '#fff', background: '#C96442' }}>
-                                                                                        {rewritingNo === ch.no ? <><Loader size={11} className="animate-spin" /> 다시 쓰는 중…</> : <><RefreshCw size={11} /> 클로드로 다시 쓰기</>}
-                                                                                    </button>
-                                                                                </div>
-
-                                                                                {/* 그림 자리 관리: [그림: ...] 자동 생성 / 삭제 / 추가 */}
-                                                                                {(() => {
-                                                                                    const phs = (ch.contentMd!.match(/\[그림:[^\]]*\]/g)) ?? [];
-                                                                                    const imgCount = (ch.contentMd!.match(/!\[[^\]]*\]\([^)]+\)/g) ?? []).length;
-                                                                                    return (
-                                                                                        <div className="mt-3 rounded-lg p-2.5" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                                                            <p className="text-[11px] font-bold mb-1.5" style={{ color: T.accent }}>🖼 이미지 {imgCount > 0 ? `· 완성 ${imgCount}개 ` : ''}· 그림 자리 {phs.length}개</p>
-                                                                                            {phs.length === 0 && imgCount === 0 && <p className="text-[10px] mb-1" style={{ color: T.inkSoft }}>그림 자리가 없어요. 아래 <b style={{ color: T.accent }}>그림 자리 추가</b>로 넣고 ✨로 만들 수 있어요.</p>}
-                                                                                            {phs.map((ph, pi) => {
-                                                                                                const key = `${ch.no}:${pi}`;
-                                                                                                const gen = genImgKey === key;
-                                                                                                const desc = ph.replace(/^\[그림:\s*|\]$/g, '');
-                                                                                                return (
-                                                                                                    <div key={pi} className="flex items-center gap-1.5 mb-1.5 rounded-md p-1.5" style={{ background: '#fff', border: `1px dashed ${T.accentBorder}` }}>
-                                                                                                        <span className="flex-1 text-[10px] truncate" style={{ color: T.inkSoft }}>{desc || '(설명 없음)'}</span>
-                                                                                                        <button onClick={() => generateImage(ch.no, ph, key)} disabled={genImgKey !== null}
-                                                                                                            className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold rounded-md disabled:opacity-40" style={{ padding: '4px 8px', color: '#fff', background: T.accent }}>
-                                                                                                            {gen ? <><Loader size={10} className="animate-spin" /> 그리는 중…</> : <>✨ 그림 만들기</>}
-                                                                                                        </button>
-                                                                                                        <button onClick={() => removePlaceholder(ch.no, ph)} disabled={genImgKey !== null} className="shrink-0 p-1 disabled:opacity-40"><Trash2 size={12} style={{ color: '#C62828' }} /></button>
-                                                                                                    </div>
-                                                                                                );
-                                                                                            })}
-                                                                                            <button onClick={() => addPlaceholder(ch.no)} className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold rounded-md" style={{ padding: '4px 10px', color: T.accent, background: T.accentSoft, border: `1px dashed ${T.accentBorder}` }}>
-                                                                                                <Plus size={11} /> 그림 자리 추가
-                                                                                            </button>
-                                                                                        </div>
-                                                                                    );
-                                                                                })()}
-                                                                            </>
-                                                                        )}
+                                                                        <div className="rounded-lg p-3 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', maxHeight: 280, overflowY: 'auto' }}>
+                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd!}</ReactMarkdown>
+                                                                        </div>
+                                                                        <button onClick={() => rewriteChapter(ch.no)} disabled={rewritingNo !== null}
+                                                                            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '5px 12px', color: '#fff', background: '#C96442' }}>
+                                                                            {rewritingNo === ch.no ? <><Loader size={11} className="animate-spin" /> 다시 쓰는 중…</> : <><RefreshCw size={11} /> 클로드로 다시 쓰기</>}
+                                                                        </button>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -780,38 +578,47 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 </div>
                                             )}
                                             <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>
-                                                💡 PDF로 만들기 전에 <b style={{ color: T.accent }}>글 보기·수정</b>에서 내용을 다듬으세요. PDF는 수정이 어려우니 여기서 미리 고치는 게 좋아요.
+                                                💡 본문을 만든 뒤 아래에서 <b style={{ color: T.accent }}>문서(.docx)</b>를 받아 구글 독스에서 자유롭게 편집·출판하세요. 글·표·그림 모두 거기서 다듬을 수 있어요.
                                             </p>
                                         </div>
 
-                                        {/* 2단계: PDF 만들기 */}
+                                        {/* 2단계: 문서 만들기 (구글 독스용 .docx / PDF) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${canPdf ? T.accentBorder : T.border}`, opacity: canPdf ? 1 : 0.6 }}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>2</span>
-                                                <p className="text-sm font-bold" style={{ color: T.ink }}>PDF 만들기</p>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>문서 만들기</p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>북크크 양식으로 PDF를 만들어요. 폰트 크기를 조절할 수 있어요. 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> (제목·목차 탭에서 변경)</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
+                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b>
+                                            </p>
 
-                                            {/* 폰트 설정 */}
-                                            <div className="grid grid-cols-2 gap-2 mb-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
-                                                {([['큰제목', fontH1, setFontH1, 16, 40], ['중간제목', fontH2, setFontH2, 11, 24], ['본문', fontBody, setFontBody, 8, 16]] as const).map(([lbl, val, setter, mn, mx]) => (
-                                                    <label key={lbl} className="text-[11px]" style={{ color: T.inkSoft }}>{lbl} ({val}pt)
-                                                        <input type="range" min={mn} max={mx} value={val} onChange={e => setter(Number(e.target.value))} className="w-full mt-1" style={{ accentColor: T.accent }} />
-                                                    </label>
-                                                ))}
+                                            <div className="flex gap-2 flex-wrap">
+                                                <button onClick={makeDocx} disabled={!canPdf || docxMaking}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                    {docxMaking ? <><Loader size={14} className="animate-spin" /> 문서 만드는 중…</> : <><FileText size={14} /> 구글 문서(.docx) 만들기</>}
+                                                </button>
+                                                {docxUrl && (
+                                                    <a href={docxUrl} target="_blank" rel="noopener noreferrer" download
+                                                        className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
+                                                        <ExternalLink size={14} /> 문서 다운로드
+                                                    </a>
+                                                )}
                                             </div>
 
-                                            <button onClick={makePdf} disabled={!canPdf || pdfMaking}
-                                                className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                {pdfMaking ? <><Loader size={14} className="animate-spin" /> PDF 만드는 중…</> : <><FileText size={14} /> PDF 만들기</>}
-                                            </button>
+                                            <div className="flex gap-2 flex-wrap mt-2">
+                                                <button onClick={makePdf} disabled={!canPdf || pdfMaking}
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl disabled:opacity-40" style={{ padding: '7px 14px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                    {pdfMaking ? <><Loader size={12} className="animate-spin" /> PDF 만드는 중…</> : <><FileText size={12} /> PDF로도 받기</>}
+                                                </button>
+                                                {pdfUrl && (
+                                                    <a href={pdfUrl} target="_blank" rel="noopener noreferrer" download
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl" style={{ padding: '7px 14px', color: '#fff', background: '#5BA36A' }}>
+                                                        <ExternalLink size={12} /> PDF 다운로드
+                                                    </a>
+                                                )}
+                                            </div>
 
-                                            {pdfUrl && (
-                                                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" download
-                                                    className="ml-2 inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
-                                                    <ExternalLink size={14} /> PDF 다운로드
-                                                </a>
-                                            )}
+                                            {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다.</p>}
                                             {!canPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문을 먼저 만들어 주세요.</p>}
                                         </div>
                                     </div>
@@ -950,143 +757,6 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     </div>
                                                 )}
 
-                                                {/* 2-C 본문 생성 — 3개 AI 비교 (탭5에서 클로드 단일로 재구성 예정, 현재 비활성) */}
-                                                {false && isDone && (() => {
-                                                    const cOpen = contentOpenNo === ch.no;
-                                                    const anyWriting = writingKey?.startsWith(`${ch.no}:`);
-                                                    return (
-                                                    <div className="mt-3 ml-10 pt-3" style={{ borderTop: `1px dashed ${T.border}` }}>
-                                                        <p className="text-xs font-bold mb-2" style={{ color: T.ink }}>✍️ 본문 만들기 — AI별로 써보고 비교하세요</p>
-                                                        <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
-                                                            {AI_PROVIDERS.map(ai => {
-                                                                const v = ch.contentVariants?.[ai.key];
-                                                                const st = v?.status ?? 'idle';
-                                                                const writing = writingKey === `${ch.no}:${ai.key}`;
-                                                                const done = st === 'done' && !!v?.md;
-                                                                const failed = st === 'failed';
-                                                                return (
-                                                                <div key={ai.key} className="rounded-xl p-2.5" style={{ background: '#fff', border: `1.5px solid ${ai.color}55` }}>
-                                                                    <div className="flex items-center gap-1.5 mb-1.5">
-                                                                        <span className="text-sm">{ai.emoji}</span>
-                                                                        <span className="text-xs font-bold" style={{ color: ai.color }}>{ai.label}</span>
-                                                                        {done && <Check size={13} strokeWidth={3} style={{ color: ai.color, marginLeft: 'auto' }} />}
-                                                                    </div>
-                                                                    {writing ? (
-                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold" style={{ color: ai.color }}>
-                                                                            <Loader size={11} className="animate-spin" /> 작성 중…
-                                                                        </span>
-                                                                    ) : (
-                                                                        <button onClick={() => generateContent(ch.no, ai.key)} disabled={writingKey !== null}
-                                                                            className="w-full text-[11px] font-bold rounded-lg py-1.5 disabled:opacity-40"
-                                                                            style={{ color: '#fff', background: ai.color }}>
-                                                                            {done ? '다시 쓰기' : failed ? '다시 시도' : '본문 작성'}
-                                                                        </button>
-                                                                    )}
-                                                                    {failed && <p className="text-[10px] mt-1" style={{ color: '#C62828' }}>실패</p>}
-                                                                </div>
-                                                                );
-                                                            })}
-                                                        </div>
-
-                                                        {/* 결과 보기 토글 (하나라도 완료되면) */}
-                                                        {AI_PROVIDERS.some(ai => ch.contentVariants?.[ai.key]?.status === 'done') && (
-                                                            <button onClick={() => setContentOpenNo(cOpen ? null : ch.no)} className="mt-2 text-xs font-bold rounded-lg" style={{ padding: '6px 12px', color: T.accent, background: T.accentSoft, border: `1.5px solid ${T.accentBorder}` }}>
-                                                                {cOpen ? '본문 비교 접기 ▲' : '본문 비교 보기 ▼'}
-                                                            </button>
-                                                        )}
-
-                                                        {cOpen && (
-                                                            <div className="mt-3 space-y-3">
-                                                                {AI_PROVIDERS.filter(ai => ch.contentVariants?.[ai.key]?.md).map(ai => {
-                                                                    const md = ch.contentVariants![ai.key]!.md!;
-                                                                    const fbKey = `${ch.no}:${ai.key}`;
-                                                                    return (
-                                                                    <div key={ai.key} className="rounded-xl overflow-hidden" style={{ border: `1.5px solid ${ch.finalProvider === ai.key ? ai.color : ai.color + '55'}`, boxShadow: ch.finalProvider === ai.key ? `0 0 0 2px ${ai.color}44` : 'none' }}>
-                                                                        <div className="flex items-center gap-1.5 px-3 py-2" style={{ background: `${ai.color}14` }}>
-                                                                            <span>{ai.emoji}</span>
-                                                                            <span className="text-xs font-bold" style={{ color: ai.color }}>{ai.label} 본문</span>
-                                                                            <span className="text-[10px]" style={{ color: T.inkMute }}>{md.length.toLocaleString()}자</span>
-                                                                            <button onClick={() => selectContent(ch.no, ai.key)}
-                                                                                className="ml-auto text-[11px] font-bold rounded-lg" style={{ padding: '4px 10px', color: ch.finalProvider === ai.key ? '#fff' : ai.color, background: ch.finalProvider === ai.key ? ai.color : `${ai.color}1a`, border: `1px solid ${ai.color}` }}>
-                                                                                {ch.finalProvider === ai.key ? '✓ 선택됨' : '이 본문 선택'}
-                                                                            </button>
-                                                                        </div>
-                                                                        <div className="p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
-                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{md}</ReactMarkdown>
-                                                                        </div>
-                                                                        {/* AI별 피드백 → 다시 쓰기 */}
-                                                                        <div className="px-3 py-2 flex gap-2 items-end" style={{ background: `${ai.color}08` }}>
-                                                                            <textarea value={feedbackText[fbKey] ?? ''} onChange={e => setFeedbackText(prev => ({ ...prev, [fbKey]: e.target.value }))}
-                                                                                placeholder="이 본문 고칠 점 (예: 더 쉽게)" rows={1}
-                                                                                className="flex-1 text-xs rounded-lg px-2 py-1.5 resize-none" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
-                                                                            <button onClick={() => generateContent(ch.no, ai.key, (feedbackText[fbKey] ?? '').trim() || undefined)} disabled={writingKey !== null}
-                                                                                className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '7px 10px', color: '#fff', background: ai.color }}>
-                                                                                <RefreshCw size={12} /> 다시
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
-
-                                                        {/* ── 최종본: 선택된 본문 편집 + 그림 자리 이미지 ── */}
-                                                        {ch.contentMd && (() => {
-                                                            const isEdit = editingMdNo === ch.no;
-                                                            // 본문에 남은 [그림: 설명] 자리 추출(아직 이미지 안 넣은 것)
-                                                            const placeholders = (ch.contentMd.match(/\[그림:[^\]]*\]/g)) ?? [];
-                                                            return (
-                                                            <div className="mt-3 rounded-xl overflow-hidden" style={{ border: `2px solid ${T.accent}` }}>
-                                                                <div className="flex items-center gap-1.5 px-3 py-2" style={{ background: T.accentSoft }}>
-                                                                    <Check size={14} strokeWidth={3} style={{ color: T.accent }} />
-                                                                    <span className="text-xs font-bold" style={{ color: T.accent }}>최종 본문{ch.finalProvider ? ` (${AI_PROVIDERS.find(a => a.key === ch.finalProvider)?.label})` : ''}</span>
-                                                                    {!isEdit && (
-                                                                        <button onClick={() => startEditMd(ch.no, ch.contentMd!)} className="ml-auto inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '4px 10px', color: T.accent, background: '#fff', border: `1px solid ${T.accent}` }}>
-                                                                            <Pencil size={11} /> 글 수정
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-
-                                                                {isEdit ? (
-                                                                    <div className="p-3">
-                                                                        <textarea value={editMdText} onChange={e => setEditMdText(e.target.value)} rows={16}
-                                                                            className="w-full text-xs rounded-lg px-3 py-2 resize-y" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', fontFamily: 'monospace', lineHeight: 1.6 }} />
-                                                                        <div className="flex gap-2 mt-2">
-                                                                            <button onClick={() => saveMd(ch.no)} disabled={savingMd} className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '7px 14px', color: '#fff', background: T.accent }}>
-                                                                                {savingMd ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 저장
-                                                                            </button>
-                                                                            <button onClick={() => setEditingMdNo(null)} className="text-xs rounded-lg" style={{ padding: '7px 14px', color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <>
-                                                                        <div className="p-4 text-sm leading-relaxed ebook-md" style={{ background: '#fff', color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>
-                                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd}</ReactMarkdown>
-                                                                        </div>
-                                                                        {/* 그림 자리: 이미지 업로드 */}
-                                                                        {placeholders.length > 0 && (
-                                                                            <div className="px-3 pb-3 space-y-2">
-                                                                                <p className="text-[11px] font-bold" style={{ color: T.inkSoft }}>🖼 이미지 넣을 자리 {placeholders.length}곳</p>
-                                                                                {placeholders.map((ph, pi) => (
-                                                                                    <div key={pi} className="flex items-center gap-2 rounded-lg p-2" style={{ background: T.surface, border: `1px dashed ${T.accentBorder}` }}>
-                                                                                        <span className="flex-1 text-[11px] truncate" style={{ color: T.inkSoft }}>{ph}</span>
-                                                                                        <label className="shrink-0 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg cursor-pointer" style={{ padding: '5px 10px', color: '#fff', background: T.accent, opacity: uploadingImgNo === ch.no ? 0.5 : 1 }}>
-                                                                                            {uploadingImgNo === ch.no ? <Loader size={11} className="animate-spin" /> : <ImagePlus size={12} />} 이미지 추가
-                                                                                            <input type="file" accept="image/*" className="hidden" disabled={uploadingImgNo !== null}
-                                                                                                onChange={e => { const f = e.target.files?.[0]; if (f) uploadImage(ch.no, f, ph); e.currentTarget.value = ''; }} />
-                                                                                        </label>
-                                                                                    </div>
-                                                                                ))}
-                                                                            </div>
-                                                                        )}
-                                                                    </>
-                                                                )}
-                                                            </div>
-                                                            );
-                                                        })()}
-                                                    </div>
-                                                    );
-                                                })()}
                                             </div>
                                             );
                                         })}
