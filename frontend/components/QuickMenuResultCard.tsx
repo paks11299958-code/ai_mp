@@ -76,9 +76,16 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
     const c = hasBg ? withBg : noBg;
 
     // 봉인된 뒷면(표지) — 클릭하면 카드가 뒤집히며 감정 내용(앞면)이 드러난다.
+    // 변경(2026-06-10): [이전] 카드 뒷면 전체가 onClick → 어디를 눌러도 플립
+    //                  [현재] 상단 헤더 영역(아이콘+제목+한자+'눌러서 펼치기' 버튼)만 클릭 가능
+    //                         하단 서명 영역은 e.stopPropagation()으로 플립 차단
+    //                         상단 클릭 영역은 minHeight 44px 보장(모바일 접근성)
+    const handleOpen = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setOpened(true);
+    };
     const sealBack = (
         <div
-            onClick={() => setOpened(true)}
             style={{
                 position: 'absolute', inset: 0,
                 backfaceVisibility: 'hidden',
@@ -88,36 +95,63 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
                 border: '1px solid rgba(139,94,60,0.5)',
                 background: 'radial-gradient(circle at 50% 38%, rgba(60,36,14,0.98), rgba(14,8,3,0.99))',
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                padding: '40px 28px', cursor: 'pointer',
+                padding: '40px 28px', cursor: 'default',
                 fontFamily: '"Nanum Myeongjo", serif',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
             }}
         >
-            <p style={{ fontSize: 12, color: '#b89060', letterSpacing: '0.3em', marginBottom: 18 }}>四柱命理 鑑定書</p>
-            <div style={{
-                width: 92, height: 92, borderRadius: '50%',
-                border: '1.5px solid rgba(200,148,60,0.55)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                marginBottom: 20, boxShadow: 'inset 0 0 24px rgba(200,148,60,0.18)',
-            }}>
-                <span style={{ fontSize: 40 }}>{meta.icon}</span>
+            {/* 상단 클릭 가능 영역(헤더): 여기만 누르면 플립이 발생한다. */}
+            <div
+                role="button"
+                tabIndex={0}
+                aria-label="감정 결과 펼치기"
+                onClick={handleOpen}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleOpen(e as any); }}
+                style={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                    width: '100%', minHeight: 44, cursor: 'pointer',
+                    padding: '4px 0',
+                    borderRadius: 8,
+                    transition: 'background 0.2s',
+                }}
+            >
+                <p style={{ fontSize: 12, color: '#b89060', letterSpacing: '0.3em', marginBottom: 18 }}>四柱命理 鑑定書</p>
+                <div style={{
+                    width: 92, height: 92, borderRadius: '50%',
+                    border: '1.5px solid rgba(200,148,60,0.55)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    marginBottom: 20, boxShadow: 'inset 0 0 24px rgba(200,148,60,0.18)',
+                }}>
+                    <span style={{ fontSize: 40 }}>{meta.icon}</span>
+                </div>
+                <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fde68a', letterSpacing: '0.12em', marginBottom: 6 }}>
+                    {title}
+                </h2>
+                {meta.hanja && (
+                    <p style={{ fontSize: 13, color: '#c8943c', letterSpacing: '0.3em', marginBottom: 18 }}>{meta.hanja}</p>
+                )}
+                {/* 시각적 힌트(눌러서 펼치기 버튼) — 손가락 이모지로 탭 가능 영역임을 명시 */}
+                <div style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 6,
+                    padding: '10px 22px', borderRadius: 999,
+                    border: '1px solid rgba(200,148,60,0.5)',
+                    background: 'rgba(200,148,60,0.08)',
+                    color: '#fde68a', fontSize: 13, letterSpacing: '0.06em',
+                    minHeight: 44, lineHeight: 1,
+                    animation: 'qmSealPulse 2s ease-in-out infinite',
+                }}>
+                    <span aria-hidden="true">👆</span>
+                    <span>탭하여 펼치기</span>
+                </div>
             </div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#fde68a', letterSpacing: '0.12em', marginBottom: 6 }}>
-                {title}
-            </h2>
-            {meta.hanja && (
-                <p style={{ fontSize: 13, color: '#c8943c', letterSpacing: '0.3em', marginBottom: 26 }}>{meta.hanja}</p>
-            )}
-            <div style={{
-                padding: '9px 22px', borderRadius: 999,
-                border: '1px solid rgba(200,148,60,0.5)',
-                background: 'rgba(200,148,60,0.08)',
-                color: '#fde68a', fontSize: 13, letterSpacing: '0.06em',
-                animation: 'qmSealPulse 2s ease-in-out infinite',
-            }}>
-                ✦ 눌러서 펼치기 ✦
-            </div>
-            <p style={{ fontSize: 11, color: '#8a6a3c', marginTop: 14 }}>{personaName}이(가) 봉(封)함</p>
+
+            {/* 하단 서명 영역 — 클릭해도 플립되지 않도록 버블링 차단 */}
+            <p
+                onClick={(e) => e.stopPropagation()}
+                style={{ fontSize: 11, color: '#8a6a3c', marginTop: 14, cursor: 'default' }}
+            >
+                {personaName}이(가) 봉(封)함
+            </p>
         </div>
     );
 
