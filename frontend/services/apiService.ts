@@ -479,7 +479,7 @@ export interface EbookTocChapter {
     finalProvider?: EbookProvider;
 }
 export interface EbookProject {
-    id: number; topic: string; title: string | null; status: string;
+    id: number; topic: string; title: string | null; author?: string | null; status: string;
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
@@ -490,8 +490,8 @@ export const ebookApi = {
         get<EbookProject[]>('/ebook'),
     get: (id: number) =>
         get<EbookProject>(`/ebook/${id}`),
-    updateToc: (id: number, title: string, chapters: EbookTocChapter[]) =>
-        put<EbookProject>(`/ebook/${id}/toc`, { title, chapters }),
+    updateToc: (id: number, title: string, chapters: EbookTocChapter[], author?: string | null) =>
+        put<EbookProject>(`/ebook/${id}/toc`, { title, chapters, ...(author !== undefined ? { author } : {}) }),
     remove: (id: number) =>
         del<{ deleted: boolean }>(`/ebook/${id}`),
     collectSources: (id: number, no: number) =>

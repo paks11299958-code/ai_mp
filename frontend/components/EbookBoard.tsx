@@ -39,11 +39,10 @@ const AI_PROVIDERS: { key: EbookProvider; label: string; emoji: string; color: s
 ];
 
 // 진행 탭 정의 (1~6 순서대로 진행)
+// 탭 콘텐츠 ID는 기존(1책정보 / 4자료 / 5초안 / 6완성본) 유지. 2·3은 1로 통합.
 type EbookTab = 1 | 2 | 3 | 4 | 5 | 6;
 const TABS: { id: EbookTab; label: string }[] = [
-    { id: 1, label: '제목' },
-    { id: 2, label: '목차' },
-    { id: 3, label: '목차 수정' },
+    { id: 1, label: '제목·목차' },
     { id: 4, label: '자료 수집' },
     { id: 5, label: '초안 만들기' },
     { id: 6, label: '완성본' },
@@ -65,8 +64,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [editTitle, setEditTitle] = useState('');
     const [editChapters, setEditChapters] = useState<EbookTocChapter[]>([]);
     const [savingToc, setSavingToc] = useState(false);
-    // 탭1 제목 편집 (목차는 보존, 제목만 저장)
+    // 탭1 제목·저자 편집 (목차는 보존, 제목/저자만 저장)
     const [titleDraft, setTitleDraft] = useState('');
+    const [authorDraft, setAuthorDraft] = useState('');
     const [savingTitle, setSavingTitle] = useState(false);
     // 탭5 초안: 본문 일괄 생성 + PDF
     const [drafting, setDrafting] = useState(false);
@@ -76,7 +76,6 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [fontH1, setFontH1] = useState(24);
     const [fontH2, setFontH2] = useState(15);
     const [fontBody, setFontBody] = useState(11);
-    const [authorName, setAuthorName] = useState('강지훈');
     // 탭4 자료 일괄수집(예약 + 즉시)
     const [collectingAll, setCollectingAll] = useState(false);
     const [collectResults, setCollectResults] = useState<import('../services/apiService').EbookCollectResult[] | null>(null);
@@ -258,7 +257,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         if (!clean.length) { setError('챕터가 최소 1개는 있어야 해요.'); return; }
         setSavingToc(true); setError(null);
         try {
-            const updated = await ebookApi.updateToc(selected.id, editTitle.trim() || selected.topic, clean);
+            const updated = await ebookApi.updateToc(selected.id, titleDraft.trim() || selected.topic, clean, authorDraft.trim() || null);
             setSelected(updated);
             setEditing(false);
             loadList();
@@ -266,17 +265,17 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setSavingToc(false); }
     };
 
-    // 탭1: 제목만 저장 (chapters는 그대로 보내 보존)
+    // 탭1: 제목·저자 저장 (chapters는 그대로 보내 보존)
     const saveTitle = async () => {
         if (!selected || savingTitle) return;
         const t = titleDraft.trim();
         if (!t) { setError('제목을 입력해 주세요.'); return; }
         setSavingTitle(true); setError(null);
         try {
-            const updated = await ebookApi.updateToc(selected.id, t, selected.chapters ?? []);
+            const updated = await ebookApi.updateToc(selected.id, t, selected.chapters ?? [], authorDraft.trim() || null);
             setSelected(updated);
             loadList();
-        } catch (e: any) { setError(e?.message || '제목 저장 실패'); }
+        } catch (e: any) { setError(e?.message || '저장 실패'); }
         finally { setSavingTitle(false); }
     };
 
@@ -298,7 +297,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         if (!selected || pdfMaking) return;
         setPdfMaking(true); setError(null);
         try {
-            const res = await ebookApi.generatePdf(selected.id, { h1: fontH1, h2: fontH2, body: fontBody }, authorName.trim() || undefined);
+            const res = await ebookApi.generatePdf(selected.id, { h1: fontH1, h2: fontH2, body: fontBody }); // 저자명은 DB(탭1에서 저장)에서 사용
             setPdfUrl(res.url);
         } catch (e: any) { setError(e?.message || 'PDF 생성 실패'); }
         finally { setPdfMaking(false); }
@@ -340,7 +339,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         if (!selected || finalizing || !bodyPdf) return;
         setFinalizing(true); setError(null);
         try {
-            const res = await ebookApi.finalize(selected.id, bodyPdf.dataUrl, coverImage ?? undefined, authorName.trim() || undefined);
+            const res = await ebookApi.finalize(selected.id, bodyPdf.dataUrl, coverImage ?? undefined); // 저자명은 DB(탭1)에서 사용
             setFinalUrl(res.url);
         } catch (e: any) { setError(e?.message || '최종본 생성 실패'); }
         finally { setFinalizing(false); }
@@ -352,7 +351,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     useEffect(() => { loadList(); }, [loadList]);
 
     // 선택된 전자책이 바뀌면 제목 입력값 동기화
-    useEffect(() => { setTitleDraft(selected?.title || selected?.topic || ''); }, [selected?.id]);
+    useEffect(() => {
+        setTitleDraft(selected?.title || selected?.topic || '');
+        setAuthorDraft(selected?.author || '');
+    }, [selected?.id]);
 
     const handleCreate = async () => {
         if (!topic.trim() || creating) return;
@@ -362,7 +364,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setTopic('');
             setShowForm(false);
             setSelected(project);
-            setActiveTab(2); // 생성 직후 목차 탭으로
+            setActiveTab(1); // 생성 직후 책정보(제목·목차) 탭으로
             loadList();
         } catch (e: any) {
             setError(e.message || '목차 생성에 실패했습니다.');
@@ -370,7 +372,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const openProject = async (id: number) => {
-        try { setSelected(await ebookApi.get(id)); setShowForm(false); setActiveTab(2); setEditing(false); } catch {}
+        try { setSelected(await ebookApi.get(id)); setShowForm(false); setActiveTab(1); setEditing(false); } catch {}
     };
 
     const handleDelete = async (id: number, e: React.MouseEvent) => {
@@ -468,7 +470,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         return (
                                             <React.Fragment key={t.id}>
                                                 {i > 0 && <span className="shrink-0 text-[10px]" style={{ color: T.inkMute }}>›</span>}
-                                                <button onClick={() => { setActiveTab(t.id); if (t.id === 3) startEdit(); else setEditing(false); }}
+                                                <button onClick={() => { setActiveTab(t.id); setEditing(false); }}
                                                     className="shrink-0 inline-flex items-center gap-1 rounded-full font-bold transition"
                                                     style={{
                                                         fontSize: 12, padding: '5px 12px',
@@ -477,7 +479,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                         border: `1px solid ${active ? T.accent : T.border}`,
                                                         boxShadow: active ? '0 2px 8px -2px rgba(142,111,183,0.5)' : 'none',
                                                     }}>
-                                                    <span className="inline-flex items-center justify-center rounded-full" style={{ width: 16, height: 16, fontSize: 10, background: active ? 'rgba(255,255,255,0.25)' : '#fff', color: active ? '#fff' : T.inkMute, border: active ? 'none' : `1px solid ${T.border}` }}>{t.id}</span>
+                                                    <span className="inline-flex items-center justify-center rounded-full" style={{ width: 16, height: 16, fontSize: 10, background: active ? 'rgba(255,255,255,0.25)' : '#fff', color: active ? '#fff' : T.inkMute, border: active ? 'none' : `1px solid ${T.border}` }}>{i + 1}</span>
                                                     {t.label}
                                                 </button>
                                             </React.Fragment>
@@ -583,9 +585,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 {coverImage && <img src={coverImage} alt="표지" className="rounded-lg" style={{ width: 44, height: 60, objectFit: 'cover', border: `1px solid ${T.border}` }} />}
                                                 {coverImage && <button onClick={() => setCoverImage(null)} className="text-xs" style={{ color: T.inkMute }}>제거</button>}
                                             </div>
-                                            <label className="block text-[11px] mt-3" style={{ color: T.inkSoft }}>저자명
-                                                <input value={authorName} onChange={e => setAuthorName(e.target.value)} className="w-full mt-0.5 text-xs rounded-lg px-2 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', maxWidth: 200 }} />
-                                            </label>
+                                            <p className="text-[11px] mt-3" style={{ color: T.inkSoft }}>저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> (제목·목차 탭에서 변경)</p>
                                         </div>
 
                                         {/* 본문 PDF 업로드 */}
@@ -750,13 +750,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>2</span>
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>PDF 만들기</p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>북크크 양식으로 PDF를 만들어요. 폰트 크기를 조절할 수 있어요.</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>북크크 양식으로 PDF를 만들어요. 폰트 크기를 조절할 수 있어요. 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> (제목·목차 탭에서 변경)</p>
 
-                                            {/* 저자명 + 폰트 설정 */}
+                                            {/* 폰트 설정 */}
                                             <div className="grid grid-cols-2 gap-2 mb-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
-                                                <label className="text-[11px]" style={{ color: T.inkSoft }}>저자명
-                                                    <input value={authorName} onChange={e => setAuthorName(e.target.value)} className="w-full mt-0.5 text-xs rounded-lg px-2 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
-                                                </label>
                                                 {([['큰제목', fontH1, setFontH1, 16, 40], ['중간제목', fontH2, setFontH2, 11, 24], ['본문', fontBody, setFontBody, 8, 16]] as const).map(([lbl, val, setter, mn, mx]) => (
                                                     <label key={lbl} className="text-[11px]" style={{ color: T.inkSoft }}>{lbl} ({val}pt)
                                                         <input type="range" min={mn} max={mx} value={val} onChange={e => setter(Number(e.target.value))} className="w-full mt-1" style={{ accentColor: T.accent }} />
@@ -781,46 +778,40 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     );
                                 })()}
 
-                                {/* ── 탭 1~3 공통: 책 제목 카드 ── */}
-                                {activeTab <= 3 && <>
+                                {/* ── 탭1: 책 정보 (제목·저자) + 목차(보기/수정) ── */}
+                                {activeTab === 1 && <>
+                                {/* 제목·저자 카드 */}
                                 <div className="rounded-2xl p-5 mb-4" style={{ background: 'linear-gradient(135deg, #ffffff, #f7f3fb)', border: `1px solid ${T.accentBorder}`, boxShadow: '0 4px 16px -8px rgba(142,111,183,0.4)' }}>
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-[10px] tracking-widest mb-1" style={{ color: T.accent }}>{activeTab === 1 ? '책 제목' : '전자책 목차'}</p>
-                                            {activeTab === 1
-                                                ? <input value={titleDraft} onChange={e => setTitleDraft(e.target.value)} placeholder="책 제목"
-                                                    className="w-full text-xl font-bold rounded-lg px-2 py-1" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
-                                                : <h2 className="text-xl font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{selected.title || selected.topic}</h2>}
-                                            <p className="text-xs mt-1" style={{ color: T.inkMute }}>주제: {selected.topic}</p>
+                                    <p className="text-[10px] tracking-widest mb-2" style={{ color: T.accent }}>책 정보</p>
+                                    <div className="flex flex-col gap-2">
+                                        <input value={titleDraft} onChange={e => setTitleDraft(e.target.value)} placeholder="책 제목"
+                                            className="w-full text-xl font-bold rounded-lg px-3 py-2" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[11px] shrink-0" style={{ color: T.inkSoft }}>저자명</span>
+                                            <input value={authorDraft} onChange={e => setAuthorDraft(e.target.value)} placeholder="예: 강지훈"
+                                                className="flex-1 text-sm rounded-lg px-3 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', maxWidth: 260 }} />
+                                            <button onClick={saveTitle} disabled={savingTitle || !titleDraft.trim()} className="shrink-0 inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '8px 14px', color: '#fff', background: T.accent }}>
+                                                {savingTitle ? <Loader size={13} className="animate-spin" /> : <Save size={13} />} 저장
+                                            </button>
                                         </div>
-                                        {/* 탭3(목차 수정)에서만 저장/취소 버튼 */}
-                                        {activeTab === 3 && (editing
-                                            ? <div className="flex gap-1.5 shrink-0">
-                                                <button onClick={saveToc} disabled={savingToc} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: '#fff', background: T.accent }}>{savingToc ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 저장</button>
-                                                <button onClick={() => { cancelEdit(); setActiveTab(2); }} className="text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
-                                              </div>
-                                            : <button onClick={startEdit} className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}><Pencil size={12} /> 편집 시작</button>)}
+                                        <p className="text-[11px]" style={{ color: T.inkMute }}>주제: {selected.topic}</p>
                                     </div>
                                 </div>
+                                {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
 
-                                {/* 탭1: 제목 저장 + 다음 단계 안내 */}
-                                {activeTab === 1 && (
-                                    <div className="mb-4">
-                                        {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
-                                        <div className="flex gap-2">
-                                            <button onClick={saveTitle} disabled={savingTitle || !titleDraft.trim()} className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-50" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                {savingTitle ? <Loader size={14} className="animate-spin" /> : <Save size={14} />} 제목 저장
-                                            </button>
-                                            <button onClick={() => setActiveTab(2)} className="inline-flex items-center gap-1 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                목차 보기 ›
-                                            </button>
-                                        </div>
-                                        <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>제목을 정한 뒤 <b style={{ color: T.accent }}>목차</b> 탭에서 챕터 구성을 확인하세요.</p>
-                                    </div>
-                                )}
-                                {error && editing && <p className="text-xs text-red-500 mb-2">{error}</p>}
-                                {/* 탭2: 목차 보기 (단순 챕터 리스트) */}
-                                {activeTab === 2 && (
+                                {/* 목차 헤더 + 보기/수정 토글 */}
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-sm font-bold" style={{ color: T.ink }}>목차 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>({(selected.chapters ?? []).length}챕터)</span></p>
+                                    {editing
+                                        ? <div className="flex gap-1.5 shrink-0">
+                                            <button onClick={saveToc} disabled={savingToc} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: '#fff', background: T.accent }}>{savingToc ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 목차 저장</button>
+                                            <button onClick={() => cancelEdit()} className="text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
+                                          </div>
+                                        : <button onClick={startEdit} className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}><Pencil size={12} /> 목차 수정</button>}
+                                </div>
+
+                                {/* 목차 보기 (단순 챕터 리스트) */}
+                                {!editing && (
                                     <div className="space-y-2">
                                         {(selected.chapters ?? []).map(ch => {
                                             const st = ch.sourceStatus ?? 'idle';
@@ -1059,19 +1050,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </div>
                                             );
                                         })}
-                                        <button onClick={() => { setActiveTab(3); startEdit(); }} className="w-full py-2.5 mt-1 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5" style={{ color: T.accent, border: `1px dashed ${T.accentBorder}`, background: T.accentSoft }}>
-                                            <Pencil size={14} /> 목차 수정하기 ›
-                                        </button>
                                     </div>
                                 )}
 
-                                {/* 탭3: 목차 수정 (제목/챕터 편집 + 순서변경) */}
-                                {activeTab === 3 && (
+                                {/* 목차 수정 (editing 모드): 챕터 편집 + 순서변경 */}
+                                {editing && (
                                     <div className="space-y-2">
-                                        {/* 제목도 함께 수정 */}
-                                        <input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="책 제목"
-                                            className="w-full text-base font-bold rounded-xl px-3 py-2 mb-1" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
-                                        {!editing && <p className="text-[11px] mb-2" style={{ color: T.inkMute }}>아래에서 챕터를 수정/추가/삭제하고 순서를 바꾼 뒤 위의 <b style={{ color: T.accent }}>저장</b>을 눌러주세요.</p>}
+                                        <p className="text-[11px] mb-2" style={{ color: T.inkMute }}>챕터를 수정/추가/삭제하고 순서를 바꾼 뒤 위의 <b style={{ color: T.accent }}>목차 저장</b>을 눌러주세요. (책 제목·저자는 위 카드에서 수정)</p>
                                         {editChapters.map((ch, i) => (
                                             <div key={i} className="flex gap-2 rounded-xl p-3" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                                 <div className="flex flex-col gap-0.5 shrink-0 pt-0.5">
