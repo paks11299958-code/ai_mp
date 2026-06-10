@@ -34,6 +34,7 @@ const CATEGORIES: CategoryItem[] = [
     { key: 'AI기술',   label: 'AI/기술', emoji: '🤖', accent: '#7A5FA0' },
     { key: '부동산',   label: '부동산', emoji: '🏢', accent: '#C68760' },
     { key: '스포츠',   label: '스포츠', emoji: '⚽', accent: '#5E7E86' },
+    { key: '날씨',     label: '날씨',   emoji: '☀️', accent: '#4A90B8' },
 ];
 
 function parseNewsItems(report: string): { intro: string; items: NewsItem[] } {
