@@ -77,6 +77,15 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [fontH2, setFontH2] = useState(15);
     const [fontBody, setFontBody] = useState(11);
     const [authorName, setAuthorName] = useState('강지훈');
+    // 탭4 자료 일괄수집(예약 + 즉시)
+    const [collectingAll, setCollectingAll] = useState(false);
+    const [collectResults, setCollectResults] = useState<import('../services/apiService').EbookCollectResult[] | null>(null);
+    const [savingSchedule, setSavingSchedule] = useState(false);
+    // 탭6 완성본(표지 + 수정 PDF 병합)
+    const [coverImage, setCoverImage] = useState<string | null>(null); // dataURL
+    const [bodyPdf, setBodyPdf] = useState<{ dataUrl: string; name: string } | null>(null);
+    const [finalizing, setFinalizing] = useState(false);
+    const [finalUrl, setFinalUrl] = useState<string | null>(null);
     // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
     const [collectingNo, setCollectingNo] = useState<number | null>(null);
     const [expandedNo, setExpandedNo] = useState<number | null>(null);
@@ -256,6 +265,48 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setPdfMaking(false); }
     };
 
+    // 탭4: 예약 시각 저장
+    const saveSchedule = async (hour: number | null) => {
+        if (!selected || savingSchedule) return;
+        setSavingSchedule(true); setError(null);
+        try {
+            await ebookApi.setSchedule(selected.id, hour);
+            setSelected(prev => prev ? { ...prev, scheduledHour: hour } : prev);
+        } catch (e: any) { setError(e?.message || '예약 저장 실패'); }
+        finally { setSavingSchedule(false); }
+    };
+
+    // 탭4: 전체 자료 지금 바로 수집
+    const collectAll = async (force = false) => {
+        if (!selected || collectingAll) return;
+        setCollectingAll(true); setError(null); setCollectResults(null);
+        try {
+            const res = await ebookApi.collectAll(selected.id, force);
+            setCollectResults(res.results);
+            setSelected(prev => prev ? { ...prev, chapters: res.chapters } : prev);
+        } catch (e: any) { setError(e?.message || '자료 수집 실패'); }
+        finally { setCollectingAll(false); }
+    };
+
+    // 탭6: 파일 → dataURL
+    const fileToDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result));
+        r.onerror = reject;
+        r.readAsDataURL(file);
+    });
+
+    // 탭6: 최종본 생성(표지 + 수정 PDF 병합)
+    const finalize = async () => {
+        if (!selected || finalizing || !bodyPdf) return;
+        setFinalizing(true); setError(null);
+        try {
+            const res = await ebookApi.finalize(selected.id, bodyPdf.dataUrl, coverImage ?? undefined, authorName.trim() || undefined);
+            setFinalUrl(res.url);
+        } catch (e: any) { setError(e?.message || '최종본 생성 실패'); }
+        finally { setFinalizing(false); }
+    };
+
     const loadList = useCallback(() => {
         ebookApi.list().then(setList).catch(() => {});
     }, []);
@@ -384,17 +435,131 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
                                 {/* ── 탭 4~6: 준비중 (다음 단계에서 구현) ── */}
                                 {/* 탭4·6: 준비중 placeholder */}
-                                {(activeTab === 4 || activeTab === 6) && (
-                                    <div className="rounded-2xl p-8 text-center" style={{ background: T.card, border: `1px dashed ${T.accentBorder}` }}>
-                                        <BookOpen size={28} className="mx-auto mb-3" style={{ color: T.accentBorder }} />
-                                        <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>
-                                            {activeTab === 4 ? '자료 일괄 수집' : '완성본 만들기'}
-                                        </p>
-                                        <p className="text-xs leading-relaxed" style={{ color: T.inkSoft }}>
-                                            {activeTab === 4 && '새벽 시간(1~5시)을 골라 전체 챕터 자료를 한 번에 수집하는 기능을 준비 중이에요.'}
-                                            {activeTab === 6 && '수정한 PDF를 올리면 표지와 북크크 양식을 입혀 최종 PDF로 만들어 드릴 예정이에요.'}
-                                        </p>
-                                        <p className="text-[11px] mt-3 inline-block px-3 py-1 rounded-full" style={{ color: T.accent, background: T.accentSoft }}>곧 추가됩니다</p>
+                                {/* ── 탭4: 자료 일괄 수집 (예약 + 지금 바로) ── */}
+                                {activeTab === 4 && (() => {
+                                    const chs = selected.chapters ?? [];
+                                    const total = chs.length;
+                                    const withSrc = chs.filter(c => c.sourceStatus === 'done').length;
+                                    return (
+                                    <div className="space-y-4">
+                                        {error && <p className="text-xs text-red-500">{error}</p>}
+
+                                        {/* 예약 시각 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 수집 예약</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>새벽 시간을 골라두면 그 시각에 전체 챕터 자료를 자동으로 모아요. (자동 실행은 곧 연결됩니다)</p>
+                                            <div className="flex gap-1.5 flex-wrap">
+                                                {[1, 2, 3, 4, 5].map(h => {
+                                                    const on = selected.scheduledHour === h;
+                                                    return (
+                                                        <button key={h} onClick={() => saveSchedule(on ? null : h)} disabled={savingSchedule}
+                                                            className="rounded-xl text-sm font-bold disabled:opacity-50" style={{ padding: '7px 14px', color: on ? '#fff' : T.inkSoft, background: on ? T.accent : T.surface, border: `1px solid ${on ? T.accent : T.border}` }}>
+                                                            새벽 {h}시
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            <p className="text-[11px] mt-2" style={{ color: selected.scheduledHour ? T.accent : T.inkMute }}>
+                                                {selected.scheduledHour ? `매일 새벽 ${selected.scheduledHour}시에 수집 예약됨 (다시 누르면 해제)` : '예약 안 됨'}
+                                            </p>
+                                        </div>
+
+                                        {/* 지금 바로 수집 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.accentBorder}` }}>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>지금 바로 수집</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>기다리지 않고 전체 챕터 자료를 지금 모아요. 이미 수집된 챕터는 건너뜁니다. · 전체 {total} · 자료완료 {withSrc}</p>
+                                            <div className="flex gap-2 flex-wrap">
+                                                <button onClick={() => collectAll(false)} disabled={collectingAll || total === 0}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                    {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으는 중… (시간이 걸려요)</> : <><Search size={14} /> 전체 자료 수집</>}
+                                                </button>
+                                                {withSrc > 0 && !collectingAll && (
+                                                    <button onClick={() => { if (confirm('이미 모은 자료도 전부 다시 수집할까요?')) collectAll(true); }}
+                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '8px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                        <RefreshCw size={12} /> 전부 다시 수집
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            {total > 0 && (
+                                                <div className="mt-3 space-y-1.5">
+                                                    {chs.map(ch => {
+                                                        const r = collectResults?.find(x => x.no === ch.no);
+                                                        const done = ch.sourceStatus === 'done';
+                                                        const label = r ? (r.status === 'done' ? '수집 완료' : r.status === 'skipped' ? '기존 자료 유지' : '실패') : (done ? '자료 있음' : ch.sourceStatus === 'failed' ? '실패' : '대기');
+                                                        const color = (r?.status === 'failed' || ch.sourceStatus === 'failed') ? '#C62828' : (done || r?.status === 'done' || r?.status === 'skipped') ? '#5BA36A' : T.inkMute;
+                                                        return (
+                                                            <div key={ch.no} className="flex items-center gap-2 text-xs">
+                                                                <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
+                                                                <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
+                                                                <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                            {withSrc === total && total > 0 && (
+                                                <button onClick={() => setActiveTab(5)} className="mt-3 inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '7px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                    다음: 초안 만들기 ›
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    );
+                                })()}
+
+                                {/* ── 탭6: 완성본 만들기 (표지 + 수정 PDF 병합) ── */}
+                                {activeTab === 6 && (
+                                    <div className="space-y-4">
+                                        {error && <p className="text-xs text-red-500">{error}</p>}
+                                        <div className="rounded-2xl p-4" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                            <p className="text-xs leading-relaxed" style={{ color: T.inkSoft }}>
+                                                <b style={{ color: T.accent }}>초안 만들기</b>에서 받은 PDF를 직접 다듬은 뒤 여기에 올리면, <b>표지</b>를 입혀 최종 PDF로 만들어 드려요.
+                                            </p>
+                                        </div>
+
+                                        {/* 표지 이미지 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>① 표지 이미지 (선택)</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>책 표지에 꽉 차게 들어갈 이미지를 올려요. 없으면 기본 배경으로 만들어요.</p>
+                                            <div className="flex items-center gap-3">
+                                                <label className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl cursor-pointer" style={{ padding: '8px 14px', color: '#fff', background: T.accent }}>
+                                                    <ImagePlus size={14} /> 표지 이미지 선택
+                                                    <input type="file" accept="image/*" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) setCoverImage(await fileToDataUrl(f)); e.currentTarget.value = ''; }} />
+                                                </label>
+                                                {coverImage && <img src={coverImage} alt="표지" className="rounded-lg" style={{ width: 44, height: 60, objectFit: 'cover', border: `1px solid ${T.border}` }} />}
+                                                {coverImage && <button onClick={() => setCoverImage(null)} className="text-xs" style={{ color: T.inkMute }}>제거</button>}
+                                            </div>
+                                            <label className="block text-[11px] mt-3" style={{ color: T.inkSoft }}>저자명
+                                                <input value={authorName} onChange={e => setAuthorName(e.target.value)} className="w-full mt-0.5 text-xs rounded-lg px-2 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', maxWidth: 200 }} />
+                                            </label>
+                                        </div>
+
+                                        {/* 본문 PDF 업로드 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>② 수정한 본문 PDF</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>초안 PDF를 다듬어 다시 올려주세요. (최대 30MB)</p>
+                                            <label className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl cursor-pointer" style={{ padding: '8px 14px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                <FileText size={14} /> {bodyPdf ? '다른 PDF 선택' : 'PDF 선택'}
+                                                <input type="file" accept="application/pdf" className="hidden" onChange={async e => { const f = e.target.files?.[0]; if (f) setBodyPdf({ dataUrl: await fileToDataUrl(f), name: f.name }); e.currentTarget.value = ''; }} />
+                                            </label>
+                                            {bodyPdf && <p className="text-[11px] mt-2 truncate" style={{ color: T.ink }}>📄 {bodyPdf.name}</p>}
+                                        </div>
+
+                                        {/* 최종본 생성 */}
+                                        <div>
+                                            <button onClick={finalize} disabled={finalizing || !bodyPdf}
+                                                className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                {finalizing ? <><Loader size={14} className="animate-spin" /> 최종본 만드는 중…</> : <><BookOpen size={14} /> 완성본 PDF 만들기</>}
+                                            </button>
+                                            {finalUrl && (
+                                                <a href={finalUrl} target="_blank" rel="noopener noreferrer" download
+                                                    className="ml-2 inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
+                                                    <ExternalLink size={14} /> 완성본 다운로드
+                                                </a>
+                                            )}
+                                            {!bodyPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문 PDF를 먼저 올려주세요.</p>}
+                                        </div>
                                     </div>
                                 )}
 

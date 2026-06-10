@@ -480,6 +480,7 @@ export interface EbookTocChapter {
 }
 export interface EbookProject {
     id: number; topic: string; title: string | null; status: string;
+    scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
 export const ebookApi = {
@@ -513,7 +514,18 @@ export const ebookApi = {
     // 탭5: 전체 본문 → 북크크 양식 PDF → GCS URL
     generatePdf: (id: number, font?: EbookPdfFont, author?: string) =>
         post<{ url: string; bytes: number }>(`/ebook/${id}/pdf`, { ...(font ? { font } : {}), ...(author ? { author } : {}) }),
+    // 탭4: 자료 일괄수집 예약 시각 저장(KST 1~5시, null=해제)
+    setSchedule: (id: number, hour: number | null) =>
+        put<{ scheduledHour: number | null }>(`/ebook/${id}/schedule`, { hour }),
+    // 탭4: 전체 챕터 자료 지금 바로 일괄수집(수집된 챕터는 건너뜀)
+    collectAll: (id: number, force = false) =>
+        post<{ results: EbookCollectResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-all`, { force }),
+    // 탭6: 표지(이미지+제목) + 수정 본문 PDF 병합 → 최종 PDF
+    finalize: (id: number, bodyPdfDataUrl: string, coverImageDataUrl?: string, author?: string) =>
+        post<{ url: string; bytes: number }>(`/ebook/${id}/final`, { bodyPdfDataUrl, ...(coverImageDataUrl ? { coverImageDataUrl } : {}), ...(author ? { author } : {}) }),
 };
+
+export interface EbookCollectResult { no: number; status: 'done' | 'skipped' | 'failed'; }
 
 export interface EbookDraftResult { no: number; status: 'done' | 'skipped' | 'failed' | 'no-sources'; chars?: number; error?: string; }
 export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }
