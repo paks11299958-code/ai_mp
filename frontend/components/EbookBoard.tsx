@@ -553,12 +553,6 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
                                                     {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으는 중… (시간이 걸려요)</> : <><Search size={14} /> 선택한 챕터 수집</>}
                                                 </button>
-                                                {withSrc > 0 && !collectingAll && (
-                                                    <button onClick={() => { if (confirm('선택한 챕터의 자료를 전부 다시 수집할까요?')) collectAll(true); }}
-                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '8px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                        <RefreshCw size={12} /> 다시 수집
-                                                    </button>
-                                                )}
                                             </div>
 
                                             {/* 챕터별 체크박스 + 상태 */}
@@ -582,11 +576,6 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                         );
                                                     })}
                                                 </div>
-                                            )}
-                                            {withSrc === total && total > 0 && (
-                                                <button onClick={() => setActiveTab(5)} className="mt-3 inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '7px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                    다음: 초안 만들기 ›
-                                                </button>
                                             )}
                                         </div>
                                     </div>
