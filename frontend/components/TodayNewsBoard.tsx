@@ -246,20 +246,33 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                             <button
                                 onClick={() => speaking ? stop() : speakCategory(activeKey, slot)}
                                 disabled={ttsLoading}
+                                onMouseEnter={(e) => {
+                                    if (ttsLoading) return;
+                                    e.currentTarget.style.filter = 'brightness(0.92)';
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.filter = 'none';
+                                }}
                                 style={{
-                                    display: 'flex', alignItems: 'center', gap: 4,
-                                    fontSize: 11, padding: '4px 10px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                    fontSize: 12, padding: '8px 16px',
+                                    minHeight: 40, minWidth: 80,
                                     borderRadius: 999,
-                                    border: `1px solid ${activeCat.accent}55`,
-                                    background: `${activeCat.accent}12`,
-                                    color: activeCat.accent,
+                                    border: speaking
+                                        ? '1px solid #8E6FB7'
+                                        : '1px solid #D1D5DB',
+                                    background: speaking ? '#8E6FB7' : '#E5E7EB',
+                                    color: speaking ? '#FFFFFF' : '#6B7280',
                                     cursor: ttsLoading ? 'not-allowed' : 'pointer',
                                     opacity: ttsLoading ? 0.5 : 1,
-                                    fontWeight: 600,
-                                    transition: 'all 0.2s',
+                                    fontWeight: 700,
+                                    boxShadow: speaking
+                                        ? '0 2px 10px rgba(142, 111, 183, 0.45)'
+                                        : 'none',
+                                    transition: 'all 0.2s ease',
                                 }}
                             >
-                                {ttsLoading ? <Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> : speaking ? <VolumeX size={11} /> : <Volume2 size={11} />}
+                                {ttsLoading ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> : speaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
                                 {ttsLoading ? '준비중' : speaking ? '중지' : '음성'}
                             </button>
                         )}
