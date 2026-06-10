@@ -277,6 +277,19 @@ const AppContent: React.FC = () => {
             .catch(() => {});
     }, []);
 
+    // 어드민 로그인 시 페르소나 전체 목록 재로드 (adminOnly/숨김 페르소나 포함)
+    // 최초 mount의 getAll()은 토큰 자동로그인 이전에 실행돼 adminOnly:false만 받아오므로,
+    // 어드민이 되면 전체를 다시 받아야 강지훈 등 숨김 페르소나가 어드민 화면에 보인다.
+    useEffect(() => {
+        if (user?.role !== 'ADMIN') return;
+        personaApi.getAll()
+            .then(data => {
+                setPersonas(data);
+                localStorage.setItem('personas_cache', JSON.stringify({ data, ts: Date.now() }));
+            })
+            .catch(() => {});
+    }, [user?.role]);
+
     // 로그인 후 포인트 잔액 로드
     useEffect(() => {
         if (!user) return;
