@@ -304,15 +304,27 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                                     key={s}
                                     onClick={() => has && handleSlot(s)}
                                     disabled={!has}
+                                    onMouseEnter={(e) => {
+                                        if (!has || on) return;
+                                        e.currentTarget.style.filter = 'brightness(0.96)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.filter = 'none';
+                                    }}
                                     style={{
-                                        flex: 1, padding: '7px 12px', borderRadius: 999,
+                                        flex: 1, padding: '8px 12px', borderRadius: 999,
                                         fontSize: 12, fontWeight: 700,
-                                        border: `1px solid ${on ? activeCat.accent : T.borderSoft}`,
-                                        background: on ? `${activeCat.accent}15` : 'transparent',
-                                        color: on ? activeCat.accent : (has ? T.inkSoft : T.inkMute),
+                                        border: on
+                                            ? '1px solid #8E6FB7'
+                                            : `1px solid ${T.borderSoft}`,
+                                        background: on ? '#8E6FB7' : '#E5E7EB',
+                                        color: on ? '#FFFFFF' : (has ? '#6B7280' : T.inkMute),
                                         cursor: has ? 'pointer' : 'not-allowed',
                                         opacity: has ? 1 : 0.4,
-                                        transition: 'all 0.2s',
+                                        boxShadow: on
+                                            ? '0 2px 10px rgba(142, 111, 183, 0.45)'
+                                            : 'none',
+                                        transition: 'all 0.2s ease',
                                     }}
                                 >
                                     {label}
