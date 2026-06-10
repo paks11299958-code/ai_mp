@@ -699,6 +699,54 @@ const AppContent: React.FC = () => {
                 />
             );
         }
+        // 비로그인 'AI 둘러보기' — MainPageNew를 그대로 렌더하되 인증 필요 액션은 로그인 모달로 분기.
+        // 페르소나/기능 카드, 카테고리, 검색 등 정적 정보 영역은 그대로 사용 가능.
+        if (screen === 'main') {
+            const requireLogin = () => setShowAuthModal(true);
+            return (
+                <>
+                    <AuthProvider value={authCtxValue}>
+                        <MainPageNew
+                            personas={visiblePersonas}
+                            isLoading={isPersonasLoading}
+                            onSelectPersona={requireLogin}
+                            onFeatureSelect={() => requireLogin()}
+                            onAdminClick={() => {}}
+                            onAnnouncementClick={() => setShowAnnouncementModal(true)}
+                            unreadAnnouncementCount={unreadAnnouncementCount}
+                            onProfileClick={requireLogin}
+                            categories={categories}
+                            onGoHome={() => goTo('guest')}
+                            initialTab={mainInitialTab}
+                            initialFocusPersonaId={mainFocusPersonaId}
+                            initialFocusFeatureKey={mainFocusFeatureKey}
+                            recentPersonas={[]}
+                            isFavorite={() => false}
+                            onToggleFavorite={requireLogin}
+                            favoritableKeys={[]}
+                            isFavoritePersona={() => false}
+                            onToggleFavoritePersona={requireLogin}
+                        />
+                    </AuthProvider>
+                    {showAuthModal && (
+                        <AuthModal
+                            onSuccess={handleAuthSuccessWithWelcome}
+                            onClose={() => setShowAuthModal(false)}
+                            defaultMode="login"
+                            personas={personas}
+                        />
+                    )}
+                    {showAnnouncementModal && (
+                        <AnnouncementModal
+                            announcements={announcements}
+                            readIds={readAnnouncementIds}
+                            onRead={handleReadAnnouncements}
+                            onClose={() => setShowAnnouncementModal(false)}
+                        />
+                    )}
+                </>
+            );
+        }
         // Feature 키 → 기능 오픈 핸들러 (뉴페이지용)
         const handleNewPageFeatureClick = (key: string) => {
             setShowAuthModal(true); // 비로그인 → 로그인 모달
@@ -716,6 +764,8 @@ const AppContent: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onFeatureClick={handleNewPageFeatureClick}
                     categories={categories}
+                    onPersonaListClick={() => { setMainInitialTab('personas'); goTo('main'); }}
+                    onFeatureListClick={() => { setMainInitialTab('features'); goTo('main'); }}
                 />
                 {showAuthModal && (
                     <AuthModal
