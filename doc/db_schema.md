@@ -1,4 +1,4 @@
-# DB 스키마 (25개 모델)
+# DB 스키마 (EbookProject/EbookChapter 포함)
 
 > Prisma 마이그레이션 대신 raw SQL 직접 실행 (히스토리 없음) 
 > 스키마 변경 후 반드시 `npx prisma generate` + `src/generated/prisma/` 커밋
@@ -173,12 +173,27 @@ AppConfig           ← 앱 전역 설정
 
 ---
 
+## EbookProject / EbookChapter (전자책, 2026-06-07~10)
+```
+EbookProject:
+  id(Int), userId, topic, title(String?)
+  tocJson(String?)        ← 목차+챕터 전체 JSON [{no,title,summary,sourceStatus,sources,contentMd,contentVariants,finalProvider}]
+  status(default:"toc")   ← toc | draft | done
+  scheduledHour(Int?)     ← 2026-06-10, 자료 일괄수집 새벽 예약시각(KST 1~5), null=미예약
+  errorMessage(String?), createdAt, updatedAt
+EbookChapter:
+  id, projectId(FK Cascade) ... ← 선생성됐으나 실제 챕터는 EbookProject.tocJson(JSON)에 저장(이 테이블 미사용)
+```
+- ⚠️ **챕터는 EbookChapter row가 아니라 `EbookProject.tocJson`(JSON 배열) 안에 저장.** 자료/본문/그림/상태 전부 tocJson 챕터 항목에. → tocJson을 덮어쓰는 모든 경로(PUT /toc 등)에서 기존 필드(sources/contentMd/finalProvider 등) 보존 필수.
+- 강지훈 페르소나(id=writer) 전용. 8탭 파이프라인. 상세 메모리 [[project_ebook_pipeline]].
+
 ## Raw SQL 예시
 
 ```sql
 -- 컬럼 추가
 ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "faceReadingBgUrl" TEXT;
 ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "features" TEXT;  -- 2026-06-02, 활성 기능 키 JSON 배열
+ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "scheduledHour" INTEGER;  -- 2026-06-10, 전자책 자료수집 새벽 예약
 
 -- User phone 컬럼
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
