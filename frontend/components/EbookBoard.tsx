@@ -68,6 +68,15 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 탭1 제목 편집 (목차는 보존, 제목만 저장)
     const [titleDraft, setTitleDraft] = useState('');
     const [savingTitle, setSavingTitle] = useState(false);
+    // 탭5 초안: 본문 일괄 생성 + PDF
+    const [drafting, setDrafting] = useState(false);
+    const [draftResults, setDraftResults] = useState<import('../services/apiService').EbookDraftResult[] | null>(null);
+    const [pdfMaking, setPdfMaking] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+    const [fontH1, setFontH1] = useState(24);
+    const [fontH2, setFontH2] = useState(15);
+    const [fontBody, setFontBody] = useState(11);
+    const [authorName, setAuthorName] = useState('강지훈');
     // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
     const [collectingNo, setCollectingNo] = useState<number | null>(null);
     const [expandedNo, setExpandedNo] = useState<number | null>(null);
@@ -223,6 +232,30 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setSavingTitle(false); }
     };
 
+    // 탭5: 본문 일괄 생성 (클로드, 본문 있으면 건너뜀)
+    const generateDraft = async (force = false) => {
+        if (!selected || drafting) return;
+        setDrafting(true); setError(null); setDraftResults(null);
+        try {
+            const res = await ebookApi.generateDraft(selected.id, force);
+            setDraftResults(res.results);
+            setSelected(prev => prev ? { ...prev, chapters: res.chapters } : prev);
+            setPdfUrl(null); // 본문 바뀌면 이전 PDF 무효
+        } catch (e: any) { setError(e?.message || '본문 생성 실패'); }
+        finally { setDrafting(false); }
+    };
+
+    // 탭5: PDF 생성
+    const makePdf = async () => {
+        if (!selected || pdfMaking) return;
+        setPdfMaking(true); setError(null);
+        try {
+            const res = await ebookApi.generatePdf(selected.id, { h1: fontH1, h2: fontH2, body: fontBody }, authorName.trim() || undefined);
+            setPdfUrl(res.url);
+        } catch (e: any) { setError(e?.message || 'PDF 생성 실패'); }
+        finally { setPdfMaking(false); }
+    };
+
     const loadList = useCallback(() => {
         ebookApi.list().then(setList).catch(() => {});
     }, []);
@@ -350,20 +383,114 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
 
                                 {/* ── 탭 4~6: 준비중 (다음 단계에서 구현) ── */}
-                                {activeTab >= 4 && (
+                                {/* 탭4·6: 준비중 placeholder */}
+                                {(activeTab === 4 || activeTab === 6) && (
                                     <div className="rounded-2xl p-8 text-center" style={{ background: T.card, border: `1px dashed ${T.accentBorder}` }}>
                                         <BookOpen size={28} className="mx-auto mb-3" style={{ color: T.accentBorder }} />
                                         <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>
-                                            {activeTab === 4 ? '자료 일괄 수집' : activeTab === 5 ? '초안 만들기 (PDF)' : '완성본 만들기'}
+                                            {activeTab === 4 ? '자료 일괄 수집' : '완성본 만들기'}
                                         </p>
                                         <p className="text-xs leading-relaxed" style={{ color: T.inkSoft }}>
                                             {activeTab === 4 && '새벽 시간(1~5시)을 골라 전체 챕터 자료를 한 번에 수집하는 기능을 준비 중이에요.'}
-                                            {activeTab === 5 && '수집된 자료로 클로드가 본문을 쓰고, 폰트 크기를 지정해 PDF로 만드는 기능을 준비 중이에요.'}
                                             {activeTab === 6 && '수정한 PDF를 올리면 표지와 북크크 양식을 입혀 최종 PDF로 만들어 드릴 예정이에요.'}
                                         </p>
                                         <p className="text-[11px] mt-3 inline-block px-3 py-1 rounded-full" style={{ color: T.accent, background: T.accentSoft }}>곧 추가됩니다</p>
                                     </div>
                                 )}
+
+                                {/* ── 탭5: 초안 만들기 (본문 일괄 생성 → PDF) ── */}
+                                {activeTab === 5 && (() => {
+                                    const chs = selected.chapters ?? [];
+                                    const total = chs.length;
+                                    const withSrc = chs.filter(c => c.sourceStatus === 'done').length;
+                                    const withBody = chs.filter(c => typeof c.contentMd === 'string' && c.contentMd.trim()).length;
+                                    const canPdf = withBody > 0;
+                                    return (
+                                    <div className="space-y-4">
+                                        {error && <p className="text-xs text-red-500">{error}</p>}
+
+                                        {/* 1단계: 본문 만들기 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>1</span>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>전체 본문 만들기</p>
+                                            </div>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
+                                                자료가 수집된 챕터를 <b style={{ color: '#C96442' }}>클로드</b>가 본문으로 써요.
+                                                이미 본문이 있는 챕터는 건너뜁니다. · 전체 {total} · 자료완료 {withSrc} · 본문완료 {withBody}
+                                            </p>
+                                            <div className="flex gap-2 flex-wrap">
+                                                <button onClick={() => generateDraft(false)} disabled={drafting || withSrc === 0}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                    {drafting ? <><Loader size={14} className="animate-spin" /> 본문 작성 중… (시간이 걸려요)</> : <><FileText size={14} /> 전체 본문 만들기</>}
+                                                </button>
+                                                {withBody > 0 && !drafting && (
+                                                    <button onClick={() => { if (confirm('이미 만든 본문도 전부 다시 쓸까요?')) generateDraft(true); }}
+                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '8px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                        <RefreshCw size={12} /> 전부 다시 쓰기
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {withSrc === 0 && <p className="text-[11px] mt-2" style={{ color: '#C62828' }}>먼저 <b>자료 수집</b> 탭에서 자료를 모아주세요.</p>}
+
+                                            {/* 챕터별 결과/상태 */}
+                                            {(draftResults || total > 0) && (
+                                                <div className="mt-3 space-y-1.5">
+                                                    {chs.map(ch => {
+                                                        const r = draftResults?.find(x => x.no === ch.no);
+                                                        const hasBody = typeof ch.contentMd === 'string' && ch.contentMd.trim();
+                                                        const label = r
+                                                            ? (r.status === 'done' ? `완성 · ${r.chars?.toLocaleString()}자` : r.status === 'skipped' ? '기존 본문 유지' : r.status === 'no-sources' ? '자료 없음' : '실패')
+                                                            : (hasBody ? '본문 있음' : ch.sourceStatus === 'done' ? '대기' : '자료 없음');
+                                                        const color = r?.status === 'failed' || (!hasBody && ch.sourceStatus !== 'done') ? '#C62828' : hasBody || r?.status === 'done' || r?.status === 'skipped' ? '#5BA36A' : T.inkMute;
+                                                        return (
+                                                            <div key={ch.no} className="flex items-center gap-2 text-xs">
+                                                                <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
+                                                                <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
+                                                                <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* 2단계: PDF 만들기 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${canPdf ? T.accentBorder : T.border}`, opacity: canPdf ? 1 : 0.6 }}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>2</span>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>PDF 만들기</p>
+                                            </div>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>북크크 양식으로 PDF를 만들어요. 폰트 크기를 조절할 수 있어요.</p>
+
+                                            {/* 저자명 + 폰트 설정 */}
+                                            <div className="grid grid-cols-2 gap-2 mb-3" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))' }}>
+                                                <label className="text-[11px]" style={{ color: T.inkSoft }}>저자명
+                                                    <input value={authorName} onChange={e => setAuthorName(e.target.value)} className="w-full mt-0.5 text-xs rounded-lg px-2 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
+                                                </label>
+                                                {([['큰제목', fontH1, setFontH1, 16, 40], ['중간제목', fontH2, setFontH2, 11, 24], ['본문', fontBody, setFontBody, 8, 16]] as const).map(([lbl, val, setter, mn, mx]) => (
+                                                    <label key={lbl} className="text-[11px]" style={{ color: T.inkSoft }}>{lbl} ({val}pt)
+                                                        <input type="range" min={mn} max={mx} value={val} onChange={e => setter(Number(e.target.value))} className="w-full mt-1" style={{ accentColor: T.accent }} />
+                                                    </label>
+                                                ))}
+                                            </div>
+
+                                            <button onClick={makePdf} disabled={!canPdf || pdfMaking}
+                                                className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                {pdfMaking ? <><Loader size={14} className="animate-spin" /> PDF 만드는 중…</> : <><FileText size={14} /> PDF 만들기</>}
+                                            </button>
+
+                                            {pdfUrl && (
+                                                <a href={pdfUrl} target="_blank" rel="noopener noreferrer" download
+                                                    className="ml-2 inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
+                                                    <ExternalLink size={14} /> PDF 다운로드
+                                                </a>
+                                            )}
+                                            {!canPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문을 먼저 만들어 주세요.</p>}
+                                        </div>
+                                    </div>
+                                    );
+                                })()}
 
                                 {/* ── 탭 1~3 공통: 책 제목 카드 ── */}
                                 {activeTab <= 3 && <>

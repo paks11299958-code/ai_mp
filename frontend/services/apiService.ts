@@ -507,7 +507,16 @@ export const ebookApi = {
     // 그림 이미지 GCS 업로드용 signed-url
     imageUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/image-url`, { mimeType }),
+    // 탭5: 자료 수집된 챕터 본문을 클로드로 일괄 생성 (본문 있으면 건너뜀)
+    generateDraft: (id: number, force = false) =>
+        post<{ results: EbookDraftResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/draft`, { force }),
+    // 탭5: 전체 본문 → 북크크 양식 PDF → GCS URL
+    generatePdf: (id: number, font?: EbookPdfFont, author?: string) =>
+        post<{ url: string; bytes: number }>(`/ebook/${id}/pdf`, { ...(font ? { font } : {}), ...(author ? { author } : {}) }),
 };
+
+export interface EbookDraftResult { no: number; status: 'done' | 'skipped' | 'failed' | 'no-sources'; chars?: number; error?: string; }
+export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }
 
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
