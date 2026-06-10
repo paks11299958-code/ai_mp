@@ -477,6 +477,7 @@ export interface EbookTocChapter {
     contentStatus?: EbookContentStatus;
     contentVariants?: Partial<Record<EbookProvider, EbookVariant>>;
     finalProvider?: EbookProvider;
+    collect?: boolean;  // 자료수집 체크(없으면 true로 간주)
 }
 export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
@@ -520,15 +521,18 @@ export const ebookApi = {
     // 탭4: 자료 일괄수집 예약 시각 저장(KST 1~5시, null=해제)
     setSchedule: (id: number, hour: number | null) =>
         put<{ scheduledHour: number | null }>(`/ebook/${id}/schedule`, { hour }),
-    // 탭4: 전체 챕터 자료 지금 바로 일괄수집(수집된 챕터는 건너뜀)
+    // 탭4: 체크된 챕터 자료 지금 바로 일괄수집(체크 안 된 챕터·수집된 챕터는 건너뜀)
     collectAll: (id: number, force = false) =>
         post<{ results: EbookCollectResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-all`, { force }),
+    // 탭2: 챕터별 자료수집 체크 상태 저장 ({ "1": true, "2": false, ... })
+    setCollectFlags: (id: number, flags: Record<string, boolean>) =>
+        put<{ chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-flags`, { flags }),
     // 탭6: 표지(이미지+제목) + 수정 본문 PDF 병합 → 최종 PDF
     finalize: (id: number, bodyPdfDataUrl: string, coverImageDataUrl?: string, author?: string) =>
         post<{ url: string; bytes: number }>(`/ebook/${id}/final`, { bodyPdfDataUrl, ...(coverImageDataUrl ? { coverImageDataUrl } : {}), ...(author ? { author } : {}) }),
 };
 
-export interface EbookCollectResult { no: number; status: 'done' | 'skipped' | 'failed'; }
+export interface EbookCollectResult { no: number; status: 'done' | 'skipped' | 'failed' | 'unchecked'; }
 
 export interface EbookDraftResult { no: number; status: 'done' | 'skipped' | 'failed' | 'no-sources'; chars?: number; error?: string; }
 export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }

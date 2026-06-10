@@ -314,7 +314,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setSavingSchedule(false); }
     };
 
-    // 탭4: 전체 자료 지금 바로 수집
+    // 탭2: 체크된 챕터만 자료 지금 바로 수집
     const collectAll = async (force = false) => {
         if (!selected || collectingAll) return;
         setCollectingAll(true); setError(null); setCollectResults(null);
@@ -324,6 +324,21 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setSelected(prev => prev ? { ...prev, chapters: res.chapters } : prev);
         } catch (e: any) { setError(e?.message || '자료 수집 실패'); }
         finally { setCollectingAll(false); }
+    };
+
+    // 탭2: 자료수집 체크 토글 저장 (개별/전체). collect 없으면 true로 간주.
+    const saveCollectFlags = async (flags: Record<string, boolean>) => {
+        if (!selected) return;
+        // 낙관적 갱신
+        setSelected(prev => prev ? { ...prev, chapters: (prev.chapters ?? []).map(c => flags[String(c.no)] !== undefined ? { ...c, collect: flags[String(c.no)] } : c) } : prev);
+        try { await ebookApi.setCollectFlags(selected.id, flags); }
+        catch (e: any) { setError(e?.message || '체크 저장 실패'); }
+    };
+    const toggleChapterCollect = (no: number, checked: boolean) => saveCollectFlags({ [String(no)]: checked });
+    const toggleAllCollect = (checked: boolean) => {
+        const flags: Record<string, boolean> = {};
+        (selected?.chapters ?? []).forEach(c => { flags[String(c.no)] = checked; });
+        saveCollectFlags(flags);
     };
 
     // 탭6: 파일 → dataURL
@@ -494,6 +509,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     const chs = selected.chapters ?? [];
                                     const total = chs.length;
                                     const withSrc = chs.filter(c => c.sourceStatus === 'done').length;
+                                    // 체크: collect 필드 없으면 true로 간주(하위호환)
+                                    const isChecked = (c: typeof chs[number]) => c.collect !== false;
+                                    const checkedCount = chs.filter(isChecked).length;
+                                    const allChecked = total > 0 && checkedCount === total;
                                     return (
                                     <div className="space-y-4">
                                         {error && <p className="text-xs text-red-500">{error}</p>}
@@ -501,7 +520,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         {/* 예약 시각 */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                             <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 수집 예약</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>새벽 시간을 골라두면 그 시각에 전체 챕터 자료를 자동으로 모아요. (자동 실행은 곧 연결됩니다)</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>새벽 시간을 골라두면 그 시각에 <b style={{ color: T.accent }}>아래에서 체크한 챕터</b>의 자료를 자동으로 모아요. (자동 실행은 곧 연결됩니다)</p>
                                             <div className="flex gap-1.5 flex-wrap">
                                                 {[1, 2, 3, 4, 5].map(h => {
                                                     const on = selected.scheduledHour === h;
@@ -518,36 +537,48 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </p>
                                         </div>
 
-                                        {/* 지금 바로 수집 */}
+                                        {/* 수집 대상 선택(체크) + 수집 */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.accentBorder}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>지금 바로 수집</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>기다리지 않고 전체 챕터 자료를 지금 모아요. 이미 수집된 챕터는 건너뜁니다. · 전체 {total} · 자료완료 {withSrc}</p>
-                                            <div className="flex gap-2 flex-wrap">
-                                                <button onClick={() => collectAll(false)} disabled={collectingAll || total === 0}
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>수집할 챕터 선택</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터만 자료를 모아요(예약·지금수집 모두 체크 기준). 이미 수집된 챕터는 건너뜁니다. · 선택 {checkedCount}/{total} · 자료완료 {withSrc}</p>
+
+                                            {/* 전체 선택 토글 + 수집 버튼 */}
+                                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                <label className="inline-flex items-center gap-1.5 text-xs font-bold cursor-pointer select-none" style={{ color: T.ink }}>
+                                                    <input type="checkbox" checked={allChecked} onChange={e => toggleAllCollect(e.target.checked)} style={{ accentColor: T.accent, width: 15, height: 15 }} />
+                                                    전체 선택
+                                                </label>
+                                                <span className="text-[11px]" style={{ color: T.inkMute }}>›</span>
+                                                <button onClick={() => collectAll(false)} disabled={collectingAll || checkedCount === 0}
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                    {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으는 중… (시간이 걸려요)</> : <><Search size={14} /> 전체 자료 수집</>}
+                                                    {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으는 중… (시간이 걸려요)</> : <><Search size={14} /> 선택한 챕터 수집</>}
                                                 </button>
                                                 {withSrc > 0 && !collectingAll && (
-                                                    <button onClick={() => { if (confirm('이미 모은 자료도 전부 다시 수집할까요?')) collectAll(true); }}
+                                                    <button onClick={() => { if (confirm('선택한 챕터의 자료를 전부 다시 수집할까요?')) collectAll(true); }}
                                                         className="inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '8px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                        <RefreshCw size={12} /> 전부 다시 수집
+                                                        <RefreshCw size={12} /> 다시 수집
                                                     </button>
                                                 )}
                                             </div>
 
+                                            {/* 챕터별 체크박스 + 상태 */}
                                             {total > 0 && (
-                                                <div className="mt-3 space-y-1.5">
+                                                <div className="mt-1 space-y-1">
                                                     {chs.map(ch => {
                                                         const r = collectResults?.find(x => x.no === ch.no);
                                                         const done = ch.sourceStatus === 'done';
-                                                        const label = r ? (r.status === 'done' ? '수집 완료' : r.status === 'skipped' ? '기존 자료 유지' : '실패') : (done ? '자료 있음' : ch.sourceStatus === 'failed' ? '실패' : '대기');
+                                                        const checked = isChecked(ch);
+                                                        const label = r
+                                                            ? (r.status === 'done' ? '수집 완료' : r.status === 'skipped' ? '기존 자료 유지' : r.status === 'unchecked' ? '제외됨' : '실패')
+                                                            : (done ? '자료 있음' : ch.sourceStatus === 'failed' ? '실패' : checked ? '대기' : '제외');
                                                         const color = (r?.status === 'failed' || ch.sourceStatus === 'failed') ? '#C62828' : (done || r?.status === 'done' || r?.status === 'skipped') ? '#5BA36A' : T.inkMute;
                                                         return (
-                                                            <div key={ch.no} className="flex items-center gap-2 text-xs">
+                                                            <label key={ch.no} className="flex items-center gap-2 text-xs rounded-lg px-2 py-1.5 cursor-pointer select-none" style={{ background: checked ? T.surface : 'transparent', opacity: checked ? 1 : 0.55 }}>
+                                                                <input type="checkbox" checked={checked} onChange={e => toggleChapterCollect(ch.no, e.target.checked)} style={{ accentColor: T.accent, width: 15, height: 15, flexShrink: 0 }} />
                                                                 <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
                                                                 <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
                                                                 <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
-                                                            </div>
+                                                            </label>
                                                         );
                                                     })}
                                                 </div>
