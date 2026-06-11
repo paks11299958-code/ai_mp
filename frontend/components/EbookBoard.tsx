@@ -348,14 +348,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 </button>
                             </div>
                         ) : selected ? (
-                            <div className="p-5 md:p-6 max-w-4xl mx-auto">
-                                {/* 목록으로 복귀 (데스크탑·모바일 공통, 주식분석 패턴) */}
-                                <button onClick={() => { setSelected(null); setEditing(false); setError(null); }} className="mb-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: T.inkMute }}>
-                                    <ChevronLeft size={15} /> 목록으로
-                                </button>
+                            <div className="px-5 md:px-6 pb-5 md:pb-6 max-w-4xl mx-auto">
+                                {/* 목록으로 + 진행 탭 — 스크롤해도 상단 고정(sticky). 배경 깔아 콘텐츠 비침 방지 */}
+                                <div className="sticky top-0 z-20 pt-5 md:pt-6 pb-2" style={{ background: T.bg }}>
+                                    {/* 목록으로 복귀 (데스크탑·모바일 공통, 주식분석 패턴) */}
+                                    <button onClick={() => { setSelected(null); setEditing(false); setError(null); }} className="mb-2 inline-flex items-center gap-1 text-xs font-bold" style={{ color: T.inkMute }}>
+                                        <ChevronLeft size={15} /> 목록으로
+                                    </button>
 
-                                {/* ── 진행 탭 네비게이션 (1제목 → 6완성본) ── */}
-                                <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
+                                    {/* ── 진행 탭 네비게이션 (1제목 → 3초안) ── */}
+                                    <div className="flex items-center gap-1 overflow-x-auto pb-1" style={{ scrollbarWidth: 'thin' }}>
                                     {TABS.map((t, i) => {
                                         const active = activeTab === t.id;
                                         return (
@@ -376,10 +378,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </React.Fragment>
                                         );
                                     })}
-                                </div>
+                                    </div>
+                                </div>{/* /sticky 래퍼(목록으로+탭) */}
 
-                                {/* ── 탭 4~6: 준비중 (다음 단계에서 구현) ── */}
-                                {/* 탭4·6: 준비중 placeholder */}
                                 {/* ── 탭4: 자료 일괄 수집 (예약 + 지금 바로) ── */}
                                 {activeTab === 4 && (() => {
                                     const chs = selected.chapters ?? [];
