@@ -378,8 +378,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     const chs = selected.chapters ?? [];
                                     const total = chs.length;
                                     const withSrc = chs.filter(c => c.sourceStatus === 'done').length;
-                                    // 체크: collect 필드 없으면 true로 간주(하위호환)
-                                    const isChecked = (c: typeof chs[number]) => c.collect !== false;
+                                    // 체크 = "이번 새벽에 만들어줘". 본문이 만들어지면 백엔드가 collect=false로 해제한다.
+                                    // collect 필드 없으면 true로 간주(하위호환). 본문 있는데 다시 체크하면 재생성 의도(존중).
+                                    const isChecked = (c: typeof chs[number]) => c.collect === true || (c.collect === undefined && !(typeof c.contentMd === 'string' && c.contentMd.trim()));
                                     const checkedCount = chs.filter(isChecked).length;
                                     const allChecked = total > 0 && checkedCount === total;
                                     return (
