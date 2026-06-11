@@ -613,9 +613,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             className="w-full text-xl font-bold rounded-lg px-3 py-2" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
                                         <div className="flex items-center gap-2">
                                             <span className="text-[11px] shrink-0" style={{ color: T.inkSoft }}>저자명</span>
+                                            {/* min-w-0: flex 자식이 줄어들 수 있게(없으면 input이 버튼을 화면 밖으로 밀어냄, 모바일 잘림) */}
                                             <input value={authorDraft} onChange={e => setAuthorDraft(e.target.value)} placeholder="예: 강지훈"
-                                                className="flex-1 text-sm rounded-lg px-3 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff', maxWidth: 260 }} />
-                                            <button onClick={saveTitle} disabled={savingTitle || !titleDraft.trim()} className="shrink-0 inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '8px 14px', color: '#fff', background: T.accent }}>
+                                                className="flex-1 min-w-0 text-sm rounded-lg px-3 py-1.5" style={{ color: T.ink, border: `1px solid ${T.border}`, background: '#fff' }} />
+                                            <button onClick={saveTitle} disabled={savingTitle || !titleDraft.trim()} className="shrink-0 inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '8px 12px', color: '#fff', background: T.accent }}>
                                                 {savingTitle ? <Loader size={13} className="animate-spin" /> : <Save size={13} />} 저장
                                             </button>
                                         </div>
