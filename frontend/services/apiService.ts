@@ -482,6 +482,7 @@ export interface EbookTocChapter {
 export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
     coverUrl?: string | null; // 표지 이미지 URL(사용자 업로드)
+    docxUrl?: string | null; // 생성된 .docx URL(재방문 시 바로 다운로드, 본문/표지/판형 변경 시 null)
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     pageSize?: string | null; // 책 판형: sinkuk(신국판) | a5 | gukbae
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
@@ -517,12 +518,10 @@ export const ebookApi = {
         await put<{ coverUrl: string | null }>(`/ebook/${id}/cover`, { coverUrl: publicUrl });
         return publicUrl;
     },
-    // 탭3: 전체 본문 → 북크크 양식 .docx(표지 있으면 첫 페이지 삽입) → GCS URL
+    // 탭3: 전체 본문 → 북크크 양식 .docx(표지 있으면 첫 페이지 삽입) → GCS URL (서버가 docxUrl도 저장)
     generateDocx: (id: number) =>
         post<{ url: string; bytes: number }>(`/ebook/${id}/docx`, {}),
-    // 탭3: 전체 본문 → PDF → GCS URL
-    generatePdf: (id: number, font?: EbookPdfFont) =>
-        post<{ url: string; bytes: number }>(`/ebook/${id}/pdf`, { ...(font ? { font } : {}) }),
+    // ※ PDF 기능 제거됨(docx만 사용)
     // 시간대별 야간 생성 예약 현황(품절 여부). 프론트가 품절 슬롯 비활성화에 사용.
     getSlots: () =>
         get<{ slots: EbookSlot[]; capacity: number; allSoldOut: boolean }>(`/ebook/slots`),
@@ -539,7 +538,6 @@ export const ebookApi = {
 };
 
 export interface EbookSlot { hour: number; used: number; capacity: number; soldOut: boolean; }
-export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }
 
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>

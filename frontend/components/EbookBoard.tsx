@@ -60,15 +60,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [titleDraft, setTitleDraft] = useState('');
     const [authorDraft, setAuthorDraft] = useState('');
     const [savingTitle, setSavingTitle] = useState(false);
-    // 탭5 초안: 표지·문서(본문은 야간 배치에서 생성 — 즉시생성 제거)
+    // 탭5 초안: 표지·문서(본문은 야간 배치에서 생성 — 즉시생성 제거). PDF 제거됨(docx만).
     const [coverMaking, setCoverMaking] = useState(false);
     const [docxMaking, setDocxMaking] = useState(false);
-    const [docxUrl, setDocxUrl] = useState<string | null>(null);
-    const [pdfMaking, setPdfMaking] = useState(false);
-    const [pdfUrl, setPdfUrl] = useState<string | null>(null);
-    const [fontH1, setFontH1] = useState(24);
-    const [fontH2, setFontH2] = useState(15);
-    const [fontBody, setFontBody] = useState(11);
+    const [docxUrl, setDocxUrl] = useState<string | null>(null); // 생성된 docx URL. selected.docxUrl로 초기화돼 재방문 시 다운로드 버튼 유지.
     // 탭4 예약 슬롯 현황
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
@@ -187,26 +182,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setCoverMaking(false); }
     };
 
-    // 탭3: 구글 독스용 .docx 생성(북크크 양식)
+    // 탭3: 구글 독스용 .docx 생성(북크크 양식). 서버가 docxUrl도 저장 → 재방문 시 다운로드 버튼 유지.
     const makeDocx = async () => {
         if (!selected || docxMaking) return;
         setDocxMaking(true); setError(null);
         try {
             const res = await ebookApi.generateDocx(selected.id);
             setDocxUrl(res.url);
+            setSelected(prev => prev ? { ...prev, docxUrl: res.url } : prev);
         } catch (e: any) { setError(e?.message || '문서 생성 실패'); }
         finally { setDocxMaking(false); }
-    };
-
-    // 탭3: PDF 생성(보조)
-    const makePdf = async () => {
-        if (!selected || pdfMaking) return;
-        setPdfMaking(true); setError(null);
-        try {
-            const res = await ebookApi.generatePdf(selected.id, { h1: fontH1, h2: fontH2, body: fontBody });
-            setPdfUrl(res.url);
-        } catch (e: any) { setError(e?.message || 'PDF 생성 실패'); }
-        finally { setPdfMaking(false); }
     };
 
     // 탭4: 예약 시각 저장 (품절이면 409 → 안내 + 슬롯 새로고침)
@@ -254,10 +239,11 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 자료 수집 탭(4) 열릴 때 시간대 예약 현황(품절) 로드
     useEffect(() => { if (selected && activeTab === 4) loadSlots(); }, [selected?.id, activeTab, loadSlots]);
 
-    // 선택된 전자책이 바뀌면 제목 입력값 동기화
+    // 선택된 전자책이 바뀌면 제목 입력값 + 저장된 문서 URL 동기화(재방문 시 다운로드 버튼 유지)
     useEffect(() => {
         setTitleDraft(selected?.title || selected?.topic || '');
         setAuthorDraft(selected?.author || '');
+        setDocxUrl(selected?.docxUrl || null);
     }, [selected?.id]);
 
     const handleCreate = async () => {
@@ -574,7 +560,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </div>
                                         </div>
 
-                                        {/* 3단계: 문서 만들기 (구글 독스용 .docx / PDF) */}
+                                        {/* 3단계: 문서 만들기 (구글 독스용 .docx) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${canPdf ? T.accentBorder : T.border}`, opacity: canPdf ? 1 : 0.6 }}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>3</span>
@@ -585,32 +571,20 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </p>
 
                                             <div className="flex gap-2 flex-wrap">
-                                                <button onClick={makeDocx} disabled={!canPdf || docxMaking}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                    {docxMaking ? <><Loader size={14} className="animate-spin" /> 문서 만드는 중…</> : <><FileText size={14} /> 구글 문서(.docx) 만들기</>}
-                                                </button>
-                                                {docxUrl && (
+                                                {/* 만든 문서가 있으면 다운로드 버튼 먼저 노출(재방문 시 유지). 내용 바꾸면 서버가 무효화 → 다시 만들기. */}
+                                                {docxUrl && !docxMaking && (
                                                     <a href={docxUrl} target="_blank" rel="noopener noreferrer" download
                                                         className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
                                                         <ExternalLink size={14} /> 문서 다운로드
                                                     </a>
                                                 )}
-                                            </div>
-
-                                            <div className="flex gap-2 flex-wrap mt-2">
-                                                <button onClick={makePdf} disabled={!canPdf || pdfMaking}
-                                                    className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl disabled:opacity-40" style={{ padding: '7px 14px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                    {pdfMaking ? <><Loader size={12} className="animate-spin" /> PDF 만드는 중…</> : <><FileText size={12} /> PDF로도 받기</>}
+                                                <button onClick={makeDocx} disabled={!canPdf || docxMaking}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: docxUrl ? T.accent : '#fff', background: docxUrl ? T.accentSoft : T.accent, border: docxUrl ? `1px solid ${T.accentBorder}` : 'none' }}>
+                                                    {docxMaking ? <><Loader size={14} className="animate-spin" /> 문서 만드는 중…</> : <><FileText size={14} /> {docxUrl ? '문서 다시 만들기' : '구글 문서(.docx) 만들기'}</>}
                                                 </button>
-                                                {pdfUrl && (
-                                                    <a href={pdfUrl} target="_blank" rel="noopener noreferrer" download
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold rounded-xl" style={{ padding: '7px 14px', color: '#fff', background: '#5BA36A' }}>
-                                                        <ExternalLink size={12} /> PDF 다운로드
-                                                    </a>
-                                                )}
                                             </div>
 
-                                            {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다.</p>}
+                                            {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다. 내용을 바꾸면 <b style={{ color: T.accent }}>다시 만들기</b>로 새로 받으세요.</p>}
                                             {!canPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문을 먼저 만들어 주세요.</p>}
                                         </div>
                                     </div>
