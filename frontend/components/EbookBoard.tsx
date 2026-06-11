@@ -71,6 +71,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [drafting, setDrafting] = useState(false);
     const [rewritingNo, setRewritingNo] = useState<number | null>(null); // 챕터별 다시쓰기 중
     const [draftResults, setDraftResults] = useState<import('../services/apiService').EbookDraftResult[] | null>(null);
+    const [coverMaking, setCoverMaking] = useState(false);
     const [docxMaking, setDocxMaking] = useState(false);
     const [docxUrl, setDocxUrl] = useState<string | null>(null);
     const [pdfMaking, setPdfMaking] = useState(false);
@@ -216,6 +217,18 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setPdfUrl(null);
         } catch (e: any) { setError(e?.message || '다시 쓰기 실패'); }
         finally { setRewritingNo(null); }
+    };
+
+    // 탭3: 책 표지 생성(gpt-image)
+    const makeCover = async () => {
+        if (!selected || coverMaking) return;
+        setCoverMaking(true); setError(null);
+        try {
+            const res = await ebookApi.generateCover(selected.id);
+            setSelected(prev => prev ? { ...prev, coverUrl: res.coverUrl } : prev);
+            setDocxUrl(null); // 표지 바뀌면 이전 문서 무효
+        } catch (e: any) { setError(e?.message || '표지 생성 실패'); }
+        finally { setCoverMaking(false); }
     };
 
     // 탭3: 구글 독스용 .docx 생성(북크크 양식)
@@ -582,14 +595,32 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </p>
                                         </div>
 
-                                        {/* 2단계: 문서 만들기 (구글 독스용 .docx / PDF) */}
+                                        {/* 2단계: 표지 만들기 (gpt-image) */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>2</span>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
+                                            </div>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>책 제목·주제에 맞는 표지를 <b style={{ color: '#10A37F' }}>챗GPT</b>가 그려줘요. 만든 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요.</p>
+                                            <div className="flex items-start gap-3 flex-wrap">
+                                                <button onClick={makeCover} disabled={coverMaking}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 표지 그리는 중… (시간이 걸려요)</> : <><BookOpen size={14} /> {selected.coverUrl ? '표지 다시 만들기' : '표지 만들기'}</>}
+                                                </button>
+                                                {selected.coverUrl && (
+                                                    <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* 3단계: 문서 만들기 (구글 독스용 .docx / PDF) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${canPdf ? T.accentBorder : T.border}`, opacity: canPdf ? 1 : 0.6 }}>
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>2</span>
+                                                <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>3</span>
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>문서 만들기</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b>
+                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#10A37F' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b>
                                             </p>
 
                                             <div className="flex gap-2 flex-wrap">

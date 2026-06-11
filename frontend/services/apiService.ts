@@ -481,6 +481,7 @@ export interface EbookTocChapter {
 }
 export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
+    coverUrl?: string | null; // 표지 이미지 URL(gpt-image 생성)
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
@@ -513,7 +514,10 @@ export const ebookApi = {
     // 탭3: 자료 수집된 챕터 본문을 클로드로 일괄 생성 (본문 있으면 건너뜀)
     generateDraft: (id: number, force = false) =>
         post<{ results: EbookDraftResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/draft`, { force }),
-    // 탭3: 전체 본문 → 북크크 양식 .docx(구글 독스용) → GCS URL
+    // 탭3: 책 표지를 gpt-image로 생성 → coverUrl
+    generateCover: (id: number) =>
+        post<{ coverUrl: string }>(`/ebook/${id}/cover`, {}),
+    // 탭3: 전체 본문 → 북크크 양식 .docx(표지 있으면 첫 페이지 삽입) → GCS URL
     generateDocx: (id: number) =>
         post<{ url: string; bytes: number }>(`/ebook/${id}/docx`, {}),
     // 탭3: 전체 본문 → PDF → GCS URL
