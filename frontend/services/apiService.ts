@@ -483,6 +483,7 @@ export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
     coverUrl?: string | null; // 표지 이미지 URL(사용자 업로드)
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
+    pageSize?: string | null; // 책 판형: sinkuk(신국판) | a5 | gukbae
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
 export const ebookApi = {
@@ -528,6 +529,9 @@ export const ebookApi = {
     // 예약 시각 저장(KST 1~5시, null=해제). 슬롯이 차면 409(품절).
     setSchedule: (id: number, hour: number | null) =>
         put<{ scheduledHour: number | null }>(`/ebook/${id}/schedule`, { hour }),
+    // 탭1: 책 판형 저장(sinkuk|a5|gukbae)
+    setPageSize: (id: number, pageSize: string) =>
+        put<{ pageSize: string }>(`/ebook/${id}/page-size`, { pageSize }),
     // ※ 즉시 자료수집(collectAll) 제거 — 자료수집·본문 모두 새벽 크론에서 처리. 체크(setCollectFlags)=등록만.
     // 챕터별 새벽 생성 등록 체크 상태 저장 ({ "1": true, "2": false, ... })
     setCollectFlags: (id: number, flags: Record<string, boolean>) =>

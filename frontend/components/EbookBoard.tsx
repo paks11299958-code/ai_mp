@@ -139,6 +139,14 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setSavingToc(false); }
     };
 
+    // 탭1: 책 판형 저장(신국판/A5/국배판)
+    const savePageSize = async (pageSize: string) => {
+        if (!selected) return;
+        setSelected(prev => prev ? { ...prev, pageSize } : prev); // 낙관적
+        try { await ebookApi.setPageSize(selected.id, pageSize); setDocxUrl(null); }
+        catch (e: any) { setError(e?.message || '판형 저장 실패'); }
+    };
+
     // 탭1: 제목·저자 저장 (chapters는 그대로 보내 보존)
     const saveTitle = async () => {
         if (!selected || savingTitle) return;
@@ -627,6 +635,26 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </button>
                                         </div>
                                         <p className="text-[11px]" style={{ color: T.inkMute }}>주제: {selected.topic}</p>
+
+                                        {/* 책 판형 선택 (문서 크기 결정) */}
+                                        <div className="mt-1">
+                                            <span className="text-[11px]" style={{ color: T.inkSoft }}>책 크기(판형)</span>
+                                            <div className="flex gap-1.5 flex-wrap mt-1">
+                                                {[
+                                                    { key: 'sinkuk', label: '신국판', desc: '152×225mm' },
+                                                    { key: 'a5', label: 'A5', desc: '148×210mm' },
+                                                    { key: 'gukbae', label: '국배판', desc: '188×257mm' },
+                                                ].map(s => {
+                                                    const on = (selected.pageSize || 'sinkuk') === s.key;
+                                                    return (
+                                                        <button key={s.key} onClick={() => savePageSize(s.key)}
+                                                            className="rounded-lg text-xs font-bold" style={{ padding: '6px 11px', color: on ? '#fff' : T.inkSoft, background: on ? T.accent : T.surface, border: `1px solid ${on ? T.accent : T.border}` }}>
+                                                            {s.label} <span className="font-normal" style={{ fontSize: 10, opacity: 0.8 }}>{s.desc}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
