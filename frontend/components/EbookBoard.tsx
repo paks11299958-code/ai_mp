@@ -69,9 +69,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [fontH1, setFontH1] = useState(24);
     const [fontH2, setFontH2] = useState(15);
     const [fontBody, setFontBody] = useState(11);
-    // 탭4 자료 일괄수집(즉시) + 예약 슬롯 현황
-    const [collectingAll, setCollectingAll] = useState(false);
-    const [collectResults, setCollectResults] = useState<import('../services/apiService').EbookCollectResult[] | null>(null);
+    // 탭4 예약 슬롯 현황
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
     // 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
@@ -211,17 +209,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         ebookApi.getSlots().then(r => setSlots(r.slots)).catch(() => {});
     }, []);
 
-    // 탭4: 체크된 챕터 자료만 지금 바로 수집 (본문은 야간 배치)
-    const collectAll = async () => {
-        if (!selected || collectingAll) return;
-        setCollectingAll(true); setError(null); setCollectResults(null);
-        try {
-            const res = await ebookApi.collectAll(selected.id);
-            setCollectResults(res.results);
-            setSelected(prev => prev ? { ...prev, chapters: res.chapters } : prev);
-        } catch (e: any) { setError(e?.message || '자료 수집 실패'); }
-        finally { setCollectingAll(false); }
-    };
+    // ※ 즉시 자료수집(collectAll) 제거 — 자료수집·본문 모두 새벽 크론에서 처리. 체크(=등록)만 한다.
 
     // 탭2: 자료수집 체크 토글 저장 (개별/전체). collect 없으면 true로 간주.
     const saveCollectFlags = async (flags: Record<string, boolean>) => {
@@ -400,8 +388,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
                                         {/* 예약 시각 (정원제 — 품절 표시) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 본문 생성 예약</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>아래에서 <b style={{ color: T.accent }}>자료를 수집</b>한 뒤 새벽 시간을 골라두면, 그 시각에 <b style={{ color: T.accent }}>본문이 자동으로 만들어져요</b>. 다음날 <b style={{ color: T.accent }}>초안 만들기</b> 탭에서 문서(.docx)를 받으세요. <span style={{ color: T.inkMute }}>시간대별 정원이 있어, 차면 다른 시간을 골라주세요.</span></p>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 생성 예약</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>아래에서 <b style={{ color: T.accent }}>만들 챕터를 고르고</b> 새벽 시간을 골라두면, 그 시각에 <b style={{ color: T.accent }}>자료 수집부터 본문까지 자동으로 만들어져요</b>. 다음날 <b style={{ color: T.accent }}>초안 만들기</b> 탭에서 문서(.docx)를 받으세요. <span style={{ color: T.inkMute }}>시간대별 정원이 있어, 차면 다른 시간을 골라주세요.</span></p>
                                             <div className="flex gap-1.5 flex-wrap">
                                                 {[1, 2, 3, 4, 5].map(h => {
                                                     const on = selected.scheduledHour === h;
@@ -424,42 +412,40 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 })}
                                             </div>
                                             <p className="text-[11px] mt-2" style={{ color: selected.scheduledHour ? T.accent : T.inkMute }}>
-                                                {selected.scheduledHour ? `새벽 ${selected.scheduledHour}시에 본문 생성 예약됨 (다시 누르면 해제)` : '예약 안 됨 — 자료 수집 후 시간을 골라주세요'}
+                                                {selected.scheduledHour ? `새벽 ${selected.scheduledHour}시에 생성 예약됨 (다시 누르면 해제)` : '예약 안 됨 — 아래에서 챕터를 고르고 시간을 골라주세요'}
                                             </p>
                                         </div>
 
-                                        {/* 수집 대상 선택(체크) + 자료수집(즉시) */}
+                                        {/* 새벽에 만들 챕터 선택(체크 = 예약 등록). 즉시 수집 없음 — 자료수집·본문 모두 새벽 크론 처리. */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.accentBorder}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>자료 수집할 챕터 선택</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터의 <b style={{ color: T.accent }}>자료를 지금 바로 수집</b>해요. <b style={{ color: T.accent }}>본문은 위에서 예약한 새벽 시간</b>에 자동으로 만들어집니다. · 선택 {checkedCount}/{total} · 자료완료 {withSrc}</p>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>새벽에 만들 챕터 선택</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터는 <b style={{ color: T.accent }}>위에서 예약한 새벽 시간</b>에 자료 수집 + 본문 작성까지 자동으로 만들어져요. 이미 만든 챕터도 체크하면 새벽에 다시 만듭니다. · 선택 {checkedCount}/{total} · 자료완료 {withSrc}</p>
 
-                                            {/* 전체 선택 토글 + 자료수집 버튼 */}
-                                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                                            {/* 전체 선택 토글 (등록은 체크만으로 즉시 저장됨 — 별도 버튼 없음) */}
+                                            <div className="flex items-center gap-2 flex-wrap mb-1">
                                                 <label className="inline-flex items-center gap-1.5 text-xs font-bold cursor-pointer select-none" style={{ color: T.ink }}>
                                                     <input type="checkbox" checked={allChecked} onChange={e => toggleAllCollect(e.target.checked)} style={{ accentColor: T.accent, width: 15, height: 15 }} />
                                                     전체 선택
                                                 </label>
-                                                <span className="text-[11px]" style={{ color: T.inkMute }}>›</span>
-                                                <button onClick={() => collectAll()} disabled={collectingAll || checkedCount === 0}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                    {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으는 중…</> : <><Search size={14} /> 선택한 챕터 자료 수집</>}
-                                                </button>
+                                                <span className="text-[11px]" style={{ color: T.inkMute }}>체크하면 자동으로 새벽 생성에 등록돼요</span>
                                             </div>
 
-                                            {/* 챕터별 체크박스 + 상태 */}
+                                            {/* 챕터별 체크박스 + 상태 (체크=새벽 생성 등록) */}
                                             {total > 0 && (
                                                 <div className="mt-1 space-y-1">
                                                     {chs.map(ch => {
-                                                        const r = collectResults?.find(x => x.no === ch.no);
-                                                        const hasBody = typeof ch.contentMd === 'string' && ch.contentMd.trim();
-                                                        const done = ch.sourceStatus === 'done';
+                                                        const hasSrc = ch.sourceStatus === 'done';
+                                                        const failed = ch.sourceStatus === 'failed';
                                                         const checked = isChecked(ch);
-                                                        const label = r
-                                                            ? (r.status === 'sources-done' ? '자료 수집됨' : r.status === 'unchecked' ? '제외됨' : '자료 실패')
-                                                            : (hasBody ? '본문 있음' : done ? '자료 있음' : ch.sourceStatus === 'failed' ? '실패' : checked ? '대기' : '제외');
-                                                        const color = (r?.status === 'sources-failed' || ch.sourceStatus === 'failed') ? '#C62828' : (hasBody || done || r?.status === 'sources-done') ? '#5BA36A' : T.inkMute;
+                                                        // 라벨: 체크+자료있음=재수집 예정 / 체크+자료없음=수집 예정 / 미체크+자료있음=자료수집완료 / 미체크+없음=미선택
+                                                        const label = failed ? '수집 실패'
+                                                            : checked ? (hasSrc ? '재수집 예정' : '수집 예정')
+                                                            : (hasSrc ? '자료수집완료' : '미선택');
+                                                        const color = failed ? '#C62828'
+                                                            : checked ? T.accent
+                                                            : (hasSrc ? '#5BA36A' : T.inkMute);
                                                         return (
-                                                            <label key={ch.no} className="flex items-center gap-2 text-xs rounded-lg px-2 py-1.5 cursor-pointer select-none" style={{ background: checked ? T.surface : 'transparent', opacity: checked ? 1 : 0.55 }}>
+                                                            <label key={ch.no} className="flex items-center gap-2 text-xs rounded-lg px-2 py-1.5 cursor-pointer select-none" style={{ background: checked ? T.surface : 'transparent', opacity: checked ? 1 : 0.7 }}>
                                                                 <input type="checkbox" checked={checked} onChange={e => toggleChapterCollect(ch.no, e.target.checked)} style={{ accentColor: T.accent, width: 15, height: 15, flexShrink: 0 }} />
                                                                 <span className="shrink-0 w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold" style={{ background: T.accentSoft, color: T.accent }}>{ch.no}</span>
                                                                 <span className="flex-1 truncate" style={{ color: T.ink }}>{ch.title}</span>
@@ -497,8 +483,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             {withBody === 0 && (
                                                 <p className="text-[11px] mb-2 px-3 py-2 rounded-lg" style={{ color: T.inkSoft, background: T.surface, border: `1px dashed ${T.border}` }}>
                                                     {withSrc === 0
-                                                        ? <>아직 본문이 없어요. 먼저 <b style={{ color: T.accent }}>자료 수집</b> 탭에서 자료를 모으고 새벽 시간을 예약해주세요.</>
-                                                        : <>자료 수집은 끝났어요. <b style={{ color: T.accent }}>새벽 예약 시간이 지나면</b> 본문이 자동으로 채워집니다. 내일 다시 들러주세요 🌙</>}
+                                                        ? <>아직 본문이 없어요. <b style={{ color: T.accent }}>자료 수집</b> 탭에서 만들 챕터를 고르고 새벽 시간을 예약해주세요. <b style={{ color: T.accent }}>새벽 예약 시간이 지나면</b> 자료 수집부터 본문까지 자동으로 채워집니다. 내일 다시 들러주세요 🌙</>
+                                                        : <>자료가 준비됐어요. <b style={{ color: T.accent }}>새벽 예약 시간이 지나면</b> 본문이 자동으로 채워집니다. 내일 다시 들러주세요 🌙</>}
                                                 </p>
                                             )}
 

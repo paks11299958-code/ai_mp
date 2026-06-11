@@ -518,16 +518,13 @@ export const ebookApi = {
     // 예약 시각 저장(KST 1~5시, null=해제). 슬롯이 차면 409(품절).
     setSchedule: (id: number, hour: number | null) =>
         put<{ scheduledHour: number | null }>(`/ebook/${id}/schedule`, { hour }),
-    // 체크된 챕터 자료만 지금 바로 일괄수집(본문은 야간 예약 배치에서 생성)
-    collectAll: (id: number, force = false) =>
-        post<{ results: EbookCollectResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-all`, { force }),
-    // 챕터별 자료수집 체크 상태 저장 ({ "1": true, "2": false, ... })
+    // ※ 즉시 자료수집(collectAll) 제거 — 자료수집·본문 모두 새벽 크론에서 처리. 체크(setCollectFlags)=등록만.
+    // 챕터별 새벽 생성 등록 체크 상태 저장 ({ "1": true, "2": false, ... })
     setCollectFlags: (id: number, flags: Record<string, boolean>) =>
         put<{ chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-flags`, { flags }),
 };
 
 export interface EbookSlot { hour: number; used: number; capacity: number; soldOut: boolean; }
-export interface EbookCollectResult { no: number; status: 'sources-done' | 'sources-failed' | 'unchecked'; }
 export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }
 
 export const quickMenuApi = {
