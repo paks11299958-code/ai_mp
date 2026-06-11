@@ -481,7 +481,7 @@ export interface EbookTocChapter {
 }
 export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
-    coverUrl?: string | null; // 표지 이미지 URL(gpt-image 생성)
+    coverUrl?: string | null; // 표지 이미지 URL(사용자 업로드)
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
@@ -503,9 +503,19 @@ export const ebookApi = {
     // 최종본 직접 수정 저장(편집기에서 사용 — 유지)
     saveContentMd: (id: number, no: number, contentMd: string) =>
         put<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/content-md`, { contentMd }),
-    // 탭3: 책 표지를 gpt-image로 생성 → coverUrl
-    generateCover: (id: number) =>
-        post<{ coverUrl: string }>(`/ebook/${id}/cover`, {}),
+    // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
+    coverUploadUrl: (id: number, mimeType: string) =>
+        post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),
+    saveCoverUrl: (id: number, coverUrl: string | null) =>
+        put<{ coverUrl: string | null }>(`/ebook/${id}/cover`, { coverUrl }),
+    // 표지 파일을 직접 올리고 coverUrl까지 저장하는 통합 헬퍼
+    uploadCover: async (id: number, file: File): Promise<string> => {
+        const { signedUrl, publicUrl } = await post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType: file.type });
+        const putRes = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+        if (!putRes.ok) throw new Error('표지 업로드에 실패했어요.');
+        await put<{ coverUrl: string | null }>(`/ebook/${id}/cover`, { coverUrl: publicUrl });
+        return publicUrl;
+    },
     // 탭3: 전체 본문 → 북크크 양식 .docx(표지 있으면 첫 페이지 삽입) → GCS URL
     generateDocx: (id: number) =>
         post<{ url: string; bytes: number }>(`/ebook/${id}/docx`, {}),

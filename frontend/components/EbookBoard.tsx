@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText } from 'lucide-react';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
@@ -155,15 +155,27 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
     // ※ 즉시 본문 일괄생성/다시쓰기 제거 — 본문은 야간 예약 배치에서만 생성한다.
 
-    // 탭3: 책 표지 생성(gpt-image)
-    const makeCover = async () => {
+    // 탭3: 표지 이미지 직접 업로드 (AI 생성 폐기 — 사용자가 만든 표지를 올림)
+    const uploadCover = async (file: File) => {
+        if (!selected || coverMaking) return;
+        if (!file.type.startsWith('image/')) { setError('이미지 파일만 올릴 수 있어요.'); return; }
+        if (file.size > 15 * 1024 * 1024) { setError('이미지가 너무 커요(최대 15MB).'); return; }
+        setCoverMaking(true); setError(null);
+        try {
+            const url = await ebookApi.uploadCover(selected.id, file);
+            setSelected(prev => prev ? { ...prev, coverUrl: url } : prev);
+            setDocxUrl(null); // 표지 바뀌면 이전 문서 무효
+        } catch (e: any) { setError(e?.message || '표지 업로드 실패'); }
+        finally { setCoverMaking(false); }
+    };
+    const removeCover = async () => {
         if (!selected || coverMaking) return;
         setCoverMaking(true); setError(null);
         try {
-            const res = await ebookApi.generateCover(selected.id);
-            setSelected(prev => prev ? { ...prev, coverUrl: res.coverUrl } : prev);
-            setDocxUrl(null); // 표지 바뀌면 이전 문서 무효
-        } catch (e: any) { setError(e?.message || '표지 생성 실패'); }
+            await ebookApi.saveCoverUrl(selected.id, null);
+            setSelected(prev => prev ? { ...prev, coverUrl: null } : prev);
+            setDocxUrl(null);
+        } catch (e: any) { setError(e?.message || '표지 제거 실패'); }
         finally { setCoverMaking(false); }
     };
 
@@ -529,20 +541,27 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </p>
                                         </div>
 
-                                        {/* 2단계: 표지 만들기 (gpt-image) */}
+                                        {/* 2단계: 표지 올리기 (사용자 업로드) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>2</span>
-                                                <p className="text-sm font-bold" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>표지 올리기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>책 제목·주제에 맞는 표지를 <b style={{ color: '#10A37F' }}>챗GPT</b>가 그려줘요. 만든 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요.</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지 이미지를 올려주세요. 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
                                             <div className="flex items-start gap-3 flex-wrap">
-                                                <button onClick={makeCover} disabled={coverMaking}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 표지 그리는 중… (시간이 걸려요)</> : <><BookOpen size={14} /> {selected.coverUrl ? '표지 다시 만들기' : '표지 만들기'}</>}
-                                                </button>
+                                                <label className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl cursor-pointer" style={{ padding: '8px 16px', color: '#fff', background: T.accent, opacity: coverMaking ? 0.4 : 1 }}>
+                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 올리는 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
+                                                    <input type="file" accept="image/*" disabled={coverMaking} className="hidden"
+                                                        onChange={e => { const f = e.target.files?.[0]; if (f) uploadCover(f); e.currentTarget.value = ''; }} />
+                                                </label>
                                                 {selected.coverUrl && (
-                                                    <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                    <>
+                                                        <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                        <button onClick={removeCover} disabled={coverMaking}
+                                                            className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: '#C62828', background: '#FDECEC' }}>
+                                                            <Trash2 size={12} /> 제거
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </div>
@@ -554,7 +573,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>문서 만들기</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#10A37F' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b>
+                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#5BA36A' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b>
                                             </p>
 
                                             <div className="flex gap-2 flex-wrap">
