@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Bell, Users, Sparkles } from 'lucide-react';
+import { Bell, Users, Sparkles, ChevronRight } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { TermsModal } from './TermsModal';
 
@@ -1213,10 +1213,13 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                             borderRadius: 16, padding: '14px 16px', backdropFilter: 'blur(8px)',
                             boxShadow: '0 6px 20px -10px rgba(228,139,176,0.28)',
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                            {/* 제목 클릭 → 페르소나 목록(대기페이지)로 이동 */}
+                            <button onClick={onPersonaListClick} disabled={!onPersonaListClick}
+                                style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, background: 'none', border: 'none', padding: 0, cursor: onPersonaListClick ? 'pointer' : 'default', width: '100%' }}>
                                 <Users size={16} style={{ color: T.accent }} strokeWidth={2.4} />
                                 <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 페르소나</span>
-                            </div>
+                                {onPersonaListClick && <ChevronRight size={15} style={{ color: T.accent, marginLeft: 'auto' }} strokeWidth={2.4} />}
+                            </button>
                             {personaChips && personaChips.length > 0 ? (
                                 <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4, justifyContent: 'center' }}>
                                     {personaChips.map(pc => (
@@ -1260,10 +1263,13 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                             borderRadius: 16, padding: '14px 16px', backdropFilter: 'blur(8px)',
                             boxShadow: '0 6px 20px -10px rgba(142,111,183,0.3)',
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12 }}>
+                            {/* 제목 클릭 → 기능 목록으로 이동 */}
+                            <button onClick={onFeatureListClick} disabled={!onFeatureListClick}
+                                style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, background: 'none', border: 'none', padding: 0, cursor: onFeatureListClick ? 'pointer' : 'default', width: '100%' }}>
                                 <Sparkles size={16} style={{ color: T.accent }} strokeWidth={2.4} />
                                 <span style={{ fontSize: 14, color: T.ink, fontWeight: 800 }}>나의 AI 기능</span>
-                            </div>
+                                {onFeatureListClick && <ChevronRight size={15} style={{ color: T.accent, marginLeft: 'auto' }} strokeWidth={2.4} />}
+                            </button>
                             {favoriteChips && favoriteChips.length > 0 ? (
                                 <div style={{ display: 'flex', gap: 14, overflowX: 'auto', paddingBottom: 4, justifyContent: 'center' }}>
                                     {favoriteChips.map(chip => (
