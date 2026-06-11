@@ -262,6 +262,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const openProject = async (id: number) => {
+        setError(null); // 화면 전환 시 이전 에러 제거
         try { setSelected(await ebookApi.get(id)); setShowForm(false); setActiveTab(1); setEditing(false); } catch {}
     };
 
@@ -290,7 +291,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="max-w-4xl mx-auto">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-base font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>내 전자책</h3>
-                                    <button onClick={() => { setShowForm(true); setSelected(null); }}
+                                    <button onClick={() => { setShowForm(true); setSelected(null); setError(null); }}
                                         className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold"
                                         style={{ background: T.accent, color: '#fff' }}>
                                         <Plus size={15} /> 새 전자책
@@ -324,7 +325,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="p-6 max-w-lg mx-auto">
                                 <div className="flex items-center gap-2 mb-2">
                                     {list.length > 0 && (
-                                        <button onClick={() => setShowForm(false)} className="inline-flex items-center gap-1 text-xs font-bold mr-1" style={{ color: T.inkMute }}>
+                                        <button onClick={() => { setShowForm(false); setError(null); }} className="inline-flex items-center gap-1 text-xs font-bold mr-1" style={{ color: T.inkMute }}>
                                             <ChevronLeft size={15} /> 목록으로
                                         </button>
                                     )}
@@ -349,7 +350,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                         ) : selected ? (
                             <div className="p-5 md:p-6 max-w-4xl mx-auto">
                                 {/* 목록으로 복귀 (데스크탑·모바일 공통, 주식분석 패턴) */}
-                                <button onClick={() => { setSelected(null); setEditing(false); }} className="mb-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: T.inkMute }}>
+                                <button onClick={() => { setSelected(null); setEditing(false); setError(null); }} className="mb-3 inline-flex items-center gap-1 text-xs font-bold" style={{ color: T.inkMute }}>
                                     <ChevronLeft size={15} /> 목록으로
                                 </button>
 
@@ -360,7 +361,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         return (
                                             <React.Fragment key={t.id}>
                                                 {i > 0 && <span className="shrink-0 text-[10px]" style={{ color: T.inkMute }}>›</span>}
-                                                <button onClick={() => { setActiveTab(t.id); setEditing(false); }}
+                                                <button onClick={() => { setActiveTab(t.id); setEditing(false); setError(null); }}
                                                     className="shrink-0 inline-flex items-center gap-1 rounded-full font-bold transition"
                                                     style={{
                                                         fontSize: 12, padding: '5px 12px',
