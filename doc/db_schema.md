@@ -177,15 +177,17 @@ AppConfig           ← 앱 전역 설정
 ```
 EbookProject:
   id(Int), userId, topic, title(String?)
-  tocJson(String?)        ← 목차+챕터 전체 JSON [{no,title,summary,sourceStatus,sources,contentMd,contentVariants,finalProvider}]
+  author(String?)         ← 2026-06-10, 저자명(제목과 함께 저장·가지고 다님, .docx/PDF 재사용)
+  coverUrl(String?)       ← 2026-06-11, 표지 이미지 GCS URL(챗GPT gpt-image-1 생성, .docx 첫페이지 삽입)
+  tocJson(String?)        ← 목차+챕터 전체 JSON [{no,title,summary,sourceStatus,sources,collect,contentMd,contentVariants,finalProvider}]
   status(default:"toc")   ← toc | draft | done
-  scheduledHour(Int?)     ← 2026-06-10, 자료 일괄수집 새벽 예약시각(KST 1~5), null=미예약
+  scheduledHour(Int?)     ← 2026-06-10, 자료 일괄수집 새벽 예약시각(KST 1~5), null=미예약. 새벽 cron(서버1 crontab UTC16~20=KST1~5)이 매칭 전자책의 체크 챕터 자료수집+본문생성 자동
   errorMessage(String?), createdAt, updatedAt
 EbookChapter:
   id, projectId(FK Cascade) ... ← 선생성됐으나 실제 챕터는 EbookProject.tocJson(JSON)에 저장(이 테이블 미사용)
 ```
-- ⚠️ **챕터는 EbookChapter row가 아니라 `EbookProject.tocJson`(JSON 배열) 안에 저장.** 자료/본문/그림/상태 전부 tocJson 챕터 항목에. → tocJson을 덮어쓰는 모든 경로(PUT /toc 등)에서 기존 필드(sources/contentMd/finalProvider 등) 보존 필수.
-- 강지훈 페르소나(id=writer) 전용. 8탭 파이프라인. 상세 메모리 [[project_ebook_pipeline]].
+- ⚠️ **챕터는 EbookChapter row가 아니라 `EbookProject.tocJson`(JSON 배열) 안에 저장.** 자료/본문/체크(collect)/상태 전부 tocJson 챕터 항목에. → tocJson을 덮어쓰는 모든 경로(PUT /toc 등)에서 기존 필드(sources/contentMd/finalProvider/collect 등) 보존 필수.
+- 강지훈 페르소나(id=writer) 전용. **3탭 파이프라인**(제목·목차/자료수집/초안). 2026-06-11 대개편=북크크 양식 **.docx**(docx npm) 중심 + 챗GPT(gpt-image-1) 표지 + 자료수집→본문 자동화(cron). 상세 메모리 [[project_ebook_pipeline]].
 
 ## Raw SQL 예시
 
@@ -194,6 +196,8 @@ EbookChapter:
 ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "faceReadingBgUrl" TEXT;
 ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "features" TEXT;  -- 2026-06-02, 활성 기능 키 JSON 배열
 ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "scheduledHour" INTEGER;  -- 2026-06-10, 전자책 자료수집 새벽 예약
+ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "author" TEXT;            -- 2026-06-10, 저자명
+ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "coverUrl" TEXT;          -- 2026-06-11, 표지 이미지 URL(gpt-image)
 
 -- User phone 컬럼
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
