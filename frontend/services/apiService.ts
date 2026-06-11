@@ -534,7 +534,7 @@ export const ebookApi = {
         put<{ chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-flags`, { flags }),
 };
 
-export interface EbookCollectResult { no: number; status: 'done' | 'skipped' | 'failed' | 'unchecked'; }
+export interface EbookCollectResult { no: number; status: 'done' | 'sources-only' | 'skipped' | 'failed' | 'unchecked'; }
 
 export interface EbookDraftResult { no: number; status: 'done' | 'skipped' | 'failed' | 'no-sources'; chars?: number; error?: string; }
 export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }
