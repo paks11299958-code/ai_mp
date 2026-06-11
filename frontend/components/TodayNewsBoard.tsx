@@ -80,6 +80,12 @@ function useTTS() {
         setTtsLoading(false);
     }, []);
 
+    // 사용자 제스처(버튼 클릭) 시점에 audio 엘리먼트를 미리 만들어 둔다.
+    // 이렇게 unlock해두면 이후 비동기(fetch) 뒤의 play()도 모바일에서 차단되지 않는다.
+    const prime = useCallback(() => {
+        if (!audioRef.current) audioRef.current = new Audio();
+    }, []);
+
     const speakCategory = useCallback(async (
         category: string,
         slot?: 'am' | 'pm',
@@ -95,13 +101,25 @@ function useTTS() {
             });
             if (!res.ok) throw new Error('캐시 없음');
             const url = URL.createObjectURL(await res.blob());
-            const audio = new Audio(url);
-            audioRef.current = audio;
-            audio.onended = () => { setSpeaking(false); URL.revokeObjectURL(url); onComplete?.(true); };
-            audio.onerror = () => { setSpeaking(false); URL.revokeObjectURL(url); onComplete?.(false); };
+            // 단일 audio 엘리먼트 재사용: 전체듣기 순차 재생 시 매번 new Audio()를 만들면
+            // 2번째 곡부터 사용자 제스처 컨텍스트가 끊겨 모바일 브라우저가 play()를 차단함.
+            // 같은 엘리먼트의 src만 교체하면 제스처가 유지돼 끝까지 재생된다.
+            let audio = audioRef.current;
+            if (!audio) { audio = new Audio(); audioRef.current = audio; }
+            if (audio.dataset?.objUrl) URL.revokeObjectURL(audio.dataset.objUrl);
+            audio.dataset.objUrl = url;
+            audio.onended = () => { setSpeaking(false); onComplete?.(true); };
+            audio.onerror = () => { setSpeaking(false); onComplete?.(false); };
+            audio.src = url;
             setTtsLoading(false);
             setSpeaking(true);
-            await audio.play();
+            try {
+                await audio.play();
+            } catch {
+                // play()가 거부돼도 onComplete로 다음 카테고리 진행
+                setSpeaking(false);
+                onComplete?.(false);
+            }
         } catch {
             setTtsLoading(false);
             setSpeaking(false);
@@ -109,8 +127,11 @@ function useTTS() {
         }
     }, [stop]);
 
-    useEffect(() => () => { audioRef.current?.pause(); }, []);
-    return { speaking, ttsLoading, speakCategory, stop };
+    useEffect(() => () => {
+        const a = audioRef.current;
+        if (a) { a.pause(); if (a.dataset?.objUrl) URL.revokeObjectURL(a.dataset.objUrl); }
+    }, []);
+    return { speaking, ttsLoading, speakCategory, stop, prime };
 }
 
 function formatTime(iso: string) {
@@ -150,7 +171,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const [loadingKey, setLoadingKey] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [collectedAt, setCollectedAt] = useState<string | null>(null);
-    const { speaking, ttsLoading, speakCategory, stop } = useTTS();
+    const { speaking, ttsLoading, speakCategory, stop, prime } = useTTS();
 
     // 'All' 순차 재생 상태
     const [allPlaying, setAllPlaying] = useState(false);
@@ -224,6 +245,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
         }
         allActiveRef.current = true;
         setAllPlaying(true);
+        prime(); // 클릭 제스처 시점에 audio 언락(모바일 autoplay 차단 방지)
 
         for (const cat of CATEGORIES) {
             if (!allActiveRef.current) break;
@@ -241,7 +263,7 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
 
         allActiveRef.current = false;
         setAllPlaying(false);
-    }, [slot, fetchCategory, speakCategory, stop]);
+    }, [slot, fetchCategory, speakCategory, stop, prime]);
 
     // 언마운트 시 All 재생도 안전하게 중단
     useEffect(() => () => { allActiveRef.current = false; }, []);
