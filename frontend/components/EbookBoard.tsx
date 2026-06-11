@@ -451,7 +451,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         {/* 예약 시각 */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                             <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 수집 예약</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>새벽 시간을 골라두면 그 시각에 <b style={{ color: T.accent }}>아래에서 체크한 챕터</b>의 자료를 자동으로 모아요. (자동 실행은 곧 연결됩니다)</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>새벽 시간을 골라두면 그 시각에 <b style={{ color: T.accent }}>아래에서 체크한 챕터</b>의 자료를 자동으로 모아요. (수집 끝나면 체크 자동 해제 — 아침에 열어 확인하세요)</p>
                                             <div className="flex gap-1.5 flex-wrap">
                                                 {[1, 2, 3, 4, 5].map(h => {
                                                     const on = selected.scheduledHour === h;
@@ -471,7 +471,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         {/* 수집 대상 선택(체크) + 수집 */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.accentBorder}` }}>
                                             <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>수집할 챕터 선택</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터만 자료를 모아요(예약·지금수집 모두 체크 기준). 이미 수집된 챕터는 건너뜁니다. · 선택 {checkedCount}/{total} · 자료완료 {withSrc}</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터의 자료를 모아요(예약·지금수집 모두 체크 기준). 자료가 있어도 <b style={{ color: T.accent }}>새로 수집(덮어쓰기)</b>하고, 수집이 끝나면 체크는 자동 해제돼요. 다시 받고 싶으면 다시 체크하세요. · 선택 {checkedCount}/{total} · 자료완료 {withSrc}</p>
 
                                             {/* 전체 선택 토글 + 수집 버튼 */}
                                             <div className="flex items-center gap-2 flex-wrap mb-2">
