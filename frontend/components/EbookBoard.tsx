@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, FileEdit, RefreshCw, ImagePlus } from 'lucide-react';
-import { ebookApi, EbookProject, EbookTocChapter, EbookProvider, EbookVariant } from '../services/apiService';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText } from 'lucide-react';
+import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
 const T = {
@@ -30,13 +30,6 @@ const Stage: React.FC<{ label: string; state: 'done' | 'current' | 'todo' }> = (
         </span>
     );
 };
-
-// 본문 생성 AI 3종 (비교용)
-const AI_PROVIDERS: { key: EbookProvider; label: string; emoji: string; color: string }[] = [
-    { key: 'gemini', label: '제미나이', emoji: '✨', color: '#4285F4' },
-    { key: 'claude', label: '클로드 Opus', emoji: '🅰️', color: '#C96442' },
-    { key: 'gpt', label: '챗GPT', emoji: '🟢', color: '#10A37F' },
-];
 
 // 진행 탭 정의 (1~6 순서대로 진행)
 // 탭 콘텐츠 ID는 기존(1책정보 / 4자료 / 5초안) 유지. 2·3은 1로 통합, 6완성본은 제거.
@@ -67,10 +60,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [titleDraft, setTitleDraft] = useState('');
     const [authorDraft, setAuthorDraft] = useState('');
     const [savingTitle, setSavingTitle] = useState(false);
-    // 탭5 초안: 본문 일괄 생성 + PDF
-    const [drafting, setDrafting] = useState(false);
-    const [rewritingNo, setRewritingNo] = useState<number | null>(null); // 챕터별 다시쓰기 중
-    const [draftResults, setDraftResults] = useState<import('../services/apiService').EbookDraftResult[] | null>(null);
+    // 탭5 초안: 표지·문서(본문은 야간 배치에서 생성 — 즉시생성 제거)
     const [coverMaking, setCoverMaking] = useState(false);
     const [docxMaking, setDocxMaking] = useState(false);
     const [docxUrl, setDocxUrl] = useState<string | null>(null);
@@ -79,17 +69,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [fontH1, setFontH1] = useState(24);
     const [fontH2, setFontH2] = useState(15);
     const [fontBody, setFontBody] = useState(11);
-    // 탭2 자료 일괄수집(예약 + 즉시)
+    // 탭4 자료 일괄수집(즉시) + 예약 슬롯 현황
     const [collectingAll, setCollectingAll] = useState(false);
     const [collectResults, setCollectResults] = useState<import('../services/apiService').EbookCollectResult[] | null>(null);
     const [savingSchedule, setSavingSchedule] = useState(false);
-    // 2-B 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
+    const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
+    // 자료수집: 현재 수집 중인 챕터 번호, 펼쳐진 챕터 번호
     const [collectingNo, setCollectingNo] = useState<number | null>(null);
     const [expandedNo, setExpandedNo] = useState<number | null>(null);
-    // 2-C 본문생성(3 AI 비교): 현재 생성 중인 "챕터:provider" 키, 본문 펼침, 피드백
-    const [writingKey, setWritingKey] = useState<string | null>(null); // "no:provider"
+    // 본문 펼침(야간 생성 결과 보기 전용)
     const [contentOpenNo, setContentOpenNo] = useState<number | null>(null);
-    const [feedbackText, setFeedbackText] = useState<Record<string, string>>({}); // key "no:provider"
 
     // 챕터별 자료수집: 호출 → 접수→수집→완료. selected.chapters를 즉시 갱신해 단계 표시.
     const collectSources = async (no: number) => {
@@ -116,35 +105,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
-    // 2-C 챕터 본문 생성 (provider별 비교). 한 번에 하나(어느 AI든 진행 중이면 막음).
-    const generateContent = async (no: number, provider: EbookProvider, feedback?: string) => {
-        if (!selected || writingKey !== null) return;
-        const key = `${no}:${provider}`;
-        setWritingKey(key);
-        setError(null);
-        const patchVariant = (status: EbookVariant['status'], md?: string) =>
-            setSelected(prev => prev ? {
-                ...prev,
-                chapters: (prev.chapters ?? []).map(c => {
-                    if (c.no !== no) return c;
-                    const cv = { ...(c.contentVariants ?? {}) };
-                    cv[provider] = { status, md: md !== undefined ? md : cv[provider]?.md };
-                    return { ...c, contentVariants: cv };
-                }),
-            } : prev);
-        patchVariant('generating');
-        try {
-            const res = await ebookApi.generateContent(selected.id, no, provider, feedback);
-            patchVariant('done', res.contentMd);
-            setContentOpenNo(no);
-            setFeedbackText(prev => ({ ...prev, [key]: '' }));
-        } catch (e: any) {
-            patchVariant('failed');
-            setError(e?.message || '본문 생성에 실패했어요. 잠시 후 다시 시도해주세요.');
-        } finally {
-            setWritingKey(null);
-        }
-    };
+    // ※ 즉시 본문생성/다시쓰기 제거됨 — 본문은 새벽 예약 배치(야간 cron)에서만 생성한다.
+    //   사용자는 자료수집 + 시간대 예약까지만 하고, 다음날 결과(.docx)를 받는다(재방문 유도).
 
     const patchChapter = (no: number, patch: Partial<EbookTocChapter>) =>
         setSelected(prev => prev ? { ...prev, chapters: (prev.chapters ?? []).map(c => c.no === no ? { ...c, ...patch } : c) } : prev);
@@ -193,31 +155,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setSavingTitle(false); }
     };
 
-    // 탭5: 본문 일괄 생성 (클로드, 본문 있으면 건너뜀)
-    const generateDraft = async (force = false) => {
-        if (!selected || drafting) return;
-        setDrafting(true); setError(null); setDraftResults(null);
-        try {
-            const res = await ebookApi.generateDraft(selected.id, force);
-            setDraftResults(res.results);
-            setSelected(prev => prev ? { ...prev, chapters: res.chapters } : prev);
-            setPdfUrl(null); // 본문 바뀌면 이전 PDF 무효
-        } catch (e: any) { setError(e?.message || '본문 생성 실패'); }
-        finally { setDrafting(false); }
-    };
-
-    // 탭3: 이 챕터만 클로드로 본문 다시 쓰기
-    const rewriteChapter = async (no: number) => {
-        if (!selected || rewritingNo !== null) return;
-        if (!confirm(`${no}장 본문을 클로드로 다시 쓸까요? (현재 본문은 새 본문으로 교체돼요)`)) return;
-        setRewritingNo(no); setError(null);
-        try {
-            const res = await ebookApi.rewriteChapter(selected.id, no);
-            patchChapter(no, { contentMd: res.contentMd, finalProvider: 'claude' });
-            setPdfUrl(null);
-        } catch (e: any) { setError(e?.message || '다시 쓰기 실패'); }
-        finally { setRewritingNo(null); }
-    };
+    // ※ 즉시 본문 일괄생성/다시쓰기 제거 — 본문은 야간 예약 배치에서만 생성한다.
 
     // 탭3: 책 표지 생성(gpt-image)
     const makeCover = async () => {
@@ -253,23 +191,32 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setPdfMaking(false); }
     };
 
-    // 탭4: 예약 시각 저장
+    // 탭4: 예약 시각 저장 (품절이면 409 → 안내 + 슬롯 새로고침)
     const saveSchedule = async (hour: number | null) => {
         if (!selected || savingSchedule) return;
         setSavingSchedule(true); setError(null);
         try {
             await ebookApi.setSchedule(selected.id, hour);
             setSelected(prev => prev ? { ...prev, scheduledHour: hour } : prev);
-        } catch (e: any) { setError(e?.message || '예약 저장 실패'); }
+            loadSlots(); // 예약 반영 후 슬롯 현황 갱신
+        } catch (e: any) {
+            setError(e?.message || '예약 저장 실패');
+            loadSlots(); // 품절이었을 수 있으니 현황 새로고침(다른 시간대 유도)
+        }
         finally { setSavingSchedule(false); }
     };
 
-    // 탭2: 체크된 챕터만 자료 지금 바로 수집
-    const collectAll = async (force = false) => {
+    // 탭4: 시간대 슬롯 현황(품절 여부) 로드
+    const loadSlots = useCallback(() => {
+        ebookApi.getSlots().then(r => setSlots(r.slots)).catch(() => {});
+    }, []);
+
+    // 탭4: 체크된 챕터 자료만 지금 바로 수집 (본문은 야간 배치)
+    const collectAll = async () => {
         if (!selected || collectingAll) return;
         setCollectingAll(true); setError(null); setCollectResults(null);
         try {
-            const res = await ebookApi.collectAll(selected.id, force);
+            const res = await ebookApi.collectAll(selected.id);
             setCollectResults(res.results);
             setSelected(prev => prev ? { ...prev, chapters: res.chapters } : prev);
         } catch (e: any) { setError(e?.message || '자료 수집 실패'); }
@@ -295,6 +242,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         ebookApi.list().then(setList).catch(() => {});
     }, []);
     useEffect(() => { loadList(); }, [loadList]);
+
+    // 자료 수집 탭(4) 열릴 때 시간대 예약 현황(품절) 로드
+    useEffect(() => { if (selected && activeTab === 4) loadSlots(); }, [selected?.id, activeTab, loadSlots]);
 
     // 선택된 전자책이 바뀌면 제목 입력값 동기화
     useEffect(() => {
@@ -448,41 +398,51 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     <div className="space-y-4">
                                         {error && <p className="text-xs text-red-500">{error}</p>}
 
-                                        {/* 예약 시각 */}
+                                        {/* 예약 시각 (정원제 — 품절 표시) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 수집 예약</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>새벽 시간을 골라두면 그 시각에 <b style={{ color: T.accent }}>아래에서 체크한 챕터</b>의 자료 수집 + 본문 작성까지 자동으로 끝나요. 아침에 <b style={{ color: T.accent }}>초안 만들기</b> 탭에서 문서(.docx)만 받으면 돼요.</p>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>⏰ 새벽 자동 본문 생성 예약</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>아래에서 <b style={{ color: T.accent }}>자료를 수집</b>한 뒤 새벽 시간을 골라두면, 그 시각에 <b style={{ color: T.accent }}>본문이 자동으로 만들어져요</b>. 다음날 <b style={{ color: T.accent }}>초안 만들기</b> 탭에서 문서(.docx)를 받으세요. <span style={{ color: T.inkMute }}>시간대별 정원이 있어, 차면 다른 시간을 골라주세요.</span></p>
                                             <div className="flex gap-1.5 flex-wrap">
                                                 {[1, 2, 3, 4, 5].map(h => {
                                                     const on = selected.scheduledHour === h;
+                                                    const slot = slots.find(s => s.hour === h);
+                                                    const soldOut = !on && (slot?.soldOut ?? false); // 내가 잡은 슬롯은 품절이어도 표시 유지
                                                     return (
-                                                        <button key={h} onClick={() => saveSchedule(on ? null : h)} disabled={savingSchedule}
-                                                            className="rounded-xl text-sm font-bold disabled:opacity-50" style={{ padding: '7px 14px', color: on ? '#fff' : T.inkSoft, background: on ? T.accent : T.surface, border: `1px solid ${on ? T.accent : T.border}` }}>
-                                                            새벽 {h}시
+                                                        <button key={h} onClick={() => { if (!soldOut) saveSchedule(on ? null : h); }} disabled={savingSchedule || soldOut}
+                                                            title={soldOut ? '예약 마감(품절)' : ''}
+                                                            className="rounded-xl text-sm font-bold disabled:cursor-not-allowed" style={{
+                                                                padding: '7px 14px',
+                                                                color: on ? '#fff' : soldOut ? T.inkMute : T.inkSoft,
+                                                                background: on ? T.accent : soldOut ? '#EEE9E2' : T.surface,
+                                                                border: `1px solid ${on ? T.accent : T.border}`,
+                                                                opacity: soldOut ? 0.65 : 1,
+                                                                textDecoration: soldOut ? 'line-through' : 'none',
+                                                            }}>
+                                                            새벽 {h}시{soldOut ? ' · 품절' : slot ? ` · ${slot.capacity - slot.used}자리` : ''}
                                                         </button>
                                                     );
                                                 })}
                                             </div>
                                             <p className="text-[11px] mt-2" style={{ color: selected.scheduledHour ? T.accent : T.inkMute }}>
-                                                {selected.scheduledHour ? `매일 새벽 ${selected.scheduledHour}시에 수집 예약됨 (다시 누르면 해제)` : '예약 안 됨'}
+                                                {selected.scheduledHour ? `새벽 ${selected.scheduledHour}시에 본문 생성 예약됨 (다시 누르면 해제)` : '예약 안 됨 — 자료 수집 후 시간을 골라주세요'}
                                             </p>
                                         </div>
 
-                                        {/* 수집 대상 선택(체크) + 수집 */}
+                                        {/* 수집 대상 선택(체크) + 자료수집(즉시) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.accentBorder}` }}>
-                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>수집할 챕터 선택</p>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터는 <b style={{ color: T.accent }}>자료 수집 + 본문 작성(클로드)까지 한 번에</b> 자동으로 돼요. 자료가 있어도 새로 수집(덮어쓰기)하고, 끝나면 체크는 자동 해제. 다시 만들고 싶으면 다시 체크하세요. · 선택 {checkedCount}/{total} · 본문완료 {withSrc}</p>
+                                            <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>자료 수집할 챕터 선택</p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>체크한 챕터의 <b style={{ color: T.accent }}>자료를 지금 바로 수집</b>해요. <b style={{ color: T.accent }}>본문은 위에서 예약한 새벽 시간</b>에 자동으로 만들어집니다. · 선택 {checkedCount}/{total} · 자료완료 {withSrc}</p>
 
-                                            {/* 전체 선택 토글 + 수집 버튼 */}
+                                            {/* 전체 선택 토글 + 자료수집 버튼 */}
                                             <div className="flex items-center gap-2 flex-wrap mb-2">
                                                 <label className="inline-flex items-center gap-1.5 text-xs font-bold cursor-pointer select-none" style={{ color: T.ink }}>
                                                     <input type="checkbox" checked={allChecked} onChange={e => toggleAllCollect(e.target.checked)} style={{ accentColor: T.accent, width: 15, height: 15 }} />
                                                     전체 선택
                                                 </label>
                                                 <span className="text-[11px]" style={{ color: T.inkMute }}>›</span>
-                                                <button onClick={() => collectAll(false)} disabled={collectingAll || checkedCount === 0}
+                                                <button onClick={() => collectAll()} disabled={collectingAll || checkedCount === 0}
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                    {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으고 본문 쓰는 중… (시간이 걸려요)</> : <><Search size={14} /> 선택한 챕터 자료+본문 만들기</>}
+                                                    {collectingAll ? <><Loader size={14} className="animate-spin" /> 자료 모으는 중…</> : <><Search size={14} /> 선택한 챕터 자료 수집</>}
                                                 </button>
                                             </div>
 
@@ -495,9 +455,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                         const done = ch.sourceStatus === 'done';
                                                         const checked = isChecked(ch);
                                                         const label = r
-                                                            ? (r.status === 'done' ? '자료+본문 완료' : r.status === 'sources-only' ? '자료만(본문 실패)' : r.status === 'unchecked' ? '제외됨' : '실패')
+                                                            ? (r.status === 'sources-done' ? '자료 수집됨' : r.status === 'unchecked' ? '제외됨' : '자료 실패')
                                                             : (hasBody ? '본문 있음' : done ? '자료 있음' : ch.sourceStatus === 'failed' ? '실패' : checked ? '대기' : '제외');
-                                                        const color = (r?.status === 'failed' || ch.sourceStatus === 'failed') ? '#C62828' : (hasBody || done || r?.status === 'done') ? '#5BA36A' : (r?.status === 'sources-only') ? '#C96442' : T.inkMute;
+                                                        const color = (r?.status === 'sources-failed' || ch.sourceStatus === 'failed') ? '#C62828' : (hasBody || done || r?.status === 'sources-done') ? '#5BA36A' : T.inkMute;
                                                         return (
                                                             <label key={ch.no} className="flex items-center gap-2 text-xs rounded-lg px-2 py-1.5 cursor-pointer select-none" style={{ background: checked ? T.surface : 'transparent', opacity: checked ? 1 : 0.55 }}>
                                                                 <input type="checkbox" checked={checked} onChange={e => toggleChapterCollect(ch.no, e.target.checked)} style={{ accentColor: T.accent, width: 15, height: 15, flexShrink: 0 }} />
@@ -525,40 +485,30 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     <div className="space-y-4">
                                         {error && <p className="text-xs text-red-500">{error}</p>}
 
-                                        {/* 1단계: 본문 만들기 */}
+                                        {/* 1단계: 본문(새벽 자동 생성 결과 보기) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>1</span>
-                                                <p className="text-sm font-bold" style={{ color: T.ink }}>전체 본문 만들기</p>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>본문</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                자료가 수집된 챕터를 <b style={{ color: '#C96442' }}>클로드</b>가 본문으로 써요.
-                                                이미 본문이 있는 챕터는 건너뜁니다. · 전체 {total} · 자료완료 {withSrc} · 본문완료 {withBody}
+                                                본문은 <b style={{ color: T.accent }}>자료 수집 탭에서 예약한 새벽 시간에 자동으로 만들어져요</b>. 다음날 들어와 확인하고, 아래에서 문서(.docx)를 받으세요. · 전체 {total} · 자료완료 {withSrc} · 본문완료 {withBody}
                                             </p>
-                                            <div className="flex gap-2 flex-wrap">
-                                                <button onClick={() => generateDraft(false)} disabled={drafting || withSrc === 0}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                    {drafting ? <><Loader size={14} className="animate-spin" /> 본문 작성 중… (시간이 걸려요)</> : <><FileText size={14} /> 전체 본문 만들기</>}
-                                                </button>
-                                                {withBody > 0 && !drafting && (
-                                                    <button onClick={() => { if (confirm('이미 만든 본문도 전부 다시 쓸까요?')) generateDraft(true); }}
-                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-xl" style={{ padding: '8px 12px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                        <RefreshCw size={12} /> 전부 다시 쓰기
-                                                    </button>
-                                                )}
-                                            </div>
-                                            {withSrc === 0 && <p className="text-[11px] mt-2" style={{ color: '#C62828' }}>먼저 <b>자료 수집</b> 탭에서 자료를 모아주세요.</p>}
+                                            {withBody === 0 && (
+                                                <p className="text-[11px] mb-2 px-3 py-2 rounded-lg" style={{ color: T.inkSoft, background: T.surface, border: `1px dashed ${T.border}` }}>
+                                                    {withSrc === 0
+                                                        ? <>아직 본문이 없어요. 먼저 <b style={{ color: T.accent }}>자료 수집</b> 탭에서 자료를 모으고 새벽 시간을 예약해주세요.</>
+                                                        : <>자료 수집은 끝났어요. <b style={{ color: T.accent }}>새벽 예약 시간이 지나면</b> 본문이 자동으로 채워집니다. 내일 다시 들러주세요 🌙</>}
+                                                </p>
+                                            )}
 
-                                            {/* 챕터별 결과/상태 + 본문 보기·글 수정 */}
-                                            {(draftResults || total > 0) && (
+                                            {/* 챕터별 상태 + 본문 보기(읽기 전용) */}
+                                            {total > 0 && (
                                                 <div className="mt-3 space-y-1.5">
                                                     {chs.map(ch => {
-                                                        const r = draftResults?.find(x => x.no === ch.no);
                                                         const hasBody = typeof ch.contentMd === 'string' && ch.contentMd.trim();
-                                                        const label = r
-                                                            ? (r.status === 'done' ? `완성 · ${r.chars?.toLocaleString()}자` : r.status === 'skipped' ? '기존 본문 유지' : r.status === 'no-sources' ? '자료 없음' : '실패')
-                                                            : (hasBody ? '본문 있음' : ch.sourceStatus === 'done' ? '대기' : '자료 없음');
-                                                        const color = r?.status === 'failed' || (!hasBody && ch.sourceStatus !== 'done') ? '#C62828' : hasBody || r?.status === 'done' || r?.status === 'skipped' ? '#5BA36A' : T.inkMute;
+                                                        const label = hasBody ? `완성 · ${ch.contentMd!.length.toLocaleString()}자` : ch.sourceStatus === 'done' ? '생성 대기(새벽)' : '자료 없음';
+                                                        const color = hasBody ? '#5BA36A' : ch.sourceStatus === 'done' ? T.accent : T.inkMute;
                                                         const open = contentOpenNo === ch.no;
                                                         return (
                                                             <div key={ch.no} className="rounded-lg" style={{ border: open ? `1px solid ${T.border}` : 'none' }}>
@@ -574,16 +524,12 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                     <span className="shrink-0 font-semibold" style={{ color }}>{label}</span>
                                                                 </div>
 
-                                                                {/* 펼침: 본문 미리보기 + 다시 쓰기 */}
+                                                                {/* 펼침: 본문 미리보기(읽기 전용) */}
                                                                 {open && hasBody && (
                                                                     <div className="px-2 pb-2">
                                                                         <div className="rounded-lg p-3 text-sm leading-relaxed ebook-md" style={{ background: '#fff', border: `1px solid ${T.border}`, color: T.ink, fontFamily: '"Nanum Myeongjo", serif', maxHeight: 280, overflowY: 'auto' }}>
                                                                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{ch.contentMd!}</ReactMarkdown>
                                                                         </div>
-                                                                        <button onClick={() => rewriteChapter(ch.no)} disabled={rewritingNo !== null}
-                                                                            className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '5px 12px', color: '#fff', background: '#C96442' }}>
-                                                                            {rewritingNo === ch.no ? <><Loader size={11} className="animate-spin" /> 다시 쓰는 중…</> : <><RefreshCw size={11} /> 클로드로 다시 쓰기</>}
-                                                                        </button>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -592,7 +538,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 </div>
                                             )}
                                             <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>
-                                                💡 본문을 만든 뒤 아래에서 <b style={{ color: T.accent }}>문서(.docx)</b>를 받아 구글 독스에서 자유롭게 편집·출판하세요. 글·표·그림 모두 거기서 다듬을 수 있어요.
+                                                💡 본문이 다 채워지면 아래에서 <b style={{ color: T.accent }}>문서(.docx)</b>를 받아 구글 독스에서 자유롭게 편집·출판하세요.
                                             </p>
                                         </div>
 

@@ -498,22 +498,11 @@ export const ebookApi = {
         del<{ deleted: boolean }>(`/ebook/${id}`),
     collectSources: (id: number, no: number) =>
         post<{ no: number; sourceStatus: EbookSourceStatus; sources: EbookSource[] }>(`/ebook/${id}/chapters/${no}/sources`, {}),
-    generateContent: (id: number, no: number, provider: EbookProvider = 'gemini', feedback?: string) =>
-        post<{ no: number; provider: EbookProvider; contentStatus: EbookContentStatus; contentMd: string }>(
-            `/ebook/${id}/chapters/${no}/content`, { provider, ...(feedback ? { feedback } : {}) }),
-    // 비교본 중 하나를 최종본으로 선택
-    selectContent: (id: number, no: number, provider: EbookProvider) =>
-        put<{ no: number; finalProvider: EbookProvider; contentMd: string }>(`/ebook/${id}/chapters/${no}/select`, { provider }),
-    // 최종본 직접 수정 저장
+    // ※ 즉시 본문생성/다시쓰기/일괄생성(generateContent·rewriteChapter·generateDraft) 제거 — 본문은 야간 예약 배치에서만 생성.
+    //    백엔드 라우트는 409(예약 안내)를 반환하므로 프론트에서 호출하지 않는다.
+    // 최종본 직접 수정 저장(편집기에서 사용 — 유지)
     saveContentMd: (id: number, no: number, contentMd: string) =>
         put<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/content-md`, { contentMd }),
-    // 탭3: 이 챕터만 클로드로 본문 다시 쓰기(contentMd 직접 반영)
-    rewriteChapter: (id: number, no: number, feedback?: string) =>
-        post<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/rewrite`, feedback ? { feedback } : {}),
-    // 그림 이미지 GCS 업로드용 signed-url
-    // 탭3: 자료 수집된 챕터 본문을 클로드로 일괄 생성 (본문 있으면 건너뜀)
-    generateDraft: (id: number, force = false) =>
-        post<{ results: EbookDraftResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/draft`, { force }),
     // 탭3: 책 표지를 gpt-image로 생성 → coverUrl
     generateCover: (id: number) =>
         post<{ coverUrl: string }>(`/ebook/${id}/cover`, {}),
@@ -523,20 +512,22 @@ export const ebookApi = {
     // 탭3: 전체 본문 → PDF → GCS URL
     generatePdf: (id: number, font?: EbookPdfFont) =>
         post<{ url: string; bytes: number }>(`/ebook/${id}/pdf`, { ...(font ? { font } : {}) }),
-    // 탭2: 자료 일괄수집 예약 시각 저장(KST 1~5시, null=해제)
+    // 시간대별 야간 생성 예약 현황(품절 여부). 프론트가 품절 슬롯 비활성화에 사용.
+    getSlots: () =>
+        get<{ slots: EbookSlot[]; capacity: number; allSoldOut: boolean }>(`/ebook/slots`),
+    // 예약 시각 저장(KST 1~5시, null=해제). 슬롯이 차면 409(품절).
     setSchedule: (id: number, hour: number | null) =>
         put<{ scheduledHour: number | null }>(`/ebook/${id}/schedule`, { hour }),
-    // 탭2: 체크된 챕터 자료 지금 바로 일괄수집(체크 안 된 챕터·수집된 챕터는 건너뜀)
+    // 체크된 챕터 자료만 지금 바로 일괄수집(본문은 야간 예약 배치에서 생성)
     collectAll: (id: number, force = false) =>
         post<{ results: EbookCollectResult[]; chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-all`, { force }),
-    // 탭2: 챕터별 자료수집 체크 상태 저장 ({ "1": true, "2": false, ... })
+    // 챕터별 자료수집 체크 상태 저장 ({ "1": true, "2": false, ... })
     setCollectFlags: (id: number, flags: Record<string, boolean>) =>
         put<{ chapters: EbookTocChapter[] }>(`/ebook/${id}/collect-flags`, { flags }),
 };
 
-export interface EbookCollectResult { no: number; status: 'done' | 'sources-only' | 'skipped' | 'failed' | 'unchecked'; }
-
-export interface EbookDraftResult { no: number; status: 'done' | 'skipped' | 'failed' | 'no-sources'; chars?: number; error?: string; }
+export interface EbookSlot { hour: number; used: number; capacity: number; soldOut: boolean; }
+export interface EbookCollectResult { no: number; status: 'sources-done' | 'sources-failed' | 'unchecked'; }
 export interface EbookPdfFont { h1?: number; h2?: number; body?: number; }
 
 export const quickMenuApi = {
