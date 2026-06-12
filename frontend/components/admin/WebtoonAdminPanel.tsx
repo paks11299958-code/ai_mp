@@ -285,23 +285,10 @@ export const WebtoonAdminPanel: React.FC = () => {
                                 {gridBase64 && gridDims && (
                                     <div className="mt-3">
                                         <p className="text-[11px] mb-1.5" style={{ color: T.ink }}>
-                                            감지된 칸 <b style={{ color: T.accent }}>{panels.length}개</b> · 박스의 <b>✕</b>로 잘못된 칸을 빼고, 아래에서 확정하세요.
+                                            감지된 칸 <b style={{ color: T.accent }}>{panels.length}개</b> · 박스의 <b>✕</b>로 잘못된 칸을 빼고, 확정하세요.
                                         </p>
-                                        <div className="relative inline-block max-w-full rounded-lg overflow-hidden" style={{ border: `1px solid ${T.border}` }}>
-                                            <img src={`data:${gridMime};base64,${gridBase64}`} alt="그리드 원본" style={{ display: 'block', maxWidth: '100%', height: 'auto' }} />
-                                            {/* 박스 오버레이 (원본 비율 → % 환산) */}
-                                            {panels.map((b, i) => (
-                                                <div key={i} className="absolute flex items-start justify-between" style={{
-                                                    left: `${(b.x / gridDims.w) * 100}%`, top: `${(b.y / gridDims.h) * 100}%`,
-                                                    width: `${(b.w / gridDims.w) * 100}%`, height: `${(b.h / gridDims.h) * 100}%`,
-                                                    border: `2px solid ${T.accent}`, background: 'rgba(142,111,183,0.12)',
-                                                }}>
-                                                    <span className="text-[10px] font-bold m-0.5 rounded px-1" style={{ background: T.accent, color: '#fff' }}>{i + 1}</span>
-                                                    <button onClick={() => removePanel(i)} className="text-[10px] font-bold m-0.5 rounded px-1" style={{ background: 'rgba(198,40,40,0.92)', color: '#fff' }}>✕</button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                        {/* 확정 버튼 — 미리보기 위에 둬서 스크롤 없이 바로 누름. sticky로 스크롤해도 따라옴 */}
+                                        <div className="flex items-center gap-2 mb-2 flex-wrap sticky top-0 z-10 py-1.5 rounded-lg" style={{ background: '#F4F0FA' }}>
                                             <div className="flex rounded-lg overflow-hidden" style={{ border: `1px solid ${T.border}` }}>
                                                 <button onClick={() => setSplitMode('append')} className="text-[11px] font-bold px-2.5 py-1" style={{ background: splitMode === 'append' ? T.accent : '#fff', color: splitMode === 'append' ? '#fff' : T.inkSoft }}>기존 컷 뒤에 추가</button>
                                                 <button onClick={() => setSplitMode('replace')} className="text-[11px] font-bold px-2.5 py-1" style={{ background: splitMode === 'replace' ? T.accent : '#fff', color: splitMode === 'replace' ? '#fff' : T.inkSoft }}>전체 교체</button>
@@ -310,7 +297,24 @@ export const WebtoonAdminPanel: React.FC = () => {
                                                 className="text-sm font-bold rounded-lg disabled:opacity-40" style={{ padding: '7px 16px', background: '#5BA36A', color: '#fff' }}>
                                                 {splitting ? '자르고 올리는 중…' : `이 ${panels.length}컷으로 추가`}
                                             </button>
-                                            <button onClick={resetGrid} className="text-[11px] font-bold rounded-lg px-2.5 py-1" style={{ color: T.inkSoft, border: `1px solid ${T.border}` }}>취소</button>
+                                            <button onClick={resetGrid} className="text-[11px] font-bold rounded-lg px-2.5 py-1" style={{ color: T.inkSoft, border: `1px solid ${T.border}`, background: '#fff' }}>취소</button>
+                                        </div>
+                                        {/* 미리보기 이미지 — 높이 제한 + 세로 스크롤(긴 이미지도 박스 안에서만 스크롤) */}
+                                        <div className="overflow-y-auto rounded-lg" style={{ maxHeight: '55vh', border: `1px solid ${T.border}` }}>
+                                            <div className="relative" style={{ lineHeight: 0 }}>
+                                                <img src={`data:${gridMime};base64,${gridBase64}`} alt="그리드 원본" style={{ display: 'block', width: '100%', height: 'auto' }} />
+                                                {/* 박스 오버레이 (원본 비율 → % 환산) */}
+                                                {panels.map((b, i) => (
+                                                    <div key={i} className="absolute flex items-start justify-between" style={{
+                                                        left: `${(b.x / gridDims.w) * 100}%`, top: `${(b.y / gridDims.h) * 100}%`,
+                                                        width: `${(b.w / gridDims.w) * 100}%`, height: `${(b.h / gridDims.h) * 100}%`,
+                                                        border: `2px solid ${T.accent}`, background: 'rgba(142,111,183,0.12)',
+                                                    }}>
+                                                        <span className="text-[10px] font-bold m-0.5 rounded px-1" style={{ background: T.accent, color: '#fff' }}>{i + 1}</span>
+                                                        <button onClick={() => removePanel(i)} className="text-[10px] font-bold m-0.5 rounded px-1" style={{ background: 'rgba(198,40,40,0.92)', color: '#fff' }}>✕</button>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
