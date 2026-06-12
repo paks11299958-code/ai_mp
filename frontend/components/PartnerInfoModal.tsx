@@ -4,6 +4,7 @@ import { BirthInfo } from './BirthInfoModal';
 interface Props {
     onComplete: (info: BirthInfo) => void;
     onClose: () => void;
+    title?: string;  // 헤더 문구(기본: 궁합 상대방 정보). 친구 둘 궁합 등에서 커스터마이즈.
 }
 
 const ITEM_H = 44;
@@ -97,7 +98,7 @@ const DIALOGS: Record<Step, string> = {
     time: '상대방의 태어난 시(時)를 알 수 있겠는가?',
 };
 
-export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose }) => {
+export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }) => {
     const [step, setStep] = useState<Step>('name');
     const [name, setName] = useState('');
     const [year, setYear] = useState('1990');
@@ -116,7 +117,7 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose }) => {
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-4"
                     style={{ borderBottom: '1px solid rgba(140,90,20,0.25)' }}>
-                    <span className="text-sm tracking-widest font-medium" style={{ color: '#b07d3a' }}>💑 궁합 상대방 정보</span>
+                    <span className="text-sm tracking-widest font-medium" style={{ color: '#b07d3a' }}>{title ?? '💑 궁합 상대방 정보'}</span>
                     <button onClick={onClose}
                         className="text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
                         style={{ background: 'rgba(75,85,99,0.4)', color: '#d1d5db', border: '1px solid rgba(107,114,128,0.5)' }}

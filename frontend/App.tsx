@@ -197,6 +197,9 @@ const AppContent: React.FC = () => {
         activeQuickMenu, setActiveQuickMenu,
         showPartnerModal, setShowPartnerModal,
         pendingPartnerMenu, setPendingPartnerMenu,
+        twoPartnerStep, setTwoPartnerStep,
+        firstPartner, setFirstPartner,
+        pendingTwoPartnerMenu, setPendingTwoPartnerMenu,
         showFaceModal, setShowFaceModal,
         faceReadingResult, setFaceReadingResult,
         showPalmModal, setShowPalmModal,
@@ -402,6 +405,13 @@ const AppContent: React.FC = () => {
         if (item.partnerModal) {
             setPendingPartnerMenu({ label: item.label, prompt: item.prompt ?? '' });
             setShowPartnerModal(true);
+            return;
+        }
+        if (item.twoPartnerModal) {
+            // 친구 둘 궁합 — 친구1부터 입력. onComplete에서 친구2로 이어진다.
+            setPendingTwoPartnerMenu({ label: item.label, prompt: item.prompt ?? '' });
+            setFirstPartner(null);
+            setTwoPartnerStep(1);
             return;
         }
         if (item.placeholder) {
@@ -1314,6 +1324,36 @@ const AppContent: React.FC = () => {
                         setTimeout(() => textareaRef.current?.focus(), 0);
                     }}
                     onClose={() => { setShowPartnerModal(false); setPendingPartnerMenu(null); }}
+                />
+            )}
+
+            {/* 친구 둘 궁합 — PartnerInfoModal을 친구1→친구2 2번. */}
+            {twoPartnerStep > 0 && (
+                <PartnerInfoModal
+                    key={twoPartnerStep}  // step 바뀌면 입력 초기화
+                    title={twoPartnerStep === 1 ? '🤝 첫 번째 친구 정보' : '🤝 두 번째 친구 정보'}
+                    onComplete={info => {
+                        if (twoPartnerStep === 1) {
+                            // 친구1 저장 후 친구2 입력으로
+                            setFirstPartner(info);
+                            setTwoPartnerStep(2);
+                            return;
+                        }
+                        // 친구2까지 받음 → 프롬프트 합성
+                        const fmt = (p: typeof info) => {
+                            const t = p.time && p.time !== '모름' ? ` ${p.time}생` : '';
+                            const cal = p.lunar ? '음력' : '양력';
+                            return `${p.name}(${cal} ${p.year}년 ${p.month}월 ${p.day}일${t})`;
+                        };
+                        const f1 = firstPartner ? fmt(firstPartner) : '';
+                        const f2 = fmt(info);
+                        const prompt = pendingTwoPartnerMenu?.prompt ?? '';
+                        const composed = `친구 둘의 우정 궁합을 봐주게나. 친구1: ${f1}, 친구2: ${f2}. ${prompt}`;
+                        setTwoPartnerStep(0); setFirstPartner(null); setPendingTwoPartnerMenu(null);
+                        setInputText(composed);
+                        setTimeout(() => textareaRef.current?.focus(), 0);
+                    }}
+                    onClose={() => { setTwoPartnerStep(0); setFirstPartner(null); setPendingTwoPartnerMenu(null); }}
                 />
             )}
 

@@ -34,6 +34,10 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
     const [activeQuickMenu, setActiveQuickMenu] = useState<string | null>(null);
     const [showPartnerModal, setShowPartnerModal] = useState(false);
     const [pendingPartnerMenu, setPendingPartnerMenu] = useState<{ label: string; prompt: string } | null>(null);
+    // 친구 둘 궁합 — PartnerInfoModal을 친구1→친구2 2번 띄운다. step 1=친구1, 2=친구2.
+    const [twoPartnerStep, setTwoPartnerStep] = useState<0 | 1 | 2>(0);
+    const [firstPartner, setFirstPartner] = useState<BirthInfo | null>(null);
+    const [pendingTwoPartnerMenu, setPendingTwoPartnerMenu] = useState<{ label: string; prompt: string } | null>(null);
     const [showFaceModal, setShowFaceModal] = useState(false);
     const [faceReadingResult, setFaceReadingResult] = useState<FaceReadingResult | null>(null);
     const [showPalmModal, setShowPalmModal] = useState(false);
@@ -74,6 +78,9 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
         activeQuickMenu, setActiveQuickMenu,
         showPartnerModal, setShowPartnerModal,
         pendingPartnerMenu, setPendingPartnerMenu,
+        twoPartnerStep, setTwoPartnerStep,
+        firstPartner, setFirstPartner,
+        pendingTwoPartnerMenu, setPendingTwoPartnerMenu,
         showFaceModal, setShowFaceModal,
         faceReadingResult, setFaceReadingResult,
         showPalmModal, setShowPalmModal,

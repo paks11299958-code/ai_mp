@@ -5,6 +5,7 @@ export interface SubMenuItem {
     prompt: string;
     placeholder?: string;
     partnerModal?: boolean;
+    twoPartnerModal?: boolean;  // 친구 둘 궁합 — 상대 2명 입력
 }
 
 export interface SubMenuConfig {

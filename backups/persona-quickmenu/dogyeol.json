@@ -84,6 +84,26 @@
     "label": "🖐 손금",
     "featured": true,
     "palmModal": true
+   },
+   {
+    "label": "🤝 우정",
+    "subMenu": {
+     "items": [
+      {
+       "label": "나와 친구 궁합",
+       "prompt": "나와 이 친구의 우정 궁합을 봐주게나. 둘의 기질이 어떻게 어울리는지, 오래 갈 인연인지, 서로에게 득이 되는 벗인지 짚어주시게.",
+       "partnerModal": true
+      },
+      {
+       "label": "친구 둘 궁합",
+       "prompt": "이 두 친구가 서로 어떤 벗인지, 둘의 우정이 깊어질 인연인지 제3자의 눈으로 봐주게나.",
+       "twoPartnerModal": true
+      }
+     ],
+     "dialog": "벗과 벗 사이에도 결이 있는 법. 자네와 벗의 인연을 볼 텐가, 아니면 두 벗의 사이를 헤아려 줄 텐가?"
+    },
+    "featured": true,
+    "resultCard": true
    }
   ],
   "useBirthInfo": true
