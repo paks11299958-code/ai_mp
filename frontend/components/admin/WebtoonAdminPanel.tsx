@@ -84,6 +84,18 @@ export const WebtoonAdminPanel: React.FC = () => {
         if (!selected) return;
         saveCuts(selected.cuts.filter((_, idx) => idx !== i));
     };
+
+    // 마우스 드래그로 컷 순서 옮기기 (HTML5 native DnD)
+    const [dragIdx, setDragIdx] = useState<number | null>(null);
+    const [overIdx, setOverIdx] = useState<number | null>(null);
+    const onDrop = (to: number) => {
+        if (!selected || dragIdx === null || dragIdx === to) { setDragIdx(null); setOverIdx(null); return; }
+        const cuts = [...selected.cuts];
+        const [moved] = cuts.splice(dragIdx, 1);
+        cuts.splice(to, 0, moved);
+        setDragIdx(null); setOverIdx(null);
+        saveCuts(cuts);
+    };
     const toggleVisible = async () => {
         if (!selected) return;
         try { const u = await webtoonApi.update(selected.id, { isVisible: !selected.isVisible }); setSelected(u); load(); }
@@ -185,8 +197,19 @@ export const WebtoonAdminPanel: React.FC = () => {
                             ) : (
                                 <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))' }}>
                                     {selected.cuts.map((url, i) => (
-                                        <div key={i} className="rounded-lg overflow-hidden relative group" style={{ border: `1px solid ${T.border}` }}>
-                                            <img src={url} alt={`컷 ${i + 1}`} style={{ width: '100%', height: 150, objectFit: 'cover' }} />
+                                        <div key={i}
+                                            draggable
+                                            onDragStart={() => setDragIdx(i)}
+                                            onDragOver={e => { e.preventDefault(); if (overIdx !== i) setOverIdx(i); }}
+                                            onDragEnd={() => { setDragIdx(null); setOverIdx(null); }}
+                                            onDrop={e => { e.preventDefault(); onDrop(i); }}
+                                            className="rounded-lg overflow-hidden relative group"
+                                            style={{
+                                                border: overIdx === i && dragIdx !== null && dragIdx !== i ? `2px solid ${T.accent}` : `1px solid ${T.border}`,
+                                                opacity: dragIdx === i ? 0.4 : 1,
+                                                cursor: 'grab',
+                                            }}>
+                                            <img src={url} alt={`컷 ${i + 1}`} draggable={false} style={{ width: '100%', height: 150, objectFit: 'cover', pointerEvents: 'none' }} />
                                             <div className="absolute top-1 left-1 text-[10px] font-bold rounded px-1.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)', color: '#fff' }}>{i + 1}</div>
                                             <div className="absolute bottom-1 left-1 right-1 flex gap-1 justify-center">
                                                 <button onClick={() => moveCut(i, -1)} disabled={i === 0} className="text-xs font-bold rounded px-2 py-1 disabled:opacity-30" style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>◀</button>
@@ -197,7 +220,7 @@ export const WebtoonAdminPanel: React.FC = () => {
                                     ))}
                                 </div>
                             )}
-                            <p className="text-[11px] mt-3" style={{ color: T.inkSoft }}>💡 ◀▶로 순서 조정, ✕로 삭제. 첫 컷이 목록 썸네일이 돼요.</p>
+                            <p className="text-[11px] mt-3" style={{ color: T.inkSoft }}>💡 <b style={{ color: T.accent }}>마우스로 컷을 끌어다 놓으면</b> 순서가 바뀌어요. ◀▶로도 한 칸씩 조정, ✕로 삭제. 첫 컷이 목록 썸네일이 돼요.</p>
                         </div>
                     )}
                 </div>
