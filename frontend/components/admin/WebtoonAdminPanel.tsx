@@ -68,6 +68,31 @@ export const WebtoonAdminPanel: React.FC = () => {
         finally { setUploading(false); }
     };
 
+    // 표지 이미지 업로드/제거 (목록 썸네일용. 안 올리면 첫 컷이 자동 썸네일)
+    const [coverUploading, setCoverUploading] = useState(false);
+    const uploadCover = async (file: File) => {
+        if (!selected || coverUploading) return;
+        if (!file.type.startsWith('image/')) { setError('이미지 파일만 올릴 수 있어요.'); return; }
+        setCoverUploading(true); setError(null);
+        try {
+            const url = await webtoonApi.uploadCut(selected.id, file); // 같은 업로드 엔드포인트 재사용
+            const u = await webtoonApi.update(selected.id, { coverUrl: url });
+            setSelected(u); load();
+        } catch (e: any) { setError(e?.message || '표지 업로드 실패'); }
+        finally { setCoverUploading(false); }
+    };
+    const removeCover = async () => {
+        if (!selected || coverUploading) return;
+        setCoverUploading(true); setError(null);
+        try {
+            // 표지를 지우면 첫 컷으로 되돌림(첫 컷도 없으면 null). 표지 없을 때 첫 컷이 썸네일.
+            const fallback = selected.cuts[0] ?? null;
+            const u = await webtoonApi.update(selected.id, { coverUrl: fallback });
+            setSelected(u); load();
+        } catch (e: any) { setError(e?.message || '표지 제거 실패'); }
+        finally { setCoverUploading(false); }
+    };
+
     const saveCuts = async (cuts: string[], extra: any = {}) => {
         if (!selected) return;
         try { const u = await webtoonApi.update(selected.id, { cuts, ...extra }); setSelected(u); load(); }
@@ -182,6 +207,31 @@ export const WebtoonAdminPanel: React.FC = () => {
                                     {selected.isVisible ? '공개 중 (클릭 시 숨김)' : '숨김 (클릭 시 공개)'}
                                 </button>
                                 <button onClick={() => removeEpisode(selected.id)} className="ml-auto text-[11px] font-bold rounded-lg px-2.5 py-1" style={{ color: '#C62828', background: '#FDECEC' }}>회차 삭제</button>
+                            </div>
+
+                            {/* 표지 (목록 썸네일용. 안 올리면 첫 컷 자동) */}
+                            <div className="rounded-xl p-3 mb-3 flex items-center gap-3" style={{ background: '#F9FAFB', border: `1px solid ${T.border}` }}>
+                                <div className="shrink-0 rounded-lg overflow-hidden flex items-center justify-center" style={{ width: 60, height: 80, background: '#F0E9F7', border: `1px solid ${T.border}` }}>
+                                    {selected.coverUrl
+                                        ? <img src={selected.coverUrl} alt="표지" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        : (selected.cuts[0]
+                                            ? <img src={selected.cuts[0]} alt="첫 컷(자동)" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }} />
+                                            : <Icon name="BookOpen" size={20} />)}
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="text-xs font-bold mb-0.5" style={{ color: T.ink }}>회차 표지 <span className="font-normal" style={{ color: T.inkSoft }}>{selected.coverUrl ? '(직접 등록됨)' : '(미등록 → 첫 컷 자동)'}</span></p>
+                                    <p className="text-[11px] mb-1.5" style={{ color: T.inkSoft }}>목록에 보이는 썸네일이에요. 제목 박힌 커버 등 따로 올릴 수 있어요.</p>
+                                    <div className="flex gap-1.5">
+                                        <label className="inline-flex items-center text-[11px] font-bold rounded-lg cursor-pointer" style={{ padding: '5px 11px', background: T.accent, color: '#fff', opacity: coverUploading ? 0.5 : 1 }}>
+                                            {coverUploading ? '올리는 중…' : (selected.coverUrl ? '표지 바꾸기' : '표지 올리기')}
+                                            <input type="file" accept="image/*" disabled={coverUploading} className="hidden"
+                                                onChange={e => { const f = e.target.files?.[0]; if (f) uploadCover(f); e.currentTarget.value = ''; }} />
+                                        </label>
+                                        {selected.coverUrl && (
+                                            <button onClick={removeCover} disabled={coverUploading} className="text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '5px 11px', color: '#C62828', background: '#FDECEC' }}>표지 제거</button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
 
                             {/* 컷 업로드 */}
