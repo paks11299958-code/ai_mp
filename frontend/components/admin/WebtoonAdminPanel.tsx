@@ -103,10 +103,10 @@ export const WebtoonAdminPanel: React.FC = () => {
                         <p className="text-xs font-bold mb-2" style={{ color: T.ink }}>새 회차</p>
                         <div className="flex gap-1.5 mb-2">
                             <input value={newEp} onChange={e => setNewEp(e.target.value)} placeholder="화수"
-                                className="w-16 text-sm rounded-lg px-2 py-1.5" style={{ border: `1px solid ${T.border}` }} />
+                                className="w-16 text-sm rounded-lg px-2 py-1.5" style={{ border: `1px solid ${T.border}`, color: T.ink, background: '#fff' }} />
                             <input value={newTitle} onChange={e => setNewTitle(e.target.value)} placeholder="회차 제목"
                                 onKeyDown={e => e.key === 'Enter' && createEpisode()}
-                                className="flex-1 min-w-0 text-sm rounded-lg px-2 py-1.5" style={{ border: `1px solid ${T.border}` }} />
+                                className="flex-1 min-w-0 text-sm rounded-lg px-2 py-1.5" style={{ border: `1px solid ${T.border}`, color: T.ink, background: '#fff' }} />
                         </div>
                         <button onClick={createEpisode} disabled={creating || !newTitle.trim()}
                             className="w-full text-sm font-bold rounded-lg py-2 disabled:opacity-40" style={{ background: T.accent, color: '#fff' }}>
