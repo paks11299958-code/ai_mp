@@ -45,37 +45,73 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         <Icon name="X" size={18} />
                     </button>
                 </div>
-                <nav className="flex gap-1 px-4 pb-0">
-                    {([
-                        { key: 'personas',      label: '페르소나', icon: 'Bot' },
-                        { key: 'categories',    label: '카테고리', icon: 'Tag' },
-                        { key: 'webtoon',       label: '웹툰 관리', icon: 'BookOpen' },
-                        { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
-                        { key: 'settings',      label: '공통 설정', icon: 'Settings' },
-                        { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
-                        { key: 'points',        label: '포인트 통계', icon: 'Coins' },
-                        { key: 'users',         label: '회원 관리',   icon: 'Users' },
-                        { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
-                        { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
-                        { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
-                        { key: 'golf-courses',  label: '골프장 관리', icon: 'MapPin'   },
-                        { key: 'tools',          label: '기능연습',    icon: 'Zap'      },
-                        { key: 'product-extract', label: '제품추출',   icon: 'Package'  },
-                    ] as const).map(tab => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setMainView(tab.key)}
-                            className={`flex items-center gap-1.5 px-3 py-2.5 text-xs font-medium border-b-2 transition-all whitespace-nowrap
-                                ${mainView === tab.key
-                                    ? 'border-blue-500 text-blue-400'
-                                    : 'border-transparent text-gray-500 hover:text-gray-300'
-                                }`}
-                        >
-                            <Icon name={tab.icon} size={12} />
-                            {tab.label}
-                        </button>
-                    ))}
-                </nav>
+                {(() => {
+                    // 14개 탭을 성격별 그룹으로 묶어 2단 네비(그룹 → 하위탭)로 표시. mainView 키는 그대로.
+                    const GROUPS = [
+                        { id: 'content', label: '콘텐츠', icon: 'BookOpen', tabs: [
+                            { key: 'personas',      label: '페르소나', icon: 'Bot' },
+                            { key: 'categories',    label: '카테고리', icon: 'Tag' },
+                            { key: 'webtoon',       label: '웹툰 관리', icon: 'BookOpen' },
+                            { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
+                        ] },
+                        { id: 'members', label: '회원·포인트', icon: 'Users', tabs: [
+                            { key: 'users',         label: '회원 관리',   icon: 'Users' },
+                            { key: 'points',        label: '포인트 통계', icon: 'Coins' },
+                            { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
+                        ] },
+                        { id: 'ops', label: '운영', icon: 'Wrench', tabs: [
+                            { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
+                            { key: 'golf-courses',  label: '골프장 관리', icon: 'MapPin' },
+                            { key: 'product-extract', label: '제품추출',  icon: 'Package' },
+                            { key: 'tools',         label: '기능연습',    icon: 'Zap' },
+                        ] },
+                        { id: 'system', label: '시스템', icon: 'Settings', tabs: [
+                            { key: 'settings',      label: '공통 설정', icon: 'Settings' },
+                            { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
+                            { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
+                        ] },
+                    ] as const;
+                    // 현재 mainView가 속한 그룹을 활성 그룹으로
+                    const activeGroup = GROUPS.find(g => g.tabs.some(t => t.key === mainView)) ?? GROUPS[0];
+                    return (
+                        <div className="px-4 pb-0">
+                            {/* 1단: 그룹 */}
+                            <nav className="flex gap-1 flex-wrap">
+                                {GROUPS.map(g => {
+                                    const on = g.id === activeGroup.id;
+                                    return (
+                                        <button
+                                            key={g.id}
+                                            onClick={() => { if (!g.tabs.some(t => t.key === mainView)) setMainView(g.tabs[0].key); }}
+                                            className={`flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold rounded-t-lg transition-all
+                                                ${on ? 'bg-gray-800 text-blue-400' : 'text-gray-500 hover:text-gray-300'}`}
+                                        >
+                                            <Icon name={g.icon} size={13} />
+                                            {g.label}
+                                        </button>
+                                    );
+                                })}
+                            </nav>
+                            {/* 2단: 활성 그룹의 하위 탭 */}
+                            <nav className="flex gap-1 flex-wrap bg-gray-800 rounded-b-lg rounded-tr-lg px-1.5 py-1">
+                                {activeGroup.tabs.map(tab => (
+                                    <button
+                                        key={tab.key}
+                                        onClick={() => setMainView(tab.key)}
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap
+                                            ${mainView === tab.key
+                                                ? 'bg-blue-600 text-white'
+                                                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+                                            }`}
+                                    >
+                                        <Icon name={tab.icon} size={12} />
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+                    );
+                })()}
             </header>
 
             {/* ── 바디 ── */}
