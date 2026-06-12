@@ -90,6 +90,19 @@ export const WebtoonAdminPanel: React.FC = () => {
         catch (e: any) { setError(e?.message || '저장 실패'); }
     };
 
+    // 제목·화수 인라인 편집
+    const [editingMeta, setEditingMeta] = useState(false);
+    const [editTitle, setEditTitle] = useState('');
+    const [editEp, setEditEp] = useState('');
+    const startEditMeta = () => { if (!selected) return; setEditTitle(selected.title); setEditEp(String(selected.episodeNo)); setEditingMeta(true); };
+    const saveMeta = async () => {
+        if (!selected || !editTitle.trim()) return;
+        try {
+            const u = await webtoonApi.update(selected.id, { title: editTitle.trim(), episodeNo: Number(editEp) || selected.episodeNo });
+            setSelected(u); setEditingMeta(false); load();
+        } catch (e: any) { setError(e?.message || '제목 저장 실패'); }
+    };
+
     return (
         <div className="p-4" style={{ background: T.bg }}>
             <h3 className="text-lg font-bold mb-1" style={{ color: T.ink }}>📖 웹툰 관리 <span className="text-xs font-normal" style={{ color: T.inkSoft }}>(향기 페르소나)</span></h3>
@@ -137,7 +150,22 @@ export const WebtoonAdminPanel: React.FC = () => {
                     ) : (
                         <div className="rounded-xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                             <div className="flex items-center gap-2 mb-3 flex-wrap">
-                                <span className="text-sm font-bold" style={{ color: T.ink }}>{selected.episodeNo}화 · {selected.title}</span>
+                                {editingMeta ? (
+                                    <>
+                                        <input value={editEp} onChange={e => setEditEp(e.target.value)} placeholder="화수"
+                                            className="w-14 text-sm rounded-lg px-2 py-1" style={{ border: `1px solid ${T.accent}`, color: T.ink, background: '#fff' }} />
+                                        <input value={editTitle} onChange={e => setEditTitle(e.target.value)} placeholder="회차 제목"
+                                            onKeyDown={e => e.key === 'Enter' && saveMeta()} autoFocus
+                                            className="text-sm rounded-lg px-2 py-1" style={{ border: `1px solid ${T.accent}`, color: T.ink, background: '#fff', minWidth: 160 }} />
+                                        <button onClick={saveMeta} disabled={!editTitle.trim()} className="text-[11px] font-bold rounded-lg px-2.5 py-1 disabled:opacity-40" style={{ background: T.accent, color: '#fff' }}>저장</button>
+                                        <button onClick={() => setEditingMeta(false)} className="text-[11px] font-bold rounded-lg px-2.5 py-1" style={{ color: T.inkSoft, border: `1px solid ${T.border}` }}>취소</button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-sm font-bold" style={{ color: T.ink }}>{selected.episodeNo}화 · {selected.title}</span>
+                                        <button onClick={startEditMeta} className="text-[11px] font-bold rounded-lg px-2 py-1" style={{ color: T.accent, background: T.accentSoft }}>✏️ 제목 수정</button>
+                                    </>
+                                )}
                                 <button onClick={toggleVisible} className="text-[11px] font-bold rounded-full px-2.5 py-1" style={{ background: selected.isVisible ? '#E8F5E9' : '#FDECEC', color: selected.isVisible ? '#2E7D32' : '#C62828' }}>
                                     {selected.isVisible ? '공개 중 (클릭 시 숨김)' : '숨김 (클릭 시 공개)'}
                                 </button>
