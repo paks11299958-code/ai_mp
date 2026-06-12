@@ -34,18 +34,19 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
         window.addEventListener('resize', measure);
         return () => window.removeEventListener('resize', measure);
     }, []);
-    // 현재 컷을 어떻게 맞출지: 비율 알기 전엔 폭 맞춤(기존 동작), 알면 넓적=폭/길쭉=높이.
+    // 현재 컷을 어떻게 맞출지: 비율 알기 전엔 폭 맞춤. 알면 가로형/약가로=폭 꽉, 세로형=높이.
     const fitStyle = (i: number): React.CSSProperties => {
         const r = ratios[i];
         if (!r) return { maxWidth: '100%', height: 'auto' };
-        // 화면보다 세로로 '훨씬' 긴 컷(긴 스크롤 웹툰 한 컷)은 폭 맞춤 + 스크롤로 읽게.
-        if (r < boxRatio * 0.6) return { width: '100%', height: 'auto' };
-        return r > boxRatio
-            ? { width: '100%', height: 'auto', maxHeight: '100%' }   // 가로형 → 폭 맞춤
-            : { height: '100%', width: 'auto', maxWidth: '100%' };   // 적당한 세로/정사각 → 높이 맞춤(꽉 채움)
+        // 아주 긴 컷(스크롤 웹툰)은 폭 맞춤 + 세로 스크롤로 읽게.
+        if (r < boxRatio * 0.5) return { width: '100%', height: 'auto' };
+        // 가로형 + 약간 가로(화면비의 0.85배 이상)면 폭을 꽉 채움 → 데스크탑에서 화면 가득.
+        if (r >= boxRatio * 0.85) return { width: '100%', height: 'auto', maxHeight: '100%' };
+        // 그보다 세로면 높이 맞춤(모바일 세로 컷은 꽉 참).
+        return { height: '100%', width: 'auto', maxWidth: '100%' };
     };
-    // 긴 컷은 위 정렬(스크롤 시작점), 나머지는 중앙 정렬.
-    const isLong = (i: number) => { const r = ratios[i]; return !!r && r < boxRatio * 0.6; };
+    // 화면보다 세로로 '훨씬' 긴 컷(긴 스크롤 웹툰)은 위 정렬+스크롤. 그 외 중앙.
+    const isLong = (i: number) => { const r = ratios[i]; return !!r && r < boxRatio * 0.5; };
 
     const go = useCallback((dir: -1 | 1) => {
         setIdx(prev => {
@@ -104,13 +105,10 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
 
             {/* 컷 영역 */}
             <div ref={boxRef} className="flex-1 relative overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-                {/* 흐림 배경 — 같은 컷을 꽉 채워(cover) 흐리게 깔아 좌우 빈 공간을 자연스럽게 채움(데스크탑에서 검은 띠 제거) */}
-                <img src={cuts[idx]} alt="" aria-hidden draggable={false}
-                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(28px) brightness(0.45)', transform: 'scale(1.1)' }} />
                 {/* 현재 컷 — 비율 따라 폭/높이 자동맞춤. 화면보다 길면 스크롤 가능. */}
                 <div className={`absolute inset-0 overflow-y-auto flex justify-center p-2 ${isLong(idx) ? 'items-start' : 'items-center'}`}>
                     <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false} onLoad={onImgLoad(idx)}
-                        style={{ ...fitStyle(idx), objectFit: 'contain', borderRadius: 6, flexShrink: 0, position: 'relative', boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }} />
+                        style={{ ...fitStyle(idx), objectFit: 'contain', flexShrink: 0 }} />
                 </div>
 
                 {/* 좌우 넘김 버튼 (데스크탑 위주, 모바일은 스와이프) */}
