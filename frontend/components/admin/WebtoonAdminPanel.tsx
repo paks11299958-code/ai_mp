@@ -161,9 +161,9 @@ export const WebtoonAdminPanel: React.FC = () => {
                                             <img src={url} alt={`컷 ${i + 1}`} style={{ width: '100%', height: 150, objectFit: 'cover' }} />
                                             <div className="absolute top-1 left-1 text-[10px] font-bold rounded px-1.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)', color: '#fff' }}>{i + 1}</div>
                                             <div className="absolute bottom-1 left-1 right-1 flex gap-1 justify-center">
-                                                <button onClick={() => moveCut(i, -1)} disabled={i === 0} className="text-[11px] rounded px-1.5 py-0.5 disabled:opacity-30" style={{ background: 'rgba(255,255,255,0.9)' }}>◀</button>
-                                                <button onClick={() => moveCut(i, 1)} disabled={i === selected.cuts.length - 1} className="text-[11px] rounded px-1.5 py-0.5 disabled:opacity-30" style={{ background: 'rgba(255,255,255,0.9)' }}>▶</button>
-                                                <button onClick={() => delCut(i)} className="text-[11px] rounded px-1.5 py-0.5" style={{ background: 'rgba(198,40,40,0.9)', color: '#fff' }}>✕</button>
+                                                <button onClick={() => moveCut(i, -1)} disabled={i === 0} className="text-xs font-bold rounded px-2 py-1 disabled:opacity-30" style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>◀</button>
+                                                <button onClick={() => moveCut(i, 1)} disabled={i === selected.cuts.length - 1} className="text-xs font-bold rounded px-2 py-1 disabled:opacity-30" style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>▶</button>
+                                                <button onClick={() => delCut(i)} className="text-xs font-bold rounded px-2 py-1" style={{ background: 'rgba(198,40,40,0.92)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>✕</button>
                                             </div>
                                         </div>
                                     ))}
