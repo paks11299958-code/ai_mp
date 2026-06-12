@@ -14,40 +14,6 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
     const total = cuts.length;
     const touchX = useRef<number | null>(null);
 
-    // 컷별 가로:세로 비율(width/height) 캐시. 로드되면 채워진다.
-    const [ratios, setRatios] = useState<Record<number, number>>({});
-    const onImgLoad = (i: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
-        const img = e.currentTarget;
-        if (img.naturalWidth && img.naturalHeight) {
-            setRatios(prev => prev[i] ? prev : { ...prev, [i]: img.naturalWidth / img.naturalHeight });
-        }
-    };
-    // 컷 영역(뷰포트) 비율 — 컷이 이보다 넓적하면 폭 맞춤, 좁고 길면 높이 맞춤(=화면 꽉 채움).
-    const boxRef = useRef<HTMLDivElement | null>(null);
-    const [boxRatio, setBoxRatio] = useState(0.62); // 모바일 세로 기본값
-    useEffect(() => {
-        const measure = () => {
-            const el = boxRef.current;
-            if (el && el.clientHeight) setBoxRatio(el.clientWidth / el.clientHeight);
-        };
-        measure();
-        window.addEventListener('resize', measure);
-        return () => window.removeEventListener('resize', measure);
-    }, []);
-    // 현재 컷을 어떻게 맞출지: 비율 알기 전엔 폭 맞춤. 알면 가로형/약가로=폭 꽉, 세로형=높이.
-    const fitStyle = (i: number): React.CSSProperties => {
-        const r = ratios[i];
-        if (!r) return { maxWidth: '100%', height: 'auto' };
-        // 아주 긴 컷(스크롤 웹툰)은 폭 맞춤 + 세로 스크롤로 읽게.
-        if (r < boxRatio * 0.5) return { width: '100%', height: 'auto' };
-        // 가로형 + 약간 가로(화면비의 0.85배 이상)면 폭을 꽉 채움 → 데스크탑에서 화면 가득.
-        if (r >= boxRatio * 0.85) return { width: '100%', height: 'auto', maxHeight: '100%' };
-        // 그보다 세로면 높이 맞춤(모바일 세로 컷은 꽉 참).
-        return { height: '100%', width: 'auto', maxWidth: '100%' };
-    };
-    // 화면보다 세로로 '훨씬' 긴 컷(긴 스크롤 웹툰)은 위 정렬+스크롤. 그 외 중앙.
-    const isLong = (i: number) => { const r = ratios[i]; return !!r && r < boxRatio * 0.5; };
-
     const go = useCallback((dir: -1 | 1) => {
         setIdx(prev => {
             const next = prev + dir;
@@ -104,11 +70,11 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
             </div>
 
             {/* 컷 영역 */}
-            <div ref={boxRef} className="flex-1 relative overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-                {/* 현재 컷 — 비율 따라 폭/높이 자동맞춤. 화면보다 길면 스크롤 가능. */}
-                <div className={`absolute inset-0 overflow-y-auto flex justify-center p-2 ${isLong(idx) ? 'items-start' : 'items-center'}`}>
-                    <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false} onLoad={onImgLoad(idx)}
-                        style={{ ...fitStyle(idx), objectFit: 'contain', flexShrink: 0 }} />
+            <div className="flex-1 relative overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+                {/* 현재 컷 — 스크롤 없이 한 화면에 통째로(contain). 가로/세로 자동, 모바일·데스크탑 동일. */}
+                <div className="absolute inset-0 flex items-center justify-center p-2">
+                    <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false}
+                        style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', flexShrink: 0 }} />
                 </div>
 
                 {/* 좌우 넘김 버튼 (데스크탑 위주, 모바일은 스와이프) */}
