@@ -142,6 +142,13 @@ export const WebtoonAdminPanel: React.FC = () => {
 
     return (
         <div className="p-4" style={{ background: T.bg }}>
+            {/* 컷 그리드 스크롤바를 눈에 띄게 */}
+            <style>{`
+                .webtoon-cut-scroll::-webkit-scrollbar { width: 12px; }
+                .webtoon-cut-scroll::-webkit-scrollbar-track { background: #EDE7F6; border-radius: 6px; }
+                .webtoon-cut-scroll::-webkit-scrollbar-thumb { background: ${T.accent}; border-radius: 6px; border: 2px solid #EDE7F6; }
+                .webtoon-cut-scroll { scrollbar-width: thin; scrollbar-color: ${T.accent} #EDE7F6; }
+            `}</style>
             <h3 className="text-lg font-bold mb-1" style={{ color: T.ink }}>📖 웹툰 관리 <span className="text-xs font-normal" style={{ color: T.inkSoft }}>(향기 페르소나)</span></h3>
             <p className="text-xs mb-4" style={{ color: T.inkSoft }}>회차를 만들고 컷 이미지를 순서대로 올리세요. 사용자는 향기 채팅의 '웹툰'에서 회차를 골라 좌우로 넘겨봅니다.</p>
             {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
@@ -241,11 +248,12 @@ export const WebtoonAdminPanel: React.FC = () => {
                                     onChange={e => { if (e.target.files?.length) uploadCuts(e.target.files); e.currentTarget.value = ''; }} />
                             </label>
 
-                            {/* 컷 목록 (순서/삭제) */}
+                            {/* 컷 목록 (순서/삭제) — 컷이 많아도 이 박스 안에서만 스크롤(페이지 안 길어짐) */}
                             {selected.cuts.length === 0 ? (
                                 <p className="text-xs" style={{ color: T.inkSoft }}>아직 컷이 없어요. 이미지를 순서대로 올려주세요.</p>
                             ) : (
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 overflow-y-auto pr-1" style={{ maxHeight: '60vh' }}>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 overflow-y-scroll pr-2 webtoon-cut-scroll"
+                                    style={{ height: 420, border: `1px solid ${T.border}`, borderRadius: 10, padding: 8, background: '#FCFBFE' }}>
                                     {selected.cuts.map((url, i) => (
                                         <div key={i}
                                             draggable
@@ -270,7 +278,7 @@ export const WebtoonAdminPanel: React.FC = () => {
                                     ))}
                                 </div>
                             )}
-                            <p className="text-[11px] mt-3" style={{ color: T.inkSoft }}>💡 <b style={{ color: T.accent }}>마우스로 컷을 끌어다 놓으면</b> 순서가 바뀌어요. ◀▶로도 한 칸씩 조정, ✕로 삭제. 첫 컷이 목록 썸네일이 돼요.</p>
+                            <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>총 <b style={{ color: T.accent }}>{selected.cuts.length}컷</b> · 위 칸에서 <b>스크롤</b>해서 보세요. 💡 <b style={{ color: T.accent }}>마우스로 컷을 끌어다 놓으면</b> 순서가 바뀌어요. ◀▶로도 한 칸씩 조정, ✕로 삭제. 첫 컷이 목록 썸네일이 돼요.</p>
                         </div>
                     )}
                 </div>
