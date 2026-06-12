@@ -306,7 +306,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     steps={[
                                         { emoji: '📝', title: '제목·목차 정하기', desc: '주제를 입력하면 작가 AI가 목차를 만들어줘요. 제목·저자명·책 크기(판형)를 정합니다.' },
                                         { emoji: '⏰', title: '만들 챕터 고르고 새벽 시간 예약', desc: '자료 수집 탭에서 만들 챕터를 체크하고 새벽 시간(1~5시)을 예약하면, 그 시각에 자료수집부터 본문까지 자동으로 만들어져요.' },
-                                        { emoji: '📖', title: '다음날 문서 받기', desc: '초안 만들기 탭에서 표지를 올리고 구글 문서(.docx)를 받아, 구글 독스에서 마무리·출판하세요.' },
+                                        { emoji: '📖', title: '다음날 문서 받고 출판', desc: '초안 만들기 탭에서 표지를 올리고 구글 문서(.docx)를 받아 구글 독스에서 마무리한 뒤, 북크크(bookk.co.kr)에서 바로 출판하세요.' },
                                     ]}
                                     tip="본문은 밤사이 자동으로 만들어져요. 오늘 예약하고 내일 다시 들러 결과를 확인하세요 🌙"
                                 />
@@ -554,7 +554,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 </div>
                                             )}
                                             <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>
-                                                💡 본문이 다 채워지면 아래에서 <b style={{ color: T.accent }}>문서(.docx)</b>를 받아 구글 독스에서 자유롭게 편집·출판하세요.
+                                                💡 본문이 다 채워지면 아래에서 <b style={{ color: T.accent }}>문서(.docx)</b>를 받아 구글 독스에서 자유롭게 편집한 뒤, <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에서 바로 출판하세요.
                                             </p>
                                         </div>
 
@@ -590,7 +590,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>문서 만들기</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#5BA36A' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b>
+                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고, <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#5BA36A' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b>
                                             </p>
 
                                             <div className="flex gap-2 flex-wrap">
@@ -605,9 +605,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: docxUrl ? T.accent : '#fff', background: docxUrl ? T.accentSoft : T.accent, border: docxUrl ? `1px solid ${T.accentBorder}` : 'none' }}>
                                                     {docxMaking ? <><Loader size={14} className="animate-spin" /> 문서 만드는 중…</> : <><FileText size={14} /> {docxUrl ? '문서 다시 만들기' : '구글 문서(.docx) 만들기'}</>}
                                                 </button>
+                                                {/* 문서를 받았으면 북크크 출판 사이트로 바로 이동 */}
+                                                {docxUrl && !docxMaking && (
+                                                    <a href="https://bookk.co.kr" target="_blank" rel="noopener noreferrer"
+                                                        className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl" style={{ padding: '8px 16px', color: '#fff', background: '#E8703A' }}>
+                                                        <ExternalLink size={14} /> 북크크에서 출판하기
+                                                    </a>
+                                                )}
                                             </div>
 
-                                            {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다. 내용을 바꾸면 <b style={{ color: T.accent }}>다시 만들기</b>로 새로 받으세요.</p>}
+                                            {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다. 마무리한 문서는 <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 바로 출판하세요. 내용을 바꾸면 <b style={{ color: T.accent }}>다시 만들기</b>로 새로 받으세요.</p>}
                                             {!canPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문을 먼저 만들어 주세요.</p>}
                                         </div>
                                     </div>
