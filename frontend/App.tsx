@@ -400,6 +400,20 @@ const AppContent: React.FC = () => {
 
     // handleLoadMoreMessages / triggerSummaryUpdate는 usePersonaSession(T6b)으로 이동.
 
+    // 퀵메뉴 결과 카드 생성(전생·궁합 등) — 프롬프트로 AI 생성 후 QuickMenuResultCard 띄움.
+    const runQuickMenuCard = useCallback((label: string, fullPrompt: string) => {
+        setActiveQuickMenu(label);
+        setQuickMenuLoading(true);
+        quickMenuApi.generate(activePersonaId, fullPrompt)
+            .then(({ result, paidBalance, bonusBalance }) => {
+                setUserPaidPoints(paidBalance);
+                setUserBonusPoints(bonusBalance);
+                setQuickMenuResult({ title: label, result });
+            })
+            .catch(e => alert(quickMenuErrorMessage(e)))
+            .finally(() => setQuickMenuLoading(false));
+    }, [activePersonaId]);
+
     const handleSubItem = useCallback((item: SubMenuItem) => {
         setSubMenuConfig(null);
         if (item.partnerModal) {
@@ -1285,7 +1299,7 @@ const AppContent: React.FC = () => {
                         const isResultCard = subMenuResultCardRef.current;
                         subMenuResultCardRef.current = false;
                         setSubMenuConfig(null);
-                        if (isResultCard && !item.partnerModal && !item.placeholder) {
+                        if (isResultCard && !item.partnerModal && !item.twoPartnerModal && !item.placeholder) {
                             let fullPrompt = item.prompt ?? '';
                             if (birthInfo) {
                                 const t = birthInfo.time && birthInfo.time !== '모름' ? ` ${birthInfo.time}생` : '';
@@ -1318,10 +1332,16 @@ const AppContent: React.FC = () => {
                         if (!pendingPartnerMenu) return;
                         const t = partner.time && partner.time !== '모름' ? ` ${partner.time}생` : '';
                         const cal = partner.lunar ? '음력' : '양력';
-                        const composed = `상대방: ${partner.name}, ${cal} ${partner.year}년 ${partner.month}월 ${partner.day}일${t}. ${pendingPartnerMenu.prompt}`;
+                        // 내 생일(있으면) + 상대 정보 합쳐 결과 카드로 생성
+                        let composed = `상대방: ${partner.name}, ${cal} ${partner.year}년 ${partner.month}월 ${partner.day}일${t}. ${pendingPartnerMenu.prompt}`;
+                        if (birthInfo) {
+                            const mt = birthInfo.time && birthInfo.time !== '모름' ? ` ${birthInfo.time}생` : '';
+                            const mcal = birthInfo.lunar ? '음력' : '양력';
+                            composed += `\n\n나(사용자) 정보 — 이름: ${birthInfo.name}, 생년월일: ${mcal} ${birthInfo.year}년 ${birthInfo.month}월 ${birthInfo.day}일${mt}`;
+                        }
+                        const label = pendingPartnerMenu.label;
                         setPendingPartnerMenu(null);
-                        setInputText(composed);
-                        setTimeout(() => textareaRef.current?.focus(), 0);
+                        runQuickMenuCard(label, composed);
                     }}
                     onClose={() => { setShowPartnerModal(false); setPendingPartnerMenu(null); }}
                 />
@@ -1347,11 +1367,10 @@ const AppContent: React.FC = () => {
                         };
                         const f1 = firstPartner ? fmt(firstPartner) : '';
                         const f2 = fmt(info);
-                        const prompt = pendingTwoPartnerMenu?.prompt ?? '';
-                        const composed = `친구 둘의 우정 궁합을 봐주게나. 친구1: ${f1}, 친구2: ${f2}. ${prompt}`;
+                        const menu = pendingTwoPartnerMenu;
+                        const composed = `친구1: ${f1}, 친구2: ${f2}. ${menu?.prompt ?? ''}`;
                         setTwoPartnerStep(0); setFirstPartner(null); setPendingTwoPartnerMenu(null);
-                        setInputText(composed);
-                        setTimeout(() => textareaRef.current?.focus(), 0);
+                        runQuickMenuCard(menu?.label ?? '친구 둘 궁합', composed);
                     }}
                     onClose={() => { setTwoPartnerStep(0); setFirstPartner(null); setPendingTwoPartnerMenu(null); }}
                 />
