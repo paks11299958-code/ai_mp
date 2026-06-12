@@ -14,6 +14,39 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
     const total = cuts.length;
     const touchX = useRef<number | null>(null);
 
+    // 컷별 가로:세로 비율(width/height) 캐시. 로드되면 채워진다.
+    const [ratios, setRatios] = useState<Record<number, number>>({});
+    const onImgLoad = (i: number) => (e: React.SyntheticEvent<HTMLImageElement>) => {
+        const img = e.currentTarget;
+        if (img.naturalWidth && img.naturalHeight) {
+            setRatios(prev => prev[i] ? prev : { ...prev, [i]: img.naturalWidth / img.naturalHeight });
+        }
+    };
+    // 컷 영역(뷰포트) 비율 — 컷이 이보다 넓적하면 폭 맞춤, 좁고 길면 높이 맞춤(=화면 꽉 채움).
+    const boxRef = useRef<HTMLDivElement | null>(null);
+    const [boxRatio, setBoxRatio] = useState(0.62); // 모바일 세로 기본값
+    useEffect(() => {
+        const measure = () => {
+            const el = boxRef.current;
+            if (el && el.clientHeight) setBoxRatio(el.clientWidth / el.clientHeight);
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        return () => window.removeEventListener('resize', measure);
+    }, []);
+    // 현재 컷을 어떻게 맞출지: 비율 알기 전엔 폭 맞춤(기존 동작), 알면 넓적=폭/길쭉=높이.
+    const fitStyle = (i: number): React.CSSProperties => {
+        const r = ratios[i];
+        if (!r) return { maxWidth: '100%', height: 'auto' };
+        // 화면보다 세로로 '훨씬' 긴 컷(긴 스크롤 웹툰 한 컷)은 폭 맞춤 + 스크롤로 읽게.
+        if (r < boxRatio * 0.6) return { width: '100%', height: 'auto' };
+        return r > boxRatio
+            ? { width: '100%', height: 'auto', maxHeight: '100%' }   // 가로형 → 폭 맞춤
+            : { height: '100%', width: 'auto', maxWidth: '100%' };   // 적당한 세로/정사각 → 높이 맞춤(꽉 채움)
+    };
+    // 긴 컷은 위 정렬(스크롤 시작점), 나머지는 중앙 정렬.
+    const isLong = (i: number) => { const r = ratios[i]; return !!r && r < boxRatio * 0.6; };
+
     const go = useCallback((dir: -1 | 1) => {
         setIdx(prev => {
             const next = prev + dir;
@@ -70,11 +103,11 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
             </div>
 
             {/* 컷 영역 */}
-            <div className="flex-1 relative overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-                {/* 현재 컷 (스크롤 가능 — 세로 긴 컷도 안전) */}
-                <div className="absolute inset-0 overflow-y-auto flex items-start justify-center p-2">
-                    <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false}
-                        style={{ maxWidth: '100%', height: 'auto', objectFit: 'contain', borderRadius: 6 }} />
+            <div ref={boxRef} className="flex-1 relative overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+                {/* 현재 컷 — 비율 따라 폭/높이 자동맞춤. 화면보다 길면 스크롤 가능. */}
+                <div className={`absolute inset-0 overflow-y-auto flex justify-center p-2 ${isLong(idx) ? 'items-start' : 'items-center'}`}>
+                    <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false} onLoad={onImgLoad(idx)}
+                        style={{ ...fitStyle(idx), objectFit: 'contain', borderRadius: 6, flexShrink: 0 }} />
                 </div>
 
                 {/* 좌우 넘김 버튼 (데스크탑 위주, 모바일은 스와이프) */}
