@@ -195,7 +195,7 @@ export const WebtoonAdminPanel: React.FC = () => {
                             {selected.cuts.length === 0 ? (
                                 <p className="text-xs" style={{ color: T.inkSoft }}>아직 컷이 없어요. 이미지를 순서대로 올려주세요.</p>
                             ) : (
-                                <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(110px, 1fr))' }}>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 overflow-y-auto pr-1" style={{ maxHeight: '60vh' }}>
                                     {selected.cuts.map((url, i) => (
                                         <div key={i}
                                             draggable
@@ -209,7 +209,7 @@ export const WebtoonAdminPanel: React.FC = () => {
                                                 opacity: dragIdx === i ? 0.4 : 1,
                                                 cursor: 'grab',
                                             }}>
-                                            <img src={url} alt={`컷 ${i + 1}`} draggable={false} style={{ width: '100%', height: 150, objectFit: 'cover', pointerEvents: 'none' }} />
+                                            <img src={url} alt={`컷 ${i + 1}`} draggable={false} style={{ width: '100%', height: 180, objectFit: 'cover', pointerEvents: 'none' }} />
                                             <div className="absolute top-1 left-1 text-[10px] font-bold rounded px-1.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)', color: '#fff' }}>{i + 1}</div>
                                             <div className="absolute bottom-1 left-1 right-1 flex gap-1 justify-center">
                                                 <button onClick={() => moveCut(i, -1)} disabled={i === 0} className="text-xs font-bold rounded px-2 py-1 disabled:opacity-30" style={{ background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.4)' }}>◀</button>
