@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, BookOpen, Loader, ChevronRight } from 'lucide-react';
 import { webtoonApi, WebtoonEpisode } from '../services/apiService';
-import { WebtoonViewer } from './WebtoonViewer';
+import { WebtoonScrollViewer } from './WebtoonScrollViewer';
 
 // 웹툰 회차 목록 모달 — 향기 채팅 '웹툰' 진입 시. 회차 선택 → 컷 뷰어(WebtoonViewer)로.
 interface Props {
@@ -40,9 +40,9 @@ export const WebtoonEpisodeList: React.FC<Props> = ({ personaId, personaName, on
         finally { setLoadingId(null); }
     };
 
-    // 뷰어가 떠 있으면 뷰어를 보여줌
+    // 뷰어가 떠 있으면 세로 스크롤 뷰어를 보여줌
     if (viewerCuts) {
-        return <WebtoonViewer cuts={viewerCuts} title={viewerTitle} onClose={() => setViewerCuts(null)} />;
+        return <WebtoonScrollViewer cuts={viewerCuts} title={viewerTitle} onClose={() => setViewerCuts(null)} />;
     }
 
     return (
