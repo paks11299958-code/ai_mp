@@ -337,8 +337,8 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, padding: '12px 18px', borderBottom: `1px solid ${T.border}`, background: T.surface, flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, flex: 1 }}>
                         {selected && (
-                            <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 2, fontSize: 12, fontWeight: 600, color: T.accent, background: 'none', border: 'none', cursor: 'pointer', flexShrink: 0, padding: '2px 4px' }}>
-                                <ChevronLeft size={16} /> 목록으로
+                            <button onClick={() => setSelected(null)} style={{ display: 'flex', alignItems: 'center', gap: 3, fontSize: 12, fontWeight: 700, color: '#fff', background: '#6B5F56', border: '1px solid #6B5F56', borderRadius: 999, cursor: 'pointer', flexShrink: 0, padding: '5px 13px', boxShadow: '0 2px 8px -3px rgba(107,95,86,0.5)' }}>
+                                <ChevronLeft size={14} strokeWidth={2.6} /> 목록으로
                             </button>
                         )}
                         <TrendingUp size={16} style={{ color: T.gold, flexShrink: 0 }} />

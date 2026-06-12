@@ -149,9 +149,9 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                         {selected ? (
                             <button onClick={() => { setSelected(null); setMobileDetail(false); }}
-                                className="flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg hover:bg-black/5 transition-colors shrink-0"
-                                style={{ color: T.accent }}>
-                                <ChevronLeft size={16} /> 목록으로
+                                className="inline-flex items-center gap-1 font-bold rounded-full transition shrink-0"
+                                style={{ fontSize: 12, padding: '5px 13px', color: '#fff', background: '#6B5F56', border: '1px solid #6B5F56', boxShadow: '0 2px 8px -3px rgba(107,95,86,0.5)' }}>
+                                <ChevronLeft size={14} strokeWidth={2.6} /> 목록으로
                             </button>
                         ) : null}
                         <Activity size={18} style={{ color: T.gold, flexShrink: 0 }} />

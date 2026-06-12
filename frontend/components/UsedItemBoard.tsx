@@ -370,9 +370,10 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                         <div className="md:hidden flex items-center px-4 py-2 border-b border-slate-800 shrink-0">
                             <button
                                 onClick={() => setSelected(null)}
-                                className="flex items-center gap-1 text-slate-400 hover:text-white text-xs transition-colors"
+                                className="inline-flex items-center gap-1 font-bold rounded-full transition shrink-0"
+                                style={{ fontSize: 12, padding: '5px 13px', color: '#fff', background: '#6B5F56', border: '1px solid #6B5F56', boxShadow: '0 2px 8px -3px rgba(107,95,86,0.5)' }}
                             >
-                                <ChevronLeft size={14} /> 목록으로
+                                <ChevronLeft size={14} strokeWidth={2.6} /> 목록으로
                             </button>
                         </div>
 

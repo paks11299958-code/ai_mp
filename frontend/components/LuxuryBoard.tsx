@@ -247,8 +247,8 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                 <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-b border-[#F0E9DE] shrink-0 bg-white md:rounded-t-2xl">
                     <div className="flex items-center gap-2 min-w-0 flex-1">
                         {selected && (
-                            <button onClick={() => setSelected(null)} className="flex items-center gap-0.5 text-xs font-semibold shrink-0 px-1 py-0.5 rounded-lg hover:bg-black/5 transition-colors" style={{ color: '#8E6FB7' }}>
-                                <ChevronLeft size={16} /> 목록으로
+                            <button onClick={() => setSelected(null)} className="inline-flex items-center gap-1 font-bold shrink-0 rounded-full transition" style={{ fontSize: 12, padding: '5px 13px', color: '#fff', background: '#6B5F56', border: '1px solid #6B5F56', boxShadow: '0 2px 8px -3px rgba(107,95,86,0.5)' }}>
+                                <ChevronLeft size={14} strokeWidth={2.6} /> 목록으로
                             </button>
                         )}
                         <Shield size={17} style={{ color: '#8E6FB7', flexShrink: 0 }} />

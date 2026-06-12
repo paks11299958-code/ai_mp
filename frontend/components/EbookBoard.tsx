@@ -351,9 +351,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="px-5 md:px-6 pb-5 md:pb-6 max-w-4xl mx-auto">
                                 {/* 목록으로 + 진행 탭 — 스크롤해도 상단 고정(sticky). 배경 깔아 콘텐츠 비침 방지 */}
                                 <div className="sticky top-0 z-20 pt-5 md:pt-6 pb-2" style={{ background: T.bg }}>
-                                    {/* 목록으로 복귀 (데스크탑·모바일 공통, 주식분석 패턴) */}
-                                    <button onClick={() => { setSelected(null); setEditing(false); setError(null); }} className="mb-2 inline-flex items-center gap-1 text-xs font-bold" style={{ color: T.inkMute }}>
-                                        <ChevronLeft size={15} /> 목록으로
+                                    {/* 목록으로 복귀 — 탭과 같은 알약 크기, 브라운 톤(나가기 성격, 진행단계 퍼플과 구분) */}
+                                    <button onClick={() => { setSelected(null); setEditing(false); setError(null); }}
+                                        className="mb-2 inline-flex items-center gap-1 rounded-full font-bold transition"
+                                        style={{
+                                            fontSize: 12, padding: '5px 13px',
+                                            color: '#fff', background: T.inkSoft,
+                                            border: `1px solid ${T.inkSoft}`,
+                                            boxShadow: '0 2px 8px -3px rgba(107,95,86,0.5)',
+                                        }}>
+                                        <ChevronLeft size={14} strokeWidth={2.6} /> 목록으로
                                     </button>
 
                                     {/* ── 진행 탭 네비게이션 (1제목 → 3초안) ── */}
