@@ -725,10 +725,10 @@ const TarotCarousel: React.FC<{
             <div style={{ position: 'absolute', top: 0, right: 0, bottom: 0, width: 60, background: `linear-gradient(to left, ${T.bg}, transparent)`, zIndex: 10, pointerEvents: 'none' }} />
 
             {/* 트랙 */}
-            <div style={{ overflow: 'hidden', padding: '4px 40px' }}>
+            <div style={{ overflow: 'hidden', padding: '4px 40px', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
                 <div
                     style={{
-                        display: 'flex', gap: GAP,
+                        display: 'flex', gap: GAP, minWidth: 0,
                         transform: `translateX(${translateX}px)`,
                         transition: dragging ? 'none' : 'transform 0.38s cubic-bezier(0.25,0.46,0.45,0.94)',
                         cursor: dragging ? 'grabbing' : 'grab',
