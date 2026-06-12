@@ -104,10 +104,13 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
 
             {/* 컷 영역 */}
             <div ref={boxRef} className="flex-1 relative overflow-hidden" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+                {/* 흐림 배경 — 같은 컷을 꽉 채워(cover) 흐리게 깔아 좌우 빈 공간을 자연스럽게 채움(데스크탑에서 검은 띠 제거) */}
+                <img src={cuts[idx]} alt="" aria-hidden draggable={false}
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', filter: 'blur(28px) brightness(0.45)', transform: 'scale(1.1)' }} />
                 {/* 현재 컷 — 비율 따라 폭/높이 자동맞춤. 화면보다 길면 스크롤 가능. */}
                 <div className={`absolute inset-0 overflow-y-auto flex justify-center p-2 ${isLong(idx) ? 'items-start' : 'items-center'}`}>
                     <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false} onLoad={onImgLoad(idx)}
-                        style={{ ...fitStyle(idx), objectFit: 'contain', borderRadius: 6, flexShrink: 0 }} />
+                        style={{ ...fitStyle(idx), objectFit: 'contain', borderRadius: 6, flexShrink: 0, position: 'relative', boxShadow: '0 4px 24px rgba(0,0,0,0.5)' }} />
                 </div>
 
                 {/* 좌우 넘김 버튼 (데스크탑 위주, 모바일은 스와이프) */}
