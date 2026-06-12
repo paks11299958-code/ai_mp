@@ -543,37 +543,6 @@ export interface EbookSlot { hour: number; used: number; capacity: number; soldO
 export interface WebtoonEpisode { id: number; episodeNo: number; title: string; coverUrl?: string | null; updatedAt?: string; }
 export interface WebtoonDetail { id: number; episodeNo: number; title: string; cuts: string[]; }
 export interface WebtoonAdminItem extends WebtoonEpisode { personaId: string; cuts: string[]; cutsJson?: string; isVisible: boolean; }
-export interface PanelBox { x: number; y: number; w: number; h: number; }
-
-// File → 다운스케일 base64. 긴 변이 maxSide 초과할 때만 줄임(원본 화질 유지 원칙). data URL prefix 제거.
-export async function fileToBase64Downscaled(file: File, maxSide = 3000): Promise<{ base64: string; mimeType: string }> {
-    const dataUrl: string = await new Promise((resolve, reject) => {
-        const fr = new FileReader();
-        fr.onload = () => resolve(fr.result as string);
-        fr.onerror = reject;
-        fr.readAsDataURL(file);
-    });
-    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const im = new Image();
-        im.onload = () => resolve(im);
-        im.onerror = reject;
-        im.src = dataUrl;
-    });
-    const long = Math.max(img.naturalWidth, img.naturalHeight);
-    if (long <= maxSide) {
-        // 그대로(원본 화질). data URL에서 base64만 추출.
-        return { base64: dataUrl.split(',')[1] || '', mimeType: file.type || 'image/png' };
-    }
-    const scale = maxSide / long;
-    const cw = Math.round(img.naturalWidth * scale);
-    const ch = Math.round(img.naturalHeight * scale);
-    const canvas = document.createElement('canvas');
-    canvas.width = cw; canvas.height = ch;
-    const ctx = canvas.getContext('2d')!;
-    ctx.drawImage(img, 0, 0, cw, ch);
-    const out = canvas.toDataURL('image/png');
-    return { base64: out.split(',')[1] || '', mimeType: 'image/png' };
-}
 
 export const webtoonApi = {
     // 사용자: 회차 목록 / 상세
@@ -597,11 +566,6 @@ export const webtoonApi = {
         if (!r.ok) throw new Error('컷 업로드에 실패했어요.');
         return publicUrl;
     },
-    // 어드민: 그리드 이미지 칸 감지(좌표만) / 확정 분할 저장
-    detectPanels: (id: number, imageBase64: string, mimeType: string, params?: Record<string, number>) =>
-        post<{ width: number; height: number; boxes: PanelBox[] }>(`/webtoon/${id}/detect-panels`, { imageBase64, mimeType, params }),
-    splitConfirm: (id: number, imageBase64: string, mimeType: string, boxes: PanelBox[], mode: 'append' | 'replace') =>
-        post<{ cuts: string[] }>(`/webtoon/${id}/split`, { imageBase64, mimeType, boxes, mode }),
 };
 
 export const quickMenuApi = {
