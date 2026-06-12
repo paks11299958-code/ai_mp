@@ -10,6 +10,7 @@ import { UsersPanel } from './admin/UsersPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
 import { PersonasPanel } from './admin/PersonasPanel';
+import { WebtoonAdminPanel } from './admin/WebtoonAdminPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -21,7 +22,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -48,6 +49,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                     {([
                         { key: 'personas',      label: '페르소나', icon: 'Bot' },
                         { key: 'categories',    label: '카테고리', icon: 'Tag' },
+                        { key: 'webtoon',       label: '웹툰 관리', icon: 'BookOpen' },
                         { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         { key: 'settings',      label: '공통 설정', icon: 'Settings' },
                         { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
@@ -124,6 +126,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 카테고리 관리 패널 */}
                 {mainView === 'categories' && <CategoriesPanel categories={categories} setCategories={setCategories} />}
+
+                {/* 웹툰 관리 패널 (향기 페르소나 회차·컷) */}
+                {mainView === 'webtoon' && <WebtoonAdminPanel />}
 
                 {/* 공지사항 관리 패널 */}
                 {mainView === 'announcements' && <AnnouncementsPanel personas={personas} />}

@@ -539,6 +539,35 @@ export const ebookApi = {
 
 export interface EbookSlot { hour: number; used: number; capacity: number; soldOut: boolean; }
 
+// ── 웹툰 연재 (향기 페르소나 등) ──
+export interface WebtoonEpisode { id: number; episodeNo: number; title: string; coverUrl?: string | null; updatedAt?: string; }
+export interface WebtoonDetail { id: number; episodeNo: number; title: string; cuts: string[]; }
+export interface WebtoonAdminItem extends WebtoonEpisode { personaId: string; cuts: string[]; cutsJson?: string; isVisible: boolean; }
+
+export const webtoonApi = {
+    // 사용자: 회차 목록 / 상세
+    list: (personaId: string) =>
+        get<WebtoonEpisode[]>(`/webtoon?personaId=${encodeURIComponent(personaId)}`),
+    get: (id: number) =>
+        get<WebtoonDetail>(`/webtoon/${id}`),
+    // 어드민: 전체 목록(숨김 포함) / 생성 / 수정 / 삭제
+    adminList: (personaId: string) =>
+        get<WebtoonAdminItem[]>(`/webtoon/admin?personaId=${encodeURIComponent(personaId)}`),
+    create: (personaId: string, episodeNo: number, title: string) =>
+        post<WebtoonAdminItem>(`/webtoon`, { personaId, episodeNo, title }),
+    update: (id: number, data: { title?: string; episodeNo?: number; cuts?: string[]; coverUrl?: string | null; isVisible?: boolean }) =>
+        put<WebtoonAdminItem>(`/webtoon/${id}`, data),
+    remove: (id: number) =>
+        del<{ deleted: boolean }>(`/webtoon/${id}`),
+    // 어드민: 컷 이미지 업로드(signed-url → GCS PUT → publicUrl)
+    uploadCut: async (id: number, file: File): Promise<string> => {
+        const { signedUrl, publicUrl } = await post<{ signedUrl: string; publicUrl: string }>(`/webtoon/${id}/cut-url`, { mimeType: file.type });
+        const r = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+        if (!r.ok) throw new Error('컷 업로드에 실패했어요.');
+        return publicUrl;
+    },
+};
+
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
         post<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', { personaId, prompt }),

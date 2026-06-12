@@ -32,6 +32,7 @@ import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { EbookBoard } from './components/EbookBoard';
+import { WebtoonEpisodeList } from './components/WebtoonEpisodeList';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MathTutorBoard } from './components/MathTutorBoard';
 import { TodayNewsBoard } from './components/TodayNewsBoard';
@@ -216,6 +217,7 @@ const AppContent: React.FC = () => {
     const [showHeaderMenu, setShowHeaderMenu] = useState(false);
     // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal) — 훅은 조건부 return보다 위에 있어야 함
     const [showEbookBoard, setShowEbookBoard] = useState(false);
+    const [showWebtoon, setShowWebtoon] = useState(false);
 
     // 공지사항
     const {
@@ -856,6 +858,7 @@ const AppContent: React.FC = () => {
         'golf-swing': () => setShowSwingInput(true),
         'golf-record': () => setShowSwingBoard(true),
         ebook: () => setShowEbookBoard(true),
+        webtoon: () => setShowWebtoon(true),
     };
 
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
@@ -1359,6 +1362,13 @@ const AppContent: React.FC = () => {
             {showEbookBoard && (
                 <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
                     <EbookBoard onClose={() => setShowEbookBoard(false)} />
+                </ErrorBoundary>
+            )}
+
+            {/* 웹툰 회차 목록 + 뷰어 (향기) */}
+            {showWebtoon && activePersona && (
+                <ErrorBoundary label="웹툰 화면 오류" onClose={() => setShowWebtoon(false)}>
+                    <WebtoonEpisodeList personaId={activePersona.id} personaName={activePersona.name} onClose={() => setShowWebtoon(false)} />
                 </ErrorBoundary>
             )}
 
