@@ -2,6 +2,13 @@
 
 @theme {
     --color-gray-950: #030712;
+    /* UI 기본 산세리프 = Pretendard. 명조(감정서·전자책·운세)는 컴포넌트 인라인 fontFamily로 예외 유지 */
+    --font-sans: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* 전역 기본 폰트 — 인라인 fontFamily(명조 등)가 없는 모든 텍스트는 Pretendard */
+html, body {
+    font-family: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
 @keyframes card-float {
