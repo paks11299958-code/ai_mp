@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     X, ShieldCheck, Clock, CheckCircle, XCircle, Loader,
-    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle,
+    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle, Sparkles,
 } from 'lucide-react';
 import { GuideCard } from './GuideCard';
 
@@ -44,6 +44,8 @@ interface Props {
     onClose: () => void;
     // 분석 결과를 김지훈 채팅으로 넘겨 상담 — (분석제목, AI에 주입할 컨텍스트 텍스트)
     onConsult?: (title: string, context: string) => void;
+    // 컨설팅: 채팅 진입 후 종합 보고서를 자동 생성
+    onConsulting?: (title: string, context: string) => void;
 }
 
 // ── 유틸 ──────────────────────────────────────────────────
@@ -91,7 +93,7 @@ const sevStyle = (s: string) =>
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
-export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
+export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult, onConsulting }) => {
     const [tasks, setTasks] = useState<InsuranceTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<InsuranceDetail | null>(null);
@@ -232,7 +234,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 {/* 본문 */}
                 <div className="flex-1 overflow-y-auto">
                     {selected ? (
-                        <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onClose={onClose} />
+                        <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onConsulting={onConsulting} onClose={onClose} />
                     ) : (
                         <div className="p-4 space-y-4 max-w-2xl mx-auto">
                             {/* 분석 내역 — 재방문 시 바로 확인하도록 맨 위 */}
@@ -463,8 +465,9 @@ const ResultView: React.FC<{
     detail: InsuranceDetail;
     loading: boolean;
     onConsult?: (title: string, context: string) => void;
+    onConsulting?: (title: string, context: string) => void;
     onClose: () => void;
-}> = ({ detail, loading, onConsult, onClose }) => {
+}> = ({ detail, loading, onConsult, onConsulting, onClose }) => {
     if (loading) return <div className="text-center py-16 text-sm text-[#9089A1]">결과를 불러오는 중...</div>;
     const duplicates = parseJson<Duplicate[]>(detail.duplicatesJson, []);
     const ui = parseJson<Partial<InsuranceUserInfo>>(detail.userInfo, {});
@@ -508,6 +511,12 @@ const ResultView: React.FC<{
     const handleConsult = () => {
         if (!onConsult) return;
         onConsult(title, buildConsultContext());
+        onClose();
+    };
+
+    const handleConsulting = () => {
+        if (!onConsulting) return;
+        onConsulting(title, buildConsultContext());
         onClose();
     };
 
@@ -570,13 +579,24 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                 </button>
             </div>
 
-            {/* 김지훈 상담하기 */}
-            {onConsult && (
-                <button onClick={handleConsult}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm transition-all"
-                    style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
-                    <MessageCircle size={16} /> 이 분석으로 김지훈에게 상담하기
-                </button>
+            {/* 김지훈 상담 / 컨설팅 */}
+            {(onConsult || onConsulting) && (
+                <div className="flex gap-2">
+                    {onConsult && (
+                        <button onClick={handleConsult}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all"
+                            style={{ background: '#fff', color: '#7A5FA0', border: '1.5px solid #B49AC9' }}>
+                            <MessageCircle size={15} /> 상담하기
+                        </button>
+                    )}
+                    {onConsulting && (
+                        <button onClick={handleConsulting}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all"
+                            style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
+                            <Sparkles size={15} /> 종합 컨설팅 받기
+                        </button>
+                    )}
+                </div>
             )}
 
             {/* 요약 지표 */}
