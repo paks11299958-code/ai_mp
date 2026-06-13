@@ -540,9 +540,11 @@ const PersonaSelectPanel: React.FC<{
                     <Menu size={22} color={T.ink} />
                 </button>
 
+                {/* 제목 영역만 가운데 정렬(검색·칩·목록은 왼쪽 유지) */}
+                <div style={{ textAlign: 'center' }}>
                 <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 0, marginBottom: 8, display: 'block',
+                    padding: 0, marginBottom: 8, display: 'inline-block',
                 }}>
                     <span style={{
                         fontFamily: "'Cinzel', serif", fontSize: 15,
@@ -559,7 +561,7 @@ const PersonaSelectPanel: React.FC<{
 
                 {/* ② 개인화 인사 — 로그인 사용자 + personas 탭에서만 */}
                 {user && tab === 'personas' && (
-                    <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 14, color: T.inkSoft }}>
                             <span style={{ color: T.accent, fontWeight: 700 }}>{user.username || user.email.split('@')[0]}</span>님, 다시 만나 반가워요 ✦
                         </span>
@@ -573,6 +575,8 @@ const PersonaSelectPanel: React.FC<{
                         </span>
                     </div>
                 )}
+                </div>
+                {/* ↑ 제목 영역 가운데 정렬 끝. 아래(최근대화·검색·칩·목록)는 왼쪽 정렬 */}
 
                 {/* ③ 최근 대화 줄 — 최근 대화한 페르소나 바로가기 */}
                 {user && tab === 'personas' && recentPersonas.length > 0 && (
@@ -603,15 +607,21 @@ const PersonaSelectPanel: React.FC<{
                     </div>
                 )}
 
-                {/* ③-2 최근 사용 기능 줄 — 기능 탭에서만 */}
-                {user && tab === 'features' && recentFeatureKeys.length > 0 && (() => {
-                    const recentFeats = recentFeatureKeys
+                {/* ③-2 최근 사용 기능 줄 — 기능 탭에서만. 최근 사용 없으면 즐겨찾기한 기능으로 대체 */}
+                {user && tab === 'features' && (() => {
+                    let label = '최근 사용';
+                    let recentFeats = recentFeatureKeys
                         .map(k => FEATURES_GRID.find(f => f.key === k))
                         .filter((f): f is typeof FEATURES_GRID[number] => !!f);
+                    // 최근 사용이 비면 즐겨찾기(⭐)한 기능으로 폴백
+                    if (!recentFeats.length && isFavorite) {
+                        recentFeats = FEATURES_GRID.filter(f => isFavorite(f.key));
+                        label = '즐겨찾는 기능';
+                    }
                     if (!recentFeats.length) return null;
                     return (
                         <div style={{ marginBottom: 16 }}>
-                            <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>최근 사용</div>
+                            <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>{label}</div>
                             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
                                 {recentFeats.map(f => (
                                     <button key={f.key} onClick={() => f.personaName && onFeatureSelect?.(f.personaName, f.key)} style={{
