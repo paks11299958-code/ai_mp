@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     X, ShieldCheck, Clock, CheckCircle, XCircle, Loader,
-    Trash2, RotateCcw, ChevronLeft, UploadCloud, FileText, AlertTriangle,
+    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer,
 } from 'lucide-react';
 import { GuideCard } from './GuideCard';
 
@@ -105,6 +105,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
         title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '',
     });
     const [showAdditional, setShowAdditional] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
 
     const loadTasks = useCallback(async () => {
         try {
@@ -113,6 +114,12 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
         } catch { /* 무시 */ }
         finally { setLoading(false); }
     }, []);
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        try { await loadTasks(); }
+        finally { setTimeout(() => setRefreshing(false), 400); }
+    };
 
     useEffect(() => { loadTasks(); }, [loadTasks]);
 
@@ -365,7 +372,21 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
 
                             {/* 분석 내역 */}
                             <div>
-                                <div className="text-xs font-bold tracking-widest uppercase text-[#9089A1] mb-2.5 mt-2">분석 내역</div>
+                                <div className="flex items-center justify-between mb-2.5 mt-2">
+                                    <span className="text-xs font-bold tracking-widest uppercase text-[#9089A1]">분석 내역</span>
+                                    <button type="button" onClick={handleRefresh} disabled={refreshing}
+                                        className="flex items-center gap-1 text-xs font-medium text-[#8E6FB7] hover:text-[#7A5FA0] transition-colors disabled:opacity-50">
+                                        <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+                                        새로고침
+                                    </button>
+                                </div>
+                                {tasks.some(t => t.status === 'pending' || t.status === 'processing') && (
+                                    <div className="flex items-center gap-2 rounded-xl px-3 py-2 mb-2 text-xs"
+                                        style={{ background: 'rgba(142,111,183,0.07)', border: '1px solid rgba(142,111,183,0.2)', color: '#7A5FA0' }}>
+                                        <Loader size={13} className="animate-spin shrink-0" />
+                                        AI가 분석 중이에요. 보통 1분 안에 끝나며 자동으로 갱신됩니다.
+                                    </div>
+                                )}
                                 {loading ? (
                                     <div className="text-center py-8 text-sm text-[#9089A1]">불러오는 중...</div>
                                 ) : tasks.length === 0 ? (
@@ -386,6 +407,12 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
                                                             문서 {names.length}개 · {new Date(t.createdAt).toLocaleDateString('ko-KR')}
                                                             {t.status === 'completed' && t.duplicateCount != null && ` · 중복 ${t.duplicateCount}건`}
                                                         </div>
+                                                        {t.status === 'pending' && (
+                                                            <div className="text-xs text-orange-500 truncate mt-0.5">분석 대기 중… 곧 시작돼요</div>
+                                                        )}
+                                                        {t.status === 'processing' && (
+                                                            <div className="text-xs text-[#8E6FB7] truncate mt-0.5">보장항목을 읽고 중복을 분석하고 있어요…</div>
+                                                        )}
                                                         {t.status === 'failed' && t.errorMessage && (
                                                             <div className="text-xs text-red-400 truncate mt-0.5">{t.errorMessage}</div>
                                                         )}
@@ -420,9 +447,12 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
 
 // ── 결과 보기 ──────────────────────────────────────────────
 
+const esc = (s: any) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] || c));
+
 const ResultView: React.FC<{ detail: InsuranceDetail; loading: boolean }> = ({ detail, loading }) => {
     if (loading) return <div className="text-center py-16 text-sm text-[#9089A1]">결과를 불러오는 중...</div>;
     const duplicates = parseJson<Duplicate[]>(detail.duplicatesJson, []);
+    const title = parseJson<Partial<InsuranceUserInfo>>(detail.userInfo, {}).title || '보험 중복 보장 분석';
 
     const metrics = [
         { value: detail.duplicateCount ?? 0, label: '중복 항목', color: '#EF4444' },
@@ -431,11 +461,56 @@ const ResultView: React.FC<{ detail: InsuranceDetail; loading: boolean }> = ({ d
         { value: detail.riskLevel || '-', label: '위험도', color: riskColor(detail.riskLevel) },
     ];
 
+    // 인쇄/PDF용 HTML 생성 → 새 창 window.print() (서버 부하 0, 한글 안전)
+    const buildPrintHtml = (): string => {
+        const date = new Date(detail.updatedAt).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const sevCls = (s: string) => s === '높음' ? 'badge-high' : s === '중간' ? 'badge-mid' : 'badge-low';
+        const rows = duplicates.length === 0
+            ? `<tr><td colspan="6" style="text-align:center;color:#888;padding:8mm 0">중복 보장 항목이 발견되지 않았습니다</td></tr>`
+            : duplicates.map(d => `<tr><td><strong>${esc(d.item)}</strong><br/><span style="color:#888;font-size:8pt">${esc(d.action)}</span></td><td>${esc(d.policies)}</td><td>A: ${esc(d.coverageA)}<br/>B: ${esc(d.coverageB)}</td><td>${esc(d.type)}</td><td style="color:#92400e;font-weight:500">${esc(d.monthlySavings)}</td><td><span class="badge ${sevCls(d.severity)}">${esc(d.severity)}</span></td></tr>`).join('');
+        return `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>${esc(title)}</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Noto Sans KR',sans-serif;background:#fff;color:#1a1a1a;padding:18mm 20mm;font-size:10.5pt;line-height:1.6}
+.title-row{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #111827;padding-bottom:3mm;margin-bottom:5mm}.title-row h1{font-size:16pt;font-weight:700}.title-row .meta{font-size:8.5pt;color:#888;text-align:right;line-height:1.8}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:3mm;margin-bottom:6mm}.card{border:1px solid #e5e7eb;border-radius:6px;padding:3.5mm 4mm;text-align:center}.card .val{font-size:15pt;font-weight:700}.card .lbl{font-size:8pt;color:#888;margin-top:1mm}
+.section-title{font-size:9pt;font-weight:600;color:#374151;letter-spacing:0.08em;margin:5mm 0 2.5mm}
+.box{background:#f9fafb;border:1px solid #e5e7eb;border-left:3px solid #8E6FB7;border-radius:6px;padding:4mm 5mm;font-size:9.5pt;line-height:1.8;color:#374151;margin-bottom:5mm}
+table{width:100%;border-collapse:collapse;margin-bottom:5mm;font-size:8.5pt}th{background:#f3f4f6;border:1px solid #e5e7eb;padding:2mm 3mm;text-align:left;font-weight:600;color:#6b7280;white-space:nowrap}td{border:1px solid #e5e7eb;padding:2.5mm 3mm;vertical-align:top;color:#374151}tr:nth-child(even) td{background:#f9fafb}
+.badge{display:inline-block;padding:0.5mm 2.5mm;border-radius:3px;font-size:8pt;font-weight:500}.badge-high{background:#fee2e2;color:#991b1b}.badge-mid{background:#fef3c7;color:#92400e}.badge-low{background:#d1fae5;color:#065f46}
+.disc{font-size:8pt;color:#9ca3af;border:1px solid #e5e7eb;border-radius:5px;padding:3mm 4mm}@media print{body{padding:12mm 14mm}@page{margin:10mm}}</style></head><body>
+<div class="title-row"><h1>${esc(title)}</h1><div class="meta">분석 일시: ${esc(date)}<br/>AI 보험 중복 보장 분석</div></div>
+<div class="cards">
+<div class="card"><div class="val" style="color:#ef4444">${esc(detail.duplicateCount ?? 0)}</div><div class="lbl">중복 보장 항목</div></div>
+<div class="card"><div class="val">${esc(detail.totalPolicies ?? 0)}</div><div class="lbl">분석 보험 수</div></div>
+<div class="card"><div class="val" style="color:#f59e0b">${esc(detail.monthlySavings || '-')}</div><div class="lbl">절감 예상액</div></div>
+<div class="card"><div class="val">${esc(detail.riskLevel || '-')}</div><div class="lbl">중복 위험도</div></div></div>
+${detail.aiSummary ? `<div class="section-title">AI 분석 요약</div><div class="box">${esc(detail.aiSummary)}</div>` : ''}
+<div class="section-title">중복 보장 상세 목록</div>
+<table><thead><tr><th>중복 항목</th><th>해당 보험</th><th>보장 내용 비교</th><th>유형</th><th>절감 예상</th><th>심각도</th></tr></thead><tbody>${rows}</tbody></table>
+${detail.recommendation ? `<div class="section-title">AI 권고사항</div><div class="box">${esc(detail.recommendation)}</div>` : ''}
+${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
+<script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400))</script></body></html>`;
+    };
+
+    const handlePrint = () => {
+        const w = window.open('', '_blank');
+        if (!w) { alert('팝업이 차단되었습니다. 팝업 허용 후 다시 시도해 주세요.'); return; }
+        w.document.write(buildPrintHtml());
+        w.document.close();
+    };
+
     return (
         <div className="p-4 max-w-2xl mx-auto space-y-5">
-            <div>
-                <h3 className="text-base font-bold text-[#2D2438]">분석 완료 보고서</h3>
-                <div className="text-xs text-[#9089A1] mt-0.5">{new Date(detail.updatedAt).toLocaleString('ko-KR')}</div>
+            <div className="flex items-start justify-between gap-2">
+                <div>
+                    <h3 className="text-base font-bold text-[#2D2438]">분석 완료 보고서</h3>
+                    <div className="text-xs text-[#9089A1] mt-0.5">{new Date(detail.updatedAt).toLocaleString('ko-KR')}</div>
+                </div>
+                <button onClick={handlePrint}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all"
+                    style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 2px 8px -3px rgba(142,111,183,0.5)' }}>
+                    <Printer size={13} /> 인쇄 · PDF
+                </button>
             </div>
 
             {/* 요약 지표 */}
