@@ -1927,12 +1927,13 @@ const AppContent: React.FC = () => {
                             return (
                                 <div className="shrink-0 border-b border-[#F0E9DE] bg-white/55 backdrop-blur-sm">
                                     <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-                                        <span className="text-[10px] text-[#9089A1] shrink-0 mr-0.5 hidden sm:inline">최근</span>
+                                        <span className="text-[10px] font-semibold text-[#8E6FB7] shrink-0 mr-0.5 hidden sm:inline">최근</span>
                                         {recentOthers.map(p => (
                                             <button
                                                 key={p.id}
                                                 onClick={() => handlePersonaClick(p.id)}
-                                                className="flex items-center gap-1.5 shrink-0 pl-1 pr-2.5 py-1 rounded-full bg-white border border-[#EAE2D3] hover:border-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors"
+                                                className="flex items-center gap-1.5 shrink-0 pl-1 pr-2.5 py-1 rounded-full transition-colors hover:bg-[#EAD5F2]"
+                                                style={{ background: '#F5E6F7', border: '1px solid #E4D3EC', color: '#8E6FB7' }}
                                                 title={`${p.name}와 대화`}
                                             >
                                                 {p.imageUrl ? (
