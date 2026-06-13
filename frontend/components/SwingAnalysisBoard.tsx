@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Trash2, ChevronLeft, Activity, Lock, ChevronDown } from 'lucide-react';
 import { SwingAnalysis, SwingAnalysisSection, UserSwingAnalysis } from '../types';
 import { swingAnalysisApi } from '../services/apiService';
-import { GuideCard } from './GuideCard';
+import { HelpButton } from './HelpButton';
 
 // ── Design tokens ──────────────────────────────────────────
 const T = {
@@ -165,9 +165,21 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                             영상은 분석 후 즉시 삭제됩니다
                         </span>
                     </div>
-                    <button onClick={onClose} className="shrink-0 p-1.5 rounded-xl hover:bg-black/5 transition-colors">
-                        <X size={18} style={{ color: T.muted }} />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                        <HelpButton
+                            title="스윙 분석 사용법"
+                            accent={T.gold}
+                            steps={[
+                                { title: '스윙 영상 올리기', desc: '골프 스윙을 찍은 영상을 업로드해요.' },
+                                { title: 'AI가 분석', desc: '어드레스·백스윙 등 단계별로 AI가 자동 진단해요.' },
+                                { title: '결과 확인', desc: '단계별 점수와 교정 포인트를 확인해요.' },
+                            ]}
+                            tip="영상은 분석 후 즉시 삭제돼요. 안심하고 올리세요."
+                        />
+                        <button onClick={onClose} className="p-1.5 rounded-xl hover:bg-black/5 transition-colors">
+                            <X size={18} style={{ color: T.muted }} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* ── Body ── */}
@@ -180,21 +192,6 @@ export const SwingAnalysisBoard: React.FC<Props> = ({ onClose, personaId, initia
                             <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted }}>분석 기록</p>
                         </div>
                         <div className="flex-1 overflow-y-auto" style={selected ? { padding: 8 } : { padding: 16 }}>
-                          {!selected && (
-                            <div style={{ maxWidth: 1100, margin: '0 auto 12px' }}>
-                                <GuideCard
-                                    storageKey="guide_swing"
-                                    accent={T.gold}
-                                    title="스윙 분석 사용법"
-                                    steps={[
-                                        { emoji: '1️⃣', title: '스윙 영상 올리기', desc: '골프 스윙을 찍은 영상을 업로드해요.' },
-                                        { emoji: '2️⃣', title: 'AI가 분석', desc: '어드레스·백스윙 등 단계별로 AI가 자동 진단해요.' },
-                                        { emoji: '3️⃣', title: '결과 확인', desc: '단계별 점수와 교정 포인트를 확인해요.' },
-                                    ]}
-                                    tip="영상은 분석 후 즉시 삭제돼요. 안심하고 올리세요."
-                                />
-                            </div>
-                          )}
                           <div style={selected ? {} : { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 10, maxWidth: 1100, margin: '0 auto' }}>
                             {loading ? (
                                 Array.from({ length: 3 }).map((_, i) => (

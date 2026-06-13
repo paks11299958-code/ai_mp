@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     X, ShieldCheck, Clock, CheckCircle, XCircle, Loader,
-    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle, Sparkles, ChevronDown, HelpCircle,
+    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle, Sparkles, ChevronDown,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { HelpButton } from './HelpButton';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -112,7 +113,6 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     });
     const [showAdditional, setShowAdditional] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
-    const [showHelp, setShowHelp] = useState(false);
 
     const loadTasks = useCallback(async () => {
         try {
@@ -232,11 +232,15 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         </h2>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                        <button onClick={() => setShowHelp(true)} title="사용법"
-                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[#D9920A] hover:bg-[#FEF3C7] transition-colors">
-                            <HelpCircle size={17} />
-                            <span className="hidden md:inline text-xs font-semibold">도움말</span>
-                        </button>
+                        <HelpButton
+                            title="보험 분석 사용법"
+                            steps={[
+                                { title: '정보 입력', desc: '제목·성별·생년월일을 넣어요. 건강·예산을 더하면 분석이 정확해져요.' },
+                                { title: '보험증권 올리기', desc: '가입한 보험 증권을 PDF나 사진으로 올려요(여러 개 가능).' },
+                                { title: 'AI 중복 분석', desc: 'AI가 중복 보장 항목과 절감 가능 금액을 찾아드려요.' },
+                            ]}
+                            tip="첨부 문서는 분석에만 쓰이고 분석 후 삭제돼요. 참고용이니 변경 전 전문가 상담을 권장해요."
+                        />
                         <button onClick={onClose} className="p-1.5 rounded-lg text-[#9089A1] hover:text-[#2D2438] hover:bg-white transition-colors">
                             <X size={17} />
                         </button>
@@ -485,42 +489,6 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 </div>
             </div>
 
-            {/* 사용법 도움말 모달 */}
-            {showHelp && (
-                <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center px-4 bg-black/50"
-                    onClick={() => setShowHelp(false)}>
-                    <div className="w-full sm:max-w-sm bg-white rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl"
-                        onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <HelpCircle size={18} className="text-[#8E6FB7]" />
-                                <span className="text-base font-bold text-[#2D2438]">보험 분석 사용법</span>
-                            </div>
-                            <button onClick={() => setShowHelp(false)} className="p-1 text-[#9089A1] hover:text-[#2D2438]">
-                                <X size={18} />
-                            </button>
-                        </div>
-                        <div className="space-y-3.5">
-                            {[
-                                { n: '1', title: '정보 입력', desc: '제목·성별·생년월일을 넣어요. 건강·예산을 더하면 분석이 정확해져요.' },
-                                { n: '2', title: '보험증권 올리기', desc: '가입한 보험 증권을 PDF나 사진으로 올려요(여러 개 가능).' },
-                                { n: '3', title: 'AI 중복 분석', desc: 'AI가 중복 보장 항목과 절감 가능 금액을 찾아드려요.' },
-                            ].map(s => (
-                                <div key={s.n} className="flex gap-3">
-                                    <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: '#8E6FB7' }}>{s.n}</span>
-                                    <div>
-                                        <div className="text-sm font-bold text-[#2D2438]">{s.title}</div>
-                                        <div className="text-xs text-[#6B5F56] mt-0.5 leading-relaxed">{s.desc}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-4 pt-3 border-t border-[#F0E9DE] text-xs text-[#9089A1] leading-relaxed">
-                            💡 첨부 문서는 분석에만 쓰이고 분석 후 삭제돼요. 참고용이니 변경 전 전문가 상담을 권장해요.
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

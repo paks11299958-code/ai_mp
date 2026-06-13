@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
-import { GuideCard } from './GuideCard';
+import { HelpButton } from './HelpButton';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
 const T = {
@@ -282,7 +282,19 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                         <BookOpen size={17} style={{ color: T.accent }} />
                         <span className="font-bold text-base" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>전자책 만들기 <span className="text-[10px] tracking-[0.15em]" style={{ color: T.accent }}>EBOOK STUDIO</span></span>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/5"><X size={18} style={{ color: T.inkMute }} /></button>
+                    <div className="flex items-center gap-1">
+                        <HelpButton
+                            title="전자책 만들기, 이렇게 진행돼요"
+                            accent={T.accent}
+                            steps={[
+                                { title: '제목·목차 정하기', desc: '주제를 입력하면 작가 AI가 목차를 만들어줘요. 제목·저자명·책 크기(판형)를 정합니다.' },
+                                { title: '만들 챕터 고르고 새벽 시간 예약', desc: '자료 수집 탭에서 만들 챕터를 체크하고 새벽 시간(1~5시)을 예약하면, 그 시각에 자료수집부터 본문까지 자동으로 만들어져요.' },
+                                { title: '다음날 문서 받고 출판', desc: '초안 만들기 탭에서 표지를 올리고 구글 문서(.docx)를 받아 구글 독스에서 마무리한 뒤, 북크크(bookk.co.kr)에서 바로 출판하세요.' },
+                            ]}
+                            tip="본문은 밤사이 자동으로 만들어져요. 오늘 예약하고 내일 다시 들러 결과를 확인하세요 🌙"
+                        />
+                        <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-black/5"><X size={18} style={{ color: T.inkMute }} /></button>
+                    </div>
                 </div>
 
                 <div className="flex flex-1 overflow-hidden">
@@ -298,18 +310,6 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         <Plus size={15} /> 새 전자책
                                     </button>
                                 </div>
-
-                                {/* 사용법 가이드 (접이식, 처음 사용자 안내) */}
-                                <GuideCard
-                                    storageKey="guide_ebook"
-                                    title="전자책 만들기, 이렇게 진행돼요"
-                                    steps={[
-                                        { emoji: '📝', title: '제목·목차 정하기', desc: '주제를 입력하면 작가 AI가 목차를 만들어줘요. 제목·저자명·책 크기(판형)를 정합니다.' },
-                                        { emoji: '⏰', title: '만들 챕터 고르고 새벽 시간 예약', desc: '자료 수집 탭에서 만들 챕터를 체크하고 새벽 시간(1~5시)을 예약하면, 그 시각에 자료수집부터 본문까지 자동으로 만들어져요.' },
-                                        { emoji: '📖', title: '다음날 문서 받고 출판', desc: '초안 만들기 탭에서 표지를 올리고 구글 문서(.docx)를 받아 구글 독스에서 마무리한 뒤, 북크크(bookk.co.kr)에서 바로 출판하세요.' },
-                                    ]}
-                                    tip="본문은 밤사이 자동으로 만들어져요. 오늘 예약하고 내일 다시 들러 결과를 확인하세요 🌙"
-                                />
 
                                 {list.length === 0
                                     ? <div className="text-center text-sm py-16" style={{ color: T.inkMute }}>아직 만든 전자책이 없어요. <b style={{ color: T.accent }}>새 전자책</b>으로 시작해 보세요.</div>
