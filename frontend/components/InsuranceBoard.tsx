@@ -605,7 +605,7 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                         style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
                         {genLoading
                             ? <><Loader size={15} className="animate-spin" /> 김지훈이 보고서 작성 중…</>
-                            : <><Sparkles size={15} /> 김지훈 종합 컨설팅 받기</>}
+                            : <><Sparkles size={15} /> 종합 컨설팅 받기</>}
                     </button>
                 )}
                 {onConsult && (
@@ -626,7 +626,7 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                     <div className="flex items-center justify-between gap-2 px-5 py-3.5">
                         <button onClick={() => setReportOpen(o => !o)} className="flex items-center gap-2 min-w-0 flex-1 text-left">
                             <Sparkles size={15} className="text-[#8E6FB7] shrink-0" />
-                            <span className="text-sm font-bold text-[#2D2438] truncate">김지훈 종합 컨설팅 보고서</span>
+                            <span className="text-sm font-bold text-[#2D2438] truncate">종합 컨설팅 보고서</span>
                             <ChevronDown size={16} className={`text-[#9089A1] shrink-0 transition-transform ${reportOpen ? '' : '-rotate-90'}`} />
                         </button>
                         <button onClick={() => generateConsulting(true)} disabled={genLoading}
