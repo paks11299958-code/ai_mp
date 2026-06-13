@@ -521,7 +521,7 @@ const PersonaSelectPanel: React.FC<{
 
             {/* 헤더 — 배경/보더는 전체 폭, 내부 콘텐츠만 maxWidth로 가운데(아래 padding으로 처리) */}
             <div style={{
-                padding: '20px max(28px, calc((100% - 980px) / 2)) 0px',
+                padding: '20px max(28px, calc((100% - 760px) / 2)) 0px',
                 borderBottom: `1px solid ${T.lineSoft}`,
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(8px)',
@@ -742,7 +742,7 @@ const PersonaSelectPanel: React.FC<{
             {tab === 'features' && (
                 <div style={{
                     flex: 1, overflowY: 'auto',
-                    padding: '20px max(28px, calc((100% - 980px) / 2))',
+                    padding: '20px max(28px, calc((100% - 760px) / 2))',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                     gap: 16,
@@ -877,7 +877,7 @@ const PersonaSelectPanel: React.FC<{
             {/* 페르소나 그리드 */}
             {tab === 'personas' && <div style={{
                 flex: 1, overflowY: 'auto',
-                padding: '20px max(28px, calc((100% - 980px) / 2))',
+                padding: '20px max(28px, calc((100% - 760px) / 2))',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 gap: 16,
