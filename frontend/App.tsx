@@ -31,6 +31,7 @@ import { HotKeywordBoard } from './components/HotKeywordBoard';
 import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
+import { InsuranceBoard } from './components/InsuranceBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { WebtoonEpisodeList } from './components/WebtoonEpisodeList';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -161,6 +162,7 @@ const AppContent: React.FC = () => {
         showGolfReserve, setShowGolfReserve,
         showUsedItem, setShowUsedItem,
         showLuxuryBoard, setShowLuxuryBoard,
+        showInsuranceBoard, setShowInsuranceBoard,
         showTodayNews, setShowTodayNews,
         showSwingBoard, setShowSwingBoard,
         showSwingInput, setShowSwingInput,
@@ -894,6 +896,7 @@ const AppContent: React.FC = () => {
         hotkeyword: () => setShowHotKeyword(true),
         used: () => setShowUsedItem(true),
         luxury: () => setShowLuxuryBoard(true),
+        insurance: () => setShowInsuranceBoard(true),
         mathtutor: () => setShowMathTutor(true),
         club: () => setShowClubBoard(true),
         'golf-swing': () => setShowSwingInput(true),
@@ -1047,6 +1050,7 @@ const AppContent: React.FC = () => {
                 {showHotKeyword && <HotKeywordBoard onClose={() => setShowHotKeyword(false)} userEmail={user?.email} userPhone={user?.phone} />}
                 {showUsedItem && <UsedItemBoard onClose={() => setShowUsedItem(false)} />}
                 {showLuxuryBoard && <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />}
+                {showInsuranceBoard && <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} />}
                 {showMathTutor && <MathTutorBoard onClose={() => setShowMathTutor(false)} />}
                 {showClubBoard && <ClubBoard onClose={() => setShowClubBoard(false)} />}
             </>
@@ -1123,6 +1127,9 @@ const AppContent: React.FC = () => {
                 )}
                 {showLuxuryBoard && (
                     <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
+                )}
+                {showInsuranceBoard && (
+                    <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} />
                 )}
                 {showTodayNews && (
                     <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
@@ -1255,6 +1262,9 @@ const AppContent: React.FC = () => {
             )}
             {showLuxuryBoard && (
                 <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
+            )}
+            {showInsuranceBoard && (
+                <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} />
             )}
             {showTodayNews && (
                 <TodayNewsBoard onClose={() => setShowTodayNews(false)} />

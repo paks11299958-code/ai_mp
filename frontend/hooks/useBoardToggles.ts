@@ -25,6 +25,7 @@ export function useBoardToggles() {
     const [showGolfReserve, setShowGolfReserve] = useState(false);
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
+    const [showInsuranceBoard, setShowInsuranceBoard] = useState(false);
     const [showTodayNews, setShowTodayNews] = useState(false);
     const [showSwingBoard, setShowSwingBoard] = useState(false);
     const [showSwingInput, setShowSwingInput] = useState(false);
@@ -42,6 +43,7 @@ export function useBoardToggles() {
         showGolfReserve, setShowGolfReserve,
         showUsedItem, setShowUsedItem,
         showLuxuryBoard, setShowLuxuryBoard,
+        showInsuranceBoard, setShowInsuranceBoard,
         showTodayNews, setShowTodayNews,
         showSwingBoard, setShowSwingBoard,
         showSwingInput, setShowSwingInput,

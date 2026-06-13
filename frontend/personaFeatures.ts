@@ -23,7 +23,8 @@ export type FeatureKey =
     | 'golf-swing'
     | 'golf-record'
     | 'ebook'
-    | 'webtoon';
+    | 'webtoon'
+    | 'insurance';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -47,6 +48,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'golf-record', label: '스윙 기록',    icon: 'Clock',       color: '#C47D0A', bgColor: 'rgba(245,166,35,0.12)',    borderColor: '#F5A623' },
     { key: 'ebook',       label: '전자책 만들기', icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
     { key: 'webtoon',     label: '웹툰 보기',     icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F0E9F7',                  borderColor: '#C4B0DC' },
+    { key: 'insurance',   label: '보험 분석',     icon: 'Shield',     color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
