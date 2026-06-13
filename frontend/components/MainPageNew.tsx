@@ -519,11 +519,10 @@ const PersonaSelectPanel: React.FC<{
                 </>
             )}
 
-            {/* 헤더 — 배경/보더는 전체 폭, 내부 콘텐츠만 maxWidth로 가운데(아래 padding으로 처리) */}
+            {/* 헤더 — 구분선 제거로 상단/카드 영역 자연스럽게 이어짐. 내부 콘텐츠만 가운데 */}
             <div style={{
-                padding: '20px max(28px, calc((100% - 760px) / 2)) 0px',
-                borderBottom: `1px solid ${T.lineSoft}`,
-                background: 'rgba(255,255,255,0.7)',
+                padding: '13px max(28px, calc((100% - 760px) / 2)) 0px',
+                background: 'rgba(255,255,255,0.4)',
                 backdropFilter: 'blur(8px)',
                 position: 'relative',
             }}>
@@ -544,24 +543,24 @@ const PersonaSelectPanel: React.FC<{
                 <div style={{ textAlign: 'center' }}>
                 <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 0, marginBottom: 8, display: 'inline-block',
+                    padding: 0, marginBottom: 3, display: 'inline-block',
                 }}>
                     <span style={{
-                        fontFamily: "'Cinzel', serif", fontSize: 15,
+                        fontFamily: "'Cinzel', serif", fontSize: 13,
                         fontWeight: 700, letterSpacing: '0.35em',
                         color: T.gold, opacity: 1,
                     }}>✦ AI PERSONAS</span>
                 </button>
                 <h2 style={{
                     fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 26, fontWeight: 600,
-                    margin: '0 0 14px', color: T.ink,
+                    fontSize: 21, fontWeight: 600,
+                    margin: '0 0 8px', color: T.ink,
                     letterSpacing: '-0.01em',
                 }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
 
                 {/* ② 개인화 인사 — 로그인 사용자 + personas 탭에서만 */}
                 {user && tab === 'personas' && (
-                    <div style={{ marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 14, color: T.inkSoft }}>
                             <span style={{ color: T.accent, fontWeight: 700 }}>{user.username || user.email.split('@')[0]}</span>님, 다시 만나 반가워요 ✦
                         </span>
@@ -580,7 +579,7 @@ const PersonaSelectPanel: React.FC<{
 
                 {/* ③ 최근 대화 줄 — 최근 대화한 페르소나 바로가기 */}
                 {user && tab === 'personas' && recentPersonas.length > 0 && (
-                    <div style={{ marginBottom: 16 }}>
+                    <div style={{ marginBottom: 10 }}>
                         <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>최근 대화</div>
                         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
                             {recentPersonas.map(p => (
@@ -620,7 +619,7 @@ const PersonaSelectPanel: React.FC<{
                     }
                     if (!recentFeats.length) return null;
                     return (
-                        <div style={{ marginBottom: 16 }}>
+                        <div style={{ marginBottom: 10 }}>
                             <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>{label}</div>
                             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
                                 {recentFeats.map(f => (
