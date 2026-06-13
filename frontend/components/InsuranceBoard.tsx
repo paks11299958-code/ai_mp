@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     X, ShieldCheck, Clock, CheckCircle, XCircle, Loader,
-    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer,
+    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle,
 } from 'lucide-react';
 import { GuideCard } from './GuideCard';
 
@@ -42,6 +42,8 @@ interface InsuranceDetail extends InsuranceTask {
 
 interface Props {
     onClose: () => void;
+    // 분석 결과를 김지훈 채팅으로 넘겨 상담 — (분석제목, AI에 주입할 컨텍스트 텍스트)
+    onConsult?: (title: string, context: string) => void;
 }
 
 // ── 유틸 ──────────────────────────────────────────────────
@@ -89,7 +91,7 @@ const sevStyle = (s: string) =>
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
-export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
+export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const [tasks, setTasks] = useState<InsuranceTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<InsuranceDetail | null>(null);
@@ -230,7 +232,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
                 {/* 본문 */}
                 <div className="flex-1 overflow-y-auto">
                     {selected ? (
-                        <ResultView detail={selected} loading={detailLoading} />
+                        <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onClose={onClose} />
                     ) : (
                         <div className="p-4 space-y-4 max-w-2xl mx-auto">
                             {/* 분석 내역 — 재방문 시 바로 확인하도록 맨 위 */}
@@ -457,10 +459,42 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
 
 const esc = (s: any) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] || c));
 
-const ResultView: React.FC<{ detail: InsuranceDetail; loading: boolean }> = ({ detail, loading }) => {
+const ResultView: React.FC<{
+    detail: InsuranceDetail;
+    loading: boolean;
+    onConsult?: (title: string, context: string) => void;
+    onClose: () => void;
+}> = ({ detail, loading, onConsult, onClose }) => {
     if (loading) return <div className="text-center py-16 text-sm text-[#9089A1]">결과를 불러오는 중...</div>;
     const duplicates = parseJson<Duplicate[]>(detail.duplicatesJson, []);
-    const title = parseJson<Partial<InsuranceUserInfo>>(detail.userInfo, {}).title || '보험 중복 보장 분석';
+    const ui = parseJson<Partial<InsuranceUserInfo>>(detail.userInfo, {});
+    const title = ui.title || '보험 중복 보장 분석';
+
+    // 김지훈 채팅에 주입할 컨텍스트(AI만 보는 model 메시지). 사용자 후속질문의 근거.
+    const buildConsultContext = (): string => {
+        const lines: string[] = [];
+        lines.push('[보험 중복 보장 분석 결과 — 아래 내용을 바탕으로 사용자 상담]');
+        const who = [ui.gender, ui.age && `${ui.age}생`, ui.job].filter(Boolean).join(' · ');
+        if (who) lines.push(`· 가입자: ${who}`);
+        if (ui.health) lines.push(`· 건강: ${ui.health}`);
+        if (ui.budget) lines.push(`· 예산: ${ui.budget}`);
+        lines.push(`· 분석 보험 ${detail.totalPolicies ?? 0}개, 중복 ${detail.duplicateCount ?? 0}건, 절감 예상 ${detail.monthlySavings || '-'}, 위험도 ${detail.riskLevel || '-'}`);
+        if (detail.aiSummary) lines.push(`\n[요약] ${detail.aiSummary}`);
+        if (duplicates.length) {
+            lines.push('\n[중복 보장 상세]');
+            duplicates.forEach((d, i) => {
+                lines.push(`${i + 1}. ${d.item} (${d.policies}) — ${d.type}/${d.severity}, 절감 ${d.monthlySavings}. A: ${d.coverageA} / B: ${d.coverageB}. 권고: ${d.action}`);
+            });
+        }
+        if (detail.recommendation) lines.push(`\n[권고] ${detail.recommendation}`);
+        return lines.join('\n');
+    };
+
+    const handleConsult = () => {
+        if (!onConsult) return;
+        onConsult(title, buildConsultContext());
+        onClose();
+    };
 
     const metrics = [
         { value: detail.duplicateCount ?? 0, label: '중복 항목', color: '#EF4444' },
@@ -516,10 +550,19 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                 </div>
                 <button onClick={handlePrint}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all"
-                    style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 2px 8px -3px rgba(142,111,183,0.5)' }}>
+                    style={{ background: '#fff', color: '#7A5FA0', border: '1px solid #D8C9EA' }}>
                     <Printer size={13} /> 인쇄 · PDF
                 </button>
             </div>
+
+            {/* 김지훈 상담하기 */}
+            {onConsult && (
+                <button onClick={handleConsult}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm transition-all"
+                    style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
+                    <MessageCircle size={16} /> 이 분석으로 김지훈에게 상담하기
+                </button>
+            )}
 
             {/* 요약 지표 */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">

@@ -376,6 +376,36 @@ const AppContent: React.FC = () => {
         });
     }, []);
 
+    // 보험분석 결과 → 김지훈에게 상담: 분석 컨텍스트를 김지훈 세션에 숨은(model) 메시지로 저장하면
+    // chat-stream이 history(최근 30개)에 포함시켜 AI가 참고함. 화면엔 인사말만 노출.
+    const KIMJIHOON_PERSONA_ID = 'cmqcbkt4y0000rpbefrh2z8rb';
+    const handleInsuranceConsult = async (title: string, context: string) => {
+        const pid = KIMJIHOON_PERSONA_ID;
+        setShowInsuranceBoard(false);
+        setActivePersonaId(pid);
+        rememberLastPersona(pid);
+        goTo('chat');
+        try {
+            // 김지훈 DB 세션 보장
+            let dbSessionId = sessions[pid]?.dbSessionId;
+            if (!dbSessionId) {
+                const ns = await sessionApi.create(pid, `보험상담: ${title}`.slice(0, 30));
+                dbSessionId = ns.id;
+                setSessions(prev => ({ ...prev, [pid]: { ...(prev[pid] || { messages: [], isTyping: false }), dbSessionId } }));
+            }
+            // 분석 컨텍스트 = model 메시지(포인트 차감 없음, AI history에만 반영)
+            if (dbSessionId) await sessionApi.saveMessage(dbSessionId, 'model', context);
+        } catch (e) {
+            console.error('보험 상담 컨텍스트 저장 실패:', e);
+        }
+        // 화면용 인사말
+        addMessageToSession(pid, {
+            id: `ins-${Date.now()}`,
+            role: 'model',
+            text: `'${title}' 보험 분석 내용을 확인했어요. 중복 보장이나 절감 방안, 해지·유지 고민까지 편하게 물어보세요. 어떤 점이 가장 궁금하세요?`,
+        });
+    };
+
     // 최근 사용 기능(featureKey) — 페르소나와 동일 패턴, localStorage 영속, 최대 5.
     const [recentFeatureKeys, setRecentFeatureKeys] = useState<string[]>(() => {
         try { const raw = localStorage.getItem('recentFeatureKeys'); if (raw) { const a = JSON.parse(raw); if (Array.isArray(a)) return a.filter((x): x is string => typeof x === 'string'); } } catch {}
@@ -1050,7 +1080,7 @@ const AppContent: React.FC = () => {
                 {showHotKeyword && <HotKeywordBoard onClose={() => setShowHotKeyword(false)} userEmail={user?.email} userPhone={user?.phone} />}
                 {showUsedItem && <UsedItemBoard onClose={() => setShowUsedItem(false)} />}
                 {showLuxuryBoard && <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />}
-                {showInsuranceBoard && <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} />}
+                {showInsuranceBoard && <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />}
                 {showMathTutor && <MathTutorBoard onClose={() => setShowMathTutor(false)} />}
                 {showClubBoard && <ClubBoard onClose={() => setShowClubBoard(false)} />}
             </>
@@ -1129,7 +1159,7 @@ const AppContent: React.FC = () => {
                     <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
                 )}
                 {showInsuranceBoard && (
-                    <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} />
+                    <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
                 )}
                 {showTodayNews && (
                     <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
@@ -1264,7 +1294,7 @@ const AppContent: React.FC = () => {
                 <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
             )}
             {showInsuranceBoard && (
-                <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} />
+                <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
             )}
             {showTodayNews && (
                 <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
