@@ -327,3 +327,11 @@
 - **모바일 닫기(X)**: 헤더 제목/태그가 넘쳐 X를 밀어냄 → 왼쪽 min-w-0+truncate, 태그 hidden sm:, X shrink-0.
 - **'‹ 목록으로' 헤더 고정**: 본문 안이면 스크롤 시 안 보임 → 상세 시 헤더(shrink-0) 왼쪽 고정. 3보드 통일.
 - ⚠️**교훈**: 한 보드(주식) 고치면 명품·골프도 같이. 따로 고치다 반복 지적받음.
+
+## 폰트·목록정렬 + 사용법 가이드 (2026-06-13)
+- **Pretendard 전역 기본**(SIL OFL, 상업 무료, jsdelivr CDN). `index.html` link + `index.css` `@theme --font-sans` + `html/body font-family`. UI·버튼·뉴스·일반텍스트=산세리프.
+- **명조 유지(역할분담)**: 나눔명조/Noto Serif KR은 명품 감정서(LuxuryBoard)·관상/손금 결과카드·전자책(EbookBoard)·운세 결과에 **컴포넌트 인라인 fontFamily**로 박혀 그대로 격조 유지. 랜딩 카드 장식=Cinzel/Cormorant(타로 분위기). ⚠️전역 기본만 바꾸면 인라인 명조는 자동 예외 → 역할분담이 코드 수정 없이 됨.
+- **목록화면(MainPageNew) 가운데 정렬**: 헤더·기능그리드·페르소나그리드 3곳 `padding: 20px max(28px, calc((100% - 760px)/2))` → 콘텐츠 760폭 가운데, 배경/보더는 전체폭, 모바일 28px 안전. (980→760으로 좁혀 강화)
+- **제목 영역만 중앙**: 라틴·제목·인사·포인트를 `textAlign:center` 래퍼로. 검색·칩·최근목록·카드는 왼쪽(가독성). 전부 가운데는 산만해서 지양.
+- **기능탭 '최근 사용' 줄**: recentFeatureKeys localStorage(기능 클릭 시 rememberLastFeature) + **비면 '즐겨찾는 기능'(⭐) 폴백**. onFeatureSelect(personaName, featureKey?) 확장.
+- **사용법 가이드 확산**: GuideCard를 5기능(수학문제/웹툰/주식/명품/스윙)에 적용. 닫혀도 '사용법 보기' 한줄+첫방문 자동펼침. 상세 [[project_guide_cards]]. 도결 제외.
