@@ -1355,16 +1355,8 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                     </button>
                 </div>
 
-                {/* 신뢰 칩 */}
-                <div style={{
-                    display: 'flex', justifyContent: 'center',
-                    gap: 8, marginBottom: 40,
-                    flexWrap: 'wrap', padding: '0 20px',
-                }}>
-                    <span className="lp-chip">✦ 10가지 AI 기능</span>
-                    <span className="lp-chip">♦ 다양한 페르소나</span>
-                    <span className="lp-chip">✧ 무료로 시작</span>
-                </div>
+                {/* 신뢰 칩 제거 — 회원에겐 불필요(무료로 시작 등)하고 캐러셀 공간만 차지. 캐러셀 위 여백만 약간 유지 */}
+                <div style={{ marginBottom: 20 }} />
 
                 {/* 캐러셀 */}
                 {isLoading ? (
