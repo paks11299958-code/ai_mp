@@ -233,6 +233,82 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
                         <ResultView detail={selected} loading={detailLoading} />
                     ) : (
                         <div className="p-4 space-y-4 max-w-2xl mx-auto">
+                            {/* 분석 내역 — 재방문 시 바로 확인하도록 맨 위 */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2.5">
+                                    <span className="text-xs font-bold tracking-widest uppercase text-[#9089A1]">분석 내역</span>
+                                    <button type="button" onClick={handleRefresh} disabled={refreshing}
+                                        className="flex items-center gap-1 text-xs font-medium text-[#8E6FB7] hover:text-[#7A5FA0] transition-colors disabled:opacity-50">
+                                        <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+                                        새로고침
+                                    </button>
+                                </div>
+                                {tasks.some(t => t.status === 'pending' || t.status === 'processing') && (
+                                    <div className="flex items-center gap-2 rounded-xl px-3 py-2 mb-2 text-xs"
+                                        style={{ background: 'rgba(142,111,183,0.07)', border: '1px solid rgba(142,111,183,0.2)', color: '#7A5FA0' }}>
+                                        <Loader size={13} className="animate-spin shrink-0" />
+                                        AI가 분석 중이에요. 보통 1분 안에 끝나며 자동으로 갱신됩니다.
+                                    </div>
+                                )}
+                                {loading ? (
+                                    <div className="text-center py-6 text-sm text-[#9089A1]">불러오는 중...</div>
+                                ) : tasks.length === 0 ? (
+                                    <div className="rounded-xl bg-white border border-dashed border-[#EAE2D3] py-6 text-center text-sm text-[#9089A1]">
+                                        아직 분석한 내역이 없어요.<br />아래에서 첫 보험 분석을 시작해 보세요 👇
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {tasks.map(t => {
+                                            const sc = STATUS_CONFIG[t.status];
+                                            const Icon = sc.icon;
+                                            const names = parseJson<string[]>(t.fileNames, []);
+                                            return (
+                                                <div key={t.id}
+                                                    onClick={() => handleSelect(t)}
+                                                    className={`rounded-xl bg-white border border-[#F0E9DE] p-3 flex items-center gap-3 ${t.status === 'completed' ? 'cursor-pointer hover:border-[#8E6FB7]/50' : ''} transition-colors`}>
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-sm font-semibold text-[#2D2438] truncate">{taskTitle(t)}</div>
+                                                        <div className="text-xs text-[#9089A1] truncate">
+                                                            문서 {names.length}개 · {new Date(t.createdAt).toLocaleDateString('ko-KR')}
+                                                            {t.status === 'completed' && t.duplicateCount != null && ` · 중복 ${t.duplicateCount}건`}
+                                                        </div>
+                                                        {t.status === 'pending' && (
+                                                            <div className="text-xs text-orange-500 truncate mt-0.5">분석 대기 중… 곧 시작돼요</div>
+                                                        )}
+                                                        {t.status === 'processing' && (
+                                                            <div className="text-xs text-[#8E6FB7] truncate mt-0.5">보장항목을 읽고 중복을 분석하고 있어요…</div>
+                                                        )}
+                                                        {t.status === 'failed' && t.errorMessage && (
+                                                            <div className="text-xs text-red-400 truncate mt-0.5">{t.errorMessage}</div>
+                                                        )}
+                                                    </div>
+                                                    <div className={`flex items-center gap-1 text-xs font-medium shrink-0 ${sc.cls}`}>
+                                                        <Icon size={13} className={t.status === 'processing' ? 'animate-spin' : ''} />
+                                                        {sc.label}
+                                                    </div>
+                                                    {t.status === 'failed' && (
+                                                        <button onClick={e => { e.stopPropagation(); handleRetry(t.id); }}
+                                                            className="p-1.5 text-[#9089A1] hover:text-[#8E6FB7] transition-colors" title="재시도">
+                                                            <RotateCcw size={14} />
+                                                        </button>
+                                                    )}
+                                                    <button onClick={e => { e.stopPropagation(); handleDelete(t.id); }}
+                                                        className="p-1.5 text-[#9089A1] hover:text-red-500 transition-colors" title="삭제">
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* 새 분석하기 구분 */}
+                            <div className="flex items-center gap-2 pt-1">
+                                <span className="text-xs font-bold tracking-widest uppercase text-[#9089A1]">새 분석하기</span>
+                                <span className="flex-1 h-px bg-[#F0E9DE]" />
+                            </div>
+
                             <GuideCard
                                 storageKey="guide_insurance"
                                 accent="#8E6FB7"
@@ -369,74 +445,6 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose }) => {
                                 }}>
                                 {uploading ? <><Loader size={16} className="animate-spin" /> 요청 중...</> : <>🔍 AI 중복 분석 시작</>}
                             </button>
-
-                            {/* 분석 내역 */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2.5 mt-2">
-                                    <span className="text-xs font-bold tracking-widest uppercase text-[#9089A1]">분석 내역</span>
-                                    <button type="button" onClick={handleRefresh} disabled={refreshing}
-                                        className="flex items-center gap-1 text-xs font-medium text-[#8E6FB7] hover:text-[#7A5FA0] transition-colors disabled:opacity-50">
-                                        <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
-                                        새로고침
-                                    </button>
-                                </div>
-                                {tasks.some(t => t.status === 'pending' || t.status === 'processing') && (
-                                    <div className="flex items-center gap-2 rounded-xl px-3 py-2 mb-2 text-xs"
-                                        style={{ background: 'rgba(142,111,183,0.07)', border: '1px solid rgba(142,111,183,0.2)', color: '#7A5FA0' }}>
-                                        <Loader size={13} className="animate-spin shrink-0" />
-                                        AI가 분석 중이에요. 보통 1분 안에 끝나며 자동으로 갱신됩니다.
-                                    </div>
-                                )}
-                                {loading ? (
-                                    <div className="text-center py-8 text-sm text-[#9089A1]">불러오는 중...</div>
-                                ) : tasks.length === 0 ? (
-                                    <div className="text-center py-8 text-sm text-[#9089A1]">아직 분석한 내역이 없어요.</div>
-                                ) : (
-                                    <div className="space-y-2">
-                                        {tasks.map(t => {
-                                            const sc = STATUS_CONFIG[t.status];
-                                            const Icon = sc.icon;
-                                            const names = parseJson<string[]>(t.fileNames, []);
-                                            return (
-                                                <div key={t.id}
-                                                    onClick={() => handleSelect(t)}
-                                                    className={`rounded-xl bg-white border border-[#F0E9DE] p-3 flex items-center gap-3 ${t.status === 'completed' ? 'cursor-pointer hover:border-[#8E6FB7]/50' : ''} transition-colors`}>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-sm font-semibold text-[#2D2438] truncate">{taskTitle(t)}</div>
-                                                        <div className="text-xs text-[#9089A1] truncate">
-                                                            문서 {names.length}개 · {new Date(t.createdAt).toLocaleDateString('ko-KR')}
-                                                            {t.status === 'completed' && t.duplicateCount != null && ` · 중복 ${t.duplicateCount}건`}
-                                                        </div>
-                                                        {t.status === 'pending' && (
-                                                            <div className="text-xs text-orange-500 truncate mt-0.5">분석 대기 중… 곧 시작돼요</div>
-                                                        )}
-                                                        {t.status === 'processing' && (
-                                                            <div className="text-xs text-[#8E6FB7] truncate mt-0.5">보장항목을 읽고 중복을 분석하고 있어요…</div>
-                                                        )}
-                                                        {t.status === 'failed' && t.errorMessage && (
-                                                            <div className="text-xs text-red-400 truncate mt-0.5">{t.errorMessage}</div>
-                                                        )}
-                                                    </div>
-                                                    <div className={`flex items-center gap-1 text-xs font-medium shrink-0 ${sc.cls}`}>
-                                                        <Icon size={13} className={t.status === 'processing' ? 'animate-spin' : ''} />
-                                                        {sc.label}
-                                                    </div>
-                                                    {t.status === 'failed' && (
-                                                        <button onClick={e => { e.stopPropagation(); handleRetry(t.id); }}
-                                                            className="p-1.5 text-[#9089A1] hover:text-[#8E6FB7] transition-colors" title="재시도">
-                                                            <RotateCcw size={14} />
-                                                        </button>
-                                                    )}
-                                                    <button onClick={e => { e.stopPropagation(); handleDelete(t.id); }}
-                                                        className="p-1.5 text-[#9089A1] hover:text-red-500 transition-colors" title="삭제">
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                )}
-                            </div>
                         </div>
                     )}
                 </div>
