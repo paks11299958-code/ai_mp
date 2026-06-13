@@ -163,8 +163,9 @@ const T = {
 
 export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const [activeKey, setActiveKey] = useState(CATEGORIES[0].key);
-    // 오전(am)/오후(pm) 슬롯 — 기본은 현재 시각 기준(12시 전=am). 가용 슬롯은 status로 확인.
-    const [slot, setSlot] = useState<'am' | 'pm'>(new Date().getHours() < 12 ? 'am' : 'pm');
+    // 슬롯은 status가 주는 '가용 슬롯'을 따른다(오후뉴스 제거 후엔 am만 존재).
+    // 확정 전(null)엔 fetch 보류 → 없는 슬롯 요청으로 빈 화면 뜨는 것 방지.
+    const [slot, setSlot] = useState<'am' | 'pm' | null>(null);
     const [availableSlots, setAvailableSlots] = useState<string[]>([]);
     // 캐시 키를 'slot:category'로 → 오전/오후 따로 캐시(중복 호출·중복 과금 방지)
     const [newsMap, setNewsMap] = useState<Record<string, NewsData | null>>({});
@@ -184,20 +185,20 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
         }
     }, []);
 
-    // mount 시 가용 슬롯 조회 → 둘 다 있으면 토글 노출, 하나뿐이면 그 슬롯으로
+    // mount 시 가용 슬롯 조회 → 가용 슬롯 중 최신(마지막)을 선택. 오후뉴스 제거 후엔 항상 am.
     useEffect(() => {
         fetch('/api/news/status', { credentials: 'include', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
             .then(r => r.json())
             .then((d: any) => {
                 const slots: string[] = Array.isArray(d?.slots) ? d.slots : [];
                 setAvailableSlots(slots);
-                // 현재 선택 슬롯이 없으면 가용한 것으로 보정
-                if (slots.length && !slots.includes(slot)) setSlot(slots[slots.length - 1] as 'am' | 'pm');
+                setSlot((slots[slots.length - 1] as 'am' | 'pm') || 'am'); // 가용 슬롯 우선, 없으면 am
             })
-            .catch(() => {});
+            .catch(() => setSlot('am')); // status 실패해도 am으로 시도
     }, []);
 
-    const fetchCategory = useCallback(async (key: string, s: 'am' | 'pm') => {
+    const fetchCategory = useCallback(async (key: string, s: 'am' | 'pm' | null) => {
+        if (!s) return; // 슬롯 확정 전엔 보류
         const cacheKey = `${s}:${key}`;
         if (newsMap[cacheKey] !== undefined) return;
         setLoadingKey(cacheKey);
