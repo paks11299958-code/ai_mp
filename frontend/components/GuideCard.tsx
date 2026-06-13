@@ -32,11 +32,14 @@ export const GuideCard: React.FC<GuideCardProps> = ({ title = '사용법', steps
 
     return (
         <div className="rounded-2xl mb-4" style={{ background: soft, border: `1px solid ${border}` }}>
-            {/* 헤더 — 클릭 시 접기/펼치기 */}
-            <button onClick={toggle} className="w-full flex items-center gap-2 px-4 py-3" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+            {/* 헤더 — 클릭 시 접기/펼치기. 닫혀있을 땐 '사용법 보기'로 안내(? 버튼 역할, 공간 최소). */}
+            <button onClick={toggle} className="w-full flex items-center gap-2 px-4 py-2.5" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <HelpCircle size={16} style={{ color: accent }} strokeWidth={2.4} />
-                <span className="text-sm font-bold" style={{ color: accent }}>📖 {title}</span>
-                <span className="ml-auto" style={{ color: accent }}>
+                <span className="text-sm font-bold" style={{ color: accent }}>
+                    📖 {open ? title : `${title} 보기`}
+                </span>
+                <span className="ml-auto flex items-center gap-1" style={{ color: accent }}>
+                    {!open && <span className="text-[11px] font-medium" style={{ opacity: 0.75 }}>펼치기</span>}
                     {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </span>
             </button>

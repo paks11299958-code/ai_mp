@@ -1,5 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Camera, ChevronLeft, Volume2, VolumeX, Loader, RotateCcw, Trash2, CheckCircle, XCircle, Clock, BookOpen, Sparkles } from 'lucide-react';
+import { GuideCard } from './GuideCard';
 
 // ── 타입 ─────────────────────────────────────────────────
 
@@ -393,6 +394,19 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                                 📂 이력
                             </button>
                         </div>
+
+                        <GuideCard
+                            storageKey="guide_math_generate"
+                            accent="#C44FD8"
+                            title="문제 만들기 사용법"
+                            steps={[
+                                { emoji: '1️⃣', title: '학년·과목 고르기', desc: '초1~6학년과 과목(수와 연산, 도형 등)을 차례로 선택해요.' },
+                                { emoji: '2️⃣', title: '단원 선택', desc: 'AI쌤이 교과서 단원을 불러와요. 원하는 단원을 골라요.' },
+                                { emoji: '3️⃣', title: '문제 수 정하고 만들기', desc: '1~10개 중 정하고 \'문제 만들기\'를 누르면 정답·풀이까지 만들어져요.' },
+                                { emoji: '4️⃣', title: '인쇄·저장', desc: '🖨️ 인쇄·PDF로 출력하거나 .docx로 받아요. 📂 이력에서 다시 볼 수도 있어요.' },
+                            ]}
+                            tip="같은 단원으로 또 만들면 매번 다른 문제가 나와요."
+                        />
 
                         {/* 만든 문제 이력 */}
                         {historyOpen && (

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, BookOpen, Loader, ChevronRight } from 'lucide-react';
 import { webtoonApi, WebtoonEpisode } from '../services/apiService';
 import { WebtoonScrollViewer } from './WebtoonScrollViewer';
+import { GuideCard } from './GuideCard';
 
 // 웹툰 회차 목록 모달 — 향기 채팅 '웹툰' 진입 시. 회차 선택 → 컷 뷰어(WebtoonViewer)로.
 interface Props {
@@ -60,6 +61,16 @@ export const WebtoonEpisodeList: React.FC<Props> = ({ personaId, personaName, on
                 {/* 회차 목록 */}
                 <div className="flex-1 overflow-y-auto p-4">
                     {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
+                    <GuideCard
+                        storageKey="guide_webtoon"
+                        accent={T.accent}
+                        title="웹툰 보는 법"
+                        steps={[
+                            { emoji: '📖', title: '회차 고르기', desc: '보고 싶은 회차를 누르면 웹툰이 열려요.' },
+                            { emoji: '📜', title: '아래로 넘기며 보기', desc: '화면을 위에서 아래로 쭉 내리면서 컷을 봐요.' },
+                            { emoji: '✨', title: '다음 화 기다리기', desc: '마지막 컷까지 보면 끝! 새 회차가 올라오면 또 만나요.' },
+                        ]}
+                    />
                     {list === null ? (
                         <div className="flex items-center justify-center py-16" style={{ color: T.inkMute }}>
                             <Loader size={20} className="animate-spin" /> <span className="ml-2 text-sm">불러오는 중…</span>
