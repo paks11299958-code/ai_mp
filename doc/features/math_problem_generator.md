@@ -41,9 +41,17 @@ model MathProblemSet {
 서버1: raw SQL CREATE TABLE + `prisma generate`(db push 금지). User에 `mathProblemSets MathProblemSet[]`.
 
 ## 프론트 (ai_mp)
-- `components/MathTutorBoard.tsx`: `mode: 'solve'|'generate'` 토글 + generate UI(학년 버튼/과목/단원/슬라이더/문제카드/docx). 핑크 테마(#FF6B9D/#C44FD8) 재활용. 컴포넌트 내부 `apiFetch` 직접 사용(apiService 안 거침).
+- `components/MathTutorBoard.tsx`: `mode: 'solve'|'generate'` 토글 + generate UI(학년 버튼/과목/단원/슬라이더/문제카드/docx/PDF/이력). 핑크 테마(#FF6B9D/#C44FD8) 재활용. 컴포넌트 내부 `apiFetch` 직접 사용(apiService 안 거침).
 - vercel.json: `/api/math-tutor/:path*` 와일드카드로 새 라우트 커버(프록시 추가 불필요).
 
+## PDF 출력 (2026-06-13)
+🖨️ 인쇄·PDF 버튼: 인쇄용 A4 HTML(문제 본문+답 쓰는 줄, page-break 후 정답지)을 `window.open`한 새 창에 써서 `window.print()` 호출 → 사용자가 '인쇄' 또는 'PDF로 저장'. 서버부하 0, 한글 안전(맑은 고딕). docx와 별개 버튼.
+
+## 이력 (2026-06-13)
+DB(MathProblemSet)는 생성마다 저장돼 있었음 — 화면만 추가. 📂 이력 버튼 → `GET /sets`(본인 30개) → 클릭 시 `GET /sets/:id`로 다시 보기. `DELETE /sets/:id`. ⚠️ `/sets`는 기존 `/:id`(사진풀이 상세)보다 **먼저** 정의.
+
+## 중복 방지 (2026-06-13)
+"같은 문제 반복" 방지 3중: ①프롬프트에 유형 다양화 지시(계산/세기/비교/문장제/빈칸 골고루)+소재·숫자 매번 다르게 ②매 호출 랜덤 시드 ③`POST /generate`가 같은 학년·과목·단원의 **최근 3세트 문제를 avoidList로** `generateMathProblems`에 전달("이것과 겹치지 말 것").
+
 ## 확장(향후)
-- 다른 학년·과목은 프롬프트 파라미터로 이미 대응. 생성 이력(GET /sets) 후순위.
-- 난이도/유형 세분화, 문제지 docx 레이아웃 다듬기(현재 전자책 양식 재활용).
+- 다른 학년·과목은 프롬프트 파라미터로 이미 대응. 난이도 세분화, 문제지 docx 레이아웃 다듬기.
