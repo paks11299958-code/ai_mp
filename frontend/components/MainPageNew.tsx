@@ -751,7 +751,7 @@ const PersonaSelectPanel: React.FC<{
             {tab === 'features' && (
                 <div style={{
                     flex: 1, overflowY: 'auto',
-                    padding: '20px max(28px, calc((100% - 760px) / 2))',
+                    padding: '14px max(28px, calc((100% - 760px) / 2)) 24px',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                     gap: 16,
@@ -886,7 +886,7 @@ const PersonaSelectPanel: React.FC<{
             {/* 페르소나 그리드 */}
             {tab === 'personas' && <div style={{
                 flex: 1, overflowY: 'auto',
-                padding: '20px max(28px, calc((100% - 760px) / 2))',
+                padding: '14px max(28px, calc((100% - 760px) / 2)) 24px',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 gap: 16,
