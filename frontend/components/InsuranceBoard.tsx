@@ -38,14 +38,13 @@ interface InsuranceDetail extends InsuranceTask {
     aiSummary: string | null;
     recommendation: string | null;
     disclaimer: string | null;
+    consultingReport: string | null;
 }
 
 interface Props {
     onClose: () => void;
-    // 분석 결과를 김지훈 채팅으로 넘겨 상담 — (분석제목, AI에 주입할 컨텍스트 텍스트)
+    // 분석 결과를 김지훈 채팅으로 넘겨 추가 상담 — (분석제목, AI에 주입할 컨텍스트 텍스트)
     onConsult?: (title: string, context: string) => void;
-    // 컨설팅: 채팅 진입 후 종합 보고서를 자동 생성
-    onConsulting?: (title: string, context: string) => void;
 }
 
 // ── 유틸 ──────────────────────────────────────────────────
@@ -93,7 +92,7 @@ const sevStyle = (s: string) =>
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
-export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult, onConsulting }) => {
+export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const [tasks, setTasks] = useState<InsuranceTask[]>([]);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<InsuranceDetail | null>(null);
@@ -234,7 +233,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult, onConsulti
                 {/* 본문 */}
                 <div className="flex-1 overflow-y-auto">
                     {selected ? (
-                        <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onConsulting={onConsulting} onClose={onClose} />
+                        <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onClose={onClose} />
                     ) : (
                         <div className="p-4 space-y-4 max-w-2xl mx-auto">
                             {/* 분석 내역 — 재방문 시 바로 확인하도록 맨 위 */}
@@ -465,9 +464,30 @@ const ResultView: React.FC<{
     detail: InsuranceDetail;
     loading: boolean;
     onConsult?: (title: string, context: string) => void;
-    onConsulting?: (title: string, context: string) => void;
     onClose: () => void;
-}> = ({ detail, loading, onConsult, onConsulting, onClose }) => {
+}> = ({ detail, loading, onConsult, onClose }) => {
+    const [report, setReport] = useState<string | null>(detail.consultingReport ?? null);
+    const [genLoading, setGenLoading] = useState(false);
+    const [genError, setGenError] = useState('');
+
+    useEffect(() => { setReport(detail.consultingReport ?? null); setGenError(''); }, [detail.id, detail.consultingReport]);
+
+    const generateConsulting = async (force = false) => {
+        setGenLoading(true);
+        setGenError('');
+        try {
+            const r = await apiFetch<{ consultingReport: string }>(
+                API(`/${detail.id}/consulting`),
+                { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ force }) },
+            );
+            setReport(r.consultingReport);
+        } catch (e: any) {
+            setGenError(e.message || '컨설팅 보고서 생성에 실패했습니다.');
+        } finally {
+            setGenLoading(false);
+        }
+    };
+
     if (loading) return <div className="text-center py-16 text-sm text-[#9089A1]">결과를 불러오는 중...</div>;
     const duplicates = parseJson<Duplicate[]>(detail.duplicatesJson, []);
     const ui = parseJson<Partial<InsuranceUserInfo>>(detail.userInfo, {});
@@ -514,12 +534,6 @@ const ResultView: React.FC<{
         onClose();
     };
 
-    const handleConsulting = () => {
-        if (!onConsulting) return;
-        onConsulting(title, buildConsultContext());
-        onClose();
-    };
-
     const metrics = [
         { value: detail.duplicateCount ?? 0, label: '중복 항목', color: '#EF4444' },
         { value: detail.totalPolicies ?? 0, label: '분석 보험', color: '#2D2438' },
@@ -554,6 +568,7 @@ ${detail.aiSummary ? `<div class="section-title">AI 분석 요약</div><div clas
 <div class="section-title">중복 보장 상세 목록</div>
 <table><thead><tr><th>중복 항목</th><th>해당 보험</th><th>보장 내용 비교</th><th>유형</th><th>절감 예상</th><th>심각도</th></tr></thead><tbody>${rows}</tbody></table>
 ${detail.recommendation ? `<div class="section-title">AI 권고사항</div><div class="box">${esc(detail.recommendation)}</div>` : ''}
+${report ? `<div class="section-title">종합 컨설팅 보고서</div><div class="box" style="white-space:pre-wrap">${esc(report)}</div>` : ''}
 ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
 <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400))</script></body></html>`;
     };
@@ -579,23 +594,43 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                 </button>
             </div>
 
-            {/* 김지훈 상담 / 컨설팅 */}
-            {(onConsult || onConsulting) && (
-                <div className="flex gap-2">
-                    {onConsult && (
-                        <button onClick={handleConsult}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all"
-                            style={{ background: '#fff', color: '#7A5FA0', border: '1.5px solid #B49AC9' }}>
-                            <MessageCircle size={15} /> 상담하기
+            {/* 컨설팅 보고서 생성 / 채팅 상담 */}
+            <div className="flex gap-2">
+                {!report && (
+                    <button onClick={() => generateConsulting(false)} disabled={genLoading}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-60"
+                        style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
+                        {genLoading
+                            ? <><Loader size={15} className="animate-spin" /> 김지훈이 보고서 작성 중…</>
+                            : <><Sparkles size={15} /> 김지훈 종합 컨설팅 받기</>}
+                    </button>
+                )}
+                {onConsult && (
+                    <button onClick={handleConsult}
+                        className={`${report ? 'flex-1' : ''} flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl font-bold text-sm transition-all`}
+                        style={{ background: '#fff', color: '#7A5FA0', border: '1.5px solid #B49AC9' }}>
+                        <MessageCircle size={15} /> 채팅 상담
+                    </button>
+                )}
+            </div>
+            {genError && (
+                <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{genError}</div>
+            )}
+
+            {/* 종합 컨설팅 보고서 — 한 번 생성되면 분석에 영구 저장돼 항상 표시 */}
+            {report && (
+                <div className="rounded-2xl bg-white border border-[#F0E9DE] p-5" style={{ borderLeft: '3px solid #8E6FB7' }}>
+                    <div className="flex items-center justify-between gap-2 mb-3">
+                        <div className="flex items-center gap-2">
+                            <Sparkles size={15} className="text-[#8E6FB7]" />
+                            <span className="text-sm font-bold text-[#2D2438]">김지훈 종합 컨설팅 보고서</span>
+                        </div>
+                        <button onClick={() => generateConsulting(true)} disabled={genLoading}
+                            className="flex items-center gap-1 text-xs font-medium text-[#9089A1] hover:text-[#8E6FB7] transition-colors disabled:opacity-50" title="다시 생성">
+                            <RotateCcw size={12} className={genLoading ? 'animate-spin' : ''} /> 다시
                         </button>
-                    )}
-                    {onConsulting && (
-                        <button onClick={handleConsulting}
-                            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all"
-                            style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
-                            <Sparkles size={15} /> 종합 컨설팅 받기
-                        </button>
-                    )}
+                    </div>
+                    <p className="text-sm leading-[1.85] whitespace-pre-wrap text-[#3A3340]">{report}</p>
                 </div>
             )}
 

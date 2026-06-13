@@ -406,50 +406,6 @@ const AppContent: React.FC = () => {
         });
     };
 
-    // 보험분석 결과 → 자동 컨설팅: 컨텍스트 주입 후 종합 보고서를 자동 생성(사용자 질문 불필요).
-    const CONSULTING_PROMPT = '위 보험 분석 결과를 바탕으로 종합 컨설팅 보고서를 작성해줘. ①중복 보장·절감 예상액 정리 ②내 나이·성별·상황에서 부족하거나 보완하면 좋을 보장(3대 진단비·수술비·실손·간병 등) ③절감액 활용 방향 순으로, 친절하고 구체적으로. 마지막엔 더 맞춤 상담을 위해 추가로 알려주면 좋을 정보를 한두 가지 물어봐줘.';
-    const handleInsuranceConsulting = async (title: string, context: string) => {
-        const pid = KIMJIHOON_PERSONA_ID;
-        setShowInsuranceBoard(false);
-        setActivePersonaId(pid);
-        rememberLastPersona(pid);
-        goTo('chat');
-
-        let dbSessionId: number | undefined;
-        try {
-            dbSessionId = sessions[pid]?.dbSessionId;
-            if (!dbSessionId) {
-                const ns = await sessionApi.create(pid, `보험컨설팅: ${title}`.slice(0, 30));
-                dbSessionId = ns.id;
-                setSessions(prev => ({ ...prev, [pid]: { ...(prev[pid] || { messages: [], isTyping: false }), dbSessionId } }));
-            }
-            // 분석 컨텍스트 = model 메시지(포인트 차감 없음, AI history 반영)
-            if (dbSessionId) await sessionApi.saveMessage(dbSessionId, 'model', context);
-        } catch (e) {
-            console.error('보험 컨설팅 컨텍스트 저장 실패:', e);
-        }
-
-        // 자동 보고서 생성(컨설팅 요청은 화면 비노출, 보고서만 스트리밍)
-        const reportMsgId = `consulting-${Date.now()}`;
-        addMessageToSession(pid, { id: reportMsgId, role: 'model', text: '', isStreaming: true });
-        setSessionTyping(pid, true);
-        let full = '';
-        await chatApi.stream(
-            { personaId: pid, text: CONSULTING_PROMPT, sessionId: dbSessionId, memoryEnabled: isMemoryOn(pid), birthInfo: birthInfo ?? null },
-            (chunk) => { full += chunk; updateMessageInSession(pid, reportMsgId, { text: full }); },
-            (finalText) => {
-                full = finalText;
-                updateMessageInSession(pid, reportMsgId, { text: full, isStreaming: false });
-                setSessionTyping(pid, false);
-                if (dbSessionId && full) sessionApi.saveMessage(dbSessionId, 'model', full).catch(console.error);
-            },
-            (errMsg) => {
-                updateMessageInSession(pid, reportMsgId, { text: `죄송합니다. 컨설팅 보고서 생성 중 오류가 발생했어요: ${errMsg}`, isStreaming: false, error: true });
-                setSessionTyping(pid, false);
-            },
-        );
-    };
-
     // 최근 사용 기능(featureKey) — 페르소나와 동일 패턴, localStorage 영속, 최대 5.
     const [recentFeatureKeys, setRecentFeatureKeys] = useState<string[]>(() => {
         try { const raw = localStorage.getItem('recentFeatureKeys'); if (raw) { const a = JSON.parse(raw); if (Array.isArray(a)) return a.filter((x): x is string => typeof x === 'string'); } } catch {}
@@ -1124,7 +1080,7 @@ const AppContent: React.FC = () => {
                 {showHotKeyword && <HotKeywordBoard onClose={() => setShowHotKeyword(false)} userEmail={user?.email} userPhone={user?.phone} />}
                 {showUsedItem && <UsedItemBoard onClose={() => setShowUsedItem(false)} />}
                 {showLuxuryBoard && <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />}
-                {showInsuranceBoard && <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} onConsulting={handleInsuranceConsulting} />}
+                {showInsuranceBoard && <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />}
                 {showMathTutor && <MathTutorBoard onClose={() => setShowMathTutor(false)} />}
                 {showClubBoard && <ClubBoard onClose={() => setShowClubBoard(false)} />}
             </>
@@ -1203,7 +1159,7 @@ const AppContent: React.FC = () => {
                     <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
                 )}
                 {showInsuranceBoard && (
-                    <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} onConsulting={handleInsuranceConsulting} />
+                    <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
                 )}
                 {showTodayNews && (
                     <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
@@ -1338,7 +1294,7 @@ const AppContent: React.FC = () => {
                 <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
             )}
             {showInsuranceBoard && (
-                <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} onConsulting={handleInsuranceConsulting} />
+                <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
             )}
             {showTodayNews && (
                 <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
