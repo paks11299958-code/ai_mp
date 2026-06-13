@@ -121,6 +121,21 @@ errorMessage(nullable), createdAt, updatedAt
 - 비용: 50P / 일일 1회 제한 (어드민 예외)
 - 신은비 페르소나 전용
 
+## InsuranceAnalysis (보험 중복보장 분석, 2026-06-13)
+```
+id, userId, fileUrls(JSON), fileNames(JSON), userInfo(JSON: title/gender/age/job/health/budget/purpose/lunar)
+status(pending|processing|completed|failed)
+extractedJson(1단계 추출)
+totalPolicies, duplicateCount, monthlySavings, riskLevel, duplicatesJson(JSON), aiSummary, recommendation, disclaimer
+consultingReport(종합 컨설팅 보고서, 1회 생성 후 영구 저장)
+errorMessage(nullable), createdAt, updatedAt
+```
+- 비동기 큐(명품검증 패턴): pending → 서버1 cron insurance-worker → Gemini 2.5 2단계(추출→중복분석)
+- PDF/이미지 모두 Gemini fileUri로 직접 분석, 완료 후 GCS 파일 삭제
+- 비용: 기본 50P(MenuLimit feature 'insurance') + 실패 환불
+- 김지훈 페르소나(cmqcbkt4y0000rpbefrh2z8rb) features=["insurance"]
+- 서버1 raw SQL CREATE/ALTER (db push 금지). 상세 doc/features/insurance_analysis.md
+
 ## UsedItemListing
 ```
 id, userId, imageUrls(JSON), itemName(nullable)
