@@ -849,8 +849,8 @@ const AppContent: React.FC = () => {
                                 <video
                                     src={introVideoModal.url}
                                     autoPlay
-                                    className="w-full object-cover"
-                                    style={{ maxHeight: '65vh' }}
+                                    className="w-full object-contain"
+                                    style={{ maxHeight: '70vh', background: '#0f0a19' }}
                                     onError={() => {
                                         const persona = personas.find(p => p.id === introVideoModal.personaId);
                                         if (persona?.imageUrl) {
@@ -859,7 +859,7 @@ const AppContent: React.FC = () => {
                                     }}
                                 />
                             ) : (
-                                <img src={introVideoModal.url} alt="프로필" className="w-full object-cover" style={{ maxHeight: '65vh' }} />
+                                <img src={introVideoModal.url} alt="프로필" className="w-full object-contain" style={{ maxHeight: '70vh', background: '#0f0a19' }} />
                             )}
                             <div className="flex gap-3 justify-center px-5 py-4" style={{ background: 'rgba(15,10,25,0.95)' }}>
                                 <button
@@ -1618,8 +1618,8 @@ const AppContent: React.FC = () => {
                             <video
                                 src={introVideoModal.url}
                                 autoPlay
-                                className="w-full object-cover"
-                                style={{ maxHeight: '65vh' }}
+                                className="w-full object-contain"
+                                style={{ maxHeight: '70vh', background: '#0f0a19' }}
                                 onError={() => {
                                     const persona = personas.find(p => p.id === introVideoModal.personaId);
                                     if (persona?.imageUrl) {
@@ -1628,7 +1628,7 @@ const AppContent: React.FC = () => {
                                 }}
                             />
                         ) : (
-                            <img src={introVideoModal.url} alt="프로필" className="w-full object-cover" style={{ maxHeight: '65vh' }} />
+                            <img src={introVideoModal.url} alt="프로필" className="w-full object-contain" style={{ maxHeight: '70vh', background: '#0f0a19' }} />
                         )}
                         <div className="flex gap-3 justify-center px-5 py-4" style={{ background: 'rgba(15,10,25,0.95)' }}>
                         <button
