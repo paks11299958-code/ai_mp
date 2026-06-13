@@ -568,6 +568,29 @@ export const webtoonApi = {
     },
 };
 
+// ── 메인 캐러셀 카드(HeroCard) ──
+export interface HeroCard { id: number; imageUrl: string; linkType: 'persona' | 'feature'; linkTarget: string; title?: string | null; }
+export interface HeroCardAdmin extends HeroCard { sortOrder: number; isVisible: boolean; createdAt: string; }
+
+export const heroCardApi = {
+    list: () => get<HeroCard[]>('/hero-cards'),
+    adminList: () => get<HeroCardAdmin[]>('/hero-cards/admin'),
+    create: (data: { linkType: string; linkTarget: string; title?: string }) =>
+        post<HeroCardAdmin>('/hero-cards', data),
+    update: (id: number, data: Partial<{ imageUrl: string; linkType: string; linkTarget: string; title: string | null; sortOrder: number; isVisible: boolean }>) =>
+        put<HeroCardAdmin>(`/hero-cards/${id}`, data),
+    remove: (id: number) => del<{ deleted: boolean }>(`/hero-cards/${id}`),
+    reorder: (ids: number[]) => post<{ ok: boolean }>('/hero-cards/reorder', { ids }),
+    // 이미지 업로드: signed-url → GCS PUT → imageUrl 저장
+    uploadImage: async (id: number, file: File): Promise<string> => {
+        const { signedUrl, publicUrl } = await post<{ signedUrl: string; publicUrl: string }>(`/hero-cards/${id}/image-url`, { mimeType: file.type });
+        const r = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+        if (!r.ok) throw new Error('카드 이미지 업로드에 실패했어요.');
+        await put<HeroCardAdmin>(`/hero-cards/${id}`, { imageUrl: publicUrl });
+        return publicUrl;
+    },
+};
+
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
         post<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', { personaId, prompt }),

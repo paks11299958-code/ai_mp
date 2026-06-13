@@ -30,6 +30,7 @@ export const Icon: React.FC<IconProps> = ({ name, className, size = 24 }) => {
         ChevronRight,
         ArrowLeftToLine,
         ImageIcon,
+        Image: ImageIcon,
         Upload,
         LogOut,
         Brain,

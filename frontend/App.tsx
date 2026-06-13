@@ -11,7 +11,7 @@ import { usePersonaSession } from './hooks/usePersonaSession';
 import { Coins } from 'lucide-react';
 import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category, User } from './types';
 import { generateImageDescription } from './services/geminiService';
-import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi } from './services/apiService';
+import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi, heroCardApi, HeroCard } from './services/apiService';
 import { pointApi } from './services/pointService';
 import { getStage, STAGES } from './utils/level';
 import { getPersonaFeatureKeys, FEATURE_BY_KEY } from './personaFeatures';
@@ -171,6 +171,7 @@ const AppContent: React.FC = () => {
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
     const [categories, setCategories] = useState<Category[]>([]);
+    const [heroCards, setHeroCards] = useState<HeroCard[]>([]);
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
@@ -266,6 +267,7 @@ const AppContent: React.FC = () => {
 
         // 설정 캐시 즉시 표시 (나이 무관)
         categoryApi.getAll().then(setCategories).catch(() => {});
+        heroCardApi.list().then(setHeroCards).catch(() => {});
 
         settingsApi.get()
             .then(s => {
@@ -703,6 +705,7 @@ const AppContent: React.FC = () => {
             <>
                 <LandingPageNew
                     personas={visiblePersonas}
+                    heroCards={heroCards}
                     isLoading={isPersonasLoading}
                     onStart={() => {}}
                     onLoginClick={() => {}}
@@ -795,6 +798,7 @@ const AppContent: React.FC = () => {
             <>
                 <LandingPageNew
                     personas={visiblePersonas}
+                    heroCards={heroCards}
                     isLoading={isPersonasLoading}
                     onStart={() => goTo('authPage')}
                     onLoginClick={() => setShowAuthModal(true)}
@@ -990,6 +994,7 @@ const AppContent: React.FC = () => {
                 )}
                 <LandingPageNew
                     personas={visiblePersonas}
+                    heroCards={heroCards}
                     isLoading={isPersonasLoading}
                     onStart={() => goMain('personas')}
                     onLoginClick={() => goMain('personas')}

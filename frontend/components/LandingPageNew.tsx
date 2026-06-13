@@ -7,6 +7,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Bell, Users, Sparkles, ChevronRight } from 'lucide-react';
 import { Persona, Category } from '../types';
+import { HeroCard } from '../services/apiService';
 import { TermsModal } from './TermsModal';
 
 // 나의 AI 기능 썸네일 이모지(기능은 사진이 없어 아이콘 썸네일로)
@@ -49,6 +50,7 @@ interface LandingPageNewProps {
     categories?: Category[];
     // 기능 카드 클릭 핸들러
     onFeatureClick?: (featureKey: string) => void;
+    heroCards?: HeroCard[];  // 어드민 등록 메인 카드(있으면 캐러셀 교체)
     // 로그인 상태 전달 (로그인 후 히어로 페이지 표시 시)
     user?: { username?: string; email: string; role?: string } | null;
     onGoToChat?: () => void;
@@ -623,13 +625,15 @@ const VISIBLE = 4; // 한 번에 보이는 카드 수 (데스크탑 기준)
 // 캐러셀에 페르소나·기능을 섞어서 보여주기 위한 혼합 아이템 타입
 type MixedItem =
     | { type: 'persona'; persona: Persona }
-    | { type: 'feature'; feature: typeof FEATURES[0] };
+    | { type: 'feature'; feature: typeof FEATURES[0] }
+    | { type: 'hero'; card: HeroCard };
 
 const TarotCarousel: React.FC<{
     personas: Persona[];
+    heroCards?: HeroCard[];
     onPersonaClick?: (id: string) => void;
     onFeatureClick?: (key: string) => void;
-}> = ({ personas, onPersonaClick, onFeatureClick }) => {
+}> = ({ personas, heroCards = [], onPersonaClick, onFeatureClick }) => {
     const [offset, setOffset] = useState(0);           // 스냅 인덱스
     const [dragDx, setDragDx] = useState(0);           // 드래그 중 실시간 픽셀 오프셋
     const [dragging, setDragging] = useState(false);   // 드래그 중 여부 (transition 제어)
@@ -637,8 +641,9 @@ const TarotCarousel: React.FC<{
     const dragStartOffset = useRef(0);
     const hasDragged = useRef(false);
 
-    // 페르소나 + 기능을 한 캐러셀에 번갈아 섞어서 배치(페르소나 먼저 노출, 이후 교차)
+    // 어드민이 올린 메인 카드(heroCards)가 있으면 그것만 노출. 없으면 기존 페르소나+기능 혼합(폴백).
     const items: MixedItem[] = useMemo(() => {
+        if (heroCards.length) return heroCards.map(c => ({ type: 'hero', card: c } as MixedItem));
         const ps: MixedItem[] = personas.map(p => ({ type: 'persona', persona: p }));
         const fs: MixedItem[] = FEATURES.map(f => ({ type: 'feature', feature: f }));
         const mixed: MixedItem[] = [];
@@ -648,7 +653,7 @@ const TarotCarousel: React.FC<{
             if (i < fs.length) mixed.push(fs[i]);
         }
         return mixed;
-    }, [personas]);
+    }, [personas, heroCards]);
     const count = items.length;
     const maxOffset = Math.max(0, count - VISIBLE);
     const clamp = (v: number) => Math.max(0, Math.min(v, maxOffset));
@@ -743,6 +748,20 @@ const TarotCarousel: React.FC<{
                     onTouchEnd={onTouchEnd}
                 >
                     {items.map((item, i) => {
+                        if (item.type === 'hero') {
+                            const c = item.card;
+                            return (
+                                <div key={`h-${c.id}`} style={{ flexShrink: 0, width: CARD_W, height: 310, borderRadius: 14, overflow: 'hidden', cursor: 'pointer', boxShadow: '0 2px 12px rgba(80,50,110,0.15)' }}
+                                    onClick={() => {
+                                        if (hasDragged.current) return;
+                                        if (c.linkType === 'persona') onPersonaClick?.(c.linkTarget);
+                                        else onFeatureClick?.(c.linkTarget);
+                                    }}>
+                                    <img src={c.imageUrl} alt={c.title || ''} draggable={false}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                </div>
+                            );
+                        }
                         if (item.type === 'persona') {
                             const p = item.persona;
                             return (
@@ -794,6 +813,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
     unreadAnnouncementCount = 0,
     onPartnerBoardClick,
     onFeatureClick,
+    heroCards = [],
     categories = [],
     user,
     onGoToChat,
@@ -1360,6 +1380,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                 ) : (
                     <TarotCarousel
                         personas={personas}
+                        heroCards={heroCards}
                         onPersonaClick={onPersonaClick}
                         onFeatureClick={handleFeatureClick}
                     />
