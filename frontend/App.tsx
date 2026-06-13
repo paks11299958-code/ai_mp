@@ -1927,7 +1927,6 @@ const AppContent: React.FC = () => {
                             return (
                                 <div className="shrink-0 border-b border-[#F0E9DE] bg-white/55 backdrop-blur-sm">
                                     <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-                                        <span className="text-[10px] font-semibold text-[#8E6FB7] shrink-0 mr-0.5 hidden sm:inline">최근</span>
                                         {recentOthers.map(p => (
                                             <button
                                                 key={p.id}
