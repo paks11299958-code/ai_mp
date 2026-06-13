@@ -105,6 +105,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     const [info, setInfo] = useState<InsuranceUserInfo>({
         title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '',
@@ -173,6 +174,8 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
             setInfo({ title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '' });
             setShowAdditional(false);
             await loadTasks();
+            // 분석 시작 직후 맨 위로 올려 진행 상태(분석 내역)를 바로 보이게
+            scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e: any) {
             setError(e.message || '분석 요청에 실패했습니다.');
         } finally {
@@ -233,7 +236,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 </div>
 
                 {/* 본문 */}
-                <div className="flex-1 overflow-y-auto">
+                <div ref={scrollRef} className="flex-1 overflow-y-auto">
                     {selected ? (
                         <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onClose={onClose} />
                     ) : (
