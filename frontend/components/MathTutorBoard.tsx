@@ -22,7 +22,16 @@ interface MathResult {
     errorMessage: string | null;
 }
 
+interface MathProblem {
+    no: number;
+    problemMd: string;
+    answer: string;
+    explanation: string;
+}
+
 interface Props { onClose: () => void; }
+
+const SUBJECTS = ['수와 연산', '도형', '측정', '규칙성', '자료와 가능성'];
 
 // ── 유틸 ─────────────────────────────────────────────────
 
@@ -136,6 +145,56 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
     const { speakingId, loadingId, speak, stop } = useTTS();
     const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([0]));
 
+    // ── 문제 만들기(출제) 모드 ──
+    const [mode, setMode] = useState<'solve' | 'generate'>('solve');
+    const [genGrade, setGenGrade] = useState<number | null>(null);
+    const [genSubject, setGenSubject] = useState<string | null>(null);
+    const [chapters, setChapters] = useState<string[] | null>(null);
+    const [genChapter, setGenChapter] = useState<string | null>(null);
+    const [genCount, setGenCount] = useState(5);
+    const [chapterLoading, setChapterLoading] = useState(false);
+    const [genLoading, setGenLoading] = useState(false);
+    const [genError, setGenError] = useState<string | null>(null);
+    const [problemSet, setProblemSet] = useState<{ id: number; problems: MathProblem[] } | null>(null);
+    const [openAnswers, setOpenAnswers] = useState<Set<number>>(new Set());
+    const [docxLoading, setDocxLoading] = useState(false);
+
+    const resetGen = () => { setGenChapter(null); setChapters(null); setProblemSet(null); setGenError(null); setOpenAnswers(new Set()); };
+
+    const loadChapters = useCallback(async (grade: number, subject: string) => {
+        setChapterLoading(true); setGenError(null); setChapters(null); setGenChapter(null); setProblemSet(null);
+        try {
+            const { chapters } = await apiFetch<{ chapters: string[] }>(API(`/chapters?grade=${grade}&subject=${encodeURIComponent(subject)}`));
+            setChapters(chapters);
+        } catch (e: any) { setGenError(e.message || '단원을 불러오지 못했어요.'); }
+        finally { setChapterLoading(false); }
+    }, []);
+
+    const generateProblems = useCallback(async () => {
+        if (!genGrade || !genSubject || !genChapter || genLoading) return;
+        setGenLoading(true); setGenError(null); setProblemSet(null); setOpenAnswers(new Set());
+        try {
+            const res = await apiFetch<{ id: number; problems: MathProblem[] }>(API('/generate'), {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ grade: genGrade, subject: genSubject, chapter: genChapter, count: genCount }),
+            });
+            setProblemSet(res);
+        } catch (e: any) { setGenError(e.message || '문제 생성에 실패했어요.'); }
+        finally { setGenLoading(false); }
+    }, [genGrade, genSubject, genChapter, genCount, genLoading]);
+
+    const downloadDocx = useCallback(async () => {
+        if (!problemSet || docxLoading) return;
+        setDocxLoading(true);
+        try {
+            const { url } = await apiFetch<{ url: string }>(API(`/${problemSet.id}/docx`), { method: 'POST' });
+            const a = document.createElement('a');
+            a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.download = `초등${genGrade}_${genSubject}_문제.docx`;
+            document.body.appendChild(a); a.click(); a.remove();
+        } catch (e: any) { setGenError(e.message || '문서 받기에 실패했어요.'); }
+        finally { setDocxLoading(false); }
+    }, [problemSet, docxLoading, genGrade, genSubject]);
+
     const loadHistory = useCallback(async () => {
         try {
             const data = await apiFetch<MathResult[]>(API(''));
@@ -240,20 +299,153 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    {/* 모바일 이력 토글 버튼 */}
-                    <button
-                        onClick={() => setShowHistoryMobile(v => !v)}
-                        className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-full text-white/90 text-xs font-medium hover:bg-white/20 transition-colors border border-white/30"
-                    >
-                        <BookOpen size={12} />
-                        이력 {history.length > 0 && `(${history.length})`}
-                    </button>
+                    {/* 풀이 / 만들기 모드 토글 */}
+                    <div className="flex rounded-full overflow-hidden border border-white/40">
+                        <button onClick={() => setMode('solve')}
+                            className="px-2.5 py-1.5 text-xs font-bold transition-colors"
+                            style={{ background: mode === 'solve' ? '#fff' : 'transparent', color: mode === 'solve' ? '#C2185B' : 'rgba(255,255,255,0.9)' }}>
+                            풀이
+                        </button>
+                        <button onClick={() => setMode('generate')}
+                            className="px-2.5 py-1.5 text-xs font-bold transition-colors"
+                            style={{ background: mode === 'generate' ? '#fff' : 'transparent', color: mode === 'generate' ? '#C2185B' : 'rgba(255,255,255,0.9)' }}>
+                            문제 만들기
+                        </button>
+                    </div>
+                    {/* 모바일 이력 토글 버튼 (풀이 모드만) */}
+                    {mode === 'solve' && (
+                        <button
+                            onClick={() => setShowHistoryMobile(v => !v)}
+                            className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-full text-white/90 text-xs font-medium hover:bg-white/20 transition-colors border border-white/30"
+                        >
+                            <BookOpen size={12} />
+                            이력 {history.length > 0 && `(${history.length})`}
+                        </button>
+                    )}
                     <button onClick={onClose} className="p-2 rounded-full text-white/80 hover:text-white hover:bg-white/20 transition-colors">
                         <X size={18} />
                     </button>
                 </div>
             </div>
 
+            {mode === 'generate' ? (
+                <div className="flex-1 overflow-y-auto">
+                    <div className="max-w-lg mx-auto w-full p-4 space-y-5">
+                        <div className="text-center">
+                            <p className="font-bold text-lg" style={{ color: '#C2185B' }}>✏️ 수학 문제 만들기</p>
+                            <p className="text-xs text-pink-400 mt-1">학년·과목·단원을 고르면 AI쌤이 연습 문제를 만들어줘요</p>
+                        </div>
+
+                        {/* 1) 학년 */}
+                        <div>
+                            <p className="text-xs font-bold text-gray-500 mb-2">1. 학년</p>
+                            <div className="grid grid-cols-6 gap-1.5">
+                                {[1, 2, 3, 4, 5, 6].map(g => (
+                                    <button key={g} onClick={() => { setGenGrade(g); resetGen(); }}
+                                        className="py-2 rounded-xl text-sm font-bold border-2 transition-all"
+                                        style={genGrade === g
+                                            ? { borderColor: '#FF6B9D', background: 'linear-gradient(135deg,#FF6B9D,#C44FD8)', color: '#fff' }
+                                            : { borderColor: '#FFD6E8', background: '#fff', color: '#FF6B9D' }}>
+                                        {g}학년
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 2) 과목 */}
+                        {genGrade && (
+                            <div>
+                                <p className="text-xs font-bold text-gray-500 mb-2">2. 과목(영역)</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {SUBJECTS.map(s => (
+                                        <button key={s} onClick={() => { setGenSubject(s); loadChapters(genGrade, s); }}
+                                            className="px-3 py-2 rounded-xl text-xs font-bold border-2 transition-all"
+                                            style={genSubject === s
+                                                ? { borderColor: '#FF6B9D', background: '#FFF0F8', color: '#C2185B' }
+                                                : { borderColor: '#FFD6E8', background: '#fff', color: '#FF6B9D' }}>
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* 3) 단원 */}
+                        {genSubject && (
+                            <div>
+                                <p className="text-xs font-bold text-gray-500 mb-2">3. 단원</p>
+                                {chapterLoading ? (
+                                    <div className="flex items-center gap-2 text-pink-400 text-xs py-3"><Loader size={14} className="animate-spin" /> 단원을 불러오는 중…</div>
+                                ) : chapters ? (
+                                    <div className="flex flex-col gap-1.5">
+                                        {chapters.map(c => (
+                                            <button key={c} onClick={() => { setGenChapter(c); setProblemSet(null); }}
+                                                className="px-3 py-2.5 rounded-xl text-sm font-medium text-left border-2 transition-all"
+                                                style={genChapter === c
+                                                    ? { borderColor: '#FF6B9D', background: '#FFF0F8', color: '#C2185B' }
+                                                    : { borderColor: '#FFD6E8', background: '#fff', color: '#555' }}>
+                                                {c}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
+
+                        {/* 4) 문제 수 + 생성 */}
+                        {genChapter && (
+                            <div>
+                                <p className="text-xs font-bold text-gray-500 mb-2">4. 문제 수: <span style={{ color: '#C2185B' }}>{genCount}개</span></p>
+                                <input type="range" min={1} max={10} value={genCount} onChange={e => setGenCount(Number(e.target.value))}
+                                    className="w-full accent-pink-500" style={{ accentColor: '#FF6B9D' }} />
+                                <button onClick={generateProblems} disabled={genLoading}
+                                    style={{ background: 'linear-gradient(135deg,#FF6B9D,#C44FD8)' }}
+                                    className="w-full mt-3 py-3 rounded-2xl text-white text-sm font-bold shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+                                    {genLoading ? <><Loader size={16} className="animate-spin" /> AI쌤이 문제를 만들고 있어요…</> : <><Sparkles size={16} /> 문제 {genCount}개 만들기</>}
+                                </button>
+                            </div>
+                        )}
+
+                        {genError && <div className="p-3 rounded-xl border border-red-200 bg-red-50 text-sm text-red-500 text-center">{genError}</div>}
+
+                        {/* 결과: 문제 목록 */}
+                        {problemSet && (
+                            <div className="space-y-3 pt-2">
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm font-bold" style={{ color: '#C2185B' }}>📝 문제 {problemSet.problems.length}개</p>
+                                    <button onClick={downloadDocx} disabled={docxLoading}
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border-2 disabled:opacity-50"
+                                        style={{ borderColor: '#FF6B9D', color: '#fff', background: 'linear-gradient(135deg,#FF6B9D,#C44FD8)' }}>
+                                        {docxLoading ? <><Loader size={12} className="animate-spin" /> 만드는 중…</> : <>📄 문제지(.docx) 받기</>}
+                                    </button>
+                                </div>
+                                {problemSet.problems.map(p => {
+                                    const open = openAnswers.has(p.no);
+                                    return (
+                                        <div key={p.no} className="rounded-2xl border-2 p-3.5" style={{ borderColor: '#FFD6E8', background: '#fff' }}>
+                                            <div className="flex gap-2">
+                                                <span className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: '#FF6B9D' }}>{p.no}</span>
+                                                <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap flex-1">{p.problemMd}</p>
+                                            </div>
+                                            <button onClick={() => setOpenAnswers(prev => { const n = new Set(prev); n.has(p.no) ? n.delete(p.no) : n.add(p.no); return n; })}
+                                                className="mt-2.5 text-xs font-bold px-2.5 py-1 rounded-full" style={{ color: '#C2185B', background: '#FFF0F8' }}>
+                                                {open ? '정답 숨기기 ▲' : '정답 보기 ▼'}
+                                            </button>
+                                            {open && (
+                                                <div className="mt-2 px-3 py-2 rounded-xl text-sm" style={{ background: '#F0FFF4', border: '1px solid #A5D6A7' }}>
+                                                    <p className="font-bold" style={{ color: '#2E7D32' }}>정답: {p.answer}</p>
+                                                    {p.explanation && <p className="text-gray-600 text-xs mt-1 leading-relaxed">{p.explanation}</p>}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                <div className="pb-6" />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            ) : (
             <div className="flex flex-1 overflow-hidden">
                 {/* 좌측: 이력 목록 — 모바일: showHistoryMobile 일때만 / 데스크탑: 항상 */}
                 <div className={`${showHistoryMobile ? 'flex' : 'hidden'} md:flex w-full md:w-52 shrink-0 flex-col border-r overflow-y-auto absolute md:relative inset-0 md:inset-auto z-10 md:z-auto`} style={{ borderColor: '#FFD6E8', background: '#FFF0F8' }}>
@@ -509,6 +701,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 };
