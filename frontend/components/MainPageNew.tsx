@@ -60,7 +60,7 @@ interface MainPageNewProps {
     categories?: Category[];
     onGoHome?: () => void;
     // 기능카드 클릭 시 해당 페르소나로 이동
-    onFeatureSelect?: (personaName: string) => void;
+    onFeatureSelect?: (personaName: string, featureKey?: string) => void;
     // 초기 탭 설정
     initialTab?: 'personas' | 'features';
     // 히어로에서 클릭한 포커스 대상
@@ -68,6 +68,7 @@ interface MainPageNewProps {
     initialFocusFeatureKey?: string | null;
     // 최근 대화 페르소나(최근순) — "최근 대화" 줄 + 개인화 인사용
     recentPersonas?: Persona[];
+    recentFeatureKeys?: string[];  // 최근 사용 기능 — 기능 탭 '최근 사용' 줄
     // 즐겨찾기(자주가는 메뉴): 기능카드 ⭐ 토글
     isFavorite?: (key: string) => boolean;
     onToggleFavorite?: (key: string) => void;
@@ -380,7 +381,7 @@ const PersonaSelectPanel: React.FC<{
     onSearchChange: (q: string) => void;
     selectedCategoryId: number | null;
     onCategorySelect: (id: number | null) => void;
-    onFeatureSelect?: (personaName: string) => void;
+    onFeatureSelect?: (personaName: string, featureKey?: string) => void;
     initialTab?: 'personas' | 'features';
     focusPersonaId?: string | null;
     focusFeatureKey?: string | null;
@@ -392,12 +393,13 @@ const PersonaSelectPanel: React.FC<{
     onProfileClick?: () => void;
     onPartnerBoardClick?: () => void;
     recentPersonas?: Persona[];
+    recentFeatureKeys?: string[];
     isFavorite?: (key: string) => boolean;
     onToggleFavorite?: (key: string) => void;
     favoritableKeys?: string[];
     isFavoritePersona?: (id: string) => boolean;
     onToggleFavoritePersona?: (id: string) => void;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona }) => {
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -517,9 +519,9 @@ const PersonaSelectPanel: React.FC<{
                 </>
             )}
 
-            {/* 헤더 */}
+            {/* 헤더 — 배경/보더는 전체 폭, 내부 콘텐츠만 maxWidth로 가운데(아래 padding으로 처리) */}
             <div style={{
-                padding: '20px 28px 0px',
+                padding: '20px max(28px, calc((100% - 980px) / 2)) 0px',
                 borderBottom: `1px solid ${T.lineSoft}`,
                 background: 'rgba(255,255,255,0.7)',
                 backdropFilter: 'blur(8px)',
@@ -600,6 +602,36 @@ const PersonaSelectPanel: React.FC<{
                         </div>
                     </div>
                 )}
+
+                {/* ③-2 최근 사용 기능 줄 — 기능 탭에서만 */}
+                {user && tab === 'features' && recentFeatureKeys.length > 0 && (() => {
+                    const recentFeats = recentFeatureKeys
+                        .map(k => FEATURES_GRID.find(f => f.key === k))
+                        .filter((f): f is typeof FEATURES_GRID[number] => !!f);
+                    if (!recentFeats.length) return null;
+                    return (
+                        <div style={{ marginBottom: 16 }}>
+                            <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>최근 사용</div>
+                            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+                                {recentFeats.map(f => (
+                                    <button key={f.key} onClick={() => f.personaName && onFeatureSelect?.(f.personaName, f.key)} style={{
+                                        display: 'inline-flex', alignItems: 'center', gap: 8,
+                                        flexShrink: 0, cursor: 'pointer',
+                                        padding: '6px 12px', borderRadius: 999,
+                                        background: 'rgba(255,255,255,0.85)', border: `1px solid ${T.lineSoft}`,
+                                        transition: 'border-color 0.15s, box-shadow 0.15s',
+                                    }}
+                                        onMouseEnter={e => { e.currentTarget.style.borderColor = `${f.palette.accent}77`; e.currentTarget.style.boxShadow = `0 4px 14px -6px ${f.palette.accent}66`; }}
+                                        onMouseLeave={e => { e.currentTarget.style.borderColor = T.lineSoft; e.currentTarget.style.boxShadow = 'none'; }}
+                                    >
+                                        <span style={{ width: 22, height: 22, borderRadius: '50%', background: `${f.palette.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, color: f.palette.accent, fontWeight: 700 }}>{f.name.charAt(0)}</span>
+                                        <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{f.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 {/* 탭 */}
                 <div style={{ display: 'flex', gap: 4, marginBottom: 14 }}>
@@ -710,7 +742,7 @@ const PersonaSelectPanel: React.FC<{
             {tab === 'features' && (
                 <div style={{
                     flex: 1, overflowY: 'auto',
-                    padding: '20px 28px',
+                    padding: '20px max(28px, calc((100% - 980px) / 2))',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                     gap: 16,
@@ -730,7 +762,7 @@ const PersonaSelectPanel: React.FC<{
                         return (
                             <div key={feat.key}
                                 ref={isFocused ? focusFeatureRef : undefined}
-                                onClick={() => feat.personaName && onFeatureSelect?.(feat.personaName)}
+                                onClick={() => feat.personaName && onFeatureSelect?.(feat.personaName, feat.key)}
                                 style={{
                                     borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
                                     background: `linear-gradient(160deg, ${feat.palette.bg} 0%, #FDFAF6 50%, ${feat.palette.bg} 100%)`,
@@ -845,7 +877,7 @@ const PersonaSelectPanel: React.FC<{
             {/* 페르소나 그리드 */}
             {tab === 'personas' && <div style={{
                 flex: 1, overflowY: 'auto',
-                padding: '20px 28px',
+                padding: '20px max(28px, calc((100% - 980px) / 2))',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 gap: 16,

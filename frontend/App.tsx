@@ -374,6 +374,19 @@ const AppContent: React.FC = () => {
         });
     }, []);
 
+    // 최근 사용 기능(featureKey) — 페르소나와 동일 패턴, localStorage 영속, 최대 5.
+    const [recentFeatureKeys, setRecentFeatureKeys] = useState<string[]>(() => {
+        try { const raw = localStorage.getItem('recentFeatureKeys'); if (raw) { const a = JSON.parse(raw); if (Array.isArray(a)) return a.filter((x): x is string => typeof x === 'string'); } } catch {}
+        return [];
+    });
+    const rememberLastFeature = useCallback((featureKey: string) => {
+        setRecentFeatureKeys(prev => {
+            const next = [featureKey, ...prev.filter(k => k !== featureKey)].slice(0, 5);
+            try { localStorage.setItem('recentFeatureKeys', JSON.stringify(next)); } catch {}
+            return next;
+        });
+    }, []);
+
     const handlePersonaClick = useCallback((personaId: string) => {
         const persona = personas.find(p => p.id === personaId);
         if (persona?.introVideoUrl) {
@@ -1065,6 +1078,12 @@ const AppContent: React.FC = () => {
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
                     recentPersonas={recentPersonas}
+                    recentFeatureKeys={recentFeatureKeys}
+                    onFeatureSelect={(personaName, featureKey) => {
+                        if (featureKey) rememberLastFeature(featureKey);
+                        const persona = personas.find(p => p.name === personaName);
+                        if (persona) { goTo('chat'); handlePersonaClick(persona.id); }
+                    }}
                     isFavorite={isFavorite}
                     onToggleFavorite={toggleFavorite}
                     favoritableKeys={FAVORITABLE_KEYS}
