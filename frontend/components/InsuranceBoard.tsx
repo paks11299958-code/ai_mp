@@ -14,6 +14,7 @@ type Status = 'pending' | 'processing' | 'completed' | 'failed';
 interface InsuranceUserInfo {
     title: string; gender: string; age: string;
     job: string; health: string; budget: string; purpose: string;
+    lunar?: boolean;  // 생년월일 음력 여부
 }
 
 interface InsuranceTask {
@@ -108,7 +109,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const [info, setInfo] = useState<InsuranceUserInfo>({
-        title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '',
+        title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '', lunar: false,
     });
     const [showAdditional, setShowAdditional] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -171,7 +172,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                 }),
             });
             setFiles([]);
-            setInfo({ title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '' });
+            setInfo({ title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '', lunar: false });
             setShowAdditional(false);
             await loadTasks();
             // 분석 시작 직후 맨 위로 올려 진행 상태(분석 내역)를 바로 보이게
@@ -343,27 +344,58 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                         placeholder="예: 내보험 점검" />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label className="text-xs font-semibold text-[#6B5F56]">성별</label>
-                                        <div className="flex rounded-xl overflow-hidden border border-[#EAE2D3] mt-1.5">
-                                            {['남성', '여성'].map(opt => (
-                                                <button key={opt} type="button"
-                                                    onClick={() => setInfo(p => ({ ...p, gender: opt }))}
-                                                    className="flex-1 py-2 text-sm font-medium transition-all"
-                                                    style={info.gender === opt
-                                                        ? { background: '#8E6FB7', color: '#fff', fontWeight: 700 }
-                                                        : { color: '#9089A1', background: '#fff' }}>
-                                                    {opt === '남성' ? '♂ 남성' : '♀ 여성'}
-                                                </button>
-                                            ))}
-                                        </div>
+                                <div>
+                                    <label className="text-xs font-semibold text-[#6B5F56]">성별</label>
+                                    <div className="flex rounded-xl overflow-hidden border border-[#EAE2D3] mt-1.5 max-w-[220px]">
+                                        {['남성', '여성'].map(opt => (
+                                            <button key={opt} type="button"
+                                                onClick={() => setInfo(p => ({ ...p, gender: opt }))}
+                                                className="flex-1 py-2 text-sm font-medium transition-all"
+                                                style={info.gender === opt
+                                                    ? { background: '#8E6FB7', color: '#fff', fontWeight: 700 }
+                                                    : { color: '#9089A1', background: '#fff' }}>
+                                                {opt === '남성' ? '♂ 남성' : '♀ 여성'}
+                                            </button>
+                                        ))}
                                     </div>
-                                    <div>
+                                </div>
+
+                                {/* 생년월일 — 연/월/일 드롭다운 + 음력 체크 */}
+                                <div>
+                                    <div className="flex items-center justify-between">
                                         <label className="text-xs font-semibold text-[#6B5F56]">생년월일</label>
-                                        <input type="date" className={`${inputCls} mt-1.5`} value={info.age}
-                                            max={new Date().toISOString().split('T')[0]}
-                                            onChange={e => setInfo(p => ({ ...p, age: e.target.value }))} />
+                                        <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                            <input type="checkbox" checked={!!info.lunar}
+                                                onChange={e => setInfo(p => ({ ...p, lunar: e.target.checked }))}
+                                                className="w-3 h-3 cursor-pointer" style={{ accentColor: '#8E6FB7' }} />
+                                            <span className="text-xs text-[#6B5F56]">음력</span>
+                                        </label>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2 mt-1.5">
+                                        {(() => {
+                                            const [y, m, d] = (info.age || '').split('-');
+                                            const setYmd = (ny: string, nm: string, nd: string) =>
+                                                setInfo(p => ({ ...p, age: (ny && nm && nd) ? `${ny}-${nm.padStart(2, '0')}-${nd.padStart(2, '0')}` : '' }));
+                                            const nowY = new Date().getFullYear();
+                                            const years = Array.from({ length: 100 }, (_, i) => nowY - i);
+                                            const months = Array.from({ length: 12 }, (_, i) => i + 1);
+                                            const days = Array.from({ length: 31 }, (_, i) => i + 1);
+                                            const sel = 'border border-[#EAE2D3] rounded-xl px-2 py-2 text-sm outline-none focus:border-[#8E6FB7] bg-white text-[#2D2438]';
+                                            return (<>
+                                                <select className={sel} value={y || ''} onChange={e => setYmd(e.target.value, m || '', d || '')}>
+                                                    <option value="">연도</option>
+                                                    {years.map(yy => <option key={yy} value={String(yy)}>{yy}년</option>)}
+                                                </select>
+                                                <select className={sel} value={m ? String(Number(m)) : ''} onChange={e => setYmd(y || '', e.target.value, d || '')}>
+                                                    <option value="">월</option>
+                                                    {months.map(mm => <option key={mm} value={String(mm)}>{mm}월</option>)}
+                                                </select>
+                                                <select className={sel} value={d ? String(Number(d)) : ''} onChange={e => setYmd(y || '', m || '', e.target.value)}>
+                                                    <option value="">일</option>
+                                                    {days.map(dd => <option key={dd} value={String(dd)}>{dd}일</option>)}
+                                                </select>
+                                            </>);
+                                        })()}
                                     </div>
                                 </div>
 
@@ -515,6 +547,7 @@ const ResultView: React.FC<{
                 if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
                 ageStr = `만 ${a}세(${b.getFullYear()}년생)`;
             } else ageStr = ui.age;
+            if (ui.lunar && ageStr) ageStr += ' (음력 생일)';
         }
         lines.push(`· 나이: ${ageStr || '정보 없음(필요시 질문)'}`);
         lines.push(`· 성별: ${ui.gender || '정보 없음(필요시 질문)'}`);
