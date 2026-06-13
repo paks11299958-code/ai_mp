@@ -590,32 +590,32 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                     <h3 className="text-base font-bold text-[#2D2438]">분석 완료 보고서</h3>
                     <div className="text-xs text-[#9089A1] mt-0.5">{new Date(detail.updatedAt).toLocaleString('ko-KR')}</div>
                 </div>
-                <button onClick={handlePrint}
-                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shrink-0 transition-all"
-                    style={{ background: '#fff', color: '#7A5FA0', border: '1px solid #D8C9EA' }}>
-                    <Printer size={13} /> 인쇄 · PDF
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                    {onConsult && (
+                        <button onClick={handleConsult}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                            style={{ background: '#fff', color: '#7A5FA0', border: '1px solid #D8C9EA' }}>
+                            <MessageCircle size={13} /> 채팅 상담
+                        </button>
+                    )}
+                    <button onClick={handlePrint}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                        style={{ background: '#fff', color: '#7A5FA0', border: '1px solid #D8C9EA' }}>
+                        <Printer size={13} /> 인쇄 · PDF
+                    </button>
+                </div>
             </div>
 
-            {/* 컨설팅 보고서 생성 / 채팅 상담 */}
-            <div className="flex gap-2">
-                {!report && (
-                    <button onClick={() => generateConsulting(false)} disabled={genLoading}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-60"
-                        style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
-                        {genLoading
-                            ? <><Loader size={15} className="animate-spin" /> 김지훈이 보고서 작성 중…</>
-                            : <><Sparkles size={15} /> 종합 컨설팅 받기</>}
-                    </button>
-                )}
-                {onConsult && (
-                    <button onClick={handleConsult}
-                        className={`${report ? 'flex-1' : ''} flex items-center justify-center gap-1.5 px-4 py-3 rounded-2xl font-bold text-sm transition-all`}
-                        style={{ background: '#fff', color: '#7A5FA0', border: '1.5px solid #B49AC9' }}>
-                        <MessageCircle size={15} /> 채팅 상담
-                    </button>
-                )}
-            </div>
+            {/* 종합 컨설팅 받기 — 보고서 없을 때만 전체폭 메인 버튼 */}
+            {!report && (
+                <button onClick={() => generateConsulting(false)} disabled={genLoading}
+                    className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm transition-all disabled:opacity-60"
+                    style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
+                    {genLoading
+                        ? <><Loader size={15} className="animate-spin" /> 보고서 작성 중…</>
+                        : <><Sparkles size={15} /> 종합 컨설팅 받기</>}
+                </button>
+            )}
             {genError && (
                 <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{genError}</div>
             )}
@@ -623,17 +623,11 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
             {/* 종합 컨설팅 보고서 — 한 번 생성되면 분석에 영구 저장돼 항상 표시. 접기/펼치기. */}
             {report && (
                 <div className="rounded-2xl bg-white border border-[#F0E9DE] overflow-hidden" style={{ borderLeft: '3px solid #8E6FB7' }}>
-                    <div className="flex items-center justify-between gap-2 px-5 py-3.5">
-                        <button onClick={() => setReportOpen(o => !o)} className="flex items-center gap-2 min-w-0 flex-1 text-left">
-                            <Sparkles size={15} className="text-[#8E6FB7] shrink-0" />
-                            <span className="text-sm font-bold text-[#2D2438] truncate">종합 컨설팅 보고서</span>
-                            <ChevronDown size={16} className={`text-[#9089A1] shrink-0 transition-transform ${reportOpen ? '' : '-rotate-90'}`} />
-                        </button>
-                        <button onClick={() => generateConsulting(true)} disabled={genLoading}
-                            className="flex items-center gap-1 text-xs font-medium text-[#9089A1] hover:text-[#8E6FB7] transition-colors disabled:opacity-50 shrink-0" title="다시 생성">
-                            <RotateCcw size={12} className={genLoading ? 'animate-spin' : ''} /> 다시
-                        </button>
-                    </div>
+                    <button onClick={() => setReportOpen(o => !o)} className="w-full flex items-center gap-2 px-5 py-3.5 text-left">
+                        <Sparkles size={15} className="text-[#8E6FB7] shrink-0" />
+                        <span className="text-sm font-bold text-[#2D2438] flex-1 truncate">종합 컨설팅 보고서</span>
+                        <ChevronDown size={16} className={`text-[#9089A1] shrink-0 transition-transform ${reportOpen ? '' : '-rotate-90'}`} />
+                    </button>
                     {reportOpen && (
                         <div className="px-5 pb-5 pt-1 ins-report text-[#3A3340]">
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
