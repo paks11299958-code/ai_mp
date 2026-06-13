@@ -233,7 +233,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => setShowHelp(true)} title="사용법"
-                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[#8E6FB7] hover:bg-[#F5E6F7] transition-colors">
+                            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-[#D9920A] hover:bg-[#FEF3C7] transition-colors">
                             <HelpCircle size={17} />
                             <span className="hidden md:inline text-xs font-semibold">도움말</span>
                         </button>
