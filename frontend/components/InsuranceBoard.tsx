@@ -474,10 +474,25 @@ const ResultView: React.FC<{
     const buildConsultContext = (): string => {
         const lines: string[] = [];
         lines.push('[보험 중복 보장 분석 결과 — 아래 내용을 바탕으로 사용자 상담]');
-        const who = [ui.gender, ui.age && `${ui.age}생`, ui.job].filter(Boolean).join(' · ');
-        if (who) lines.push(`· 가입자: ${who}`);
-        if (ui.health) lines.push(`· 건강: ${ui.health}`);
-        if (ui.budget) lines.push(`· 예산: ${ui.budget}`);
+        lines.push('아래 가입자 정보(나이·성별·건강·예산)를 반영해 연령대별 보장 필요도와 해지·유지를 조언하세요. 정보가 없는 항목은 필요하면 사용자에게 자연스럽게 물어보세요.');
+        // 생년월일 → 만 나이 환산(AI가 연령대별 보장 판단하기 쉽게)
+        let ageStr = '';
+        if (ui.age) {
+            const b = new Date(ui.age);
+            if (!isNaN(b.getTime())) {
+                const now = new Date();
+                let a = now.getFullYear() - b.getFullYear();
+                const m = now.getMonth() - b.getMonth();
+                if (m < 0 || (m === 0 && now.getDate() < b.getDate())) a--;
+                ageStr = `만 ${a}세(${b.getFullYear()}년생)`;
+            } else ageStr = ui.age;
+        }
+        lines.push(`· 나이: ${ageStr || '정보 없음(필요시 질문)'}`);
+        lines.push(`· 성별: ${ui.gender || '정보 없음(필요시 질문)'}`);
+        lines.push(`· 직업: ${ui.job || '정보 없음(필요시 질문)'}`);
+        lines.push(`· 건강: ${ui.health || '정보 없음(필요시 질문)'}`);
+        lines.push(`· 예산: ${ui.budget || '정보 없음(필요시 질문)'}`);
+        if (ui.purpose) lines.push(`· 분석 목적: ${ui.purpose}`);
         lines.push(`· 분석 보험 ${detail.totalPolicies ?? 0}개, 중복 ${detail.duplicateCount ?? 0}건, 절감 예상 ${detail.monthlySavings || '-'}, 위험도 ${detail.riskLevel || '-'}`);
         if (detail.aiSummary) lines.push(`\n[요약] ${detail.aiSummary}`);
         if (duplicates.length) {
