@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     X, ShieldCheck, Clock, CheckCircle, XCircle, Loader,
-    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle, Sparkles,
+    Trash2, RotateCcw, ChevronLeft, UploadCloud, AlertTriangle, RefreshCw, Printer, MessageCircle, Sparkles, ChevronDown,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { GuideCard } from './GuideCard';
 
 // ── 타입 ──────────────────────────────────────────────────
@@ -469,8 +471,9 @@ const ResultView: React.FC<{
     const [report, setReport] = useState<string | null>(detail.consultingReport ?? null);
     const [genLoading, setGenLoading] = useState(false);
     const [genError, setGenError] = useState('');
+    const [reportOpen, setReportOpen] = useState(true);
 
-    useEffect(() => { setReport(detail.consultingReport ?? null); setGenError(''); }, [detail.id, detail.consultingReport]);
+    useEffect(() => { setReport(detail.consultingReport ?? null); setGenError(''); setReportOpen(true); }, [detail.id, detail.consultingReport]);
 
     const generateConsulting = async (force = false) => {
         setGenLoading(true);
@@ -617,20 +620,25 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
                 <div className="rounded-xl px-4 py-3 text-sm" style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', color: '#EF4444' }}>{genError}</div>
             )}
 
-            {/* 종합 컨설팅 보고서 — 한 번 생성되면 분석에 영구 저장돼 항상 표시 */}
+            {/* 종합 컨설팅 보고서 — 한 번 생성되면 분석에 영구 저장돼 항상 표시. 접기/펼치기. */}
             {report && (
-                <div className="rounded-2xl bg-white border border-[#F0E9DE] p-5" style={{ borderLeft: '3px solid #8E6FB7' }}>
-                    <div className="flex items-center justify-between gap-2 mb-3">
-                        <div className="flex items-center gap-2">
-                            <Sparkles size={15} className="text-[#8E6FB7]" />
-                            <span className="text-sm font-bold text-[#2D2438]">김지훈 종합 컨설팅 보고서</span>
-                        </div>
+                <div className="rounded-2xl bg-white border border-[#F0E9DE] overflow-hidden" style={{ borderLeft: '3px solid #8E6FB7' }}>
+                    <div className="flex items-center justify-between gap-2 px-5 py-3.5">
+                        <button onClick={() => setReportOpen(o => !o)} className="flex items-center gap-2 min-w-0 flex-1 text-left">
+                            <Sparkles size={15} className="text-[#8E6FB7] shrink-0" />
+                            <span className="text-sm font-bold text-[#2D2438] truncate">김지훈 종합 컨설팅 보고서</span>
+                            <ChevronDown size={16} className={`text-[#9089A1] shrink-0 transition-transform ${reportOpen ? '' : '-rotate-90'}`} />
+                        </button>
                         <button onClick={() => generateConsulting(true)} disabled={genLoading}
-                            className="flex items-center gap-1 text-xs font-medium text-[#9089A1] hover:text-[#8E6FB7] transition-colors disabled:opacity-50" title="다시 생성">
+                            className="flex items-center gap-1 text-xs font-medium text-[#9089A1] hover:text-[#8E6FB7] transition-colors disabled:opacity-50 shrink-0" title="다시 생성">
                             <RotateCcw size={12} className={genLoading ? 'animate-spin' : ''} /> 다시
                         </button>
                     </div>
-                    <p className="text-sm leading-[1.85] whitespace-pre-wrap text-[#3A3340]">{report}</p>
+                    {reportOpen && (
+                        <div className="px-5 pb-5 pt-1 ins-report text-[#3A3340]">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
+                        </div>
+                    )}
                 </div>
             )}
 
