@@ -4,6 +4,7 @@ import { stockReportApi } from '../services/apiService';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
 import { useTaskList } from '../hooks/useTaskList';
 import { parseClaudeGptOpinion, parseGeminiOpinion, opinionColor, type AiOpinion } from '../utils/parsing';
+import { GuideCard } from './GuideCard';
 
 const YUNCHAEWON_PERSONA_ID = 'cmois970w0000xsvie6aag2f5';
 
@@ -358,6 +359,23 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                     <div style={{ display: selected ? 'none' : 'flex', width: selected ? 220 : '100%', flexShrink: 0, borderRight: selected ? `1px solid ${T.border}` : 'none', flexDirection: 'column', background: T.bg }}
                         className="md:flex">
                         <style>{`.stock-sidebar { display: flex !important; } @media (min-width: 768px) { .stock-sidebar-hide { display: none !important; } }`}</style>
+
+                        {/* 사용법 가이드(선택 전 입력 화면에만) */}
+                        {!selected && (
+                            <div style={{ padding: '10px 10px 0' }}>
+                                <GuideCard
+                                    storageKey="guide_stock"
+                                    accent={T.accent}
+                                    title="주식 분석 사용법"
+                                    steps={[
+                                        { emoji: '1️⃣', title: '종목명 입력', desc: '분석할 종목명(예: 삼성전자)을 입력하고 + 를 눌러요.' },
+                                        { emoji: '2️⃣', title: 'AI가 분석', desc: 'Gemini·Claude·GPT 3개 AI가 함께 분석해요(몇 분 걸려요).' },
+                                        { emoji: '3️⃣', title: '결과 확인', desc: '투자의견·점수와 상세 보고서를 보고, 다운로드도 할 수 있어요.' },
+                                    ]}
+                                    tip="3개 AI 의견을 교차로 비교해 더 정확하게 봐요. 투자 판단의 참고용이에요."
+                                />
+                            </div>
+                        )}
 
                         {/* 검색 폼 */}
                         <form onSubmit={handleSubmit} style={{ padding: 10, borderBottom: `1px solid ${T.border}` }}>

@@ -3,6 +3,7 @@ import {
     X, Shield, Clock, CheckCircle, XCircle, Loader,
     Trash2, RefreshCw, RotateCcw, ChevronLeft, Upload, ImageIcon, AlertTriangle,
 } from 'lucide-react';
+import { GuideCard } from './GuideCard';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -265,6 +266,21 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                 <div className="flex flex-1 overflow-hidden">
                     {/* ── 좌측: 업로드 + 목록 ── */}
                     <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-64 shrink-0 border-r border-[#F0E9DE] flex-col`}>
+                        {!selected && (
+                            <div className="p-3 pb-0">
+                                <GuideCard
+                                    storageKey="guide_luxury"
+                                    accent="#8E6FB7"
+                                    title="명품 감정 사용법"
+                                    steps={[
+                                        { emoji: '1️⃣', title: '사진 올리기', desc: '감정할 명품 사진을 올려요(여러 장 가능). 브랜드명은 선택이에요.' },
+                                        { emoji: '2️⃣', title: 'AI가 감정', desc: 'AI가 사진을 분석해 진품 가능성과 근거를 알려줘요.' },
+                                        { emoji: '3️⃣', title: '결과 확인', desc: '감정 지수와 상세 의견을 확인해요.' },
+                                    ]}
+                                    tip="사진만으로 보는 참고용이에요. 고가품은 공식 매장·전문 감정도 함께 받으세요."
+                                />
+                            </div>
+                        )}
                         <form onSubmit={handleSubmit} className="p-3 border-b border-[#F0E9DE] space-y-2">
                             <div
                                 onClick={() => fileInputRef.current?.click()}
