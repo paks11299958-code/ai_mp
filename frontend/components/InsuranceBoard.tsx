@@ -6,6 +6,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { HelpButton } from './HelpButton';
+import { CodefImportButton } from './CodefImportButton';
 import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
 
 // ── 타입 ──────────────────────────────────────────────────
@@ -404,6 +405,14 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 </div>
                                 <div className="flex items-center justify-center gap-1.5 text-xs text-[#9089A1]">
                                     <span>🔒</span><span>첨부 파일은 분석에만 쓰이며 분석 후 삭제됩니다.</span>
+                                </div>
+
+                                {/* 내보험 자동 가져오기 (Codef) */}
+                                <CodefImportButton onImported={(file) => addFiles([file])} />
+                                <div className="flex items-center gap-2">
+                                    <span className="flex-1 h-px bg-[#F0E9DE]" />
+                                    <span className="text-[11px] text-[#9089A1]">또는 직접 업로드</span>
+                                    <span className="flex-1 h-px bg-[#F0E9DE]" />
                                 </div>
 
                                 <div
