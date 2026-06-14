@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmailFix — Native-grade English, instantly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0a0a14;
+    --bg-2:#11111e;
+    --surface:#181826;
+    --line:rgba(255,255,255,.08);
+    --line-strong:rgba(255,255,255,.15);
+    --text:#f5f5fa;
+    --text-soft:#9b9bb0;
+    --text-mute:#65657a;
+    --accent:#ffd84a;
+    --accent-2:#f78add;
+    --accent-3:#7ce5ff;
+    --danger:#ff6b8b;
+    --success:#7ce5b6;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Pretendard','Space Grotesk',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.6;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(circle at 15% 10%,rgba(255,216,74,.12),transparent 40%),
+      radial-gradient(circle at 85% 80%,rgba(247,138,221,.12),transparent 45%),
+      radial-gradient(circle at 50% 50%,rgba(124,229,255,.06),transparent 60%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(circle at center,#000 30%,transparent 80%);
+  }
+  .container{max-width:1240px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+  .mono{font-family:'JetBrains Mono',monospace}
+
+  /* NAV */
+  nav{
+    position:sticky;top:0;z-index:50;
+    backdrop-filter:blur(20px);
+    background:rgba(10,10,20,.6);
+    border-bottom:1px solid var(--line);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:72px}
+  .logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text);font-weight:700;font-size:18px;letter-spacing:-.01em}
+  .logo-mark{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2));
+    display:grid;place-items:center;color:#000;font-weight:800;
+    box-shadow:0 0 30px rgba(255,216,74,.4);
+  }
+  .nav-links{display:flex;gap:36px}
+  .nav-links a{color:var(--text-soft);text-decoration:none;font-size:14px;font-weight:500;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:11px 22px;border-radius:10px;font-weight:600;font-size:14px;
+    text-decoration:none;cursor:pointer;transition:all .2s;border:none;
+  }
+  .btn-primary{
+    background:var(--accent);color:#0a0a14;
+    box-shadow:0 0 0 1px rgba(255,216,74,.5),0 10px 30px rgba(255,216,74,.25);
+  }
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(255,216,74,.5),0 14px 40px rgba(255,216,74,.4)}
+  .btn-ghost{background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line)}
+  .btn-ghost:hover{background:rgba(255,255,255,.1);border-color:var(--line-strong)}
+
+  @media (max-width:768px){.nav-links{display:none}}
+
+  /* HERO */
+  .hero{padding:100px 0 80px;position:relative;text-align:center}
+  .pill{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:6px 14px;border-radius:999px;
+    background:rgba(255,255,255,.05);border:1px solid var(--line-strong);
+    font-size:12px;font-weight:500;color:var(--text-soft);
+    margin-bottom:32px;letter-spacing:.02em;
+  }
+  .pill .live{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 12px var(--success);animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  h1.hero-title{
+    font-size:clamp(44px,7vw,96px);
+    font-weight:800;letter-spacing:-.04em;line-height:.98;
+    margin-bottom:32px;
+  }
+  .hero-title .stroke{
+    -webkit-text-stroke:1.5px var(--text);
+    color:transparent;font-style:italic;
+    font-family:'Space Grotesk',sans-serif;font-weight:600;
+  }
+  .hero-title .grad{
+    background:linear-gradient(135deg,var(--accent) 0%,var(--accent-2) 50%,var(--accent-3) 100%);
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  .hero-sub{
+    font-size:19px;color:var(--text-soft);max-width:620px;margin:0 auto 44px;line-height:1.6;
+  }
+  .hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .btn-lg{padding:15px 30px;font-size:15px;border-radius:12px}
+
+  /* Hero terminal mock */
+  .terminal{
+    margin:80px auto 0;max-width:980px;
+    background:var(--surface);
+    border-radius:16px;
+    border:1px solid var(--line-strong);
+    overflow:hidden;
+    box-shadow:0 60px 120px -30px rgba(0,0,0,.6),
+               0 0 0 1px rgba(255,255,255,.03) inset;
+    text-align:left;
+    position:relative;
+  }
+  .terminal::before{
+    content:"";position:absolute;inset:-1px;border-radius:16px;padding:1px;
+    background:linear-gradient(135deg,rgba(255,216,74,.4),transparent 40%,rgba(247,138,221,.4));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;
+    pointer-events:none;
+  }
+  .term-head{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 18px;border-bottom:1px solid var(--line);
+    background:rgba(0,0,0,.2);
+  }
+  .term-dots{display:flex;gap:6px}
+  .term-dots span{width:11px;height:11px;border-radius:50%}
+  .term-dots span:nth-child(1){background:#ff5f56}
+  .term-dots span:nth-child(2){background:#ffbd2e}
+  .term-dots span:nth-child(3){background:#27c93f}
+  .term-title{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-mute);margin-left:auto;margin-right:auto}
+  .term-body{display:grid;grid-template-columns:1fr 1fr;gap:0;min-height:340px}
+  .term-col{padding:24px}
+  .term-col + .term-col{border-left:1px solid var(--line)}
+  .term-label{
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--text-mute);text-transform:uppercase;letter-spacing:.12em;
+    margin-bottom:16px;
+  }
+  .term-label .tone-tag{
+    background:rgba(255,216,74,.15);color:var(--accent);
+    padding:3px 9px;border-radius:999px;letter-spacing:.04em;
+  }
+  .term-text{font-size:15px;line-height:1.85;color:var(--text-soft)}
+  .term-text.before .strike{
+    color:var(--danger);text-decoration:line-through;
+    text-decoration-color:rgba(255,107,139,.5);text-decoration-thickness:2px;
+  }
+  .term-text.after{color:var(--text)}
+  .term-text.after .new{
+    background:linear-gradient(120deg,rgba(255,216,74,.3),rgba(247,138,221,.25));
+    color:var(--text);padding:2px 5px;border-radius:4px;font-weight:500;
+  }
+  .term-actions{display:flex;gap:8px;margin-top:20px}
+  .term-btn{
+    padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;
+    background:rgba(255,255,255,.06);color:var(--text);border:1px solid var(--line);
+    cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  }
+  .term-btn.primary{background:var(--accent);color:#0a0a14;border-color:transparent}
+  .term-note{
+    margin-top:18px;padding:14px 16px;background:rgba(124,229,255,.06);
+    border:1px solid rgba(124,229,255,.18);border-radius:10px;
+    font-size:13px;color:var(--text-soft);line-height:1.7;
+  }
+  .term-note .label{color:var(--accent-3);font-weight:600;margin-right:6px}
+
+  @media (max-width:768px){
+    .term-body{grid-template-columns:1fr}
+    .term-col + .term-col{border-left:none;border-top:1px solid var(--line)}
+  }
+
+  /* MARQUEE */
+  .marquee{
+    margin:80px 0;padding:32px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    overflow:hidden;white-space:nowrap;
+    background:rgba(0,0,0,.2);
+  }
+  .marquee-inner{
+    display:inline-flex;gap:64px;animation:scroll 30s linear infinite;
+    font-family:'Space Grotesk',sans-serif;font-style:italic;
+    font-size:32px;font-weight:600;color:var(--text-mute);
+  }
+  .marquee-inner span{display:inline-flex;align-items:center;gap:64px}
+  .marquee-inner span::after{content:"✦";color:var(--accent);font-style:normal}
+  @keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* FEATURES */
+  .section{padding:120px 0;position:relative}
+  .section-head{max-width:720px;margin:0 auto 72px;text-align:center}
+  .section-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    color:var(--accent);letter-spacing:.2em;text-transform:uppercase;
+    margin-bottom:20px;
+  }
+  h2.section-title{
+    font-size:clamp(36px,5vw,60px);font-weight:800;letter-spacing:-.03em;line-height:1.05;
+    margin-bottom:20px;color:var(--text);
+  }
+  .section-title em{font-style:italic;font-weight:600;color:var(--accent-2)}
+  .section-desc{color:var(--text-soft);font-size:18px;line-height:1.7}
+
+  .feature-grid{display:grid;grid-template-columns:1.2fr .8fr .8fr;grid-template-rows:auto auto;gap:20px}
+  .feat{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+    border:1px solid var(--line);border-radius:20px;padding:32px;
+    position:relative;overflow:hidden;transition:all .3s;
+  }
+  .feat:hover{transform:translateY(-4px);border-color:var(--line-strong)}
+  .feat.big{grid-column:span 1;grid-row:span 2}
+  .feat-icon{
+    width:52px;height:52px;border-radius:14px;
+    display:grid;place-items:center;margin-bottom:24px;
+    font-size:24px;
+    background:rgba(255,255,255,.06);border:1px solid var(--line);
+  }
+  .feat.big .feat-icon{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#0a0a14}
+  .feat h3{font-size:22px;font-weight:700;margin-bottom:12px;letter-spacing:-.01em}
+  .feat p{color:var(--text-soft);font-size:15px;line-height:1.7}
+  .feat .big-vis{
+    margin-top:32px;padding:20px;
+    background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:12px;
+    font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;
+  }
+  .feat .big-vis .k{color:var(--accent-3)}
+  .feat .big-vis .v{color:var(--text)}
+  .feat .big-vis .c{color:var(--text-mute)}
+
+  @media (max-width:880px){
+    .feature-grid{grid-template-columns:1fr}
+    .feat.big{grid-column:span 1;grid-row:span 1}
+    .section{padding:80px 0}
+  }
+
+  /* TONES */
+  .tones{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .tone-card{
+    background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+    border:1px solid var(--line);border-radius:18px;padding:28px;
+    transition:all .3s;position:relative;
+  }
+  .tone-card:hover{border-color:var(--accent);transform:translateY(-4px)}
+  .tone-card .tone-label{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-mute);
+    letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px;
+  }
+  .tone-card h4{font-size:22px;font-weight:700;margin-bottom:10px}
+  .tone-card .ex{
+    margin-top:16px;padding:14px;
+    background:rgba(0,0,0,.3);border-radius:10px;
+    font-family:'Space Grotesk',sans-serif;font-style:italic;font-size:14px;color:var(--text-soft);line-height:1.6;
+  }
+  @media (max-width:768px){.tones{grid-template-columns:1fr}}
+
+  /* CTA */
+  .cta{
+    margin:80px 24px;padding:96px 48px;text-align:center;
+    background:
+      radial-gradient(circle at 30% 30%,rgba(255,216,74,.2),transparent 60%),
+      radial-gradient(circle at 70% 70%,rgba(247,138,221,.18),transparent 60%),
+      var(--bg-2);
+    border:1px solid var(--line-strong);border-radius:32px;
+    position:relative;overflow:hidden;
+  }
+  .cta h2{font-size:clamp(36px,5vw,64px);font-weight:800;letter-spacing:-.03em;line-height:1;margin-bottom:24px}
+  .cta p{color:var(--text-soft);font-size:18px;margin-bottom:36px}
+
+  /* FOOTER */
+  footer{padding:64px 0 40px;border-top:1px solid var(--line)}
+  .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
+  .footer-grid h5{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-mute);text-transform:uppercase;letter-spacing:.2em;margin-bottom:18px}
+  .footer-grid a{display:block;color:var(--text-soft);text-decoration:none;font-size:14px;padding:5px 0}
+  .footer-grid a:hover{color:var(--text)}
+  .footer-tag{color:var(--text-soft);font-size:14px;line-height:1.7;max-width:320px;margin-top:16px}
+  .footer-bottom{
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+    padding-top:24px;border-top:1px solid var(--line);
+    color:var(--text-mute);font-size:13px;font-family:'JetBrains Mono',monospace;
+  }
+  @media (max-width:768px){.footer-grid{grid-template-columns:1fr 1fr;gap:32px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-mark">E</span>
+      EmailFix
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#tones">Tones</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#docs">Docs</a>
+    </div>
+    <a href="#" class="btn btn-primary">Get started →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="pill"><span class="live"></span> v2.1 · Now with tone-aware rewrites</div>
+    <h1 class="hero-title">
+      Write English<br>
+      <span class="stroke">like you actually</span><br>
+      <span class="grad">grew up there.</span>
+    </h1>
+    <p class="hero-sub">한국어를 그대로 적어도, 어색한 영어를 붙여 넣어도 됩니다. AI가 원어민 수준의 어조와 표현으로 다시 써드립니다 — 비즈니스, 캐주얼, 또는 그 사이 어디든.</p>
+    <div class="hero-cta">
+      <a href="#" class="btn btn-primary btn-lg">무료로 시작하기 →</a>
+      <a href="#demo" class="btn btn-ghost btn-lg">데모 보기</a>
+    </div>
+
+    <div class="terminal" id="demo">
+      <div class="term-head">
+        <div class="term-dots"><span></span><span></span><span></span></div>
+        <div class="term-title">emailfix.app — Untitled message</div>
+      </div>
+      <div class="term-body">
+        <div class="term-col">
+          <div class="term-label">
+            <span>INPUT · 원본</span>
+            <span style="color:var(--text-mute)">auto-detect</span>
+          </div>
+          <div class="term-text before">
+            Hello team,<br><br>
+            <span class="strike">I want to inform</span> you about the new project. <span class="strike">I think</span> we should <span class="strike">make a meeting</span> next week to discuss the details. <span class="strike">Please tell me</span> when you are <span class="strike">comfortable</span>.<br><br>
+            <span class="strike">Best regard</span>,
+          </div>
+        </div>
+        <div class="term-col">
+          <div class="term-label">
+            <span style="color:var(--success)">OUTPUT · 교정됨</span>
+            <span class="tone-tag">⚡ Business</span>
+          </div>
+          <div class="term-text after">
+            Hello team,<br><br>
+            <span class="new">I'd like to share</span> some updates on the new project. <span class="new">I think</span> we should <span class="new">set up a meeting</span> next week to walk through the details. <span class="new">Let me know</span> what time <span class="new">works for you</span>.<br><br>
+            <span class="new">Best regards</span>,
+          </div>
+          <div class="term-actions">
+            <button class="term-btn primary">⌘C 복사</button>
+            <button class="term-btn">🔄 다시</button>
+            <button class="term-btn">🎚 톤 변경</button>
+          </div>
+          <div class="term-note">
+            <span class="label">💡 변경 노트</span>
+            <strong>"make a meeting"</strong> → <strong>"set up a meeting"</strong> — "make"는 한국어 직역체. 영어에서는 회의를 'set up' 또는 'schedule'합니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="marquee">
+  <div class="marquee-inner">
+    <span>natural</span><span>fluent</span><span>tone-aware</span><span>business-ready</span>
+    <span>native</span><span>contextual</span><span>polished</span><span>professional</span>
+    <span>natural</span><span>fluent</span><span>tone-aware</span><span>business-ready</span>
+    <span>native</span><span>contextual</span><span>polished</span><span>professional</span>
+  </div>
+</div>
+
+<section class="section" id="features">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-eyebrow">// Features</div>
+      <h2 class="section-title">단순한 문법 검사가 아닌,<br><em>표현의 재구성</em>입니다.</h2>
+      <p class="section-desc">Grammarly가 못 잡는 한국식 직역체와 부자연스러운 뉘앙스까지 — EmailFix는 한국인을 위해 만들어졌습니다.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feat big">
+        <div class="feat-icon">✦</div>
+        <h3>맥락을 읽는 AI</h3>
+        <p>문장 단위 교정이 아닙니다. 전체 메일의 흐름, 받는 사람, 톤을 종합적으로 분석해서 가장 자연스러운 표현으로 재구성합니다.</p>
+        <div class="big-vis">
+          <div><span class="c">// context analysis</span></div>
+          <div><span class="k">recipient:</span> <span class="v">"client (formal)"</span></div>
+          <div><span class="k">intent:</span> <span class="v">"follow-up + request"</span></div>
+          <div><span class="k">tone:</span> <span class="v">"polite + direct"</span></div>
+          <div><span class="k">cultural_fit:</span> <span class="v">"adjusted ✓"</span></div>
+        </div>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">⚡</div>
+        <h3>Before / After</h3>
+        <p>어디가 어떻게 바뀌었는지 한눈에 비교. 차이를 보면서 자연스럽게 영어 실력도 늡니다.</p>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">📋</div>
+        <h3>원클릭 복사</h3>
+        <p>교정된 결과를 즉시 클립보드로. 메일함에 바로 붙여넣으세요.</p>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">🎚</div>
+        <h3>톤 6단계 슬라이더</h3>
+        <p>매우 격식 → 캐주얼까지 6단계. 한 번의 클릭으로 어조 재조정.</p>
+      </div>
+
+      <div class="feat">
+        <div class="feat-icon">📱</div>
+        <h3>모바일 퍼스트</h3>
+        <p>출근길 지하철에서 답장 한 통. 모바일에서도 완벽하게 작동합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="tones" style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-eyebrow">// Tone Engine</div>
+      <h2 class="section-title">같은 말, <em>다른 무게</em>.</h2>
+      <p class="section-desc">받는 사람에 따라 달라야 하는 영어. 톤을 골라보세요.</p>
+    </div>
+
+    <div class="tones">
+      <div class="tone-card">
+        <div class="tone-label">FORMAL · 격식</div>
+        <h4>비즈니스 격식</h4>
+        <div class="ex">"I would like to follow up on the proposal we discussed last week."</div>
+      </div>
+      <div class="tone-card">
+        <div class="tone-label">FRIENDLY · 친근</div>
+        <h4>비즈니스 친근</h4>
+        <div class="ex">"Just wanted to check in on the proposal from last week!"</div>
+      </div>
+      <div class="tone-card">
+        <div class="tone-label">CASUAL · 캐주얼</div>
+        <h4>친구에게</h4>
+        <div class="ex">"hey, any thoughts on that proposal we talked about?"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <section class="cta">
+    <h2>Start writing <em style="font-style:italic;color:var(--accent)">like a native.</em></h2>
+    <p>회원가입 없이 5번 무료 체험. 신용카드 필요 없음.</p>
+    <a href="#" class="btn btn-primary btn-lg">지금 무료로 교정하기 →</a>
+  </section>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a class="logo" href="#">
+          <span class="logo-mark">E</span>
+          EmailFix
+        </a>
+        <p class="footer-tag">Native-grade English for every Korean professional. Built in Seoul, made for the world.</p>
+      </div>
+      <div>
+        <h5>Product</h5>
+        <a href="#">Features</a>
+        <a href="#">Pricing</a>
+        <a href="#">Changelog</a>
+      </div>
+      <div>
+        <h5>Company</h5>
+        <a href="#">About</a>
+        <a href="#">Blog</a>
+        <a href="#">Contact</a>
+      </div>
+      <div>
+        <h5>Legal</h5>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+        <a href="#">Cookies</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 EmailFix · v2.1.0</span>
+      <span>made.with(♥).in("Seoul")</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

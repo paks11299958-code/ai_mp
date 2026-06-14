@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EmailFix — 자연스러운 영어 한 통</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --cream:#faf6ee;
+    --cream-2:#f3ecdc;
+    --paper:#fffdf6;
+    --ink:#2a2419;
+    --ink-soft:#5c4f3a;
+    --terracotta:#c4673b;
+    --olive:#7b8a4f;
+    --rust:#a64f2d;
+    --gold:#d4a23a;
+  }
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Noto Sans KR',sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:'Fraunces',serif}
+  .container{max-width:1140px;margin:0 auto;padding:0 28px}
+
+  /* Texture overlay */
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+    background-image:radial-gradient(circle at 20% 30%,rgba(196,103,59,.06),transparent 50%),
+                     radial-gradient(circle at 80% 70%,rgba(123,138,79,.06),transparent 50%);
+  }
+
+  /* NAV */
+  nav{padding:24px 0;position:relative;z-index:10}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+  .logo-mark{
+    width:38px;height:38px;border-radius:50%;
+    background:var(--terracotta);
+    display:grid;place-items:center;
+    color:var(--paper);font-family:'Fraunces',serif;font-weight:800;font-style:italic;
+    font-size:20px;
+  }
+  .logo-text{font-family:'Fraunces',serif;font-weight:600;font-size:22px;letter-spacing:-.01em}
+  .nav-links{display:flex;gap:36px}
+  .nav-links a{color:var(--ink-soft);text-decoration:none;font-size:15px;font-weight:500;position:relative}
+  .nav-links a:hover{color:var(--terracotta)}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:12px 24px;border-radius:999px;
+    font-weight:600;font-size:14px;text-decoration:none;cursor:pointer;
+    transition:all .2s;border:none;
+  }
+  .btn-primary{background:var(--ink);color:var(--cream)}
+  .btn-primary:hover{background:var(--terracotta);transform:translateY(-1px)}
+  .btn-outline{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .btn-outline:hover{background:var(--ink);color:var(--cream)}
+
+  @media (max-width:768px){.nav-links{display:none}}
+
+  /* HERO */
+  .hero{padding:60px 0 80px;position:relative}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center}
+  .hero-eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    color:var(--rust);font-size:14px;font-weight:500;
+    margin-bottom:24px;font-style:italic;
+  }
+  .hero-eyebrow::before{content:"";width:32px;height:1px;background:var(--rust)}
+  h1.hero-title{
+    font-family:'Fraunces',serif;
+    font-size:clamp(40px,6vw,72px);
+    font-weight:600;line-height:1.05;letter-spacing:-.02em;
+    color:var(--ink);margin-bottom:28px;
+  }
+  .hero-title em{font-style:italic;color:var(--terracotta);font-weight:500}
+  .hero-sub{font-size:18px;color:var(--ink-soft);max-width:520px;margin-bottom:36px;line-height:1.7}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .hero-meta{margin-top:32px;display:flex;align-items:center;gap:16px;color:var(--ink-soft);font-size:14px}
+  .avatars{display:flex}
+  .avatars img{width:32px;height:32px;border-radius:50%;border:2px solid var(--cream);margin-left:-8px;object-fit:cover}
+  .avatars img:first-child{margin-left:0}
+  .stars{color:var(--gold);font-size:14px;letter-spacing:1px}
+
+  /* Hero illustration */
+  .hero-art{
+    background:var(--paper);
+    border-radius:24px;
+    padding:32px;
+    border:1px solid rgba(42,36,25,.08);
+    box-shadow:0 30px 80px -20px rgba(42,36,25,.25),
+               inset 0 0 0 1px rgba(255,255,255,.5);
+    position:relative;
+    transform:rotate(-1.5deg);
+  }
+  .hero-art::before{
+    content:"";position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+    width:60px;height:24px;background:rgba(212,162,58,.4);
+    border-radius:4px;
+    box-shadow:0 2px 4px rgba(0,0,0,.06);
+  }
+  .envelope-meta{font-size:13px;color:var(--ink-soft);margin-bottom:14px;border-bottom:1px dashed rgba(42,36,25,.15);padding-bottom:12px}
+  .envelope-meta strong{color:var(--ink);font-weight:600}
+  .stamp{
+    position:absolute;top:20px;right:20px;
+    background:var(--terracotta);color:var(--paper);
+    padding:4px 10px;border-radius:4px;font-size:11px;font-weight:600;
+    transform:rotate(8deg);font-family:'Fraunces',serif;letter-spacing:1px;
+  }
+  .envelope-body{font-family:'Fraunces',serif;font-size:16.5px;line-height:1.85;color:var(--ink)}
+  .envelope-body .fixed-tag{
+    display:inline-block;background:rgba(123,138,79,.18);color:var(--olive);
+    font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:600;
+    padding:2px 6px;border-radius:3px;margin-right:4px;vertical-align:middle;
+  }
+  .envelope-body mark{
+    background:linear-gradient(transparent 65%,rgba(212,162,58,.4) 65%);
+    padding:0 2px;
+  }
+
+  @media (max-width:880px){
+    .hero-grid{grid-template-columns:1fr;gap:48px}
+    .hero-art{transform:none}
+  }
+
+  /* COMPARE */
+  .section{padding:96px 0}
+  .section-head{text-align:center;max-width:680px;margin:0 auto 64px}
+  .section-eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    color:var(--rust);font-size:13px;font-weight:500;
+    margin-bottom:18px;font-style:italic;
+  }
+  .section-eyebrow::before,.section-eyebrow::after{content:"";width:24px;height:1px;background:var(--rust)}
+  h2.section-title{
+    font-family:'Fraunces',serif;
+    font-size:clamp(32px,4.5vw,48px);
+    font-weight:600;letter-spacing:-.01em;color:var(--ink);
+    margin-bottom:18px;
+  }
+  h2.section-title em{font-style:italic;color:var(--terracotta)}
+  .section-desc{color:var(--ink-soft);font-size:17px}
+
+  .compare{
+    background:var(--paper);
+    border-radius:28px;
+    padding:8px;
+    box-shadow:0 20px 60px -20px rgba(42,36,25,.2);
+    overflow:hidden;
+  }
+  .compare-inner{display:grid;grid-template-columns:1fr 1fr;gap:0}
+  .compare-col{padding:36px}
+  .compare-col + .compare-col{border-left:1px dashed rgba(42,36,25,.15)}
+  .compare-label{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:20px;
+  }
+  .compare-label h4{font-family:'Fraunces',serif;font-size:20px;font-weight:600}
+  .compare-label .before-tag{color:var(--rust)}
+  .compare-label .after-tag{color:var(--olive)}
+  .pill{
+    background:rgba(42,36,25,.06);color:var(--ink-soft);
+    padding:4px 12px;border-radius:999px;font-size:12px;font-weight:500;
+  }
+  .compare-text{font-size:15px;line-height:1.85;color:var(--ink)}
+  .compare-text .strike{color:var(--rust);text-decoration:line-through;text-decoration-color:rgba(166,79,45,.4);text-decoration-thickness:2px}
+  .compare-text .new{
+    background:linear-gradient(transparent 65%,rgba(123,138,79,.3) 65%);
+    color:var(--ink);font-weight:500;
+  }
+  .copy-row{
+    margin-top:24px;display:flex;gap:10px;align-items:center;
+  }
+  .copy-btn{
+    padding:10px 18px;background:var(--ink);color:var(--cream);
+    border:none;border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+  }
+  .change-note{
+    margin-top:20px;background:var(--cream-2);border-radius:16px;padding:18px 20px;
+    font-size:14px;color:var(--ink);line-height:1.7;
+  }
+  .change-note .note-head{
+    font-family:'Fraunces',serif;font-weight:600;font-size:14px;color:var(--rust);
+    margin-bottom:8px;letter-spacing:.02em;
+  }
+  .change-note ul{list-style:none}
+  .change-note li{padding:3px 0;color:var(--ink-soft)}
+  .change-note li strong{color:var(--ink);font-weight:600}
+
+  @media (max-width:768px){
+    .compare-inner{grid-template-columns:1fr}
+    .compare-col + .compare-col{border-left:none;border-top:1px dashed rgba(42,36,25,.15)}
+    .section{padding:64px 0}
+  }
+
+  /* HOW IT WORKS */
+  .how-bg{background:var(--cream-2);padding:96px 0;margin:64px 0;border-radius:32px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:48px}
+  .step{
+    background:var(--paper);
+    border-radius:20px;padding:32px;
+    border:1px solid rgba(42,36,25,.06);
+    position:relative;
+  }
+  .step-num{
+    font-family:'Fraunces',serif;font-style:italic;font-weight:600;
+    font-size:48px;color:var(--terracotta);
+    line-height:1;margin-bottom:16px;
+  }
+  .step h3{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:10px;color:var(--ink)}
+  .step p{font-size:15px;color:var(--ink-soft);line-height:1.7}
+
+  @media (max-width:768px){
+    .how-bg{padding:64px 24px;margin:48px 16px;border-radius:24px}
+    .steps{grid-template-columns:1fr;gap:20px}
+  }
+
+  /* FOOTER */
+  footer{padding:64px 0 40px;text-align:center;border-top:1px dashed rgba(42,36,25,.15)}
+  .footer-tag{
+    font-family:'Fraunces',serif;font-style:italic;font-size:24px;color:var(--ink);
+    margin-bottom:24px;
+  }
+  .footer-cta{margin-bottom:36px}
+  .footer-links{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:20px}
+  .footer-links a{color:var(--ink-soft);text-decoration:none;font-size:14px}
+  .footer-links a:hover{color:var(--terracotta)}
+  .footer-copy{color:var(--ink-soft);font-size:13px;opacity:.7}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="container nav-inner">
+    <a class="logo" href="#">
+      <span class="logo-mark">e</span>
+      <span class="logo-text">EmailFix</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how">사용법</a>
+      <a href="#features">기능</a>
+      <a href="#tone">톤</a>
+      <a href="#faq">자주 묻는 질문</a>
+    </div>
+    <a href="#" class="btn btn-outline">시작하기</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <div class="hero-eyebrow">자연스러운 영어 한 통, 천천히</div>
+        <h1 class="hero-title">받는 사람이<br>읽고 싶어지는<br><em>따뜻한 영어</em>로.</h1>
+        <p class="hero-sub">한국어 그대로 적어도, 어색한 영어를 붙여 넣어도 괜찮아요. AI가 당신의 말투를 살려 자연스러운 영어로 다시 써드립니다.</p>
+        <div class="hero-cta">
+          <a href="#" class="btn btn-primary">무료로 한 통 써보기</a>
+          <a href="#how" class="btn btn-outline">어떻게 동작하나요</a>
+        </div>
+        <div class="hero-meta">
+          <div class="avatars">
+            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop" alt="">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&h=80&fit=crop" alt="">
+            <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop" alt="">
+            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop" alt="">
+          </div>
+          <div>
+            <div class="stars">★★★★★</div>
+            <div>7,432명이 매일 쓰고 있어요</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-art">
+        <div class="stamp">FIXED ✓</div>
+        <div class="envelope-meta">
+          From <strong>EmailFix</strong> · To <strong>You</strong><br>
+          Subject — <em>About tomorrow's meeting</em>
+        </div>
+        <div class="envelope-body">
+          Hi John,<br><br>
+          <span class="fixed-tag">교정됨</span>I <mark>wanted to follow up</mark> about tomorrow's meeting. <mark>Would 3 PM work for you?</mark> If not, please let me know what time suits you best.<br><br>
+          Looking forward to <mark>hearing from you</mark>,<br>
+          Minji
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <div class="section-eyebrow">Before & After</div>
+      <h2 class="section-title">한국식 직역체가<br><em>원어민의 한 줄</em>이 되기까지</h2>
+      <p class="section-desc">어디가 어떻게 바뀌었는지 한눈에 비교해보세요. 모든 변경 사항에는 이유가 있습니다.</p>
+    </div>
+
+    <div class="compare">
+      <div class="compare-inner">
+        <div class="compare-col">
+          <div class="compare-label">
+            <h4 class="before-tag">Before — 원본</h4>
+            <span class="pill">자동 감지</span>
+          </div>
+          <div class="compare-text">
+            Dear Sarah,<br><br>
+            <span class="strike">I want to ask</span> you about the project. <span class="strike">I think</span> we need to discuss the deadline because <span class="strike">it is little difficult</span> for me to finish until Friday.<br><br>
+            <span class="strike">Please reply me</span> as soon as possible.<br><br>
+            <span class="strike">Thanks you.</span>
+          </div>
+        </div>
+        <div class="compare-col">
+          <div class="compare-label">
+            <h4 class="after-tag">After — 교정</h4>
+            <span class="pill">비즈니스 격식</span>
+          </div>
+          <div class="compare-text">
+            Dear Sarah,<br><br>
+            <span class="new">I'd like to follow up</span> on the project. <span class="new">I believe</span> we should discuss the deadline, as <span class="new">it will be challenging</span> for me to complete the work by Friday.<br><br>
+            <span class="new">Could you get back to me</span> at your earliest convenience?<br><br>
+            <span class="new">Thank you,</span>
+          </div>
+          <div class="copy-row">
+            <button class="copy-btn">✓ 복사하기</button>
+            <button class="copy-btn" style="background:transparent;color:var(--ink);border:1px solid var(--ink)">다시 교정</button>
+          </div>
+          <div class="change-note">
+            <div class="note-head">— 이렇게 바뀌었어요</div>
+            <ul>
+              <li>· <strong>"want to ask"</strong> → "I'd like to follow up" <em>(더 정중한 비즈니스 도입부)</em></li>
+              <li>· <strong>"reply me"</strong> → "get back to me" <em>(전치사 'to' 누락 → 자연스러운 동사구로)</em></li>
+              <li>· <strong>"Thanks you"</strong> → "Thank you" <em>(맞춤법 + 마침 표현 격상)</em></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container">
+  <div class="how-bg" id="how">
+    <div class="container">
+      <div class="section-head">
+        <div class="section-eyebrow">How it works</div>
+        <h2 class="section-title">세 단계면 충분합니다</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">01</div>
+          <h3>붙여넣기</h3>
+          <p>한국어로 쓴 글, 어색한 영어 초안, 받은 영어 이메일 — 무엇이든 그대로 입력하세요.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <h3>톤 고르기</h3>
+          <p>상사에게, 동료에게, 친구에게. 받는 사람에 맞는 어조를 골라주세요.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <h3>그대로 보내기</h3>
+          <p>교정된 글을 복사해서 메일함에 붙여넣으면 끝. 어떤 부분이 왜 바뀌었는지도 알려드려요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-tag">— 오늘도 좋은 편지 한 통을. —</div>
+    <div class="footer-cta">
+      <a href="#" class="btn btn-primary">무료로 시작하기 →</a>
+    </div>
+    <div class="footer-links">
+      <a href="#">서비스 소개</a>
+      <a href="#">요금제</a>
+      <a href="#">이용약관</a>
+      <a href="#">개인정보처리방침</a>
+      <a href="#">문의하기</a>
+    </div>
+    <div class="footer-copy">© 2026 EmailFix · Made with care in Seoul</div>
+  </div>
+</footer>
+
+</body>
+</html>
