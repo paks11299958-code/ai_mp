@@ -170,9 +170,13 @@ export const CodefImportButton: React.FC<Props> = ({ onImported }) => {
                                 <div>
                                     <label className={label}>주민등록번호 <span className="text-red-500">*</span></label>
                                     <div className="flex items-center gap-2">
-                                        <input type="text" maxLength={6} placeholder="앞 6자리" value={form.front} onChange={e => setForm(p => ({ ...p, front: e.target.value.replace(/\D/g, '') }))} className={`${input} text-center`} />
-                                        <span className="text-[#9089A1]">-</span>
-                                        <input type="password" maxLength={7} placeholder="뒤 7자리" value={form.back} onChange={e => setForm(p => ({ ...p, back: e.target.value.replace(/\D/g, '') }))} className={`${input} text-center`} />
+                                        <input type="text" inputMode="numeric" maxLength={6} placeholder="앞 6자리"
+                                            value={form.front} onChange={e => setForm(p => ({ ...p, front: e.target.value.replace(/\D/g, '') }))}
+                                            className={`${input} flex-1`} />
+                                        <span className="text-[#9089A1] shrink-0">-</span>
+                                        <input type="password" inputMode="numeric" maxLength={7} placeholder="뒤 7자리"
+                                            value={form.back} onChange={e => setForm(p => ({ ...p, back: e.target.value.replace(/\D/g, '') }))}
+                                            className={`${input} flex-1`} />
                                     </div>
                                 </div>
                                 <div>
