@@ -505,6 +505,9 @@ export const ebookApi = {
     // 최종본 직접 수정 저장(편집기에서 사용 — 유지)
     saveContentMd: (id: number, no: number, contentMd: string) =>
         put<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/content-md`, { contentMd }),
+    // 이미지 프롬프트 뽑기 — 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 생성
+    imagePrompts: (id: number) =>
+        post<{ prompts: { no: number; chapterNo: number; chapterTitle: string; caption: string; prompt: string }[]; message?: string }>(`/ebook/${id}/image-prompts`, {}),
     // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
     coverUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),

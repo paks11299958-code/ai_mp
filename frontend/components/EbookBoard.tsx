@@ -65,6 +65,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [coverMaking, setCoverMaking] = useState(false);
     const [docxMaking, setDocxMaking] = useState(false);
     const [docxUrl, setDocxUrl] = useState<string | null>(null); // 생성된 docx URL. selected.docxUrl로 초기화돼 재방문 시 다운로드 버튼 유지.
+    // 이미지 프롬프트 뽑기
+    const [imgPromptLoading, setImgPromptLoading] = useState(false);
+    const [imgPrompts, setImgPrompts] = useState<{ no: number; chapterTitle: string; caption: string; prompt: string }[] | null>(null);
+    const [copiedNo, setCopiedNo] = useState<number | null>(null);
     // 탭4 예약 슬롯 현황
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
@@ -193,6 +197,22 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setSelected(prev => prev ? { ...prev, docxUrl: res.url } : prev);
         } catch (e: any) { setError(e?.message || '문서 생성 실패'); }
         finally { setDocxMaking(false); }
+    };
+
+    // 이미지 프롬프트 뽑기: 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 생성
+    const makeImagePrompts = async () => {
+        if (!selected || imgPromptLoading) return;
+        setImgPromptLoading(true); setError(null);
+        try {
+            const res = await ebookApi.imagePrompts(selected.id);
+            setImgPrompts(res.prompts);
+            if (res.prompts.length === 0 && res.message) setError(res.message);
+        } catch (e: any) { setError(e?.message || '이미지 프롬프트 생성 실패'); }
+        finally { setImgPromptLoading(false); }
+    };
+
+    const copyPrompt = async (no: number, text: string) => {
+        try { await navigator.clipboard.writeText(text); setCopiedNo(no); setTimeout(() => setCopiedNo(null), 1500); } catch { /* 무시 */ }
     };
 
     // 탭4: 예약 시각 저장 (품절이면 409 → 안내 + 슬롯 새로고침)
@@ -616,6 +636,38 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
                                             {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다. 마무리한 문서는 <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 바로 출판하세요. 내용을 바꾸면 <b style={{ color: T.accent }}>다시 만들기</b>로 새로 받으세요.</p>}
                                             {!canPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문을 먼저 만들어 주세요.</p>}
+                                        </div>
+
+                                        {/* 이미지 프롬프트 뽑기 — 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 */}
+                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <ImagePlus size={15} style={{ color: T.accent }} />
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>그림 이미지 프롬프트 뽑기</p>
+                                            </div>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
+                                                본문의 <b>[그림: 설명]</b> 자리마다 ChatGPT(DALL·E)용 영문 프롬프트를 만들어 드려요. 복사해서 ChatGPT에 붙여넣어 그림을 만든 뒤, 글 수정에서 그 자리에 넣으면 됩니다.
+                                            </p>
+                                            <button onClick={makeImagePrompts} disabled={!canPdf || imgPromptLoading}
+                                                className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                {imgPromptLoading ? <><Loader size={14} className="animate-spin" /> 프롬프트 만드는 중…</> : <><ImagePlus size={14} /> 이미지 프롬프트 뽑기</>}
+                                            </button>
+
+                                            {imgPrompts && imgPrompts.length > 0 && (
+                                                <div className="mt-3 flex flex-col gap-2">
+                                                    {imgPrompts.map(ip => (
+                                                        <div key={ip.no} className="rounded-xl p-3" style={{ background: '#fff', border: `1px solid ${T.border}` }}>
+                                                            <div className="flex items-center justify-between gap-2 mb-1">
+                                                                <span className="text-[11px] font-bold" style={{ color: T.accent }}>그림 {ip.no} · {ip.chapterTitle}</span>
+                                                                <button onClick={() => copyPrompt(ip.no, ip.prompt)} className="inline-flex items-center gap-1 text-[11px] font-bold rounded-lg" style={{ padding: '4px 10px', color: copiedNo === ip.no ? '#fff' : T.accent, background: copiedNo === ip.no ? '#5BA36A' : T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                                    {copiedNo === ip.no ? <><Check size={11} /> 복사됨</> : <>복사</>}
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-[11px] mb-1" style={{ color: T.inkMute }}>📍 {ip.caption}</p>
+                                                            <p className="text-xs" style={{ color: T.ink, lineHeight: 1.6 }}>{ip.prompt}</p>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     );
