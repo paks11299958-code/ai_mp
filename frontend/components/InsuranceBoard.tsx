@@ -471,6 +471,38 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
 
 const esc = (s: any) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] || c));
 
+// 인쇄용 경량 마크다운→HTML (컨설팅 보고서: 소제목·표·굵게·불릿만 처리)
+const inline = (s: string) => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+function mdToHtml(md: string): string {
+    const lines = (md || '').split('\n');
+    const out: string[] = [];
+    let i = 0;
+    let inList = false;
+    const closeList = () => { if (inList) { out.push('</ul>'); inList = false; } };
+    while (i < lines.length) {
+        const line = lines[i];
+        const t = line.trim();
+        // 표: 헤더줄 + |---| 구분줄 + 본문줄
+        if (t.startsWith('|') && i + 1 < lines.length && /^\|[\s:|-]+\|?$/.test(lines[i + 1].trim())) {
+            closeList();
+            const cells = (row: string) => row.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim());
+            const headers = cells(t);
+            i += 2;
+            const rows: string[][] = [];
+            while (i < lines.length && lines[i].trim().startsWith('|')) { rows.push(cells(lines[i].trim())); i++; }
+            out.push('<table class="md-table"><thead><tr>' + headers.map(h => `<th>${inline(h)}</th>`).join('') + '</tr></thead><tbody>'
+                + rows.map(r => '<tr>' + r.map(c => `<td>${inline(c)}</td>`).join('') + '</tr>').join('') + '</tbody></table>');
+            continue;
+        }
+        if (/^#{1,6}\s/.test(t)) { closeList(); const lvl = (t.match(/^#+/)![0].length); const txt = t.replace(/^#+\s/, ''); out.push(`<h${Math.min(lvl + 2, 6)} class="md-h">${inline(txt)}</h${Math.min(lvl + 2, 6)}>`); i++; continue; }
+        if (/^[-*]\s/.test(t)) { if (!inList) { out.push('<ul class="md-ul">'); inList = true; } out.push(`<li>${inline(t.replace(/^[-*]\s/, ''))}</li>`); i++; continue; }
+        if (!t) { closeList(); i++; continue; }
+        closeList(); out.push(`<p>${inline(t)}</p>`); i++;
+    }
+    closeList();
+    return out.join('\n');
+}
+
 const ResultView: React.FC<{
     detail: InsuranceDetail;
     loading: boolean;
@@ -570,7 +602,8 @@ const ResultView: React.FC<{
 .box{background:#f9fafb;border:1px solid #e5e7eb;border-left:3px solid #8E6FB7;border-radius:6px;padding:4mm 5mm;font-size:9.5pt;line-height:1.8;color:#374151;margin-bottom:5mm}
 table{width:100%;border-collapse:collapse;margin-bottom:5mm;font-size:8.5pt}th{background:#f3f4f6;border:1px solid #e5e7eb;padding:2mm 3mm;text-align:left;font-weight:600;color:#6b7280;white-space:nowrap}td{border:1px solid #e5e7eb;padding:2.5mm 3mm;vertical-align:top;color:#374151}tr:nth-child(even) td{background:#f9fafb}
 .badge{display:inline-block;padding:0.5mm 2.5mm;border-radius:3px;font-size:8pt;font-weight:500}.badge-high{background:#fee2e2;color:#991b1b}.badge-mid{background:#fef3c7;color:#92400e}.badge-low{background:#d1fae5;color:#065f46}
-.disc{font-size:8pt;color:#9ca3af;border:1px solid #e5e7eb;border-radius:5px;padding:3mm 4mm}@media print{body{padding:12mm 14mm}@page{margin:10mm}}</style></head><body>
+.disc{font-size:8pt;color:#9ca3af;border:1px solid #e5e7eb;border-radius:5px;padding:3mm 4mm}
+.md-report .md-h{font-size:10pt;font-weight:700;color:#2D2438;margin:3mm 0 1.5mm}.md-report p{margin:1mm 0}.md-report strong{color:#6D4FA0}.md-report .md-ul{margin:1mm 0;padding-left:5mm}.md-report .md-ul li{margin:0.8mm 0}.md-report .md-table{margin:2mm 0}.md-report .md-table th{white-space:normal}@media print{body{padding:12mm 14mm}@page{margin:10mm}}</style></head><body>
 <div class="title-row"><h1>${esc(title)}</h1><div class="meta">분석 일시: ${esc(date)}<br/>AI 보험 중복 보장 분석</div></div>
 <div class="cards">
 <div class="card"><div class="val" style="color:#ef4444">${esc(detail.duplicateCount ?? 0)}</div><div class="lbl">중복 보장 항목</div></div>
@@ -581,7 +614,7 @@ ${detail.aiSummary ? `<div class="section-title">AI 분석 요약</div><div clas
 <div class="section-title">중복 보장 상세 목록</div>
 <table><thead><tr><th>중복 항목</th><th>해당 보험</th><th>보장 내용 비교</th><th>유형</th><th>절감 예상</th><th>심각도</th></tr></thead><tbody>${rows}</tbody></table>
 ${detail.recommendation ? `<div class="section-title">AI 권고사항</div><div class="box">${esc(detail.recommendation)}</div>` : ''}
-${report ? `<div class="section-title">종합 컨설팅 보고서</div><div class="box" style="white-space:pre-wrap">${esc(report)}</div>` : ''}
+${report ? `<div class="section-title">종합 컨설팅 보고서</div><div class="box md-report">${mdToHtml(report)}</div>` : ''}
 ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
 <script>window.addEventListener('load',()=>setTimeout(()=>window.print(),400))</script></body></html>`;
     };
