@@ -409,13 +409,15 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                     <span>🔒</span><span>첨부 파일은 분석에만 쓰이며 분석 후 삭제됩니다.</span>
                                 </div>
 
-                                {/* 내보험 자동 가져오기 (Codef) */}
+                                {/* 내보험 자동 가져오기 (Codef) — 임시 비활성화. 재활성화 시 false→true */}
+                                {false && (<>
                                 <CodefImportButton onImported={(file) => addFiles([file])} />
                                 <div className="flex items-center gap-2">
                                     <span className="flex-1 h-px bg-[#F0E9DE]" />
                                     <span className="text-[11px] text-[#9089A1]">또는 직접 업로드</span>
                                     <span className="flex-1 h-px bg-[#F0E9DE]" />
                                 </div>
+                                </>)}
 
                                 <div
                                     className="rounded-2xl p-6 text-center cursor-pointer transition-all select-none"
