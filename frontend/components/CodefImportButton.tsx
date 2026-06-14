@@ -165,16 +165,16 @@ export const CodefImportButton: React.FC<Props> = ({ onImported }) => {
                                 </div>
                                 <div>
                                     <label className={label}>이름 <span className="text-red-500">*</span></label>
-                                    <input type="text" placeholder="홍길동" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={input} />
+                                    <input type="text" autoComplete="off" name="codef-name" placeholder="홍길동" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className={input} />
                                 </div>
                                 <div>
                                     <label className={label}>주민등록번호 <span className="text-red-500">*</span></label>
                                     <div className="flex items-center gap-2">
-                                        <input type="text" inputMode="numeric" maxLength={6} placeholder="앞 6자리"
+                                        <input type="text" inputMode="numeric" autoComplete="off" name="codef-ssn-front" maxLength={6} placeholder="앞 6자리"
                                             value={form.front} onChange={e => setForm(p => ({ ...p, front: e.target.value.replace(/\D/g, '') }))}
                                             className={`${input} flex-1`} />
                                         <span className="text-[#9089A1] shrink-0">-</span>
-                                        <input type="password" inputMode="numeric" maxLength={7} placeholder="뒤 7자리"
+                                        <input type="password" inputMode="numeric" autoComplete="new-password" name="codef-ssn-back" maxLength={7} placeholder="뒤 7자리"
                                             value={form.back} onChange={e => setForm(p => ({ ...p, back: e.target.value.replace(/\D/g, '') }))}
                                             className={`${input} flex-1`} />
                                     </div>
@@ -187,7 +187,7 @@ export const CodefImportButton: React.FC<Props> = ({ onImported }) => {
                                 </div>
                                 <div>
                                     <label className={label}>휴대폰 번호 <span className="text-red-500">*</span></label>
-                                    <input type="tel" inputMode="numeric" placeholder="01012345678" value={form.phoneNo}
+                                    <input type="tel" inputMode="numeric" autoComplete="off" name="codef-phone" placeholder="01012345678" value={form.phoneNo}
                                         onChange={e => setForm(p => ({ ...p, phoneNo: e.target.value.replace(/[^0-9]/g, '') }))} className={input} />
                                 </div>
                                 {errorMsg && <div className="flex items-start gap-1.5 text-xs text-red-500"><AlertCircle size={13} className="shrink-0 mt-0.5" />{errorMsg}</div>}
