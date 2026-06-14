@@ -59,11 +59,13 @@ const MAX_FILES = 5;
 
 const isPDF = (n: string) => /\.pdf$/i.test(n);
 const isImage = (n: string) => /\.(jpg|jpeg|png|gif|webp)$/i.test(n);
-const fileIcon = (n: string) => isPDF(n) ? '📕' : isImage(n) ? '🖼️' : '📄';
+const isText = (n: string) => /\.(txt|text)$/i.test(n);  // 내보험 가져오기 결과(.txt)
+const fileIcon = (n: string) => isPDF(n) ? '📕' : isImage(n) ? '🖼️' : isText(n) ? '📄' : '📄';
 const fmtSize = (b: number) => b < 1024 ? b + 'B' : b < 1048576 ? (b / 1024).toFixed(1) + 'KB' : (b / 1048576).toFixed(1) + 'MB';
 
 const getMediaType = (n: string): string =>
     /\.pdf$/i.test(n) ? 'application/pdf' :
+    /\.(txt|text)$/i.test(n) ? 'text/plain' :
     /\.png$/i.test(n) ? 'image/png' :
     /\.gif$/i.test(n) ? 'image/gif' :
     /\.webp$/i.test(n) ? 'image/webp' : 'image/jpeg';
@@ -123,7 +125,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
 
     const addFiles = (list: FileList | File[] | null) => {
         if (!list) return;
-        const allowed = Array.from(list).filter(f => isPDF(f.name) || isImage(f.name));
+        const allowed = Array.from(list).filter(f => isPDF(f.name) || isImage(f.name) || isText(f.name));
         setFiles(prev => {
             const names = new Set(prev.map(f => f.name));
             const incoming = allowed.filter(f => !names.has(f.name));
