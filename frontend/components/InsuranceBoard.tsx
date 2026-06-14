@@ -112,6 +112,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     });
     const [showAdditional, setShowAdditional] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [tab, setTab] = useState<'history' | 'new'>('history');
 
     const handleRefresh = async () => {
         setRefreshing(true);
@@ -156,7 +157,8 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
             setInfo({ title: '', gender: '', age: '', job: '', health: '', budget: '', purpose: '', lunar: false });
             setShowAdditional(false);
             await loadTasks();
-            // 분석 시작 직후 맨 위로 올려 진행 상태(분석 내역)를 바로 보이게
+            // 분석 시작 직후 '분석 내역' 탭으로 전환 + 맨 위로(진행 상태 바로 보이게)
+            setTab('history');
             scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (e: any) {
             setError(e.message || '분석 요청에 실패했습니다.');
@@ -213,10 +215,23 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                         <ResultView detail={selected} loading={detailLoading} onConsult={onConsult} onClose={onClose} />
                     ) : (
                         <div className="p-4 space-y-4 max-w-2xl mx-auto">
-                            {/* 분석 내역 — 재방문 시 바로 확인하도록 맨 위 */}
+                            {/* 탭: 분석 내역 / 새 분석하기 */}
+                            <div className="flex gap-1 p-1 rounded-2xl bg-[#F0E9DE]/60">
+                                {([['history', `분석 내역${tasks.length ? ` (${tasks.length})` : ''}`], ['new', '+ 새 분석하기']] as const).map(([key, label]) => (
+                                    <button key={key} type="button" onClick={() => setTab(key)}
+                                        className="flex-1 py-2 rounded-xl text-sm font-bold transition-all"
+                                        style={tab === key
+                                            ? { background: '#8E6FB7', color: '#fff', boxShadow: '0 2px 8px -3px rgba(142,111,183,0.5)' }
+                                            : { color: '#7A5FA0', background: 'transparent' }}>
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* 분석 내역 탭 */}
+                            {tab === 'history' && (
                             <div>
-                                <div className="flex items-center justify-between mb-2.5">
-                                    <span className="text-xs font-bold tracking-widest uppercase text-[#9089A1]">분석 내역</span>
+                                <div className="flex items-center justify-end mb-2.5">
                                     <button type="button" onClick={handleRefresh} disabled={refreshing}
                                         className="flex items-center gap-1 text-xs font-medium text-[#8E6FB7] hover:text-[#7A5FA0] transition-colors disabled:opacity-50">
                                         <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
@@ -233,8 +248,9 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 {loading ? (
                                     <div className="text-center py-6 text-sm text-[#9089A1]">불러오는 중...</div>
                                 ) : tasks.length === 0 ? (
-                                    <div className="rounded-xl bg-white border border-dashed border-[#EAE2D3] py-6 text-center text-sm text-[#9089A1]">
-                                        아직 분석한 내역이 없어요.<br />아래에서 첫 보험 분석을 시작해 보세요 👇
+                                    <div className="rounded-xl bg-white border border-dashed border-[#EAE2D3] py-8 text-center text-sm text-[#9089A1]">
+                                        아직 분석한 내역이 없어요.<br />
+                                        <button type="button" onClick={() => setTab('new')} className="mt-2 text-[#8E6FB7] font-semibold underline">+ 새 분석하기</button>로 시작해 보세요
                                     </div>
                                 ) : (
                                     <div className="space-y-2">
@@ -282,13 +298,10 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                     </div>
                                 )}
                             </div>
+                            )}
 
-                            {/* 새 분석하기 구분 */}
-                            <div className="flex items-center gap-2 pt-1">
-                                <span className="text-xs font-bold tracking-widest uppercase text-[#9089A1]">새 분석하기</span>
-                                <span className="flex-1 h-px bg-[#F0E9DE]" />
-                            </div>
-
+                            {/* 새 분석하기 탭 */}
+                            {tab === 'new' && (<>
                             {/* 기본 정보 */}
                             <div className="rounded-2xl bg-white border border-[#F0E9DE] p-4 space-y-3">
                                 <div className="flex items-center gap-2">
@@ -444,6 +457,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 }}>
                                 {uploading ? <><Loader size={16} className="animate-spin" /> 요청 중...</> : <>🔍 AI 중복 분석 시작</>}
                             </button>
+                            </>)}
                         </div>
                     )}
                 </div>
