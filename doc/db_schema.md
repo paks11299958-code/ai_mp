@@ -136,6 +136,15 @@ errorMessage(nullable), createdAt, updatedAt
 - 김지훈 페르소나(cmqcbkt4y0000rpbefrh2z8rb) features=["insurance"]
 - 서버1 raw SQL CREATE/ALTER (db push 금지). 상세 doc/features/insurance_analysis.md
 
+## Credit4uAccount / CodefToken (내보험 가져오기 Codef, 2026-06-14)
+```
+Credit4uAccount: id, ssnHash(유니크, SHA-256(주민번호) — 원문 미저장), credit4uId, credit4uPw, registeredAt, updatedAt
+CodefToken:      id, clientId(유니크), accessToken, tokenType, expiresIn, issuedAt, expiresAt, refreshToken?, updatedAt
+```
+- Codef credit4u(금감원 내보험다보여) 자동 조회용. SSN은 해시만, credit4u 포털 계정 자동생성·캐시
+- CodefToken은 OAuth 토큰 7일 캐시(서버리스/재기동 대응)
+- 서버1 raw SQL. 상세 doc/features/insurance_analysis.md
+
 ## UsedItemListing
 ```
 id, userId, imageUrls(JSON), itemName(nullable)

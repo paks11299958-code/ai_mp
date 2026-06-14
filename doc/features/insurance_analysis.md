@@ -25,14 +25,25 @@ worker(`routes/aimp/workers/insurance.ts`, internal-cron이 mount):
 ## 채팅 상담 (추가 질문용, 보조)
 - App.tsx `handleInsuranceConsult`: 분석결과를 김지훈 세션에 **model role 메시지로 saveMessage** → chat-stream이 history(최근30개 Message)에 포함해 AI가 참고. ⚠️채팅은 백엔드가 sessionId로 DB Message를 읽으므로 화면표시(addMessageToSession)만으론 AI가 못 봄 → DB 저장 필수. model role은 포인트 차감 없음(sessions.ts는 user만 차감)
 
+## 내보험 가져오기 (Codef credit4u 연동, 2026-06-14) — ⚠️현재 UI 임시 비활성화
+증권 안 올려도 이름·주민번호·휴대폰으로 금감원 내보험다보여(credit4u)에서 보험내역 자동 조회. insure4에서 이식.
+- 흐름: `CodefImportButton` 모달(이름·주민번호·통신사·휴대폰) → `POST /api/insurance-codef/import`(1차) → credit4u 계정 조회/자동가입 → 보험조회 → **SMS 추가인증(CF-03002)** 필요 시 모달에서 인증번호 입력(2차) → 보험내역 **.txt File**로 `onImported`→업로드 목록 자동 첨부 → 그대로 AI 분석.
+- 백엔드: `lib/codef.ts`(EasyCodef SDK·RSA·토큰 DB캐시·가입/조회·텍스트포맷) + `routes/aimp/insurance-codef.ts`. `easycodef-node` 의존성. 성공코드 `isOk()`=‘0000’|‘CF-00000’(sandbox).
+- DB: `Credit4uAccount`(SSN은 **SHA-256 해시만**, 원문 미저장)·`CodefToken`(OAuth 7일 캐시). 서버1 raw SQL.
+- env(서버1 .env): `CODEF_CLIENT_ID/SECRET/PUBLIC_KEY` + `CODEF_SERVICE_TYPE`. ⚠️발급키가 **sandbox 권한만**(demo/api 토큰발급 500) → 현재 `sandbox`(고정 가짜응답). 실제 조회는 Codef demo/정식 신청 필요.
+- .txt 처리: addFiles·getMediaType·ALLOWED_TYPES·guessMime 모두 `text/plain` 허용.
+- ⚠️**현재 비활성화**: InsuranceBoard에서 CodefImportButton `{false &&}`로 숨김(코드·백엔드·DB·env 보존). 재활성화=false→true.
+- 교훈: type=password 입력칸은 크롬 로그인폼 오인→비번저장팝업+autofill 잔존 → `type=text`+CSS마스킹(WebkitTextSecurity:disc). 모달 열 때 폼 초기화.
+
 ## 포인트
 - `menuAccess` feature key `insurance` — MenuLimit 정책 없으면 **기본 50P 자동 차감** + 실패 시 환불
 
 ## 파일
 - 백엔드(shared-api): `routes/aimp/insurance-analysis.ts`(upload-urls/POST/GET/:id/retry/consulting/DELETE) + index.ts 등록 + `routes/aimp/workers/insurance.ts`(insurance-worker, internal-cron이 mount) + 공용 `lib/geminiJson.ts`·`workers/_shared.ts`(runWorker) + prisma `InsuranceAnalysis` 모델
 - 프론트: `components/InsuranceBoard.tsx`(업로드+기본정보+결과+컨설팅) + `personaFeatures.ts` insurance 키 + `useBoardToggles.ts` showInsuranceBoard + App.tsx 3곳 렌더
-- DB(서버1 raw SQL, db push 금지): InsuranceAnalysis 테이블 + consultingReport 컬럼. 김지훈 features=["insurance"]
-- vercel.json `/api/insurance-analysis` 프록시, 서버1 crontab insurance-worker 매분
+- Codef(내보험 가져오기): `lib/codef.ts` + `routes/aimp/insurance-codef.ts` + `components/CodefImportButton.tsx` + Credit4uAccount/CodefToken 모델
+- DB(서버1 raw SQL, db push 금지): InsuranceAnalysis 테이블 + consultingReport 컬럼 + Credit4uAccount·CodefToken. 김지훈 features=["insurance"]
+- vercel.json `/api/insurance-analysis`·`/api/insurance-codef` 프록시, 서버1 crontab insurance-worker 매분
 
 ## 사용법 도움말
 - 인라인 가이드 아님 — 헤더 도움말(?) 모달 **HelpButton** 사용(전 기능 통일). [features 도움말 통일 → ui_improvements 또는 메모리 project_guide_cards 참조]
