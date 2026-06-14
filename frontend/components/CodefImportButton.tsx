@@ -174,9 +174,10 @@ export const CodefImportButton: React.FC<Props> = ({ onImported }) => {
                                             value={form.front} onChange={e => setForm(p => ({ ...p, front: e.target.value.replace(/\D/g, '') }))}
                                             className={`${input} flex-1`} />
                                         <span className="text-[#9089A1] shrink-0">-</span>
-                                        <input type="password" inputMode="numeric" autoComplete="new-password" name="codef-ssn-back" maxLength={7} placeholder="뒤 7자리"
+                                        <input type="text" inputMode="numeric" autoComplete="off" name="codef-ssn-back" maxLength={7} placeholder="뒤 7자리"
                                             value={form.back} onChange={e => setForm(p => ({ ...p, back: e.target.value.replace(/\D/g, '') }))}
-                                            className={`${input} flex-1`} />
+                                            className={`${input} flex-1`}
+                                            style={{ WebkitTextSecurity: 'disc', textSecurity: 'disc' } as React.CSSProperties} />
                                     </div>
                                 </div>
                                 <div>
