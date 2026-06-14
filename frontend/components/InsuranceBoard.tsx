@@ -466,9 +466,9 @@ const ResultView: React.FC<{
     const [report, setReport] = useState<string | null>(detail.consultingReport ?? null);
     const [genLoading, setGenLoading] = useState(false);
     const [genError, setGenError] = useState('');
-    const [reportOpen, setReportOpen] = useState(true);
+    const [reportOpen, setReportOpen] = useState(false);
 
-    useEffect(() => { setReport(detail.consultingReport ?? null); setGenError(''); setReportOpen(true); }, [detail.id, detail.consultingReport]);
+    useEffect(() => { setReport(detail.consultingReport ?? null); setGenError(''); setReportOpen(false); }, [detail.id, detail.consultingReport]);
 
     const generateConsulting = async (force = false) => {
         setGenLoading(true);
