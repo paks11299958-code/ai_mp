@@ -59,6 +59,7 @@
 - `PUT /ebook/:id/page-size` — 판형 저장(sinkuk/a5/gukbae, +docxUrl 무효화)
 - `GET /ebook/slots` — 시간대별 예약 현황(품절), `PUT /ebook/:id/schedule` — 예약(정원 차면 409)
 - `POST /ebook/:id/collect-all` — 자료수집만(본문 제거, 사실상 미사용)
+- `POST /ebook/:id/image-prompts` — **이미지 프롬프트 뽑기**(2026-06-14): 본문 `[그림:설명]` 자리를 `lib/gemini.ts generateImagePrompts`가 추출→`_genWithClaude(sonnet)`으로 자리별 ChatGPT(DALL·E)용 영문 프롬프트 JSON 생성(₩0). 클로드는 이미지 생성 불가→프롬프트만, 실제 그림은 ChatGPT서. 프론트 초안탭 '🖼 이미지 프롬프트 뽑기' 버튼→그림별 카드(복사).
 - `POST /ebook/internal/run-scheduled` — **새벽 cron 본체**: scheduledHour 매칭 전자책의 체크 챕터를 `collectAndWriteChapter(...,'sonnet')`로 자료+본문 생성. 한도초과 시 break(rateLimited). 완료 시 docxUrl 무효화.
 - 409 처리(즉시생성 제거): `/content`·`/rewrite`·`/draft`
 - 제거됨: generateEbookCover(gpt-image), renderEbookPdf import, /pdf 라우트(원래 없음)
@@ -98,4 +99,5 @@
 - 2026-06-08~09: 목차/수정/챕터별 자료수집/3AI 비교 본문/글수정/그림자리 이미지 구현.
 - 2026-06-10: 8탭 재정의 + 본문일괄/PDF/AI그림(Imagen)/표/풀폭UI.
 - 2026-06-11(대개편): 구글독스(.docx) 중심 3탭. 그림/글수정/완성본탭 제거, 북크크 양식 .docx + (당시) 챗GPT 표지, 자료수집→본문 자동화 + 새벽 cron.
-- **2026-06-11(대량생산 전환·현재)**: 즉시생성 전부 제거(409)→새벽 cron만, Sonnet 야간배치+`ClaudeRateLimitError` 안전장치, 정원제(25권/일), 표지 사용자업로드(AI 폐기), docx 판형(신국판)+판권지+쪽번호, 문서 다운로드 docxUrl 상태유지, PDF 제거, 챕터 상태라벨, 진행탭 sticky. shared-api `cf6dc1f`~`e918a43`, ai_mp `cf6dc1f`~`aa9534f`. DB: pageSize/docxUrl 컬럼 추가.
+- **2026-06-11(대량생산 전환·현재)**: 즉시생성 전부 제거(409)→새벽 cron만, Sonnet 야간배치+`ClaudeRateLimitError` 안전장치, 정원제(25권/일), 표지 사용자업로드(AI 폐기), docx 판형(신국판)+판권지+쪽번호, 문서 다운로드 docxUrl 상태유지, PDF 제거, 챕터 상태라벨, 진행탭 sticky. shared-api `cf6dc1f`~`e918a443`, ai_mp `cf6dc1f`~`aa9534f`. DB: pageSize/docxUrl 컬럼 추가.
+- **2026-06-14**: 이미지 프롬프트 뽑기(`POST /ebook/:id/image-prompts`, generateImagePrompts). 본문 [그림:설명] 자리별 ChatGPT용 영문 프롬프트 생성→복사. shared-api `65969c7`, ai_mp `2c7c209`.
