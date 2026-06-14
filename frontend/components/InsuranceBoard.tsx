@@ -6,6 +6,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { HelpButton } from './HelpButton';
+import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -96,10 +97,8 @@ const sevStyle = (s: string) =>
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
 export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
-    const [tasks, setTasks] = useState<InsuranceTask[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selected, setSelected] = useState<InsuranceDetail | null>(null);
-    const [detailLoading, setDetailLoading] = useState(false);
+    const { tasks, loading, selected, detailLoading, setSelected, loadTasks, selectTask, retryTask, deleteTask } =
+        useAsyncTaskBoard<InsuranceTask, InsuranceDetail>({ api: API, apiFetch });
 
     const [files, setFiles] = useState<File[]>([]);
     const [dragging, setDragging] = useState(false);
@@ -114,29 +113,11 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const [showAdditional, setShowAdditional] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
 
-    const loadTasks = useCallback(async () => {
-        try {
-            const data = await apiFetch<InsuranceTask[]>(API(''));
-            setTasks(data);
-        } catch { /* 무시 */ }
-        finally { setLoading(false); }
-    }, []);
-
     const handleRefresh = async () => {
         setRefreshing(true);
         try { await loadTasks(); }
         finally { setTimeout(() => setRefreshing(false), 400); }
     };
-
-    useEffect(() => { loadTasks(); }, [loadTasks]);
-
-    // 진행 중 작업이 있으면 10초마다 폴링
-    useEffect(() => {
-        const hasActive = tasks.some(t => t.status === 'pending' || t.status === 'processing');
-        if (!hasActive) return;
-        const t = setTimeout(loadTasks, 10000);
-        return () => clearTimeout(t);
-    }, [tasks, loadTasks]);
 
     const addFiles = (list: FileList | File[] | null) => {
         if (!list) return;
@@ -184,28 +165,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         }
     };
 
-    const handleSelect = async (task: InsuranceTask) => {
-        if (task.status !== 'completed') return;
-        setDetailLoading(true);
-        try {
-            const detail = await apiFetch<InsuranceDetail>(API(`/${task.id}`));
-            setSelected(detail);
-        } finally {
-            setDetailLoading(false);
-        }
-    };
-
-    const handleRetry = async (id: number) => {
-        await apiFetch(API(`/${id}/retry`), { method: 'POST' });
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'pending', errorMessage: null } : t));
-    };
-
-    const handleDelete = async (id: number) => {
-        if (!confirm('이 분석 내역을 삭제하시겠습니까?')) return;
-        await apiFetch(API(`/${id}`), { method: 'DELETE' });
-        setTasks(prev => prev.filter(t => t.id !== id));
-        if (selected?.id === id) setSelected(null);
-    };
+    const handleDelete = (id: number) => deleteTask(id, '이 분석 내역을 삭제하시겠습니까?');
 
     const taskTitle = (t: InsuranceTask) => {
         const ui = parseJson<Partial<InsuranceUserInfo>>(t.userInfo, {});
@@ -284,7 +244,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                             const names = parseJson<string[]>(t.fileNames, []);
                                             return (
                                                 <div key={t.id}
-                                                    onClick={() => handleSelect(t)}
+                                                    onClick={() => selectTask(t)}
                                                     className={`rounded-xl bg-white border border-[#F0E9DE] p-3 flex items-center gap-3 ${t.status === 'completed' ? 'cursor-pointer hover:border-[#8E6FB7]/50' : ''} transition-colors`}>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="text-sm font-semibold text-[#2D2438] truncate">{taskTitle(t)}</div>
@@ -307,7 +267,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                         {sc.label}
                                                     </div>
                                                     {t.status === 'failed' && (
-                                                        <button onClick={e => { e.stopPropagation(); handleRetry(t.id); }}
+                                                        <button onClick={e => { e.stopPropagation(); retryTask(t.id); }}
                                                             className="p-1.5 text-[#9089A1] hover:text-[#8E6FB7] transition-colors" title="재시도">
                                                             <RotateCcw size={14} />
                                                         </button>

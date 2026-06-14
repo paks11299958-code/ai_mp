@@ -4,6 +4,7 @@ import {
     Trash2, RefreshCw, RotateCcw, ChevronLeft, Upload, ImageIcon, AlertTriangle,
 } from 'lucide-react';
 import { HelpButton } from './HelpButton';
+import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -133,33 +134,14 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
 export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
-    const [tasks, setTasks] = useState<LuxuryTask[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [selected, setSelected] = useState<LuxuryDetail | null>(null);
-    const [detailLoading, setDetailLoading] = useState(false);
+    const { tasks, loading, selected, detailLoading, setSelected, loadTasks, selectTask, retryTask, deleteTask } =
+        useAsyncTaskBoard<LuxuryTask, LuxuryDetail>({ api: API, apiFetch });
 
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [brandHint, setBrandHint] = useState('');
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const loadTasks = useCallback(async () => {
-        try {
-            const data = await apiFetch<LuxuryTask[]>(API(''));
-            setTasks(data);
-        } catch { }
-        finally { setLoading(false); }
-    }, []);
-
-    useEffect(() => { loadTasks(); }, [loadTasks]);
-
-    useEffect(() => {
-        const hasActive = tasks.some(t => t.status === 'pending' || t.status === 'processing');
-        if (!hasActive) return;
-        const t = setTimeout(loadTasks, 10000);
-        return () => clearTimeout(t);
-    }, [tasks, loadTasks]);
 
     const MAX_FILES = 8;
 
@@ -215,28 +197,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
-    const handleSelect = async (task: LuxuryTask) => {
-        if (task.status !== 'completed') return;
-        setDetailLoading(true);
-        try {
-            const detail = await apiFetch<LuxuryDetail>(API(`/${task.id}`));
-            setSelected(detail);
-        } finally {
-            setDetailLoading(false);
-        }
-    };
-
-    const handleRetry = async (id: number) => {
-        await apiFetch(API(`/${id}/retry`), { method: 'POST' });
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'pending', errorMessage: null } : t));
-    };
-
-    const handleDelete = async (id: number) => {
-        if (!confirm('삭제하시겠습니까?')) return;
-        await apiFetch(API(`/${id}`), { method: 'DELETE' });
-        setTasks(prev => prev.filter(t => t.id !== id));
-        if (selected?.id === id) setSelected(null);
-    };
+    const handleDelete = (id: number) => deleteTask(id, '삭제하시겠습니까?');
 
     const displayName = (t: LuxuryTask) => t.brandHint || t.geminiBrand || '명품 분석중...';
 
@@ -377,7 +338,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                 return (
                                     <div
                                         key={task.id}
-                                        onClick={() => handleSelect(task)}
+                                        onClick={() => selectTask(task)}
                                         className={`flex items-center gap-2 p-2 rounded-xl transition-all ${task.status === 'completed' ? 'cursor-pointer hover:bg-white' : 'cursor-default'} ${selected?.id === task.id ? 'bg-white ring-1 ring-purple-500/40' : ''}`}
                                     >
                                         <div className="flex-1 min-w-0">
@@ -432,7 +393,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                         </div>
                                         <div className="flex items-center gap-0.5 shrink-0">
                                             {task.status === 'failed' && (
-                                                <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} className="p-1 rounded text-[#9089A1] hover:text-orange-500 transition-colors" title="재분석">
+                                                <button onClick={e => { e.stopPropagation(); retryTask(task.id); }} className="p-1 rounded text-[#9089A1] hover:text-orange-500 transition-colors" title="재분석">
                                                     <RotateCcw size={11} />
                                                 </button>
                                             )}
