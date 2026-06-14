@@ -82,7 +82,7 @@ export const CodefImportButton: React.FC<Props> = ({ onImported }) => {
     };
 
     const modalOpen = ['modal', 'loading', '2way', 'error'].includes(step);
-    const input = 'w-full border border-[#EAE2D3] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#8E6FB7] bg-white text-[#2D2438]';
+    const input = 'w-full min-w-0 border border-[#EAE2D3] rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#8E6FB7] bg-white text-[#2D2438]';
     const label = 'block text-xs font-semibold text-[#6B5F56] mb-1.5';
 
     return (
@@ -176,13 +176,15 @@ export const CodefImportButton: React.FC<Props> = ({ onImported }) => {
                                     </div>
                                 </div>
                                 <div>
+                                    <label className={label}>통신사 <span className="text-red-500">*</span></label>
+                                    <select value={form.telecom} onChange={e => setForm(p => ({ ...p, telecom: e.target.value }))} className={input}>
+                                        {TELECOM_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                                    </select>
+                                </div>
+                                <div>
                                     <label className={label}>휴대폰 번호 <span className="text-red-500">*</span></label>
-                                    <div className="flex gap-2">
-                                        <select value={form.telecom} onChange={e => setForm(p => ({ ...p, telecom: e.target.value }))} className={`${input} w-28 shrink-0`}>
-                                            {TELECOM_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-                                        </select>
-                                        <input type="tel" placeholder="01012345678" value={form.phoneNo} onChange={e => setForm(p => ({ ...p, phoneNo: e.target.value.replace(/[^0-9]/g, '') }))} className={input} />
-                                    </div>
+                                    <input type="tel" inputMode="numeric" placeholder="01012345678" value={form.phoneNo}
+                                        onChange={e => setForm(p => ({ ...p, phoneNo: e.target.value.replace(/[^0-9]/g, '') }))} className={input} />
                                 </div>
                                 {errorMsg && <div className="flex items-start gap-1.5 text-xs text-red-500"><AlertCircle size={13} className="shrink-0 mt-0.5" />{errorMsg}</div>}
                                 <button onClick={handleImport} className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm" style={{ background: '#8E6FB7', color: '#fff', boxShadow: '0 3px 12px -4px rgba(142,111,183,0.6)' }}>
