@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>리뷰 해결사 — AI 쇼핑 리뷰 요약</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --accent: #06B6D4;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --text: #0F172A;
+  --text-sub: #64748B;
+  --border: #E2E8F0;
+  --bg: #FFFFFF;
+  --bg-soft: #F8FAFC;
+}
+body {
+  font-family: 'Pretendard', -apple-system, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Navigation */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-inner {
+  max-width: 1200px; margin: 0 auto;
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-size: 20px; font-weight: 800;
+  display: flex; align-items: center; gap: 8px;
+  color: var(--text);
+  text-decoration: none;
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 9px;
+  display: grid; place-items: center;
+  color: white; font-size: 18px;
+}
+.nav-links { display: flex; gap: 28px; }
+.nav-links a {
+  color: var(--text-sub); text-decoration: none;
+  font-weight: 500; font-size: 14px;
+}
+.nav-cta {
+  padding: 9px 18px;
+  background: var(--text);
+  color: white !important;
+  border-radius: 8px;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+}
+@media (max-width: 640px) { .nav-links a:not(.nav-cta) { display: none; } }
+
+/* Hero */
+.hero {
+  padding: 80px 20px 60px;
+  max-width: 1200px; margin: 0 auto;
+  text-align: center;
+  position: relative;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: 50px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse, rgba(37,99,235,0.08), transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  background: #EFF6FF;
+  color: var(--primary);
+  border-radius: 999px;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 22px;
+}
+.badge::before {
+  content: ''; width: 6px; height: 6px;
+  background: var(--primary); border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.2);
+}
+h1 {
+  font-size: clamp(34px, 6vw, 60px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 22px;
+}
+h1 span {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.hero-sub {
+  font-size: clamp(15px, 2.2vw, 18px);
+  color: var(--text-sub);
+  max-width: 600px; margin: 0 auto 36px;
+  line-height: 1.65;
+}
+.cta-row {
+  display: flex; gap: 12px; justify-content: center;
+  flex-wrap: wrap;
+}
+.btn {
+  padding: 14px 26px;
+  border-radius: 10px;
+  font-weight: 600; font-size: 15px;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+  border: none; cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-primary {
+  background: var(--text);
+  color: white;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.12); }
+.btn-secondary {
+  background: white;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Input demo */
+.demo-card {
+  max-width: 720px; margin: 50px auto 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px -10px rgba(15,23,42,.08);
+  overflow: hidden;
+}
+.demo-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 6px;
+}
+.demo-tab {
+  padding: 14px 18px;
+  font-size: 14px; font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.demo-tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.demo-body {
+  padding: 22px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.demo-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--text);
+}
+.demo-input:focus { outline: none; border-color: var(--primary); }
+.demo-btn {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: white;
+  padding: 14px;
+  border: none; border-radius: 10px;
+  font-weight: 700; font-size: 15px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.stats {
+  display: flex; justify-content: center; gap: 40px;
+  margin-top: 50px; flex-wrap: wrap;
+}
+.stat-num {
+  font-size: 28px; font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+.stat-label {
+  font-size: 13px; color: var(--text-sub);
+  margin-top: 4px;
+}
+
+/* Features */
+.section {
+  max-width: 1200px; margin: 0 auto;
+  padding: 80px 20px;
+}
+.section-head {
+  text-align: center; margin-bottom: 50px;
+}
+.section-eyebrow {
+  font-size: 13px; font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+h2 {
+  font-size: clamp(28px, 4.5vw, 42px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 14px;
+}
+.section-sub {
+  color: var(--text-sub);
+  font-size: 16px;
+  max-width: 540px; margin: 0 auto;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+}
+.feature {
+  padding: 32px 28px;
+  background: var(--bg-soft);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  transition: all .25s;
+}
+.feature:hover {
+  background: white;
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px -10px rgba(37,99,235,.15);
+}
+.feature-icon {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: grid; place-items: center;
+  font-size: 22px;
+  margin-bottom: 18px;
+}
+.f1 .feature-icon { background: #DBEAFE; color: var(--primary); }
+.f2 .feature-icon { background: #CFFAFE; color: #0891B2; }
+.f3 .feature-icon { background: #DCFCE7; color: #16A34A; }
+.f4 .feature-icon { background: #FEF3C7; color: #D97706; }
+.feature h3 {
+  font-size: 19px; font-weight: 700;
+  margin-bottom: 8px;
+}
+.feature p {
+  color: var(--text-sub);
+  font-size: 14px; line-height: 1.65;
+}
+
+/* Demo preview */
+.preview-section {
+  background: var(--bg-soft);
+  padding: 80px 0;
+}
+.preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 50px;
+  align-items: center;
+  max-width: 1100px; margin: 0 auto; padding: 0 20px;
+}
+@media (max-width: 768px) {
+  .preview-grid { grid-template-columns: 1fr; }
+}
+.preview-text h2 { text-align: left; }
+.preview-text .section-sub { margin: 0 0 24px; }
+.preview-list {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.preview-list li {
+  display: flex; gap: 12px;
+  font-size: 15px;
+  color: var(--text);
+}
+.preview-list li::before {
+  content: '✓';
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  background: var(--success);
+  color: white;
+  border-radius: 6px;
+  font-size: 13px; font-weight: 700;
+  display: grid; place-items: center;
+}
+
+.result-card {
+  background: white;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  padding: 26px;
+  box-shadow: 0 20px 60px -20px rgba(15,23,42,.15);
+}
+.result-product {
+  display: flex; gap: 14px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 18px;
+}
+.result-thumb {
+  width: 64px; height: 64px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #DBEAFE, #CFFAFE);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.result-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.result-meta { font-size: 12px; color: var(--text-sub); }
+.rating-row { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.stars { color: var(--warning); font-size: 13px; }
+.score { font-weight: 700; font-size: 14px; }
+.review-count { color: var(--text-sub); font-size: 12px; }
+
+.summary-block {
+  margin-bottom: 16px;
+}
+.summary-label {
+  font-size: 12px; font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.summary-text {
+  font-size: 14px; line-height: 1.65;
+  background: #EFF6FF;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border-left: 3px solid var(--primary);
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.cat-item {
+  background: var(--bg-soft);
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+.cat-name { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+.cat-bar {
+  height: 6px; border-radius: 3px;
+  background: var(--border);
+  position: relative; overflow: hidden;
+}
+.cat-fill {
+  height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+}
+.cat-row { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.cat-score { font-size: 13px; font-weight: 700; }
+
+.verdict {
+  padding: 14px;
+  background: linear-gradient(135deg, #DCFCE7, #ECFCCB);
+  border-radius: 12px;
+  display: flex; align-items: center; gap: 10px;
+  border: 1px solid #BBF7D0;
+}
+.verdict-emoji { font-size: 26px; }
+.verdict-text { font-size: 14px; font-weight: 600; color: #166534; }
+
+/* CTA */
+.cta-section {
+  text-align: center;
+  padding: 80px 20px;
+  max-width: 800px; margin: 0 auto;
+}
+.cta-card {
+  background: linear-gradient(135deg, var(--text), #1E293B);
+  color: white;
+  padding: 60px 40px;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.cta-card::before {
+  content: '';
+  position: absolute;
+  top: -50%; right: -20%;
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(37,99,235,0.3), transparent 70%);
+}
+.cta-card h2 { color: white; position: relative; }
+.cta-card p {
+  color: rgba(255,255,255,0.75);
+  margin: 12px 0 28px;
+  position: relative;
+}
+.cta-card .btn-primary {
+  background: white; color: var(--text);
+  position: relative;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 36px 20px 28px;
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 13px;
+}
+footer .logo { justify-content: center; margin-bottom: 14px; }
+.foot-links {
+  display: flex; gap: 22px; justify-content: center;
+  margin-bottom: 14px;
+}
+.foot-links a { color: var(--text-sub); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark">🔍</span> 리뷰 해결사
+    </a>
+    <div class="nav-links">
+      <a href="#features">기능</a>
+      <a href="#how">사용 방법</a>
+      <a href="#pricing">요금</a>
+      <a href="#" class="nav-cta">시작하기</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="badge">AI로 30초 만에 끝</div>
+  <h1>긴 리뷰 1,000개,<br><span>핵심만 뽑아드립니다</span></h1>
+  <p class="hero-sub">
+    상품 URL 한 줄만 붙여넣으면<br>
+    AI가 장단점·카테고리별 평가·추천 여부까지 한눈에 정리해줘요.
+  </p>
+  <div class="cta-row">
+    <a href="#" class="btn btn-primary">무료로 분석해보기 →</a>
+    <a href="#how" class="btn btn-secondary">데모 보기</a>
+  </div>
+
+  <div class="demo-card">
+    <div class="demo-tabs">
+      <div class="demo-tab active">🔗 URL로 분석</div>
+      <div class="demo-tab">📝 리뷰 직접 붙여넣기</div>
+    </div>
+    <div class="demo-body">
+      <input class="demo-input" placeholder="쿠팡, 네이버, 11번가 상품 URL을 붙여넣으세요" value="https://www.coupang.com/vp/products/...">
+      <button class="demo-btn">⚡ AI 요약 시작</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div>
+      <div class="stat-num">52,847</div>
+      <div class="stat-label">누적 분석 건수</div>
+    </div>
+    <div>
+      <div class="stat-num">30초</div>
+      <div class="stat-label">평균 분석 시간</div>
+    </div>
+    <div>
+      <div class="stat-num">94%</div>
+      <div class="stat-label">사용자 만족도</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="features">
+  <div class="section-head">
+    <div class="section-eyebrow">Why Review Solver</div>
+    <h2>'살까 말까' 고민,<br>리뷰 해결사가 답해드려요</h2>
+    <p class="section-sub">수백 개 리뷰를 하나하나 읽을 시간이 없는 분들을 위해 만들었습니다.</p>
+  </div>
+
+  <div class="features">
+    <div class="feature f1">
+      <div class="feature-icon">📋</div>
+      <h3>핵심 장단점 요약</h3>
+      <p>긴 리뷰들을 분석해 진짜 장점과 단점만 3줄로 정리. 좋은 리뷰만 골라 보여주지 않습니다.</p>
+    </div>
+    <div class="feature f2">
+      <div class="feature-icon">📊</div>
+      <h3>카테고리별 평가</h3>
+      <p>품질·배송·사이즈·가성비 등 항목별 점수와 실제 사용자 평가를 한눈에 비교하세요.</p>
+    </div>
+    <div class="feature f3">
+      <div class="feature-icon">💡</div>
+      <h3>추천 여부 판단</h3>
+      <p>"이 상품, 살 만한가?" AI가 종합 판단과 함께 어떤 사람에게 어울리는지 알려줍니다.</p>
+    </div>
+    <div class="feature f4">
+      <div class="feature-icon">⚡</div>
+      <h3>30초 안에 결과</h3>
+      <p>URL만 붙여넣으면 끝. 회원가입 없이 바로 사용 가능한 무료 분석 서비스입니다.</p>
+    </div>
+  </div>
+</section>
+
+<section class="preview-section" id="how">
+  <div class="preview-grid">
+    <div class="preview-text">
+      <div class="section-eyebrow">RESULT PREVIEW</div>
+      <h2>이렇게<br>정리해드려요</h2>
+      <p class="section-sub">실제 분석 결과 화면을 미리 보여드릴게요. 복잡한 리뷰가 어떻게 정리되는지 확인해보세요.</p>
+      <ul class="preview-list">
+        <li>긍정·부정 리뷰를 균형있게 추출해 객관적으로 분석</li>
+        <li>4가지 핵심 카테고리(품질/배송/사이즈/가성비) 점수화</li>
+        <li>"어떤 사람에게 추천하는지" 까지 친절하게 설명</li>
+        <li>리뷰 신뢰도 체크 — 어뷰징 의심 리뷰 자동 필터링</li>
+      </ul>
+    </div>
+
+    <div class="result-card">
+      <div class="result-product">
+        <img class="result-thumb" src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" alt="제품 이미지">
+        <div>
+          <div class="result-title">소니 WH-1000XM5 노이즈캔슬링</div>
+          <div class="result-meta">쿠팡 · 리뷰 1,247개 분석 완료</div>
+          <div class="rating-row">
+            <span class="stars">★★★★☆</span>
+            <span class="score">4.3</span>
+            <span class="review-count">/ 5.0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-block">
+        <div class="summary-label">👍 장점</div>
+        <div class="summary-text">노이즈캔슬링 성능은 시장 최고 수준. 통화 품질이 깨끗하고 6시간 비행에도 귀가 편하다는 의견 다수.</div>
+      </div>
+      <div class="summary-block">
+        <div class="summary-label">👎 단점</div>
+        <div class="summary-text" style="background:#FEF2F2;border-left-color:var(--danger);">가격이 비싸고 케이스가 크다는 불만. 안경 착용 시 압박감을 호소하는 리뷰가 일부 있음.</div>
+      </div>
+
+      <div class="category-grid">
+        <div class="cat-item">
+          <div class="cat-name">음질</div>
+          <div class="cat-bar"><div class="cat-fill" style="width:92%"></div></div>
+          <div class="cat-row"><span></span><span class="cat-score">9.2</span></div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-name">배터리</div>
+          <div class="cat-bar"><div class="cat-fill" style="width:88%"></div></div>
+          <div class="cat-row"><span></span><span class="cat-score">8.8</span></div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-name">착용감</div>
+          <div class="cat-bar"><div class="cat-fill" style="width:75%"></div></div>
+          <div class="cat-row"><span></span><span class="cat-score">7.5</span></div>
+        </div>
+        <div class="cat-item">
+          <div class="cat-name">가성비</div>
+          <div class="cat-bar"><div class="cat-fill" style="width:68%;background:linear-gradient(90deg,var(--warning),#F97316);"></div></div>
+          <div class="cat-row"><span></span><span class="cat-score">6.8</span></div>
+        </div>
+      </div>
+
+      <div class="verdict">
+        <div class="verdict-emoji">✨</div>
+        <div class="verdict-text">출장이 잦거나 음질에 민감하신 분께 추천!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-card">
+    <h2>지금 바로 시도해보세요</h2>
+    <p>회원가입 없이 무료로 한 번 분석해보실 수 있어요</p>
+    <a href="#" class="btn btn-primary">URL 넣고 분석 시작 →</a>
+  </div>
+</section>
+
+<footer>
+  <a href="#" class="logo">
+    <span class="logo-mark">🔍</span> 리뷰 해결사
+  </a>
+  <div class="foot-links">
+    <a href="#">서비스 소개</a>
+    <a href="#">이용약관</a>
+    <a href="#">개인정보처리방침</a>
+    <a href="#">문의하기</a>
+  </div>
+  <div>© 2026 Review Solver. All rights reserved.</div>
+</footer>
+
+</body>
+</html>

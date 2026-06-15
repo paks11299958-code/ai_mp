@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>리뷰 해결사 — AI 쇼핑 리뷰 요약</title>
+<meta name="description" content="상품 URL만 붙여넣으면 AI가 수백 개 리뷰를 30초 안에 분석해 긍부정 비율, 핵심 키워드, 구매 추천 여부를 알려줍니다.">
+<meta property="og:title" content="리뷰 해결사 — AI 쇼핑 리뷰 요약">
+<meta property="og:description" content="쇼핑 리뷰, 1초만에 핵심만! 긍부정 분석 · 키워드 추출 · 가짜 리뷰 필터링">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --primary-light: #dbeafe;
+  --accent: #10b981;
+  --warn: #ef4444;
+  --warn-light: #fee2e2;
+  --bg: #ffffff;
+  --surface: #f8fafc;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+}
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Pretendard', 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+.container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* Header */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 0;
+}
+.logo {
+  font-size: 20px; font-weight: 800;
+  display: flex; align-items: center; gap: 8px;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: white;
+}
+.nav-links { display: flex; gap: 28px; align-items: center; }
+.nav-links a {
+  color: var(--text-muted); text-decoration: none;
+  font-size: 15px; font-weight: 500;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--primary); }
+.btn-primary {
+  background: var(--primary); color: white;
+  padding: 10px 20px; border-radius: 10px;
+  text-decoration: none; font-weight: 600; font-size: 14px;
+  transition: all 0.2s; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+/* Hero */
+.hero {
+  padding: 80px 0 100px;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute; top: -200px; right: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(37,99,235,0.08), transparent 70%);
+  border-radius: 50%;
+}
+.hero-grid {
+  display: grid; grid-template-columns: 1.1fr 1fr;
+  gap: 60px; align-items: center;
+  position: relative;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--primary-light); color: var(--primary-dark);
+  padding: 6px 14px; border-radius: 100px;
+  font-size: 13px; font-weight: 600;
+  margin-bottom: 20px;
+}
+.hero h1 {
+  font-size: 56px; font-weight: 800; line-height: 1.15;
+  letter-spacing: -0.03em; margin-bottom: 20px;
+}
+.hero h1 span { color: var(--primary); }
+.hero p.lead {
+  font-size: 18px; color: var(--text-muted);
+  margin-bottom: 32px; max-width: 480px;
+}
+.url-form {
+  display: flex; gap: 8px; margin-bottom: 16px; max-width: 540px;
+  flex-wrap: wrap;
+}
+.url-form input {
+  flex: 1; min-width: 220px;
+  padding: 14px 18px; border-radius: 12px;
+  border: 1.5px solid var(--border);
+  font-size: 15px; font-family: inherit;
+  background: white;
+  transition: border-color 0.2s;
+}
+.url-form input:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+.url-form button {
+  background: var(--primary); color: white;
+  padding: 14px 24px; border-radius: 12px;
+  border: none; font-weight: 700; cursor: pointer;
+  font-size: 15px; font-family: inherit;
+  transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.url-form button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+.url-helper {
+  font-size: 13px; color: var(--text-muted);
+  margin-bottom: 36px;
+}
+.hero-stats {
+  display: flex; gap: 32px;
+}
+.stat-num {
+  font-size: 28px; font-weight: 800; color: var(--text);
+}
+.stat-label { font-size: 13px; color: var(--text-muted); }
+
+/* Hero card */
+.hero-card {
+  background: white; border-radius: 24px;
+  border: 1px solid var(--border);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.12);
+  padding: 24px; position: relative;
+}
+.hero-card-header {
+  display: flex; align-items: center; gap: 12px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.hero-card-thumb {
+  width: 60px; height: 60px; border-radius: 12px; object-fit: cover;
+}
+.hero-card-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+.hero-card-price { font-size: 13px; color: var(--text-muted); }
+.sentiment-bar {
+  display: flex; height: 10px; border-radius: 999px;
+  overflow: hidden; margin-bottom: 8px;
+}
+.bar-pos { background: var(--accent); }
+.bar-neu { background: #fbbf24; }
+.bar-neg { background: var(--warn); }
+.sentiment-legend {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--text-muted); margin-bottom: 20px;
+}
+.sentiment-legend span:nth-child(1) { color: var(--accent); font-weight: 600; }
+.sentiment-legend span:nth-child(3) { color: var(--warn); }
+.keywords {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 20px;
+}
+.kw {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 12px; border-radius: 100px;
+  font-size: 12px; font-weight: 500;
+}
+.kw.pos { color: var(--accent); border-color: rgba(16,185,129,0.3); background: rgba(16,185,129,0.06); }
+.kw.neg { color: var(--warn); border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.06); }
+.recommend-box {
+  background: linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.06));
+  border: 1px solid rgba(37,99,235,0.15);
+  border-radius: 14px; padding: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.recommend-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--primary); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.recommend-text { font-size: 14px; font-weight: 600; }
+.recommend-text small { color: var(--text-muted); font-weight: 400; display: block; margin-top: 2px; }
+
+/* Sections */
+.features, .how, .demo-section, .malls, .faq-section { padding: 100px 0; }
+.how, .malls { background: var(--surface); }
+.section-head { text-align: center; margin-bottom: 60px; }
+.section-tag {
+  display: inline-block; color: var(--primary);
+  font-size: 14px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; margin-bottom: 12px;
+}
+.section-title {
+  font-size: 42px; font-weight: 800; line-height: 1.2;
+  letter-spacing: -0.02em; margin-bottom: 16px;
+}
+.section-sub {
+  font-size: 17px; color: var(--text-muted);
+  max-width: 600px; margin: 0 auto;
+}
+
+/* Features */
+.feature-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+.feature-card {
+  padding: 32px 24px; border-radius: 20px;
+  background: var(--surface); border: 1px solid var(--border);
+  transition: all 0.3s;
+}
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -15px rgba(37,99,235,0.15);
+  border-color: var(--primary-light);
+}
+.feature-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: var(--primary-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; margin-bottom: 20px;
+}
+.feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.feature-card p { font-size: 14px; color: var(--text-muted); }
+
+/* Steps */
+.steps {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+}
+.step {
+  background: white; padding: 32px 24px;
+  border-radius: 20px; position: relative;
+  border: 1px solid var(--border);
+}
+.step-num {
+  position: absolute; top: 24px; right: 24px;
+  font-size: 48px; font-weight: 900;
+  color: var(--primary-light); line-height: 1;
+}
+.step-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin-bottom: 20px;
+}
+.step h3 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+.step p { font-size: 14px; color: var(--text-muted); }
+
+/* Demo result section */
+.demo-card {
+  max-width: 880px; margin: 0 auto;
+  background: white; border: 1px solid var(--border);
+  border-radius: 24px; box-shadow: 0 25px 60px -20px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.demo-head {
+  padding: 28px 32px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  background: linear-gradient(135deg, rgba(37,99,235,0.04), rgba(99,102,241,0.04));
+}
+.demo-thumb {
+  width: 72px; height: 72px; border-radius: 14px; object-fit: cover;
+  flex-shrink: 0;
+}
+.demo-meta-title { font-weight: 700; font-size: 17px; margin-bottom: 4px; }
+.demo-meta-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 6px; }
+.demo-stars { color: #fbbf24; font-size: 16px; letter-spacing: 1px; }
+.demo-stars small { color: var(--text-muted); font-size: 13px; margin-left: 6px; }
+.demo-body {
+  padding: 32px;
+  display: grid; grid-template-columns: 220px 1fr; gap: 32px;
+}
+.donut-wrap {
+  display: flex; flex-direction: column; align-items: center;
+}
+.donut {
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--accent) 0deg 313deg,
+    #fbbf24 313deg 360deg
+  );
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.donut::after {
+  content: ''; position: absolute;
+  width: 120px; height: 120px;
+  background: white; border-radius: 50%;
+}
+.donut-center {
+  position: relative; z-index: 1;
+  text-align: center;
+}
+.donut-pct {
+  font-size: 32px; font-weight: 800; color: var(--accent);
+  line-height: 1;
+}
+.donut-label {
+  font-size: 12px; color: var(--text-muted);
+  margin-top: 4px;
+}
+.donut-legend {
+  display: flex; gap: 12px; margin-top: 16px;
+  font-size: 12px; color: var(--text-muted);
+}
+.donut-legend i {
+  display: inline-block; width: 10px; height: 10px;
+  border-radius: 2px; margin-right: 4px;
+  vertical-align: middle;
+}
+.demo-right { display: flex; flex-direction: column; gap: 22px; }
+.demo-section-label {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.05em;
+  color: var(--text-muted); text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.bar-row span:first-child {
+  width: 80px; font-size: 13px; font-weight: 500;
+}
+.bar-track {
+  flex: 1; height: 8px; background: var(--surface);
+  border-radius: 999px; overflow: hidden;
+}
+.bar-fill { height: 100%; border-radius: 999px; }
+.bar-row span:last-child {
+  width: 36px; text-align: right;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+}
+.demo-summary {
+  background: var(--surface); border-radius: 14px;
+  padding: 16px 18px; font-size: 14px;
+  border-left: 4px solid var(--primary);
+}
+.demo-summary strong { color: var(--primary); }
+.demo-recommend {
+  background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(37,99,235,0.06));
+  border: 1px solid rgba(16,185,129,0.2);
+  border-radius: 14px; padding: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.demo-recommend-icon {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: var(--accent); color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.demo-recommend strong { font-size: 14px; }
+.demo-recommend small { color: var(--text-muted); font-size: 12px; display: block; margin-top: 2px; }
+
+/* Malls */
+.malls-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+.mall-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 16px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 14px;
+  transition: all 0.2s;
+  color: var(--text);
+}
+.mall-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-light);
+  box-shadow: 0 8px 20px -10px rgba(37,99,235,0.15);
+}
+.mall-emoji { font-size: 26px; display: block; margin-bottom: 8px; }
+
+/* FAQ */
+.faq-list {
+  max-width: 800px; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.faq-item {
+  background: white; border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+  transition: border-color 0.2s;
+}
+.faq-item.open { border-color: var(--primary); }
+.faq-q {
+  width: 100%; background: none; border: none; cursor: pointer;
+  padding: 22px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 16px; font-weight: 600; text-align: left;
+  font-family: inherit; color: var(--text);
+}
+.faq-q span.icon {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; flex-shrink: 0;
+  margin-left: 12px;
+  transition: transform 0.2s;
+}
+.faq-item.open .faq-q span.icon { transform: rotate(45deg); }
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease;
+  padding: 0 24px;
+  color: var(--text-muted); font-size: 15px;
+}
+.faq-item.open .faq-a {
+  max-height: 300px;
+  padding: 0 24px 22px;
+}
+
+/* CTA */
+.cta-section {
+  padding: 100px 0; text-align: center;
+}
+.cta-box {
+  background: linear-gradient(135deg, var(--primary), #6366f1);
+  border-radius: 32px; padding: 80px 40px;
+  color: white; position: relative; overflow: hidden;
+}
+.cta-box::before {
+  content: ''; position: absolute;
+  top: -50%; right: -10%; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1), transparent 70%);
+  border-radius: 50%;
+}
+.cta-box h2 {
+  font-size: 42px; font-weight: 800; margin-bottom: 16px;
+  position: relative; letter-spacing: -0.02em;
+}
+.cta-box p {
+  font-size: 18px; opacity: 0.9; margin-bottom: 32px;
+  position: relative;
+}
+.cta-form {
+  display: flex; gap: 8px; max-width: 540px; margin: 0 auto;
+  position: relative; flex-wrap: wrap;
+}
+.cta-form input {
+  flex: 1; min-width: 200px;
+  padding: 16px 20px; border-radius: 14px;
+  border: none; font-size: 15px;
+  font-family: inherit;
+}
+.cta-form button {
+  background: white; color: var(--primary);
+  padding: 16px 28px; border-radius: 14px;
+  border: none; font-weight: 700; cursor: pointer;
+  font-size: 15px; font-family: inherit;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,0.6);
+  backdrop-filter: blur(4px);
+  display: none; align-items: center; justify-content: center;
+  z-index: 1000; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: white; border-radius: 24px;
+  max-width: 460px; width: 100%;
+  padding: 40px 32px;
+  position: relative;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-close {
+  position: absolute; top: 16px; right: 16px;
+  background: none; border: none; cursor: pointer;
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: 22px; color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close:hover { background: var(--surface); }
+.modal-icon {
+  width: 64px; height: 64px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; margin: 0 auto 20px;
+}
+.modal h3 {
+  font-size: 22px; font-weight: 800; text-align: center;
+  margin-bottom: 8px; letter-spacing: -0.02em;
+}
+.modal p {
+  text-align: center; color: var(--text-muted);
+  font-size: 14px; margin-bottom: 24px;
+}
+.modal form { display: flex; flex-direction: column; gap: 10px; }
+.modal input {
+  padding: 14px 16px; border-radius: 12px;
+  border: 1.5px solid var(--border);
+  font-size: 15px; font-family: inherit;
+}
+.modal input:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+}
+.modal button[type=submit] {
+  background: var(--primary); color: white;
+  padding: 14px; border-radius: 12px;
+  border: none; font-weight: 700; cursor: pointer;
+  font-size: 15px; font-family: inherit;
+}
+.modal button[type=submit]:hover { background: var(--primary-dark); }
+.modal-success {
+  text-align: center;
+}
+.modal-success .modal-icon { background: rgba(16,185,129,0.12); color: var(--accent); }
+
+/* Footer */
+.footer {
+  background: #0f172a; color: white;
+  padding: 60px 0 30px;
+}
+.footer-grid {
+  display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 40px; margin-bottom: 40px;
+}
+.footer-brand p {
+  color: #94a3b8; font-size: 14px; margin-top: 12px;
+  max-width: 280px;
+}
+.footer h4 {
+  font-size: 14px; font-weight: 700;
+  margin-bottom: 16px; color: #e2e8f0;
+}
+.footer ul { list-style: none; }
+.footer ul li { margin-bottom: 10px; }
+.footer ul a {
+  color: #94a3b8; text-decoration: none;
+  font-size: 14px;
+}
+.footer ul a:hover { color: white; }
+.footer-info {
+  border-top: 1px solid #1e293b;
+  padding-top: 24px;
+  color: #94a3b8; font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+.footer-info strong { color: #e2e8f0; }
+.footer-bottom {
+  text-align: center;
+  color: #64748b; font-size: 13px;
+}
+
+/* Fade-in animation */
+.fade-in {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 1024px) {
+  .feature-grid { grid-template-columns: repeat(2, 1fr); }
+  .malls-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+  .hero { padding: 50px 0 60px; }
+  .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+  .hero h1 { font-size: 36px; }
+  .hero p.lead { font-size: 16px; }
+  .nav-links a:not(.btn-primary) { display: none; }
+  .section-title { font-size: 28px; }
+  .features, .how, .demo-section, .malls, .faq-section, .cta-section { padding: 70px 0; }
+  .feature-grid { grid-template-columns: 1fr; }
+  .steps { grid-template-columns: 1fr; }
+  .demo-body { grid-template-columns: 1fr; gap: 24px; }
+  .demo-head { padding: 20px; flex-wrap: wrap; }
+  .demo-body { padding: 24px 20px; }
+  .malls-grid { grid-template-columns: repeat(2, 1fr); }
+  .cta-box { padding: 50px 24px; }
+  .cta-box h2 { font-size: 28px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 30px; }
+  .hero-stats { gap: 20px; }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="container">
+    <nav class="nav">
+      <div class="logo">
+        <div class="logo-icon">🕵️</div>
+        <span>리뷰 해결사</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">기능</a>
+        <a href="#how">사용법</a>
+        <a href="#demo">데모</a>
+        <a href="#faq">FAQ</a>
+        <a href="#start" class="btn-primary">베타 신청</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <div class="hero-grid">
+      <div>
+        <span class="hero-badge">✨ AI 기반 리뷰 분석</span>
+        <h1>쇼핑 리뷰,<br><span>1초만에 핵심만!</span></h1>
+        <p class="lead">상품 URL만 붙여넣으면 AI가 수백 개 리뷰를 30초 안에 분석해 긍부정 비율, 핵심 키워드, 구매 추천 여부까지 한눈에 알려드립니다.</p>
+        <form class="url-form" id="hero-url-form">
+          <input type="url" id="hero-url-input" placeholder="상품 URL을 붙여넣어 주세요 (예: 쿠팡, 네이버…)" required>
+          <button type="submit">리뷰 해결 →</button>
+        </form>
+        <div class="url-helper">⏱ 평균 30초 · 무료 베타 진행 중</div>
+        <div class="hero-stats">
+          <div>
+            <div class="stat-num">98%</div>
+            <div class="stat-label">분석 정확도</div>
+          </div>
+          <div>
+            <div class="stat-num">30초</div>
+            <div class="stat-label">평균 처리 시간</div>
+          </div>
+          <div>
+            <div class="stat-num">6개</div>
+            <div class="stat-label">지원 쇼핑몰</div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-header">
+          <img class="hero-card-thumb" src="https://images.unsplash.com/photo-1572569511254-d8f925fe2cbb?w=200&h=200&fit=crop" alt="상품">
+          <div>
+            <div class="hero-card-title">무선 블루투스 이어폰 Pro</div>
+            <div class="hero-card-price">리뷰 1,247건 분석 완료</div>
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:8px;">감성 분석</div>
+        <div class="sentiment-bar">
+          <div class="bar-pos" style="width:78%"></div>
+          <div class="bar-neu" style="width:14%"></div>
+          <div class="bar-neg" style="width:8%"></div>
+        </div>
+        <div class="sentiment-legend">
+          <span>긍정 78%</span>
+          <span>중립 14%</span>
+          <span>부정 8%</span>
+        </div>
+        <div style="font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:10px;">핵심 키워드</div>
+        <div class="keywords">
+          <span class="kw pos">+ 음질 우수</span>
+          <span class="kw pos">+ 착용감 굿</span>
+          <span class="kw pos">+ 가성비</span>
+          <span class="kw">배터리</span>
+          <span class="kw neg">- 케이스 잔기스</span>
+        </div>
+        <div class="recommend-box">
+          <div class="recommend-icon">👍</div>
+          <div class="recommend-text">
+            구매 추천 — 강력 추천
+            <small>가격대비 만족도가 매우 높습니다</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-head fade-in">
+      <span class="section-tag">CORE FEATURES</span>
+      <h2 class="section-title">리뷰 해결사의 4가지 핵심 기능</h2>
+      <p class="section-sub">시간 낭비 없이 핵심만 짚어주는 똑똑한 AI 리뷰 어시스턴트</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card fade-in">
+        <div class="feature-icon">📊</div>
+        <h3>긍/부정 비율 분석</h3>
+        <p>별점만으로는 보이지 않는 진짜 평가. 긍정·중립·부정 비율을 그래프로 한눈에 파악하세요.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🏷️</div>
+        <h3>핵심 키워드 추출</h3>
+        <p>"음질", "배송", "사이즈" 등 자주 언급되는 키워드를 카테고리별로 자동 분류합니다.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">✅</div>
+        <h3>구매 추천 여부</h3>
+        <p>AI가 종합 분석한 추천 등급. 사도 되는지, 말아야 할지 명확하게 가이드합니다.</p>
+      </div>
+      <div class="feature-card fade-in">
+        <div class="feature-icon">🛡️</div>
+        <h3>가짜 리뷰 필터링</h3>
+        <p>반복 패턴, 의심스러운 표현, 짧은 호평을 걸러내고 진짜 사용자 후기만 분석에 반영합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="container">
+    <div class="section-head fade-in">
+      <span class="section-tag">HOW IT WORKS</span>
+      <h2 class="section-title">3단계로 끝나는 리뷰 분석</h2>
+      <p class="section-sub">복잡한 설정 없이, 클릭 한 번이면 충분합니다.</p>
+    </div>
+    <div class="steps">
+      <div class="step fade-in">
+        <div class="step-num">01</div>
+        <div class="step-icon">🔗</div>
+        <h3>URL 붙여넣기</h3>
+        <p>쿠팡, 네이버스마트스토어, 11번가 등 주요 쇼핑몰의 상품 URL을 입력해주세요.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">02</div>
+        <div class="step-icon">🤖</div>
+        <h3>AI 자동 분석</h3>
+        <p>최신 LLM이 수백 개의 리뷰를 읽고 가짜 리뷰는 거르며 30초 안에 정리합니다.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">03</div>
+        <div class="step-icon">🎯</div>
+        <h3>한눈에 보는 요약</h3>
+        <p>긍부정 비율, 핵심 키워드, 추천 등급을 카드 하나로 확인하고 똑똑하게 구매하세요.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="section-head fade-in">
+      <span class="section-tag">DEMO PREVIEW</span>
+      <h2 class="section-title">실제 분석 결과 미리보기</h2>
+      <p class="section-sub">가상 상품에 대한 AI 분석 리포트 예시입니다.</p>
+    </div>
+    <div class="demo-card fade-in">
+      <div class="demo-head">
+        <img class="demo-thumb" src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&h=200&fit=crop" alt="상품 이미지">
+        <div style="flex:1; min-width:200px;">
+          <div class="demo-meta-title">노이즈 캔슬링 무선 헤드폰 X3</div>
+          <div class="demo-meta-sub">리뷰 2,103건 분석 · 쿠팡</div>
+          <div class="demo-stars">★★★★<span style="color:#e2e8f0">★</span><small>4.3 / 5.0</small></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px; color:var(--text-muted); font-weight:600; letter-spacing:0.05em;">PROCESSED</div>
+          <div style="font-size:13px; color:var(--accent); font-weight:700;">● 분석 완료</div>
+        </div>
+      </div>
+      <div class="demo-body">
+        <div class="donut-wrap">
+          <div class="donut">
+            <div class="donut-center">
+              <div class="donut-pct">87%</div>
+              <div class="donut-label">긍정 비율</div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <span><i style="background:var(--accent)"></i>긍정 87%</span>
+            <span><i style="background:#fbbf24"></i>중립 13%</span>
+          </div>
+          <div class="demo-recommend" style="margin-top:18px; width:100%;">
+            <div class="demo-recommend-icon">👍</div>
+            <div>
+              <strong>강력 추천</strong>
+              <small>가격대비 만족도 매우 높음</small>
+            </div>
+          </div>
+        </div>
+        <div class="demo-right">
+          <div>
+            <div class="demo-section-label">키워드 빈도</div>
+            <div class="bar-row">
+              <span>음질</span>
+              <div class="bar-track"><div class="bar-fill" style="width:92%; background:var(--accent);"></div></div>
+              <span>92%</span>
+            </div>
+            <div class="bar-row">
+              <span>착용감</span>
+              <div class="bar-track"><div class="bar-fill" style="width:81%; background:var(--accent);"></div></div>
+              <span>81%</span>
+            </div>
+            <div class="bar-row">
+              <span>배터리</span>
+              <div class="bar-track"><div class="bar-fill" style="width:74%; background:var(--primary);"></div></div>
+              <span>74%</span>
+            </div>
+            <div class="bar-row">
+              <span>가성비</span>
+              <div class="bar-track"><div class="bar-fill" style="width:68%; background:var(--primary);"></div></div>
+              <span>68%</span>
+            </div>
+            <div class="bar-row">
+              <span>케이스</span>
+              <div class="bar-track"><div class="bar-fill" style="width:22%; background:var(--warn);"></div></div>
+              <span>22%</span>
+            </div>
+          </div>
+          <div>
+            <div class="demo-section-label">핵심 키워드</div>
+            <div class="keywords">
+              <span class="kw pos">+ 노캔 성능 최고</span>
+              <span class="kw pos">+ 음질 깨끗</span>
+              <span class="kw pos">+ 장시간 사용 편함</span>
+              <span class="kw">배터리 8시간</span>
+              <span class="kw neg">- 케이스 잔기스</span>
+              <span class="kw neg">- 무게 살짝</span>
+            </div>
+          </div>
+          <div class="demo-summary">
+            💡 <strong>한 줄 요약:</strong> 음질·노이즈 캔슬링은 동급 최강 수준이지만 케이스 마감과 무게가 아쉬움. 음악·통화 위주 사용자에겐 강력 추천.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="malls">
+  <div class="container">
+    <div class="section-head fade-in">
+      <span class="section-tag">SUPPORTED MALLS</span>
+      <h2 class="section-title">지원 쇼핑몰</h2>
+      <p class="section-sub">국내외 주요 쇼핑몰의 상품 URL을 그대로 붙여넣으세요.</p>
+    </div>
+    <div class="malls-grid">
+      <div class="mall-card fade-in"><span class="mall-emoji">🛒</span>쿠팡</div>
+      <div class="mall-card fade-in"><span class="mall-emoji">🟢</span>네이버스마트스토어</div>
+      <div class="mall-card fade-in"><span class="mall-emoji">1️⃣1️⃣</span>11번가</div>
+      <div class="mall-card fade-in"><span class="mall-emoji">🟡</span>G마켓</div>
+      <div class="mall-card fade-in"><span class="mall-emoji">🅰️</span>옥션</div>
+      <div class="mall-card fade-in"><span class="mall-emoji">🌏</span>알리익스프레스</div>
+    </div>
+  </div>
+</section>
+
+<section class="faq-section" id="faq">
+  <div class="container">
+    <div class="section-head fade-in">
+      <span class="section-tag">FAQ</span>
+      <h2 class="section-title">자주 묻는 질문</h2>
+      <p class="section-sub">더 궁금한 점이 있다면 베타 신청 후 문의해주세요.</p>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item fade-in">
+        <button class="faq-q" type="button">
+          <span>어떤 쇼핑몰을 지원하나요?</span>
+          <span class="icon">+</span>
+        </button>
+        <div class="faq-a">현재 쿠팡, 네이버스마트스토어, 11번가, G마켓, 옥션, 알리익스프레스 6개 쇼핑몰을 지원합니다. 추가 쇼핑몰은 베타 진행 중 순차 확대 예정입니다.</div>
+      </div>
+      <div class="faq-item fade-in">
+        <button class="faq-q" type="button">
+          <span>분석에 얼마나 걸리나요?</span>
+          <span class="icon">+</span>
+        </button>
+        <div class="faq-a">리뷰 수 100건 기준 평균 20초, 1,000건 이상이어도 30초 안에 결과를 받을 수 있습니다. 분석 후 결과는 24시간 캐시되어 즉시 재조회가 가능합니다.</div>
+      </div>
+      <div class="faq-item fade-in">
+        <button class="faq-q" type="button">
+          <span>무료인가요?</span>
+          <span class="icon">+</span>
+        </button>
+        <div class="faq-a">베타 기간 동안은 모든 기능을 무제한으로 무료 사용할 수 있습니다. 정식 출시 후에도 일정 횟수의 분석은 무료로 제공될 예정입니다.</div>
+      </div>
+      <div class="faq-item fade-in">
+        <button class="faq-q" type="button">
+          <span>분석 정확도는 어느 정도인가요?</span>
+          <span class="icon">+</span>
+        </button>
+        <div class="faq-a">최신 LLM 기반 감성 분석으로 자체 테스트 기준 정확도 약 98%를 기록하고 있습니다. 가짜 리뷰는 반복 패턴·짧은 호평·의심스러운 어휘 패턴을 분석해 사전 필터링한 뒤 결과에 반영합니다.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section" id="start">
+  <div class="container">
+    <div class="cta-box fade-in">
+      <h2>이제 리뷰 읽는 시간,<br>해결사에게 맡기세요</h2>
+      <p>베타 신청하고 가장 먼저 사용해보세요 — 100% 무료</p>
+      <form class="cta-form" id="cta-form">
+        <input type="email" id="cta-email" placeholder="이메일 주소를 입력하세요" required>
+        <button type="submit">베타 신청</button>
+      </form>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <div class="logo" style="color:white;">
+          <div class="logo-icon">🕵️</div>
+          <span>리뷰 해결사</span>
+        </div>
+        <p>AI가 대신 읽고 정리해주는 똑똑한 쇼핑 리뷰 어시스턴트. 시간은 아끼고, 만족도는 높이세요.</p>
+      </div>
+      <div>
+        <h4>제품</h4>
+        <ul>
+          <li><a href="#features">기능 소개</a></li>
+          <li><a href="#how">사용 가이드</a></li>
+          <li><a href="#demo">데모 보기</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>지원</h4>
+        <ul>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#start">베타 신청</a></li>
+          <li><a href="#" id="terms-link">이용약관</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>고객센터</h4>
+        <ul>
+          <li><a href="mailto:support@dbzone.kr">support@dbzone.kr</a></li>
+          <li><a href="#" id="privacy-link">개인정보처리방침</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-info">
+      <strong>Whispr (입소문)</strong> · 대표: 신지윤<br>
+      사업자등록번호: 656-08-03261 · 통신판매업: 제 2026-충북청주-0690호<br>
+      문의: 0502-468-0502
+    </div>
+    <div class="footer-bottom">© 2026 리뷰 해결사 · Powered by AI</div>
+  </div>
+</footer>
+
+<!-- Beta signup modal -->
+<div class="modal-overlay" id="beta-modal">
+  <div class="modal" id="beta-modal-inner">
+    <button class="modal-close" type="button" aria-label="닫기">×</button>
+    <div class="modal-icon">🚀</div>
+    <h3>준비 중입니다</h3>
+    <p>베타 오픈 시 가장 먼저 알려드릴게요.<br>이메일을 남겨주시면 출시 즉시 메일로 안내드립니다.</p>
+    <form id="beta-form">
+      <input type="hidden" id="beta-url">
+      <input type="email" id="beta-email" placeholder="이메일 주소" required>
+      <button type="submit">베타 신청하기</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function() {
+  const STORAGE_KEY = 'review-solver-beta-signups';
+
+  function saveSignup(payload) {
+    try {
+      const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      existing.push({ ...payload, at: new Date().toISOString() });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+    } catch (e) {}
+  }
+
+  // Modal control
+  const modal = document.getElementById('beta-modal');
+  const modalInner = document.getElementById('beta-modal-inner');
+  const closeBtn = modal.querySelector('.modal-close');
+
+  function openModal(url) {
+    document.getElementById('beta-url').value = url || '';
+    document.getElementById('beta-email').value = '';
+    modalInner.innerHTML = modalInner.dataset.original || modalInner.innerHTML;
+    if (!modalInner.dataset.original) {
+      modalInner.dataset.original = modalInner.innerHTML;
+    }
+    rebindModal();
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      const emailField = document.getElementById('beta-email');
+      if (emailField) emailField.focus();
+    }, 50);
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function rebindModal() {
+    const inner = document.getElementById('beta-modal-inner');
+    const close = inner.querySelector('.modal-close');
+    if (close) close.addEventListener('click', closeModal);
+    const form = inner.querySelector('#beta-form');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('beta-email').value.trim();
+        const url = document.getElementById('beta-url').value.trim();
+        if (!email) return;
+        saveSignup({ source: 'modal', email, productUrl: url });
+        showSuccess(email);
+      });
+    }
+  }
+
+  function showSuccess(email) {
+    const inner = document.getElementById('beta-modal-inner');
+    inner.innerHTML = `
+      <button class="modal-close" type="button" aria-label="닫기">×</button>
+      <div class="modal-success">
+        <div class="modal-icon">✓</div>
+        <h3>신청 완료되었습니다!</h3>
+        <p><strong>${email}</strong>으로<br>베타 오픈 안내 메일을 보내드릴게요.</p>
+        <button type="button" id="modal-ok" style="background:var(--primary); color:white; padding:14px; border-radius:12px; border:none; font-weight:700; cursor:pointer; font-size:15px; font-family:inherit; width:100%;">확인</button>
+      </div>
+    `;
+    inner.querySelector('.modal-close').addEventListener('click', closeModal);
+    inner.querySelector('#modal-ok').addEventListener('click', closeModal);
+  }
+
+  // Initial bind
+  rebindModal();
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) closeModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+
+  // Hero URL form
+  document.getElementById('hero-url-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const url = document.getElementById('hero-url-input').value.trim();
+    openModal(url);
+  });
+
+  // CTA email form
+  document.getElementById('cta-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const email = document.getElementById('cta-email').value.trim();
+    if (!email) return;
+    saveSignup({ source: 'cta', email });
+    // open modal directly to success state
+    document.getElementById('beta-url').value = '';
+    document.getElementById('beta-email').value = email;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    showSuccess(email);
+    document.getElementById('cta-email').value = '';
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const item = btn.closest('.faq-item');
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item').forEach(function(i) { i.classList.remove('open'); });
+      if (!isOpen) item.classList.add('open');
+    });
+  });
+
+  // Fade-in animations via IntersectionObserver
+  const fadeObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        fadeObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in').forEach(function(el) {
+    fadeObserver.observe(el);
+  });
+
+  // Placeholder links
+  ['terms-link', 'privacy-link'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', function(e) {
+      e.preventDefault();
+      alert('정식 출시 시 제공됩니다.');
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
