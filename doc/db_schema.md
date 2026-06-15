@@ -145,6 +145,15 @@ CodefToken:      id, clientId(유니크), accessToken, tokenType, expiresIn, iss
 - CodefToken은 OAuth 토큰 7일 캐시(서버리스/재기동 대응)
 - 서버1 raw SQL. 상세 doc/features/insurance_analysis.md
 
+## AiFeatureIdea / DevRequest (AI 아이디어 자율 파이프라인, 2026-06-15)
+```
+AiFeatureIdea: id, ideaDate(DATE 유니크=하루1행), content(후보 전문), createdAt
+DevRequest:    id, request(개발 요청문), source, status(pending|processing|done|failed), result, createdAt, updatedAt
+```
+- AiFeatureIdea: 스카우트(rag/ai_feature_scout.py)가 매일 저장 → 어드민 'AI 아이디어' 탭 조회
+- DevRequest: 어드민 '개발 요청' 버튼 → 큐 적재 → 서버2 dev_request_worker가 폴링→hermes.run 위임
+- 둘 다 aichat DB, 서버1 raw SQL. 상세 메모리 project_ai_feature_scout
+
 ## UsedItemListing
 ```
 id, userId, imageUrls(JSON), itemName(nullable)
