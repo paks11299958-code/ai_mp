@@ -778,6 +778,11 @@ export const adminApi = {
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),
     getDevRequests: () =>
         get<{ id: number; request: string; source: string; status: string; result: string | null; createdAt: string }[]>('/admin/dev-requests'),
+    // 독립사이트 목록(sites/README.md 파싱) + 삭제 요청(큐)
+    getSites: () =>
+        get<{ name: string; url: string; desc: string }[]>('/admin/sites'),
+    deleteSite: (name: string) =>
+        del<{ ok: boolean; id: number }>(`/admin/sites/${name}`),
 };
 
 export const chatApi = {

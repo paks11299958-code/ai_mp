@@ -8,6 +8,7 @@ import { ToolsPanel } from './admin/ToolsPanel';
 import { SettingsPanel } from './admin/SettingsPanel';
 import { UsersPanel } from './admin/UsersPanel';
 import { AiIdeasPanel } from './admin/AiIdeasPanel';
+import { SitesPanel } from './admin/SitesPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
 import { PersonasPanel } from './admin/PersonasPanel';
@@ -73,6 +74,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
                             { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
                             { key: 'ai-ideas',      label: 'AI 아이디어', icon: 'Lightbulb' },
+                            { key: 'sites',         label: '독립사이트', icon: 'Globe' },
                         ] },
                     ] as const;
                     // 현재 mainView가 속한 그룹을 활성 그룹으로
@@ -155,6 +157,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'monitor' && <ServerMonitorPanel />}
                 {mainView === 'ai-usage' && <AiUsagePanel />}
                 {mainView === 'ai-ideas' && <AiIdeasPanel />}
+                {mainView === 'sites' && <SitesPanel />}
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}
