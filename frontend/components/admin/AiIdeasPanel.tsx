@@ -12,6 +12,24 @@ export const AiIdeasPanel: React.FC = () => {
     const [ideas, setIdeas] = useState<Idea[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [openId, setOpenId] = useState<number | null>(null);
+    const [reqText, setReqText] = useState<Record<number, string>>({});  // 카드별 개발요청 입력
+    const [sending, setSending] = useState<number | null>(null);
+    const [sentMsg, setSentMsg] = useState<Record<number, string>>({});
+
+    const sendDevRequest = async (ideaId: number) => {
+        const text = (reqText[ideaId] || '').trim();
+        if (!text) return;
+        setSending(ideaId);
+        try {
+            await adminApi.createDevRequest(text, `ai-idea:${ideaId}`);
+            setSentMsg(prev => ({ ...prev, [ideaId]: '✅ Hermes에 전달했어요. 곧 텔레그램으로 계획·결재 요청이 옵니다.' }));
+            setReqText(prev => ({ ...prev, [ideaId]: '' }));
+        } catch {
+            setSentMsg(prev => ({ ...prev, [ideaId]: '❌ 전달 실패. 다시 시도해 주세요.' }));
+        } finally {
+            setSending(null);
+        }
+    };
 
     useEffect(() => {
         adminApi.getAiFeatureIdeas()
@@ -45,8 +63,28 @@ export const AiIdeasPanel: React.FC = () => {
                             <Icon name="ChevronDown" size={15} className={`text-gray-400 transition-transform ${openId === it.id ? '' : '-rotate-90'}`} />
                         </button>
                         {openId === it.id && (
-                            <div className="px-4 pb-4 pt-1 text-sm text-gray-200 leading-relaxed ai-idea-md">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{it.content}</ReactMarkdown>
+                            <div className="px-4 pb-4 pt-1">
+                                <div className="text-sm text-gray-200 leading-relaxed ai-idea-md">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{it.content}</ReactMarkdown>
+                                </div>
+                                {/* 개발 요청 — Hermes 위임 */}
+                                <div className="mt-3 pt-3 border-t border-white/10">
+                                    <label className="block text-xs font-semibold text-amber-300 mb-1.5">🚀 이 아이디어로 개발 요청</label>
+                                    <textarea
+                                        value={reqText[it.id] || ''}
+                                        onChange={e => setReqText(prev => ({ ...prev, [it.id]: e.target.value }))}
+                                        placeholder="예: 위 후보 중 '냉장고 파먹기 레시피'를 독립사이트(sites)로 만들어줘. 재료 입력하면 레시피 추천."
+                                        rows={2}
+                                        className="w-full text-sm rounded-lg px-3 py-2 bg-white/5 border border-white/15 text-gray-100 outline-none focus:border-amber-400/50 resize-none" />
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <button onClick={() => sendDevRequest(it.id)} disabled={sending === it.id || !(reqText[it.id] || '').trim()}
+                                            className="inline-flex items-center gap-1.5 text-xs font-bold rounded-lg px-3 py-2 disabled:opacity-40"
+                                            style={{ background: '#8E6FB7', color: '#fff' }}>
+                                            {sending === it.id ? '전달 중…' : '🚀 Hermes에 개발 요청'}
+                                        </button>
+                                        {sentMsg[it.id] && <span className="text-xs text-gray-300">{sentMsg[it.id]}</span>}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

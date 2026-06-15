@@ -773,6 +773,11 @@ export const adminApi = {
     // AI 기능 스카우트 일자별 아이디어
     getAiFeatureIdeas: () =>
         get<{ id: number; ideaDate: string; content: string; createdAt: string }[]>('/admin/ai-feature-ideas'),
+    // 개발 요청 큐(어드민 → Hermes)
+    createDevRequest: (request: string, source?: string) =>
+        post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),
+    getDevRequests: () =>
+        get<{ id: number; request: string; source: string; status: string; result: string | null; createdAt: string }[]>('/admin/dev-requests'),
 };
 
 export const chatApi = {
