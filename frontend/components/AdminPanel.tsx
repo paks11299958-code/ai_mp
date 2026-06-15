@@ -7,6 +7,7 @@ import { CleanupPanel } from './admin/CleanupPanel';
 import { ToolsPanel } from './admin/ToolsPanel';
 import { SettingsPanel } from './admin/SettingsPanel';
 import { UsersPanel } from './admin/UsersPanel';
+import { AiIdeasPanel } from './admin/AiIdeasPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
 import { PersonasPanel } from './admin/PersonasPanel';
@@ -23,7 +24,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'ai-ideas'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -71,6 +72,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'settings',      label: '공통 설정', icon: 'Settings' },
                             { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
                             { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
+                            { key: 'ai-ideas',      label: 'AI 아이디어', icon: 'Lightbulb' },
                         ] },
                     ] as const;
                     // 현재 mainView가 속한 그룹을 활성 그룹으로
@@ -152,6 +154,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {/* 서버 모니터링 패널 */}
                 {mainView === 'monitor' && <ServerMonitorPanel />}
                 {mainView === 'ai-usage' && <AiUsagePanel />}
+                {mainView === 'ai-ideas' && <AiIdeasPanel />}
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}

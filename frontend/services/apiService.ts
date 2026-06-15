@@ -769,6 +769,10 @@ export const adminApi = {
 
     getErrorSummary: () =>
         get<{ today: number; yesterday: number; recent: string[] }>('/admin/monitor/error-summary'),
+
+    // AI 기능 스카우트 일자별 아이디어
+    getAiFeatureIdeas: () =>
+        get<{ id: number; ideaDate: string; content: string; createdAt: string }[]>('/admin/ai-feature-ideas'),
 };
 
 export const chatApi = {
