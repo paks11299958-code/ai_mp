@@ -39,3 +39,4 @@ Hermes가 자동으로:
 |---------|-----|------|
 | email-fix | /sites/email-fix/ | AI 영어 이메일/메시지 교정 랜딩(시안 v1, 2026-06-15). 교정 기능 연동은 추후 |
 | review-solver | /sites/review-solver/ | AI 쇼핑 리뷰 요약 '리뷰 해결사' 랜딩(시안 v1, 2026-06-15). 베타 신청 폼만 동작, 실제 분석은 추후 |
+| skills | /sites/skills/ | 🧭 스킬 카탈로그 — 설치된 Claude 스킬 43개를 9개 카테고리로 정리한 탐색기(검색·복사). 원본 ~/.claude/skills/_catalog/build_catalog.py 생성물 |
