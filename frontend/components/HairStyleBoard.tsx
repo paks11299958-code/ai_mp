@@ -28,12 +28,31 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
         hairApi.styles(gender).then(setStyles).catch(() => setError('헤어스타일을 불러오지 못했어요.'));
     }, [gender]);
 
-    const handleFile = (file: File) => {
+    const handleFile = async (file: File) => {
         if (!file.type.startsWith('image/')) { setError('이미지 파일만 올려주세요.'); return; }
-        setError(null); setMimeType(file.type);
-        const reader = new FileReader();
-        reader.onload = e => { const r = e.target?.result as string; setPreview(r); setBase64(r.split(',')[1]); };
-        reader.readAsDataURL(file);
+        setError(null);
+        try {
+            // 폰 사진의 EXIF 회전을 픽셀에 직접 적용(똑바로 편 뒤 AI에 넘김).
+            // createImageBitmap의 imageOrientation:'from-image'가 EXIF를 자동 보정.
+            const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' } as any);
+            // 너무 크면 긴 변 1280으로 축소(전송·생성 속도)
+            const maxSide = 1280;
+            const scale = Math.min(1, maxSide / Math.max(bitmap.width, bitmap.height));
+            const w = Math.round(bitmap.width * scale), h = Math.round(bitmap.height * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d')!.drawImage(bitmap, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+            setMimeType('image/jpeg');
+            setPreview(dataUrl);
+            setBase64(dataUrl.split(',')[1]);
+        } catch {
+            // createImageBitmap 미지원 환경 폴백: 원본 그대로
+            setMimeType(file.type);
+            const reader = new FileReader();
+            reader.onload = e => { const r = e.target?.result as string; setPreview(r); setBase64(r.split(',')[1]); };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleAnalyze = async () => {
