@@ -783,6 +783,9 @@ export const adminApi = {
         get<{ name: string; url: string; desc: string }[]>('/admin/sites'),
     deleteSite: (name: string) =>
         del<{ ok: boolean; id: number }>(`/admin/sites/${name}`),
+    // 페르소나 반자동 생성: 이름·직업·카테고리 → AI가 4개 텍스트 필드 생성(검토 후 저장)
+    generatePersona: (body: { name: string; jobTitle?: string; categoryId?: number | null }) =>
+        post<{ description: string; systemInstruction: string; identityPrompt: string; iconName: string; colorClass: string; usedExamples: string[] }>('/admin/personas/generate', body),
 };
 
 export const chatApi = {

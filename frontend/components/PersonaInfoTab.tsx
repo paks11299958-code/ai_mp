@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, Category } from '../types';
-import { personaApi } from '../services/apiService';
+import { personaApi, adminApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { FEATURE_REGISTRY } from '../personaFeatures';
 
@@ -88,6 +88,29 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
     const [showInstructionExample, setShowInstructionExample] = useState(false);
     const [showIdentityExample, setShowIdentityExample] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    // 페르소나 반자동 생성
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [generateError, setGenerateError] = useState<string | null>(null);
+    const [generateNote, setGenerateNote] = useState<string | null>(null);
+
+    const handleAutoGenerate = async () => {
+        if (!name.trim()) { setGenerateError('먼저 페르소나 이름을 입력해 주세요.'); return; }
+        setIsGenerating(true); setGenerateError(null); setGenerateNote(null);
+        try {
+            const r = await adminApi.generatePersona({ name: name.trim(), jobTitle: jobTitle.trim() || undefined, categoryId: selectedCategoryId });
+            if (r.description) setDescription(r.description);
+            if (r.systemInstruction) setInstruction(r.systemInstruction);
+            if (r.identityPrompt) setIdentityPrompt(r.identityPrompt);
+            if (r.iconName) setIconName(r.iconName);
+            if (r.colorClass) setColorClass(r.colorClass);
+            const ex = r.usedExamples?.length ? ` (참고: ${r.usedExamples.join(', ')})` : '';
+            setGenerateNote(`✨ AI가 채웠어요. 항목별로 검토·수정 후 저장하세요.${ex}`);
+        } catch (e: any) {
+            setGenerateError(e?.message || 'AI 생성에 실패했어요. 다시 시도해 주세요.');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
 
     useEffect(() => {
         if (selectedId === 'new') {
@@ -297,6 +320,26 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
                     </select>
+                </div>
+
+                {/* AI 반자동 생성 — 이름·직업·카테고리만 넣고 누르면 아래 텍스트 필드를 AI가 채움 */}
+                <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-700/40 rounded-2xl p-4">
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div className="min-w-0">
+                            <div className="text-sm font-bold text-purple-200">✨ AI로 채우기</div>
+                            <div className="text-xs text-gray-400 mt-0.5">이름·직업·카테고리를 넣고 누르면 소개·시스템 프롬프트·정체성·아이콘/색상을 AI가 만들어요. (이미지·퀵메뉴는 직접)</div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleAutoGenerate}
+                            disabled={isGenerating}
+                            className="shrink-0 inline-flex items-center gap-1.5 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 disabled:opacity-50 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-all"
+                        >
+                            {isGenerating ? '✨ 생성 중…' : '✨ AI로 채우기'}
+                        </button>
+                    </div>
+                    {generateNote && <div className="text-xs text-emerald-300 mt-2.5">{generateNote}</div>}
+                    {generateError && <div className="text-xs text-red-400 mt-2.5">⚠ {generateError}</div>}
                 </div>
 
                 {/* 짧은 설명 */}
