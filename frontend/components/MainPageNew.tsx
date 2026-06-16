@@ -327,20 +327,29 @@ const ChatStage: React.FC<{
 // 기능 카드 데이터
 // ─────────────────────────────────────────────
 // chat 카드 제거, 각 기능에 연결 페르소나 이름 매핑
+// category: 기능 둘러보기 탭 상단 칩 필터용 (FEATURE_CATEGORIES 참조)
+export const FEATURE_CATEGORIES = [
+    { key: 'invest',  label: '💰 투자·쇼핑' },
+    { key: 'info',    label: '📰 정보·학습' },
+    { key: 'fortune', label: '🔮 운세·사주' },
+    { key: 'hobby',   label: '🏌️ 건강·취미' },
+    { key: 'life',    label: '👥 생활·커뮤니티' },
+];
+
 export const FEATURES_GRID = [
-    { id: 1,  numeral: 'I',   latin: 'News',    key: 'news',    name: '오늘 뉴스',      tag: 'AI 뉴스 브리핑', desc: '매일 아침 AI가 핵심만 골라 요약 전달. 9개 카테고리 중 원하는 분야를 선택하세요.',         icon: 'newspaper', palette: { bg: '#E8EEF7', deep: '#9AAFCB', accent: '#5C7BA8' }, personaName: '서아'    },
-    { id: 2,  numeral: 'II',  latin: 'Stock',   key: 'stock',   name: '주식 분석',      tag: 'AI 투자 리포트', desc: '종목명만 입력하면 Gemini·Claude·GPT 3중 AI가 투자 리포트를 드려요.',                     icon: 'chart',     palette: { bg: '#E0EFE3', deep: '#9CC4A7', accent: '#2E6B32' }, personaName: '윤채원'  },
-    { id: 3,  numeral: 'III', latin: 'Swing',   key: 'swing',   name: '스윙 분석',      tag: '골프 AI 코치',   desc: '스윙 영상을 올리면 AI가 5개 항목을 분석해 개선점을 제안해요. 나만의 AI 골프 코치.',        icon: 'golf',      palette: { bg: '#FEF6E8', deep: '#E2C9A0', accent: '#8B6020' }, personaName: '설아'    },
-    { id: 4,  numeral: 'IV',  latin: 'Luxury',  key: 'luxury',  name: '명품 감정',      tag: '진품 여부 판별', desc: '사진만 올리면 AI가 브랜드 진위 여부를 분석해 감정 리포트를 드려요.',                        icon: 'shield',    palette: { bg: '#F0EAF8', deep: '#C4A8D8', accent: '#7A5FA0' }, personaName: '신은비'  },
-    { id: 6,  numeral: 'VI',  latin: 'Used',    key: 'used',    name: '중고 판매',      tag: '중고마켓 도우미',desc: 'AI가 중고 상품 설명을 대신 작성해줘요. 사진 한 장으로 판매글 완성.',                        icon: 'shopping',  palette: { bg: '#FCEADD', deep: '#E2B89A', accent: '#C68760' }, personaName: '이아린'  },
-    { id: 7,  numeral: 'VII', latin: 'Keyword', key: 'hotkeyword', name: '핫 키워드',      tag: '쇼핑 트렌드',    desc: '실시간 인기 쇼핑 키워드를 AI가 분석해 트렌드를 알려드려요.',                               icon: 'sparkles',  palette: { bg: '#E4ECEE', deep: '#9DB6BC', accent: '#5E7E86' }, personaName: '이아린'  },
-    { id: 8,  numeral: 'VIII',latin: 'Math',    key: 'mathtutor', name: 'AI 수학 튜터',   tag: '학습 도우미',    desc: '단계별 풀이로 수학 문제를 해결해 드려요. 개념 설명부터 심화까지.',                           icon: 'book',      palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우'    },
-    { id: 9,  numeral: 'IX',  latin: 'Club',    key: 'club',    name: '모임 출첵',      tag: '커뮤니티 관리',  desc: '모임 출석 체크와 멤버 관리를 AI가 도와드려요.',                                             icon: 'people',    palette: { bg: '#E5E1F2', deep: '#A99DCC', accent: '#6E5DA3' }, personaName: '지우'    },
-    { id: 10, numeral: 'X',   latin: 'Fortune', key: 'siwoon',  name: '시운의 흐름',    tag: '운세 · 토정비결', desc: '',  subItems: ['📅 오늘의 운세', '🌙 이달의 흐름', '🌟 올해의 비결'], icon: 'fortune',   palette: { bg: '#EEE5F8', deep: '#B8A0D8', accent: '#6B4FA0' }, personaName: '도결(道潔) 선생' },
-    { id: 11, numeral: 'XI',  latin: 'Wealth',  key: 'wealth',  name: '성취와 재물',    tag: '재물 · 사업 운세', desc: '', subItems: ['💰 재물 흐름', '🏆 사업 / 성취'],                   icon: 'coin',      palette: { bg: '#FDF6E0', deep: '#E8C86A', accent: '#A07828' }, personaName: '도결(道潔) 선생' },
-    { id: 12, numeral: 'XII', latin: 'Love',    key: 'yeonn',   name: '인연의 결',      tag: '연애 · 궁합 운세', desc: '', subItems: ['❤️ 연애 운세', '💑 인연 궁합'],                   icon: 'heart',     palette: { bg: '#FDE8F0', deep: '#E8A0BC', accent: '#B84070' }, personaName: '도결(道潔) 선생' },
-    { id: 13, numeral: 'XIII',latin: 'Dream',   key: 'dream',   name: '꿈해몽',         tag: 'AI 꿈 풀이',      desc: '어젯밤 꾼 꿈을 들려주시면 도결 선생이 그 뜻을 풀어드려요.',                                  icon: 'moon',      palette: { bg: '#E8E4F5', deep: '#A898D0', accent: '#5848A0' }, personaName: '도결(道潔) 선생' },
-    { id: 14, numeral: 'XIV', latin: 'Gwansang',key: 'gwansang',name: '관상학',         tag: 'AI 관상 분석',    desc: '얼굴 사진 한 장으로 도결 선생이 관상과 성격·운세를 풀어드려요.',                              icon: 'gwansang',  palette: { bg: '#F0EAE0', deep: '#C8B098', accent: '#886040' }, personaName: '도결(道潔) 선생' },
+    { id: 1,  numeral: 'I',   latin: 'News',    key: 'news',    name: '오늘 뉴스',      tag: 'AI 뉴스 브리핑', category: 'info',    desc: '매일 아침 AI가 핵심만 골라 요약 전달. 9개 카테고리 중 원하는 분야를 선택하세요.',         icon: 'newspaper', palette: { bg: '#E8EEF7', deep: '#9AAFCB', accent: '#5C7BA8' }, personaName: '서아'    },
+    { id: 2,  numeral: 'II',  latin: 'Stock',   key: 'stock',   name: '주식 분석',      tag: 'AI 투자 리포트', category: 'invest',  desc: '종목명만 입력하면 Gemini·Claude·GPT 3중 AI가 투자 리포트를 드려요.',                     icon: 'chart',     palette: { bg: '#E0EFE3', deep: '#9CC4A7', accent: '#2E6B32' }, personaName: '윤채원'  },
+    { id: 3,  numeral: 'III', latin: 'Swing',   key: 'swing',   name: '스윙 분석',      tag: '골프 AI 코치',   category: 'hobby',   desc: '스윙 영상을 올리면 AI가 5개 항목을 분석해 개선점을 제안해요. 나만의 AI 골프 코치.',        icon: 'golf',      palette: { bg: '#FEF6E8', deep: '#E2C9A0', accent: '#8B6020' }, personaName: '설아'    },
+    { id: 4,  numeral: 'IV',  latin: 'Luxury',  key: 'luxury',  name: '명품 감정',      tag: '진품 여부 판별', category: 'invest',  desc: '사진만 올리면 AI가 브랜드 진위 여부를 분석해 감정 리포트를 드려요.',                        icon: 'shield',    palette: { bg: '#F0EAF8', deep: '#C4A8D8', accent: '#7A5FA0' }, personaName: '신은비'  },
+    { id: 6,  numeral: 'VI',  latin: 'Used',    key: 'used',    name: '중고 판매',      tag: '중고마켓 도우미',category: 'invest',  desc: 'AI가 중고 상품 설명을 대신 작성해줘요. 사진 한 장으로 판매글 완성.',                        icon: 'shopping',  palette: { bg: '#FCEADD', deep: '#E2B89A', accent: '#C68760' }, personaName: '이아린'  },
+    { id: 7,  numeral: 'VII', latin: 'Keyword', key: 'hotkeyword', name: '핫 키워드',      tag: '쇼핑 트렌드',    category: 'invest',  desc: '실시간 인기 쇼핑 키워드를 AI가 분석해 트렌드를 알려드려요.',                               icon: 'sparkles',  palette: { bg: '#E4ECEE', deep: '#9DB6BC', accent: '#5E7E86' }, personaName: '이아린'  },
+    { id: 8,  numeral: 'VIII',latin: 'Math',    key: 'mathtutor', name: 'AI 수학 튜터',   tag: '학습 도우미',    category: 'info',    desc: '단계별 풀이로 수학 문제를 해결해 드려요. 개념 설명부터 심화까지.',                           icon: 'book',      palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우'    },
+    { id: 9,  numeral: 'IX',  latin: 'Club',    key: 'club',    name: '모임 출첵',      tag: '커뮤니티 관리',  category: 'life',    desc: '모임 출석 체크와 멤버 관리를 AI가 도와드려요.',                                             icon: 'people',    palette: { bg: '#E5E1F2', deep: '#A99DCC', accent: '#6E5DA3' }, personaName: '지우'    },
+    { id: 10, numeral: 'X',   latin: 'Fortune', key: 'siwoon',  name: '시운의 흐름',    tag: '운세 · 토정비결', category: 'fortune', desc: '',  subItems: ['📅 오늘의 운세', '🌙 이달의 흐름', '🌟 올해의 비결'], icon: 'fortune',   palette: { bg: '#EEE5F8', deep: '#B8A0D8', accent: '#6B4FA0' }, personaName: '도결(道潔) 선생' },
+    { id: 11, numeral: 'XI',  latin: 'Wealth',  key: 'wealth',  name: '성취와 재물',    tag: '재물 · 사업 운세', category: 'fortune', desc: '', subItems: ['💰 재물 흐름', '🏆 사업 / 성취'],                   icon: 'coin',      palette: { bg: '#FDF6E0', deep: '#E8C86A', accent: '#A07828' }, personaName: '도결(道潔) 선생' },
+    { id: 12, numeral: 'XII', latin: 'Love',    key: 'yeonn',   name: '인연의 결',      tag: '연애 · 궁합 운세', category: 'fortune', desc: '', subItems: ['❤️ 연애 운세', '💑 인연 궁합'],                   icon: 'heart',     palette: { bg: '#FDE8F0', deep: '#E8A0BC', accent: '#B84070' }, personaName: '도결(道潔) 선생' },
+    { id: 13, numeral: 'XIII',latin: 'Dream',   key: 'dream',   name: '꿈해몽',         tag: 'AI 꿈 풀이',      category: 'fortune', desc: '어젯밤 꾼 꿈을 들려주시면 도결 선생이 그 뜻을 풀어드려요.',                                  icon: 'moon',      palette: { bg: '#E8E4F5', deep: '#A898D0', accent: '#5848A0' }, personaName: '도결(道潔) 선생' },
+    { id: 14, numeral: 'XIV', latin: 'Gwansang',key: 'gwansang',name: '관상학',         tag: 'AI 관상 분석',    category: 'fortune', desc: '얼굴 사진 한 장으로 도결 선생이 관상과 성격·운세를 풀어드려요.',                              icon: 'gwansang',  palette: { bg: '#F0EAE0', deep: '#C8B098', accent: '#886040' }, personaName: '도결(道潔) 선생' },
 ];
 
 const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV'];
@@ -405,6 +414,7 @@ const PersonaSelectPanel: React.FC<{
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
     const [tab, setTab] = useState<'personas' | 'features'>(initialTab);
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
+    const [featureCategory, setFeatureCategory] = useState<string | null>(null);   // null=전체
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const focusPersonaRef = useRef<HTMLDivElement | null>(null);
     const focusFeatureRef = useRef<HTMLDivElement | null>(null);
@@ -436,11 +446,13 @@ const PersonaSelectPanel: React.FC<{
             return p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q);
         });
 
-    const filteredFeatures = FEATURES_GRID.filter(f => {
-        if (!featureSearchQuery.trim()) return true;
-        const q = featureSearchQuery.toLowerCase();
-        return f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q);
-    });
+    const filteredFeatures = FEATURES_GRID
+        .filter(f => featureCategory === null || f.category === featureCategory)
+        .filter(f => {
+            if (!featureSearchQuery.trim()) return true;
+            const q = featureSearchQuery.toLowerCase();
+            return f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q);
+        });
 
     return (
         <div style={{
@@ -742,6 +754,34 @@ const PersonaSelectPanel: React.FC<{
                                 border: selectedCategoryId === cat.id ? 'none' : `1px solid ${T.line}`,
                                 whiteSpace: 'nowrap', transition: 'all 0.15s',
                             } as React.CSSProperties}>{cat.name}</button>
+                        ))}
+                    </div>
+                )}
+
+                {/* 카테고리 - 기능 탭, 검색창 아래 별도 행 */}
+                {tab === 'features' && (
+                    <div style={{
+                        display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10, marginBottom: 14,
+                    }}>
+                        <button onClick={() => setFeatureCategory(null)} style={{
+                            padding: '5px 12px', borderRadius: 999, fontSize: 12,
+                            fontWeight: 600, cursor: 'pointer',
+                            background: featureCategory === null ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : 'rgba(255,255,255,0.7)',
+                            color: featureCategory === null ? '#fff' : T.inkSoft,
+                            boxShadow: featureCategory === null ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
+                            border: featureCategory === null ? 'none' : `1px solid ${T.line}`,
+                            whiteSpace: 'nowrap', transition: 'all 0.15s',
+                        } as React.CSSProperties}>전체</button>
+                        {FEATURE_CATEGORIES.map(cat => (
+                            <button key={cat.key} onClick={() => setFeatureCategory(cat.key)} style={{
+                                padding: '5px 12px', borderRadius: 999, fontSize: 12,
+                                fontWeight: 600, cursor: 'pointer',
+                                background: featureCategory === cat.key ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : 'rgba(255,255,255,0.7)',
+                                color: featureCategory === cat.key ? '#fff' : T.inkSoft,
+                                boxShadow: featureCategory === cat.key ? `0 4px 12px -4px rgba(142,111,183,0.4)` : 'none',
+                                border: featureCategory === cat.key ? 'none' : `1px solid ${T.line}`,
+                                whiteSpace: 'nowrap', transition: 'all 0.15s',
+                            } as React.CSSProperties}>{cat.label}</button>
                         ))}
                     </div>
                 )}
