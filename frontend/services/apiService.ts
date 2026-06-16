@@ -426,7 +426,7 @@ export const hairApi = {
     styles: (gender?: 'male' | 'female') =>
         get<HairStyle[]>(`/hair/styles${gender ? `?gender=${gender}` : ''}`),
     analyze: (imageBase64: string, mimeType: string, hairStyleId: number, personaId?: string) =>
-        post<{ analysis: HairMatchResult }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
+        post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
 };
 
 // ── 손금(手相) 분석 ──

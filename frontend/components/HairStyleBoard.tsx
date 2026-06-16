@@ -19,6 +19,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [analyzing, setAnalyzing] = useState(false);
     const [result, setResult] = useState<HairMatchResult | null>(null);
+    const [resultImage, setResultImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -40,8 +41,9 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
         if (!selected) { setError('헤어스타일을 선택해 주세요.'); return; }
         setAnalyzing(true); setError(null);
         try {
-            const { analysis } = await hairApi.analyze(base64, mimeType, selected.id, personaId);
+            const { analysis, resultImageUrl } = await hairApi.analyze(base64, mimeType, selected.id, personaId);
             setResult(analysis);
+            setResultImage(resultImageUrl);
         } catch (e: any) {
             setError(e.message || '분석에 실패했어요. 다시 시도해 주세요.');
         } finally { setAnalyzing(false); }
@@ -62,6 +64,25 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                 {result ? (
                     /* ── 결과 화면 ── */
                     <div>
+                        {/* 합성 결과: 내 얼굴에 헤어 입힌 이미지 (Before/After) */}
+                        {resultImage && (
+                            <div style={{ marginBottom: 14 }}>
+                                <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 8, textAlign: 'center' }}>✨ 이 헤어로 바꾼 내 모습</div>
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    {preview && (
+                                        <div style={{ flex: 1, textAlign: 'center' }}>
+                                            <img src={preview} alt="원본" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 14, border: `1px solid ${T.line}` }} />
+                                            <div style={{ fontSize: 11, color: T.inkMute, marginTop: 4 }}>Before</div>
+                                        </div>
+                                    )}
+                                    <div style={{ flex: 1, textAlign: 'center' }}>
+                                        <img src={resultImage} alt="합성 결과" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 14, border: `2px solid ${T.accent}` }} />
+                                        <div style={{ fontSize: 11, color: T.accent, fontWeight: 700, marginTop: 4 }}>After · {selected?.name}</div>
+                                    </div>
+                                </div>
+                                <a href={resultImage} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: T.accent, marginTop: 8, textDecoration: 'underline' }}>크게 보기 / 저장</a>
+                            </div>
+                        )}
                         <div style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 18, padding: 18, boxShadow: '0 8px 24px -10px rgba(80,50,110,0.18)' }}>
                             <div className="flex items-center gap-3 mb-3">
                                 {selected && <img src={selected.imageUrl} alt={selected.name} style={{ width: 56, height: 56, borderRadius: 12, objectFit: 'cover' }} />}
@@ -89,7 +110,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                 </div>
                             )}
                         </div>
-                        <button onClick={() => { setResult(null); }} style={{ width: '100%', marginTop: 14, padding: '13px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+                        <button onClick={() => { setResult(null); setResultImage(null); }} style={{ width: '100%', marginTop: 14, padding: '13px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                             다른 스타일 또 보기
                         </button>
                     </div>
@@ -148,7 +169,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             background: analyzing ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
                             color: '#fff', fontWeight: 700, fontSize: 15, cursor: analyzing ? 'default' : 'pointer',
                         }}>
-                            {analyzing ? '윤채린이 보는 중… 💭' : '✨ 어울리는지 진단받기'}
+                            {analyzing ? '합성 + 진단 중… (10초쯤) 💭' : '✨ 합성하고 진단받기'}
                         </button>
                     </div>
                 )}
