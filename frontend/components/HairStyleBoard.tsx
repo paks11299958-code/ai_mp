@@ -18,10 +18,13 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [base64, setBase64] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [analyzing, setAnalyzing] = useState(false);
+    const [loadingStep, setLoadingStep] = useState(0);   // 0:사진분석 1:헤어합성 2:윤채린진단
     const [result, setResult] = useState<HairMatchResult | null>(null);
     const [resultImage, setResultImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
+
+    const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', '윤채린이 어울림을 진단하고 있어요'];
 
     useEffect(() => {
         setStyles(null); setSelected(null);
@@ -58,18 +61,68 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const handleAnalyze = async () => {
         if (!base64) { setError('먼저 내 사진을 올려주세요.'); return; }
         if (!selected) { setError('헤어스타일을 선택해 주세요.'); return; }
-        setAnalyzing(true); setError(null);
+        setAnalyzing(true); setError(null); setLoadingStep(0);
+        // 실제론 병렬 처리라 단계 완료 시점을 알 수 없어, 체감용으로 단계 메시지를 순차 진행.
+        const t1 = setTimeout(() => setLoadingStep(1), 2500);
+        const t2 = setTimeout(() => setLoadingStep(2), 8000);
         try {
             const { analysis, resultImageUrl } = await hairApi.analyze(base64, mimeType, selected.id, personaId);
             setResult(analysis);
             setResultImage(resultImageUrl);
         } catch (e: any) {
             setError(e.message || '분석에 실패했어요. 다시 시도해 주세요.');
-        } finally { setAnalyzing(false); }
+        } finally {
+            clearTimeout(t1); clearTimeout(t2);
+            setAnalyzing(false);
+        }
     };
 
     return (
         <div className="fixed inset-0 z-[70] overflow-y-auto" style={{ background: T.bg }}>
+            {/* 합성·진단 로딩 오버레이 */}
+            {analyzing && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 90,
+                    background: 'rgba(45,36,56,0.55)', backdropFilter: 'blur(6px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+                }}>
+                    <div style={{
+                        background: T.card, borderRadius: 22, padding: '28px 24px', width: '100%', maxWidth: 320,
+                        boxShadow: '0 24px 64px rgba(0,0,0,0.35)', textAlign: 'center',
+                    }}>
+                        {/* 스피너 */}
+                        <div style={{
+                            width: 52, height: 52, margin: '0 auto 18px', borderRadius: '50%',
+                            border: `4px solid ${T.line}`, borderTopColor: T.accent,
+                            animation: 'hair-spin 0.9s linear infinite',
+                        }} />
+                        {selected && (
+                            <div style={{ fontSize: 13, color: T.accent, fontWeight: 700, marginBottom: 14 }}>
+                                💇 {selected.name} 적용 중
+                            </div>
+                        )}
+                        {/* 단계 리스트 */}
+                        <div style={{ textAlign: 'left', display: 'inline-block' }}>
+                            {LOADING_STEPS.map((label, i) => {
+                                const done = i < loadingStep, active = i === loadingStep;
+                                return (
+                                    <div key={i} style={{
+                                        display: 'flex', alignItems: 'center', gap: 8, padding: '5px 0',
+                                        color: done ? T.inkMute : active ? T.ink : T.inkMute,
+                                        fontWeight: active ? 700 : 500, fontSize: 14,
+                                        opacity: i > loadingStep ? 0.45 : 1,
+                                    }}>
+                                        <span style={{ fontSize: 15 }}>{done ? '✅' : active ? '⏳' : '·'}</span>
+                                        <span>{label}{active ? '…' : ''}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div style={{ fontSize: 11.5, color: T.inkMute, marginTop: 16 }}>보통 10초쯤 걸려요 ☕</div>
+                    </div>
+                    <style>{`@keyframes hair-spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            )}
             <div className="max-w-md mx-auto px-4 py-5">
                 {/* 헤더 */}
                 <div className="flex items-center justify-between mb-4">
