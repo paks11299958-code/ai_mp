@@ -24,7 +24,8 @@ export type FeatureKey =
     | 'golf-record'
     | 'ebook'
     | 'webtoon'
-    | 'insurance';
+    | 'insurance'
+    | 'hair';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -49,6 +50,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'ebook',       label: '전자책 만들기', icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
     { key: 'webtoon',     label: '웹툰 보기',     icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F0E9F7',                  borderColor: '#C4B0DC' },
     { key: 'insurance',   label: '보험 분석',     icon: 'Shield',     color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
+    { key: 'hair',        label: '헤어스타일 진단', icon: 'Zap',       color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
@@ -63,6 +65,7 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '지우':   ['mathtutor', 'club'],
     '강지훈': ['ebook'],
     '향기(필명)': ['webtoon'],
+    '윤채린': ['hair'],
 };
 
 function isGolf(persona: Persona): boolean {
