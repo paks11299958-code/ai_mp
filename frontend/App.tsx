@@ -1115,6 +1115,12 @@ const AppContent: React.FC = () => {
                     recentFeatureKeys={recentFeatureKeys}
                     onFeatureSelect={(personaName, featureKey) => {
                         if (featureKey) rememberLastFeature(featureKey);
+                        // 웹툰은 activePersona(향기) 컨텍스트가 있어야 뷰어가 뜨므로 먼저 페르소나 활성화.
+                        if (featureKey === 'webtoon') {
+                            const wp = personas.find(p => p.name === personaName);
+                            if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
+                            return;
+                        }
                         // 전용 보드가 있는 기능(전자책·보험·뉴스 등)은 보드를 바로 연다.
                         if (featureKey && FEATURE_ACTIONS[featureKey]) { FEATURE_ACTIONS[featureKey](); return; }
                         // 그 외(운세 계열 등)는 해당 페르소나 채팅으로 이동.
@@ -1167,6 +1173,11 @@ const AppContent: React.FC = () => {
                 {showEbookBoard && (
                     <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
                         <EbookBoard onClose={() => setShowEbookBoard(false)} />
+                    </ErrorBoundary>
+                )}
+                {showWebtoon && activePersona && (
+                    <ErrorBoundary label="웹툰 화면 오류" onClose={() => setShowWebtoon(false)}>
+                        <WebtoonEpisodeList personaId={activePersona.id} personaName={activePersona.name} onClose={() => setShowWebtoon(false)} />
                     </ErrorBoundary>
                 )}
                 {showTodayNews && (
