@@ -919,8 +919,9 @@ const AppContent: React.FC = () => {
         );
     }
 
-    // 즐겨찾기로 담을 수 있는 기능(Hero에서 단독으로 뜨는 것만). 골프는 페르소나 의존이라 제외.
-    const FAVORITABLE_KEYS = ['news', 'stock', 'hotkeyword', 'used', 'luxury', 'mathtutor', 'club'];
+    // 즐겨찾기로 담을 수 있는 기능 = 모든 기능 카드. (FEATURES_GRID 키 전부)
+    // 보드를 바로 여는 기능은 FEATURE_ACTIONS로, 그 외(운세 등)는 해당 페르소나 채팅으로 보낸다.
+    const FAVORITABLE_KEYS = FEATURES_GRID.map(f => f.key);
     // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용)
     const FEATURE_ACTIONS: Record<string, () => void> = {
         news: () => setShowTodayNews(true),
@@ -1009,12 +1010,33 @@ const AppContent: React.FC = () => {
     if (user && screen === 'hero') {
         // 'main'으로 가면서 초기 탭/포커스 설정. screen이 단일이라 별도 false 토글 불필요.
         const goMain = (tab: 'personas' | 'features') => { setMainInitialTab(tab); goTo('main'); };
-        // 즐겨찾기 칩: 담은 기능 키 → 메타 + 실행 핸들러
+        // 즐겨찾기 칩: 담은 기능 키 → 메타 + 실행 핸들러.
+        // 메타는 FEATURE_REGISTRY 우선, 없으면(운세 등) FEATURES_GRID에서 보충.
+        // 핸들러는 보드 여는 기능이면 FEATURE_ACTIONS, 아니면 해당 페르소나 채팅으로 이동.
+        const goFeatureChip = (key: string) => {
+            const action = FEATURE_ACTIONS[key];
+            if (action) { action(); return; }
+            const grid = FEATURES_GRID.find(g => g.key === key);
+            const persona = grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
+            if (persona) { rememberLastFeature(key); goTo('chat'); handlePersonaClick(persona.id); }
+        };
         const favoriteChips = favorites
             .filter(key => FAVORITABLE_KEYS.includes(key))
-            .map(key => ({ key, meta: FEATURE_BY_KEY[key] }))
-            .filter(f => f.meta)
-            .map(f => ({ key: f.key, label: f.meta.label, icon: f.meta.icon, color: f.meta.color, bgColor: f.meta.bgColor, borderColor: f.meta.borderColor, onClick: FEATURE_ACTIONS[f.key] ?? (() => {}) }));
+            .map(key => {
+                const meta = FEATURE_BY_KEY[key];
+                const grid = FEATURES_GRID.find(g => g.key === key);
+                const label = meta?.label ?? grid?.name;
+                if (!label) return null;
+                return {
+                    key, label,
+                    icon: meta?.icon ?? 'Zap',
+                    color: meta?.color ?? grid?.palette.accent ?? '#8E6FB7',
+                    bgColor: meta?.bgColor ?? grid?.palette.bg ?? '#F5E6F7',
+                    borderColor: meta?.borderColor ?? grid?.palette.deep ?? '#B49AC9',
+                    onClick: () => goFeatureChip(key),
+                };
+            })
+            .filter((f): f is NonNullable<typeof f> => !!f);
         // 재방문 바로진입: 최근 대화 페르소나(맨 앞)가 현재 보이는 목록에 있으면 "이어서 대화" 제안.
         const lastPersonaId = recentPersonaIds[0] ?? null;
         const continuePersona = lastPersonaId ? visiblePersonas.find(p => p.id === lastPersonaId) ?? null : null;
