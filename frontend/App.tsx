@@ -1115,6 +1115,9 @@ const AppContent: React.FC = () => {
                     recentFeatureKeys={recentFeatureKeys}
                     onFeatureSelect={(personaName, featureKey) => {
                         if (featureKey) rememberLastFeature(featureKey);
+                        // 전용 보드가 있는 기능(전자책·보험·뉴스 등)은 보드를 바로 연다.
+                        if (featureKey && FEATURE_ACTIONS[featureKey]) { FEATURE_ACTIONS[featureKey](); return; }
+                        // 그 외(운세 계열 등)는 해당 페르소나 채팅으로 이동.
                         const persona = personas.find(p => p.name === personaName);
                         if (persona) { goTo('chat'); handlePersonaClick(persona.id); }
                     }}
@@ -1160,6 +1163,11 @@ const AppContent: React.FC = () => {
                 )}
                 {showInsuranceBoard && (
                     <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
+                )}
+                {showEbookBoard && (
+                    <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
+                        <EbookBoard onClose={() => setShowEbookBoard(false)} />
+                    </ErrorBoundary>
                 )}
                 {showTodayNews && (
                     <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
