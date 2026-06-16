@@ -420,6 +420,15 @@ export const faceReadingApi = {
         post<{ analysis: FaceReadingResult; newBalance: number; paidBalance: number; bonusBalance: number }>('/face-reading', { imageBase64, mimeType, personaId }),
 };
 
+export interface HairStyle { id: number; styleKey: string; name: string; gender: string; imageUrl: string; description?: string }
+export interface HairMatchResult { unclear?: boolean; faceShape: string; match: string; tips: string; alternative: string; overall: string }
+export const hairApi = {
+    styles: (gender?: 'male' | 'female') =>
+        get<HairStyle[]>(`/hair/styles${gender ? `?gender=${gender}` : ''}`),
+    analyze: (imageBase64: string, mimeType: string, hairStyleId: number, personaId?: string) =>
+        post<{ analysis: HairMatchResult }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
+};
+
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {
     lifeLine: string;

@@ -495,3 +495,19 @@ model AiUsageLog {
   @@index([service, createdAt])
   @@index([createdAt])
 }
+
+// 윤채린 헤어스타일 견본 (Imagen 생성, 어드민 관리). gender: 'male' | 'female'
+model HairStyle {
+  id          Int      @id @default(autoincrement())
+  styleKey    String   @unique          // f_bob, m_twoblock 등
+  name        String                    // 단발 보브, 투블럭
+  gender      String                    // 'male' | 'female'
+  imageUrl    String
+  promptEn    String?                   // 생성에 쓴 영문 헤어 설명(어울림 분석 참고용)
+  description String?
+  order       Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([gender, order])
+}

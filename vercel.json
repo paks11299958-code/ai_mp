@@ -34,6 +34,8 @@
     { "source": "/api/face-reading/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/face-reading/:path*" },
     { "source": "/api/palm-reading",               "destination": "http://34.50.27.95:3020/api/aimp/palm-reading" },
     { "source": "/api/palm-reading/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/palm-reading/:path*" },
+    { "source": "/api/hair",                        "destination": "http://34.50.27.95:3020/api/aimp/hair" },
+    { "source": "/api/hair/:path*",                "destination": "http://34.50.27.95:3020/api/aimp/hair/:path*" },
     { "source": "/api/ebook",                       "destination": "http://34.50.27.95:3020/api/aimp/ebook" },
     { "source": "/api/ebook/:path*",               "destination": "http://34.50.27.95:3020/api/aimp/ebook/:path*" },
     { "source": "/api/webtoon",                     "destination": "http://34.50.27.95:3020/api/aimp/webtoon" },
