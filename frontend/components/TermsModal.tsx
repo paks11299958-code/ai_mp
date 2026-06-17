@@ -94,11 +94,11 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 const TermsContent: React.FC = () => (
     <div>
         <p style={{ marginBottom: 20, color: '#7A6555', fontSize: 12 }}>
-            시행일: 2026년 03월 09일 &nbsp;|&nbsp; 상호명: Whispr (입소문)
+            시행일: 2026년 03월 09일 &nbsp;|&nbsp; 상호명: 입소문
         </p>
 
         <Section title="제1조 (목적)">
-            <p>본 약관은 Whispr(이하 "회사")가 운영하는 AI 페르소나 채팅 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
+            <p>본 약관은 입소문(이하 "회사")가 운영하는 AI 페르소나 채팅 서비스(이하 "서비스")의 이용 조건 및 절차, 회사와 이용자의 권리·의무 및 책임 사항을 규정함을 목적으로 합니다.</p>
         </Section>
 
         <Section title="제2조 (정의)">
@@ -147,9 +147,9 @@ const TermsContent: React.FC = () => (
         </Section>
 
         <p style={{ marginTop: 24, fontSize: 12, color: '#A89080' }}>
-            상호명: Whispr (입소문) &nbsp;|&nbsp; 대표자: 신지윤 &nbsp;|&nbsp; 사업자등록번호: 656-08-03261<br />
+            상호명: 입소문 &nbsp;|&nbsp; 대표자: 신지윤 &nbsp;|&nbsp; 사업자등록번호: 656-08-03261<br />
             통신판매업 신고번호: 제 2026-충북청주-0690호<br />
-            주소: 충청북도 청주시 흥덕구 옥산면 오송가락로 1056<br />
+            주소: 충청북도 청주시 흥덕구 옥산면 오송가락로 1056 청주리버파크자이 104동 1303호<br />
             고객센터: 0502-468-0502
         </p>
     </div>
@@ -158,11 +158,11 @@ const TermsContent: React.FC = () => (
 const PrivacyContent: React.FC = () => (
     <div>
         <p style={{ marginBottom: 20, color: '#7A6555', fontSize: 12 }}>
-            시행일: 2026년 03월 09일 &nbsp;|&nbsp; 상호명: Whispr (입소문)
+            시행일: 2026년 03월 09일 &nbsp;|&nbsp; 상호명: 입소문
         </p>
 
         <Section title="제1조 (개인정보의 수집 및 이용 목적)">
-            <p>Whispr(이하 "회사")는 다음의 목적을 위해 개인정보를 수집·이용합니다.<br />
+            <p>입소문(이하 "회사")는 다음의 목적을 위해 개인정보를 수집·이용합니다.<br />
             &nbsp;&nbsp;- 회원 가입 및 서비스 이용을 위한 본인 확인<br />
             &nbsp;&nbsp;- 서비스 제공 및 운영<br />
             &nbsp;&nbsp;- 결제 처리 및 환불 처리<br />
@@ -218,7 +218,7 @@ const PrivacyContent: React.FC = () => (
         </Section>
 
         <p style={{ marginTop: 24, fontSize: 12, color: '#A89080' }}>
-            상호명: Whispr (입소문) &nbsp;|&nbsp; 대표자: 신지윤 &nbsp;|&nbsp; 사업자등록번호: 656-08-03261<br />
+            상호명: 입소문 &nbsp;|&nbsp; 대표자: 신지윤 &nbsp;|&nbsp; 사업자등록번호: 656-08-03261<br />
             고객센터: 0502-468-0502 &nbsp;|&nbsp; 이메일: paks11299958@gmail.com
         </p>
     </div>
