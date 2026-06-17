@@ -81,7 +81,9 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[70] overflow-y-auto" style={{ background: T.bg }}>
+        <div className="fixed inset-0 z-[70] bg-black/60 flex items-start justify-center pt-[60px] md:pt-[84px] md:px-6 md:pb-6" onClick={onClose}>
+          <div className="w-full max-w-md h-[calc(100vh-60px)] md:h-auto md:max-h-[calc(100vh-108px)] overflow-y-auto rounded-t-2xl md:rounded-2xl shadow-2xl"
+               style={{ background: T.bg }} onClick={e => e.stopPropagation()}>
             {/* 합성·진단 로딩 오버레이 */}
             {analyzing && (
                 <div style={{
@@ -249,6 +251,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                     </div>
                 )}
             </div>
+          </div>
         </div>
     );
 };
