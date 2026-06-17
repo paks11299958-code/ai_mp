@@ -70,7 +70,10 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
             setResult(analysis);
             setResultImage(resultImageUrl);
         } catch (e: any) {
-            setError(e.message || '분석에 실패했어요. 다시 시도해 주세요.');
+            // 포인트 부족은 전역 충전 모달이 뜨므로 보드 에러문구는 생략
+            if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') {
+                setError(e.message || '분석에 실패했어요. 다시 시도해 주세요.');
+            }
         } finally {
             clearTimeout(t1); clearTimeout(t2);
             setAnalyzing(false);

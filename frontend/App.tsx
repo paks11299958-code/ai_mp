@@ -523,6 +523,13 @@ const AppContent: React.FC = () => {
         if (!isAdminMode) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [currentSession.messages, isAdminMode]);
 
+    // 포인트 부족(402) 전역 처리: 어느 기능에서든 충전 모달을 띄운다.
+    useEffect(() => {
+        const onInsufficient = () => setShowPointModal(true);
+        window.addEventListener('insufficient-points', onInsufficient);
+        return () => window.removeEventListener('insufficient-points', onInsufficient);
+    }, [setShowPointModal]);
+
     useEffect(() => {
         if (textareaRef.current && !isAdminMode) {
             textareaRef.current.style.height = 'auto';

@@ -29,6 +29,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         throw new Error(`서버 응답 오류 (${res.status}): ${text.slice(0, 200)}`);
     }
 
+    // 포인트 부족(402): 모든 기능 공통 — 전역 이벤트로 충전 모달을 띄우게 한다.
+    if (res.status === 402) {
+        if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('insufficient-points'));
+        const err: any = new Error('INSUFFICIENT_POINTS');
+        err.code = 'INSUFFICIENT_POINTS';
+        throw err;
+    }
     if (!res.ok) throw new Error(data.error || `서버 오류 (${res.status})`);
     return data;
 }
