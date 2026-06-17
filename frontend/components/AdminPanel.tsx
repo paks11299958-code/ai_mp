@@ -203,6 +203,14 @@ const FEATURE_LABELS: Record<string, string> = {
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 
+// 기능별 AI 실비 추정(원). 정확한 실측은 사용량 쌓여야 하므로 합리적 추정값.
+// (Gemini Flash·Claude구독 기준, 합성은 nano-banana 이미지 비용)
+const FEATURE_COST_KRW: Record<string, number> = {
+    'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
+    'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
+};
+const PT_TO_KRW = 9;   // 1pt ≈ 9원 (충전 보너스 감안 평균)
+
 const ROLES = ['USER', 'MANAGE', 'ADMIN'] as const;
 
 interface MenuLimit {
@@ -304,11 +312,26 @@ const MenuLimitsPanel: React.FC = () => {
             <div className="space-y-4">
                 {features.map(feature => (
                     <div key={feature} className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                        <div className="px-4 py-2.5 bg-gray-750 border-b border-gray-700 flex items-center gap-2">
-                            <Icon name="Shield" size={13} className="text-blue-400" />
-                            <span className="text-sm font-semibold text-gray-200">{FEATURE_LABELS[feature] ?? feature}</span>
-                            <span className="text-[10px] text-gray-500 font-mono ml-1">{feature}</span>
-                        </div>
+                        {(() => {
+                            const costKrw = FEATURE_COST_KRW[feature] ?? 0;          // AI 실비(원)
+                            const pt = Number(getEdit(feature, 'USER').pointsCost) || 0;
+                            const priceKrw = pt * PT_TO_KRW;                          // 차감 원화(USER 기준)
+                            const margin = priceKrw > 0 ? Math.round((priceKrw - costKrw) / priceKrw * 100) : 0;
+                            const marginColor = margin >= 80 ? 'text-emerald-400' : margin >= 50 ? 'text-yellow-400' : 'text-red-400';
+                            return (
+                                <div className="px-4 py-2.5 bg-gray-750 border-b border-gray-700 flex items-center gap-2 flex-wrap">
+                                    <Icon name="Shield" size={13} className="text-blue-400" />
+                                    <span className="text-sm font-semibold text-gray-200">{FEATURE_LABELS[feature] ?? feature}</span>
+                                    <span className="text-[10px] text-gray-500 font-mono">{feature}</span>
+                                    {/* 수익성: USER 차감 기준 (원가·차감원화·수익률) */}
+                                    <span className="ml-auto flex items-center gap-2 text-[11px]">
+                                        <span className="text-gray-500">원가 ~{costKrw}원</span>
+                                        <span className="text-gray-400">차감 {priceKrw.toLocaleString()}원</span>
+                                        <span className={`font-bold ${marginColor}`}>수익률 {margin}%</span>
+                                    </span>
+                                </div>
+                            );
+                        })()}
                         <div className="divide-y divide-gray-700/50">
                             {ROLES.map(role => {
                                 const key = `${feature}:${role}`;
