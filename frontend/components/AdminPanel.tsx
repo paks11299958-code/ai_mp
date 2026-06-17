@@ -185,15 +185,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     );
 };
 
+// 포인트를 차감하는 모든 기능(checkMenuAccess 기준). 순서 = 화면 표시 순서.
 const FEATURE_LABELS: Record<string, string> = {
-    'golf':       '골프 스윙 분석',
+    'news':       '오늘 뉴스',
     'stock':      '주식 분석',
+    'luxury':     '명품 감정',
     'used-item':  '중고판매 분석',
     'hot-keyword':'핫쇼핑 키워드',
-    'luxury':     '명품 감정',
-    'face':       '얼굴 관상 분석',
-    'quick-menu': '퀵메뉴',
+    'insurance':  '보험 컨설팅',
+    'face':       '얼굴 관상',
+    'palm':       '손금',
+    'quick-menu': '퀵메뉴(운세 등)',
+    'golf':       '골프 스윙 분석',
 };
+// 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
+const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 
 const ROLES = ['USER', 'MANAGE', 'ADMIN'] as const;
 
@@ -272,10 +278,22 @@ const MenuLimitsPanel: React.FC = () => {
 
     return (
         <div className="flex-1 overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-3">
                 <div>
-                    <h3 className="text-sm font-bold text-white">메뉴 권한 설정</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">기능별 역할별 일일 이용 횟수 및 포인트 차감을 설정합니다.</p>
+                    <h3 className="text-sm font-bold text-white">포인트 차감 기능 설정</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">기능별·역할별 일일 이용 횟수 및 포인트 차감을 설정합니다. (채팅은 메시지당 별도 차감)</p>
+                </div>
+            </div>
+
+            {/* 안내: 차감 기능 / 무료 기능 구분 */}
+            <div className="mb-5 grid grid-cols-1 md:grid-cols-2 gap-2">
+                <div className="bg-blue-900/20 border border-blue-700/30 rounded-lg px-3 py-2">
+                    <p className="text-[11px] text-blue-300 font-semibold mb-0.5">💸 포인트 차감 ({ALL_FEATURES.length}개)</p>
+                    <p className="text-[11px] text-gray-400">{ALL_FEATURES.map(f => FEATURE_LABELS[f]).join(' · ')}</p>
+                </div>
+                <div className="bg-gray-800/50 border border-gray-700/40 rounded-lg px-3 py-2">
+                    <p className="text-[11px] text-gray-400 font-semibold mb-0.5">🆓 무료 기능 (차감 없음)</p>
+                    <p className="text-[11px] text-gray-500">AI 수학튜터 · 전자책 만들기 · 웹툰 · 헤어스타일 진단 · 모임(출첵)</p>
                 </div>
             </div>
 
