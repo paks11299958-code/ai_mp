@@ -145,17 +145,18 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                         {resultImage && (
                             <div style={{ marginBottom: 14 }}>
                                 <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 8, textAlign: 'center' }}>✨ 이 헤어로 바꾼 내 모습</div>
-                                <div style={{ display: 'flex', gap: 8 }}>
+                                {/* After를 크게(전체 폭) + Before는 우상단 작은 썸네일로 비교 */}
+                                <div style={{ position: 'relative' }}>
+                                    <img src={resultImage} alt="합성 결과" style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover', borderRadius: 16, border: `2.5px solid ${T.accent}`, display: 'block' }} />
+                                    <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(142,111,183,0.92)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999 }}>
+                                        After · {selected?.name}
+                                    </div>
                                     {preview && (
-                                        <div style={{ flex: 1, textAlign: 'center' }}>
-                                            <img src={preview} alt="원본" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 14, border: `1px solid ${T.line}` }} />
-                                            <div style={{ fontSize: 11, color: T.inkMute, marginTop: 4 }}>Before</div>
+                                        <div style={{ position: 'absolute', top: 10, right: 10, textAlign: 'center' }}>
+                                            <img src={preview} alt="원본" style={{ width: 72, height: 90, objectFit: 'cover', borderRadius: 10, border: '2px solid #fff', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }} />
+                                            <div style={{ fontSize: 10, color: '#fff', fontWeight: 600, marginTop: 2, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>Before</div>
                                         </div>
                                     )}
-                                    <div style={{ flex: 1, textAlign: 'center' }}>
-                                        <img src={resultImage} alt="합성 결과" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', borderRadius: 14, border: `2px solid ${T.accent}` }} />
-                                        <div style={{ fontSize: 11, color: T.accent, fontWeight: 700, marginTop: 4 }}>After · {selected?.name}</div>
-                                    </div>
                                 </div>
                                 <a href={resultImage} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: T.accent, marginTop: 8, textDecoration: 'underline' }}>크게 보기 / 저장</a>
                             </div>
