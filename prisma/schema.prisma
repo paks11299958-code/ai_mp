@@ -244,6 +244,7 @@ model PointTransaction {
   amount       Int
   type         String
   description  String?
+  orderId      String?  @unique   // 충전(CHARGE) 결제 orderId — 중복 결제 DB 레벨 차단
   personaId    String?
   balanceAfter Int
   createdAt    DateTime @default(now())
