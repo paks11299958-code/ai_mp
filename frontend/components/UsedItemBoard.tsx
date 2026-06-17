@@ -141,7 +141,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
             setItemName('');
             await loadTasks();
         } catch (e: any) {
-            alert(e.message);
+            if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') alert(e.message);
         } finally {
             setUploading(false);
         }
@@ -180,7 +180,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                 ...prev, finalTitle: editTitle,
                 finalPrice: Number(editPrice), finalDescription: editDesc,
             } : null);
-        } catch (e: any) { alert(e.message); }
+        } catch (e: any) { if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') alert(e.message); }
         finally { setSaving(false); }
     };
 

@@ -292,7 +292,10 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         try {
             await apiFetch(API(''), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stockName: stockName.trim() }) });
             setStockName(''); setSuggestions([]); await loadTasks();
-        } catch (e: any) { alert(e.message); }
+        } catch (e: any) {
+            // 포인트 부족은 전역 충전 모달이 뜨므로 alert 생략
+            if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') alert(e.message);
+        }
         finally { setSubmitting(false); }
     };
 
@@ -623,7 +626,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                     if (consulting || selected.status !== 'completed') return;
                                                     setConsulting(true);
                                                     try { await stockReportApi.consult(selected.id); onClose(); onConsult?.(YUNCHAEWON_PERSONA_ID, selected.stockName); }
-                                                    catch (e: any) { alert(e.message || '학습 저장 실패'); setConsulting(false); }
+                                                    catch (e: any) { if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') alert(e.message || '학습 저장 실패'); setConsulting(false); }
                                                 }}
                                                 disabled={consulting || selected.status !== 'completed'}
                                                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: 'rgba(142,111,183,0.1)', border: `1.5px solid ${T.gold}`, color: T.gold, fontSize: 11, fontWeight: 700, cursor: 'pointer', opacity: consulting || selected.status !== 'completed' ? 0.5 : 1 }}
