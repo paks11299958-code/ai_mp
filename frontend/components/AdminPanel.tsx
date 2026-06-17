@@ -195,7 +195,8 @@ const FEATURE_LABELS: Record<string, string> = {
     'insurance':  '보험 컨설팅',
     'face':       '얼굴 관상',
     'palm':       '손금',
-    'quick-menu': '퀵메뉴(운세 등)',
+    'quick-menu': '퀵메뉴(운세·수학 등)',
+    'hair':       '헤어스타일 진단',
     'golf':       '골프 스윙 분석',
 };
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
@@ -293,7 +294,7 @@ const MenuLimitsPanel: React.FC = () => {
                 </div>
                 <div className="bg-gray-800/50 border border-gray-700/40 rounded-lg px-3 py-2">
                     <p className="text-[11px] text-gray-400 font-semibold mb-0.5">🆓 무료 기능 (차감 없음)</p>
-                    <p className="text-[11px] text-gray-500">AI 수학튜터 · 전자책 만들기 · 웹툰 · 헤어스타일 진단 · 모임(출첵)</p>
+                    <p className="text-[11px] text-gray-500">웹툰 보기 · 모임(출첵) · 전자책 만들기</p>
                 </div>
             </div>
 
