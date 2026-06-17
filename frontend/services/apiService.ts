@@ -746,8 +746,19 @@ export interface PointsStats {
     received: { charge: number; signup: number; levelup: number; admin: number };
 }
 
+export interface PointTx {
+    id: number;
+    amount: number;
+    type: string;
+    description: string | null;
+    balanceAfter: number;
+    createdAt: string;
+    persona?: { id: string; name: string } | null;
+}
 export const pointsApi = {
     getStats: () => get<PointsStats>('/points/stats'),
+    // 내 포인트 잔액 + 최근 거래내역(시간순 50건)
+    getHistory: () => get<{ paidPoints: number; bonusPoints: number; points: number; transactions: PointTx[] }>('/points'),
 };
 
 export const adminApi = {

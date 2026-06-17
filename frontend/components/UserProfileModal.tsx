@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../types';
-import { authApi, pointsApi, PointsStats, userProfileApi } from '../services/apiService';
+import { authApi, pointsApi, PointsStats, PointTx, userProfileApi } from '../services/apiService';
 import { usePoints } from '../contexts/PointsContext';
 import { getStage } from '../utils/level';
 import { X, User as UserIcon, BarChart2, Lock, Eye, EyeOff, ChevronDown, Heart, Pencil, Check, Trash2 } from 'lucide-react';
@@ -83,6 +83,7 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate,
     const [stats, setStats] = useState<PointsStats | null>(null);
     const [statsLoading, setStatsLoading] = useState(false);
     const [statsError, setStatsError] = useState('');
+    const [history, setHistory] = useState<PointTx[] | null>(null);   // 최근 거래내역
 
     useEffect(() => {
         if (tab === 'stats' && !stats) {
@@ -91,6 +92,7 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate,
                 .then(setStats)
                 .catch(() => setStatsError('통계를 불러오지 못했습니다.'))
                 .finally(() => setStatsLoading(false));
+            pointsApi.getHistory().then(r => setHistory(r.transactions)).catch(() => {});
         }
     }, [tab]);
 
@@ -419,6 +421,39 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate,
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* 최근 거래 내역 (시간순 명세) */}
+                                    {history && history.length > 0 && (
+                                        <div>
+                                            <h3 className="text-xs font-semibold text-[#9089A1] uppercase tracking-wider mb-3">최근 거래 내역</h3>
+                                            <div className="bg-[#F5EFE6] rounded-xl divide-y divide-[#F0E9DE]">
+                                                {history.map(tx => {
+                                                    const labelMap: Record<string, string> = {
+                                                        CHARGE: '포인트 충전', CHAT: '채팅', MENU: '기능 사용', STAR: '별스타 선물',
+                                                        BALLOON: '별스타 선물', SIGNUP: '가입 보너스', LEVELUP: '레벨업 보너스',
+                                                        MISSION: '미션 보상', ADMIN: '관리자 지급',
+                                                    };
+                                                    const base = labelMap[tx.type] ?? tx.type;
+                                                    const label = tx.persona?.name ? `${base} · ${tx.persona.name}` : (tx.description || base);
+                                                    const d = new Date(tx.createdAt);
+                                                    const dateStr = `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+                                                    const pos = tx.amount > 0;
+                                                    return (
+                                                        <div key={tx.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
+                                                            <div className="min-w-0">
+                                                                <div className="text-xs text-[#2D2438] truncate">{label}</div>
+                                                                <div className="text-[10px] text-[#9089A1]">{dateStr}</div>
+                                                            </div>
+                                                            <span className={`text-sm font-bold shrink-0 ${pos ? 'text-green-500' : 'text-[#B85C7A]'}`}>
+                                                                {pos ? '+' : ''}{tx.amount.toLocaleString()}pt
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                            <p className="text-[10px] text-[#9089A1] mt-2 px-1">최근 50건까지 표시됩니다.</p>
+                                        </div>
+                                    )}
                                 </>
                             )}
                         </div>
