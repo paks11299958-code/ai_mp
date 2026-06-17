@@ -361,16 +361,91 @@ const MenuLimitsPanel: React.FC = () => {
 const AdminPointStats: React.FC = () => {
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [settle, setSettle] = useState<any>(null);   // 전사 일별 결산
+    const [days, setDays] = useState(30);
 
     useEffect(() => {
         pointApi.getStats().then(setStats).catch(() => {}).finally(() => setLoading(false));
     }, []);
+    useEffect(() => {
+        adminApi.getPointSettlement(days).then(setSettle).catch(() => setSettle(null));
+    }, [days]);
 
     if (loading) return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">불러오는 중...</div>;
     if (!stats) return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">데이터 없음</div>;
 
+    const fmt = (n: number) => (n ?? 0).toLocaleString();
+
     return (
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* 전사 포인트 일별 결산 */}
+            {settle && (
+                <div>
+                    <div className="flex items-center justify-between mb-3">
+                        <p className="text-sm font-semibold text-gray-200">💰 포인트 결산 (전사)</p>
+                        <select value={days} onChange={e => setDays(Number(e.target.value))}
+                            className="bg-gray-800 border border-gray-700 rounded-lg text-xs text-gray-300 px-2 py-1">
+                            <option value={7}>최근 7일</option>
+                            <option value={30}>최근 30일</option>
+                            <option value={90}>최근 90일</option>
+                        </select>
+                    </div>
+                    {/* 요약 카드 */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <p className="text-[11px] text-gray-400">충전(매출)</p>
+                            <p className="text-lg font-bold text-emerald-400">+{fmt(settle.summary.chargePt)}pt</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <p className="text-[11px] text-gray-400">소비</p>
+                            <p className="text-lg font-bold text-red-400">-{fmt(settle.summary.spent)}pt</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <p className="text-[11px] text-gray-400">무상 지급</p>
+                            <p className="text-lg font-bold text-sky-400">+{fmt(settle.summary.granted)}pt</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-3">
+                            <p className="text-[11px] text-gray-400">환불</p>
+                            <p className="text-lg font-bold text-amber-400">+{fmt(settle.summary.refund)}pt</p>
+                        </div>
+                        <div className="bg-gray-800 rounded-xl p-3 col-span-2 md:col-span-1">
+                            <p className="text-[11px] text-gray-400">미사용 잔액(부채)</p>
+                            <p className="text-lg font-bold text-gray-200">{fmt(settle.summary.outstandingPaid + settle.summary.outstandingBonus)}pt</p>
+                            <p className="text-[10px] text-gray-500">유료 {fmt(settle.summary.outstandingPaid)} / 보너스 {fmt(settle.summary.outstandingBonus)}</p>
+                        </div>
+                    </div>
+                    {/* 일별 표 */}
+                    <div className="overflow-x-auto rounded-xl border border-gray-700">
+                        <table className="w-full text-xs">
+                            <thead className="bg-gray-800 text-gray-400">
+                                <tr>
+                                    <th className="text-left px-3 py-2">날짜</th>
+                                    <th className="text-right px-3 py-2">충전</th>
+                                    <th className="text-right px-3 py-2">소비</th>
+                                    <th className="text-right px-3 py-2">무상</th>
+                                    <th className="text-right px-3 py-2">환불</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {settle.daily.length === 0 && (
+                                    <tr><td colSpan={5} className="text-center text-gray-500 py-6">데이터 없음</td></tr>
+                                )}
+                                {settle.daily.map((d: any) => (
+                                    <tr key={d.date} className="border-t border-gray-800">
+                                        <td className="px-3 py-2 text-gray-300">{d.date}</td>
+                                        <td className="px-3 py-2 text-right text-emerald-400">{d.chargeAmount ? `+${fmt(d.chargeAmount)}` : '-'}{d.chargeCount ? ` (${d.chargeCount}건)` : ''}</td>
+                                        <td className="px-3 py-2 text-right text-red-400">{d.spent ? `-${fmt(d.spent)}` : '-'}</td>
+                                        <td className="px-3 py-2 text-right text-sky-400">{d.granted ? `+${fmt(d.granted)}` : '-'}</td>
+                                        <td className="px-3 py-2 text-right text-amber-400">{d.refund ? `+${fmt(d.refund)}` : '-'}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            <p className="text-sm font-semibold text-gray-300 pt-2 border-t border-gray-800">📊 내 포인트 통계</p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="bg-gray-800 rounded-xl p-4">
                     <p className="text-xs text-gray-400 mb-1">총 포인트 소비</p>
