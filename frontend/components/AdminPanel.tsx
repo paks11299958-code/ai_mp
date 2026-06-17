@@ -209,7 +209,7 @@ const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
     'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
 };
-const PT_TO_KRW = 9;   // 1pt ≈ 9원 (충전 보너스 감안 평균)
+const PT_TO_KRW = 1;   // 1pt = 1원 (2026-06-17 전환)
 
 const ROLES = ['USER', 'MANAGE', 'ADMIN'] as const;
 

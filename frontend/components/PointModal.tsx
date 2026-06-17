@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Coins, X, Loader2 } from 'lucide-react';
 
+// 1pt=1원(2026-06-17). 기본 1:1, 큰 패키지는 보너스 %.
 const PACKAGES = [
-    { id: 'basic',   name: '기본',       points: 500,  price: 5000,  bonus: null },
-    { id: 'popular', name: '인기',        points: 1100, price: 10000, bonus: '10% 보너스' },
-    { id: 'premium', name: '프리미엄',    points: 6000, price: 50000, bonus: '20% 보너스' },
+    { id: 'basic',   name: '기본',       points: 5000,  price: 5000,  bonus: null },
+    { id: 'popular', name: '인기',        points: 11000, price: 10000, bonus: '10% 보너스' },
+    { id: 'premium', name: '프리미엄',    points: 60000, price: 50000, bonus: '20% 보너스' },
 ];
 
 interface PointModalProps {
