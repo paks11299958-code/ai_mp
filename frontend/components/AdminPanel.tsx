@@ -195,7 +195,8 @@ const FEATURE_LABELS: Record<string, string> = {
     'insurance':  '보험 컨설팅',
     'face':       '얼굴 관상',
     'palm':       '손금',
-    'quick-menu': '퀵메뉴(운세·수학 등)',
+    'quick-menu': '퀵메뉴(운세·궁합 등)',
+    'mathtutor':  'AI쌤 수학(풀이·출제)',
     'hair':       '헤어스타일 진단',
     'golf':       '골프 스윙 분석',
 };
