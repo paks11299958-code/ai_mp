@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
 import { useTaskList } from '../hooks/useTaskList';
+import { usePoints } from '../contexts/PointsContext';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -78,6 +79,9 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
     const [selected, setSelected] = useState<UsedItemDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
 
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('used-item');
+
     // 업로드 상태
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
@@ -107,6 +111,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!files.length) return;
+        if (!requirePoints('used-item')) return;
         setUploading(true);
         try {
             // 1) 서명 URL 요청
@@ -280,7 +285,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                             >
                                 {uploading
                                     ? <><Loader size={13} className="animate-spin" /> 업로드 중...</>
-                                    : <><Upload size={13} /> AI 분석 요청</>}
+                                    : <><Upload size={13} /> AI 분석 요청{cost != null && ` · ${cost.toLocaleString()}pt`}</>}
                             </button>
                         </form>
 

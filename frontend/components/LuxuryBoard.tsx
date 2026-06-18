@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { HelpButton } from './HelpButton';
 import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
+import { usePoints } from '../contexts/PointsContext';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -137,6 +138,9 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
     const { tasks, loading, selected, detailLoading, setSelected, loadTasks, selectTask, retryTask, deleteTask } =
         useAsyncTaskBoard<LuxuryTask, LuxuryDetail>({ api: API, apiFetch });
 
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('luxury');
+
     const [files, setFiles] = useState<File[]>([]);
     const [previews, setPreviews] = useState<string[]>([]);
     const [brandHint, setBrandHint] = useState('');
@@ -166,6 +170,8 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!files.length) return;
+        // 포인트 부족 시 업로드 전에 충전 모달로 안내(헛로딩 방지)
+        if (!requirePoints('luxury')) return;
         setUploading(true);
         try {
             // 5MB 초과 이미지 압축
@@ -286,7 +292,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                             >
                                 {uploading
                                     ? <><Loader size={13} className="animate-spin" /> 업로드 중...</>
-                                    : <><Upload size={13} /> AI 검증 요청</>}
+                                    : <><Upload size={13} /> AI 검증 요청{cost != null && ` · ${cost.toLocaleString()}pt`}</>}
                             </button>
                         </form>
 

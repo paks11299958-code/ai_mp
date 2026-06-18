@@ -17,6 +17,7 @@ async function req<T>(path: string, options: RequestInit = {}): Promise<T> {
 
 export const pointApi = {
     getBalance: () => req<{ paidPoints: number; bonusPoints: number; points: number; transactions: any[] }>('/points'),
+    getMenuPrices: () => req<{ prices: Record<string, number> }>('/points/menu-prices'),
     getStats: () => req<any>('/points/stats'),
     getCost: (personaId: string) => req<{ cost: number; stage: number; xp: number }>(`/points/cost?personaId=${personaId}`),
     sendStar: (personaId: string, amount: number, message?: string) =>

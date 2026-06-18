@@ -8,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import { HelpButton } from './HelpButton';
 import { CodefImportButton } from './CodefImportButton';
 import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
+import { usePoints } from '../contexts/PointsContext';
 
 // ── 타입 ──────────────────────────────────────────────────
 
@@ -102,6 +103,8 @@ const sevStyle = (s: string) =>
 export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const { tasks, loading, selected, detailLoading, setSelected, loadTasks, selectTask, retryTask, deleteTask } =
         useAsyncTaskBoard<InsuranceTask, InsuranceDetail>({ api: API, apiFetch });
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('insurance');
 
     const [files, setFiles] = useState<File[]>([]);
     const [dragging, setDragging] = useState(false);
@@ -136,6 +139,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const handleSubmit = async () => {
         if (!files.length) { setError('보험 문서를 1개 이상 올려주세요.'); return; }
         if (!info.title.trim()) { setError('분석 제목을 입력해 주세요.'); return; }
+        if (!requirePoints('insurance')) return;
         setError('');
         setUploading(true);
         try {
@@ -468,7 +472,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                     color: uploading || !files.length ? '#9089A1' : '#fff',
                                     cursor: uploading || !files.length ? 'not-allowed' : 'pointer',
                                 }}>
-                                {uploading ? <><Loader size={16} className="animate-spin" /> 요청 중...</> : <>🔍 AI 중복 분석 시작</>}
+                                {uploading ? <><Loader size={16} className="animate-spin" /> 요청 중...</> : <>🔍 AI 중복 분석 시작{cost != null && ` · ${cost.toLocaleString()}pt`}</>}
                             </button>
                             </>)}
                         </div>

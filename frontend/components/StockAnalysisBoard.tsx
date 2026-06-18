@@ -3,6 +3,7 @@ import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Tra
 import { stockReportApi } from '../services/apiService';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
 import { useTaskList } from '../hooks/useTaskList';
+import { usePoints } from '../contexts/PointsContext';
 import { parseClaudeGptOpinion, parseGeminiOpinion, opinionColor, type AiOpinion } from '../utils/parsing';
 import { HelpButton } from './HelpButton';
 
@@ -247,6 +248,8 @@ interface Suggestion { corpName: string; stockCode: string | null; }
 
 export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const { tasks, setTasks, loading, loadTasks } = useTaskList<StockTask>(API(''));
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('stock');
     const [stockName, setStockName] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [selected, setSelected] = useState<StockDetail | null>(null);
@@ -288,6 +291,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!stockName.trim()) return;
+        if (!requirePoints('stock')) return;
         setShowSuggestions(false); setSubmitting(true);
         try {
             await apiFetch(API(''), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stockName: stockName.trim() }) });
@@ -392,6 +396,9 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                         {submitting ? <Loader size={12} style={{ color: '#fff', animation: 'spin 1s linear infinite' }} /> : <Plus size={12} style={{ color: '#fff' }} />}
                                     </button>
                                 </div>
+                                {cost != null && (
+                                    <p style={{ margin: '6px 2px 0', fontSize: 10, color: T.muted }}>분석 1회 · {cost.toLocaleString()}pt 차감</p>
+                                )}
                                 {showSuggestions && (
                                     <div style={{ position: 'absolute', top: '100%', left: 0, right: 32, marginTop: 4, background: T.card, border: `1px solid ${T.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(45,37,32,0.15)', zIndex: 10, overflow: 'hidden' }}>
                                         {suggestions.map((s, i) => (
