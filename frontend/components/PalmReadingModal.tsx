@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { palmReadingApi, PalmReadingResult } from '../services/apiService';
+import { usePoints } from '../contexts/PointsContext';
 
 interface PalmReadingModalProps {
     personaId: string;
@@ -9,6 +10,8 @@ interface PalmReadingModalProps {
 }
 
 export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, onResult, onPointsUpdated, onClose }) => {
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('palm');
     const [gender, setGender] = useState<'male' | 'female' | null>(null);
     const [hand, setHand] = useState<'left' | 'right'>('right');
     const [preview, setPreview] = useState<string | null>(null);
@@ -44,6 +47,7 @@ export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, o
 
     const handleAnalyze = async () => {
         if (!base64) return;
+        if (!requirePoints('palm')) return;
         setAnalyzing(true);
         setError(null);
         try {
@@ -199,7 +203,7 @@ export const PalmReadingModal: React.FC<PalmReadingModalProps> = ({ personaId, o
                                     </svg>
                                     손금을 읽는 중...
                                 </span>
-                            ) : '🖐 손금 분석 시작'}
+                            ) : `🖐 손금 분석 시작${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
                         </button>
                     )}
                 </div>

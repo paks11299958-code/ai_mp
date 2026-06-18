@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, Camera, ChevronLeft, Volume2, VolumeX, Loader, RotateCcw, Trash2, CheckCircle, XCircle, Clock, BookOpen, Sparkles } from 'lucide-react';
 import { HelpButton } from './HelpButton';
+import { usePoints } from '../contexts/PointsContext';
 
 // ── 타입 ─────────────────────────────────────────────────
 
@@ -132,6 +133,8 @@ function useTTS() {
 // ── 메인 컴포넌트 ─────────────────────────────────────────
 
 export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('mathtutor');
     const [history, setHistory] = useState<MathResult[]>([]);
     const [selected, setSelected] = useState<MathResult | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
@@ -173,6 +176,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
 
     const generateProblems = useCallback(async () => {
         if (!genGrade || !genSubject || !genChapter || genLoading) return;
+        if (!requirePoints('mathtutor')) return;
         setGenLoading(true); setGenError(null); setProblemSet(null); setOpenAnswers(new Set());
         try {
             const res = await apiFetch<{ id: number; problems: MathProblem[] }>(API('/generate'), {
@@ -182,7 +186,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
             setProblemSet(res);
         } catch (e: any) { setGenError(e.message || '문제 생성에 실패했어요.'); }
         finally { setGenLoading(false); }
-    }, [genGrade, genSubject, genChapter, genCount, genLoading]);
+    }, [genGrade, genSubject, genChapter, genCount, genLoading, requirePoints]);
 
     const downloadDocx = useCallback(async () => {
         if (!problemSet || docxLoading) return;
@@ -261,6 +265,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
 
     const handleFileSelect = useCallback(async (files: FileList | null) => {
         if (!files || !files[0]) return;
+        if (!requirePoints('mathtutor')) return;
         const compressed = await compressImage(files[0]);
         setSelected(null);
         setError(null);
@@ -288,7 +293,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [requirePoints]);
 
     const handleAnalyze = useCallback(async () => {
         if (!file) return;
@@ -497,7 +502,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                                 <button onClick={generateProblems} disabled={genLoading}
                                     style={{ background: 'linear-gradient(135deg,#FF6B9D,#C44FD8)' }}
                                     className="w-full mt-3 py-3 rounded-2xl text-white text-sm font-bold shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
-                                    {genLoading ? <><Loader size={16} className="animate-spin" /> AI쌤이 문제를 만들고 있어요…</> : <><Sparkles size={16} /> 문제 {genCount}개 만들기</>}
+                                    {genLoading ? <><Loader size={16} className="animate-spin" /> AI쌤이 문제를 만들고 있어요…</> : <><Sparkles size={16} /> 문제 {genCount}개 만들기{cost != null && ` · ${cost.toLocaleString()}pt`}</>}
                                 </button>
                             </div>
                         )}

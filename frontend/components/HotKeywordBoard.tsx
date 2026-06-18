@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, ShoppingBag, Mail, MessageSquare, CheckCircle, Loader, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { usePoints } from '../contexts/PointsContext';
 
 interface Category {
     code: string;
@@ -34,6 +35,8 @@ const T = {
 };
 
 export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone }) => {
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('hot-keyword');
     const [step, setStep] = useState<Step>('select');
     const [categories, setCategories] = useState<Category[]>([]);
     const [selected, setSelected] = useState<Category[]>([]);
@@ -69,6 +72,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
     const handleSend = async () => {
         if ((deliveryMethod === 'email' || deliveryMethod === 'both') && !email.trim()) { setError('이메일을 입력해주세요.'); return; }
         if ((deliveryMethod === 'sms' || deliveryMethod === 'both') && !phone.trim()) { setError('전화번호를 입력해주세요.'); return; }
+        if (!requirePoints('hot-keyword')) return;
         setError(''); setStep('sending');
         const parsedCategories = selected.map(cat => ({
             code: cat.code, name: cat.name, emoji: cat.emoji,
@@ -216,7 +220,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
                                 </button>
                                 <button onClick={handleSend}
                                     style={{ flex: 1, padding: '11px 0', borderRadius: 12, background: T.orange, border: 'none', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer' }}>
-                                    지금 받기
+                                    지금 받기{cost != null && ` · ${cost.toLocaleString()}pt`}
                                 </button>
                             </div>
                         </>

@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { faceReadingApi, FaceReadingResult } from '../services/apiService';
+import { usePoints } from '../contexts/PointsContext';
 
 interface FaceReadingModalProps {
     personaId: string;
@@ -9,6 +10,8 @@ interface FaceReadingModalProps {
 }
 
 export const FaceReadingModal: React.FC<FaceReadingModalProps> = ({ personaId, onResult, onPointsUpdated, onClose }) => {
+    const { priceOf, requirePoints } = usePoints();
+    const cost = priceOf('face');
     const [preview, setPreview] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState<string>('image/jpeg');
     const [base64, setBase64] = useState<string | null>(null);
@@ -36,6 +39,7 @@ export const FaceReadingModal: React.FC<FaceReadingModalProps> = ({ personaId, o
 
     const handleAnalyze = async () => {
         if (!base64) return;
+        if (!requirePoints('face')) return;
         setAnalyzing(true);
         setError(null);
         try {
@@ -148,7 +152,7 @@ export const FaceReadingModal: React.FC<FaceReadingModalProps> = ({ personaId, o
                                     </svg>
                                     관상을 읽는 중...
                                 </span>
-                            ) : '🔮 관상 분석 시작'}
+                            ) : `🔮 관상 분석 시작${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
                         </button>
                     )}
                 </div>
