@@ -242,6 +242,16 @@ ALTER TABLE "Persona" ADD COLUMN IF NOT EXISTS "features" TEXT;  -- 2026-06-02, 
 ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "scheduledHour" INTEGER;  -- 2026-06-10, 전자책 자료수집 새벽 예약
 ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "author" TEXT;            -- 2026-06-10, 저자명
 ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "coverUrl" TEXT;          -- 2026-06-11, 표지 이미지 URL(gpt-image)
+ALTER TABLE "EbookProject" ADD COLUMN IF NOT EXISTS "charged" BOOLEAN NOT NULL DEFAULT false;  -- 2026-06-18, 본문 차감 1회 플래그(.docx 받을 때 차감)
+
+-- 2026-06-18: 무료였던 웹툰·모임·전자책 차감 기능화
+-- 웹툰 회차 첫 열람 기록(있으면 재열람 무료)
+CREATE TABLE IF NOT EXISTS "WebtoonView" (
+  id SERIAL PRIMARY KEY, "userId" INTEGER NOT NULL, "webtoonId" INTEGER NOT NULL,
+  "viewedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "WebtoonView_user_webtoon_unique" UNIQUE ("userId","webtoonId")
+);
+-- MenuLimit 단가: webtoon/club 100pt, ebook 500pt (× USER·MANAGE·ADMIN). 어드민 메뉴권한 탭에서 조정.
 
 -- User phone 컬럼
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
