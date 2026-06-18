@@ -22,9 +22,23 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [result, setResult] = useState<HairMatchResult | null>(null);
     const [resultImage, setResultImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [hairBusy, setHairBusy] = useState(false);          // 합성 혼잡 신호등(🔴)
+    const [busyRetrySec, setBusyRetrySec] = useState(0);
     const fileRef = useRef<HTMLInputElement>(null);
 
     const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', '윤채린이 어울림을 진단하고 있어요'];
+
+    // 합성 가능 상태 신호등 — 15초마다 폴링(결과 화면일 땐 멈춤)
+    useEffect(() => {
+        if (result) return;
+        let alive = true;
+        const poll = () => hairApi.status()
+            .then(s => { if (alive) { setHairBusy(s.status === 'busy'); setBusyRetrySec(s.retryAfterSec); } })
+            .catch(() => {});
+        poll();
+        const id = setInterval(poll, 15000);
+        return () => { alive = false; clearInterval(id); };
+    }, [result]);
 
     useEffect(() => {
         setStyles(null); setSelected(null);
@@ -138,6 +152,29 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                     <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, color: T.inkMute, cursor: 'pointer' }}>✕</button>
                 </div>
 
+                {/* 합성 상태 신호등 (입력 화면에서만) */}
+                {!result && (
+                    <div style={{
+                        display: 'flex', alignItems: 'center', gap: 7, marginBottom: 14,
+                        padding: '8px 12px', borderRadius: 12,
+                        background: hairBusy ? 'rgba(217,83,79,0.08)' : 'rgba(76,175,120,0.08)',
+                        border: `1px solid ${hairBusy ? 'rgba(217,83,79,0.3)' : 'rgba(76,175,120,0.3)'}`,
+                    }}>
+                        <span style={{
+                            width: 9, height: 9, borderRadius: '50%',
+                            background: hairBusy ? '#D9534F' : '#4CAF78',
+                            boxShadow: `0 0 6px ${hairBusy ? '#D9534F' : '#4CAF78'}`,
+                            animation: hairBusy ? 'hair-blink 1s ease-in-out infinite' : undefined,
+                        }} />
+                        <span style={{ fontSize: 12, fontWeight: 600, color: hairBusy ? '#B5453F' : '#3C8B5E' }}>
+                            {hairBusy
+                                ? `지금 합성 요청이 많아요 — 잠시 후 자동으로 확인돼요${busyRetrySec > 0 ? ` (~${busyRetrySec}초)` : ''}`
+                                : '지금 원활해요 — 바로 합성할 수 있어요'}
+                        </span>
+                        <style>{`@keyframes hair-blink { 50% { opacity: 0.3; } }`}</style>
+                    </div>
+                )}
+
                 {result ? (
                     /* ── 결과 화면 ── */
                     <div>
@@ -242,12 +279,12 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
                         {error && <div style={{ fontSize: 13, color: '#D9534F', marginBottom: 10, textAlign: 'center' }}>{error}</div>}
 
-                        <button onClick={handleAnalyze} disabled={analyzing} style={{
+                        <button onClick={handleAnalyze} disabled={analyzing || hairBusy} style={{
                             width: '100%', padding: '14px', borderRadius: 14, border: 'none',
-                            background: analyzing ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
-                            color: '#fff', fontWeight: 700, fontSize: 15, cursor: analyzing ? 'default' : 'pointer',
+                            background: (analyzing || hairBusy) ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                            color: '#fff', fontWeight: 700, fontSize: 15, cursor: (analyzing || hairBusy) ? 'default' : 'pointer',
                         }}>
-                            {analyzing ? '합성 + 진단 중… (10초쯤) 💭' : '✨ 합성하고 진단받기'}
+                            {analyzing ? '합성 + 진단 중… (10초쯤) 💭' : hairBusy ? '⏳ 합성 대기 중… 잠시만요' : '✨ 합성하고 진단받기'}
                         </button>
                     </div>
                 )}

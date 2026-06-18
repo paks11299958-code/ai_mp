@@ -432,6 +432,8 @@ export interface HairMatchResult { unclear?: boolean; faceShape: string; match: 
 export const hairApi = {
     styles: (gender?: 'male' | 'female') =>
         get<HairStyle[]>(`/hair/styles${gender ? `?gender=${gender}` : ''}`),
+    // 합성 가능 상태(신호등) — 폴링용
+    status: () => get<{ status: 'ok' | 'busy'; retryAfterSec: number }>('/hair/status'),
     analyze: (imageBase64: string, mimeType: string, hairStyleId: number, personaId?: string) =>
         post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
 };
