@@ -282,7 +282,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                             <button
                                 type="submit"
                                 disabled={uploading || !files.length}
-                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 disabled:opacity-40 text-[#2D2438] text-xs font-medium transition-colors"
+                                className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-purple-700 hover:bg-purple-600 disabled:opacity-40 text-white text-xs font-semibold transition-colors"
                             >
                                 {uploading
                                     ? <><Loader size={13} className="animate-spin" /> 업로드 중...</>
