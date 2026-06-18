@@ -199,6 +199,9 @@ const FEATURE_LABELS: Record<string, string> = {
     'mathtutor':  'AI쌤 수학(풀이·출제)',
     'hair':       '헤어스타일 진단',
     'golf':       '골프 스윙 분석',
+    'webtoon':    '웹툰 보기',
+    'club':       '모임(출첵)',
+    'ebook':      '전자책 만들기',
 };
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
@@ -208,6 +211,7 @@ const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
     'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
+    'webtoon': 0, 'club': 0, 'ebook': 1,
 };
 const PT_TO_KRW = 1;   // 1pt = 1원 (2026-06-17 전환)
 
@@ -303,7 +307,7 @@ const MenuLimitsPanel: React.FC = () => {
                 </div>
                 <div className="bg-gray-800/50 border border-gray-700/40 rounded-lg px-3 py-2">
                     <p className="text-[11px] text-gray-400 font-semibold mb-0.5">🆓 무료 기능 (차감 없음)</p>
-                    <p className="text-[11px] text-gray-500">웹툰 보기 · 모임(출첵) · 전자책 만들기</p>
+                    <p className="text-[11px] text-gray-500">없음 (전 기능 차감)</p>
                 </div>
             </div>
 
