@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Newspaper, Volume2, VolumeX, Loader, RefreshCw, Play, Square } from 'lucide-react';
+import { X, Newspaper, Volume2, VolumeX, Loader, RefreshCw } from 'lucide-react';
 
 interface Props {
     onClose: () => void;
@@ -174,17 +174,6 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     const [collectedAt, setCollectedAt] = useState<string | null>(null);
     const { speaking, ttsLoading, speakCategory, stop, prime } = useTTS();
 
-    // 'All' 순차 재생 상태
-    const [allPlaying, setAllPlaying] = useState(false);
-    const allActiveRef = useRef(false);
-
-    const cancelAll = useCallback(() => {
-        if (allActiveRef.current) {
-            allActiveRef.current = false;
-            setAllPlaying(false);
-        }
-    }, []);
-
     // mount 시 가용 슬롯 조회 → 가용 슬롯 중 최신(마지막)을 선택. 오후뉴스 제거 후엔 항상 am.
     useEffect(() => {
         fetch('/api/news/status', { credentials: 'include', headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
@@ -226,48 +215,15 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
     useEffect(() => { fetchCategory(activeKey, slot); }, [activeKey, slot]);
 
     const handleTab = (key: string) => {
-        cancelAll();
         if (key !== activeKey) stop();
         setActiveKey(key);
         fetchCategory(key, slot);
     };
 
     const handleSlot = (s: 'am' | 'pm') => {
-        if (s !== slot) { cancelAll(); stop(); setSlot(s); }
+        if (s !== slot) { stop(); setSlot(s); }
     };
 
-    // 전체 듣기: 모든 카테고리를 순차적으로 TTS 재생
-    const handleAllToggle = useCallback(async () => {
-        if (allActiveRef.current) {
-            allActiveRef.current = false;
-            setAllPlaying(false);
-            stop();
-            return;
-        }
-        allActiveRef.current = true;
-        setAllPlaying(true);
-        prime(); // 클릭 제스처 시점에 audio 언락(모바일 autoplay 차단 방지)
-
-        for (const cat of CATEGORIES) {
-            if (!allActiveRef.current) break;
-            setActiveKey(cat.key);
-            // 카테고리 데이터 보장 (캐시 미스 시 fetch)
-            try { await fetchCategory(cat.key, slot); } catch {}
-            if (!allActiveRef.current) break;
-
-            // 재생 종료까지 대기 (에러/캐시 미스 시에도 다음 카테고리로 진행)
-            await new Promise<void>((resolve) => {
-                if (!allActiveRef.current) { resolve(); return; }
-                speakCategory(cat.key, slot, () => resolve());
-            });
-        }
-
-        allActiveRef.current = false;
-        setAllPlaying(false);
-    }, [slot, fetchCategory, speakCategory, stop, prime]);
-
-    // 언마운트 시 All 재생도 안전하게 중단
-    useEffect(() => () => { allActiveRef.current = false; }, []);
 
     const cacheKey = `${slot}:${activeKey}`;
     const current = newsMap[cacheKey];
@@ -318,7 +274,6 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                         {current && (
                             <button
                                 onClick={() => {
-                                    cancelAll();
                                     speaking ? stop() : speakCategory(activeKey, slot);
                                 }}
                                 disabled={ttsLoading}
@@ -350,41 +305,6 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
                             >
                                 {ttsLoading ? <Loader size={14} style={{ animation: 'spin 1s linear infinite' }} /> : speaking ? <VolumeX size={14} /> : <Volume2 size={14} />}
                                 {ttsLoading ? '준비중' : speaking ? '중지' : '음성'}
-                            </button>
-                        )}
-                        {current && (
-                            <button
-                                onClick={handleAllToggle}
-                                disabled={ttsLoading && !allPlaying}
-                                onMouseEnter={(e) => {
-                                    if (ttsLoading && !allPlaying) return;
-                                    e.currentTarget.style.filter = 'brightness(0.92)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.filter = 'none';
-                                }}
-                                title={allPlaying ? '전체 듣기 정지' : '전체 듣기'}
-                                style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                                    fontSize: 12, padding: '8px 14px',
-                                    minHeight: 40, minWidth: 64,
-                                    borderRadius: 999,
-                                    border: allPlaying
-                                        ? '1px solid #8E6FB7'
-                                        : '1px solid #D1D5DB',
-                                    background: allPlaying ? '#8E6FB7' : '#E5E7EB',
-                                    color: allPlaying ? '#FFFFFF' : '#6B7280',
-                                    cursor: (ttsLoading && !allPlaying) ? 'not-allowed' : 'pointer',
-                                    opacity: (ttsLoading && !allPlaying) ? 0.5 : 1,
-                                    fontWeight: 700,
-                                    boxShadow: allPlaying
-                                        ? '0 2px 10px rgba(142, 111, 183, 0.45)'
-                                        : 'none',
-                                    transition: 'all 0.2s ease',
-                                }}
-                            >
-                                {allPlaying ? <Square size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
-                                All
                             </button>
                         )}
                         <button
