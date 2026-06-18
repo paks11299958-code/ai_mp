@@ -46,9 +46,11 @@ XP 레벨 기준 → [points_payment.md](points_payment.md) 참조
 ## PointTransaction
 ```
 id, userId, amount, type(String), description
+orderId(String? @unique, 2026-06-17 — 충전 중복결제 DB 차단)
 personaId, balanceAfter, createdAt
-type 값: CHAT | SIGNUP | LEVELUP | ADMIN | BALLOON | CHARGE | MENU | REFERRAL(예정)
+type 값: CHAT | SIGNUP | LEVELUP | ADMIN | BALLOON | STAR | MISSION | CHARGE | MENU | REFERRAL(예정)
 ```
+- 차감 단가는 MenuLimit(feature×role) — 어드민 메뉴권한 탭 관리. 상세 points_payment.md
 
 ## UserMemory
 ```
@@ -153,6 +155,15 @@ DevRequest:    id, request(개발 요청문), source, status(pending|processing|
 - AiFeatureIdea: 스카우트(rag/ai_feature_scout.py)가 매일 저장 → 어드민 'AI 아이디어' 탭 조회
 - DevRequest: 어드민 '개발 요청' 버튼 → 큐 적재 → 서버2 dev_request_worker가 폴링→hermes.run 위임
 - 둘 다 aichat DB, 서버1 raw SQL. 상세 메모리 project_ai_feature_scout
+
+## HairStyle (윤채린 헤어스타일 진단, 2026-06-16)
+```
+id, styleKey(유니크: f_bob/m_twoblock 등), name(단발 보브), gender('male'|'female'),
+imageUrl(Imagen 견본 GCS URL), promptEn(영문 헤어설명=어울림분석·합성 참고), description, order, isVisible, createdAt
+@@index([gender, order])
+```
+- 견본은 imagen-3.0-generate-002로 생성(남8/여8)→GCS `hairstyles/`. 합성결과는 GCS `hair-tryon/`(DB 저장 안 함).
+- 백엔드 GET /hair/styles(목록) + POST /hair/analyze(진단+합성). 상세 메모리 project_hair_styling
 
 ## UsedItemListing
 ```
