@@ -17,6 +17,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [preview, setPreview] = useState<string | null>(null);
     const [base64, setBase64] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState('image/jpeg');
+    const [currentAge, setCurrentAge] = useState('');
 
     const [generating, setGenerating] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
@@ -56,7 +57,8 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
         // 4장 순차 생성 체감용 단계 표시(서버가 순차 생성, 장당 ~9초)
         const timers = [1, 2, 3].map((i) => setTimeout(() => setLoadingStep(i), i * 9000));
         try {
-            const { images: imgs, succeeded } = await ageTransformApi.generate(base64, mimeType);
+            const ageNum = currentAge ? Number(currentAge) : undefined;
+            const { images: imgs, succeeded } = await ageTransformApi.generate(base64, mimeType, ageNum);
             timers.forEach(clearTimeout);
             if (!succeeded) { setError('이미지 생성에 실패했어요. 다시 시도해 주세요.'); return; }
             setImages(imgs);
@@ -145,6 +147,24 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                             </div>
                             <input ref={fileRef} type="file" accept="image/*" className="hidden"
                                 onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+
+                            {/* 현재 나이 입력 — 변환 기준점(정확도↑). 사진 올린 뒤 노출. */}
+                            {preview && (
+                                <div className="flex items-center gap-2 bg-[#FAF7FC] border border-[#EADBF5] rounded-xl px-3 py-2.5">
+                                    <label className="text-sm text-[#5C5468] font-medium whitespace-nowrap">현재 나이</label>
+                                    <input
+                                        type="number" inputMode="numeric" min={1} max={119}
+                                        value={currentAge}
+                                        onChange={e => setCurrentAge(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+                                        placeholder="예: 32"
+                                        className="flex-1 min-w-0 text-sm bg-white rounded-lg px-3 py-1.5 text-[#2D2438] border border-[#EADBF5] focus:outline-none focus:border-[#9B5FA8]"
+                                    />
+                                    <span className="text-xs text-[#9089A1] whitespace-nowrap">살</span>
+                                </div>
+                            )}
+                            {preview && (
+                                <p className="text-[11px] text-[#9089A1] -mt-2 px-1">나이를 알려주면 더 자연스럽게 변환돼요 (선택)</p>
+                            )}
 
                             <button
                                 onClick={handleGenerate}
