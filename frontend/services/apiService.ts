@@ -438,6 +438,17 @@ export const hairApi = {
         post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
 };
 
+// ── 나이 변환(윤채린) ──
+export const ageTransformApi = {
+    // 4개 나이대 이미지 생성(DB 저장 안 함). { images: {"10s":url,...}, succeeded }
+    generate: (imageBase64: string, mimeType: string) =>
+        post<{ images: Record<string, string>; total: number; succeeded: number }>('/age-transform/generate', { imageBase64, mimeType }),
+    // 생성 결과 저장 + 차감
+    save: (images: Record<string, string>, originalUrl?: string) =>
+        post<{ id: number; saved: boolean; newBalance?: number }>('/age-transform/save', { images, originalUrl }),
+    list: () => get<{ id: number; originalUrl: string | null; images: Record<string, string>; createdAt: string }[]>('/age-transform'),
+};
+
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {
     lifeLine: string;

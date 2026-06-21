@@ -34,6 +34,7 @@ import { LuxuryBoard } from './components/LuxuryBoard';
 import { InsuranceBoard } from './components/InsuranceBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { HairStyleBoard } from './components/HairStyleBoard';
+import { AgeTransformBoard } from './components/AgeTransformBoard';
 import { WebtoonEpisodeList } from './components/WebtoonEpisodeList';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { MathTutorBoard } from './components/MathTutorBoard';
@@ -225,6 +226,7 @@ const AppContent: React.FC = () => {
     // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal) — 훅은 조건부 return보다 위에 있어야 함
     const [showEbookBoard, setShowEbookBoard] = useState(false);
     const [showHairBoard, setShowHairBoard] = useState(false);
+    const [showAgeBoard, setShowAgeBoard] = useState(false);
     const [showWebtoon, setShowWebtoon] = useState(false);
 
     // 공지사항
@@ -944,6 +946,7 @@ const AppContent: React.FC = () => {
         ebook: () => setShowEbookBoard(true),
         webtoon: () => setShowWebtoon(true),
         hair: () => setShowHairBoard(true),
+        agetransform: () => setShowAgeBoard(true),
     };
 
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
@@ -1215,6 +1218,11 @@ const AppContent: React.FC = () => {
                 {showHairBoard && (
                     <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                         <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
+                    </ErrorBoundary>
+                )}
+                {showAgeBoard && (
+                    <ErrorBoundary label="나이 변환 화면 오류" onClose={() => setShowAgeBoard(false)}>
+                        <AgeTransformBoard personaId={activePersona?.id} onClose={() => setShowAgeBoard(false)} />
                     </ErrorBoundary>
                 )}
                 {showTodayNews && (
@@ -1555,6 +1563,11 @@ const AppContent: React.FC = () => {
             {showHairBoard && (
                 <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                     <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
+                </ErrorBoundary>
+            )}
+            {showAgeBoard && (
+                <ErrorBoundary label="나이 변환 화면 오류" onClose={() => setShowAgeBoard(false)}>
+                    <AgeTransformBoard personaId={activePersona?.id} onClose={() => setShowAgeBoard(false)} />
                 </ErrorBoundary>
             )}
 
