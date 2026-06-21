@@ -260,7 +260,7 @@ CREATE TABLE IF NOT EXISTS "AgeTransform" (
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS "AgeTransform_userId_idx" ON "AgeTransform"("userId");
--- MenuLimit agetransform 400pt (× 3역할).
+-- MenuLimit agetransform 100pt (개당, × 3역할). imagesJson={"42":url,"60":url,...} 목표나이 키.
 
 -- User phone 컬럼
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
