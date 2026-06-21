@@ -269,21 +269,24 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                             {/* Before(원본) → After(미래) 드래그 비교 */}
                             {images[selected] ? (
                                 <>
-                                    <div className="relative rounded-xl overflow-hidden bg-[#F8F4FB] border border-[#EADBF5] select-none">
-                                        {/* After (전체) */}
-                                        <img src={images[selected]} alt="미래" className="w-full object-contain max-h-[50vh] block" draggable={false} />
-                                        {/* Before (원본)을 위에 덮고 compare%만큼 보여줌 */}
+                                    {/* 두 이미지를 같은 고정 비율 박스 안에 동일하게 겹쳐 cover로 채움(여백 없음).
+                                        왼쪽 compare%는 '지금', 오른쪽은 미래. 구분선·핸들로 드래그 위치 표시. */}
+                                    <div className="relative w-full aspect-[3/4] max-h-[46vh] mx-auto rounded-xl overflow-hidden bg-black select-none">
+                                        {/* After (미래) — 배경 전체 */}
+                                        <img src={images[selected]} alt="미래" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                                        {/* Before (지금)을 왼쪽 compare%만큼 잘라서 위에 덮음. 이미지 자체는 같은 박스 크기라 정확히 정렬됨 */}
                                         {preview && (
-                                            <div className="absolute inset-0 overflow-hidden" style={{ width: `${compare}%` }}>
-                                                <img src={preview} alt="현재" className="h-full w-auto max-w-none object-cover" draggable={false}
-                                                    style={{ width: `${100 / (compare / 100)}%`, maxWidth: 'none' }} />
+                                            <div className="absolute inset-0 overflow-hidden" style={{ clipPath: `inset(0 ${100 - compare}% 0 0)` }}>
+                                                <img src={preview} alt="현재" className="absolute inset-0 w-full h-full object-cover" draggable={false} />
                                             </div>
                                         )}
                                         {/* 라벨 */}
                                         <span className="absolute top-2 left-2 text-[10px] font-bold text-white bg-black/40 rounded px-1.5 py-0.5">지금</span>
                                         <span className="absolute top-2 right-2 text-[10px] font-bold text-white bg-[#9B5FA8]/80 rounded px-1.5 py-0.5">{selected}세</span>
-                                        {/* 구분선 */}
-                                        <div className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none" style={{ left: `${compare}%` }} />
+                                        {/* 구분선 + 핸들 */}
+                                        <div className="absolute top-0 bottom-0 w-0.5 bg-white shadow-[0_0_4px_rgba(0,0,0,0.4)] pointer-events-none" style={{ left: `${compare}%` }}>
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white shadow-md flex items-center justify-center text-[#9B5FA8] text-xs">↔</div>
+                                        </div>
                                     </div>
                                     <input type="range" min={0} max={100} value={compare}
                                         onChange={e => setCompare(Number(e.target.value))}
