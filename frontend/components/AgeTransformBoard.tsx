@@ -9,7 +9,18 @@ interface Props {
     onClose: () => void;
 }
 
-// 적응형: 서버가 현재 나이 맞춰 목표나이 3개(ages)를 줌. 키=목표나이 문자열. 라벨="N년 후".
+// 나이대별 목표나이 3개(백엔드 표와 동일). 사용자가 이 중 골라서(최대 3개) 생성.
+function futureTargetAges(age: number): number[] {
+    const decade = Math.floor(age / 10) * 10;
+    const TABLE: Record<number, number[]> = {
+        10: [30, 50, 80], 20: [40, 60, 80], 30: [40, 60, 80], 40: [50, 70, 80],
+        50: [60, 70, 80], 60: [70, 80, 90], 70: [80, 85, 90],
+    };
+    const targets = TABLE[decade] ?? (decade >= 80 ? [85, 90, 95] : TABLE[70]);
+    const seen = new Set<number>();
+    return targets.map(t => Math.min(95, t)).filter(t => t > age && !seen.has(t) && seen.add(t)).sort((a, b) => a - b);
+}
+const UNIT_PT = 100;  // 개당 단가(표시용; 실제 차감은 서버 DB)
 const yearsLabel = (targetAge: number, age: number) => `${targetAge - age}년 후`;
 
 export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
@@ -17,8 +28,14 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [base64, setBase64] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [currentAge, setCurrentAge] = useState('');
+    const [picks, setPicks] = useState<number[]>([]);  // 사용자가 고른 미래 나이들(최대 3)
     const [usedAge, setUsedAge] = useState(0);  // 생성에 쓴 현재 나이(결과 라벨 계산용)
     const [ages, setAges] = useState<number[]>([]);  // 서버가 준 목표 나이들(오름차순)
+
+    // 현재 나이 기준 선택 가능한 미래 나이 3개(없으면 빈 배열)
+    const ageNum = Number(currentAge);
+    const options = (currentAge && Number.isFinite(ageNum) && ageNum > 0 && ageNum < 120) ? futureTargetAges(ageNum) : [];
+    const togglePick = (a: number) => setPicks(p => p.includes(a) ? p.filter(x => x !== a) : (p.length >= 3 ? p : [...p, a]));
 
     const [generating, setGenerating] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
@@ -30,7 +47,6 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [error, setError] = useState<string | null>(null);
 
     const fileRef = useRef<HTMLInputElement>(null);
-    const LOADING_MSGS = ['가까운 미래를 그리는 중이에요', '중년의 모습을 그리는 중이에요', '노년의 모습을 그리는 중이에요'];
 
     // 사진 업로드 + EXIF 회전 보정(헤어 패턴)
     const handleFile = async (file: File) => {
@@ -56,15 +72,16 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
 
     const handleGenerate = async () => {
         if (!base64) { setError('먼저 사진을 올려주세요.'); return; }
-        const ageNum = Number(currentAge);
         if (!currentAge || !Number.isFinite(ageNum) || ageNum <= 0 || ageNum >= 120) {
             setError('현재 나이를 입력해 주세요.'); return;
         }
+        if (picks.length === 0) { setError('볼 나이를 1개 이상 선택해 주세요.'); return; }
         setGenerating(true); setError(null); setLoadingStep(0);
-        // 3장 순차 생성 체감용 단계 표시(장당 ~9초)
-        const timers = [1, 2].map((i) => setTimeout(() => setLoadingStep(i), i * 9000));
+        // 선택 개수만큼 순차 생성 체감 단계(장당 ~9초)
+        const timers = Array.from({ length: picks.length - 1 }, (_, k) => k + 1)
+            .map((i) => setTimeout(() => setLoadingStep(i), i * 9000));
         try {
-            const { images: imgs, ages: targetAges, succeeded } = await ageTransformApi.generate(base64, mimeType, ageNum);
+            const { images: imgs, ages: targetAges, succeeded } = await ageTransformApi.generate(base64, mimeType, ageNum, picks);
             timers.forEach(clearTimeout);
             if (!succeeded) { setError('이미지 생성에 실패했어요. 다시 시도해 주세요.'); return; }
             setUsedAge(ageNum);
@@ -114,23 +131,23 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                             {preview && <img src={preview} alt="" className="w-24 h-24 rounded-full object-cover" />}
                             <div className="absolute -inset-1.5 rounded-full border-[3px] border-[#EADBF5] border-t-[#9B5FA8] animate-spin" />
                         </div>
-                        <p className="text-sm font-bold text-[#2D2438] mb-1">{LOADING_MSGS[loadingStep]}</p>
+                        <p className="text-sm font-bold text-[#2D2438] mb-1">{picks[loadingStep] ? `${picks[loadingStep]}세 모습을 그리는 중이에요` : '마무리하는 중이에요'}</p>
                         <p className="text-xs text-[#9089A1] mb-4">윤채린이 시간을 돌리고 있어요… 🕰️</p>
 
                         {/* 진행바 */}
                         <div className="w-full max-w-[240px] h-2 rounded-full bg-[#F0E9DE] overflow-hidden mb-4">
                             <div className="h-full bg-[#9B5FA8] rounded-full transition-all duration-700"
-                                style={{ width: `${Math.round(((loadingStep + 1) / 3) * 100)}%` }} />
+                                style={{ width: `${Math.round(((loadingStep + 1) / Math.max(1, picks.length)) * 100)}%` }} />
                         </div>
 
-                        {/* 3단계 체크리스트 */}
+                        {/* 선택 개수만큼 체크리스트 */}
                         <div className="flex gap-2">
-                            {['가까운 미래', '중년', '노년'].map((lbl, i) => (
-                                <div key={lbl} className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                            {picks.map((a, i) => (
+                                <div key={a} className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
                                     i < loadingStep ? 'text-[#9B5FA8]' : i === loadingStep ? 'text-[#9B5FA8] bg-[#F3E9F4]' : 'text-[#C9BEDB]'
                                 }`}>
                                     <span className="text-base leading-none">{i < loadingStep ? '✓' : i === loadingStep ? '⏳' : '○'}</span>
-                                    {lbl}
+                                    {a}세
                                 </div>
                             ))}
                         </div>
@@ -164,23 +181,43 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                     <input
                                         type="number" inputMode="numeric" min={1} max={119}
                                         value={currentAge}
-                                        onChange={e => setCurrentAge(e.target.value.replace(/[^0-9]/g, '').slice(0, 3))}
+                                        onChange={e => { setCurrentAge(e.target.value.replace(/[^0-9]/g, '').slice(0, 3)); setPicks([]); }}
                                         placeholder="예: 32"
                                         className="flex-1 min-w-0 text-sm bg-white rounded-lg px-3 py-1.5 text-[#2D2438] border border-[#EADBF5] focus:outline-none focus:border-[#9B5FA8]"
                                     />
                                     <span className="text-xs text-[#9089A1] whitespace-nowrap">살</span>
                                 </div>
                             )}
-                            {preview && (
-                                <p className="text-[11px] text-[#9089A1] -mt-2 px-1">나이를 기준으로 10·20·30·40년 후 모습을 만들어요</p>
+
+                            {/* 볼 미래 나이 선택(최대 3개) — 나이 입력하면 칩 등장 */}
+                            {options.length > 0 && (
+                                <div>
+                                    <p className="text-[11px] text-[#9089A1] mb-1.5 px-1">보고 싶은 미래를 골라주세요 (최대 3개)</p>
+                                    <div className="flex gap-2">
+                                        {options.map(a => {
+                                            const on = picks.includes(a);
+                                            return (
+                                                <button key={a} onClick={() => togglePick(a)}
+                                                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold leading-tight border transition-colors ${
+                                                        on ? 'bg-[#9B5FA8] text-white border-[#9B5FA8]' : 'bg-white text-[#8a5296] border-[#EADBF5]'
+                                                    }`}>
+                                                    {on ? '✓ ' : ''}{a}세<br />
+                                                    <span className="text-[10px] font-medium opacity-80">{yearsLabel(a, ageNum)}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             )}
 
                             <button
                                 onClick={handleGenerate}
-                                disabled={!base64 || !currentAge || generating}
+                                disabled={!base64 || picks.length === 0 || generating}
                                 className="w-full py-3 rounded-xl bg-[#9B5FA8] hover:bg-[#8a5296] text-white text-sm font-semibold disabled:opacity-40 transition-colors"
                             >
-                                {generating ? '변환 중…' : '🕰️ 미래의 나 보기 · 400pt'}
+                                {generating ? '변환 중…'
+                                    : picks.length === 0 ? '🕰️ 볼 나이를 선택하세요'
+                                    : `🕰️ 미래의 나 보기 · ${picks.length}장 · ${picks.length * UNIT_PT}pt`}
                             </button>
                         </>
                     )}

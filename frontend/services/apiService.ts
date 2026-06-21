@@ -441,8 +441,8 @@ export const hairApi = {
 // ── 나이 변환(윤채린) ──
 export const ageTransformApi = {
     // 4개 나이대 이미지 생성(DB 저장 안 함). { images: {"10s":url,...}, succeeded }
-    generate: (imageBase64: string, mimeType: string, currentAge?: number) =>
-        post<{ images: Record<string, string>; currentAge: number; ages: number[]; total: number; succeeded: number }>('/age-transform/generate', { imageBase64, mimeType, currentAge }),
+    generate: (imageBase64: string, mimeType: string, currentAge: number, selectedAges: number[]) =>
+        post<{ images: Record<string, string>; currentAge: number; ages: number[]; total: number; succeeded: number }>('/age-transform/generate', { imageBase64, mimeType, currentAge, selectedAges }),
     // 생성 결과 저장 + 차감
     save: (images: Record<string, string>, originalUrl?: string) =>
         post<{ id: number; saved: boolean; newBalance?: number }>('/age-transform/save', { images, originalUrl }),
