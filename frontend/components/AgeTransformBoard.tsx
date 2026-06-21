@@ -1,33 +1,38 @@
 import React, { useRef, useState } from 'react';
 import { ageTransformApi } from '../services/apiService';
 
-// 윤채린 나이 변환: 내 사진 업로드 → 4개 나이대(10·30·50·70) 생성 → 슬라이더로 전환 → 저장/취소.
-// 헤어 합성 패턴 재활용(EXIF 보정·단계 로딩). 저장 눌러야 DB 확정, 취소하면 미저장.
+// 윤채린 "미래의 나": 내 사진+현재 나이 → 10·20·30·40년 후 모습 생성 → 슬라이더로 전환/Before·After 비교 → 저장/취소.
+// 과거(회춘)는 안 함(품질·수요). 헤어 합성 패턴 재활용(EXIF·단계로딩). 저장 눌러야 DB 확정.
 
 interface Props {
     personaId?: string;
     onClose: () => void;
 }
 
-const AGE_STEPS = ['10s', '30s', '50s', '70s'] as const;
-const AGE_LABEL: Record<string, string> = { '10s': '10대', '30s': '30대', '50s': '50대', '70s': '70대' };
-const LOADING_MSGS = ['10대 모습을 그리는 중이에요', '30대 모습을 그리는 중이에요', '50대 모습을 그리는 중이에요', '70대 모습을 그리는 중이에요'];
+const FUTURE_STEPS = ['+10', '+20', '+30', '+40'] as const;  // 백엔드 키와 일치
+const OFFSET: Record<string, number> = { '+10': 10, '+20': 20, '+30': 30, '+40': 40 };
+// 현재 나이 기준 라벨: "10년 후 (42세)"
+const stepLabel = (step: string, age: number) => `${OFFSET[step]}년 후`;
+const stepAge = (step: string, age: number) => age + OFFSET[step];
 
 export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [preview, setPreview] = useState<string | null>(null);
     const [base64, setBase64] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [currentAge, setCurrentAge] = useState('');
+    const [usedAge, setUsedAge] = useState(0);  // 생성에 쓴 현재 나이(결과 라벨 계산용)
 
     const [generating, setGenerating] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
     const [images, setImages] = useState<Record<string, string> | null>(null);  // 생성 결과(미저장)
-    const [selected, setSelected] = useState<string>('30s');
+    const [selected, setSelected] = useState<string>('+10');
+    const [compare, setCompare] = useState(50);  // Before/After 슬라이더 위치(%)
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fileRef = useRef<HTMLInputElement>(null);
+    const LOADING_MSGS = FUTURE_STEPS.map(s => `${OFFSET[s]}년 후 모습을 그리는 중이에요`);
 
     // 사진 업로드 + EXIF 회전 보정(헤어 패턴)
     const handleFile = async (file: File) => {
@@ -53,17 +58,22 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
 
     const handleGenerate = async () => {
         if (!base64) { setError('먼저 사진을 올려주세요.'); return; }
+        const ageNum = Number(currentAge);
+        if (!currentAge || !Number.isFinite(ageNum) || ageNum <= 0 || ageNum >= 120) {
+            setError('현재 나이를 입력해 주세요.'); return;
+        }
         setGenerating(true); setError(null); setLoadingStep(0);
         // 4장 순차 생성 체감용 단계 표시(서버가 순차 생성, 장당 ~9초)
         const timers = [1, 2, 3].map((i) => setTimeout(() => setLoadingStep(i), i * 9000));
         try {
-            const ageNum = currentAge ? Number(currentAge) : undefined;
             const { images: imgs, succeeded } = await ageTransformApi.generate(base64, mimeType, ageNum);
             timers.forEach(clearTimeout);
             if (!succeeded) { setError('이미지 생성에 실패했어요. 다시 시도해 주세요.'); return; }
+            setUsedAge(ageNum);
             setImages(imgs);
+            setCompare(50);
             // 생성된 것 중 첫 구간 선택
-            const first = AGE_STEPS.find(s => imgs[s]) ?? Object.keys(imgs)[0];
+            const first = FUTURE_STEPS.find(s => imgs[s]) ?? Object.keys(imgs)[0];
             setSelected(first);
         } catch (e: any) {
             timers.forEach(clearTimeout);
@@ -111,17 +121,17 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                         {/* 진행바 */}
                         <div className="w-full max-w-[240px] h-2 rounded-full bg-[#F0E9DE] overflow-hidden mb-4">
                             <div className="h-full bg-[#9B5FA8] rounded-full transition-all duration-700"
-                                style={{ width: `${Math.round(((loadingStep + 1) / AGE_STEPS.length) * 100)}%` }} />
+                                style={{ width: `${Math.round(((loadingStep + 1) / FUTURE_STEPS.length) * 100)}%` }} />
                         </div>
 
                         {/* 4구간 체크리스트 */}
                         <div className="flex gap-2">
-                            {AGE_STEPS.map((step, i) => (
+                            {FUTURE_STEPS.map((step, i) => (
                                 <div key={step} className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
                                     i < loadingStep ? 'text-[#9B5FA8]' : i === loadingStep ? 'text-[#9B5FA8] bg-[#F3E9F4]' : 'text-[#C9BEDB]'
                                 }`}>
                                     <span className="text-base leading-none">{i < loadingStep ? '✓' : i === loadingStep ? '⏳' : '○'}</span>
-                                    {AGE_LABEL[step]}
+                                    {OFFSET[step]}년 후
                                 </div>
                             ))}
                         </div>
@@ -129,7 +139,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                 )}
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#F0E9DE]">
-                    <h3 className="text-base font-bold text-[#2D2438]">🕰️ 나이 변환 <span className="text-xs text-[#9089A1] ml-1">AGE MORPH</span></h3>
+                    <h3 className="text-base font-bold text-[#2D2438]">🕰️ 미래의 나 <span className="text-xs text-[#9089A1] ml-1">FUTURE ME</span></h3>
                     <button onClick={onClose} className="text-[#9089A1] hover:text-[#2D2438] text-xl leading-none">✕</button>
                 </div>
 
@@ -163,50 +173,67 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
                             {preview && (
-                                <p className="text-[11px] text-[#9089A1] -mt-2 px-1">나이를 알려주면 더 자연스럽게 변환돼요 (선택)</p>
+                                <p className="text-[11px] text-[#9089A1] -mt-2 px-1">나이를 기준으로 10·20·30·40년 후 모습을 만들어요</p>
                             )}
 
                             <button
                                 onClick={handleGenerate}
-                                disabled={!base64 || generating}
+                                disabled={!base64 || !currentAge || generating}
                                 className="w-full py-3 rounded-xl bg-[#9B5FA8] hover:bg-[#8a5296] text-white text-sm font-semibold disabled:opacity-40 transition-colors"
                             >
-                                {generating ? '변환 중…' : '✨ 나이 변환하기 · 400pt'}
+                                {generating ? '변환 중…' : '🕰️ 미래의 나 보기 · 400pt'}
                             </button>
                         </>
                     )}
 
-                    {/* 2단계: 결과 — 슬라이더로 나이대 전환 */}
+                    {/* 2단계: 결과 — 미래 구간 탭 + Before/After 슬라이더 비교 */}
                     {images && (
                         <>
-                            <div className="flex gap-2 text-center mb-1">
-                                {AGE_STEPS.map(step => (
+                            <div className="flex gap-1.5 text-center mb-1">
+                                {FUTURE_STEPS.map(step => (
                                     <button
                                         key={step}
                                         disabled={!images[step]}
-                                        onClick={() => setSelected(step)}
-                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors disabled:opacity-30 ${
+                                        onClick={() => { setSelected(step); setCompare(50); }}
+                                        className={`flex-1 py-2 rounded-lg text-[11px] font-bold leading-tight transition-colors disabled:opacity-30 ${
                                             selected === step ? 'bg-[#9B5FA8] text-white' : 'bg-[#F3E9F4] text-[#8a5296]'
                                         }`}
                                     >
-                                        {AGE_LABEL[step]}
+                                        {stepLabel(step, usedAge)}<br />
+                                        <span className="text-[10px] font-medium opacity-80">{stepAge(step, usedAge)}세</span>
                                     </button>
                                 ))}
                             </div>
 
-                            {/* After (선택 나이대) */}
-                            <div className="rounded-xl overflow-hidden bg-[#F8F4FB] border border-[#EADBF5]">
-                                {images[selected]
-                                    ? <img src={images[selected]} alt={AGE_LABEL[selected]} className="w-full object-contain max-h-[50vh]" />
-                                    : <div className="py-16 text-center text-[#9089A1] text-sm">이 나이대는 생성하지 못했어요</div>}
-                            </div>
-                            <p className="text-center text-sm font-bold text-[#9B5FA8]">{AGE_LABEL[selected]}의 내 모습</p>
-
-                            {/* Before (원본) 작게 */}
-                            {preview && (
-                                <div className="flex items-center gap-2 justify-center text-xs text-[#9089A1]">
-                                    <img src={preview} alt="원본" className="w-12 h-12 rounded-lg object-cover" /> 원본
-                                </div>
+                            {/* Before(원본) → After(미래) 드래그 비교 */}
+                            {images[selected] ? (
+                                <>
+                                    <div className="relative rounded-xl overflow-hidden bg-[#F8F4FB] border border-[#EADBF5] select-none">
+                                        {/* After (전체) */}
+                                        <img src={images[selected]} alt="미래" className="w-full object-contain max-h-[50vh] block" draggable={false} />
+                                        {/* Before (원본)을 위에 덮고 compare%만큼 보여줌 */}
+                                        {preview && (
+                                            <div className="absolute inset-0 overflow-hidden" style={{ width: `${compare}%` }}>
+                                                <img src={preview} alt="현재" className="h-full w-auto max-w-none object-cover" draggable={false}
+                                                    style={{ width: `${100 / (compare / 100)}%`, maxWidth: 'none' }} />
+                                            </div>
+                                        )}
+                                        {/* 라벨 */}
+                                        <span className="absolute top-2 left-2 text-[10px] font-bold text-white bg-black/40 rounded px-1.5 py-0.5">지금</span>
+                                        <span className="absolute top-2 right-2 text-[10px] font-bold text-white bg-[#9B5FA8]/80 rounded px-1.5 py-0.5">{stepAge(selected, usedAge)}세</span>
+                                        {/* 구분선 */}
+                                        <div className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none" style={{ left: `${compare}%` }} />
+                                    </div>
+                                    <input type="range" min={0} max={100} value={compare}
+                                        onChange={e => setCompare(Number(e.target.value))}
+                                        className="w-full accent-[#9B5FA8]" />
+                                    <p className="text-center text-sm font-bold text-[#9B5FA8] -mt-1">
+                                        {stepLabel(selected, usedAge)}, {stepAge(selected, usedAge)}세의 나 🕰️
+                                    </p>
+                                    <p className="text-center text-[11px] text-[#9089A1] -mt-2">← 슬라이더를 움직여 지금과 비교해보세요</p>
+                                </>
+                            ) : (
+                                <div className="rounded-xl bg-[#F8F4FB] border border-[#EADBF5] py-16 text-center text-[#9089A1] text-sm">이 구간은 생성하지 못했어요</div>
                             )}
 
                             {/* 저장 / 취소 */}
