@@ -93,8 +93,38 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
-            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}
+            <div className="relative bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}
                 style={{ fontFamily: "'Pretendard', sans-serif" }}>
+                {/* 생성 진행 오버레이 — 4구간 진행 상태를 시각적으로 */}
+                {generating && (
+                    <div className="absolute inset-0 z-10 bg-white/95 rounded-2xl flex flex-col items-center justify-center px-6 text-center">
+                        {/* 원본 + 회전 링 */}
+                        <div className="relative mb-5">
+                            {preview && <img src={preview} alt="" className="w-24 h-24 rounded-full object-cover" />}
+                            <div className="absolute -inset-1.5 rounded-full border-[3px] border-[#EADBF5] border-t-[#9B5FA8] animate-spin" />
+                        </div>
+                        <p className="text-sm font-bold text-[#2D2438] mb-1">{LOADING_MSGS[loadingStep]}</p>
+                        <p className="text-xs text-[#9089A1] mb-4">윤채린이 시간을 돌리고 있어요… 🕰️</p>
+
+                        {/* 진행바 */}
+                        <div className="w-full max-w-[240px] h-2 rounded-full bg-[#F0E9DE] overflow-hidden mb-4">
+                            <div className="h-full bg-[#9B5FA8] rounded-full transition-all duration-700"
+                                style={{ width: `${Math.round(((loadingStep + 1) / AGE_STEPS.length) * 100)}%` }} />
+                        </div>
+
+                        {/* 4구간 체크리스트 */}
+                        <div className="flex gap-2">
+                            {AGE_STEPS.map((step, i) => (
+                                <div key={step} className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                                    i < loadingStep ? 'text-[#9B5FA8]' : i === loadingStep ? 'text-[#9B5FA8] bg-[#F3E9F4]' : 'text-[#C9BEDB]'
+                                }`}>
+                                    <span className="text-base leading-none">{i < loadingStep ? '✓' : i === loadingStep ? '⏳' : '○'}</span>
+                                    {AGE_LABEL[step]}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#F0E9DE]">
                     <h3 className="text-base font-bold text-[#2D2438]">🕰️ 나이 변환 <span className="text-xs text-[#9089A1] ml-1">AGE MORPH</span></h3>
@@ -121,11 +151,8 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                 disabled={!base64 || generating}
                                 className="w-full py-3 rounded-xl bg-[#9B5FA8] hover:bg-[#8a5296] text-white text-sm font-semibold disabled:opacity-40 transition-colors"
                             >
-                                {generating ? LOADING_MSGS[loadingStep] + ' …' : '✨ 나이 변환하기 · 400pt'}
+                                {generating ? '변환 중…' : '✨ 나이 변환하기 · 400pt'}
                             </button>
-                            {generating && (
-                                <p className="text-xs text-[#9089A1] text-center">10·30·50·70대 모습을 만들고 있어요 (30초쯤 걸려요)</p>
-                            )}
                         </>
                     )}
 
