@@ -253,6 +253,15 @@ CREATE TABLE IF NOT EXISTS "WebtoonView" (
 );
 -- MenuLimit 단가: webtoon/club 100pt, ebook 500pt (× USER·MANAGE·ADMIN). 어드민 메뉴권한 탭에서 조정.
 
+-- 2026-06-21: 윤채린 나이 변환 (10·30·50·70대 생성, 저장 시에만 row)
+CREATE TABLE IF NOT EXISTS "AgeTransform" (
+  id SERIAL PRIMARY KEY, "userId" INTEGER NOT NULL,
+  "originalUrl" TEXT, "imagesJson" TEXT NOT NULL,   -- imagesJson={"10s":url,"30s":url,"50s":url,"70s":url}
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "AgeTransform_userId_idx" ON "AgeTransform"("userId");
+-- MenuLimit agetransform 400pt (× 3역할).
+
 -- User phone 컬럼
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
 CREATE UNIQUE INDEX IF NOT EXISTS "User_phone_key" ON "User"(phone);
