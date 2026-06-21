@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { ageTransformApi } from '../services/apiService';
 
 // 윤채린 "미래의 나": 내 사진+현재 나이 → 10·20·30·40년 후 모습 생성 → 슬라이더로 전환/Before·After 비교 → 저장/취소.
@@ -45,8 +45,21 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [busy, setBusy] = useState(false);          // 생성 혼잡 신호등(헤어와 공유)
+    const [busyRetrySec, setBusyRetrySec] = useState(0);
 
     const fileRef = useRef<HTMLInputElement>(null);
+
+    // 생성 가능 상태 폴링(헤어와 같은 나노바나나 쿼터 공유)
+    useEffect(() => {
+        let alive = true;
+        const poll = () => ageTransformApi.status()
+            .then(s => { if (alive) { setBusy(s.status === 'busy'); setBusyRetrySec(s.retryAfterSec); } })
+            .catch(() => {});
+        poll();
+        const id = setInterval(poll, 15000);
+        return () => { alive = false; clearInterval(id); };
+    }, []);
 
     // 사진 업로드 + EXIF 회전 보정(헤어 패턴)
     const handleFile = async (file: File) => {
@@ -155,7 +168,15 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                 )}
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-5 py-4 border-b border-[#F0E9DE]">
-                    <h3 className="text-base font-bold text-[#2D2438]">🕰️ 미래의 나 <span className="text-xs text-[#9089A1] ml-1">FUTURE ME</span></h3>
+                    <h3 className="text-base font-bold text-[#2D2438] flex items-center gap-2">
+                        🕰️ 미래의 나
+                        {/* 생성 가능 신호등 */}
+                        <span className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-full"
+                            style={{ background: busy ? 'rgba(217,83,79,0.1)' : 'rgba(76,175,120,0.1)', color: busy ? '#D9534F' : '#3a9b63' }}>
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: busy ? '#D9534F' : '#4CAF78' }} />
+                            {busy ? `혼잡 ${busyRetrySec}s` : '생성 가능'}
+                        </span>
+                    </h3>
                     <button onClick={onClose} className="text-[#9089A1] hover:text-[#2D2438] text-xl leading-none">✕</button>
                 </div>
 
@@ -212,10 +233,11 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
 
                             <button
                                 onClick={handleGenerate}
-                                disabled={!base64 || picks.length === 0 || generating}
+                                disabled={!base64 || picks.length === 0 || generating || busy}
                                 className="w-full py-3 rounded-xl bg-[#9B5FA8] hover:bg-[#8a5296] text-white text-sm font-semibold disabled:opacity-40 transition-colors"
                             >
                                 {generating ? '변환 중…'
+                                    : busy ? `⏳ 지금 혼잡해요 · ${busyRetrySec}초 후 다시`
                                     : picks.length === 0 ? '🕰️ 볼 나이를 선택하세요'
                                     : `🕰️ 미래의 나 보기 · ${picks.length}장 · ${picks.length * UNIT_PT}pt`}
                             </button>
