@@ -9,11 +9,8 @@ interface Props {
     onClose: () => void;
 }
 
-const FUTURE_STEPS = ['+10', '+20', '+30', '+40'] as const;  // 백엔드 키와 일치
-const OFFSET: Record<string, number> = { '+10': 10, '+20': 20, '+30': 30, '+40': 40 };
-// 현재 나이 기준 라벨: "10년 후 (42세)"
-const stepLabel = (step: string, age: number) => `${OFFSET[step]}년 후`;
-const stepAge = (step: string, age: number) => age + OFFSET[step];
+// 적응형: 서버가 현재 나이 맞춰 목표나이 3개(ages)를 줌. 키=목표나이 문자열. 라벨="N년 후".
+const yearsLabel = (targetAge: number, age: number) => `${targetAge - age}년 후`;
 
 export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [preview, setPreview] = useState<string | null>(null);
@@ -21,18 +18,19 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [currentAge, setCurrentAge] = useState('');
     const [usedAge, setUsedAge] = useState(0);  // 생성에 쓴 현재 나이(결과 라벨 계산용)
+    const [ages, setAges] = useState<number[]>([]);  // 서버가 준 목표 나이들(오름차순)
 
     const [generating, setGenerating] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
     const [images, setImages] = useState<Record<string, string> | null>(null);  // 생성 결과(미저장)
-    const [selected, setSelected] = useState<string>('+10');
+    const [selected, setSelected] = useState<string>('');  // 선택된 목표나이 키
     const [compare, setCompare] = useState(50);  // Before/After 슬라이더 위치(%)
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fileRef = useRef<HTMLInputElement>(null);
-    const LOADING_MSGS = FUTURE_STEPS.map(s => `${OFFSET[s]}년 후 모습을 그리는 중이에요`);
+    const LOADING_MSGS = ['가까운 미래를 그리는 중이에요', '중년의 모습을 그리는 중이에요', '노년의 모습을 그리는 중이에요'];
 
     // 사진 업로드 + EXIF 회전 보정(헤어 패턴)
     const handleFile = async (file: File) => {
@@ -63,17 +61,18 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
             setError('현재 나이를 입력해 주세요.'); return;
         }
         setGenerating(true); setError(null); setLoadingStep(0);
-        // 4장 순차 생성 체감용 단계 표시(서버가 순차 생성, 장당 ~9초)
-        const timers = [1, 2, 3].map((i) => setTimeout(() => setLoadingStep(i), i * 9000));
+        // 3장 순차 생성 체감용 단계 표시(장당 ~9초)
+        const timers = [1, 2].map((i) => setTimeout(() => setLoadingStep(i), i * 9000));
         try {
-            const { images: imgs, succeeded } = await ageTransformApi.generate(base64, mimeType, ageNum);
+            const { images: imgs, ages: targetAges, succeeded } = await ageTransformApi.generate(base64, mimeType, ageNum);
             timers.forEach(clearTimeout);
             if (!succeeded) { setError('이미지 생성에 실패했어요. 다시 시도해 주세요.'); return; }
             setUsedAge(ageNum);
+            setAges(targetAges || []);
             setImages(imgs);
             setCompare(50);
             // 생성된 것 중 첫 구간 선택
-            const first = FUTURE_STEPS.find(s => imgs[s]) ?? Object.keys(imgs)[0];
+            const first = (targetAges || []).map(String).find(k => imgs[k]) ?? Object.keys(imgs)[0];
             setSelected(first);
         } catch (e: any) {
             timers.forEach(clearTimeout);
@@ -121,17 +120,17 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                         {/* 진행바 */}
                         <div className="w-full max-w-[240px] h-2 rounded-full bg-[#F0E9DE] overflow-hidden mb-4">
                             <div className="h-full bg-[#9B5FA8] rounded-full transition-all duration-700"
-                                style={{ width: `${Math.round(((loadingStep + 1) / FUTURE_STEPS.length) * 100)}%` }} />
+                                style={{ width: `${Math.round(((loadingStep + 1) / 3) * 100)}%` }} />
                         </div>
 
-                        {/* 4구간 체크리스트 */}
+                        {/* 3단계 체크리스트 */}
                         <div className="flex gap-2">
-                            {FUTURE_STEPS.map((step, i) => (
-                                <div key={step} className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
+                            {['가까운 미래', '중년', '노년'].map((lbl, i) => (
+                                <div key={lbl} className={`flex flex-col items-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold transition-colors ${
                                     i < loadingStep ? 'text-[#9B5FA8]' : i === loadingStep ? 'text-[#9B5FA8] bg-[#F3E9F4]' : 'text-[#C9BEDB]'
                                 }`}>
                                     <span className="text-base leading-none">{i < loadingStep ? '✓' : i === loadingStep ? '⏳' : '○'}</span>
-                                    {OFFSET[step]}년 후
+                                    {lbl}
                                 </div>
                             ))}
                         </div>
@@ -190,19 +189,22 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                     {images && (
                         <>
                             <div className="flex gap-1.5 text-center mb-1">
-                                {FUTURE_STEPS.map(step => (
-                                    <button
-                                        key={step}
-                                        disabled={!images[step]}
-                                        onClick={() => { setSelected(step); setCompare(50); }}
-                                        className={`flex-1 py-2 rounded-lg text-[11px] font-bold leading-tight transition-colors disabled:opacity-30 ${
-                                            selected === step ? 'bg-[#9B5FA8] text-white' : 'bg-[#F3E9F4] text-[#8a5296]'
-                                        }`}
-                                    >
-                                        {stepLabel(step, usedAge)}<br />
-                                        <span className="text-[10px] font-medium opacity-80">{stepAge(step, usedAge)}세</span>
-                                    </button>
-                                ))}
+                                {ages.map(a => {
+                                    const key = String(a);
+                                    return (
+                                        <button
+                                            key={key}
+                                            disabled={!images[key]}
+                                            onClick={() => { setSelected(key); setCompare(50); }}
+                                            className={`flex-1 py-2 rounded-lg text-[11px] font-bold leading-tight transition-colors disabled:opacity-30 ${
+                                                selected === key ? 'bg-[#9B5FA8] text-white' : 'bg-[#F3E9F4] text-[#8a5296]'
+                                            }`}
+                                        >
+                                            {yearsLabel(a, usedAge)}<br />
+                                            <span className="text-[10px] font-medium opacity-80">{a}세</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             {/* Before(원본) → After(미래) 드래그 비교 */}
@@ -220,7 +222,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                         )}
                                         {/* 라벨 */}
                                         <span className="absolute top-2 left-2 text-[10px] font-bold text-white bg-black/40 rounded px-1.5 py-0.5">지금</span>
-                                        <span className="absolute top-2 right-2 text-[10px] font-bold text-white bg-[#9B5FA8]/80 rounded px-1.5 py-0.5">{stepAge(selected, usedAge)}세</span>
+                                        <span className="absolute top-2 right-2 text-[10px] font-bold text-white bg-[#9B5FA8]/80 rounded px-1.5 py-0.5">{selected}세</span>
                                         {/* 구분선 */}
                                         <div className="absolute top-0 bottom-0 w-0.5 bg-white pointer-events-none" style={{ left: `${compare}%` }} />
                                     </div>
@@ -228,7 +230,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                         onChange={e => setCompare(Number(e.target.value))}
                                         className="w-full accent-[#9B5FA8]" />
                                     <p className="text-center text-sm font-bold text-[#9B5FA8] -mt-1">
-                                        {stepLabel(selected, usedAge)}, {stepAge(selected, usedAge)}세의 나 🕰️
+                                        {yearsLabel(Number(selected), usedAge)}, {selected}세의 나 🕰️
                                     </p>
                                     <p className="text-center text-[11px] text-[#9089A1] -mt-2">← 슬라이더를 움직여 지금과 비교해보세요</p>
                                 </>
