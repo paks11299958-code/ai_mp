@@ -338,25 +338,25 @@ export const ClubBoard: React.FC<Props> = ({ onClose }) => {
                                                 <input
                                                     readOnly
                                                     value={url}
-                                                    className="flex-1 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-[#9089A1] border border-[#F0E9DE] truncate"
+                                                    className="flex-1 min-w-0 text-[11px] bg-black/30 rounded-lg px-2 py-1.5 text-[#9089A1] border border-[#F0E9DE] truncate"
                                                 />
                                                 <button
                                                     onClick={() => copyUrl(url, s.id)}
-                                                    className="p-1.5 rounded-lg bg-[#F0E9DE] hover:bg-[#EAE2D3] transition-colors"
+                                                    className="p-1.5 shrink-0 rounded-lg bg-[#F0E9DE] hover:bg-[#EAE2D3] transition-colors"
                                                     title="출석 링크 복사"
                                                 >
                                                     {copied === s.id ? <Check size={14} className="text-green-400" /> : <Copy size={14} className="text-[#5C5468]" />}
                                                 </button>
                                                 <button
                                                     onClick={() => setQrSheet(s)}
-                                                    className="p-1.5 rounded-lg bg-[#F0E9DE] hover:bg-[#EAE2D3] transition-colors"
+                                                    className="p-1.5 shrink-0 rounded-lg bg-[#F0E9DE] hover:bg-[#EAE2D3] transition-colors"
                                                     title="QR 코드 보기"
                                                 >
                                                     <QrCode size={14} className="text-[#5C5468]" />
                                                 </button>
                                                 <button
                                                     onClick={() => { setSelectedSheet(s); loadRecords(s); setView('sheet_records'); }}
-                                                    className="p-1.5 rounded-lg bg-[#F5E6F7] hover:bg-[#EADBF5] transition-colors"
+                                                    className="p-1.5 shrink-0 rounded-lg bg-[#F5E6F7] hover:bg-[#EADBF5] transition-colors"
                                                     title="출석 명단 보기"
                                                 >
                                                     <Users size={14} className="text-[#8E6FB7]" />
