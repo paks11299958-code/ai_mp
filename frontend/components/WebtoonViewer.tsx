@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getWatermarkText } from '../services/watermark';
 
 // 웹툰 컷 뷰어 — 풀스크린, 컷을 좌우로 넘긴다(전자책식). ←→ 버튼 + 모바일 스와이프 + 진행바.
 interface Props {
@@ -104,8 +103,7 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
     const atLast = idx === total - 1;
 
     return (
-        <div className="fixed inset-0 z-[90] flex flex-col select-none" style={{ background: 'rgba(0,0,0,0.95)' }}
-            onContextMenu={e => e.preventDefault()}>
+        <div className="fixed inset-0 z-[90] flex flex-col select-none" style={{ background: 'rgba(0,0,0,0.95)' }}>
             {/* 상단 바: 제목 + 진행 + 닫기 */}
             <div className="shrink-0 flex items-center gap-2 px-4 py-3" style={{ background: 'rgba(0,0,0,0.5)' }}>
                 <span className="text-sm font-bold truncate" style={{ color: '#fff', flex: 1 }}>{title || '웹툰'}</span>
@@ -130,13 +128,8 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
                 <div className="absolute inset-0 flex items-center justify-center p-2"
                     style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transition: dragging.current ? 'none' : 'transform 0.12s', willChange: 'transform' }}>
                     <img src={cuts[idx]} alt={`컷 ${idx + 1}`} draggable={false}
-                        onContextMenu={e => e.preventDefault()} onDragStart={e => e.preventDefault()}
-                        style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', flexShrink: 0, userSelect: 'none', WebkitUserSelect: 'none', WebkitTouchCallout: 'none' }} />
+                        style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto', objectFit: 'contain', flexShrink: 0 }} />
                 </div>
-                {/* 반투명 워터마크(유출 추적) — 우하단 고정 */}
-                <span style={{ position: 'absolute', right: 10, bottom: 10, pointerEvents: 'none', fontSize: 10, color: 'rgba(255,255,255,0.3)', textShadow: '0 1px 2px rgba(0,0,0,0.6)', fontWeight: 600, userSelect: 'none' }}>
-                    {getWatermarkText()}
-                </span>
 
                 {/* 좌우 넘김 버튼 (확대 중엔 숨김 — 패닝과 충돌 방지) */}
                 {scale === 1 && !atFirst && (
@@ -167,10 +160,9 @@ export const WebtoonViewer: React.FC<Props> = ({ cuts, title, startIndex = 0, on
                 )}
             </div>
 
-            {/* 하단 힌트 (모바일) + 저작권 경고 */}
+            {/* 하단 힌트 (모바일) */}
             <div className="shrink-0 text-center py-2" style={{ background: 'rgba(0,0,0,0.5)' }}>
                 <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.6)' }}>← → 또는 좌우로 밀어서 넘기기 · Ctrl+마우스휠로 확대</span>
-                <span className="block text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.38)' }}>⚠️ 저작권 보호 콘텐츠 · 무단 복제·배포 시 법적 책임 · 이용자 식별 표시됨</span>
             </div>
         </div>
     );
