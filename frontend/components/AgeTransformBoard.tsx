@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ageTransformApi } from '../services/apiService';
+import { shareResultImage } from '../services/referral';
 
 // 윤채린 "미래의 나": 내 사진+현재 나이 → 10·20·30·40년 후 모습 생성 → 슬라이더로 전환/Before·After 비교 → 저장/취소.
 // 과거(회춘)는 안 함(품질·수요). 헤어 합성 패턴 재활용(EXIF·단계로딩). 저장 눌러야 DB 확정.
@@ -47,8 +48,17 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);          // 생성 혼잡 신호등(헤어와 공유)
     const [busyRetrySec, setBusyRetrySec] = useState(0);
+    const [shareToast, setShareToast] = useState('');  // 결과 공유 안내
 
     const fileRef = useRef<HTMLInputElement>(null);
+
+    // 순간 진입점: 결과 이미지+딥링크(?f=agetransform&ref=내코드) 공유. 막 떴을 때 자랑→바이럴.
+    const handleShareResult = async () => {
+        if (!images?.[selected]) return;
+        const caption = `AI로 본 ${selected}세의 내 모습 😮 너도 해봐!`;
+        const msg = await shareResultImage(images[selected], 'agetransform', caption);
+        if (msg) { setShareToast(msg); setTimeout(() => setShareToast(''), 2500); }
+    };
 
     // 생성 가능 상태 폴링(헤어와 같은 나노바나나 쿼터 공유)
     useEffect(() => {
@@ -300,6 +310,15 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                 <div className="rounded-xl bg-[#F8F4FB] border border-[#EADBF5] py-16 text-center text-[#9089A1] text-sm">이 구간은 생성하지 못했어요</div>
                             )}
 
+                            {/* 순간 진입점: 결과 자랑 공유(이미지+초대링크). 결과가 막 떴을 때가 공유 충동 최고조. */}
+                            {images[selected] && (
+                                <button onClick={handleShareResult}
+                                    className="w-full py-3 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 shadow-md transition-opacity hover:opacity-90"
+                                    style={{ background: 'linear-gradient(135deg, #B06FC4 0%, #8a5296 100%)' }}>
+                                    📲 친구에게 자랑하기
+                                </button>
+                            )}
+
                             {/* 저장 / 취소 */}
                             {saved ? (
                                 <div className="text-center text-sm text-green-600 font-semibold py-2">✅ 저장했어요!</div>
@@ -323,6 +342,11 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                     {error && <p className="text-red-500 text-xs text-center">{error}</p>}
                 </div>
             </div>
+            {shareToast && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-xl text-sm text-white shadow-xl" style={{ background: '#2D2438' }}>
+                    🔗 {shareToast}
+                </div>
+            )}
         </div>
     );
 };

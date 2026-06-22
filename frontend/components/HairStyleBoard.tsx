@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { hairApi, HairStyle, HairMatchResult } from '../services/apiService';
 import { usePoints } from '../contexts/PointsContext';
+import { shareResultImage } from '../services/referral';
 
 // 윤채린 헤어스타일 진단: 내 사진 업로드 → 성별 → 헤어 갤러리 선택 → 어울림 분석(텍스트).
 // (실제 합성 이미지는 향후 2단계)
@@ -27,7 +28,16 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [error, setError] = useState<string | null>(null);
     const [hairBusy, setHairBusy] = useState(false);          // 합성 혼잡 신호등(🔴)
     const [busyRetrySec, setBusyRetrySec] = useState(0);
+    const [shareToast, setShareToast] = useState('');         // 결과 공유 안내
     const fileRef = useRef<HTMLInputElement>(null);
+
+    // 순간 진입점: 합성 결과+딥링크(?f=hair&ref=내코드) 공유. 막 떴을 때 자랑→바이럴.
+    const handleShareResult = async () => {
+        if (!resultImage) return;
+        const caption = `${selected?.name ?? '이 헤어'}로 바꾼 내 모습 어때? AI로 미리 해봤어 ✂️`;
+        const msg = await shareResultImage(resultImage, 'hair', caption);
+        if (msg) { setShareToast(msg); setTimeout(() => setShareToast(''), 2500); }
+    };
 
     const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', '윤채린이 어울림을 진단하고 있어요'];
 
@@ -200,6 +210,10 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                     )}
                                 </div>
                                 <a href={resultImage} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: T.accent, marginTop: 8, textDecoration: 'underline' }}>크게 보기 / 저장</a>
+                                {/* 순간 진입점: 결과 자랑 공유(이미지+초대링크). 막 떴을 때가 공유 충동 최고조. */}
+                                <button onClick={handleShareResult} style={{ width: '100%', marginTop: 10, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                                    📲 친구에게 자랑하기
+                                </button>
                             </div>
                         )}
                         <div style={{ background: T.card, border: `1px solid ${T.line}`, borderRadius: 18, padding: 18, boxShadow: '0 8px 24px -10px rgba(80,50,110,0.18)' }}>
@@ -294,6 +308,11 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                 )}
             </div>
           </div>
+          {shareToast && (
+              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[80] px-4 py-2.5 rounded-xl text-sm text-white shadow-xl" style={{ background: '#2D2438' }}>
+                  🔗 {shareToast}
+              </div>
+          )}
         </div>
     );
 };

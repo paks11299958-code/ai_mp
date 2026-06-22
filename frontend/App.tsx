@@ -13,7 +13,7 @@ import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category, User } fr
 import { generateImageDescription } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi, heroCardApi, HeroCard } from './services/apiService';
 import { pointApi } from './services/pointService';
-import { captureRefFromUrl } from './services/referral';
+import { captureRefFromUrl, setMyReferralCode } from './services/referral';
 import { InviteFriendModal } from './components/InviteFriendModal';
 import { getStage, STAGES } from './utils/level';
 import { getPersonaFeatureKeys, FEATURE_BY_KEY } from './personaFeatures';
@@ -359,8 +359,8 @@ const AppContent: React.FC = () => {
 
     // 로그인 후 내 추천코드 로드(공유링크 ?ref 부착 + 친구초대 화면용). 실패해도 공유는 ref 없이 동작.
     useEffect(() => {
-        if (!user) { setReferralCode(null); return; }
-        authApi.referral().then(r => setReferralCode(r.code)).catch(() => {});
+        if (!user) { setReferralCode(null); setMyReferralCode(null); return; }
+        authApi.referral().then(r => { setReferralCode(r.code); setMyReferralCode(r.code); }).catch(() => {});
     }, [user?.id]);
 
 
