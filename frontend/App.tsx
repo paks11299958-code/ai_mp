@@ -13,6 +13,8 @@ import { Persona, PersonaImage, TriggerVideo, SwingAnalysis, Category, User } fr
 import { generateImageDescription } from './services/geminiService';
 import { personaApi, personaImageApi, sessionApi, settingsApi, triggerVideoApi, swingAnalysisApi, categoryApi, userProfileApi, quickMenuApi, chatApi, authApi, heroCardApi, HeroCard } from './services/apiService';
 import { pointApi } from './services/pointService';
+import { captureRefFromUrl } from './services/referral';
+import { InviteFriendModal } from './components/InviteFriendModal';
 import { getStage, STAGES } from './utils/level';
 import { getPersonaFeatureKeys, FEATURE_BY_KEY } from './personaFeatures';
 import { MessageBubble } from './components/MessageBubble';
@@ -123,6 +125,7 @@ const AppContent: React.FC = () => {
     // 공유 링크로 들어온 사람을 해당 페르소나/기능으로 바로 안내한다(바이럴 유입).
     // URL은 즉시 정리(공유링크 흔적/새로고침 시 재진입 방지)하고 값만 보관 → 아래 useEffect에서 처리.
     const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string } | { kind: 'feature'; key: string } | null>(() => {
+        captureRefFromUrl(); // ?ref=코드 → localStorage 보관(가입 시 동봉) + URL에서 제거
         const params = new URLSearchParams(window.location.search);
         const p = params.get('p');
         const f = params.get('f');
@@ -192,6 +195,8 @@ const AppContent: React.FC = () => {
     } = useBoardToggles();
     const [comingSoonMsg, setComingSoonMsg] = useState('');
     const [shareToast, setShareToast] = useState('');  // 공유 링크 복사/공유 완료 안내
+    const [referralCode, setReferralCode] = useState<string | null>(null);  // 내 추천코드(공유링크에 ?ref 부착용)
+    const [showInviteModal, setShowInviteModal] = useState(false);  // 친구 초대 화면
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
     const [categories, setCategories] = useState<Category[]>([]);
@@ -350,6 +355,12 @@ const AppContent: React.FC = () => {
         } else {
             pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
         }
+    }, [user?.id]);
+
+    // 로그인 후 내 추천코드 로드(공유링크 ?ref 부착 + 친구초대 화면용). 실패해도 공유는 ref 없이 동작.
+    useEffect(() => {
+        if (!user) { setReferralCode(null); return; }
+        authApi.referral().then(r => setReferralCode(r.code)).catch(() => {});
     }, [user?.id]);
 
 
@@ -543,7 +554,9 @@ const AppContent: React.FC = () => {
     // 공유: 딥링크 URL을 만들어 네이티브 공유(모바일) → 실패/미지원 시 클립보드 복사로 폴백.
     // kind/value = 'p'(페르소나) / 'f'(기능). 결과 토스트로 안내.
     const shareDeepLink = useCallback(async (param: 'p' | 'f', value: string, title: string) => {
-        const url = `${window.location.origin}/?${param}=${encodeURIComponent(value)}`;
+        // 추천코드가 있으면 공유 링크에 ?ref 부착 → 타고 가입 시 추천인 자동 기록(바이럴+보상).
+        const refQs = referralCode ? `&ref=${encodeURIComponent(referralCode)}` : '';
+        const url = `${window.location.origin}/?${param}=${encodeURIComponent(value)}${refQs}`;
         const shareText = `${title} — AI 페르소나 채팅`;
         try {
             if (navigator.share) {
@@ -561,7 +574,7 @@ const AppContent: React.FC = () => {
             setShareToast(url); // 클립보드도 막힌 환경 → URL 노출
         }
         setTimeout(() => setShareToast(''), 2500);
-    }, []);
+    }, [referralCode]);
 
     // handleLoadMoreMessages / triggerSummaryUpdate는 usePersonaSession(T6b)으로 이동.
 
@@ -1206,6 +1219,16 @@ const AppContent: React.FC = () => {
                     favoriteChips={favoriteChips}
                     personaChips={personaChips}
                 />
+                {/* 친구 초대 플로팅 버튼 — 메인에서 항상 눈에 띄게(바이럴 진입점). */}
+                <button
+                    onClick={() => setShowInviteModal(true)}
+                    className="fixed z-40 flex items-center gap-2 px-4 py-3 rounded-full text-sm font-bold text-white shadow-lg transition-transform active:scale-95"
+                    style={{ right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)', background: 'linear-gradient(135deg, #8E6FB7 0%, #6B4F92 100%)', boxShadow: '0 8px 24px -6px rgba(107,79,146,0.6)' }}
+                >
+                    <span className="text-base leading-none">🎁</span>
+                    친구 초대 +1000P
+                </button>
+                {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} />}
                 {showAnnouncementModal && (
                     <AnnouncementModal
                         announcements={announcements}
@@ -1372,6 +1395,7 @@ const AppContent: React.FC = () => {
                         {shareToast}
                     </div>
                 )}
+                {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} />}
             </>
         );
     }
@@ -2114,6 +2138,15 @@ const AppContent: React.FC = () => {
                                                 <Icon name="Users" size={15} className="text-[#8E6FB7]" />
                                                 페르소나 목록
                                             </button>
+                                            {/* 친구 초대 (강조) */}
+                                            <button
+                                                onClick={() => { setShowHeaderMenu(false); setShowInviteModal(true); }}
+                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold transition-colors border-t border-[#F0E9DE]"
+                                                style={{ color: '#6B4F92', background: 'linear-gradient(90deg, #F7F2FA 0%, #FFFCF8 100%)' }}
+                                            >
+                                                <span className="text-base leading-none">🎁</span>
+                                                친구 초대 +1000P
+                                            </button>
                                             {/* 내 정보 */}
                                             <button
                                                 onClick={() => { setShowHeaderMenu(false); setShowUserProfile(true); }}
@@ -2462,6 +2495,7 @@ const AppContent: React.FC = () => {
                     </div>
                 </div>
             )}
+            {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} />}
         </div>
         </>
     );

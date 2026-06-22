@@ -1,4 +1,5 @@
 import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, SwingAnalysis, UserSwingAnalysis, Category } from '../types';
+import { getStoredRef } from './referral';
 
 const BASE = '/api';
 
@@ -87,8 +88,8 @@ export const authApi = {
     register: (emailOrPhone: string, password: string, username?: string, isPhone = false) =>
         post<{ user: User; token: string }>('/auth/register',
             isPhone
-                ? { phone: emailOrPhone, password, username }
-                : { email: emailOrPhone, password, username }
+                ? { phone: emailOrPhone, password, username, ref: getStoredRef() }
+                : { email: emailOrPhone, password, username, ref: getStoredRef() }
         ),
 
     login: (identifier: string, password: string) =>
@@ -110,7 +111,11 @@ export const authApi = {
         post<{ message: string }>('/auth/send-verify', { type, identifier }),
 
     verifyRegister: (type: 'EMAIL' | 'PHONE', identifier: string, code: string, password: string, username?: string) =>
-        post<{ user: User; token: string }>('/auth/verify-register', { type, identifier, code, password, username }),
+        post<{ user: User; token: string }>('/auth/verify-register', { type, identifier, code, password, username, ref: getStoredRef() }),
+
+    // 내 추천 현황(코드/초대인원/적립pt)
+    referral: () =>
+        get<{ code: string; invitedCount: number; rewardedCount: number; earnedPoints: number }>('/auth/referral'),
 
     resetPassword: (token: string, password: string) =>
         post<{ message: string }>('/auth/reset-password', { token, password }),

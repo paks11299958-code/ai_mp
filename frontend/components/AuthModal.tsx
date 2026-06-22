@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { authApi } from '../services/apiService';
+import { getStoredRef, clearStoredRef } from '../services/referral';
 import { User } from '../types';
 import { Icon } from './Icons';
 
@@ -124,6 +125,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     const id = registerTab === 'phone' ? rawDigits(phone) : email;
                     const result = await authApi.verifyRegister(type, id, regVerifyCode, password, username || undefined);
                     localStorage.setItem('token', result.token);
+                    clearStoredRef(); // 추천코드 1회 적용 후 제거(중복 방지)
                     onSuccess(result.user, result.token, true); // 신규 가입 → 환영 알럿
 
                 }
@@ -561,7 +563,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                 <div style={{ flex: 1, height: 1, background: '#E8DDD0' }} />
                             </div>
                             <a
-                                href="/api/auth/kakao"
+                                href={(() => { const r = getStoredRef(); return r ? `/api/auth/kakao?ref=${encodeURIComponent(r)}` : '/api/auth/kakao'; })()}
                                 style={{
                                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
                                     width: '100%', padding: '11px 0', borderRadius: 12,
