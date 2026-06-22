@@ -102,8 +102,10 @@ const AppContent: React.FC = () => {
     // 로그인/가입 성공 — 신규 가입이면 환영 알럿(가입 보너스 500P) 표시
     const handleAuthSuccessWithWelcome = useCallback((u: User, token: string, isNewUser?: boolean) => {
         handleAuthSuccess(u, token);
+        setShowAuthModal(false); // 로그인 모달 닫기(딥링크 진입 시 모달 잔존 방지)
         if (isNewUser) setRewardAlert({ kind: 'welcome', amount: 500 });
-    }, [handleAuthSuccess]);
+        // 공유 딥링크(?p / ?f) 대기 중이면 user 변경 감지 useEffect가 해당 화면으로 진입시킨다.
+    }, [handleAuthSuccess, setShowAuthModal]);
 
     const { isFavorite, toggleFavorite, favorites } = useFavorites(!!user, handleMissionAwarded);
     const { isFavorite: isFavoritePersona, toggleFavorite: toggleFavoritePersona, favorites: favoritePersonaIds } = useFavoritePersonas(!!user, handleMissionAwarded);
@@ -116,6 +118,23 @@ const AppContent: React.FC = () => {
     const [resetToken, setResetToken] = useState<string | null>(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('token');
+    });
+    // 공유 딥링크: ?p=<personaId> (페르소나 채팅) / ?f=<featureKey> (기능 보드).
+    // 공유 링크로 들어온 사람을 해당 페르소나/기능으로 바로 안내한다(바이럴 유입).
+    // URL은 즉시 정리(공유링크 흔적/새로고침 시 재진입 방지)하고 값만 보관 → 아래 useEffect에서 처리.
+    const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string } | { kind: 'feature'; key: string } | null>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const p = params.get('p');
+        const f = params.get('f');
+        if (p || f) {
+            params.delete('p');
+            params.delete('f');
+            const qs = params.toString();
+            window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+        }
+        if (p) return { kind: 'persona', id: p };
+        if (f) return { kind: 'feature', key: f };
+        return null;
     });
 
     const [personas, setPersonas] = useState<Persona[]>(() => {
@@ -172,6 +191,7 @@ const AppContent: React.FC = () => {
         showClubBoard, setShowClubBoard,
     } = useBoardToggles();
     const [comingSoonMsg, setComingSoonMsg] = useState('');
+    const [shareToast, setShareToast] = useState('');  // 공유 링크 복사/공유 완료 안내
     const [firstChatMap, setFirstChatMap] = useState<Record<string, string>>({});
 
     const [categories, setCategories] = useState<Category[]>([]);
@@ -228,6 +248,24 @@ const AppContent: React.FC = () => {
     const [showHairBoard, setShowHairBoard] = useState(false);
     const [showAgeBoard, setShowAgeBoard] = useState(false);
     const [showWebtoon, setShowWebtoon] = useState(false);
+
+    // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
+    // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
+    const featureBoardOpeners: Record<string, () => void> = {
+        news: () => setShowTodayNews(true),
+        stock: () => setShowStockAnalysis(true),
+        hotkeyword: () => setShowHotKeyword(true),
+        used: () => setShowUsedItem(true),
+        luxury: () => setShowLuxuryBoard(true),
+        insurance: () => setShowInsuranceBoard(true),
+        mathtutor: () => setShowMathTutor(true),
+        club: () => setShowClubBoard(true),
+        'golf-swing': () => setShowSwingInput(true),
+        'golf-record': () => setShowSwingBoard(true),
+        ebook: () => setShowEbookBoard(true),
+        hair: () => setShowHairBoard(true),
+        agetransform: () => setShowAgeBoard(true),
+    };
 
     // 공지사항
     const {
@@ -314,6 +352,59 @@ const AppContent: React.FC = () => {
         }
     }, [user?.id]);
 
+
+    // 공유 딥링크(?p / ?f) 처리 — personas 로드 후 1회.
+    // ★바이럴 방향: 비회원에게 가입을 강요하지 않는다.
+    //   - 로그인 상태: 해당 페르소나 채팅 / 기능 보드를 바로 연다.
+    //   - 비로그인: 페르소나는 인트로(소개)를 보여주고, 기능은 대기페이지에서 그 기능을 포커스해
+    //     소개를 보게 한다. 가입은 사용자가 "입장/시작"을 누를 때 자연스럽게 유도된다.
+    useEffect(() => {
+        if (!pendingDeepLink || isPersonasLoading || !personas.length) return;
+
+        if (pendingDeepLink.kind === 'persona') {
+            const target = personas.find(p => p.id === pendingDeepLink.id && p.isVisible !== false);
+            if (!target) { setPendingDeepLink(null); return; } // 없는/숨김 페르소나 → 무시
+            if (user) {
+                setActivePersonaId(target.id);
+                rememberLastPersona(target.id);
+                goTo('chat');
+            } else {
+                handleGuestPersonaClick(target.id); // 가입 강요 X → 인트로(소개) 노출
+            }
+            setPendingDeepLink(null);
+            return;
+        }
+
+        // 기능 딥링크(?f=key)
+        const key = pendingDeepLink.key;
+        const known = FEATURES_GRID.some(g => g.key === key) || !!FEATURE_BY_KEY[key];
+        if (!known) { setPendingDeepLink(null); return; } // 모르는 기능 키 → 무시
+        if (user) {
+            // 로그인: 전용 보드가 있으면 보드를 열고(featureBoardOpeners), 그 외(운세 등)는
+            // 해당 페르소나 채팅으로 이동. (hero 렌더의 onFeatureSelect와 동일한 분기)
+            if (key === 'webtoon') {
+                const wp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'webtoon')?.personaName);
+                if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
+            } else {
+                const opener = featureBoardOpeners[key];
+                if (opener) {
+                    opener();
+                } else {
+                    const grid = FEATURES_GRID.find(g => g.key === key);
+                    const persona = grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
+                    if (persona) { goTo('chat'); handlePersonaClick(persona.id); }
+                }
+            }
+            rememberLastFeature(key);
+        } else {
+            // 비로그인: 대기페이지에서 해당 기능을 포커스(소개 노출). 가입 강요 X.
+            setMainFocusFeatureKey(key);
+            setMainFocusPersonaId(null);
+            setMainInitialTab('features');
+            goTo('main');
+        }
+        setPendingDeepLink(null);
+    }, [pendingDeepLink, isPersonasLoading, personas, user]);
 
     // activePersonaId 변경 시 트리거 영상 로드
     useEffect(() => {
@@ -448,6 +539,29 @@ const AppContent: React.FC = () => {
             goTo('authPage');
         }
     }, [personas, goTo]);
+
+    // 공유: 딥링크 URL을 만들어 네이티브 공유(모바일) → 실패/미지원 시 클립보드 복사로 폴백.
+    // kind/value = 'p'(페르소나) / 'f'(기능). 결과 토스트로 안내.
+    const shareDeepLink = useCallback(async (param: 'p' | 'f', value: string, title: string) => {
+        const url = `${window.location.origin}/?${param}=${encodeURIComponent(value)}`;
+        const shareText = `${title} — AI 페르소나 채팅`;
+        try {
+            if (navigator.share) {
+                await navigator.share({ title: shareText, url });
+                return; // 네이티브 공유 시트 (취소해도 throw → 아래 복사 폴백 안 탐)
+            }
+        } catch {
+            // 사용자가 공유 시트를 닫았을 수 있음 → 복사 폴백은 생략(중복 안내 방지)
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(url);
+            setShareToast('공유 링크가 복사되었습니다');
+        } catch {
+            setShareToast(url); // 클립보드도 막힌 환경 → URL 노출
+        }
+        setTimeout(() => setShareToast(''), 2500);
+    }, []);
 
     // handleLoadMoreMessages / triggerSummaryUpdate는 usePersonaSession(T6b)으로 이동.
 
@@ -824,8 +938,15 @@ const AppContent: React.FC = () => {
                             favoritableKeys={[]}
                             isFavoritePersona={() => false}
                             onToggleFavoritePersona={requireLogin}
+                            onShareFeature={(key, label) => shareDeepLink('f', key, label)}
                         />
                     </AuthProvider>
+                    {shareToast && (
+                        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 bg-[#2D2438] border border-[#8E6FB7]/40 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
+                            <span className="text-[#C4A9E0]">🔗</span>
+                            {shareToast}
+                        </div>
+                    )}
                     {showAuthModal && (
                         <AuthModal
                             onSuccess={handleAuthSuccessWithWelcome}
@@ -931,22 +1052,11 @@ const AppContent: React.FC = () => {
     // 즐겨찾기로 담을 수 있는 기능 = 모든 기능 카드. (FEATURES_GRID 키 전부)
     // 보드를 바로 여는 기능은 FEATURE_ACTIONS로, 그 외(운세 등)는 해당 페르소나 채팅으로 보낸다.
     const FAVORITABLE_KEYS = FEATURES_GRID.map(f => f.key);
-    // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용)
+    // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용).
+    // 보드 오프너는 featureBoardOpeners 단일출처를 재사용, webtoon만 별도(페르소나 컨텍스트 필요).
     const FEATURE_ACTIONS: Record<string, () => void> = {
-        news: () => setShowTodayNews(true),
-        stock: () => setShowStockAnalysis(true),
-        hotkeyword: () => setShowHotKeyword(true),
-        used: () => setShowUsedItem(true),
-        luxury: () => setShowLuxuryBoard(true),
-        insurance: () => setShowInsuranceBoard(true),
-        mathtutor: () => setShowMathTutor(true),
-        club: () => setShowClubBoard(true),
-        'golf-swing': () => setShowSwingInput(true),
-        'golf-record': () => setShowSwingBoard(true),
-        ebook: () => setShowEbookBoard(true),
+        ...featureBoardOpeners,
         webtoon: () => setShowWebtoon(true),
-        hair: () => setShowHairBoard(true),
-        agetransform: () => setShowAgeBoard(true),
     };
 
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
@@ -1167,8 +1277,15 @@ const AppContent: React.FC = () => {
                     favoritableKeys={FAVORITABLE_KEYS}
                     isFavoritePersona={isFavoritePersona}
                     onToggleFavoritePersona={toggleFavoritePersona}
+                    onShareFeature={(key, label) => shareDeepLink('f', key, label)}
                 />
                 </AuthProvider>
+                {shareToast && (
+                    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 bg-[#2D2438] border border-[#8E6FB7]/40 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
+                        <span className="text-[#C4A9E0]">🔗</span>
+                        {shareToast}
+                    </div>
+                )}
                 {showAnnouncementModal && (
                     <AnnouncementModal
                         announcements={announcements}
@@ -1247,6 +1364,12 @@ const AppContent: React.FC = () => {
                     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
                         <span className="text-yellow-400">🚧</span>
                         {comingSoonMsg}
+                    </div>
+                )}
+                {shareToast && (
+                    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-[#2D2438] border border-[#8E6FB7]/40 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
+                        <span className="text-[#C4A9E0]">🔗</span>
+                        {shareToast}
                     </div>
                 )}
             </>
@@ -2007,6 +2130,16 @@ const AppContent: React.FC = () => {
                                                 <Icon name="MessageSquare" size={15} className="text-[#8E6FB7]" />
                                                 건의 게시판
                                             </button>
+                                            {/* 페르소나 공유하기 (?p 딥링크) */}
+                                            {activePersona && (
+                                                <button
+                                                    onClick={() => { setShowHeaderMenu(false); shareDeepLink('p', activePersona.id, activePersona.name); }}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors border-t border-[#F0E9DE]"
+                                                >
+                                                    <Icon name="Share2" size={15} className="text-[#8E6FB7]" />
+                                                    이 페르소나 공유하기
+                                                </button>
+                                            )}
                                             {/* 기억 공유 */}
                                             {activePersona && (
                                                 <button

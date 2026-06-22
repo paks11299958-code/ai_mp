@@ -76,6 +76,8 @@ interface MainPageNewProps {
     // 페르소나 즐겨찾기 (페르소나 카드 ☆ 토글)
     isFavoritePersona?: (id: string) => boolean;
     onToggleFavoritePersona?: (id: string) => void;
+    // 공유: 기능 카드 🔗 버튼 (?f 딥링크)
+    onShareFeature?: (featureKey: string, label: string) => void;
 }
 
 // ─────────────────────────────────────────────
@@ -417,7 +419,8 @@ const PersonaSelectPanel: React.FC<{
     favoritableKeys?: string[];
     isFavoritePersona?: (id: string) => boolean;
     onToggleFavoritePersona?: (id: string) => void;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona }) => {
+    onShareFeature?: (featureKey: string, label: string) => void;
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -842,6 +845,23 @@ const PersonaSelectPanel: React.FC<{
                                         : `0 6px 20px -6px ${feat.palette.accent}40`;
                                 }}
                             >
+                                {/* 공유 🔗 버튼 (좌상단) — ?f 딥링크 복사/공유 */}
+                                {onShareFeature && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); onShareFeature(feat.key, feat.name); }}
+                                        title="이 기능 공유하기"
+                                        style={{
+                                            position: 'absolute', top: 6, left: 6, zIndex: 5,
+                                            width: 30, height: 30, borderRadius: '50%', border: 'none',
+                                            background: 'rgba(255,255,255,0.82)', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: 14, lineHeight: 1,
+                                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                                        }}
+                                    >
+                                        🔗
+                                    </button>
+                                )}
                                 {/* 즐겨찾기 ⭐ 토글 (우상단) — 즐겨찾기 가능한 기능만 */}
                                 {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(feat.key)) && (
                                     <button
@@ -1086,6 +1106,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     favoritableKeys,
     isFavoritePersona,
     onToggleFavoritePersona,
+    onShareFeature,
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1177,6 +1198,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 favoritableKeys={favoritableKeys}
                 isFavoritePersona={isFavoritePersona}
                 onToggleFavoritePersona={onToggleFavoritePersona}
+                onShareFeature={onShareFeature}
             />
         </div>
     );
