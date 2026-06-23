@@ -933,7 +933,7 @@ const AppContent: React.FC = () => {
             return (
                 <AuthModal
                     onSuccess={handleAuthSuccessWithWelcome}
-                    onBack={() => goTo('guest')}
+                    onBack={() => goTo('main')}
                     defaultMode="register"
                     fullScreen
                 />
@@ -948,6 +948,7 @@ const AppContent: React.FC = () => {
                     <AuthProvider value={authCtxValue}>
                         <MainPageNew
                             personas={visiblePersonas}
+                            heroCards={heroCards}
                             isLoading={isPersonasLoading}
                             onSelectPersona={requireLogin}
                             onFeatureSelect={() => requireLogin()}
@@ -956,7 +957,7 @@ const AppContent: React.FC = () => {
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
                             categories={categories}
-                            onGoHome={() => goTo('guest')}
+                            onGoHome={() => goTo('main')}
                             initialTab={mainInitialTab}
                             initialFocusPersonaId={mainFocusPersonaId}
                             initialFocusFeatureKey={mainFocusFeatureKey}
@@ -1285,6 +1286,7 @@ const AppContent: React.FC = () => {
                 <AuthProvider value={authCtxValue}>
                 <MainPageNew
                     personas={visiblePersonas}
+                    heroCards={heroCards}
                     isLoading={isPersonasLoading}
                     onSelectPersona={(id) => { goTo('chat'); handlePersonaClick(id); }}
                     onAdminClick={() => handleAdminLogin()}
@@ -1292,7 +1294,7 @@ const AppContent: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={() => setShowUserProfile(true)}
                     categories={categories}
-                    onGoHome={() => goTo('hero')}
+                    onGoHome={() => goTo('main')}
                     initialTab={mainInitialTab}
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
@@ -2034,7 +2036,7 @@ const AppContent: React.FC = () => {
                                 <div className="flex items-center mr-2 rounded-full overflow-hidden" style={{ background: '#F5E6F7', border: '1px solid #E4D3EC' }}>
                                     <button
                                         className="flex items-center justify-center px-2.5 py-1.5 text-[#8E6FB7] hover:bg-[#EAD5F2] transition-colors"
-                                        onClick={() => goTo('hero')}
+                                        onClick={() => goTo('main')}
                                         title="첫 화면"
                                     >
                                         <Icon name="Home" size={17} />
@@ -2141,7 +2143,7 @@ const AppContent: React.FC = () => {
                                         <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#F0E9DE] rounded-xl shadow-[0_8px_32px_-8px_rgba(80,50,110,0.18)] z-50 overflow-hidden">
                                             {/* 첫 화면(홈) */}
                                             <button
-                                                onClick={() => { setShowHeaderMenu(false); goTo('hero'); }}
+                                                onClick={() => { setShowHeaderMenu(false); goTo('main'); }}
                                                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
                                             >
                                                 <Icon name="Home" size={15} className="text-[#8E6FB7]" />

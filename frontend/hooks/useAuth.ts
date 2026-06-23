@@ -33,7 +33,8 @@ export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
-    const [screen, setScreen] = useState<Screen>('guest');
+    // 통합 메인: guest/hero 화면을 없애고 모든 진입을 main(MainPageNew)으로 일원화.
+    const [screen, setScreen] = useState<Screen>('main');
 
     const goTo = (next: Screen) => setScreen(next);
 
@@ -56,7 +57,7 @@ export function useAuth() {
                             // 신규 가입자도 카카오 닉네임을 그대로 사용하고 바로 hero 진입(닉네임 변경은 '내 정보'에서).
                             localStorage.setItem('token', data.token);
                             authApi.me()
-                                .then(({ user }) => { setUser(user); goTo('hero'); })
+                                .then(({ user }) => { setUser(user); goTo('main'); })
                                 .catch(() => localStorage.removeItem('token'));
                         }
                     })
@@ -74,7 +75,7 @@ export function useAuth() {
         const token = localStorage.getItem('token');
         if (!token) { setIsAuthChecking(false); return; }
         authApi.me()
-            .then(({ user }) => { setUser(user); goTo('hero'); })
+            .then(({ user }) => { setUser(user); goTo('main'); })
             .catch(() => localStorage.removeItem('token'))
             .finally(() => setIsAuthChecking(false));
     }, []);
@@ -83,7 +84,7 @@ export function useAuth() {
     const handleAuthSuccess = (loggedInUser: User, token: string) => {
         localStorage.setItem('token', token);
         setUser(loggedInUser);
-        goTo('hero');
+        goTo('main');
     };
 
     // 토큰/user 제거 + guest 화면. (세션/포인트 등 본체 상태 리셋은 App의 handleLogout에서 조립)
@@ -91,7 +92,7 @@ export function useAuth() {
         localStorage.removeItem('token');
         setUser(null);
         setShowAuthModal(false);
-        goTo('guest');
+        goTo('main');
     };
 
     return {

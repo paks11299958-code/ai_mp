@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
+import { HeroCard } from '../services/apiService';
 import { Icon } from './Icons';
 import { useAuthContext } from '../contexts/AuthContext';
 import { usePoints } from '../contexts/PointsContext';
@@ -78,6 +79,8 @@ interface MainPageNewProps {
     onToggleFavoritePersona?: (id: string) => void;
     // 공유: 기능 카드 🔗 버튼 (?f 딥링크)
     onShareFeature?: (featureKey: string, label: string) => void;
+    // 통합 메인: 상단 '지금 주목' 캐러셀에 흡수할 어드민 메인 카드(없으면 기본 추천 항목으로 폴백)
+    heroCards?: HeroCard[];
 }
 
 // ─────────────────────────────────────────────
@@ -420,7 +423,8 @@ const PersonaSelectPanel: React.FC<{
     isFavoritePersona?: (id: string) => boolean;
     onToggleFavoritePersona?: (id: string) => void;
     onShareFeature?: (featureKey: string, label: string) => void;
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature }) => {
+    heroCards?: HeroCard[];
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [] }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -449,6 +453,35 @@ const PersonaSelectPanel: React.FC<{
             }, 100);
         }
     }, [focusFeatureKey, tab]);
+
+    // ── 통합 메인 상단 섹션 데이터 ──────────────────────────────
+    // '지금 주목': 신규/이벤트 기능을 가로 캐러셀로. (웹툰 1화 · 헤어 진단 · 오늘의 운세)
+    const spotlightFeatures = React.useMemo(() => {
+        const keys = ['webtoon', 'hair', 'siwoon'];
+        const badges: Record<string, string> = { webtoon: '1화 오픈', hair: 'NEW', siwoon: '오늘의 운세' };
+        return keys
+            .map(k => FEATURES_GRID.find(f => f.key === k))
+            .filter((f): f is typeof FEATURES_GRID[number] => !!f)
+            .map(f => ({ ...f, badge: badges[f.key] }));
+    }, []);
+
+    // '나의 즐겨찾기': 로그인 사용자가 ⭐한 페르소나 + 기능
+    const favoritePersonas = React.useMemo(
+        () => (isFavoritePersona ? personas.filter(p => isFavoritePersona(p.id)) : []),
+        [personas, isFavoritePersona]
+    );
+    const favoriteFeatures = React.useMemo(
+        () => (isFavorite ? FEATURES_GRID.filter(f => isFavorite(f.key)) : []),
+        [isFavorite]
+    );
+
+    // '인기·신규' 페르소나: 인기=order 오름차순(어드민 정렬), 신규=createdAt 내림차순 상위
+    const newPersonas = React.useMemo(() => {
+        return [...personas]
+            .filter(p => p.createdAt)
+            .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+            .slice(0, 8);
+    }, [personas]);
 
     const filtered = personas
         .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId)
@@ -600,6 +633,101 @@ const PersonaSelectPanel: React.FC<{
                 )}
                 </div>
                 {/* ↑ 제목 영역 가운데 정렬 끝. 아래(최근대화·검색·칩·목록)는 왼쪽 정렬 */}
+
+                {/* ★ 통합 메인 상단 섹션: 지금 주목 → 나의 즐겨찾기 (검색/탭 위 공통 노출) */}
+                {/* 지금 주목 — 신규·이벤트 기능 가로 캐러셀 */}
+                {spotlightFeatures.length > 0 && (
+                    <div style={{ marginBottom: 18 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>✨ 지금 주목</div>
+                        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                            {spotlightFeatures.map(f => (
+                                <button
+                                    key={f.key}
+                                    onClick={() => onFeatureSelect?.(f.personaName, f.key)}
+                                    style={{
+                                        flex: '0 0 auto', width: 150, textAlign: 'left',
+                                        border: `1px solid ${f.palette.deep}55`, borderRadius: 16,
+                                        background: `linear-gradient(150deg, ${f.palette.bg} 0%, #FFFFFF 100%)`,
+                                        padding: '14px 13px', cursor: 'pointer', position: 'relative',
+                                        boxShadow: '0 4px 14px -8px rgba(60,40,80,0.35)',
+                                    }}
+                                >
+                                    <span style={{
+                                        position: 'absolute', top: 10, right: 10, fontSize: 9, fontWeight: 800,
+                                        color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 7px',
+                                    }}>{f.badge}</span>
+                                    <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={34} color={f.palette.accent} bg={f.palette.bg} /></div>
+                                    <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, lineHeight: 1.25 }}>{f.name}</div>
+                                    <div style={{ fontSize: 10.5, color: T.inkMute, marginTop: 3 }}>{f.personaName}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 나의 즐겨찾기 — 로그인 + ⭐한 페르소나/기능이 있을 때만 */}
+                {user && (favoritePersonas.length > 0 || favoriteFeatures.length > 0) && (
+                    <div style={{ marginBottom: 18 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>⭐ 나의 즐겨찾기</div>
+                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                            {favoritePersonas.map(p => (
+                                <button key={`fp-${p.id}`} onClick={() => onSelect(p.id)} style={{
+                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                }}>
+                                    <div style={{
+                                        width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+                                        border: `2px solid ${T.gold}`, background: T.lineSoft,
+                                    }}>
+                                        {p.imageUrl
+                                            ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
+                                    </div>
+                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                </button>
+                            ))}
+                            {favoriteFeatures.map(f => (
+                                <button key={`ff-${f.key}`} onClick={() => onFeatureSelect?.(f.personaName, f.key)} style={{
+                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                }}>
+                                    <div style={{
+                                        width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        border: `2px solid ${f.palette.deep}`, background: f.palette.bg,
+                                    }}>
+                                        <MpnFeatureIcon kind={f.icon} size={30} color={f.palette.accent} bg={f.palette.bg} />
+                                    </div>
+                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 인기·신규 — 새로 합류한 AI(신규 페르소나, createdAt 최신순) */}
+                {newPersonas.length > 0 && (
+                    <div style={{ marginBottom: 18 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🔥 인기·신규</div>
+                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                            {newPersonas.map(p => (
+                                <button key={`np-${p.id}`} onClick={() => onSelect(p.id)} style={{
+                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                }}>
+                                    <div style={{
+                                        width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+                                        border: `2px solid ${T.accent}55`, background: T.lineSoft,
+                                    }}>
+                                        {p.imageUrl
+                                            ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
+                                    </div>
+                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* ③ 최근 대화 줄 — 최근 대화한 페르소나 바로가기 */}
                 {user && tab === 'personas' && recentPersonas.length > 0 && (
@@ -1101,12 +1229,14 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     initialFocusPersonaId = null,
     initialFocusFeatureKey = null,
     recentPersonas = [],
+    recentFeatureKeys = [],
     isFavorite,
     onToggleFavorite,
     favoritableKeys,
     isFavoritePersona,
     onToggleFavoritePersona,
     onShareFeature,
+    heroCards = [],
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1182,7 +1312,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 onSearchChange={setSearchQuery}
                 selectedCategoryId={selectedCategoryId}
                 onCategorySelect={setSelectedCategoryId}
-                onFeatureSelect={handleFeatureSelect}
+                onFeatureSelect={onFeatureSelect ?? handleFeatureSelect}
                 initialTab={initialTab}
                 focusPersonaId={initialFocusPersonaId}
                 focusFeatureKey={initialFocusFeatureKey}
@@ -1193,12 +1323,14 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 onProfileClick={onProfileClick}
                 onPartnerBoardClick={onPartnerBoardClick}
                 recentPersonas={recentPersonas}
+                recentFeatureKeys={recentFeatureKeys}
                 isFavorite={isFavorite}
                 onToggleFavorite={onToggleFavorite}
                 favoritableKeys={favoritableKeys}
                 isFavoritePersona={isFavoritePersona}
                 onToggleFavoritePersona={onToggleFavoritePersona}
                 onShareFeature={onShareFeature}
+                heroCards={heroCards}
             />
         </div>
     );
