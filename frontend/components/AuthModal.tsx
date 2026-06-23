@@ -10,6 +10,7 @@ interface AuthModalProps {
     onBack?: () => void;
     defaultMode?: 'login' | 'register';
     fullScreen?: boolean;
+    referralBanner?: boolean;  // 추천 링크로 들어온 방문자에게 '친구 초대 + 1000P' 환영 배너 표시
     personas?: any[];
 }
 
@@ -27,7 +28,7 @@ const formatPhoneNumber = (val: string) => {
     return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
 };
 
-export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack, defaultMode = 'login', fullScreen = false }) => {
+export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack, defaultMode = 'login', fullScreen = false, referralBanner = false }) => {
     const [mode, setMode] = useState<Mode>(defaultMode);
     const [identifier, setIdentifier] = useState('');
     const [email, setEmail] = useState('');
@@ -602,7 +603,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                         돌아가기
                     </button>
                 </div>
-                <div className="flex-1 flex items-center justify-center px-4 pb-16">
+                <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
+                    {referralBanner && (
+                        <div className="w-full max-w-md mb-4 rounded-2xl px-5 py-4 text-center text-white shadow-lg"
+                             style={{ background: 'linear-gradient(135deg, #9B5FA8 0%, #7A4B96 100%)' }}>
+                            <div className="text-2xl mb-1">🎁</div>
+                            <div className="text-base font-bold">친구가 초대했어요!</div>
+                            <div className="text-sm mt-1 opacity-95">
+                                지금 가입하면 <span className="font-bold">1,000P</span> 적립<br />
+                                친구도 함께 <span className="font-bold">1,000P</span>를 받아요
+                            </div>
+                        </div>
+                    )}
                     {formCard}
                 </div>
             </div>

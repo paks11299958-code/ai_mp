@@ -124,8 +124,10 @@ const AppContent: React.FC = () => {
     // 공유 딥링크: ?p=<personaId> (페르소나 채팅) / ?f=<featureKey> (기능 보드).
     // 공유 링크로 들어온 사람을 해당 페르소나/기능으로 바로 안내한다(바이럴 유입).
     // URL은 즉시 정리(공유링크 흔적/새로고침 시 재진입 방지)하고 값만 보관 → 아래 useEffect에서 처리.
+    // 추천(바이럴) 링크로 막 들어왔는지(?ref 캡처). true면 비회원에게 곧장 가입 안내 화면 + 환영 혜택 배너.
+    // ※ pendingDeepLink 초기화보다 먼저 실행돼야 하므로(ref 제거가 선행) 이 useState를 위에 둔다.
+    const [arrivedViaReferral, setArrivedViaReferral] = useState<boolean>(() => captureRefFromUrl());
     const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string } | { kind: 'feature'; key: string } | null>(() => {
-        captureRefFromUrl(); // ?ref=코드 → localStorage 보관(가입 시 동봉) + URL에서 제거
         const params = new URLSearchParams(window.location.search);
         const p = params.get('p');
         const f = params.get('f');
@@ -914,6 +916,19 @@ const AppContent: React.FC = () => {
     }
 
     if (!user) {
+        // 바이럴 링크(?ref)로 막 들어온 비회원 → 곧장 가입폼 + 환영 혜택 배너.
+        // '돌아가기'를 누르면 플래그를 끄고 둘러보기로(가입 강요만 하지 않도록 탈출구 제공).
+        if (arrivedViaReferral) {
+            return (
+                <AuthModal
+                    onSuccess={handleAuthSuccessWithWelcome}
+                    onBack={() => setArrivedViaReferral(false)}
+                    defaultMode="register"
+                    fullScreen
+                    referralBanner
+                />
+            );
+        }
         if (screen === 'authPage') {
             return (
                 <AuthModal
@@ -1219,14 +1234,16 @@ const AppContent: React.FC = () => {
                     favoriteChips={favoriteChips}
                     personaChips={personaChips}
                 />
-                {/* 친구 초대 플로팅 버튼 — 메인에서 항상 눈에 띄게(바이럴 진입점). */}
+                {/* 친구 초대 플로팅 아이콘 — 메인 왼쪽 세로 중앙. 작은 원형(바이럴 진입점). */}
                 <button
                     onClick={() => setShowInviteModal(true)}
-                    className="fixed z-40 flex items-center gap-2 px-4 py-3 rounded-full text-sm font-bold text-white shadow-lg transition-transform active:scale-95"
-                    style={{ right: 16, bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)', background: 'linear-gradient(135deg, #8E6FB7 0%, #6B4F92 100%)', boxShadow: '0 8px 24px -6px rgba(107,79,146,0.6)' }}
+                    aria-label="친구 초대"
+                    className="fixed z-40 flex flex-col items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-95"
+                    style={{ left: 12, top: '50%', transform: 'translateY(-50%)', width: 60, height: 60, background: 'linear-gradient(135deg, #8E6FB7 0%, #6B4F92 100%)', boxShadow: '0 6px 18px -4px rgba(107,79,146,0.6)' }}
                 >
-                    <span className="text-base leading-none">🎁</span>
-                    친구 초대 +1000P
+                    <span className="text-lg leading-none">🎁</span>
+                    <span className="text-[9px] font-bold leading-tight mt-0.5">초대장</span>
+                    <span className="text-[9px] font-extrabold leading-tight">1000P</span>
                 </button>
                 {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} />}
                 {showAnnouncementModal && (

@@ -4,18 +4,22 @@
 
 const KEY = 'referralCode';
 
-/** URL에 ?ref=코드가 있으면 localStorage에 보관하고 URL에서 제거한다(앱 부팅 시 1회). */
-export function captureRefFromUrl(): void {
+/**
+ * URL에 ?ref=코드가 있으면 localStorage에 보관하고 URL에서 제거한다(앱 부팅 시 1회).
+ * 반환: 이번 진입이 추천 링크였는지(=방금 ref를 캡처했는지). true면 호출부에서 가입 안내 화면으로 유도.
+ */
+export function captureRefFromUrl(): boolean {
     try {
         const params = new URLSearchParams(window.location.search);
         const ref = params.get('ref');
-        if (!ref) return;
+        if (!ref) return false;
         const code = ref.trim().toUpperCase().slice(0, 16);
         if (code) localStorage.setItem(KEY, code);
         params.delete('ref');
         const qs = params.toString();
         window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
-    } catch { /* 무시 */ }
+        return !!code;
+    } catch { return false; }
 }
 
 /** 보관된 추천코드(없으면 undefined). 가입 요청 body의 ref로 전달. */
