@@ -59,6 +59,7 @@ interface MainPageNewProps {
     onPartnerBoardClick?: () => void;
     onProfileClick?: () => void;
     onLoginClick?: () => void;
+    onChargeClick?: () => void;
     categories?: Category[];
     onGoHome?: () => void;
     // 기능카드 클릭 시 해당 페르소나로 이동
@@ -464,6 +465,7 @@ const PersonaSelectPanel: React.FC<{
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
     onLoginClick?: () => void;
+    onChargeClick?: () => void;
     onPartnerBoardClick?: () => void;
     recentPersonas?: Persona[];
     recentFeatureKeys?: string[];
@@ -474,7 +476,7 @@ const PersonaSelectPanel: React.FC<{
     onToggleFavoritePersona?: (id: string) => void;
     onShareFeature?: (featureKey: string, label: string) => void;
     heroCards?: HeroCard[];
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [] }) => {
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onChargeClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [] }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -603,6 +605,7 @@ const PersonaSelectPanel: React.FC<{
                         {[
                             { label: '🏠 첫 화면', onClick: onGoHome },
                             ...(user ? [{ label: '⭐ 즐겨찾기', onClick: () => { setShowFavorites(true); setMobileMenuOpen(false); } }] : []),
+                            ...(user ? [{ label: '💎 충전하기', onClick: onChargeClick }] : []),
                             ...(user ? [{ label: '👤 내 정보', onClick: onProfileClick }] : []),
                             { label: '📢 공지사항', onClick: onAnnouncementClick, badge: unreadAnnouncementCount },
                             { label: '🤝 제휴 문의', onClick: onPartnerBoardClick },
@@ -1354,6 +1357,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     onPartnerBoardClick,
     onProfileClick,
     onLoginClick,
+    onChargeClick,
     categories = [],
     onGoHome,
     onFeatureSelect,
@@ -1454,6 +1458,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 unreadAnnouncementCount={unreadAnnouncementCount}
                 onProfileClick={onProfileClick}
                 onLoginClick={onLoginClick}
+                onChargeClick={onChargeClick}
                 onPartnerBoardClick={onPartnerBoardClick}
                 recentPersonas={recentPersonas}
                 recentFeatureKeys={recentFeatureKeys}

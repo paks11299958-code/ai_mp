@@ -1100,6 +1100,7 @@ const AppContent: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={() => setShowUserProfile(true)}
                     onLoginClick={() => goTo('authPage')}
+                    onChargeClick={() => setShowPointModal(true)}
                     categories={categories}
                     onGoHome={() => { window.location.href = '/'; }}
                     initialTab={mainInitialTab}
