@@ -2032,24 +2032,15 @@ const AppContent: React.FC = () => {
                     <div className={`flex flex-col h-full ${(activeImages.find(img => img.isMain)?.imageUrl || activePersona?.imageUrl) ? 'w-full md:w-2/3' : 'w-full'}`}>
                         <header className="h-16 flex items-center justify-between px-4 shrink-0 z-10 border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             <div className="flex items-center">
-                                {/* 홈(첫 화면) + 둘러보기(대기페이지) — 알약 하나로 묶음(구분선·퍼플 통일) */}
-                                <div className="flex items-center mr-2 rounded-full overflow-hidden" style={{ background: '#F5E6F7', border: '1px solid #E4D3EC' }}>
-                                    <button
-                                        className="flex items-center justify-center px-2.5 py-1.5 text-[#8E6FB7] hover:bg-[#EAD5F2] transition-colors"
-                                        onClick={() => goTo('main')}
-                                        title="첫 화면"
-                                    >
-                                        <Icon name="Home" size={17} />
-                                    </button>
-                                    <span style={{ width: 1, height: 16, background: '#D9C2E6' }} />
-                                    <button
-                                        className="flex items-center justify-center px-2.5 py-1.5 text-[#8E6FB7] hover:bg-[#EAD5F2] transition-colors"
-                                        onClick={() => { setMainInitialTab('personas'); goTo('main'); }}
-                                        title="페르소나·기능 둘러보기"
-                                    >
-                                        <Icon name="Users" size={17} />
-                                    </button>
-                                </div>
+                                {/* 첫 화면(=페르소나·기능 둘러보기). 단일화 이후 홈/둘러보기가 같은 main이라 버튼 하나로 통합. */}
+                                <button
+                                    className="flex items-center gap-1.5 mr-2 rounded-full px-3 py-1.5 text-[#8E6FB7] hover:bg-[#EAD5F2] transition-colors"
+                                    style={{ background: '#F5E6F7', border: '1px solid #E4D3EC' }}
+                                    onClick={() => { setMainInitialTab('personas'); goTo('main'); }}
+                                    title="첫 화면 · 페르소나·기능 둘러보기"
+                                >
+                                    <Icon name="Home" size={17} />
+                                </button>
                                 {activePersona && (
                                     <>
                                         {(() => {
@@ -2141,15 +2132,7 @@ const AppContent: React.FC = () => {
                                     </button>
                                     {showHeaderMenu && (
                                         <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-[#F0E9DE] rounded-xl shadow-[0_8px_32px_-8px_rgba(80,50,110,0.18)] z-50 overflow-hidden">
-                                            {/* 첫 화면(홈) */}
-                                            <button
-                                                onClick={() => { setShowHeaderMenu(false); goTo('main'); }}
-                                                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
-                                            >
-                                                <Icon name="Home" size={15} className="text-[#8E6FB7]" />
-                                                첫 화면
-                                            </button>
-                                            {/* 페르소나 목록 */}
+                                            {/* 페르소나 목록 (= 첫 화면. 단일화로 '첫 화면' 항목 중복 제거, 헤더 홈 버튼이 대신함) */}
                                             <button
                                                 onClick={() => { setShowHeaderMenu(false); setMainInitialTab('personas'); goTo('main'); }}
                                                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-[#5C5468] hover:bg-[#F5EFE6] hover:text-[#2D2438] transition-colors"
