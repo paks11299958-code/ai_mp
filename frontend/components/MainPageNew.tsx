@@ -415,6 +415,14 @@ const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
 };
 
+// 섹션 제목 — 왼쪽 컬러 강조 바 + 키운 글씨로 눈에 띄게.
+const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
+        <span style={{ width: 4, height: 16, borderRadius: 2, background: 'linear-gradient(180deg, #8E6FB7 0%, #C4A9E0 100%)', flexShrink: 0 }} />
+        <span style={{ fontSize: 15, fontWeight: 800, color: '#2D2438', letterSpacing: '-0.01em' }}>{children}</span>
+    </div>
+);
+
 // Feature 아이콘 SVG (MainPageNew용)
 // ─────────────────────────────────────────────
 const MpnFeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg?: string }> = ({ kind, size = 64, color = '#8E6FB7', bg = '#F5E6F7' }) => {
@@ -773,7 +781,7 @@ const PersonaSelectPanel: React.FC<{
                 {/* 지금 주목 — 신규·이벤트 기능 가로 캐러셀 */}
                 {spotlightFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>✨ 지금 주목</div>
+                        <SectionTitle>✨ 오늘의 추천</SectionTitle>
                         {/* 캐러셀: 큐레이션 4개+라 모바일에선 3개 보이고 나머지는 드래그/스와이프로. */}
                         <Carousel>
                             {spotlightFeatures.map(f => (
@@ -806,7 +814,7 @@ const PersonaSelectPanel: React.FC<{
                     새 기능 추가 시 자동으로 맨 앞에 노출. 특별 배지 없이 깔끔하게. */}
                 {newFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🆕 새로 나온 기능</div>
+                        <SectionTitle>🎁 새로운 기능</SectionTitle>
                         <Carousel>
                             {newFeatures.map(f => (
                                 <button
@@ -836,7 +844,7 @@ const PersonaSelectPanel: React.FC<{
                     개수 가변이라 고정폭(~30%)+가로 캐러셀: 3개 보이고 나머지는 옆으로 스크롤. */}
                 {user && tab === 'personas' && recentPersonas.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>💬 최근 대화</div>
+                        <SectionTitle>💬 이어서 대화</SectionTitle>
                         <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
                             {recentPersonas.map(p => (
                                 <button
@@ -872,7 +880,7 @@ const PersonaSelectPanel: React.FC<{
                 {/* 인기·신규 — 새로 합류한 AI(신규 페르소나, createdAt 최신순). 최근 대화 없을 때 탐색 유도. */}
                 {newPersonas.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🔥 인기·신규</div>
+                        <SectionTitle>👥 새로운 AI 친구</SectionTitle>
                         <Carousel>
                             {newPersonas.map(p => (
                                 <button key={`np-${p.id}`} onClick={() => onSelect(p.id)} style={{
