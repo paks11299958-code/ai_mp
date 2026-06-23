@@ -3,22 +3,20 @@ import { authApi } from '../services/apiService';
 import { User } from '../types';
 
 /**
- * 진입 화면 상태. 4개 boolean(showAuthPage/showMain/showHero + default chat)을
- * 단일 상태로 통합 — 한 번에 하나의 화면만 활성이므로 누락/이중 화면이 구조적으로 불가능.
- * - 'guest'    : 비로그인 랜딩
+ * 진입 화면 상태. 한 번에 하나의 화면만 활성이므로 누락/이중 화면이 구조적으로 불가능.
+ * (단일화: 옛 'guest'/'hero' 랜딩을 없애고 모든 진입을 'main'으로 일원화)
  * - 'authPage' : 회원가입 전체화면(비로그인)
- * - 'hero'     : 로그인 후 랜딩(Hero)
- * - 'main'     : 페르소나/기능 둘러보기(MainPageNew)
- * - 'chat'     : 채팅 화면(default)
+ * - 'main'     : 첫 화면 = 페르소나/기능 둘러보기(MainPageNew)
+ * - 'chat'     : 채팅 화면
  */
-export type Screen = 'guest' | 'authPage' | 'hero' | 'main' | 'chat';
+export type Screen = 'authPage' | 'main' | 'chat';
 
 /**
  * 인증/진입 상태 훅 (App.tsx #1 분해 — T4, ① reload 제거 리팩토링).
  *
  * 소유 범위:
  * - user/setUser (앱 전역에서 참조), isAuthChecking
- * - 진입 화면 단일 상태: screen + goTo() (이전 showAuthPage/showMain/showHero 통합)
+ * - 진입 화면 단일 상태: screen + goTo() (authPage/main/chat — 옛 guest/hero 통합 후)
  * - 카카오 OAuth 콜백 처리 effect (kakao_login/kakao_code/kakao_error)
  *   — 신규/기존 구분 없이 즉시 로그인(서버가 유효 JWT 발급, 닉네임 모달 제거됨)
  * - 토큰 기반 자동 로그인 확인 effect (authApi.me)
@@ -33,7 +31,7 @@ export function useAuth() {
     const [user, setUser] = useState<User | null>(null);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
-    // 통합 메인: guest/hero 화면을 없애고 모든 진입을 main(MainPageNew)으로 일원화.
+    // 통합 메인: 옛 guest/hero 화면을 없애고 모든 진입을 main(MainPageNew)으로 일원화.
     const [screen, setScreen] = useState<Screen>('main');
 
     const goTo = (next: Screen) => setScreen(next);
