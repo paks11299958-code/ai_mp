@@ -506,10 +506,10 @@ const PersonaSelectPanel: React.FC<{
     }, [focusFeatureKey, tab]);
 
     // ── 통합 메인 상단 섹션 데이터 ──────────────────────────────
-    // '지금 주목': 사장 지정 큐레이션 3개(웹툰 1화 · 헤어 진단 · 오늘의 운세). 특별 배지 수동.
-    const SPOTLIGHT_KEYS = ['webtoon', 'hair', 'siwoon'];
+    // '지금 주목': 사장 지정 큐레이션(웹툰 1화 · 헤어 진단 · 오늘의 운세 · 주식 분석). 특별 배지 수동.
+    const SPOTLIGHT_KEYS = ['webtoon', 'hair', 'siwoon', 'stock'];
     const spotlightFeatures = React.useMemo(() => {
-        const badges: Record<string, string> = { webtoon: '1화 오픈', hair: 'NEW', siwoon: '오늘의 운세' };
+        const badges: Record<string, string> = { webtoon: '1화 오픈', hair: 'NEW', siwoon: '오늘의 운세', stock: 'AI 리포트' };
         return SPOTLIGHT_KEYS
             .map(k => FEATURES_GRID.find(f => f.key === k))
             .filter((f): f is typeof FEATURES_GRID[number] => !!f)
@@ -771,17 +771,17 @@ const PersonaSelectPanel: React.FC<{
                 {spotlightFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>✨ 지금 주목</div>
-                        {/* 한 줄 균등 배치: 가로 스크롤 없이 카드들이 폭을 1/n로 나눠 가져 잘림 없음 */}
-                        <div style={{ display: 'flex', gap: 8, paddingBottom: 4 }}>
+                        {/* 캐러셀: 큐레이션 4개+라 모바일에선 3개 보이고 나머지는 드래그/스와이프로. */}
+                        <Carousel>
                             {spotlightFeatures.map(f => (
                                 <button
                                     key={f.key}
                                     onClick={() => onFeatureSelect?.(f.personaName, f.key)}
                                     style={{
-                                        flex: '1 1 0', minWidth: 0, maxWidth: 200, textAlign: 'left',
+                                        flex: '0 0 auto', width: 170, textAlign: 'left',
                                         border: `1px solid ${f.palette.deep}55`, borderRadius: 16,
                                         background: `linear-gradient(150deg, ${f.palette.bg} 0%, #FFFFFF 100%)`,
-                                        padding: '12px 11px', cursor: 'pointer', position: 'relative',
+                                        padding: '14px 13px', cursor: 'pointer', position: 'relative',
                                         boxShadow: '0 4px 14px -8px rgba(60,40,80,0.35)',
                                     }}
                                 >
@@ -795,7 +795,7 @@ const PersonaSelectPanel: React.FC<{
                                     <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
                                 </button>
                             ))}
-                        </div>
+                        </Carousel>
                     </div>
                 )}
 
