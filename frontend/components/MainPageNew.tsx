@@ -704,7 +704,7 @@ const PersonaSelectPanel: React.FC<{
                                     key={f.key}
                                     onClick={() => onFeatureSelect?.(f.personaName, f.key)}
                                     style={{
-                                        flex: '1 1 0', minWidth: 0, textAlign: 'left',
+                                        flex: '1 1 0', minWidth: 0, maxWidth: 200, textAlign: 'left',
                                         border: `1px solid ${f.palette.deep}55`, borderRadius: 16,
                                         background: `linear-gradient(150deg, ${f.palette.bg} 0%, #FFFFFF 100%)`,
                                         padding: '12px 11px', cursor: 'pointer', position: 'relative',
@@ -739,7 +739,7 @@ const PersonaSelectPanel: React.FC<{
                                     key={p.id}
                                     onClick={() => onSelect(p.id)}
                                     style={{
-                                        flex: '0 0 30%', minWidth: 100, textAlign: 'left',
+                                        flex: '0 0 30%', minWidth: 100, maxWidth: 150, textAlign: 'left',
                                         border: `1px solid ${T.lineSoft}`, borderRadius: 14,
                                         background: 'linear-gradient(150deg, #FBF7F1 0%, #FFFFFF 100%)',
                                         padding: 8, cursor: 'pointer',
