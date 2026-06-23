@@ -700,7 +700,44 @@ const PersonaSelectPanel: React.FC<{
                     </div>
                 )}
 
-                {/* 인기·신규 — 새로 합류한 AI(신규 페르소나, createdAt 최신순) */}
+                {/* ③ 최근 대화 — 재방문 사용자 우선(인기·신규 위). 지금 주목과 같은 사각 카드,
+                    개수 가변이라 고정폭(~30%)+가로 캐러셀: 3개 보이고 나머지는 옆으로 스크롤. */}
+                {user && tab === 'personas' && recentPersonas.length > 0 && (
+                    <div style={{ marginBottom: 18 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>💬 최근 대화</div>
+                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                            {recentPersonas.map(p => (
+                                <button
+                                    key={p.id}
+                                    onClick={() => onSelect(p.id)}
+                                    style={{
+                                        flex: '0 0 30%', minWidth: 100, textAlign: 'left',
+                                        border: `1px solid ${T.lineSoft}`, borderRadius: 14,
+                                        background: 'linear-gradient(150deg, #FBF7F1 0%, #FFFFFF 100%)',
+                                        padding: 8, cursor: 'pointer',
+                                        boxShadow: '0 4px 14px -8px rgba(60,40,80,0.3)',
+                                        transition: 'border-color 0.15s, box-shadow 0.15s',
+                                    }}
+                                    onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.accent}77`; e.currentTarget.style.boxShadow = `0 6px 16px -8px rgba(142,111,183,0.45)`; }}
+                                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.lineSoft; e.currentTarget.style.boxShadow = '0 4px 14px -8px rgba(60,40,80,0.3)'; }}
+                                >
+                                    <div style={{
+                                        width: '100%', aspectRatio: '1', borderRadius: 10, overflow: 'hidden',
+                                        background: T.lineSoft, marginBottom: 6,
+                                    }}>
+                                        {p.imageUrl
+                                            ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: T.accent, fontWeight: 700 }}>{p.name.charAt(0)}</div>}
+                                    </div>
+                                    <div style={{ fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                                    <div style={{ fontSize: 10, color: T.inkMute, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.jobTitle || p.description?.slice(0, 14) || '대화 이어가기'}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 인기·신규 — 새로 합류한 AI(신규 페르소나, createdAt 최신순). 최근 대화 없을 때 탐색 유도. */}
                 {newPersonas.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🔥 인기·신규</div>
@@ -719,35 +756,6 @@ const PersonaSelectPanel: React.FC<{
                                             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
                                     </div>
                                     <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* ③ 최근 대화 줄 — 최근 대화한 페르소나 바로가기 */}
-                {user && tab === 'personas' && recentPersonas.length > 0 && (
-                    <div style={{ marginBottom: 10 }}>
-                        <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 8, letterSpacing: '0.05em' }}>최근 대화</div>
-                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-                            {recentPersonas.map(p => (
-                                <button key={p.id} onClick={() => onSelect(p.id)} style={{
-                                    display: 'inline-flex', alignItems: 'center', gap: 8,
-                                    flexShrink: 0, cursor: 'pointer',
-                                    padding: '6px 12px 6px 6px', borderRadius: 999,
-                                    background: 'rgba(255,255,255,0.85)',
-                                    border: `1px solid ${T.lineSoft}`,
-                                    transition: 'border-color 0.15s, box-shadow 0.15s',
-                                }}
-                                    onMouseEnter={e => { e.currentTarget.style.borderColor = `${T.accent}77`; e.currentTarget.style.boxShadow = `0 4px 14px -6px rgba(142,111,183,0.4)`; }}
-                                    onMouseLeave={e => { e.currentTarget.style.borderColor = T.lineSoft; e.currentTarget.style.boxShadow = 'none'; }}
-                                >
-                                    {p.imageUrl ? (
-                                        <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: 26, height: 26, borderRadius: '50%', objectFit: 'cover' }} />
-                                    ) : (
-                                        <span style={{ width: 26, height: 26, borderRadius: '50%', background: `${T.accent}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: T.accent, fontWeight: 700 }}>{p.name.charAt(0)}</span>
-                                    )}
-                                    <span style={{ fontSize: 13, fontWeight: 600, color: T.ink }}>{p.name}</span>
                                 </button>
                             ))}
                         </div>
