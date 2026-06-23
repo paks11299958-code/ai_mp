@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
+import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { HeroCard } from '../services/apiService';
 import { Icon } from './Icons';
@@ -365,6 +365,53 @@ export const FEATURES_GRID = [
 const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII'];
 
 // ─────────────────────────────────────────────
+// 가로 캐러셀 래퍼 — 내용이 넘칠 때만 좌우 화살표 노출, 클릭 시 스크롤.
+// (children은 flex row. overflowX:auto는 내부에서 직접 줌)
+const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const ref = useRef<HTMLDivElement | null>(null);
+    const [canLeft, setCanLeft] = useState(false);
+    const [canRight, setCanRight] = useState(false);
+    const update = useCallback(() => {
+        const el = ref.current;
+        if (!el) return;
+        setCanLeft(el.scrollLeft > 4);
+        setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    }, []);
+    useEffect(() => {
+        update();
+        const el = ref.current;
+        if (!el) return;
+        el.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+    }, [update, children]);
+    const scrollBy = (dir: number) => ref.current?.scrollBy({ left: dir * Math.max(200, (ref.current.clientWidth * 0.7)), behavior: 'smooth' });
+    const arrowStyle = (side: 'left' | 'right'): React.CSSProperties => ({
+        position: 'absolute', top: '50%', [side]: -6, transform: 'translateY(-50%)',
+        width: 32, height: 32, borderRadius: '50%', zIndex: 5,
+        background: '#fff', border: '1px solid #E4D3EC', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        boxShadow: '0 3px 10px -2px rgba(80,50,110,0.25)', color: '#8E6FB7',
+    });
+    return (
+        <div style={{ position: 'relative' }}>
+            {canLeft && (
+                <button aria-label="이전" style={arrowStyle('left')} onClick={() => scrollBy(-1)}>
+                    <ChevronLeft size={18} />
+                </button>
+            )}
+            <div ref={ref} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                {children}
+            </div>
+            {canRight && (
+                <button aria-label="다음" style={arrowStyle('right')} onClick={() => scrollBy(1)}>
+                    <ChevronRight size={18} />
+                </button>
+            )}
+        </div>
+    );
+};
+
 // Feature 아이콘 SVG (MainPageNew용)
 // ─────────────────────────────────────────────
 const MpnFeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg?: string }> = ({ kind, size = 64, color = '#8E6FB7', bg = '#F5E6F7' }) => {
@@ -746,16 +793,16 @@ const PersonaSelectPanel: React.FC<{
                 {newFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🆕 새로 나온 기능</div>
-                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                        <Carousel>
                             {newFeatures.map(f => (
                                 <button
                                     key={f.key}
                                     onClick={() => onFeatureSelect?.(f.personaName, f.key)}
                                     style={{
-                                        flex: '0 0 auto', width: 140, textAlign: 'left',
+                                        flex: '0 0 auto', width: 170, textAlign: 'left',
                                         border: `1px solid ${f.palette.deep}55`, borderRadius: 16,
                                         background: `linear-gradient(150deg, ${f.palette.bg} 0%, #FFFFFF 100%)`,
-                                        padding: '12px 11px', cursor: 'pointer', position: 'relative',
+                                        padding: '14px 13px', cursor: 'pointer', position: 'relative',
                                         boxShadow: '0 4px 14px -8px rgba(60,40,80,0.3)',
                                     }}
                                 >
@@ -764,7 +811,7 @@ const PersonaSelectPanel: React.FC<{
                                     <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
                                 </button>
                             ))}
-                        </div>
+                        </Carousel>
                     </div>
                 )}
 
@@ -812,7 +859,7 @@ const PersonaSelectPanel: React.FC<{
                 {newPersonas.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🔥 인기·신규</div>
-                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                        <Carousel>
                             {newPersonas.map(p => (
                                 <button key={`np-${p.id}`} onClick={() => onSelect(p.id)} style={{
                                     flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
@@ -829,7 +876,7 @@ const PersonaSelectPanel: React.FC<{
                                     <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                                 </button>
                             ))}
-                        </div>
+                        </Carousel>
                     </div>
                 )}
 
