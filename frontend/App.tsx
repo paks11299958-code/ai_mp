@@ -915,6 +915,19 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 로그인 전용 화면 — 로그인/비로그인 무관하게 screen==='authPage'면 항상 노출
+    // (탑메뉴 로그인 토글 → goTo('authPage'). 상태 불일치로 안 뜨던 문제 방지차 최상위로).
+    if (screen === 'authPage') {
+        return (
+            <AuthModal
+                onSuccess={handleAuthSuccessWithWelcome}
+                onBack={() => goTo('main')}
+                defaultMode="login"
+                fullScreen
+            />
+        );
+    }
+
     if (!user) {
         // 바이럴 링크(?ref)로 막 들어온 비회원 → 곧장 가입폼 + 환영 혜택 배너.
         // '돌아가기'를 누르면 플래그를 끄고 둘러보기로(가입 강요만 하지 않도록 탈출구 제공).
@@ -926,16 +939,6 @@ const AppContent: React.FC = () => {
                     defaultMode="register"
                     fullScreen
                     referralBanner
-                />
-            );
-        }
-        if (screen === 'authPage') {
-            return (
-                <AuthModal
-                    onSuccess={handleAuthSuccessWithWelcome}
-                    onBack={() => goTo('main')}
-                    defaultMode="register"
-                    fullScreen
                 />
             );
         }
