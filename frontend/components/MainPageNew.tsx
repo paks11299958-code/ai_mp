@@ -620,7 +620,27 @@ const PersonaSelectPanel: React.FC<{
                                 ) : null}
                             </button>
                         ))}
-                        {/* 로그인/로그아웃은 상단 로고 바로 이동(탑메뉴 토글). 내 정보만 햄버거 유지. */}
+
+                        {/* 로그인/로그아웃 토글 — 햄버거 하단 고정 */}
+                        {user ? (
+                            <button onClick={() => { setMobileMenuOpen(false); onLogout(); }} style={{
+                                marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
+                                textAlign: 'left', fontSize: 14, color: '#C0505A', cursor: 'pointer',
+                                borderTop: `1px solid ${T.lineSoft}`,
+                                display: 'flex', alignItems: 'center', gap: 8,
+                            }}>
+                                <LogOut size={15} /> 로그아웃
+                            </button>
+                        ) : (
+                            <button onClick={() => { setMobileMenuOpen(false); onLoginClick?.(); }} style={{
+                                marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
+                                textAlign: 'left', fontSize: 14, fontWeight: 600, color: T.accent, cursor: 'pointer',
+                                borderTop: `1px solid ${T.lineSoft}`,
+                                display: 'flex', alignItems: 'center', gap: 8,
+                            }}>
+                                <UserCircle size={15} /> 로그인
+                            </button>
+                        )}
                     </div>
                 </>
             )}
@@ -705,19 +725,7 @@ const PersonaSelectPanel: React.FC<{
                             color: T.gold, opacity: 1,
                         }}>✦ AI PERSONAS</span>
                     </button>
-                    {/* 로그인/로그아웃 토글 — 로고 바 좌측 고정 */}
-                    <button
-                        onClick={() => (user ? onLogout() : onLoginClick?.())}
-                        style={{
-                            position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
-                            background: 'none', border: 'none', cursor: 'pointer',
-                            padding: '4px 6px', borderRadius: 8, fontSize: 12, fontWeight: 700,
-                            color: user ? '#C0505A' : T.accent, display: 'flex', alignItems: 'center', gap: 4,
-                        }}
-                    >
-                        {user ? <><LogOut size={14} /> 로그아웃</> : <><UserCircle size={14} /> 로그인</>}
-                    </button>
-                    {/* 메뉴 햄버거 — 로고 바 우측 고정 */}
+                    {/* 메뉴 햄버거 — 로고 바 우측 고정 (로그인/로그아웃은 햄버거 안으로) */}
                     <button
                         onClick={() => setMobileMenuOpen(true)}
                         style={{
