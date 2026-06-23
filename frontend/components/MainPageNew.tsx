@@ -681,37 +681,53 @@ const PersonaSelectPanel: React.FC<{
                                 아직 즐겨찾기한 항목이 없어요.<br />페르소나·기능 카드의 ☆를 눌러 담아보세요.
                             </div>
                         ) : (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
-                                {favoritePersonas.map(p => (
-                                    <button key={`fp-${p.id}`} onClick={() => { setShowFavorites(false); onSelect(p.id); }} style={{
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                                        background: 'none', border: 'none', cursor: 'pointer', width: 64,
-                                    }}>
-                                        <div style={{
-                                            width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
-                                            border: `2px solid ${T.gold}`, background: T.lineSoft,
-                                        }}>
-                                            {p.imageUrl
-                                                ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
-                                        </div>
-                                        <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                                    </button>
-                                ))}
-                                {favoriteFeatures.map(f => (
-                                    <button key={`ff-${f.key}`} onClick={() => { setShowFavorites(false); onFeatureSelect?.(f.personaName, f.key); }} style={{
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                                        background: 'none', border: 'none', cursor: 'pointer', width: 64,
-                                    }}>
-                                        <div style={{
-                                            width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            border: `2px solid ${f.palette.deep}`, background: f.palette.bg,
-                                        }}>
-                                            <MpnFeatureIcon kind={f.icon} size={30} color={f.palette.accent} bg={f.palette.bg} />
-                                        </div>
-                                        <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                                    </button>
-                                ))}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                {/* 즐겨찾기 페르소나 — 가로 캐러셀(드래그/스와이프) */}
+                                {favoritePersonas.length > 0 && (
+                                    <div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: T.inkMute, marginBottom: 8 }}>페르소나</div>
+                                        <Carousel>
+                                            {favoritePersonas.map(p => (
+                                                <button key={`fp-${p.id}`} onClick={() => { setShowFavorites(false); onSelect(p.id); }} style={{
+                                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                                }}>
+                                                    <div style={{
+                                                        width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+                                                        border: `2px solid ${T.gold}`, background: T.lineSoft,
+                                                    }}>
+                                                        {p.imageUrl
+                                                            ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
+                                                    </div>
+                                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                                </button>
+                                            ))}
+                                        </Carousel>
+                                    </div>
+                                )}
+                                {/* 즐겨찾기 기능 — 가로 캐러셀(드래그/스와이프) */}
+                                {favoriteFeatures.length > 0 && (
+                                    <div>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: T.inkMute, marginBottom: 8 }}>기능</div>
+                                        <Carousel>
+                                            {favoriteFeatures.map(f => (
+                                                <button key={`ff-${f.key}`} onClick={() => { setShowFavorites(false); onFeatureSelect?.(f.personaName, f.key); }} style={{
+                                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                                }}>
+                                                    <div style={{
+                                                        width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                        border: `2px solid ${f.palette.deep}`, background: f.palette.bg,
+                                                    }}>
+                                                        <MpnFeatureIcon kind={f.icon} size={30} color={f.palette.accent} bg={f.palette.bg} />
+                                                    </div>
+                                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                                                </button>
+                                            ))}
+                                        </Carousel>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
