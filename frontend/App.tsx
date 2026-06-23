@@ -956,9 +956,9 @@ const AppContent: React.FC = () => {
                             onAnnouncementClick={() => setShowAnnouncementModal(true)}
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
-                            onLoginClick={requireLogin}
+                            onLoginClick={() => goTo('authPage')}
                             categories={categories}
-                            onGoHome={() => goTo('main')}
+                            onGoHome={() => { window.location.href = '/'; }}
                             initialTab={mainInitialTab}
                             initialFocusPersonaId={mainFocusPersonaId}
                             initialFocusFeatureKey={mainFocusFeatureKey}
@@ -1097,7 +1097,7 @@ const AppContent: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={() => setShowUserProfile(true)}
                     categories={categories}
-                    onGoHome={() => goTo('main')}
+                    onGoHome={() => { window.location.href = '/'; }}
                     initialTab={mainInitialTab}
                     initialFocusPersonaId={mainFocusPersonaId}
                     initialFocusFeatureKey={mainFocusFeatureKey}
