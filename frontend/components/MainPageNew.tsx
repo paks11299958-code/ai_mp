@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
 import { HeroCard } from '../services/apiService';
 import { Icon } from './Icons';
@@ -367,74 +367,48 @@ const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'
 // ─────────────────────────────────────────────
 // 가로 캐러셀 래퍼 — 내용이 넘칠 때만 좌우 화살표 노출, 클릭 시 스크롤.
 // (children은 flex row. overflowX:auto는 내부에서 직접 줌)
+// 가로 캐러셀 — 마우스 드래그(모바일 스와이프 느낌)로만 이동. 화살표 없음.
+// 드래그는 window 리스너로 처리해 컨테이너 밖에서 손을 떼도 안전하게 끝남.
 const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const ref = useRef<HTMLDivElement | null>(null);
-    const [canLeft, setCanLeft] = useState(false);
-    const [canRight, setCanRight] = useState(false);
-    const update = useCallback(() => {
-        const el = ref.current;
-        if (!el) return;
-        setCanLeft(el.scrollLeft > 4);
-        setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
-    }, []);
-    useEffect(() => {
-        update();
-        const el = ref.current;
-        if (!el) return;
-        el.addEventListener('scroll', update, { passive: true });
-        window.addEventListener('resize', update);
-        return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
-    }, [update, children]);
-    const scrollBy = (dir: number) => ref.current?.scrollBy({ left: dir * Math.max(200, (ref.current.clientWidth * 0.7)), behavior: 'smooth' });
-
-    // 마우스 드래그로 밀기(모바일 스와이프 느낌). 일정 거리 이상 끌면 직후 클릭을 막아
-    // 카드가 실수로 열리지 않게 함.
     const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: 0 });
+
     const onMouseDown = (e: React.MouseEvent) => {
         const el = ref.current; if (!el) return;
         drag.current = { active: true, startX: e.pageX, startScroll: el.scrollLeft, moved: 0 };
+        el.style.cursor = 'grabbing';
+        e.preventDefault();
     };
-    const onMouseMove = (e: React.MouseEvent) => {
-        const el = ref.current; if (!el || !drag.current.active) return;
-        const dx = e.pageX - drag.current.startX;
-        drag.current.moved = Math.max(drag.current.moved, Math.abs(dx));
-        el.scrollLeft = drag.current.startScroll - dx;
-    };
-    const endDrag = () => { drag.current.active = false; };
+    useEffect(() => {
+        const onMove = (e: MouseEvent) => {
+            const el = ref.current; if (!el || !drag.current.active) return;
+            const dx = e.pageX - drag.current.startX;
+            drag.current.moved = Math.max(drag.current.moved, Math.abs(dx));
+            el.scrollLeft = drag.current.startScroll - dx;
+        };
+        const onUp = () => {
+            if (!drag.current.active) return;
+            drag.current.active = false;
+            if (ref.current) ref.current.style.cursor = 'grab';
+        };
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+        return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
+    }, []);
+    // 드래그 후 직후 클릭은 막아 카드가 실수로 열리지 않게.
     const onClickCapture = (e: React.MouseEvent) => {
-        if (drag.current.moved > 6) { e.preventDefault(); e.stopPropagation(); drag.current.moved = 0; }
+        if (drag.current.moved > 6) { e.preventDefault(); e.stopPropagation(); }
+        drag.current.moved = 0;
     };
 
-    const arrowStyle = (side: 'left' | 'right'): React.CSSProperties => ({
-        position: 'absolute', top: '50%', [side]: -6, transform: 'translateY(-50%)',
-        width: 32, height: 32, borderRadius: '50%', zIndex: 5,
-        background: '#fff', border: '1px solid #E4D3EC', cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 3px 10px -2px rgba(80,50,110,0.25)', color: '#8E6FB7',
-    });
     return (
-        <div style={{ position: 'relative' }}>
-            {canLeft && (
-                <button aria-label="이전" style={arrowStyle('left')} onClick={() => scrollBy(-1)}>
-                    <ChevronLeft size={18} />
-                </button>
-            )}
-            <div
-                ref={ref}
-                onMouseDown={onMouseDown}
-                onMouseMove={onMouseMove}
-                onMouseUp={endDrag}
-                onMouseLeave={endDrag}
-                onClickCapture={onClickCapture}
-                style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', cursor: drag.current.active ? 'grabbing' : 'grab', userSelect: 'none' }}
-            >
-                {children}
-            </div>
-            {canRight && (
-                <button aria-label="다음" style={arrowStyle('right')} onClick={() => scrollBy(1)}>
-                    <ChevronRight size={18} />
-                </button>
-            )}
+        <div
+            ref={ref}
+            onMouseDown={onMouseDown}
+            onClickCapture={onClickCapture}
+            style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', cursor: 'grab', userSelect: 'none' }}
+        >
+            {children}
         </div>
     );
 };
@@ -559,12 +533,13 @@ const PersonaSelectPanel: React.FC<{
         [isFavorite]
     );
 
-    // '인기·신규' 페르소나: 인기=order 오름차순(어드민 정렬), 신규=createdAt 내림차순 상위
+    // '인기·신규' 페르소나: createdAt 최신순. 캐러셀이 의미있게 동작하도록 상위 16개까지
+    // (PC에서 8개는 화면에 다 들어가 넘침이 없어 드래그/화살표가 안 보였음).
     const newPersonas = React.useMemo(() => {
         return [...personas]
             .filter(p => p.createdAt)
             .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
-            .slice(0, 8);
+            .slice(0, 16);
     }, [personas]);
 
     const filtered = personas
@@ -889,18 +864,18 @@ const PersonaSelectPanel: React.FC<{
                         <Carousel>
                             {newPersonas.map(p => (
                                 <button key={`np-${p.id}`} onClick={() => onSelect(p.id)} style={{
-                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                                    background: 'none', border: 'none', cursor: 'pointer', width: 84,
                                 }}>
                                     <div style={{
-                                        width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+                                        width: 72, height: 72, borderRadius: '50%', overflow: 'hidden',
                                         border: `2px solid ${T.accent}55`, background: T.lineSoft,
                                     }}>
                                         {p.imageUrl
-                                            ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
+                                            ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: T.inkMute }}>{p.name[0]}</div>}
                                     </div>
-                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                    <span style={{ fontSize: 11, color: T.inkSoft, maxWidth: 84, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                                 </button>
                             ))}
                         </Carousel>
