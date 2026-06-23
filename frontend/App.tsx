@@ -956,6 +956,7 @@ const AppContent: React.FC = () => {
                             onAnnouncementClick={() => setShowAnnouncementModal(true)}
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
+                            onLoginClick={requireLogin}
                             categories={categories}
                             onGoHome={() => goTo('main')}
                             initialTab={mainInitialTab}

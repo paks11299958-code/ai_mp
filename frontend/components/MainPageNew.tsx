@@ -462,6 +462,7 @@ const PersonaSelectPanel: React.FC<{
     onAnnouncementClick?: () => void;
     unreadAnnouncementCount?: number;
     onProfileClick?: () => void;
+    onLoginClick?: () => void;
     onPartnerBoardClick?: () => void;
     recentPersonas?: Persona[];
     recentFeatureKeys?: string[];
@@ -472,7 +473,7 @@ const PersonaSelectPanel: React.FC<{
     onToggleFavoritePersona?: (id: string) => void;
     onShareFeature?: (featureKey: string, label: string) => void;
     heroCards?: HeroCard[];
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [] }) => {
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [] }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -600,10 +601,8 @@ const PersonaSelectPanel: React.FC<{
                         {/* 메뉴 아이템 */}
                         {[
                             { label: '🏠 첫 화면', onClick: onGoHome },
-                            { label: '🧑‍🤝‍🧑 페르소나 목록', onClick: () => { setTab('personas'); setMobileMenuOpen(false); } },
-                            { label: '✨ 기능 둘러보기', onClick: () => { setTab('features'); setMobileMenuOpen(false); } },
                             ...(user ? [{ label: '⭐ 즐겨찾기', onClick: () => { setShowFavorites(true); setMobileMenuOpen(false); } }] : []),
-                            { label: '👤 내 정보', onClick: onProfileClick },
+                            ...(user ? [{ label: '👤 내 정보', onClick: onProfileClick }] : []),
                             { label: '📢 공지사항', onClick: onAnnouncementClick, badge: unreadAnnouncementCount },
                             { label: '🤝 제휴 문의', onClick: onPartnerBoardClick },
                             ...(user?.role === 'ADMIN' ? [{ label: '⚙️ 어드민', onClick: onAdminClick }] : []),
@@ -621,8 +620,8 @@ const PersonaSelectPanel: React.FC<{
                             </button>
                         ))}
 
-                        {/* 로그아웃 */}
-                        {onLogout && (
+                        {/* 로그인/로그아웃 토글 — 로그인 상태면 로그아웃, 아니면 로그인 */}
+                        {user ? (
                             <button onClick={() => { setMobileMenuOpen(false); onLogout(); }} style={{
                                 marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
                                 textAlign: 'left', fontSize: 14, color: '#C0505A', cursor: 'pointer',
@@ -630,6 +629,15 @@ const PersonaSelectPanel: React.FC<{
                                 display: 'flex', alignItems: 'center', gap: 8,
                             }}>
                                 <LogOut size={15} /> 로그아웃
+                            </button>
+                        ) : (
+                            <button onClick={() => { setMobileMenuOpen(false); onLoginClick?.(); }} style={{
+                                marginTop: 'auto', padding: '13px 20px', background: 'none', border: 'none',
+                                textAlign: 'left', fontSize: 14, fontWeight: 600, color: T.accent, cursor: 'pointer',
+                                borderTop: `1px solid ${T.lineSoft}`,
+                                display: 'flex', alignItems: 'center', gap: 8,
+                            }}>
+                                <UserCircle size={15} /> 로그인
                             </button>
                         )}
                     </div>
