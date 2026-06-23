@@ -959,7 +959,7 @@ const AppContent: React.FC = () => {
                             onAnnouncementClick={() => setShowAnnouncementModal(true)}
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
-                            onLoginClick={() => goTo('authPage')}
+                            onLoginClick={() => { console.log('[LOGIN] guest-block onLoginClick fired'); goTo('authPage'); }}
                             categories={categories}
                             onGoHome={() => { window.location.href = '/'; }}
                             initialTab={mainInitialTab}
@@ -1099,7 +1099,7 @@ const AppContent: React.FC = () => {
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={() => setShowUserProfile(true)}
-                    onLoginClick={() => goTo('authPage')}
+                    onLoginClick={() => { console.log('[LOGIN] onLoginClick fired, going authPage'); goTo('authPage'); }}
                     categories={categories}
                     onGoHome={() => { window.location.href = '/'; }}
                     initialTab={mainInitialTab}
