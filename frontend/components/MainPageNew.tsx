@@ -512,7 +512,7 @@ const PersonaSelectPanel: React.FC<{
     return (
         <div style={{
             flex: 1, display: 'flex', flexDirection: 'column',
-            background: T.bg, overflow: 'hidden',
+            background: T.bg, overflowY: 'auto',
         }}>
             {/* 모바일 드로어 */}
             {mobileMenuOpen && (
@@ -649,38 +649,45 @@ const PersonaSelectPanel: React.FC<{
                 </>
             )}
 
-            {/* 헤더 — 구분선 제거로 상단/카드 영역 자연스럽게 이어짐. 내부 콘텐츠만 가운데 */}
+            {/* ⬆ 상단 로고 바 — 로고+햄버거만 sticky 고정. 그 아래 콘텐츠는 전체 스크롤. */}
+            <div style={{
+                position: 'sticky', top: 0, zIndex: 30,
+                padding: '13px max(28px, calc((100% - 960px) / 2))',
+                background: 'rgba(251,248,243,0.85)',
+                backdropFilter: 'blur(10px)',
+            }}>
+                <div style={{ textAlign: 'center', position: 'relative' }}>
+                    <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        padding: 0, display: 'inline-block',
+                    }}>
+                        <span style={{
+                            fontFamily: "'Cinzel', serif", fontSize: 13,
+                            fontWeight: 700, letterSpacing: '0.35em',
+                            color: T.gold, opacity: 1,
+                        }}>✦ AI PERSONAS</span>
+                    </button>
+                    {/* 메뉴 햄버거 — 로고 바 우측 고정 */}
+                    <button
+                        onClick={() => setMobileMenuOpen(true)}
+                        style={{
+                            position: 'absolute', top: '50%', right: 0, transform: 'translateY(-50%)',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            padding: 6, borderRadius: 8, display: 'flex',
+                        }}
+                    >
+                        <Menu size={22} color={T.ink} />
+                    </button>
+                </div>
+            </div>
+
+            {/* 헤더 콘텐츠 — 개인화 인사 + 지금주목 등 섹션(이제 전체와 함께 스크롤) */}
             <div style={{
                 padding: '13px max(28px, calc((100% - 960px) / 2)) 0px',
-                background: 'rgba(255,255,255,0.4)',
-                backdropFilter: 'blur(8px)',
                 position: 'relative',
             }}>
-                {/* 메뉴 햄버거 버튼 — 좌측 Rail 제거로 데스크탑·모바일 공통 노출(어드민/공지/프로필/로그아웃 접근) */}
-                <button
-                    onClick={() => setMobileMenuOpen(true)}
-                    style={{
-                        position: 'absolute', top: 18, right: 20,
-                        background: 'none', border: 'none', cursor: 'pointer',
-                        padding: 6, borderRadius: 8,
-                        display: 'flex',
-                    }}
-                >
-                    <Menu size={22} color={T.ink} />
-                </button>
-
                 {/* 제목 영역만 가운데 정렬(검색·칩·목록은 왼쪽 유지) */}
                 <div style={{ textAlign: 'center' }}>
-                <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 0, marginBottom: 12, display: 'inline-block',
-                }}>
-                    <span style={{
-                        fontFamily: "'Cinzel', serif", fontSize: 13,
-                        fontWeight: 700, letterSpacing: '0.35em',
-                        color: T.gold, opacity: 1,
-                    }}>✦ AI PERSONAS</span>
-                </button>
 
                 {/* ② 개인화 인사 — 로그인 사용자 + personas 탭에서만 */}
                 {user && tab === 'personas' && (
@@ -998,7 +1005,6 @@ const PersonaSelectPanel: React.FC<{
             {/* 기능 그리드 - 타로카드 스타일 */}
             {tab === 'features' && (
                 <div style={{
-                    flex: 1, overflowY: 'auto',
                     padding: '14px max(28px, calc((100% - 960px) / 2)) 24px',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
@@ -1150,7 +1156,6 @@ const PersonaSelectPanel: React.FC<{
 
             {/* 페르소나 그리드 */}
             {tab === 'personas' && <div style={{
-                flex: 1, overflowY: 'auto',
                 padding: '14px max(28px, calc((100% - 960px) / 2)) 24px',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
