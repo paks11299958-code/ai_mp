@@ -432,6 +432,7 @@ const PersonaSelectPanel: React.FC<{
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
     const [featureCategory, setFeatureCategory] = useState<string | null>(null);   // null=전체
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [showFavorites, setShowFavorites] = useState(false);   // 즐겨찾기 모달(메뉴에서 진입)
     const focusPersonaRef = useRef<HTMLDivElement | null>(null);
     const focusFeatureRef = useRef<HTMLDivElement | null>(null);
 
@@ -543,6 +544,7 @@ const PersonaSelectPanel: React.FC<{
                             { label: '🏠 첫 화면', onClick: onGoHome },
                             { label: '🧑‍🤝‍🧑 페르소나 목록', onClick: () => { setTab('personas'); setMobileMenuOpen(false); } },
                             { label: '✨ 기능 둘러보기', onClick: () => { setTab('features'); setMobileMenuOpen(false); } },
+                            ...(user ? [{ label: '⭐ 즐겨찾기', onClick: () => { setShowFavorites(true); setMobileMenuOpen(false); } }] : []),
                             { label: '👤 내 정보', onClick: onProfileClick },
                             { label: '📢 공지사항', onClick: onAnnouncementClick, badge: unreadAnnouncementCount },
                             { label: '🤝 제휴 문의', onClick: onPartnerBoardClick },
@@ -576,9 +578,71 @@ const PersonaSelectPanel: React.FC<{
                 </>
             )}
 
+            {/* ⭐ 즐겨찾기 모달 — 메뉴에서 진입. 첫 화면 인라인 섹션을 대체. */}
+            {showFavorites && (
+                <>
+                    <div onClick={() => setShowFavorites(false)} style={{
+                        position: 'fixed', inset: 0, zIndex: 100,
+                        background: 'rgba(45,36,56,0.4)', backdropFilter: 'blur(3px)',
+                    }} />
+                    <div style={{
+                        position: 'fixed', zIndex: 101, left: '50%', top: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        width: 'min(420px, calc(100vw - 32px))', maxHeight: '70vh', overflowY: 'auto',
+                        background: 'rgba(251,248,243,0.98)', borderRadius: 20,
+                        boxShadow: '0 16px 48px -12px rgba(60,40,80,0.4)', padding: 22,
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                            <div style={{ fontSize: 15, fontWeight: 700, color: T.ink }}>⭐ 나의 즐겨찾기</div>
+                            <button onClick={() => setShowFavorites(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+                                <X size={20} color={T.inkMute} />
+                            </button>
+                        </div>
+                        {favoritePersonas.length === 0 && favoriteFeatures.length === 0 ? (
+                            <div style={{ fontSize: 13, color: T.inkMute, textAlign: 'center', padding: '28px 0' }}>
+                                아직 즐겨찾기한 항목이 없어요.<br />페르소나·기능 카드의 ☆를 눌러 담아보세요.
+                            </div>
+                        ) : (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14 }}>
+                                {favoritePersonas.map(p => (
+                                    <button key={`fp-${p.id}`} onClick={() => { setShowFavorites(false); onSelect(p.id); }} style={{
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                        background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                    }}>
+                                        <div style={{
+                                            width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
+                                            border: `2px solid ${T.gold}`, background: T.lineSoft,
+                                        }}>
+                                            {p.imageUrl
+                                                ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
+                                        </div>
+                                        <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                    </button>
+                                ))}
+                                {favoriteFeatures.map(f => (
+                                    <button key={`ff-${f.key}`} onClick={() => { setShowFavorites(false); onFeatureSelect?.(f.personaName, f.key); }} style={{
+                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
+                                        background: 'none', border: 'none', cursor: 'pointer', width: 64,
+                                    }}>
+                                        <div style={{
+                                            width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            border: `2px solid ${f.palette.deep}`, background: f.palette.bg,
+                                        }}>
+                                            <MpnFeatureIcon kind={f.icon} size={30} color={f.palette.accent} bg={f.palette.bg} />
+                                        </div>
+                                        <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
+
             {/* 헤더 — 구분선 제거로 상단/카드 영역 자연스럽게 이어짐. 내부 콘텐츠만 가운데 */}
             <div style={{
-                padding: '13px max(28px, calc((100% - 760px) / 2)) 0px',
+                padding: '13px max(28px, calc((100% - 960px) / 2)) 0px',
                 background: 'rgba(255,255,255,0.4)',
                 backdropFilter: 'blur(8px)',
                 position: 'relative',
@@ -661,44 +725,8 @@ const PersonaSelectPanel: React.FC<{
                     </div>
                 )}
 
-                {/* 나의 즐겨찾기 — 로그인 + ⭐한 페르소나/기능이 있을 때만 */}
-                {user && (favoritePersonas.length > 0 || favoriteFeatures.length > 0) && (
-                    <div style={{ marginBottom: 18 }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>⭐ 나의 즐겨찾기</div>
-                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
-                            {favoritePersonas.map(p => (
-                                <button key={`fp-${p.id}`} onClick={() => onSelect(p.id)} style={{
-                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
-                                }}>
-                                    <div style={{
-                                        width: 52, height: 52, borderRadius: '50%', overflow: 'hidden',
-                                        border: `2px solid ${T.gold}`, background: T.lineSoft,
-                                    }}>
-                                        {p.imageUrl
-                                            ? <img src={p.imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
-                                    </div>
-                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
-                                </button>
-                            ))}
-                            {favoriteFeatures.map(f => (
-                                <button key={`ff-${f.key}`} onClick={() => onFeatureSelect?.(f.personaName, f.key)} style={{
-                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 5,
-                                    background: 'none', border: 'none', cursor: 'pointer', width: 64,
-                                }}>
-                                    <div style={{
-                                        width: 52, height: 52, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        border: `2px solid ${f.palette.deep}`, background: f.palette.bg,
-                                    }}>
-                                        <MpnFeatureIcon kind={f.icon} size={30} color={f.palette.accent} bg={f.palette.bg} />
-                                    </div>
-                                    <span style={{ fontSize: 10.5, color: T.inkSoft, maxWidth: 64, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* 나의 즐겨찾기는 첫 화면에서 제거 → 우측 메뉴 '⭐ 즐겨찾기'(showFavorites 모달)로 이동.
+                    첫 화면은 모두에게 동일한 콘텐츠(최근대화·지금주목·인기신규)로 일관 유지(PC 헐렁함 해소). */}
 
                 {/* ③ 최근 대화 — 재방문 사용자 우선(인기·신규 위). 지금 주목과 같은 사각 카드,
                     개수 가변이라 고정폭(~30%)+가로 캐러셀: 3개 보이고 나머지는 옆으로 스크롤. */}
@@ -935,7 +963,7 @@ const PersonaSelectPanel: React.FC<{
             {tab === 'features' && (
                 <div style={{
                     flex: 1, overflowY: 'auto',
-                    padding: '14px max(28px, calc((100% - 760px) / 2)) 24px',
+                    padding: '14px max(28px, calc((100% - 960px) / 2)) 24px',
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                     gap: 16,
@@ -1087,7 +1115,7 @@ const PersonaSelectPanel: React.FC<{
             {/* 페르소나 그리드 */}
             {tab === 'personas' && <div style={{
                 flex: 1, overflowY: 'auto',
-                padding: '14px max(28px, calc((100% - 760px) / 2)) 24px',
+                padding: '14px max(28px, calc((100% - 960px) / 2)) 24px',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 gap: 16,
