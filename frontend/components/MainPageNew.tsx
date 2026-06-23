@@ -386,6 +386,25 @@ const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         return () => { el.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
     }, [update, children]);
     const scrollBy = (dir: number) => ref.current?.scrollBy({ left: dir * Math.max(200, (ref.current.clientWidth * 0.7)), behavior: 'smooth' });
+
+    // 마우스 드래그로 밀기(모바일 스와이프 느낌). 일정 거리 이상 끌면 직후 클릭을 막아
+    // 카드가 실수로 열리지 않게 함.
+    const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: 0 });
+    const onMouseDown = (e: React.MouseEvent) => {
+        const el = ref.current; if (!el) return;
+        drag.current = { active: true, startX: e.pageX, startScroll: el.scrollLeft, moved: 0 };
+    };
+    const onMouseMove = (e: React.MouseEvent) => {
+        const el = ref.current; if (!el || !drag.current.active) return;
+        const dx = e.pageX - drag.current.startX;
+        drag.current.moved = Math.max(drag.current.moved, Math.abs(dx));
+        el.scrollLeft = drag.current.startScroll - dx;
+    };
+    const endDrag = () => { drag.current.active = false; };
+    const onClickCapture = (e: React.MouseEvent) => {
+        if (drag.current.moved > 6) { e.preventDefault(); e.stopPropagation(); drag.current.moved = 0; }
+    };
+
     const arrowStyle = (side: 'left' | 'right'): React.CSSProperties => ({
         position: 'absolute', top: '50%', [side]: -6, transform: 'translateY(-50%)',
         width: 32, height: 32, borderRadius: '50%', zIndex: 5,
@@ -400,7 +419,15 @@ const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <ChevronLeft size={18} />
                 </button>
             )}
-            <div ref={ref} style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+            <div
+                ref={ref}
+                onMouseDown={onMouseDown}
+                onMouseMove={onMouseMove}
+                onMouseUp={endDrag}
+                onMouseLeave={endDrag}
+                onClickCapture={onClickCapture}
+                style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', cursor: drag.current.active ? 'grabbing' : 'grab', userSelect: 'none' }}
+            >
                 {children}
             </div>
             {canRight && (
