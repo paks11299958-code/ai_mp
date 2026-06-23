@@ -706,7 +706,7 @@ const PersonaSelectPanel: React.FC<{
                     </button>
                     {/* 로그인/로그아웃 토글 — 로고 바 좌측 고정 */}
                     <button
-                        onClick={() => (user ? onLogout() : onLoginClick?.())}
+                        onClick={() => { console.log('[LOGINTOGGLE] user=', !!user, 'onLoginClick=', typeof onLoginClick); user ? onLogout() : onLoginClick?.(); }}
                         style={{
                             position: 'absolute', top: '50%', left: 0, transform: 'translateY(-50%)',
                             background: 'none', border: 'none', cursor: 'pointer',
