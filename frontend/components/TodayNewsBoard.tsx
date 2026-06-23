@@ -199,6 +199,10 @@ export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
             });
             if (!res.ok) {
                 const d = await res.json().catch(() => ({})) as any;
+                // 포인트 부족(402) → 전역 충전모달 트리거(다른 기능과 동일 패턴). raw fetch라 직접 dispatch.
+                if (res.status === 402 && typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('insufficient-points'));
+                }
                 throw new Error(d.error || `오류 ${res.status}`);
             }
             const data: NewsData = await res.json();
