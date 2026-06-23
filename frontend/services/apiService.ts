@@ -129,6 +129,10 @@ export const personaApi = {
     getAll: () =>
         withRetry(() => get<Persona[]>('/personas')),
 
+    // 인기 랭킹(세션 수 기준). sessionCount 포함.
+    getRanking: (limit = 16) =>
+        withRetry(() => get<(Persona & { sessionCount: number })[]>(`/personas/ranking?limit=${limit}`)),
+
     create: (data: Omit<Persona, 'id'>) =>
         post<Persona>('/personas', data),
 

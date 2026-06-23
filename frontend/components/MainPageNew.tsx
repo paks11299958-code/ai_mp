@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from 'lucide-react';
 import { Persona, Category } from '../types';
-import { HeroCard } from '../services/apiService';
+import { HeroCard, personaApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { useAuthContext } from '../contexts/AuthContext';
 import { usePoints } from '../contexts/PointsContext';
@@ -545,14 +545,23 @@ const PersonaSelectPanel: React.FC<{
         [isFavorite]
     );
 
-    // '인기·신규' 페르소나: createdAt 최신순. 캐러셀이 의미있게 동작하도록 상위 16개까지
-    // (PC에서 8개는 화면에 다 들어가 넘침이 없어 드래그/화살표가 안 보였음).
-    const newPersonas = React.useMemo(() => {
+    // 'AI 페르소나 랭킹': 세션 수 기준 인기순(서버 /personas/ranking).
+    // 로딩 전/실패 시엔 createdAt 최신순으로 폴백.
+    const fallbackPersonas = React.useMemo(() => {
         return [...personas]
             .filter(p => p.createdAt)
             .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
             .slice(0, 16);
     }, [personas]);
+    const [rankedPersonas, setRankedPersonas] = useState<Persona[]>([]);
+    useEffect(() => {
+        let alive = true;
+        personaApi.getRanking(16)
+            .then(list => { if (alive) setRankedPersonas(list); })
+            .catch(() => { /* 폴백 사용 */ });
+        return () => { alive = false; };
+    }, []);
+    const newPersonas = rankedPersonas.length > 0 ? rankedPersonas : fallbackPersonas;
 
     const filtered = personas
         .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId)
@@ -893,27 +902,42 @@ const PersonaSelectPanel: React.FC<{
                     </div>
                 )}
 
-                {/* 인기·신규 — 새로 합류한 AI(신규 페르소나, createdAt 최신순). 최근 대화 없을 때 탐색 유도. */}
+                {/* AI 페르소나 랭킹 — 세션 수 인기순(서버 /ranking). 상위 3명 메달 배지. */}
                 {newPersonas.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
-                        <SectionTitle>👥 새로운 AI 친구</SectionTitle>
+                        <SectionTitle>🏆 AI 페르소나 랭킹</SectionTitle>
                         <Carousel>
-                            {newPersonas.map(p => (
-                                <button key={`np-${p.id}`} onClick={() => onSelect(p.id)} style={{
+                            {newPersonas.map((p, i) => {
+                                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+                                return (
+                                <button key={`rk-${p.id}`} onClick={() => onSelect(p.id)} style={{
                                     flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                                     background: 'none', border: 'none', cursor: 'pointer', width: 84,
                                 }}>
-                                    <div style={{
-                                        width: 72, height: 72, borderRadius: '50%', overflow: 'hidden',
-                                        border: `2px solid ${T.accent}55`, background: T.lineSoft,
-                                    }}>
-                                        {p.imageUrl
-                                            ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: T.inkMute }}>{p.name[0]}</div>}
+                                    <div style={{ position: 'relative' }}>
+                                        <div style={{
+                                            width: 72, height: 72, borderRadius: '50%', overflow: 'hidden',
+                                            border: `2px solid ${medal ? T.gold : `${T.accent}55`}`, background: T.lineSoft,
+                                        }}>
+                                            {p.imageUrl
+                                                ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: T.inkMute }}>{p.name[0]}</div>}
+                                        </div>
+                                        {/* 순위 배지: 1~3위 메달, 그 외 숫자 */}
+                                        <span style={{
+                                            position: 'absolute', top: -4, left: -4,
+                                            minWidth: 20, height: 20, padding: '0 4px', borderRadius: 999,
+                                            background: medal ? 'transparent' : '#fff',
+                                            border: medal ? 'none' : `1px solid ${T.lineSoft}`,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            fontSize: medal ? 16 : 10, fontWeight: 800, color: T.accent,
+                                            boxShadow: medal ? 'none' : '0 2px 6px -2px rgba(60,40,80,0.3)',
+                                        }}>{medal ?? (i + 1)}</span>
                                     </div>
                                     <span style={{ fontSize: 11, color: T.inkSoft, maxWidth: 84, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
                                 </button>
-                            ))}
+                                );
+                            })}
                         </Carousel>
                     </div>
                 )}
