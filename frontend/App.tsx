@@ -960,6 +960,7 @@ const AppContent: React.FC = () => {
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
                             onLoginClick={() => goTo('authPage')}
+                            onChargeClick={() => setShowPointModal(true)}
                             categories={categories}
                             onGoHome={() => { window.location.href = '/'; }}
                             initialTab={mainInitialTab}
@@ -1149,6 +1150,9 @@ const AppContent: React.FC = () => {
                 )}
                 {showUserProfile && (
                     <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} onUserUpdate={updated => setUser(prev => prev ? { ...prev, ...updated } : prev)} onAccountDeleted={() => { setShowUserProfile(false); handleLogout(); }} />
+                )}
+                {showPointModal && (
+                    <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)} />
                 )}
                 {showStockAnalysis && (
                     <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
