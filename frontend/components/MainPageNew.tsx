@@ -58,6 +58,7 @@ interface MainPageNewProps {
     unreadAnnouncementCount?: number;
     onPartnerBoardClick?: () => void;
     onProfileClick?: () => void;
+    onLoginClick?: () => void;
     categories?: Category[];
     onGoHome?: () => void;
     // 기능카드 클릭 시 해당 페르소나로 이동
@@ -1344,6 +1345,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     unreadAnnouncementCount = 0,
     onPartnerBoardClick,
     onProfileClick,
+    onLoginClick,
     categories = [],
     onGoHome,
     onFeatureSelect,
@@ -1443,6 +1445,7 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 onAnnouncementClick={onAnnouncementClick}
                 unreadAnnouncementCount={unreadAnnouncementCount}
                 onProfileClick={onProfileClick}
+                onLoginClick={onLoginClick}
                 onPartnerBoardClick={onPartnerBoardClick}
                 recentPersonas={recentPersonas}
                 recentFeatureKeys={recentFeatureKeys}
