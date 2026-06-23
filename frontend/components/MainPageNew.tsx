@@ -639,26 +639,28 @@ const PersonaSelectPanel: React.FC<{
                 {spotlightFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>✨ 지금 주목</div>
-                        <div style={{ display: 'flex', gap: 10, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                        {/* 한 줄 균등 배치: 가로 스크롤 없이 카드들이 폭을 1/n로 나눠 가져 잘림 없음 */}
+                        <div style={{ display: 'flex', gap: 8, paddingBottom: 4 }}>
                             {spotlightFeatures.map(f => (
                                 <button
                                     key={f.key}
                                     onClick={() => onFeatureSelect?.(f.personaName, f.key)}
                                     style={{
-                                        flex: '0 0 auto', width: 150, textAlign: 'left',
+                                        flex: '1 1 0', minWidth: 0, textAlign: 'left',
                                         border: `1px solid ${f.palette.deep}55`, borderRadius: 16,
                                         background: `linear-gradient(150deg, ${f.palette.bg} 0%, #FFFFFF 100%)`,
-                                        padding: '14px 13px', cursor: 'pointer', position: 'relative',
+                                        padding: '12px 11px', cursor: 'pointer', position: 'relative',
                                         boxShadow: '0 4px 14px -8px rgba(60,40,80,0.35)',
                                     }}
                                 >
                                     <span style={{
-                                        position: 'absolute', top: 10, right: 10, fontSize: 9, fontWeight: 800,
-                                        color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 7px',
+                                        position: 'absolute', top: 8, right: 8, fontSize: 8.5, fontWeight: 800,
+                                        color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 6px',
+                                        maxWidth: 'calc(100% - 16px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                     }}>{f.badge}</span>
-                                    <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={34} color={f.palette.accent} bg={f.palette.bg} /></div>
-                                    <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, lineHeight: 1.25 }}>{f.name}</div>
-                                    <div style={{ fontSize: 10.5, color: T.inkMute, marginTop: 3 }}>{f.personaName}</div>
+                                    <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={32} color={f.palette.accent} bg={f.palette.bg} /></div>
+                                    <div style={{ fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                                    <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
                                 </button>
                             ))}
                         </div>
