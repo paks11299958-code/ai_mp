@@ -600,7 +600,7 @@ const PersonaSelectPanel: React.FC<{
                 <div style={{ textAlign: 'center' }}>
                 <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
                     background: 'none', border: 'none', cursor: 'pointer',
-                    padding: 0, marginBottom: 3, display: 'inline-block',
+                    padding: 0, marginBottom: 12, display: 'inline-block',
                 }}>
                     <span style={{
                         fontFamily: "'Cinzel', serif", fontSize: 13,
@@ -608,12 +608,6 @@ const PersonaSelectPanel: React.FC<{
                         color: T.gold, opacity: 1,
                     }}>✦ AI PERSONAS</span>
                 </button>
-                <h2 style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: 21, fontWeight: 600,
-                    margin: '0 0 8px', color: T.ink,
-                    letterSpacing: '-0.01em',
-                }}>{tab === 'personas' ? '대화할 AI를 선택하세요' : '기능 둘러보기'}</h2>
 
                 {/* ② 개인화 인사 — 로그인 사용자 + personas 탭에서만 */}
                 {user && tab === 'personas' && (
