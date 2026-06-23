@@ -456,14 +456,23 @@ const PersonaSelectPanel: React.FC<{
     }, [focusFeatureKey, tab]);
 
     // ── 통합 메인 상단 섹션 데이터 ──────────────────────────────
-    // '지금 주목': 신규/이벤트 기능을 가로 캐러셀로. (웹툰 1화 · 헤어 진단 · 오늘의 운세)
+    // '지금 주목': 사장 지정 큐레이션 3개(웹툰 1화 · 헤어 진단 · 오늘의 운세). 특별 배지 수동.
+    const SPOTLIGHT_KEYS = ['webtoon', 'hair', 'siwoon'];
     const spotlightFeatures = React.useMemo(() => {
-        const keys = ['webtoon', 'hair', 'siwoon'];
         const badges: Record<string, string> = { webtoon: '1화 오픈', hair: 'NEW', siwoon: '오늘의 운세' };
-        return keys
+        return SPOTLIGHT_KEYS
             .map(k => FEATURES_GRID.find(f => f.key === k))
             .filter((f): f is typeof FEATURES_GRID[number] => !!f)
             .map(f => ({ ...f, badge: badges[f.key] }));
+    }, []);
+
+    // '새로 나온 기능': 지정 3개 제외, id 최신순(추가된 순서 역순) 상위 8개. 새 기능 추가 시 자동 노출.
+    const newFeatures = React.useMemo(() => {
+        return FEATURES_GRID
+            .filter(f => !SPOTLIGHT_KEYS.includes(f.key))
+            .slice()
+            .sort((a, b) => b.id - a.id)
+            .slice(0, 8);
     }, []);
 
     // '나의 즐겨찾기': 로그인 사용자가 ⭐한 페르소나 + 기능
@@ -716,6 +725,33 @@ const PersonaSelectPanel: React.FC<{
                                         color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 6px',
                                         maxWidth: 'calc(100% - 16px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                     }}>{f.badge}</span>
+                                    <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={32} color={f.palette.accent} bg={f.palette.bg} /></div>
+                                    <div style={{ fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                                    <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* 새로 나온 기능 — 지정 3개 제외, id 최신순 캐러셀. 고정폭(140)+가로스크롤(PC 포함).
+                    새 기능 추가 시 자동으로 맨 앞에 노출. 특별 배지 없이 깔끔하게. */}
+                {newFeatures.length > 0 && (
+                    <div style={{ marginBottom: 18 }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, marginBottom: 8, letterSpacing: '0.02em' }}>🆕 새로 나온 기능</div>
+                        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none' }}>
+                            {newFeatures.map(f => (
+                                <button
+                                    key={f.key}
+                                    onClick={() => onFeatureSelect?.(f.personaName, f.key)}
+                                    style={{
+                                        flex: '0 0 auto', width: 140, textAlign: 'left',
+                                        border: `1px solid ${f.palette.deep}55`, borderRadius: 16,
+                                        background: `linear-gradient(150deg, ${f.palette.bg} 0%, #FFFFFF 100%)`,
+                                        padding: '12px 11px', cursor: 'pointer', position: 'relative',
+                                        boxShadow: '0 4px 14px -8px rgba(60,40,80,0.3)',
+                                    }}
+                                >
                                     <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={32} color={f.palette.accent} bg={f.palette.bg} /></div>
                                     <div style={{ fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
                                     <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
