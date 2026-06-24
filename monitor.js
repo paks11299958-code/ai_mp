@@ -127,10 +127,10 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
                     timeout: TIMEOUT_MS,
                 });
 
-                // 로그인 후 첫화면(LandingPageNew) 노출 확인
-                // 로그인 시 헤더에 "{username}님 ✦"이 항상 뜨므로 이를 성공 지표로 사용.
-                // (구버전 '채팅 시작하기' 버튼은 2026-06 첫화면 개편으로 제거됨)
-                await page.waitForSelector('text=님 ✦', { timeout: 10_000 });
+                // 로그인 후 첫화면(MainPageNew) 노출 확인.
+                // 로그인 시 헤더 개인화 인사 "{username}님, 다시 만나 반가워요 ✦"가 뜨므로 이를 성공 지표로 사용.
+                // (2026-06-24: 옛 지표 'text=님 ✦'는 "님"과 "✦" 사이에 ", 다시 만나 반가워요"가 끼어 매칭 실패 → 문구로 변경)
+                await page.waitForSelector('text=다시 만나 반가워요', { timeout: 10_000 });
 
                 results.login = { ok: true, detail: '로그인 성공 — 첫화면 확인' };
                 console.log('✅ [로그인] 성공 — 첫화면 노출 확인');
