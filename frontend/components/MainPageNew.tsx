@@ -762,6 +762,20 @@ const PersonaSelectPanel: React.FC<{
                             color: T.gold, opacity: 1,
                         }}>✦ AI PERSONAS</span>
                     </button>
+                    {/* 즐겨찾기 ⭐ — 햄버거 왼쪽. 회원은 즐겨찾기 모달, 비회원은 로그인 유도 */}
+                    <button
+                        onClick={() => { if (user) setShowFavorites(true); else onLoginClick?.(); }}
+                        aria-label="즐겨찾기"
+                        title="즐겨찾기"
+                        style={{
+                            position: 'absolute', top: '50%', right: 38, transform: 'translateY(-50%)',
+                            background: 'none', border: 'none', cursor: 'pointer',
+                            padding: 6, borderRadius: 8, display: 'flex', alignItems: 'center',
+                            fontSize: 18, lineHeight: 1,
+                        }}
+                    >
+                        ⭐
+                    </button>
                     {/* 메뉴 햄버거 — 로고 바 우측 고정 (로그인/로그아웃은 햄버거 안으로) */}
                     <button
                         onClick={() => setMobileMenuOpen(true)}
