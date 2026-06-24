@@ -56,6 +56,9 @@ import { PartnerInfoModal } from './components/PartnerInfoModal';
 import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuModal';
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
+import { LookalikeModal } from './components/LookalikeModal';
+import { LookalikeResultCard } from './components/LookalikeResultCard';
+import { LookalikeResult } from './services/apiService';
 import { PalmReadingModal } from './components/PalmReadingModal';
 import { PalmReadingResultCard } from './components/PalmReadingResultCard';
 import { QuickMenuResultCard } from './components/QuickMenuResultCard';
@@ -253,6 +256,8 @@ const AppContent: React.FC = () => {
     // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal) — 훅은 조건부 return보다 위에 있어야 함
     const [showEbookBoard, setShowEbookBoard] = useState(false);
     const [showHairBoard, setShowHairBoard] = useState(false);
+    const [showLookalikeModal, setShowLookalikeModal] = useState(false);
+    const [lookalikeResult, setLookalikeResult] = useState<LookalikeResult | null>(null);
     const [showAgeBoard, setShowAgeBoard] = useState(false);
     const [showWebtoon, setShowWebtoon] = useState(false);
 
@@ -271,6 +276,7 @@ const AppContent: React.FC = () => {
         'golf-record': () => setShowSwingBoard(true),
         ebook: () => setShowEbookBoard(true),
         hair: () => setShowHairBoard(true),
+        lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),
     };
 
@@ -1119,6 +1125,13 @@ const AppContent: React.FC = () => {
                             if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
                             return;
                         }
+                        // 닮은꼴·헤어는 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
+                        if (featureKey === 'lookalike' || featureKey === 'hair') {
+                            const fp = personas.find(p => p.name === personaName);
+                            if (fp) setActivePersonaId(fp.id);
+                            FEATURE_ACTIONS[featureKey]?.();
+                            return;
+                        }
                         // 전용 보드가 있는 기능(전자책·보험·뉴스 등)은 보드를 바로 연다.
                         if (featureKey && FEATURE_ACTIONS[featureKey]) { FEATURE_ACTIONS[featureKey](); return; }
                         // 그 외(운세 계열 등)는 해당 페르소나 채팅으로 이동.
@@ -1544,6 +1557,22 @@ const AppContent: React.FC = () => {
                 <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                     <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
                 </ErrorBoundary>
+            )}
+            {/* 닮은 연예인 찾기 (윤채린) */}
+            {showLookalikeModal && activePersona?.id && (
+                <LookalikeModal
+                    personaId={activePersona.id}
+                    onResult={r => setLookalikeResult(r)}
+                    onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
+                    onClose={() => setShowLookalikeModal(false)}
+                />
+            )}
+            {lookalikeResult && (
+                <LookalikeResultCard
+                    result={lookalikeResult}
+                    personaName={activePersona?.name ?? '윤채린'}
+                    onClose={() => setLookalikeResult(null)}
+                />
             )}
             {showAgeBoard && (
                 <ErrorBoundary label="나이 변환 화면 오류" onClose={() => setShowAgeBoard(false)}>

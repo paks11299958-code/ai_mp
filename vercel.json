@@ -36,6 +36,8 @@
     { "source": "/api/palm-reading/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/palm-reading/:path*" },
     { "source": "/api/hair",                        "destination": "http://34.50.27.95:3020/api/aimp/hair" },
     { "source": "/api/hair/:path*",                "destination": "http://34.50.27.95:3020/api/aimp/hair/:path*" },
+    { "source": "/api/lookalike",                   "destination": "http://34.50.27.95:3020/api/aimp/lookalike" },
+    { "source": "/api/lookalike/:path*",           "destination": "http://34.50.27.95:3020/api/aimp/lookalike/:path*" },
     { "source": "/api/age-transform",               "destination": "http://34.50.27.95:3020/api/aimp/age-transform" },
     { "source": "/api/age-transform/:path*",       "destination": "http://34.50.27.95:3020/api/aimp/age-transform/:path*" },
     { "source": "/api/ebook",                       "destination": "http://34.50.27.95:3020/api/aimp/ebook" },

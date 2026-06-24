@@ -198,6 +198,7 @@ const FEATURE_LABELS: Record<string, string> = {
     'quick-menu': '운세·사주(시운·재물·인연·꿈해몽)',
     'mathtutor':  'AI쌤 수학(풀이·출제)',
     'hair':       '헤어스타일 진단',
+    'lookalike':  '닮은 연예인 찾기',
     'golf':       '골프 스윙 분석',
     'webtoon':    '웹툰 보기',
     'club':       '모임(출첵)',
@@ -211,7 +212,7 @@ const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
     'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
-    'webtoon': 0, 'club': 0, 'ebook': 1,
+    'lookalike': 2, 'webtoon': 0, 'club': 0, 'ebook': 1,
 };
 const PT_TO_KRW = 1;   // 1pt = 1원 (2026-06-17 전환)
 

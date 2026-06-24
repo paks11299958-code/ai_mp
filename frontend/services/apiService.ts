@@ -436,6 +436,31 @@ export const faceReadingApi = {
         post<{ analysis: FaceReadingResult; newBalance: number; paidBalance: number; bonusBalance: number }>('/face-reading', { imageBase64, mimeType, personaId }),
 };
 
+// ── 닮은 연예인 찾기(윤채린) ──────────────────────────
+export interface LookalikeMatch { name: string; percent: number; reason: string }
+export interface LookalikeResult { unclear?: boolean; impression: string; matches: LookalikeMatch[]; comment: string }
+export type LookalikeAnalyzeOk = { ok: true; analysis: LookalikeResult; paidBalance?: number; bonusBalance?: number };
+export type LookalikeAnalyzeUnclear = { ok: false; message: string };
+export const lookalikeApi = {
+    // 422(사진 불명확)는 에러가 아닌 정상 분기로 반환. 그 외 오류만 throw. (palmReadingApi와 동일 패턴)
+    analyze: async (imageBase64: string, mimeType: string, personaId: string): Promise<LookalikeAnalyzeOk | LookalikeAnalyzeUnclear> => {
+        const res = await fetch(`${BASE}/lookalike`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            body: JSON.stringify({ imageBase64, mimeType, personaId }),
+        });
+        if (res.status === 402) {
+            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('insufficient-points'));
+            throw new Error('포인트가 부족합니다.');
+        }
+        const text = await res.text();
+        const data: any = text ? JSON.parse(text) : {};
+        if (res.status === 422) return { ok: false, message: data.error || '얼굴이 잘 안 보여요. 또렷한 정면 사진으로 다시 시도해 주세요.' };
+        if (!res.ok) throw new Error(data.error || `서버 오류 (${res.status})`);
+        return { ok: true, analysis: data.analysis, paidBalance: data.paidBalance, bonusBalance: data.bonusBalance };
+    },
+};
+
 export interface HairStyle { id: number; styleKey: string; name: string; gender: string; imageUrl: string; description?: string }
 export interface HairMatchResult { unclear?: boolean; faceShape: string; match: string; tips: string; alternative: string; overall: string }
 export const hairApi = {
