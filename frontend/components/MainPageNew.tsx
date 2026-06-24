@@ -828,14 +828,14 @@ const PersonaSelectPanel: React.FC<{
                                         color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 6px',
                                         maxWidth: 'calc(100% - 16px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                                     }}>{f.badge}</span>
-                                    {/* 즐겨찾기 ⭐ 토글 (좌상단 — 우상단 배지와 겹치지 않게) */}
+                                    {/* 즐겨찾기 ⭐ 토글 (우하단 — 상단 배지와 분리) */}
                                     {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(f.key)) && (
                                         <span
                                             role="button"
                                             onClick={(e) => { e.stopPropagation(); onToggleFavorite(f.key); }}
                                             title={isFavorite?.(f.key) ? '바로가기에서 빼기' : '바로가기에 추가'}
                                             style={{
-                                                position: 'absolute', top: 6, left: 6, zIndex: 5,
+                                                position: 'absolute', bottom: 6, right: 6, zIndex: 5,
                                                 width: 26, height: 26, borderRadius: '50%',
                                                 background: 'rgba(255,255,255,0.85)', cursor: 'pointer',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -870,14 +870,14 @@ const PersonaSelectPanel: React.FC<{
                                         boxShadow: '0 4px 14px -8px rgba(60,40,80,0.3)',
                                     }}
                                 >
-                                    {/* 즐겨찾기 ⭐ 토글 (우상단 — 배지 없는 카드) */}
+                                    {/* 즐겨찾기 ⭐ 토글 (우하단 — 추천 카드와 통일) */}
                                     {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(f.key)) && (
                                         <span
                                             role="button"
                                             onClick={(e) => { e.stopPropagation(); onToggleFavorite(f.key); }}
                                             title={isFavorite?.(f.key) ? '바로가기에서 빼기' : '바로가기에 추가'}
                                             style={{
-                                                position: 'absolute', top: 6, right: 6, zIndex: 5,
+                                                position: 'absolute', bottom: 6, right: 6, zIndex: 5,
                                                 width: 26, height: 26, borderRadius: '50%',
                                                 background: 'rgba(255,255,255,0.85)', cursor: 'pointer',
                                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
