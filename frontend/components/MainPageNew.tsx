@@ -765,6 +765,7 @@ const PersonaSelectPanel: React.FC<{
                     {/* 메뉴 햄버거 — 로고 바 우측 고정 (로그인/로그아웃은 햄버거 안으로) */}
                     <button
                         onClick={() => setMobileMenuOpen(true)}
+                        aria-label="메뉴 열기"
                         style={{
                             position: 'absolute', top: '50%', right: 0, transform: 'translateY(-50%)',
                             background: 'none', border: 'none', cursor: 'pointer',

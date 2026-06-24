@@ -103,7 +103,12 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
                     await page.waitForTimeout(500);
                 }
 
-                // 로그인 버튼 클릭 (공지사항 모달 닫힌 후)
+                // 햄버거 메뉴 먼저 열기 (2026-06-24 첫화면 개편: 로그인/로그아웃이 햄버거 안으로 이동).
+                // 로고 바 우측 햄버거(aria-label="메뉴 열기")를 눌러야 '로그인' 항목이 드로어에 나타남.
+                await page.getByRole('button', { name: '메뉴 열기' }).first().click({ force: true, timeout: TIMEOUT_MS });
+                await page.waitForTimeout(500);
+
+                // 로그인 버튼(드로어 안) 클릭 → 로그인 화면(authPage) 진입
                 await page.getByRole('button', { name: '로그인' }).first().click({ force: true, timeout: TIMEOUT_MS });
 
                 // 이메일 입력창 대기 후 입력
