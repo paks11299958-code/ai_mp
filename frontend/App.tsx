@@ -1020,6 +1020,12 @@ const AppContent: React.FC = () => {
         webtoon: () => setShowWebtoon(true),
     };
 
+    // 닮은꼴 모달에 넘길 윤채린 personaId. 메인 카드에서 열면 activePersona가 아직
+    // 윤채린이 아닐 수 있어(setState 비동기), personas에서 직접 찾아 폴백.
+    const lookalikePersonaId = (activePersona?.name === '윤채린' ? activePersona.id : undefined)
+        ?? personas.find(p => p.name === '윤채린')?.id
+        ?? activePersona?.id ?? '';
+
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
     // (예전엔 하단 IIFE 안에만 있었으나 상단에서도 쓰려고 컴포넌트 레벨로 승격)
     type QuickMenuItem = { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; ebookModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig };
@@ -1205,6 +1211,22 @@ const AppContent: React.FC = () => {
                     <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                         <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
                     </ErrorBoundary>
+                )}
+                {/* 닮은 연예인 찾기 (윤채린) — 메인 화면 블록에서도 렌더돼야 카드 클릭 시 모달이 뜸 */}
+                {showLookalikeModal && (
+                    <LookalikeModal
+                        personaId={lookalikePersonaId}
+                        onResult={r => setLookalikeResult(r)}
+                        onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
+                        onClose={() => setShowLookalikeModal(false)}
+                    />
+                )}
+                {lookalikeResult && (
+                    <LookalikeResultCard
+                        result={lookalikeResult}
+                        personaName="윤채린"
+                        onClose={() => setLookalikeResult(null)}
+                    />
                 )}
                 {showAgeBoard && (
                     <ErrorBoundary label="나이 변환 화면 오류" onClose={() => setShowAgeBoard(false)}>
@@ -1559,9 +1581,9 @@ const AppContent: React.FC = () => {
                 </ErrorBoundary>
             )}
             {/* 닮은 연예인 찾기 (윤채린) */}
-            {showLookalikeModal && activePersona?.id && (
+            {showLookalikeModal && (
                 <LookalikeModal
-                    personaId={activePersona.id}
+                    personaId={lookalikePersonaId}
                     onResult={r => setLookalikeResult(r)}
                     onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
                     onClose={() => setShowLookalikeModal(false)}

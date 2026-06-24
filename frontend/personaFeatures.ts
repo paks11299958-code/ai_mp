@@ -26,7 +26,8 @@ export type FeatureKey =
     | 'webtoon'
     | 'insurance'
     | 'hair'
-    | 'agetransform';
+    | 'agetransform'
+    | 'lookalike';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -53,6 +54,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'insurance',   label: '보험 분석',     icon: 'Shield',     color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
     { key: 'hair',        label: '헤어스타일 진단', icon: 'Zap',       color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'agetransform', label: '나이 변환',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
+    { key: 'lookalike',   label: '닮은꼴 찾기',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
@@ -67,7 +69,7 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '지우':   ['mathtutor', 'club'],
     '강지훈': ['ebook'],
     '향기(필명)': ['webtoon'],
-    '윤채린': ['hair', 'agetransform'],
+    '윤채린': ['hair', 'agetransform', 'lookalike'],
 };
 
 function isGolf(persona: Persona): boolean {
