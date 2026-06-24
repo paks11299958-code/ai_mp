@@ -852,11 +852,13 @@ const PersonaSelectPanel: React.FC<{
                                         boxShadow: '0 4px 14px -8px rgba(60,40,80,0.35)',
                                     }}
                                 >
-                                    <span style={{
-                                        position: 'absolute', top: 8, right: 8, fontSize: 8.5, fontWeight: 800,
-                                        color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 6px',
-                                        maxWidth: 'calc(100% - 16px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                                    }}>{f.badge}</span>
+                                    {f.badge && (
+                                        <span style={{
+                                            position: 'absolute', top: 8, right: 8, fontSize: 8.5, fontWeight: 800,
+                                            color: '#fff', background: f.palette.accent, borderRadius: 999, padding: '2px 6px',
+                                            maxWidth: 'calc(100% - 16px)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                                        }}>{f.badge}</span>
+                                    )}
                                     {/* 즐겨찾기 ⭐ 토글 (우하단 — 상단 배지와 분리) */}
                                     {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(f.key)) && (
                                         <span
