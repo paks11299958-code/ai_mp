@@ -85,6 +85,7 @@ export const HotKeywordBoard: React.FC<Props> = ({ onClose, userEmail, userPhone
                 body: JSON.stringify({ categories: parsedCategories, deliveryMethod, email: email.trim() || null, phone: phone.trim() || null }),
             });
             const data = await res.json();
+            if (res.status === 402 && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('insufficient-points'));
             if (!res.ok) throw new Error(data.error || '발송 실패');
             setResultContent(data.content || null);
             setStep('done');

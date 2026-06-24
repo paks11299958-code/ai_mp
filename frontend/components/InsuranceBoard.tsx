@@ -75,6 +75,7 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
     const res = await fetch(url, { credentials: 'include', ...options });
     if (!res.ok) {
         const err = await res.json().catch(() => ({ error: '오류' }));
+        if (res.status === 402 && typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('insufficient-points'));
         throw new Error(err.error || '요청 실패');
     }
     return res.json();
