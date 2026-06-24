@@ -928,6 +928,9 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 즐겨찾기로 담을 수 있는 기능 = 모든 기능 카드. (비회원 카드 ☆도 같은 키 사용 → 위로 끌어올림, TDZ 방지)
+    const FAVORITABLE_KEYS = FEATURES_GRID.map(f => f.key);
+
     if (!user) {
         // 바이럴 링크(?ref)로 막 들어온 비회원 → 곧장 가입폼 + 환영 혜택 배너.
         // '돌아가기'를 누르면 플래그를 끄고 둘러보기로(가입 강요만 하지 않도록 탈출구 제공).
@@ -969,7 +972,7 @@ const AppContent: React.FC = () => {
                             recentPersonas={[]}
                             isFavorite={() => false}
                             onToggleFavorite={requireLogin}
-                            favoritableKeys={[]}
+                            favoritableKeys={FAVORITABLE_KEYS}
                             isFavoritePersona={() => false}
                             onToggleFavoritePersona={requireLogin}
                             onShareFeature={(key, label) => shareDeepLink('f', key, label)}
@@ -1002,9 +1005,8 @@ const AppContent: React.FC = () => {
         }
     }
 
-    // 즐겨찾기로 담을 수 있는 기능 = 모든 기능 카드. (FEATURES_GRID 키 전부)
     // 보드를 바로 여는 기능은 FEATURE_ACTIONS로, 그 외(운세 등)는 해당 페르소나 채팅으로 보낸다.
-    const FAVORITABLE_KEYS = FEATURES_GRID.map(f => f.key);
+    // (FAVORITABLE_KEYS는 비회원 블록보다 위로 끌어올림 — 위 정의 참고)
     // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용).
     // 보드 오프너는 featureBoardOpeners 단일출처를 재사용, webtoon만 별도(페르소나 컨텍스트 필요).
     const FEATURE_ACTIONS: Record<string, () => void> = {
