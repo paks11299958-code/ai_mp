@@ -536,19 +536,18 @@ const PersonaSelectPanel: React.FC<{
             .map(f => ({ ...f, badge: badges[f.key] }));
     }, [spotlightKeys.join(',')]);
 
-    // '새로 나온 기능': spotlight 제외. 어드민이 지정한 순서를 앞에, 미지정(새 기능 포함)은
-    // 출시일 최신순으로 뒤에 붙임(하이브리드) → 새 기능 추가해도 자동 노출 유지.
+    // '새로 나온 기능': spotlight 제외.
+    // - 어드민이 newFeaturesOrder를 지정했으면(어드민 카드순서 탭 저장) → 그 목록·순서 '그대로'(표시 정본).
+    // - 미지정(빈 값)이면 → spotlight 제외 전체를 출시일 최신순 자동(새 기능 자동 노출).
     const newFeatures = React.useMemo(() => {
         const pool = FEATURES_GRID.filter(f => !spotlightKeys.includes(f.key));
         const order = newFeaturesOrder ?? [];
-        const picked = order
-            .map(k => pool.find(f => f.key === k))
-            .filter((f): f is typeof FEATURES_GRID[number] => !!f);
-        const pickedKeys = new Set(picked.map(f => f.key));
-        const rest = pool
-            .filter(f => !pickedKeys.has(f.key))
-            .sort((a, b) => ((b as any).releasedAt || '').localeCompare((a as any).releasedAt || '') || (b.id - a.id));
-        return [...picked, ...rest].slice(0, 8);
+        if (order.length) {
+            return order
+                .map(k => pool.find(f => f.key === k))
+                .filter((f): f is typeof FEATURES_GRID[number] => !!f);
+        }
+        return pool.slice().sort((a, b) => ((b as any).releasedAt || '').localeCompare((a as any).releasedAt || '') || (b.id - a.id));
     }, [spotlightKeys.join(','), (newFeaturesOrder ?? []).join(',')]);
 
     // '나의 즐겨찾기': 로그인 사용자가 ⭐한 페르소나 + 기능
