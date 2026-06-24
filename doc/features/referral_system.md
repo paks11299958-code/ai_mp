@@ -1,7 +1,33 @@
-# 추천인(레퍼럴) 시스템 — 기획
+# 추천인(레퍼럴) 시스템
 
-> 작성: 2026-06-21 | 상태: **기획 (미구현)**
+> 작성: 2026-06-21 | **구현·배포·실증 완료: 2026-06-22**
 > 목적: 기존 유저가 친구를 데려오면 양쪽에 포인트 보상 → 바이럴 유입. 광고비 대신 보상으로 유저 확보.
+
+---
+
+## 0. 구현 현황 (2026-06-22)
+
+**사장 결정 확정**: 보상 **양방향 각 1000pt** / 지급 시점 **친구가 기능 1회 사용 시**(어뷰징 방어) / 진입점 **전용 '친구 초대' 화면**.
+
+**배포**: 프론트 ai_mp master `7ed770d`+`4009155`(Vercel 자동). 백엔드 shared-api main `aacc1ab`(서버1 수동배포 완료 + DB 컬럼 raw SQL 선반영).
+
+**백엔드(shared-api)**
+- `lib/referral.ts`: `ensureReferralCode`(8자 base32, 혼동문자 제외, 충돌 재시도) / `recordReferredBy`(자가추천·중복·없는코드 방어) / `tryGrantReferral`(친구 기능1회 사용 시 양쪽 1000pt, `PointTransaction type='REFERRAL'` + `User.referralRewarded` 플래그로 중복방어, 별도 트랜잭션이라 실패해도 기능엔 무영향) / `getReferralStats`(현황).
+- `routes/aimp/auth.ts`: register/verify-register/kakao 3경로에서 코드 발급 + `ref` 수신→referredBy 기록. **카카오는 OAuth `state`로 ref 전달**. `GET /referral` 현황 API.
+- `lib/points.ts`: `deductMenuPoints` 성공 후 `tryGrantReferral` 트리거(전 기능 차감 공통지점) + `tryReferralAfterActivity` 헬퍼를 `sessions.ts` 채팅 차감 직후 호출(채팅도 활성행동으로 인정).
+
+**프론트(ai_mp)**
+- `services/referral.ts`: `captureRefFromUrl`(부팅 시 `?ref` localStorage 보관+URL정리) / `getStoredRef`(가입 요청 동봉) / `clearStoredRef`(가입 후 제거) / `buildReferralLink` / `buildFeatureShareLink`(`?f=key&ref=내코드`) / `shareResultImage`(결과 이미지 파일+딥링크 동시 공유) / `setMy·getMyReferralCode`(내 코드 localStorage 캐시).
+- `components/InviteFriendModal.tsx`: 전용 친구초대 화면(내 링크·복사·navigator.share·현황 N명/적립pt).
+- 진입점: 메인 우하단 플로팅 `🎁 친구 초대 +1000P` 버튼 + 채팅 헤더 ⋮ 메뉴 항목.
+- 공유버튼(`?p`/`?f`)에 내 `?ref` 자동 부착 → 페르소나/기능 공유가 곧 추천 링크. 결과 자랑 버튼(미래의나·헤어)도 동일.
+- `apiService`: register/verify에 `ref` 동봉 + `authApi.referral()`. 카카오 href에 `?ref`.
+
+**DB(서버1 raw SQL 선반영)**: `User`에 `referralCode TEXT UNIQUE`(인덱스 `User_referralCode_key`)·`referredBy INTEGER`·`referralRewarded BOOLEAN DEFAULT false`.
+
+**실증(서버1 실 HTTP)**: A가입→코드 발급 / B(`ref=`)가입→referredBy 기록 / B 채팅1건(차감)→A·B 각 +1000pt + REFERRAL 거래 2건 + referralRewarded=true. 테스트계정 정리 완료.
+
+> 아래는 최초 기획 문서(설계 레퍼런스). 실제 구현은 위 0번이 정본.
 
 ---
 

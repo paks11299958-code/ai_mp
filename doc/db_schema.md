@@ -11,6 +11,9 @@ id, email(nullable), phone(nullable, unique), username, password, role(USER/ADMI
 paidPoints(default:0), bonusPoints(default:0)
 birthInfoJson(String?)          ← 명부 JSON 문자열
 resetToken, resetTokenExpiry    ← 비밀번호 재설정 토큰 (SMS 코드도 재사용)
+referralCode(String?, unique)   ← 내 추천코드(가입 시 발급, 8자) — 추천인 시스템
+referredBy(Int?)                ← 나를 추천한 유저 id(가입 시 1회 기록)
+referralRewarded(Bool, def:false) ← 이 유저로 인한 추천보상 지급 완료(기능 1회 사용 시 true)
 ```
 - email, phone 둘 다 nullable — 둘 중 하나만 있어도 가입 가능
 - 전화번호 저장 형식: `01012345678` (숫자만)
@@ -266,6 +269,13 @@ CREATE INDEX IF NOT EXISTS "AgeTransform_userId_idx" ON "AgeTransform"("userId")
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS phone VARCHAR(20);
 CREATE UNIQUE INDEX IF NOT EXISTS "User_phone_key" ON "User"(phone);
 ALTER TABLE "User" ALTER COLUMN email DROP NOT NULL;
+
+-- 추천인(레퍼럴) 시스템 (2026-06-22, 서버1 raw SQL 선반영 완료)
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "referralCode" TEXT;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "referredBy" INTEGER;
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
+CREATE UNIQUE INDEX IF NOT EXISTS "User_referralCode_key" ON "User"("referralCode");
+-- PointTransaction.type 에 'REFERRAL' 추가(추천 보상, 무상지급 그룹). 별도 ALTER 불필요(type=String).
 ```
 
 ### 회원 탈퇴(하드 삭제) 주의

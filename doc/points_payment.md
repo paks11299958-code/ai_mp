@@ -20,7 +20,10 @@
 | 가입 축하금 | 5,000P | `grantSignupPoints` | 일반/인증/카카오 3경로 모두 호출 (1pt=1원 전환으로 ×10) |
 | 미션1 — 페르소나 첫 등록 | 5,000P | `grantMissionPoints(.., 'persona')` | 즐겨찾기 페르소나(`PUT /user/favorite-personas`) 첫 등록 |
 | 미션2 — AI 기능 첫 등록 | 5,000P | `grantMissionPoints(.., 'feature')` | 즐겨찾기 기능(`PUT /user/favorites`) 첫 등록 |
+| 추천 보상 (추천인) | 1,000P | `tryGrantReferral` | 내가 초대한 친구가 기능 1회 사용 시 |
+| 추천 보상 (신규) | 1,000P | `tryGrantReferral` | 추천코드로 가입 후 기능 1회 사용 시 |
 
+- **추천인 시스템(2026-06-22)**: 양방향 각 1000pt, 지급시점=친구 기능 1회 사용(어뷰징 방어). `type='REFERRAL'`(결산에서 무상지급 그룹) + `User.referralRewarded` 플래그로 중복방어. 차감 공통지점(`deductMenuPoints`)·채팅(`tryReferralAfterActivity`)에서 트리거. 상세 [features/referral_system.md](features/referral_system.md).
 - (2026-06-17 1pt=1원 전환으로 500→5,000. `MISSION_REWARD=5000`, `grantSignupPoints`도 5000.)
 - **중복방지**: `pointTransaction`에 `type='MISSION'` + description 기록이 이미 있으면 재지급 안 함(`awarded:false`) — 즐겨찾기 넣다뺐다 반복해도 1회만.
 - bonusPoints는 `{increment:MISSION_REWARD}`로 누적. ⚠️ `grantSignupPoints`는 `=5000` 고정.
@@ -167,3 +170,12 @@
 ## 레퍼럴 시스템 (구현 예정)
 
 → [features/referral_system.md](features/referral_system.md) 참조
+
+## 포인트 부족(402) → 충전모달 트리거 (2026-06-24 점검·수정)
+
+차감 기능 클릭 시 포인트가 부족하면 백엔드가 **402 "포인트가 부족합니다."**(사전 잔액검사, 차감 전 차단)를 주고, 프론트는 **`insufficient-points` 커스텀 이벤트**를 dispatch → App.tsx 리스너가 `setShowPointModal(true)`로 전역 충전모달을 띄운다.
+
+- **자동 처리(원칙)**: `services/apiService.ts`의 `request`(라인34)와 `lib/boardFetch.ts`(라인9)가 402를 받으면 자동으로 이벤트를 쏜다. **차감 기능은 이 헬퍼를 쓰는 게 원칙.**
+- ⚠️**raw fetch 함정**: 보드가 `fetch()`를 직접 쓰면 위 자동처리를 안 타서, 402가 와도 충전모달이 안 뜨고 에러 텍스트만 보인다. **수동으로 `if (res.status===402) window.dispatchEvent(new CustomEvent('insufficient-points'))` 추가 필수.**
+- 2026-06-24 누락 수정: 명품·보험·수학(공통 apiFetch 래퍼)·핫키워드(인라인)·오늘뉴스. PointModal z-index 50→70(보드 위 표시).
+- 점검법: `grep -c "await fetch"` (raw) vs `grep -cE "boardFetch|request|insufficient-points"` (안전).

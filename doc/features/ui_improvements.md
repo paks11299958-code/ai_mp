@@ -357,3 +357,42 @@
 ## 포인트 단가 버튼 표시 + 명품버튼 가독성 (2026-06-18)
 - **명품감정 'AI 검증 요청' 버튼 글자 안 보이던 것**: 보라배경(`bg-purple-700`)에 어두운 보라글자(`text-[#2D2438]`)라 묻힘 → **`text-white` + `font-semibold`**(LuxuryBoard.tsx). 같은 패턴 다른 버튼엔 없었음.
 - **실행 버튼에 차감 단가 표시**: 9개 기능 실행 버튼에 "· N pt"(예: "✨ AI 검증 요청 · 50pt"). 카드/둘러보기엔 미표시(돈냄새 최소화, 쇼핑 결제직전 패턴). 단가는 `usePoints().priceOf(feature)`로 DB값 받아 표시 → 어드민에서 단가 바꾸면 자동 반영. 잔액 부족 시 `requirePoints`가 즉시 충전모달. 상세 doc/points_payment.md "포인트 사전 안내".
+
+## 공유 딥링크 + OG 미리보기 + 공유 버튼 (2026-06-22, 바이럴 1단계)
+- **딥링크 `?p=personaId`/`?f=featureKey`**(App.tsx): 공유링크로 들어온 사람을 해당 페르소나 채팅/기능 보드로 바로 안내. URL은 즉시 정리(흔적/재진입 방지). **★비회원에게 가입 강요 제거** → 페르소나는 인트로(소개) 노출, 기능은 대기페이지 포커스. 가입은 "입장" 누를 때 자연 유도. 로그인 상태면 바로 진입. `featureBoardOpeners` 단일출처로 FEATURE_ACTIONS와 공유.
+- **OG/Twitter 메타태그**(index.html): 카카오/인스타/페북 미리보기 카드(사이트 공통, `512.png`). SPA라 페이지별 OG는 없음.
+- **공유 버튼**: 채팅 헤더 ⋮ 메뉴 "이 페르소나 공유하기"(`?p`) + 기능 카드 🔗(`?f`, MainPageNew). `navigator.share`(모바일) → 클립보드 복사 폴백 + 토스트.
+- **순간 진입점**: 미래의나·헤어 결과 화면에 `📲 친구에게 자랑하기`(결과 이미지 파일+딥링크 동시 공유, `shareResultImage`). 결과가 막 떴을 때 공유 충동 최고조 → 결과물이 곧 광고.
+- 추천코드 연계: 위 공유링크에 내 `?ref` 자동 부착 → 페르소나/기능/결과 공유가 곧 추천 링크. 상세 [referral_system.md](referral_system.md).
+
+## 첫 화면(MainPageNew) 대개편 (2026-06-23)
+첫 화면을 하루 종일 모바일·PC 양쪽으로 다듬은 묶음. 주로 `frontend/components/MainPageNew.tsx`(★래퍼 `MainPageNew`→`PersonaSelectPanel` **2단 구조**) + `App.tsx` + `hooks/useAuth.ts` + `index.css`.
+
+- **LandingPageNew→MainPageNew 단일화**: 첫화면(LandingPageNew)+둘러보기(MainPageNew) 2화면 → MainPageNew 단일. useAuth 라우팅 전부 `main`으로 일원화, App의 잔존 `goTo('hero')`/`goTo('guest')` 5곳→`main`. **죽은 guest/hero 코드 ~200줄 제거**(Screen 타입 `'authPage'|'main'|'chat'`로 좁혀 tsc로 잔존참조 0 보증). LandingPageNew import는 비번재설정 배경(resetToken)에만 잔존.
+- **제목 h2 '대화할 AI를 선택하세요' 제거**(검색·탭·카드가 이미 선택 화면). 로고+개인화 인사만.
+- **상단 4단 섹션**: ✨오늘의 추천 → 🎁새로운 기능 → 💬이어서 대화(로그인+이력 시만) → 👥새로운 AI 친구. 앞 3개는 로그인 무관 항상 노출.
+  - **오늘의 추천**: 사장 지정 큐레이션 `SPOTLIGHT_KEYS=['webtoon','hair','siwoon','stock']` + 수동 배지. 새 큐레이션은 배열에 key 추가.
+  - **새로운 기능**: 지정 제외, `FEATURES_GRID` **id 최신순 상위 8개 자동**(새 기능 추가 시 자동 맨앞).
+  - **새로운 AI 친구**: 페르소나 createdAt 최신순 16개, 원형 72px.
+- **캐러셀 공통화(`Carousel` 헬퍼)**: 마우스 드래그(window mousemove/up, 6px↑ 끌면 클릭차단) + 터치 스와이프. ★화살표는 만들었다가 피드백으로 **전부 제거**. 카드폭 `flex:'0 0 44%' + maxWidth:200`=모바일 2개+다음 살짝(화면비례 자동, 고정px 잘림 해소).
+- **즐겨찾기→햄버거 모달**(showFavorites). 첫화면을 모두 동일 콘텐츠로 일관화(PC 헐렁함 해소).
+- **스크롤 구조**: 페르소나 그리드만 안쪽 스크롤(PC 답답) → 최상위 `overflowY:auto` + **로고/햄버거만 sticky**, 나머지 전체 스크롤.
+- **로고 클릭=새로고침**(onGoHome→`window.location.href='/'`). PC 본문폭 760→960.
+- **로그인/로그아웃 토글**(햄버거 하단, 비로그인→로그인/authPage) + **💎 충전하기**(→PointModal 토스충전) + 햄버거 정리(페르소나목록·기능둘러보기 제거=탭으로 있음).
+- **섹션 제목 강조(`SectionTitle` 헬퍼)**: 12→15px·800·왼쪽 퍼플 강조바. **스크롤바 색**(index.css 전역): 다크 회색 `#4b5563`→퍼플 `#C4A9E0`(hover `#8E6FB7`)+Firefox.
+- ⚠️★**2단 구조 prop 함정(교훈)**: 새 prop은 ①interface ②패널 props타입 ③패널 구조분해 ④래퍼 구조분해 ⑤래퍼→패널 전달 **5곳 모두** 손봐야 함. `onLoginClick`이 ④⑤ 누락으로 토글 무반응이었음(디버그 로그로 추적).
+- ⚠️★**모달 렌더 위치 함정(교훈)**: 모달(PointModal 등)은 **각 화면 블록(return)마다** 렌더돼야 함. 첫화면 블록에 없으면 `setShow*(true)` 호출해도 안 뜸 — 로그인 모달·충전 모달 둘 다 이 이유로 안 떴음. authPage 화면 처리도 `if(!user)`안→최상위로 올려 상태 무관 동작.
+- ⚠️**Vercel 배포 검증**: 같은 번들 해시명에 내용만 갱신되는 엣지 캐시 존재 → 배포 확인은 **번들에서 변경 시그니처 문자열 grep**, 캡처는 `?cb=`/`?nocache=` 캐시버스터. 동작은 Playwright measure(scrollLeft/화면전환)로 검증.
+
+### AI 페르소나 랭킹 섹션 (2026-06-23, 첫 화면 후속)
+'👥 새로운 AI 친구'(createdAt 신규순)를 **'🏆 AI 페르소나 랭킹'(실제 인기순)**으로 교체.
+- **백엔드**(shared-api `routes/aimp/personas.ts`, 커밋 `3a4a28a`, 서버1 배포 완료): `GET /personas/ranking?limit=` — `prisma.chatSession.groupBy({by:['personaId'], _count})`로 페르소나별 **세션 수** 집계 → 세션수 내림차순(동수=order 오름차순), adminOnly 제외, limit 기본16·최대50, `sessionCount` 포함 반환. ⚠️라우트 순서: `/ranking`을 `/:id` 동적 라우트보다 위(POST / 앞)에 둠.
+- **프론트**(`apiService.personaApi.getRanking` + MainPageNew): 마운트 시 `getRanking(16)` fetch → `rankedPersonas` state. **로딩 전/실패 시 createdAt 최신순 폴백**(빈 화면 방지). 카드는 **원형 유지**(사장 "사각만이면 답답" 피드백) + **1·2·3위 메달 배지(🥇🥈🥉), 그 외 숫자 배지**(원형 좌상단 absolute), 1~3위는 골드 테두리.
+- ⚠️★**Vercel rewrite 경로 함정(또 밟은 교훈)**: `vercel.json`은 `/api/personas/:path*` → 서버1 `/api/aimp/personas/:path*`로 **자동 변환**. 따라서 ①프론트는 `/personas/ranking`(BASE=/api → `/api/personas/ranking`) 호출이 맞고 ②**외부 검증 curl도 `/api/personas/ranking`(aimp 빼고)** 로 해야 200. `/api/aimp/personas/ranking`을 직접 치면 rewrite source에 없어 "Not found"(헷갈려서 디버깅 길어짐). 서버1 **직접**(localhost:3020)은 반대로 `/api/aimp/personas/ranking`이 정답.
+- ⚠️shared-api는 `ts-node --transpile-only`로 직접 실행(빌드 불필요)이나, 라우트 추가가 reload로 안 잡히면 `pm2 restart`(reload 아님). push≠배포=서버1 git pull+pm2 필수.
+
+### 메인 정리 + 충전모달 누락 일괄 수정 (2026-06-24)
+- **'이어서 대화' 섹션 제거**: 상단 4단→3단(오늘의추천·새로운기능·AI페르소나랭킹). 정보 과부하 해소 + 채팅 헤더 '최근 페르소나' 칩이 복귀 동선 대체(중복). `recentPersonas` prop은 향후 복원 대비 유지(렌더만 제거).
+- ⚠️★**포인트 부족(402)→충전모달 누락 버그 일괄 수정**: 차감 기능 클릭 시 포인트 부족이면 충전모달이 떠야 하는데, **raw `fetch`를 직접 쓰는 보드들이 402를 일반 에러로만 throw**해 '포인트가 부족합니다' 텍스트만 뜨고 모달이 안 떴음. 수정한 보드: **명품(LuxuryBoard)·보험(InsuranceBoard)·수학(MathTutorBoard) 공통 apiFetch 래퍼 / 핫키워드(HotKeywordBoard) run 인라인 / 오늘뉴스(TodayNewsBoard)** — 각 `!res.ok`에 `if (res.status===402) window.dispatchEvent(new CustomEvent('insufficient-points'))` 추가. PointModal z-index 50→**70**(보드 위에 표시).
+- ✅**안전(헬퍼가 402 자동처리)**: `apiService.request`(라인34)·`lib/boardFetch`(라인9)를 거치는 기능 — 주식·전자책·헤어·미래의나·관상·손금·중고·퀵메뉴(운세·전생). 이들은 402→`insufficient-points` 자동 dispatch.
+- ★**원칙(교훈)**: 차감 기능은 **공통 헬퍼(`request`/`boardFetch`)를 쓰는 게 원칙**. 새 기능에서 raw `fetch`를 직접 쓰면 402 충전모달 처리를 **반드시 수동 추가**할 것(누락 시 조용히 텍스트 에러만 남). 전수 점검 방법: `grep -c "await fetch"` vs `grep -c "boardFetch|request|insufficient-points"`.

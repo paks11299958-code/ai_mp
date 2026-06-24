@@ -56,5 +56,13 @@ model Webtoon {
 - 밝은 컷 위 버튼은 검정 배경+흰 글씨+흰 테두리 (가시성)
 - 데스크탑(가로 화면)에서 흐림 배경 채움은 오히려 산만 → contain + 깔끔한 검정 여백이 정답
 
+## 이미지 보호 — 시도 후 전부 되돌림 (2026-06-22)
+1회차 연재 후 무단복제 방지 1·2단계를 만들었다가 **사장 결정으로 전부 되돌림**(바이럴·확산 우선, "그냥 풀어놓자"). 현재 보호 기능 없음, 컷=GCS public URL 직접 노출.
+- **1단계(우클릭차단·반투명 워터마크 `user#id`·저작권 경고문구)**: 두 뷰어에 추가 → revert(ai_mp `2dccc2d`). `services/watermark.ts` 삭제.
+- **2단계(컷 백엔드 프록시 스트리밍)**: cuts를 GCS URL 대신 인증 프록시 경로로 바꿔 원본 직접접근 차단 시도. shared-api `171118b`→revert `16eab31`(서버1 배포).
+- ★**되돌린 직접 원인 = Vercel rewrite 함정**: vercel.json은 `/api/webtoon/*`→서버1 `/api/aimp/webtoon/*`로 **`aimp` 접두사를 자동 부착**. 백엔드가 프록시 URL을 `/api/aimp/webtoon/:id/cut/:idx`(이미 aimp 붙음)로 만드니 프론트가 그대로 호출 → 매핑 없음 → **컷 전부 404**(워터마크만 뜨고 이미지는 alt텍스트 '컷 N'). → 백엔드가 프론트용 URL 만들 땐 **`/api/webtoon/...`(aimp 없는 프론트 관점 경로)** + vercel.json rewrite 추가가 정답. (위 '교훈'의 vercel.json 규칙과 같은 함정의 구체 사례.)
+- 부가 사실: 버킷 `ai-mp-media`는 **uniform 접근**이라 웹툰만 비공개 불가(다른 기능 공유). GCS public URL은 무인증 200. 스크린샷은 어떤 방식도 불가.
+- ⚠️ 활성 뷰어는 **`WebtoonScrollViewer.tsx`(세로 스크롤)** — WebtoonEpisodeList가 이걸 렌더(위 본문의 WebtoonViewer는 페이지형, 현재 목록 진입 경로 아님).
+
 ## 남은(선택)
 - 페르소나 선택 UI(현재 향기 고정). 회차 조회수/좋아요 등 확장.
