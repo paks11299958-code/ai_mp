@@ -67,7 +67,16 @@ export const LookalikeResultCard: React.FC<LookalikeResultCardProps> = ({ result
                                 <div className="w-full h-1.5 rounded-full mb-2" style={{ background: 'rgba(142,111,183,0.15)' }}>
                                     <div className="h-full rounded-full" style={{ width: `${m.percent}%`, background: 'linear-gradient(90deg, #A886D2, #8E6FB7)' }} />
                                 </div>
-                                <p className="text-xs leading-relaxed" style={{ color: '#6B5580' }}>{m.reason}</p>
+                                <p className="text-xs leading-relaxed mb-2" style={{ color: '#6B5580' }}>{m.reason}</p>
+                                {/* 사진 보기 — 네이버 이미지 검색(검색엔진이 표시 → 초상권 안전, URL 환각 없음).
+                                    "아이유(가수)" 같은 분야 표기는 괄호 앞 이름만으로 검색. */}
+                                <button
+                                    onClick={() => window.open(`https://search.naver.com/search.naver?where=image&query=${encodeURIComponent(m.name.replace(/\s*[\(（].*$/, '').trim() || m.name)}`, '_blank', 'noopener')}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium"
+                                    style={{ background: 'rgba(142,111,183,0.1)', color: '#7A5FA0', border: '1px solid rgba(196,169,224,0.3)' }}
+                                >
+                                    🔍 사진 보기
+                                </button>
                             </div>
                         ))}
                     </div>
