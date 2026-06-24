@@ -206,6 +206,9 @@ const AppContent: React.FC = () => {
 
     const [categories, setCategories] = useState<Category[]>([]);
     const [heroCards, setHeroCards] = useState<HeroCard[]>([]);
+    // 어드민 지정 메인 카드 순서(AppConfig: 콤마구분 키). 빈 배열이면 MainPageNew가 기본/자동 정렬.
+    const [spotlightOrder, setSpotlightOrder] = useState<string[]>([]);
+    const [newFeaturesOrder, setNewFeaturesOrder] = useState<string[]>([]);
     const [headerImageModal, setHeaderImageModal] = useState(false);
     const [personaImages, setPersonaImages] = useState<Record<string, PersonaImage[]>>({});
     const [triggerVideos, setTriggerVideos] = useState<Record<string, TriggerVideo[]>>({});
@@ -336,6 +339,9 @@ const AppContent: React.FC = () => {
                         localStorage.setItem('memoryEnabled', s.memory_enabled);
                     } catch {}
                 }
+                // 메인 카드 순서(어드민 지정). 콤마구분 문자열 → 키 배열.
+                if (s.spotlightOrder) setSpotlightOrder(s.spotlightOrder.split(',').map(k => k.trim()).filter(Boolean));
+                if (s.newFeaturesOrder) setNewFeaturesOrder(s.newFeaturesOrder.split(',').map(k => k.trim()).filter(Boolean));
                 localStorage.setItem('settings_cache', JSON.stringify({ data: s, ts: Date.now() }));
             })
             .catch(() => {});
@@ -897,6 +903,8 @@ const AppContent: React.FC = () => {
                 <LandingPageNew
                     personas={visiblePersonas}
                     heroCards={heroCards}
+                    spotlightOrder={spotlightOrder}
+                    newFeaturesOrder={newFeaturesOrder}
                     isLoading={isPersonasLoading}
                     onStart={() => {}}
                     onLoginClick={() => {}}
@@ -961,6 +969,10 @@ const AppContent: React.FC = () => {
                         <MainPageNew
                             personas={visiblePersonas}
                             heroCards={heroCards}
+                            spotlightOrder={spotlightOrder}
+                            newFeaturesOrder={newFeaturesOrder}
+                    spotlightOrder={spotlightOrder}
+                    newFeaturesOrder={newFeaturesOrder}
                             isLoading={isPersonasLoading}
                             onSelectPersona={requireLogin}
                             onFeatureSelect={() => requireLogin()}
@@ -1108,6 +1120,8 @@ const AppContent: React.FC = () => {
                 <MainPageNew
                     personas={visiblePersonas}
                     heroCards={heroCards}
+                    spotlightOrder={spotlightOrder}
+                    newFeaturesOrder={newFeaturesOrder}
                     isLoading={isPersonasLoading}
                     onSelectPersona={(id) => { goTo('chat'); handlePersonaClick(id); }}
                     onAdminClick={() => handleAdminLogin()}

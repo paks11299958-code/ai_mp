@@ -83,6 +83,9 @@ interface MainPageNewProps {
     onShareFeature?: (featureKey: string, label: string) => void;
     // 통합 메인: 상단 '지금 주목' 캐러셀에 흡수할 어드민 메인 카드(없으면 기본 추천 항목으로 폴백)
     heroCards?: HeroCard[];
+    // 어드민 지정 카드 순서(AppConfig). 키 배열. 없으면 기본/자동.
+    spotlightOrder?: string[];
+    newFeaturesOrder?: string[];
 }
 
 // ─────────────────────────────────────────────
@@ -485,7 +488,9 @@ const PersonaSelectPanel: React.FC<{
     onToggleFavoritePersona?: (id: string) => void;
     onShareFeature?: (featureKey: string, label: string) => void;
     heroCards?: HeroCard[];
-}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onChargeClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [] }) => {
+    spotlightOrder?: string[];
+    newFeaturesOrder?: string[];
+}> = ({ personas, categories, onSelect, searchQuery, onSearchChange, selectedCategoryId, onCategorySelect, onFeatureSelect, initialTab = 'personas', focusPersonaId, focusFeatureKey, onGoHome, onAdminClick, onAnnouncementClick, unreadAnnouncementCount = 0, onProfileClick, onLoginClick, onChargeClick, onPartnerBoardClick, recentPersonas = [], recentFeatureKeys = [], isFavorite, onToggleFavorite, favoritableKeys, isFavoritePersona, onToggleFavoritePersona, onShareFeature, heroCards = [], spotlightOrder, newFeaturesOrder }) => {
     const { user, onLogout } = useAuthContext();
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
@@ -517,25 +522,34 @@ const PersonaSelectPanel: React.FC<{
     }, [focusFeatureKey, tab]);
 
     // ── 통합 메인 상단 섹션 데이터 ──────────────────────────────
-    // '지금 주목': 사장 지정 큐레이션(웹툰 1화 · 헤어 진단 · 오늘의 운세 · 주식 분석). 특별 배지 수동.
-    const SPOTLIGHT_KEYS = ['webtoon', 'hair', 'siwoon', 'stock'];
+    // 큐레이션 순서는 어드민(AppConfig)에서 지정. 미지정이면 아래 기본값 폴백.
+    const DEFAULT_SPOTLIGHT_KEYS = ['webtoon', 'hair', 'siwoon', 'stock'];
+    // 어드민이 지정한 '오늘의 추천' 키 순서(props). 없으면 기본값.
+    const spotlightKeys = (spotlightOrder && spotlightOrder.length ? spotlightOrder : DEFAULT_SPOTLIGHT_KEYS);
+
+    // '지금 주목': 사장 지정 큐레이션. 특별 배지 수동(키별).
     const spotlightFeatures = React.useMemo(() => {
         const badges: Record<string, string> = { webtoon: '1화 오픈', hair: 'NEW', siwoon: '오늘의 운세', stock: 'AI 리포트' };
-        return SPOTLIGHT_KEYS
+        return spotlightKeys
             .map(k => FEATURES_GRID.find(f => f.key === k))
             .filter((f): f is typeof FEATURES_GRID[number] => !!f)
             .map(f => ({ ...f, badge: badges[f.key] }));
-    }, []);
+    }, [spotlightKeys.join(',')]);
 
-    // '새로 나온 기능': 지정 3개 제외, id 최신순(추가된 순서 역순) 상위 8개. 새 기능 추가 시 자동 노출.
+    // '새로 나온 기능': spotlight 제외. 어드민이 지정한 순서를 앞에, 미지정(새 기능 포함)은
+    // 출시일 최신순으로 뒤에 붙임(하이브리드) → 새 기능 추가해도 자동 노출 유지.
     const newFeatures = React.useMemo(() => {
-        return FEATURES_GRID
-            .filter(f => !SPOTLIGHT_KEYS.includes(f.key))
-            .slice()
-            // 출시일(releasedAt) 최신순. 동일 날짜는 id 내림차순으로 안정 정렬.
-            .sort((a, b) => ((b as any).releasedAt || '').localeCompare((a as any).releasedAt || '') || (b.id - a.id))
-            .slice(0, 8);
-    }, []);
+        const pool = FEATURES_GRID.filter(f => !spotlightKeys.includes(f.key));
+        const order = newFeaturesOrder ?? [];
+        const picked = order
+            .map(k => pool.find(f => f.key === k))
+            .filter((f): f is typeof FEATURES_GRID[number] => !!f);
+        const pickedKeys = new Set(picked.map(f => f.key));
+        const rest = pool
+            .filter(f => !pickedKeys.has(f.key))
+            .sort((a, b) => ((b as any).releasedAt || '').localeCompare((a as any).releasedAt || '') || (b.id - a.id));
+        return [...picked, ...rest].slice(0, 8);
+    }, [spotlightKeys.join(','), (newFeaturesOrder ?? []).join(',')]);
 
     // '나의 즐겨찾기': 로그인 사용자가 ⭐한 페르소나 + 기능
     const favoritePersonas = React.useMemo(
@@ -1434,6 +1448,8 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
     onToggleFavoritePersona,
     onShareFeature,
     heroCards = [],
+    spotlightOrder,
+    newFeaturesOrder,
 }) => {
     const [activePersonaId, setActivePersonaId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -1530,6 +1546,8 @@ export const MainPageNew: React.FC<MainPageNewProps> = ({
                 onToggleFavoritePersona={onToggleFavoritePersona}
                 onShareFeature={onShareFeature}
                 heroCards={heroCards}
+                spotlightOrder={spotlightOrder}
+                newFeaturesOrder={newFeaturesOrder}
             />
         </div>
     );
