@@ -752,7 +752,7 @@ const PersonaSelectPanel: React.FC<{
                 background: 'rgba(251,248,243,0.85)',
                 backdropFilter: 'blur(10px)',
             }}>
-                <div style={{ textAlign: 'center', position: 'relative' }}>
+                <div style={{ textAlign: 'left', position: 'relative' }}>
                     <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
                         background: 'none', border: 'none', cursor: 'pointer',
                         padding: 0, display: 'inline-block',
