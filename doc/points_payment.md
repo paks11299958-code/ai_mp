@@ -63,6 +63,7 @@
 | **300pt** | 관상(face)·손금(palm)·핫키워드(hot-keyword)·AI쌤 수학(mathtutor) | 단발성·일상·학생 |
 | **500pt** | 주식(stock)·명품(luxury)·중고(used-item)·보험(insurance)·운세/퀵메뉴(quick-menu)·골프(golf) | 무거운 전문 분석 |
 | **1000pt** | 헤어스타일 진단(hair) | 합성 실비 높음(~57원) |
+| (사장 설정) | 닮은 연예인 찾기(lookalike) | 텍스트 1회 분석, 실비 ~2원, 바이럴 미끼 저가 의도. **MenuLimit 미등록 시 기본 50pt**(checkMenuAccess 폴백) |
 | 채팅 | 메시지당 레벨별 **100→50pt** (XP↑ 할인, STAGE_COSTS) | `deductPointsForMessage` |
 
 - ⚠️ **1pt=1원 전환 시 ×10한 것**: STAGE_COSTS·LEVELUP_BONUS·가입보너스(5000)·미션(5000)·충전 PACKAGES·MenuLimit 단가·**기존 User 잔액(paidPoints·bonusPoints)**. 구매력 동일, 화폐만 직관화. 배포순서 shared-api→DB ×10 즉시→ai_mp.

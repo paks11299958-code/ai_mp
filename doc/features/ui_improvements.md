@@ -396,3 +396,16 @@
 - ⚠️★**포인트 부족(402)→충전모달 누락 버그 일괄 수정**: 차감 기능 클릭 시 포인트 부족이면 충전모달이 떠야 하는데, **raw `fetch`를 직접 쓰는 보드들이 402를 일반 에러로만 throw**해 '포인트가 부족합니다' 텍스트만 뜨고 모달이 안 떴음. 수정한 보드: **명품(LuxuryBoard)·보험(InsuranceBoard)·수학(MathTutorBoard) 공통 apiFetch 래퍼 / 핫키워드(HotKeywordBoard) run 인라인 / 오늘뉴스(TodayNewsBoard)** — 각 `!res.ok`에 `if (res.status===402) window.dispatchEvent(new CustomEvent('insufficient-points'))` 추가. PointModal z-index 50→**70**(보드 위에 표시).
 - ✅**안전(헬퍼가 402 자동처리)**: `apiService.request`(라인34)·`lib/boardFetch`(라인9)를 거치는 기능 — 주식·전자책·헤어·미래의나·관상·손금·중고·퀵메뉴(운세·전생). 이들은 402→`insufficient-points` 자동 dispatch.
 - ★**원칙(교훈)**: 차감 기능은 **공통 헬퍼(`request`/`boardFetch`)를 쓰는 게 원칙**. 새 기능에서 raw `fetch`를 직접 쓰면 402 충전모달 처리를 **반드시 수동 추가**할 것(누락 시 조용히 텍스트 에러만 남). 전수 점검 방법: `grep -c "await fetch"` vs `grep -c "boardFetch|request|insufficient-points"`.
+
+### 기능 카드 즐겨찾기 + 헤더 ⭐ + 로고 정렬 (2026-06-24)
+- **기능 카드 ⭐ 즐겨찾기 토글**: 메인 '오늘의 추천'·'새로운 기능' 캐러셀 카드에 ⭐/☆ 토글 추가(기존엔 기능 탭 그리드에만 있었음). 위치는 카드 **우하단**(상단 배지와 분리, 페르소나명은 좌하단이라 안 겹침). `e.stopPropagation()`으로 캐러셀 드래그/카드 클릭과 분리. 회원=즉시 저장(`toggleFavorite`), 비회원=☆ 보이고 클릭 시 로그인 유도(`favoritableKeys={[]}`→`FAVORITABLE_KEYS`, `onToggleFavorite={requireLogin}`). ⚠️`FAVORITABLE_KEYS` 정의를 `if(!user)` 블록 위로 끌어올림(TDZ 방지).
+- **헤더 ⭐ 즐겨찾기 버튼**: 로고 바 우측 햄버거(☰) **왼쪽**에 ⭐ 버튼(`right:38` absolute). 클릭 시 햄버거 안 거치고 바로 즐겨찾기 모달(`setShowFavorites`), 비회원은 로그인 유도. 햄버거 안 '⭐ 즐겨찾기' 항목도 중복 진입점으로 유지.
+- **상단 로고 왼쪽 정렬**: `✦ AI PERSONAS` 헤더를 가운데→왼쪽(`textAlign:'left'`). 모바일 가독성. ⭐/햄버거는 우측 absolute라 영향 없음.
+
+### 어드민 메인 카드 순서 지정 (2026-06-24)
+메인 '오늘의 추천'·'새로운 기능' 카드 구성·순서를 어드민에서 지정. 어드민 **'카드 순서' 탭**(`components/admin/CardOrderPanel.tsx`).
+- **UI**: 패널 안에 **하위 탭 2개**(✨오늘의 추천 / 🎁새로운 기능) + 각 탭은 **좌우 드래그 보드** — 왼쪽 '모든 기능'에서 카드를 마우스로 끌어 오른쪽 '표시할 카드'에 놓기, 오른쪽 안에서 끌면 순서 변경, 왼쪽으로 빼면 제외. **오늘의 추천 최대 8개**(maxRight). HTML5 draggable(PC 마우스 전용, 터치 미지원).
+- **저장**: `AppConfig` 키 `spotlightOrder`/`newFeaturesOrder`(콤마구분 키). `settingsApi.update`(`PUT /settings`)의 **기존 admin 가드 재사용**(`if(!isAdmin) return` — memory_enabled 외 키는 어드민만)이라 **백엔드 변경 0**, DB 마이그레이션 불필요(AppConfig 기존 테이블).
+- **메인 반영**: `App.tsx`가 `settingsApi.get`으로 순서 읽어 `MainPageNew`에 props(`spotlightOrder`/`newFeaturesOrder`) 전달. 정렬: spotlight=지정순서(기본 webtoon/hair/siwoon/stock), **newFeatures=newFeaturesOrder 지정 시 그것만(표시 정본)·미지정 시 spotlight 제외 전체 출시일순**(기존 8개 제한 제거=모든 기능 노출, 가로 캐러셀이라 개수 무관). 배지 없는 카드는 `f.badge &&`로 배지 미표시.
+- ⚠️★**드래그 안 되던 버그(교훈)**: 드래그 카드/영역을 그리는 `Card`/`Zone`을 **컴포넌트 함수 안에서 정의**하면 부모 리렌더(onDragOver의 setState)마다 **재생성→DOM 언마운트→드래그 도중 drop 이벤트 유실**. 해결=`renderCard`/`renderZone` **인라인 함수**(컴포넌트 아님). + `onDragStart`에서 `dataTransfer.setData`(없으면 일부 브라우저 드래그 시작 안 함) + `onDragOver` 같은 위치면 setState 스킵 + drop `stopPropagation`. **DnD 핸들러를 그리는 자식은 부모 함수 안에서 정의하지 말 것.**
+- ⚠️**2단 컴포넌트 prop 함정 재확인**: MainPageNew는 래퍼→PersonaSelectPanel 2단이라 새 prop을 **5곳**(래퍼 interface·패널 interface·패널 구조분해·래퍼 구조분해·래퍼→패널 전달) 모두 추가해야 함.
