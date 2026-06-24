@@ -69,6 +69,16 @@ export const WebtoonEpisodeList: React.FC<Props> = ({ personaId, personaName, on
                     </div>
                 </div>
 
+                {/* AI 제작 안내 — 컨셉을 살리는 자랑조 + AI 제작 명시(투명성) */}
+                <div className="px-4 pt-3 shrink-0">
+                    <div className="flex items-start gap-2 rounded-xl px-3 py-2.5" style={{ background: '#F4ECFB', border: '1px solid #E0CDF0' }}>
+                        <span className="text-base leading-none mt-0.5">🎨</span>
+                        <p className="text-xs leading-relaxed" style={{ color: '#6B4F8A' }}>
+                            <b style={{ color: '#7A5FA0' }}>AI 작가 향기</b>가 그려낸 웹툰이에요. 스토리부터 그림까지 생성형 AI로 만들었어요. ✨
+                        </p>
+                    </div>
+                </div>
+
                 {/* 회차 목록 */}
                 <div className="flex-1 overflow-y-auto p-4">
                     {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
