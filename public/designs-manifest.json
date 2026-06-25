@@ -1,23 +1,11 @@
 {
-  "generatedAt": "2026-06-25T22:28:55.212Z",
+  "generatedAt": "2026-06-25T22:59:57.471Z",
   "designs": [
     {
       "slug": "aichat-main-v3-1782426322",
       "title": "aichat main v3",
       "createdAt": "2026-06-25T22:25:22.000Z",
       "url": "/sites/designs/aichat-main-v3-1782426322/"
-    },
-    {
-      "slug": "aichat-main-responsive-1782395814",
-      "title": "aichat main responsive",
-      "createdAt": "2026-06-25T13:56:54.000Z",
-      "url": "/sites/designs/aichat-main-responsive-1782395814/"
-    },
-    {
-      "slug": "aichat-main-omd-1782393843",
-      "title": "aichat main omd",
-      "createdAt": "2026-06-25T13:24:03.000Z",
-      "url": "/sites/designs/aichat-main-omd-1782393843/"
     },
     {
       "slug": "당근마켓-스타일-중고거래-상품-상세-화면-1782390589",
@@ -36,12 +24,6 @@
       "title": "toss style home",
       "createdAt": "2026-06-25T11:57:35.243Z",
       "url": "/sites/designs/toss-style-home/"
-    },
-    {
-      "slug": "sample-landing",
-      "title": "sample landing",
-      "createdAt": "2026-06-25T11:52:11.364Z",
-      "url": "/sites/designs/sample-landing/"
     }
   ]
 }
