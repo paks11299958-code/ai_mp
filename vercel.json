@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend && node sites/gen-designs-manifest.cjs 2>/dev/null || true && cp -r sites frontend/dist/sites 2>/dev/null || true && mkdir -p frontend/dist/sites/_preview",
+  "buildCommand": "npm install && npx prisma generate && npm install --prefix frontend && npm run build --prefix frontend && cp -r sites frontend/dist/sites 2>/dev/null || true && mkdir -p frontend/dist/sites/_preview",
   "outputDirectory": "frontend/dist",
   "functions": {
     "api/router.ts": {
