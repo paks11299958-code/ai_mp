@@ -1,6 +1,18 @@
 {
-  "generatedAt": "2026-06-25T13:45:26.301Z",
+  "generatedAt": "2026-06-25T22:28:55.212Z",
   "designs": [
+    {
+      "slug": "aichat-main-v3-1782426322",
+      "title": "aichat main v3",
+      "createdAt": "2026-06-25T22:25:22.000Z",
+      "url": "/sites/designs/aichat-main-v3-1782426322/"
+    },
+    {
+      "slug": "aichat-main-responsive-1782395814",
+      "title": "aichat main responsive",
+      "createdAt": "2026-06-25T13:56:54.000Z",
+      "url": "/sites/designs/aichat-main-responsive-1782395814/"
+    },
     {
       "slug": "aichat-main-omd-1782393843",
       "title": "aichat main omd",
