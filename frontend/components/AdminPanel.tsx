@@ -15,6 +15,7 @@ import { PersonasPanel } from './admin/PersonasPanel';
 import { WebtoonAdminPanel } from './admin/WebtoonAdminPanel';
 import { HeroCardAdminPanel } from './admin/HeroCardAdminPanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
+import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -26,7 +27,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'ai-ideas'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -58,6 +59,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'webtoon',       label: '웹툰 관리', icon: 'BookOpen' },
                             { key: 'hero-cards',    label: '메인 카드', icon: 'Image' },
                             { key: 'card-order',    label: '카드 순서', icon: 'Image' },
+                            { key: 'omd-designs',   label: 'omd 디자인', icon: 'Image' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
                         { id: 'members', label: '회원·포인트', icon: 'Users', tabs: [
@@ -177,6 +179,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'webtoon' && <WebtoonAdminPanel />}
                 {mainView === 'hero-cards' && <HeroCardAdminPanel personas={personas} />}
                 {mainView === 'card-order' && <CardOrderPanel />}
+                {mainView === 'omd-designs' && <OmdDesignsPanel />}
 
                 {/* 공지사항 관리 패널 */}
                 {mainView === 'announcements' && <AnnouncementsPanel personas={personas} />}
