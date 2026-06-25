@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>샘플 디자인 — design-lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Pretendard', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(150deg, #1a1228 0%, #2d2438 50%, #1f1a2e 100%);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    overflow-x: hidden;
+  }
+  .glow { position: fixed; border-radius: 50%; filter: blur(80px); opacity: 0.5; z-index: 0; }
+  .glow1 { width: 320px; height: 320px; background: #8E6FB7; top: -80px; left: -60px; }
+  .glow2 { width: 280px; height: 280px; background: #C4A9E0; bottom: -60px; right: -40px; }
+  .card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 420px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(196,169,224,0.25);
+    border-radius: 28px;
+    padding: 40px 32px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+    text-align: center;
+  }
+  .badge {
+    display: inline-block;
+    font-size: 12px; font-weight: 700;
+    color: #C4A9E0;
+    background: rgba(142,111,183,0.18);
+    border: 1px solid rgba(196,169,224,0.3);
+    padding: 6px 14px; border-radius: 999px;
+    margin-bottom: 20px; letter-spacing: 0.5px;
+  }
+  h1 { font-size: 30px; font-weight: 800; line-height: 1.3; margin-bottom: 14px; }
+  h1 .accent { background: linear-gradient(90deg, #C4A9E0, #8E6FB7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  p.sub { font-size: 15px; color: rgba(255,255,255,0.65); line-height: 1.6; margin-bottom: 28px; }
+  .btn {
+    display: block; width: 100%;
+    padding: 16px; border: none; border-radius: 16px;
+    font-family: inherit; font-size: 16px; font-weight: 700; color: #fff;
+    background: linear-gradient(135deg, #A886D2, #8E6FB7);
+    cursor: pointer; transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 8px 24px rgba(142,111,183,0.4);
+  }
+  .btn:active { transform: scale(0.97); }
+  .features { display: flex; gap: 10px; margin-top: 24px; }
+  .feat {
+    flex: 1; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 14px 8px;
+  }
+  .feat .ic { font-size: 22px; margin-bottom: 6px; }
+  .feat .lbl { font-size: 11px; color: rgba(255,255,255,0.6); }
+  .foot { margin-top: 28px; font-size: 12px; color: rgba(255,255,255,0.35); }
+</style>
+</head>
+<body>
+  <div class="glow glow1"></div>
+  <div class="glow glow2"></div>
+  <div class="card">
+    <span class="badge">✨ design-lab 샘플</span>
+    <h1>여기서 <span class="accent">디자인</span>을<br>만들어 드려요</h1>
+    <p class="sub">이 창에서 "design-lab에 이런 디자인 만들어줘"라고<br>말하면, 만들어서 이렇게 웹주소로 보내드립니다.</p>
+    <button class="btn">시작하기</button>
+    <div class="features">
+      <div class="feat"><div class="ic">🎨</div><div class="lbl">글래스모피즘</div></div>
+      <div class="feat"><div class="ic">📱</div><div class="lbl">모바일 우선</div></div>
+      <div class="feat"><div class="ic">🔗</div><div class="lbl">바로 공유</div></div>
+    </div>
+    <p class="foot">design-lab → 배포 워크플로우 테스트 페이지</p>
+  </div>
+</body>
+</html>
