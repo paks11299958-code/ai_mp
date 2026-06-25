@@ -10,7 +10,7 @@ export const OmdDesignsPanel: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetch(`/sites/designs/manifest.json?cb=${Date.now()}`)
+        fetch(`/designs-manifest.json?cb=${Date.now()}`)
             .then(r => { if (!r.ok) throw new Error('목록을 불러오지 못했어요 (아직 배포 전일 수 있어요)'); return r.json(); })
             .then(d => setDesigns(d.designs || []))
             .catch(e => { setError(e.message); setDesigns([]); });
@@ -25,7 +25,7 @@ export const OmdDesignsPanel: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
             <div className="flex items-center justify-between mb-1">
                 <h2 className="text-lg font-bold text-gray-100">🎨 omd 디자인</h2>
-                <button onClick={() => { setDesigns(null); setError(null); fetch(`/sites/designs/manifest.json?cb=${Date.now()}`).then(r => r.json()).then(d => setDesigns(d.designs || [])).catch(() => setDesigns([])); }}
+                <button onClick={() => { setDesigns(null); setError(null); fetch(`/designs-manifest.json?cb=${Date.now()}`).then(r => r.json()).then(d => setDesigns(d.designs || [])).catch(() => setDesigns([])); }}
                     className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'rgba(124,58,237,0.15)', color: '#C4A9E0', border: '1px solid rgba(196,169,224,0.3)' }}>
                     새로고침
                 </button>

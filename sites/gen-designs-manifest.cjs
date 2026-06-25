@@ -7,7 +7,9 @@ const fs = require('fs');
 const path = require('path');
 
 const DESIGNS_DIR = path.join(__dirname, 'designs');
-const OUT = path.join(DESIGNS_DIR, 'manifest.json');
+// public/ 으로 출력 → Vite가 dist 루트로 복사 → /designs-manifest.json 로 서빙(SPA fallback 안 탐).
+// (sites/designs/manifest.json 경로는 vercel sites rewrite와 얽혀 SPA로 fallback되는 문제가 있었음)
+const OUT = path.join(__dirname, '..', 'public', 'designs-manifest.json');
 
 function build() {
   if (!fs.existsSync(DESIGNS_DIR)) {
@@ -30,6 +32,7 @@ function build() {
     .filter(Boolean)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt)); // 최신순
 
+  fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ generatedAt: new Date().toISOString(), designs: entries }, null, 2));
   console.log(`[gen-designs-manifest] ${entries.length}개 디자인 → ${OUT}`);
 }
