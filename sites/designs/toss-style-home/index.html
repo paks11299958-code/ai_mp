@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>토스 스타일 홈 — design-lab (omd 레퍼런스 기반)</title>
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" rel="stylesheet">
+<style>
+  /* === Toss design tokens (oh-my-design 레퍼런스 toss/DESIGN.md 기반) === */
+  :root {
+    --primary: #3182f6;        /* Toss Blue */
+    --primary-hover: #2272eb;
+    --blue-50: #e8f3ff;
+    --canvas: #ffffff;
+    --fg: #191f28;             /* grey900 헤딩 */
+    --grey-700: #333d4b;
+    --grey-600: #4e5968;
+    --muted: #8b95a1;
+    --surface: #f2f4f6;
+    --border: #e5e8eb;
+    --success: #03b26c;
+    --r-md: 8px; --r-lg: 16px; --r-full: 9999px;
+    --sh-standard: 0 2px 8px rgba(0,0,0,0.08);
+    --sh-subtle: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Pretendard', sans-serif;  /* Toss Product Sans 대체 */
+    background: var(--surface);
+    color: var(--fg);
+    display: flex; justify-content: center;
+    min-height: 100vh;
+  }
+  .phone { width: 100%; max-width: 400px; background: var(--canvas); min-height: 100vh; padding-bottom: 24px; }
+
+  /* 상단바 */
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding: 16px 20px 8px; }
+  .topbar .logo { font-size: 22px; font-weight: 700; color: var(--primary); letter-spacing:-0.5px; }
+  .topbar .icons { display:flex; gap:18px; font-size:20px; color: var(--grey-600); }
+
+  /* 잔액 카드 */
+  .balance { padding: 12px 20px 20px; }
+  .balance .label { font-size:14px; color: var(--grey-600); margin-bottom:6px; }
+  .balance .amount { font-size:30px; font-weight:700; letter-spacing:-1px; }
+  .balance .amount .won { font-size:24px; }
+  .balance-actions { display:flex; gap:8px; margin-top:16px; }
+  .btn {
+    flex:1; height:52px; border:none; border-radius: var(--r-lg);
+    font-family:inherit; font-size:15px; font-weight:600; cursor:pointer;
+    transition: background .12s, transform .1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--primary); color:#fff; }
+  .btn-primary:active { background: var(--primary-hover); }
+  .btn-sub { background: var(--surface); color: var(--grey-700); }
+
+  /* 빠른 메뉴 */
+  .quick { display:grid; grid-template-columns: repeat(4,1fr); gap:4px; padding: 8px 12px 20px; }
+  .quick .item { display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 0; border-radius:12px; cursor:pointer; }
+  .quick .item:active { background: var(--surface); }
+  .quick .ic { width:48px; height:48px; border-radius: var(--r-full); background: var(--blue-50); display:flex; align-items:center; justify-content:center; font-size:22px; }
+  .quick .nm { font-size:12px; color: var(--grey-700); }
+
+  /* 구분 */
+  .divider { height:8px; background: var(--surface); }
+
+  /* 계좌 리스트 */
+  .section { padding: 20px; }
+  .section .head { font-size:18px; font-weight:700; margin-bottom:4px; }
+  .account { display:flex; align-items:center; gap:14px; padding:16px 0; border-bottom:1px solid var(--border); cursor:pointer; }
+  .account:last-child { border-bottom:none; }
+  .account:active { opacity:.6; }
+  .account .badge { width:44px; height:44px; border-radius: var(--r-md); display:flex; align-items:center; justify-content:center; font-size:20px; color:#fff; }
+  .account .info { flex:1; }
+  .account .info .bank { font-size:13px; color: var(--muted); }
+  .account .info .name { font-size:15px; font-weight:600; }
+  .account .bal { font-size:16px; font-weight:700; }
+  .account .send { font-size:13px; font-weight:600; color: var(--primary); background: var(--blue-50); padding:8px 14px; border-radius: var(--r-full); }
+
+  /* 인사이트 카드 */
+  .insight { margin: 4px 20px 0; background: linear-gradient(135deg, #e8f3ff, #f2f4f6); border-radius: var(--r-lg); padding:18px; display:flex; align-items:center; gap:14px; }
+  .insight .emoji { font-size:32px; }
+  .insight .txt .t1 { font-size:15px; font-weight:700; margin-bottom:2px; }
+  .insight .txt .t2 { font-size:13px; color: var(--grey-600); }
+</style>
+</head>
+<body>
+  <div class="phone">
+    <div class="topbar">
+      <div class="logo">toss</div>
+      <div class="icons"><span>🔔</span><span>☰</span></div>
+    </div>
+
+    <div class="balance">
+      <div class="label">민수님의 토스뱅크 통장</div>
+      <div class="amount">2,480,300<span class="won">원</span></div>
+      <div class="balance-actions">
+        <button class="btn btn-primary">송금</button>
+        <button class="btn btn-sub">채우기</button>
+      </div>
+    </div>
+
+    <div class="quick">
+      <div class="item"><div class="ic">💸</div><div class="nm">송금</div></div>
+      <div class="item"><div class="ic">📊</div><div class="nm">소비분석</div></div>
+      <div class="item"><div class="ic">💳</div><div class="nm">카드</div></div>
+      <div class="item"><div class="ic">📈</div><div class="nm">투자</div></div>
+    </div>
+
+    <div class="insight">
+      <div class="emoji">🎯</div>
+      <div class="txt">
+        <div class="t1">이번 달 12만원 아꼈어요</div>
+        <div class="t2">지난달보다 커피값을 줄였네요</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="head">내 계좌</div>
+    </div>
+    <div class="section" style="padding-top:0;">
+      <div class="account">
+        <div class="badge" style="background:#3182f6;">T</div>
+        <div class="info"><div class="bank">토스뱅크</div><div class="name">토스뱅크 통장</div></div>
+        <div class="bal">2,480,300원</div>
+      </div>
+      <div class="account">
+        <div class="badge" style="background:#03b26c;">K</div>
+        <div class="info"><div class="bank">국민은행</div><div class="name">직장인 통장</div></div>
+        <div class="send">송금</div>
+      </div>
+      <div class="account">
+        <div class="badge" style="background:#ffb300;">N</div>
+        <div class="info"><div class="bank">농협</div><div class="name">생활비 통장</div></div>
+        <div class="send">송금</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
