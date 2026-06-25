@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="theme-color" content="#FF6F0F" />
+<title>다이슨 V11 컴플리트 + 거치대 풀구성 — 당근</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<style>
+  /* ---------- Karrot tokens (extracted from the live app) ---------- */
+  :root{
+    --karrot:       #FF6F0F;
+    --karrot-deep:  #E55E00;
+    --karrot-soft:  #FFF1E6;
+
+    --gray-50:  #F7F8F9;
+    --gray-100: #F2F3F6;
+    --gray-200: #E5E8EB;
+    --gray-300: #D1D6DB;
+    --gray-400: #B0B8C1;
+    --gray-500: #8B95A1;
+    --gray-600: #6B7684;
+    --gray-700: #4E5968;
+    --gray-800: #333D4B;
+    --gray-900: #212529;
+
+    --bg: #FFFFFF;
+
+    --radius-sm: 6px;
+    --radius:    8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 999px;
+
+    --shadow-card: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.04);
+    --shadow-bar:  0 -1px 0 var(--gray-200), 0 -6px 16px rgba(0,0,0,.04);
+
+    --font: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+            'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    font-family:var(--font);
+    color:var(--gray-900);
+    background:var(--gray-100);
+    font-feature-settings: "ss06" on, "tnum" on;
+    letter-spacing:-.01em;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  button{font-family:inherit; cursor:pointer; border:0; background:none; padding:0; color:inherit}
+  a{color:inherit; text-decoration:none}
+  img{display:block; max-width:100%}
+
+  /* ---------- Phone frame (only on desktop) ---------- */
+  .stage{
+    min-height:100dvh;
+    display:flex; justify-content:center; align-items:stretch;
+    background:
+      radial-gradient(1200px 600px at 20% -10%, #FFE7D3 0%, transparent 60%),
+      radial-gradient(900px 500px at 100% 100%, #FFD9B8 0%, transparent 60%),
+      linear-gradient(180deg, #FFF7EE 0%, #F5F6F8 100%);
+  }
+  .app{
+    width:100%;
+    max-width:430px;
+    background:var(--bg);
+    position:relative;
+    overflow:hidden;
+    min-height:100dvh;
+    box-shadow:0 30px 80px rgba(20, 16, 12, .08), 0 8px 24px rgba(20, 16, 12, .04);
+    border-radius:0;
+  }
+  @media (min-width: 480px){
+    .stage{ padding: 28px 16px; align-items:flex-start; }
+    .app{ border-radius:32px; min-height: calc(100dvh - 56px); border:1px solid rgba(0,0,0,.04); }
+  }
+
+  /* ---------- Top nav (over hero, then sticky) ---------- */
+  .nav{
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 10px 6px;
+    background:transparent;
+    transition: background .2s ease, box-shadow .2s ease, color .2s ease;
+    color:#fff;
+  }
+  .nav.solid{
+    background:rgba(255,255,255,.96);
+    backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    color:var(--gray-900);
+    box-shadow:0 1px 0 var(--gray-200);
+  }
+  .nav-group{ display:flex; align-items:center; }
+  .icon-btn{
+    width:40px; height:40px; display:inline-flex; align-items:center; justify-content:center;
+    border-radius:var(--radius-pill);
+  }
+  .icon-btn svg{ width:24px; height:24px; }
+  .nav:not(.solid) .icon-btn{
+    background:rgba(0,0,0,.32);
+  }
+  .nav.solid .icon-btn{ background:transparent; }
+  .nav.solid .icon-btn:active{ background:var(--gray-100); }
+
+  .nav-title{
+    font-size:16px; font-weight:600; opacity:0;
+    transform:translateY(4px); transition:.2s ease;
+    pointer-events:none;
+    white-space:nowrap; max-width:60vw; overflow:hidden; text-overflow:ellipsis;
+  }
+  .nav.solid .nav-title{ opacity:1; transform:translateY(0); }
+
+  /* ---------- Image carousel ---------- */
+  .hero{
+    position:relative;
+    margin-top: -56px; /* slide under nav */
+    aspect-ratio: 1 / 1;
+    background:var(--gray-100);
+    overflow:hidden;
+  }
+  .hero-track{
+    display:flex;
+    width:100%; height:100%;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+  }
+  .hero-track::-webkit-scrollbar{ display:none }
+  .hero-slide{
+    flex: 0 0 100%;
+    height:100%;
+    scroll-snap-align:start;
+    position:relative;
+  }
+  .hero-slide img{ width:100%; height:100%; object-fit:cover; }
+
+  .hero-counter{
+    position:absolute; right:12px; bottom:12px;
+    background:rgba(0,0,0,.55);
+    color:#fff;
+    padding:4px 10px;
+    border-radius:var(--radius-pill);
+    font-size:12px; font-weight:600;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero-dots{
+    position:absolute; left:0; right:0; bottom:12px;
+    display:flex; gap:5px; justify-content:center;
+    pointer-events:none;
+  }
+  .hero-dots span{
+    width:6px; height:6px; border-radius:50%;
+    background:rgba(255,255,255,.5);
+    transition: .2s ease;
+  }
+  .hero-dots span.active{
+    background:#fff; width:18px; border-radius:3px;
+  }
+
+  /* ---------- Seller card ---------- */
+  .seller{
+    display:flex; align-items:center; gap:12px;
+    padding:16px;
+    border-bottom: 1px solid var(--gray-100);
+    background:#fff;
+  }
+  .avatar{
+    width:40px; height:40px; border-radius:50%;
+    background:var(--gray-100);
+    overflow:hidden; flex:0 0 auto;
+    position:relative;
+  }
+  .avatar img{ width:100%; height:100%; object-fit:cover; }
+  .seller-meta{ flex:1 1 auto; min-width:0; }
+  .seller-name{ font-size:15px; font-weight:600; color:var(--gray-900); }
+  .seller-loc{ font-size:13px; color:var(--gray-600); margin-top:2px; }
+
+  .temp{
+    text-align:right; flex:0 0 auto;
+  }
+  .temp-row{
+    display:flex; align-items:center; gap:6px; justify-content:flex-end;
+    font-size:14px; font-weight:700;
+    color: var(--karrot);
+    font-variant-numeric: tabular-nums;
+  }
+  .temp-label{ font-size:11px; color:var(--gray-500); margin-top:2px; }
+  .temp-bar{
+    width:64px; height:4px; border-radius:2px;
+    background:var(--gray-100);
+    overflow:hidden; margin-top:4px; margin-left:auto;
+  }
+  .temp-bar > i{
+    display:block; height:100%;
+    background:linear-gradient(90deg, #FFB678 0%, #FF6F0F 100%);
+    border-radius:2px;
+    width:41%;
+  }
+
+  /* ---------- Product body ---------- */
+  .body{ background:#fff; padding: 16px 16px 24px; }
+  .cat-time{
+    color:var(--gray-600); font-size:13px;
+  }
+  h1.title{
+    font-size:20px; font-weight:700; line-height:1.35; margin:6px 0 0;
+    color:var(--gray-900); letter-spacing:-.015em;
+  }
+  .price-row{
+    display:flex; align-items:baseline; gap:6px; margin-top:8px;
+  }
+  .price{
+    font-size:22px; font-weight:700; color:var(--gray-900);
+    font-variant-numeric: tabular-nums;
+    letter-spacing:-.02em;
+  }
+  .nego{
+    font-size:13px; color:var(--karrot); font-weight:600;
+    background:var(--karrot-soft);
+    padding:3px 8px;
+    border-radius:var(--radius-pill);
+  }
+
+  .desc{
+    margin-top:18px;
+    font-size:15px; line-height:1.65; color:var(--gray-800);
+    white-space:pre-line;
+    word-break:break-word;
+  }
+
+  .tags{ display:flex; flex-wrap:wrap; gap:6px; margin-top:18px; }
+  .tag{
+    font-size:13px; color:var(--gray-700);
+    background:var(--gray-100);
+    padding:6px 10px; border-radius:var(--radius-pill);
+  }
+
+  .stats{
+    margin-top:18px; padding-top:14px;
+    border-top:1px solid var(--gray-100);
+    color:var(--gray-600); font-size:13px;
+    display:flex; gap:6px; align-items:center; flex-wrap:wrap;
+  }
+  .stats .dot{ width:2px; height:2px; background:var(--gray-400); border-radius:50%; }
+
+  /* ---------- Section divider ---------- */
+  .gap{
+    height:8px; background:var(--gray-100);
+  }
+
+  /* ---------- Safe-trade banner ---------- */
+  .safe{
+    margin: 0; padding: 14px 16px;
+    background:#fff;
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--gray-100);
+  }
+  .safe-icon{
+    width:36px; height:36px; flex:0 0 auto;
+    border-radius:var(--radius-md);
+    background:var(--karrot-soft);
+    color:var(--karrot);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .safe-icon svg{ width:20px; height:20px; }
+  .safe-text{ flex:1 1 auto; min-width:0; }
+  .safe-title{ font-size:14px; font-weight:600; }
+  .safe-sub{ font-size:12px; color:var(--gray-600); margin-top:2px; }
+  .safe svg.chev{ width:18px; height:18px; color:var(--gray-400); flex:0 0 auto; }
+
+  /* ---------- Section heading ---------- */
+  .section{ padding: 20px 16px 8px; background:#fff; }
+  .section h2{
+    margin:0; font-size:16px; font-weight:700; color:var(--gray-900);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .section h2 a{
+    font-size:13px; font-weight:500; color:var(--gray-600);
+  }
+
+  /* ---------- Similar grid ---------- */
+  .grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px 12px;
+    padding: 12px 16px 120px;
+    background:#fff;
+  }
+  .card{ display:flex; flex-direction:column; gap:8px; }
+  .card-img{
+    aspect-ratio:1/1; border-radius:var(--radius-md);
+    background:var(--gray-100); overflow:hidden;
+    position:relative;
+  }
+  .card-img img{ width:100%; height:100%; object-fit:cover; }
+  .card-title{
+    font-size:14px; line-height:1.4; color:var(--gray-800);
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .card-price{ font-size:14px; font-weight:700; color:var(--gray-900); }
+  .card-meta{ font-size:11px; color:var(--gray-500); }
+
+  .badge{
+    position:absolute; left:6px; top:6px;
+    background:rgba(0,0,0,.55); color:#fff;
+    font-size:11px; font-weight:600;
+    padding:3px 7px; border-radius:var(--radius-pill);
+  }
+
+  /* ---------- Bottom CTA bar ---------- */
+  .cta{
+    position:fixed; left:0; right:0; bottom:0; z-index:40;
+    display:flex; align-items:center; gap:12px;
+    padding: 10px 16px calc(10px + var(--safe-bottom));
+    background:rgba(255,255,255,.98);
+    backdrop-filter:saturate(180%) blur(12px);
+    -webkit-backdrop-filter:saturate(180%) blur(12px);
+    box-shadow: var(--shadow-bar);
+  }
+  @media (min-width: 480px){
+    .cta{
+      position:absolute; max-width:430px; margin:0 auto;
+      border-bottom-left-radius:32px; border-bottom-right-radius:32px;
+    }
+  }
+  .heart{
+    width:36px; height:48px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:var(--gray-700);
+    border-right:1px solid var(--gray-200);
+    padding-right:12px;
+    position:relative;
+  }
+  .heart svg{ width:24px; height:24px; }
+  .heart.on svg{ color:var(--karrot); }
+  .heart-count{ font-size:11px; margin-top:0; }
+
+  .cta-mid{ flex:1 1 auto; min-width:0; }
+  .cta-price{
+    font-size:16px; font-weight:700; color:var(--gray-900);
+    font-variant-numeric: tabular-nums;
+  }
+  .cta-sub{
+    font-size:12px; color:var(--karrot); font-weight:600;
+    text-decoration: underline; text-underline-offset:2px;
+  }
+
+  .chat-btn{
+    background:var(--karrot);
+    color:#fff;
+    font-size:15px; font-weight:700;
+    padding:12px 18px; border-radius:var(--radius);
+    transition: background .15s ease, transform .05s ease;
+    min-height:44px;
+  }
+  .chat-btn:hover{ background:var(--karrot-deep); }
+  .chat-btn:active{ transform:scale(.98); background:var(--karrot-deep); }
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed; left:50%; transform:translateX(-50%);
+    bottom: calc(90px + var(--safe-bottom));
+    background:rgba(33,37,41,.92);
+    color:#fff;
+    padding:10px 16px;
+    border-radius:var(--radius-pill);
+    font-size:13px; font-weight:500;
+    opacity:0; pointer-events:none;
+    transition: opacity .2s ease, transform .2s ease;
+    z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* a11y */
+  .visually-hidden{
+    position:absolute; width:1px; height:1px; padding:0; overflow:hidden;
+    clip:rect(0 0 0 0); white-space:nowrap; border:0;
+  }
+  :focus-visible{
+    outline: 2px solid var(--karrot); outline-offset:2px; border-radius:6px;
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+<main class="app" id="app" aria-label="당근 상품 상세">
+
+  <!-- ===== Top nav ===== -->
+  <header class="nav" id="nav">
+    <div class="nav-group">
+      <button class="icon-btn" aria-label="뒤로가기" onclick="history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M15 18l-6-6 6-6"/>
+        </svg>
+      </button>
+    </div>
+    <div class="nav-title" id="navTitle">다이슨 V11 컴플리트 + 거치대 풀구성</div>
+    <div class="nav-group">
+      <button class="icon-btn" aria-label="공유하기" onclick="showToast('링크가 복사됐어요')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+          <path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/>
+        </svg>
+      </button>
+      <button class="icon-btn" aria-label="더보기" onclick="showToast('준비 중이에요')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Hero carousel ===== -->
+  <section class="hero" aria-label="상품 사진">
+    <div class="hero-track" id="track" tabindex="0">
+      <div class="hero-slide"><img src="https://images.unsplash.com/photo-1558317374-067fb5f30001?auto=format&fit=crop&w=900&q=72" alt="다이슨 무선청소기 본체" /></div>
+      <div class="hero-slide"><img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=900&q=72" alt="다이슨 헤드 부속품" /></div>
+      <div class="hero-slide"><img src="https://images.unsplash.com/photo-1585771724684-38269d6639fd?auto=format&fit=crop&w=900&q=72" alt="청소기 사용 장면" /></div>
+      <div class="hero-slide"><img src="https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?auto=format&fit=crop&w=900&q=72" alt="박스 풀구성" /></div>
+    </div>
+    <div class="hero-counter" id="counter">1 / 4</div>
+    <div class="hero-dots" id="dots" aria-hidden="true">
+      <span class="active"></span><span></span><span></span><span></span>
+    </div>
+  </section>
+
+  <!-- ===== Seller ===== -->
+  <button class="seller" aria-label="판매자 프로필 보기" onclick="showToast('프로필 화면으로 이동')">
+    <div class="avatar">
+      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=72" alt="" />
+    </div>
+    <div class="seller-meta">
+      <div class="seller-name">동네친구</div>
+      <div class="seller-loc">합정동</div>
+    </div>
+    <div class="temp" aria-label="매너온도 41.2도">
+      <div class="temp-row">
+        41.2°C
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </div>
+      <div class="temp-bar"><i></i></div>
+      <div class="temp-label">매너온도</div>
+    </div>
+  </button>
+
+  <!-- ===== Product body ===== -->
+  <section class="body">
+    <div class="cat-time">디지털/가전 · 끌올 3분 전</div>
+    <h1 class="title">다이슨 V11 컴플리트 + 거치대 풀구성</h1>
+    <div class="price-row">
+      <div class="price">280,000원</div>
+      <div class="nego">제안 가능</div>
+    </div>
+
+    <p class="desc">결혼하면서 새 청소기로 바꿔서 정리합니다.
+이사 한 번 가져갔던 거라 외관 깨끗하고 흡입력 새 거랑 똑같아요.
+구성품은 본체 + 거치대 + 헤드 4종 + 정품 배터리 1개입니다.
+직거래는 합정역 6번 출구 평일 저녁 가능하고, 택배는 착불이면 보내드려요.
+관심 가져주셔서 감사합니다 :)</p>
+
+    <div class="tags" aria-label="상품 태그">
+      <span class="tag">#다이슨</span>
+      <span class="tag">#무선청소기</span>
+      <span class="tag">#합정직거래</span>
+      <span class="tag">#풀구성</span>
+    </div>
+
+    <div class="stats" aria-label="상품 통계">
+      <span>채팅 7</span><span class="dot"></span>
+      <span>관심 18</span><span class="dot"></span>
+      <span>조회 142</span>
+    </div>
+  </section>
+
+  <div class="gap" role="presentation"></div>
+
+  <!-- ===== Safe trade ===== -->
+  <button class="safe" aria-label="당근페이로 안전하게 거래해보세요" onclick="showToast('당근페이 안내로 이동')">
+    <span class="safe-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3l8 3v6c0 4.5-3.5 8-8 9-4.5-1-8-4.5-8-9V6l8-3z"/>
+        <path d="M9.5 12.5l1.8 1.8 3.5-3.8"/>
+      </svg>
+    </span>
+    <span class="safe-text">
+      <span class="safe-title">당근페이로 안전하게 거래해요</span>
+      <span class="safe-sub">송금 사기 걱정 없이 동네친구처럼</span>
+    </span>
+    <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  </button>
+
+  <div class="gap" role="presentation"></div>
+
+  <!-- ===== Similar items ===== -->
+  <section class="section" aria-label="이 글과 함께 봤어요">
+    <h2>이 글과 함께 봤어요<a href="#" onclick="event.preventDefault(); showToast('더보기')">더보기 ›</a></h2>
+  </section>
+  <div class="grid">
+    <article class="card">
+      <div class="card-img">
+        <span class="badge">예약중</span>
+        <img loading="lazy" src="https://images.unsplash.com/photo-1567016526105-22da7c13161a?auto=format&fit=crop&w=500&q=72" alt="LG 코드제로 청소기" />
+      </div>
+      <div class="card-title">LG 코드제로 A9 무선청소기</div>
+      <div class="card-price">220,000원</div>
+      <div class="card-meta">서교동 · 1시간 전</div>
+    </article>
+    <article class="card">
+      <div class="card-img">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1591348122449-02525d70379b?auto=format&fit=crop&w=500&q=72" alt="삼성 제트" />
+      </div>
+      <div class="card-title">삼성 제트 200W (배터리 2개)</div>
+      <div class="card-price">340,000원</div>
+      <div class="card-meta">망원동 · 끌올</div>
+    </article>
+    <article class="card">
+      <div class="card-img">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&w=500&q=72" alt="다이슨 V10" />
+      </div>
+      <div class="card-title">다이슨 V10 풀구성 깨끗합니다</div>
+      <div class="card-price">190,000원</div>
+      <div class="card-meta">상수동 · 4시간 전</div>
+    </article>
+    <article class="card">
+      <div class="card-img">
+        <img loading="lazy" src="https://images.unsplash.com/photo-1610557892470-55d9e80c0bce?auto=format&fit=crop&w=500&q=72" alt="로봇청소기" />
+      </div>
+      <div class="card-title">로보락 S7 MaxV Ultra 새상품급</div>
+      <div class="card-price">520,000원</div>
+      <div class="card-meta">합정동 · 2일 전</div>
+    </article>
+  </div>
+
+  <!-- ===== Bottom CTA ===== -->
+  <div class="cta" role="region" aria-label="구매 액션">
+    <button class="heart" id="heart" aria-pressed="false" aria-label="관심 추가">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+      </svg>
+    </button>
+    <div class="cta-mid">
+      <div class="cta-price">280,000원</div>
+      <button class="cta-sub" onclick="showToast('가격 제안 보내기')">가격 제안하기</button>
+    </div>
+    <button class="chat-btn" onclick="showToast('채팅을 시작했어요')">채팅하기</button>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <span class="visually-hidden">화면 하단에 채팅하기 버튼이 있습니다.</span>
+</main>
+</div>
+
+<script>
+  // ----- Sticky-solid nav on scroll -----
+  const app  = document.getElementById('app');
+  const nav  = document.getElementById('nav');
+  const hero = document.querySelector('.hero');
+  function onScroll(){
+    const heroBottom = hero.getBoundingClientRect().bottom;
+    const navHeight  = nav.getBoundingClientRect().height;
+    nav.classList.toggle('solid', heroBottom <= navHeight + 8);
+  }
+  // scroll target is the page on mobile, or app container if it scrolls — use window first
+  window.addEventListener('scroll', onScroll, { passive:true });
+  document.addEventListener('scroll', onScroll, { passive:true, capture:true });
+  onScroll();
+
+  // ----- Carousel dots + counter -----
+  const track   = document.getElementById('track');
+  const slides  = track.querySelectorAll('.hero-slide');
+  const dots    = document.getElementById('dots').children;
+  const counter = document.getElementById('counter');
+  function updateSlide(){
+    const i = Math.round(track.scrollLeft / track.clientWidth);
+    for (let k=0; k<dots.length; k++) dots[k].classList.toggle('active', k === i);
+    counter.textContent = `${i+1} / ${slides.length}`;
+  }
+  track.addEventListener('scroll', () => requestAnimationFrame(updateSlide), { passive:true });
+
+  // ----- Heart toggle -----
+  const heart = document.getElementById('heart');
+  heart.addEventListener('click', () => {
+    const on = heart.classList.toggle('on');
+    heart.setAttribute('aria-pressed', String(on));
+    heart.setAttribute('aria-label', on ? '관심 해제' : '관심 추가');
+    showToast(on ? '관심 목록에 추가했어요' : '관심을 해제했어요');
+  });
+
+  // ----- Toast -----
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  // Avoid pull-to-refresh / overscroll wobble on iOS
+  document.body.style.overscrollBehaviorY = 'contain';
+</script>
+</body>
+</html>
