@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>오늘의 운세</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+/>
+<style>
+  :root {
+    /* Toss TDS tokens (reconciled, extracted 2026-06-08) */
+    --primary: #3182f6;
+    --primary-hover: #2272eb;
+    --blue-50: #e8f3ff;
+    --canvas: #ffffff;
+    --foreground: #191f28;
+    --grey-800: #333d4b;
+    --grey-700: #4e5968;
+    --grey-600: #6b7684;
+    --muted: #8b95a1;
+    --placeholder: #b0b8c1;
+    --surface: #f2f4f6;
+    --grey-50: #f9fafb;
+    --border: #e5e8eb;
+    --error: #f04452;
+    --success: #03b26c;
+    --warning: #fe9800;
+    --purple: #a234c7;
+
+    --shadow-subtle: 0px 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-standard: 0px 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-elevated: 0px 4px 12px rgba(0, 0, 0, 0.12);
+
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-full: 9999px;
+
+    --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+    --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    --font: "Pretendard", "Pretendard Variable", -apple-system,
+      BlinkMacSystemFont, "Apple SD Gothic Neo", Roboto, "Noto Sans KR",
+      sans-serif;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body {
+    background: var(--surface);
+    font-family: var(--font);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100vh;
+    background: var(--canvas);
+    position: relative;
+    padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  }
+
+  /* ---------- Top app bar ---------- */
+  .appbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    padding: 0 12px 0 20px;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+  }
+
+  .appbar__title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+
+  .iconbtn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: var(--r-full);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    color: var(--grey-700);
+    transition: background 0.15s var(--ease-standard);
+  }
+  .iconbtn:active {
+    background: var(--surface);
+  }
+
+  /* ---------- Scroll content ---------- */
+  .content {
+    padding: 8px 20px 0;
+  }
+
+  .greeting {
+    margin: 12px 2px 20px;
+  }
+  .greeting__date {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary);
+    letter-spacing: -0.2px;
+  }
+  .greeting__line {
+    margin-top: 6px;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.36;
+    letter-spacing: -0.4px;
+  }
+  .greeting__line .name {
+    color: var(--primary);
+  }
+
+  /* ---------- Hero score card ---------- */
+  .hero {
+    position: relative;
+    border-radius: var(--r-lg);
+    padding: 28px 24px 26px;
+    background: linear-gradient(160deg, #1d6fff 0%, #3182f6 52%, #5b9dff 100%);
+    color: #fff;
+    box-shadow: var(--shadow-standard);
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    right: -70px;
+    top: -90px;
+    background: radial-gradient(
+      circle,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0) 70%
+    );
+    pointer-events: none;
+  }
+  .hero__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .hero__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.82);
+  }
+  .hero__score {
+    margin-top: 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    font-variant-numeric: tabular-nums;
+  }
+  .hero__score .num {
+    font-size: 48px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -1px;
+  }
+  .hero__score .den {
+    font-size: 18px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.78);
+  }
+  .hero__stars {
+    margin-top: 12px;
+    display: flex;
+    gap: 4px;
+  }
+  .hero__stars svg {
+    width: 22px;
+    height: 22px;
+  }
+  .hero__badge {
+    align-self: flex-start;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: var(--r-full);
+    padding: 7px 13px;
+    font-size: 13px;
+    font-weight: 700;
+    backdrop-filter: blur(4px);
+  }
+  .hero__summary {
+    position: relative;
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.22);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.55;
+    letter-spacing: -0.2px;
+  }
+  .hero__summary .quote {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ---------- Section heading ---------- */
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 30px 2px 14px;
+  }
+  .section-head h2 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .section-head .hint {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+
+  /* ---------- Category cards ---------- */
+  .cats {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .cat {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    text-align: left;
+    background: var(--canvas);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 16px;
+    cursor: pointer;
+    transition: transform 0.15s var(--ease-standard),
+      background 0.15s var(--ease-standard);
+  }
+  .cat:active {
+    transform: scale(0.985);
+    background: var(--grey-50);
+  }
+  .cat__icon {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--r-md);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+  .cat__icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  .cat--love .cat__icon {
+    background: #ffeaf0;
+    color: var(--error);
+  }
+  .cat--money .cat__icon {
+    background: #e7f8f0;
+    color: var(--success);
+  }
+  .cat--health .cat__icon {
+    background: var(--blue-50);
+    color: var(--primary);
+  }
+  .cat__body {
+    flex: 1;
+    min-width: 0;
+  }
+  .cat__top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cat__name {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .cat__score {
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 2px 8px;
+    border-radius: var(--r-full);
+    background: var(--surface);
+    color: var(--grey-700);
+  }
+  .cat__desc {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--grey-600);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cat__mini-stars {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .cat__mini-stars svg {
+    width: 13px;
+    height: 13px;
+  }
+  .cat__chevron {
+    color: var(--placeholder);
+    flex-shrink: 0;
+  }
+
+  /* ---------- Lucky strip ---------- */
+  .lucky {
+    margin-top: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .lucky__item {
+    background: var(--surface);
+    border-radius: var(--r-md);
+    padding: 14px 12px;
+    text-align: center;
+  }
+  .lucky__k {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .lucky__v {
+    margin-top: 6px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+  }
+  .lucky__swatch {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    border-radius: var(--r-full);
+    margin-right: 5px;
+    vertical-align: -1px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  /* ---------- Sticky CTA ---------- */
+  .cta-bar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    padding: 12px 20px calc(12px + env(safe-area-inset-bottom));
+    background: linear-gradient(
+      to top,
+      var(--canvas) 72%,
+      rgba(255, 255, 255, 0)
+    );
+    z-index: 30;
+  }
+  .cta {
+    width: 100%;
+    height: 56px;
+    border: none;
+    border-radius: var(--r-lg);
+    background: var(--primary);
+    color: #fff;
+    font-family: inherit;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-shadow: var(--shadow-subtle);
+    transition: background 0.15s var(--ease-standard),
+      transform 0.1s var(--ease-standard);
+  }
+  .cta:hover {
+    background: var(--primary-hover);
+  }
+  .cta:active {
+    transform: scale(0.99);
+    background: var(--primary-hover);
+  }
+
+  .footer-note {
+    margin: 24px 2px 8px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--placeholder);
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="app">
+    <!-- App bar -->
+    <header class="appbar">
+      <span class="appbar__title">오늘의 운세</span>
+      <button class="iconbtn" aria-label="알림">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+      </button>
+    </header>
+
+    <section class="content">
+      <!-- Greeting -->
+      <div class="greeting">
+        <p class="greeting__date">6월 25일 목요일 · 양력</p>
+        <h1 class="greeting__line">
+          <span class="name">민준</span>님,<br />오늘은 흐름을 타기 좋은 날이에요.
+        </h1>
+      </div>
+
+      <!-- Hero score card -->
+      <article class="hero">
+        <div class="hero__row">
+          <div>
+            <p class="hero__label">오늘의 종합운</p>
+            <div class="hero__score">
+              <span class="num">82</span>
+              <span class="den">/ 100</span>
+            </div>
+            <div class="hero__stars" aria-label="별점 4.5점 만점 5점">
+              <!-- 4 full + 1 half -->
+              <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="#ffffff"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+              <svg viewBox="0 0 24 24" fill="none">
+                <defs>
+                  <linearGradient id="half" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="50%" stop-color="#ffffff" />
+                    <stop offset="50%" stop-color="rgba(255,255,255,0.32)" />
+                  </linearGradient>
+                </defs>
+                <path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z" fill="url(#half)"/>
+              </svg>
+            </div>
+          </div>
+          <span class="hero__badge">상위 18%</span>
+        </div>
+        <p class="hero__summary">
+          <span class="quote">“</span>망설였던 일에 답이 보이는 하루. 오전의 작은 결정이 저녁의 기분을 바꿔요.<span class="quote">”</span>
+        </p>
+      </article>
+
+      <!-- Category section -->
+      <div class="section-head">
+        <h2>분야별 운세</h2>
+        <span class="hint">탭하면 풀이 보기</span>
+      </div>
+
+      <div class="cats">
+        <!-- 애정운 -->
+        <button class="cat cat--love">
+          <span class="cat__icon">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-6.7-4.35-9.33-8.04C.9 10.3 1.6 6.9 4.3 5.7c1.97-.88 4.1-.2 5.2 1.43L12 9.9l2.5-2.77c1.1-1.63 3.23-2.31 5.2-1.43 2.7 1.2 3.4 4.6 1.63 7.26C18.7 16.65 12 21 12 21z"/></svg>
+          </span>
+          <span class="cat__body">
+            <span class="cat__top">
+              <span class="cat__name">애정운</span>
+              <span class="cat__score">88</span>
+            </span>
+            <span class="cat__desc">먼저 건넨 한마디가 관계의 온도를 올려요.</span>
+          </span>
+          <span class="cat__mini-stars" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="#f04452"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#f04452"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#f04452"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#f04452"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#ffd0d9"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+          </span>
+          <span class="cat__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          </span>
+        </button>
+
+        <!-- 재물운 -->
+        <button class="cat cat--money">
+          <span class="cat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.2c.3-1 1.4-1.6 2.7-1.6 1.6 0 2.5.8 2.5 1.8 0 2.4-5 1.6-5 3.9 0 1.1 1 1.9 2.6 1.9 1.3 0 2.4-.6 2.7-1.6"/></svg>
+          </span>
+          <span class="cat__body">
+            <span class="cat__top">
+              <span class="cat__name">재물운</span>
+              <span class="cat__score">74</span>
+            </span>
+            <span class="cat__desc">충동구매만 피하면 들어올 돈이 머물러요.</span>
+          </span>
+          <span class="cat__mini-stars" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="#03b26c"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#03b26c"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#03b26c"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#bde9d5"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#bde9d5"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+          </span>
+          <span class="cat__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          </span>
+        </button>
+
+        <!-- 건강운 -->
+        <button class="cat cat--health">
+          <span class="cat__icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2 5 4-10 2 5h6"/></svg>
+          </span>
+          <span class="cat__body">
+            <span class="cat__top">
+              <span class="cat__name">건강운</span>
+              <span class="cat__score">79</span>
+            </span>
+            <span class="cat__desc">가벼운 산책 한 번이 컨디션을 끌어올려요.</span>
+          </span>
+          <span class="cat__mini-stars" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="#3182f6"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#3182f6"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#3182f6"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#3182f6"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+            <svg viewBox="0 0 24 24" fill="#c5ddfd"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l7.1-1.01L12 2z"/></svg>
+          </span>
+          <span class="cat__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+          </span>
+        </button>
+      </div>
+
+      <!-- Lucky strip -->
+      <div class="section-head">
+        <h2>오늘의 행운</h2>
+      </div>
+      <div class="lucky">
+        <div class="lucky__item">
+          <div class="lucky__k">행운의 색</div>
+          <div class="lucky__v"><span class="lucky__swatch" style="background:#3182f6"></span>파랑</div>
+        </div>
+        <div class="lucky__item">
+          <div class="lucky__k">행운의 숫자</div>
+          <div class="lucky__v" style="font-variant-numeric:tabular-nums">7</div>
+        </div>
+        <div class="lucky__item">
+          <div class="lucky__k">행운의 방향</div>
+          <div class="lucky__v">동쪽</div>
+        </div>
+      </div>
+
+      <p class="footer-note">운세는 재미로 즐겨주세요. 매일 아침 7시에 새로 도착해요.</p>
+    </section>
+
+    <!-- Sticky CTA -->
+    <div class="cta-bar">
+      <button class="cta">
+        오늘의 운세 자세히 보기
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+      </button>
+    </div>
+  </main>
+</body>
+</html>
