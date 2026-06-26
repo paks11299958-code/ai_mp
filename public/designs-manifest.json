@@ -1,6 +1,12 @@
 {
-  "generatedAt": "2026-06-25T22:59:57.471Z",
+  "generatedAt": "2026-06-26T00:18:55.115Z",
   "designs": [
+    {
+      "slug": "aichat-main-mobile-1782429155",
+      "title": "aichat main mobile",
+      "createdAt": "2026-06-25T23:12:35.000Z",
+      "url": "/sites/designs/aichat-main-mobile-1782429155/"
+    },
     {
       "slug": "aichat-main-v3-1782426322",
       "title": "aichat main v3",
