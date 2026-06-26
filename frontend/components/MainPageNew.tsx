@@ -12,6 +12,7 @@ import { LogOut, Settings, Megaphone, UserCircle, Search, Bell, X, Menu } from '
 import { Persona, Category } from '../types';
 import { HeroCard, personaApi } from '../services/apiService';
 import { Icon } from './Icons';
+import { TermsModal } from './TermsModal';
 import { useAuthContext } from '../contexts/AuthContext';
 import { usePoints } from '../contexts/PointsContext';
 
@@ -495,6 +496,7 @@ const PersonaSelectPanel: React.FC<{
     const { paidPoints, bonusPoints } = usePoints();
     const totalPoints = (paidPoints ?? 0) + (bonusPoints ?? 0);
     const [tab, setTab] = useState<'personas' | 'features'>(initialTab);
+    const [termsModal, setTermsModal] = useState<'terms' | 'privacy' | null>(null);  // 사업자정보 푸터 약관
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
     const [featureCategory, setFeatureCategory] = useState<string | null>(null);   // null=전체
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -1416,6 +1418,56 @@ const PersonaSelectPanel: React.FC<{
                     );
                 })}
             </div>}
+
+            {/* ── 사업자 정보 푸터 (탭 무관 항상 노출) ── */}
+            <footer style={{
+                borderTop: `1px solid ${T.lineSoft}`,
+                padding: '28px max(24px, calc((100% - 960px) / 2))',
+                textAlign: 'center',
+                marginTop: 8,
+            }}>
+                <div style={{
+                    fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700,
+                    letterSpacing: '0.3em', color: T.gold, marginBottom: 14,
+                }}>
+                    ✦ AI PERSONAS
+                </div>
+                <div style={{
+                    display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
+                    gap: '6px 16px', fontSize: 11, color: T.inkMute, lineHeight: 1.8,
+                    maxWidth: 620, margin: '0 auto',
+                }}>
+                    <span>상호명: 입소문</span>
+                    <span style={{ color: T.lineSoft }}>|</span>
+                    <span>대표자: 신지윤</span>
+                    <span style={{ color: T.lineSoft }}>|</span>
+                    <span>사업자등록번호: 656-08-03261</span>
+                    <span style={{ color: T.lineSoft }}>|</span>
+                    <span>통신판매업 신고번호: 제 2026-충북청주-0690호</span>
+                    <span style={{ color: T.lineSoft }}>|</span>
+                    <span>주소: 충북 청주 흥덕 옥산 오송가락로 1056 청주리버파크자이 104-1303</span>
+                    <span style={{ color: T.lineSoft }}>|</span>
+                    <span>전화: 0502-468-0502</span>
+                </div>
+                <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center', gap: 20 }}>
+                    <button onClick={() => setTermsModal('terms')} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 11,
+                        color: T.inkMute, textDecoration: 'underline', textUnderlineOffset: 3, padding: 0,
+                    }}>이용약관</button>
+                    <button onClick={() => setTermsModal('privacy')} style={{
+                        background: 'none', border: 'none', cursor: 'pointer', fontSize: 11,
+                        color: T.accent, fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: 3, padding: 0,
+                    }}>개인정보처리방침</button>
+                </div>
+                <div style={{ marginTop: 12, fontSize: 10, color: T.inkMute, opacity: 0.6, letterSpacing: '0.1em' }}>
+                    © 2026 입소문. All rights reserved.
+                </div>
+            </footer>
+
+            {/* 약관 모달 */}
+            {termsModal && (
+                <TermsModal initialTab={termsModal} onClose={() => setTermsModal(null)} />
+            )}
         </div>
     );
 };
