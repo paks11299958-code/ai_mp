@@ -420,6 +420,13 @@ const Carousel: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     );
 };
 
+// 큰 수를 한글 단위로 — 10000 이상이면 'N.N만', 그 미만은 콤마. (히어로 통계·랭킹 대화수)
+const formatCount = (n: number): string => {
+    if (!n || n < 0) return '0';
+    if (n >= 10000) return `${(n / 10000).toFixed(1).replace(/\.0$/, '')}만`;
+    return n.toLocaleString();
+};
+
 // 섹션 제목 — 왼쪽 컬러 강조 바 + 키운 글씨로 눈에 띄게.
 const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 10 }}>
@@ -427,6 +434,119 @@ const SectionTitle: React.FC<{ children: React.ReactNode }> = ({ children }) => 
         <span style={{ fontSize: 15, fontWeight: 800, color: '#2D2438', letterSpacing: '-0.01em' }}>{children}</span>
     </div>
 );
+
+// ─────────────────────────────────────────────
+// 히어로 배너 — 그라데이션 카드 + 검색 + 실제 통계. (시안 aichat-main-mobile 참고)
+// 검색 input은 personas 검색 상태(searchQuery)를 그대로 공유 → 탭 아래 검색바와 논리적 중복 없음.
+// 입력 시 personas 탭으로 전환해 결과 리스트가 바로 필터되게 함.
+// ─────────────────────────────────────────────
+const HeroBanner: React.FC<{
+    personaCount: number;
+    featureCount: number;
+    totalSessions: number;
+    searchQuery: string;
+    onSearchChange: (q: string) => void;
+    onSwitchToPersonas: () => void;
+}> = ({ personaCount, featureCount, totalSessions, searchQuery, onSearchChange, onSwitchToPersonas }) => (
+    <div style={{
+        position: 'relative', overflow: 'hidden', borderRadius: 22,
+        background: 'linear-gradient(135deg, #6A4B93 0%, #8E6FB7 48%, #B79BE0 100%)',
+        color: '#fff', padding: '22px 18px 20px', marginBottom: 18,
+        boxShadow: '0 8px 28px rgba(106,75,147,0.22)',
+    }}>
+        {/* 장식 원 */}
+        <span style={{ position: 'absolute', right: -50, top: -50, width: 170, height: 170, borderRadius: '50%', background: 'rgba(255,255,255,0.12)' }} />
+        <span style={{ position: 'absolute', right: 26, bottom: -64, width: 130, height: 130, borderRadius: '50%', background: 'rgba(255,255,255,0.08)' }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+            <h1 style={{ fontSize: 'clamp(20px, 5.5vw, 30px)', lineHeight: 1.25, margin: '0 0 8px', fontWeight: 800, letterSpacing: '-0.03em', wordBreak: 'keep-all' }}>
+                오늘은 누구와<br />이야기해 볼까요?
+            </h1>
+            <p style={{ margin: 0, fontSize: 'clamp(12.5px, 3.4vw, 14px)', color: 'rgba(255,255,255,0.9)', maxWidth: 520, wordBreak: 'keep-all' }}>
+                운세·주식·관상부터 마음 터놓는 대화까지. 나만의 AI 페르소나를 포인트로 자유롭게 만나보세요.
+            </p>
+            {/* 검색 */}
+            <div style={{ marginTop: 15, display: 'flex', alignItems: 'center', gap: 7, background: '#fff', borderRadius: 13, padding: '5px 5px 5px 13px', boxShadow: '0 8px 24px rgba(40,20,70,0.22)' }}>
+                <Search size={17} color="#908AA3" style={{ flexShrink: 0 }} />
+                <input
+                    value={searchQuery}
+                    onChange={e => { onSwitchToPersonas(); onSearchChange(e.target.value); }}
+                    placeholder="페르소나·기능 검색"
+                    aria-label="검색"
+                    style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 14, color: '#191527', background: 'transparent', padding: '9px 0' }}
+                />
+            </div>
+            {/* 통계 — 실제값만(만족도 별점 없음) */}
+            <div style={{ display: 'flex', gap: 'clamp(16px, 6vw, 32px)', marginTop: 16 }}>
+                {[
+                    { b: `${personaCount}+`, t: 'AI 페르소나' },
+                    { b: `${featureCount}`, t: 'AI 기능' },
+                    ...(totalSessions > 0 ? [{ b: formatCount(totalSessions), t: '누적 대화' }] : []),
+                ].map((s, i) => (
+                    <div key={i} style={{ fontSize: 'clamp(11px, 3.2vw, 12.5px)', color: 'rgba(255,255,255,0.82)', whiteSpace: 'nowrap' }}>
+                        <b style={{ display: 'block', fontSize: 'clamp(16px, 4.6vw, 19px)', fontWeight: 800, color: '#fff', letterSpacing: '-0.02em' }}>{s.b}</b>
+                        {s.t}
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
+// ─────────────────────────────────────────────
+// 모바일 하단 탭바 — 홈·기능·대화(FAB)·랭킹·내정보. PC(≥768px)에선 CSS로 숨김.
+// 빠른 이동용(전체 메뉴는 햄버거). 시안 aichat-main-mobile 참고.
+// ─────────────────────────────────────────────
+const TAB_ICONS: Record<string, React.ReactNode> = {
+    home: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2}><path d="M3 11l9-8 9 8" strokeLinecap="round" strokeLinejoin="round" /><path d="M5 10v10h14V10" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+    features: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2}><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></svg>,
+    chat: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2.2}><path d="M21 11.5a8.4 8.4 0 0 1-12 7.6L3 21l1.9-5.9A8.4 8.4 0 1 1 21 11.5z" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+    ranking: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2}><path d="M8 21h8M12 17v4" strokeLinecap="round" /><path d="M7 4h10v5a5 5 0 0 1-10 0V4z" strokeLinecap="round" strokeLinejoin="round" /></svg>,
+    me: <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" strokeLinecap="round" /></svg>,
+};
+
+const BottomTabBar: React.FC<{
+    onHome: () => void;
+    onFeatures: () => void;
+    onChat: () => void;
+    onRanking: () => void;
+    onMe: () => void;
+}> = ({ onHome, onFeatures, onChat, onRanking, onMe }) => {
+    const tab = (key: string, label: string, onClick: () => void) => (
+        <button onClick={onClick} style={{
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 10, fontWeight: 600, color: '#908AA3', padding: '4px 0',
+        }}>
+            {TAB_ICONS[key]}
+            {label}
+        </button>
+    );
+    return (
+        <nav className="mpn-tabbar" aria-label="하단 탭" style={{
+            position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 60,
+            background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)',
+            borderTop: '1px solid #ECEAF2',
+            display: 'flex', justifyContent: 'space-around',
+            padding: '6px 4px calc(6px + env(safe-area-inset-bottom))',
+        }}>
+            {tab('home', '홈', onHome)}
+            {tab('features', '기능', onFeatures)}
+            {/* 가운데 FAB — 대화 */}
+            <button onClick={onChat} style={{
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                background: 'none', border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 600, color: '#8E6FB7',
+            }}>
+                <span style={{
+                    marginTop: -20, width: 46, height: 46, borderRadius: '50%', background: '#8E6FB7', color: '#fff',
+                    display: 'grid', placeItems: 'center', boxShadow: '0 8px 20px rgba(142,111,183,0.5)', border: '4px solid #fff',
+                }}>{TAB_ICONS.chat}</span>
+                대화
+            </button>
+            {tab('ranking', '랭킹', onRanking)}
+            {tab('me', '내정보', onMe)}
+        </nav>
+    );
+};
 
 // Feature 아이콘 SVG (MainPageNew용)
 // ─────────────────────────────────────────────
@@ -503,6 +623,7 @@ const PersonaSelectPanel: React.FC<{
     const [showFavorites, setShowFavorites] = useState(false);   // 즐겨찾기 모달(메뉴에서 진입)
     const focusPersonaRef = useRef<HTMLDivElement | null>(null);
     const focusFeatureRef = useRef<HTMLDivElement | null>(null);
+    const rootScrollRef = useRef<HTMLDivElement | null>(null);  // 하단 탭바 스크롤 이동용
 
     // initialTab 변경 시 탭 동기화
     React.useEffect(() => { setTab(initialTab); }, [initialTab]);
@@ -571,10 +692,15 @@ const PersonaSelectPanel: React.FC<{
             .slice(0, 16);
     }, [personas]);
     const [rankedPersonas, setRankedPersonas] = useState<Persona[]>([]);
+    const [totalSessions, setTotalSessions] = useState(0);  // 히어로 통계 '누적 대화수' (랭킹 sessionCount 합계)
     useEffect(() => {
         let alive = true;
         personaApi.getRanking(16)
-            .then(list => { if (alive) setRankedPersonas(list); })
+            .then(list => {
+                if (!alive) return;
+                setRankedPersonas(list);
+                setTotalSessions(list.reduce((s, p) => s + ((p as any).sessionCount || 0), 0));
+            })
             .catch(() => { /* 폴백 사용 */ });
         return () => { alive = false; };
     }, []);
@@ -597,10 +723,19 @@ const PersonaSelectPanel: React.FC<{
         });
 
     return (
-        <div style={{
+        <div className="mpn-root" ref={rootScrollRef} style={{
             flex: 1, display: 'flex', flexDirection: 'column',
             background: T.bg, overflowY: 'auto',
         }}>
+            {/* 모바일 하단 탭바 표시/숨김 + 콘텐츠 하단 여백(탭바에 안 가리게). PC(≥768)에선 탭바 숨김. */}
+            <style>{`
+                .mpn-tabbar { display: flex; }
+                .mpn-root { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+                @media (min-width: 768px) {
+                    .mpn-tabbar { display: none !important; }
+                    .mpn-root { padding-bottom: 0; }
+                }
+            `}</style>
             {/* 모바일 드로어 */}
             {mobileMenuOpen && (
                 <>
@@ -834,6 +969,16 @@ const PersonaSelectPanel: React.FC<{
                 </div>
                 {/* ↑ 제목 영역 가운데 정렬 끝. 아래(최근대화·검색·칩·목록)는 왼쪽 정렬 */}
 
+                {/* 히어로 배너 — 그라데이션+검색+실제 통계(2026-06-26 omd 시안 부분채택) */}
+                <HeroBanner
+                    personaCount={personas.length}
+                    featureCount={FEATURES_GRID.length}
+                    totalSessions={totalSessions}
+                    searchQuery={searchQuery}
+                    onSearchChange={onSearchChange}
+                    onSwitchToPersonas={() => setTab('personas')}
+                />
+
                 {/* ★ 통합 메인 상단 섹션: 지금 주목 → 나의 즐겨찾기 (검색/탭 위 공통 노출) */}
                 {/* 지금 주목 — 신규·이벤트 기능 가로 캐러셀 */}
                 {spotlightFeatures.length > 0 && (
@@ -932,45 +1077,75 @@ const PersonaSelectPanel: React.FC<{
                 {/* '이어서 대화' 섹션 제거(2026-06-24): 정보 과부하 해소 + 채팅 헤더 '최근 페르소나' 칩이
                     복귀 동선 대체. 첫 화면 상단 = 오늘의 추천 → 새로운 기능 → AI 페르소나 랭킹 3단. */}
 
-                {/* AI 페르소나 랭킹 — 세션 수 인기순(서버 /ranking). 상위 3명 메달 배지. */}
+                {/* AI 페르소나 랭킹 — 세션 수 인기순(서버 /ranking). 상위 6명 세로 리스트 + 역할 배지·대화수. */}
                 {newPersonas.length > 0 && (
-                    <div style={{ marginBottom: 18 }}>
+                    <div id="mpn-ranking" style={{ marginBottom: 18 }}>
                         <SectionTitle>🏆 AI 페르소나 랭킹</SectionTitle>
-                        <Carousel>
-                            {newPersonas.map((p, i) => {
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 9 }}>
+                            {newPersonas.slice(0, 6).map((p, i) => {
                                 const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+                                const role = p.category?.name || p.jobTitle;
+                                const cnt = (p as any).sessionCount as number | undefined;
                                 return (
                                 <button key={`rk-${p.id}`} onClick={() => onSelect(p.id)} style={{
-                                    flex: '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
-                                    background: 'none', border: 'none', cursor: 'pointer', width: 84,
-                                }}>
-                                    <div style={{ position: 'relative' }}>
-                                        <div style={{
-                                            width: 72, height: 72, borderRadius: '50%', overflow: 'hidden',
-                                            border: `2px solid ${medal ? T.gold : `${T.accent}55`}`, background: T.lineSoft,
-                                        }}>
-                                            {p.imageUrl
-                                                ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                                : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, color: T.inkMute }}>{p.name[0]}</div>}
-                                        </div>
-                                        {/* 순위 배지: 1~3위 메달, 그 외 숫자 */}
-                                        <span style={{
-                                            position: 'absolute', top: -4, left: -4,
-                                            minWidth: 20, height: 20, padding: '0 4px', borderRadius: 999,
-                                            background: medal ? 'transparent' : '#fff',
-                                            border: medal ? 'none' : `1px solid ${T.lineSoft}`,
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: medal ? 16 : 10, fontWeight: 800, color: T.accent,
-                                            boxShadow: medal ? 'none' : '0 2px 6px -2px rgba(60,40,80,0.3)',
-                                        }}>{medal ?? (i + 1)}</span>
+                                    display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left',
+                                    background: T.panel, border: `1px solid ${T.line}`, borderRadius: 15,
+                                    padding: '10px 12px', cursor: 'pointer', transition: 'box-shadow 0.15s, transform 0.15s',
+                                }}
+                                    onMouseEnter={e => { e.currentTarget.style.boxShadow = '0 8px 22px -10px rgba(106,75,147,0.35)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                                    onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
+                                >
+                                    {/* 순위 */}
+                                    <span style={{ flexShrink: 0, width: 18, textAlign: 'center', fontWeight: 800, fontSize: medal ? 16 : 15, color: medal ? undefined : T.inkMute }}>{medal ?? (i + 1)}</span>
+                                    {/* 아바타 */}
+                                    <div style={{ flexShrink: 0, width: 46, height: 46, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${i < 3 ? T.gold : `${T.accent}33`}`, background: T.lineSoft }}>
+                                        {p.imageUrl
+                                            ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
                                     </div>
-                                    <span style={{ fontSize: 11, color: T.inkSoft, maxWidth: 84, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                    {/* 정보 */}
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+                                            <span style={{ fontWeight: 700, fontSize: 14, color: T.ink, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</span>
+                                            {role && (
+                                                <span style={{ flexShrink: 0, fontSize: 10.5, fontWeight: 600, color: T.accent, background: `${T.accent}14`, padding: '2px 6px', borderRadius: 6 }}>{role}</span>
+                                            )}
+                                        </div>
+                                        {p.jobTitle && p.jobTitle !== role && (
+                                            <div style={{ fontSize: 12, color: T.inkMute, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.jobTitle}</div>
+                                        )}
+                                    </div>
+                                    {/* 대화수 */}
+                                    {cnt != null && cnt > 0 && (
+                                        <span style={{ flexShrink: 0, fontSize: 11.5, color: T.inkMute, fontWeight: 600 }}>{formatCount(cnt)} 대화</span>
+                                    )}
                                 </button>
                                 );
                             })}
-                        </Carousel>
+                        </div>
                     </div>
                 )}
+
+                {/* CTA 충전 배너 — 실제 보너스 문구(최대 20%). 로그인=충전, 비로그인=로그인 유도 */}
+                <div style={{
+                    margin: '4px 0 18px', borderRadius: 22,
+                    background: 'linear-gradient(120deg, #F1ECFA, #FBF2F8)',
+                    border: `1px solid ${T.accent}33`, padding: '18px 18px',
+                    display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+                }}>
+                    <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                        <div style={{ fontSize: 'clamp(15px, 4.4vw, 18px)', fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', marginBottom: 4, wordBreak: 'keep-all' }}>💎 충전하고 최대 20% 보너스</div>
+                        <div style={{ fontSize: 12.5, color: T.inkSoft, wordBreak: 'keep-all' }}>5만원 충전 시 60,000P · 1만원 충전 시 11,000P — 모든 기능을 더 넉넉하게.</div>
+                    </div>
+                    <button
+                        onClick={() => { if (user) onChargeClick?.(); else onLoginClick?.(); }}
+                        style={{
+                            flex: '1 1 100%', textAlign: 'center', background: T.accent, color: '#fff',
+                            fontWeight: 700, fontSize: 14.5, padding: '13px 22px', borderRadius: 13, border: 'none',
+                            cursor: 'pointer', boxShadow: '0 6px 16px rgba(142,111,183,0.35)',
+                        }}
+                    >포인트 충전하기</button>
+                </div>
 
                 {/* ③-2 최근 사용 기능 줄 — 기능 탭에서만. 최근 사용 없으면 즐겨찾기한 기능으로 대체 */}
                 {user && tab === 'features' && (() => {
@@ -1468,6 +1643,15 @@ const PersonaSelectPanel: React.FC<{
             {termsModal && (
                 <TermsModal initialTab={termsModal} onClose={() => setTermsModal(null)} />
             )}
+
+            {/* 모바일 하단 탭바 — 빠른 이동(전체 메뉴는 햄버거). PC에선 위 <style>로 숨김. */}
+            <BottomTabBar
+                onHome={() => onGoHome?.()}
+                onFeatures={() => { setTab('features'); rootScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onChat={() => { setTab('personas'); rootScrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                onRanking={() => document.getElementById('mpn-ranking')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                onMe={() => { if (user) onProfileClick?.(); else onLoginClick?.(); }}
+            />
         </div>
     );
 };
