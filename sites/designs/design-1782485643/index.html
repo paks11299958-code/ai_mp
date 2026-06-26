@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="theme-color" content="#0064FF" />
+<title>가계부 — 토스 스타일</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<style>
+  :root {
+    --toss-blue: #0064FF;
+    --toss-blue-strong: #0050D8;
+    --toss-blue-soft: #4593FC;
+    --bg: #F2F4F6;
+    --surface: #FFFFFF;
+    --surface-2: #F9FAFB;
+    --border: #E5E8EB;
+    --border-strong: #D1D6DB;
+    --text-1: #191F28;
+    --text-2: #4E5968;
+    --text-3: #8B95A1;
+    --text-4: #B0B8C1;
+    --expense: #F04452;
+    --income: #00C896;
+    --warning: #FFA800;
+
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-xl: 20px;
+    --r-2xl: 24px;
+
+    --shadow-card: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+    --shadow-blue: 0 12px 28px rgba(0,100,255,0.28);
+    --shadow-press: 0 2px 6px rgba(0,0,0,0.06);
+
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #DDE1E6;
+    color: var(--text-1);
+    font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.02em;
+  }
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 430px;
+    min-height: 100vh;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    padding-bottom: calc(76px + var(--safe-bottom));
+  }
+  @media (min-width: 480px) {
+    .app {
+      min-height: 100vh;
+      box-shadow: 0 24px 64px rgba(15,30,60,0.18);
+    }
+  }
+
+  /* Status bar mock */
+  .statusbar {
+    height: calc(44px + var(--safe-top));
+    padding: var(--safe-top) 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text-1);
+  }
+  .statusbar .icons { display: flex; gap: 6px; align-items: center; }
+  .statusbar svg { display: block; }
+
+  /* Top app bar */
+  .appbar {
+    padding: 6px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .appbar .logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: var(--text-1);
+  }
+  .appbar .logo span { color: var(--toss-blue); }
+  .appbar .actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-1);
+    transition: background 0.15s ease;
+    position: relative;
+  }
+  .icon-btn:active { background: rgba(0,0,0,0.05); }
+  .icon-btn .dot {
+    position: absolute;
+    top: 9px; right: 10px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--expense);
+    border: 2px solid var(--bg);
+  }
+
+  .container { padding: 0 20px; }
+
+  /* Greeting */
+  .greeting {
+    padding: 4px 0 16px;
+  }
+  .greeting .hello {
+    font-size: 14px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+  .greeting .name {
+    margin-top: 2px;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.03em;
+  }
+
+  /* Balance card */
+  .balance-card {
+    position: relative;
+    border-radius: var(--r-2xl);
+    padding: 22px 22px 20px;
+    background:
+      radial-gradient(120% 80% at 100% 0%, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(135deg, #0064FF 0%, #2272FF 50%, #4593FC 100%);
+    color: #fff;
+    box-shadow: var(--shadow-blue);
+    overflow: hidden;
+  }
+  .balance-card::after {
+    content: "";
+    position: absolute;
+    right: -40px; bottom: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.10), transparent 65%);
+    pointer-events: none;
+  }
+  .balance-card .label {
+    font-size: 13px;
+    opacity: 0.85;
+    font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .balance-card .label .eye {
+    display: inline-flex;
+    width: 18px; height: 18px;
+    opacity: 0.85;
+    cursor: pointer;
+  }
+  .balance-card .amount {
+    margin-top: 8px;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  .balance-card .amount .won { font-size: 22px; font-weight: 700; opacity: 0.95; margin-left: 2px; }
+  .balance-card .sub {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+    opacity: 0.92;
+  }
+  .balance-card .sub .meta { display: flex; gap: 6px; align-items: center; }
+  .balance-card .sub .meta .acct {
+    background: rgba(255,255,255,0.18);
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 12px;
+    backdrop-filter: blur(2px);
+  }
+  .balance-card .actions {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .balance-card .actions button {
+    height: 44px;
+    border: none;
+    border-radius: var(--r-md);
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.05s ease;
+    backdrop-filter: blur(4px);
+  }
+  .balance-card .actions button.primary { background: #fff; color: var(--toss-blue); }
+  .balance-card .actions button:active { transform: scale(0.98); }
+  .balance-card .actions button:active.primary { background: #F0F4FA; }
+
+  /* Quick actions */
+  .quick {
+    margin-top: 14px;
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    padding: 18px 8px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    box-shadow: var(--shadow-card);
+  }
+  .quick-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--text-1);
+    border-radius: var(--r-md);
+    transition: background 0.15s ease;
+  }
+  .quick-item:active { background: var(--surface-2); }
+  .quick-item .ico {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #EAF2FF;
+    color: var(--toss-blue);
+  }
+  .quick-item:nth-child(2) .ico { background: #FFF1E6; color: #FF8A00; }
+  .quick-item:nth-child(3) .ico { background: #E7F8F1; color: #00B894; }
+  .quick-item:nth-child(4) .ico { background: #FFEAEC; color: var(--expense); }
+  .quick-item .label {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-2);
+    letter-spacing: -0.02em;
+  }
+
+  /* Monthly summary */
+  .month-card {
+    margin-top: 14px;
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow-card);
+  }
+  .month-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .month-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-1);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .month-title .chip {
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+  }
+  .month-link {
+    font-size: 13px;
+    color: var(--text-3);
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex; align-items: center; gap: 2px;
+  }
+  .month-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+  .month-grid .sep { width: 1px; height: 36px; background: var(--border); }
+  .month-cell .k { font-size: 13px; color: var(--text-3); font-weight: 500; }
+  .month-cell .v {
+    margin-top: 4px;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  .month-cell.income .v { color: var(--income); }
+  .month-cell.expense .v { color: var(--expense); }
+  .month-bar {
+    margin-top: 14px;
+    height: 8px;
+    background: #F1F3F5;
+    border-radius: 999px;
+    overflow: hidden;
+    display: flex;
+  }
+  .month-bar .fill-exp { background: var(--expense); height: 100%; width: 62%; }
+  .month-bar .fill-inc { background: var(--income); height: 100%; width: 38%; }
+  .month-foot {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12.5px;
+    color: var(--text-3);
+    font-weight: 500;
+  }
+  .month-foot b { color: var(--text-2); font-weight: 700; }
+
+  /* Section header */
+  .section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 22px 0 10px;
+    padding: 0 4px;
+  }
+  .section-head .t { font-size: 17px; font-weight: 700; color: var(--text-1); letter-spacing: -0.03em; }
+  .section-head .a { font-size: 13px; color: var(--text-3); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 2px; }
+
+  /* Filters chips */
+  .filters {
+    display: flex; gap: 6px;
+    overflow-x: auto;
+    padding: 0 4px 12px;
+    scrollbar-width: none;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--surface);
+    color: var(--text-2);
+    font-size: 13.5px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+  .chip.active {
+    background: var(--text-1);
+    color: #fff;
+    border-color: var(--text-1);
+  }
+
+  /* Transactions list */
+  .tx-card {
+    background: var(--surface);
+    border-radius: var(--r-xl);
+    box-shadow: var(--shadow-card);
+    padding: 6px 18px;
+  }
+  .tx-date {
+    padding: 14px 0 8px;
+    font-size: 13px;
+    color: var(--text-3);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .tx-date .total { color: var(--text-2); font-weight: 600; }
+  .tx-date .total .e { color: var(--expense); margin-right: 6px; }
+  .tx-date .total .i { color: var(--income); }
+  .tx-item {
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 14px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s ease;
+    margin: 0 -8px;
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: var(--r-md);
+  }
+  .tx-item:active { background: var(--surface-2); }
+  .tx-item:first-of-type { border-top: none; }
+  .tx-icon {
+    width: 44px; height: 44px;
+    border-radius: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-size: 20px;
+  }
+  .tx-icon.cafe { background: #FFF1E6; color: #FF8A00; }
+  .tx-icon.food { background: #FFEAEC; color: var(--expense); }
+  .tx-icon.transport { background: #E6F0FF; color: var(--toss-blue); }
+  .tx-icon.shop { background: #F0EAFF; color: #7B61FF; }
+  .tx-icon.salary { background: #E7F8F1; color: var(--income); }
+  .tx-icon.subs { background: #FFE9F2; color: #E64980; }
+  .tx-icon.transfer { background: #EAF2FF; color: var(--toss-blue-strong); }
+
+  .tx-meta { min-width: 0; }
+  .tx-meta .t1 {
+    font-size: 15.5px;
+    font-weight: 700;
+    color: var(--text-1);
+    letter-spacing: -0.02em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tx-meta .t2 {
+    margin-top: 2px;
+    font-size: 12.5px;
+    color: var(--text-3);
+    font-weight: 500;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tx-meta .t2 .cat {
+    background: var(--surface-2);
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: var(--text-2);
+    font-weight: 600;
+    font-size: 11.5px;
+  }
+  .tx-amt {
+    text-align: right;
+    font-size: 15.5px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--text-1);
+    font-feature-settings: "tnum";
+    font-variant-numeric: tabular-nums;
+  }
+  .tx-amt.income { color: var(--income); }
+  .tx-amt .after {
+    display: block;
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--text-4);
+    font-weight: 500;
+  }
+
+  /* Empty space buffer */
+  .bottom-pad { height: 12px; }
+
+  /* Bottom nav */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    padding: 8px 0 calc(8px + var(--safe-bottom));
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    z-index: 10;
+  }
+  .tab {
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    color: var(--text-3);
+    cursor: pointer;
+    padding: 6px 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .tab.active { color: var(--toss-blue); }
+  .tab svg { display: block; }
+  .fab-wrap {
+    display: flex; justify-content: center;
+    align-items: flex-start;
+  }
+  .fab {
+    margin-top: -22px;
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: none;
+    background: var(--toss-blue);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(0,100,255,0.35);
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.15s ease;
+  }
+  .fab:active { transform: scale(0.95); box-shadow: 0 6px 14px rgba(0,100,255,0.3); }
+
+  /* Toast hint */
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: calc(96px + var(--safe-bottom));
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(25,31,40,0.92);
+    color: #fff;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    z-index: 20;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .hidden-amount { letter-spacing: 4px !important; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Status bar -->
+  <div class="statusbar" aria-hidden="true">
+    <span>9:41</span>
+    <div class="icons">
+      <svg width="18" height="12" viewBox="0 0 18 12" fill="none"><path d="M1 7.5C3.5 5.2 6.1 4 9 4s5.5 1.2 8 3.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M3.5 9.5C5.2 8 7 7.2 9 7.2s3.8 0.8 5.5 2.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><circle cx="9" cy="11" r="1" fill="currentColor"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M1 11h2V7H1zM5 11h2V5H5zM9 11h2V3H9zM13 11h2V1h-2z" fill="currentColor"/></svg>
+      <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="1" y="1" width="20" height="10" rx="2.5" stroke="currentColor" stroke-width="1.2"/><rect x="3" y="3" width="16" height="6" rx="1.2" fill="currentColor"/><rect x="22" y="4" width="2" height="4" rx="0.8" fill="currentColor"/></svg>
+    </div>
+  </div>
+
+  <!-- App bar -->
+  <div class="appbar">
+    <div class="logo">my<span>가계부</span></div>
+    <div class="actions">
+      <button class="icon-btn" aria-label="검색">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="currentColor" stroke-width="1.8"/><path d="M20 20l-3.6-3.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <button class="icon-btn" aria-label="알림">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 17v-5a6 6 0 1112 0v5l1.5 2H4.5L6 17z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 21a2 2 0 004 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="dot"></span>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- Greeting -->
+    <div class="greeting">
+      <div class="hello">안녕하세요</div>
+      <div class="name">민준님 👋</div>
+    </div>
+
+    <!-- Balance card -->
+    <section class="balance-card" aria-label="총자산">
+      <div class="label">
+        총자산
+        <span class="eye" id="toggleEye" role="button" aria-label="잔액 숨기기">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" stroke="white" stroke-width="1.6"/><circle cx="12" cy="12" r="3" stroke="white" stroke-width="1.6"/></svg>
+        </span>
+      </div>
+      <div class="amount" id="balanceAmount">3,842,500<span class="won">원</span></div>
+      <div class="sub">
+        <div class="meta">
+          <span class="acct">토스뱅크 통장</span>
+          <span>· 1234</span>
+        </div>
+        <span>오늘 09:41 갱신</span>
+      </div>
+      <div class="actions">
+        <button class="primary">송금</button>
+        <button>내역</button>
+      </div>
+    </section>
+
+    <!-- Quick actions -->
+    <nav class="quick" aria-label="빠른 메뉴">
+      <button class="quick-item">
+        <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 7h12l-2-2M21 17H9l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <span class="label">송금</span>
+      </button>
+      <button class="quick-item">
+        <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2.5" stroke="currentColor" stroke-width="2"/><path d="M3 10h18" stroke="currentColor" stroke-width="2"/><path d="M7 15h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="label">결제</span>
+      </button>
+      <button class="quick-item">
+        <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V9l-3-3H6a2 2 0 00-2 1z" stroke="currentColor" stroke-width="1.8"/><path d="M8 13h6M8 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+        <span class="label">예산</span>
+      </button>
+      <button class="quick-item">
+        <span class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>
+        <span class="label">통계</span>
+      </button>
+    </nav>
+
+    <!-- Monthly summary -->
+    <section class="month-card" aria-label="이번 달 요약">
+      <div class="month-head">
+        <div class="month-title">
+          이번 달 <span class="chip">6월</span>
+        </div>
+        <a class="month-link" href="#">분석 보기 ›</a>
+      </div>
+      <div class="month-grid">
+        <div class="month-cell income">
+          <div class="k">수입</div>
+          <div class="v">+ 3,420,000원</div>
+        </div>
+        <div class="sep"></div>
+        <div class="month-cell expense">
+          <div class="k">지출</div>
+          <div class="v">− 1,287,300원</div>
+        </div>
+      </div>
+      <div class="month-bar" aria-hidden="true">
+        <div class="fill-exp"></div>
+        <div class="fill-inc"></div>
+      </div>
+      <div class="month-foot">
+        <span>예산 대비 <b>62%</b> 사용</span>
+        <span>잔여 <b>812,700원</b></span>
+      </div>
+    </section>
+
+    <!-- Section: Recent -->
+    <div class="section-head">
+      <div class="t">최근 거래</div>
+      <a class="a" href="#">전체보기 ›</a>
+    </div>
+
+    <div class="filters" role="tablist">
+      <button class="chip active">전체</button>
+      <button class="chip">지출</button>
+      <button class="chip">수입</button>
+      <button class="chip">식비</button>
+      <button class="chip">교통</button>
+      <button class="chip">쇼핑</button>
+    </div>
+
+    <section class="tx-card" aria-label="거래 내역">
+
+      <div class="tx-date">
+        <span>오늘 · 6월 26일 (목)</span>
+        <span class="total"><span class="e">-32,400</span></span>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon cafe">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 8h12v6a4 4 0 01-4 4H9a4 4 0 01-4-4V8z" stroke="currentColor" stroke-width="1.8"/><path d="M17 10h2a2 2 0 010 4h-2" stroke="currentColor" stroke-width="1.8"/><path d="M8 4c0 1 1 1.5 1 2.5S8 8 8 8M11 4c0 1 1 1.5 1 2.5S11 8 11 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">스타벅스 강남R점</div>
+          <div class="t2"><span class="cat">카페</span><span>09:14 · 체크카드</span></div>
+        </div>
+        <div class="tx-amt">−6,300원<span class="after">잔액 3,842,500원</span></div>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon food">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M7 3v8a3 3 0 006 0V3M10 3v18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18 3v18M18 3c-2 0-3 2-3 4s1 4 3 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">배달의민족</div>
+          <div class="t2"><span class="cat">식비</span><span>12:48 · 토스페이</span></div>
+        </div>
+        <div class="tx-amt">−18,900원<span class="after">잔액 3,848,800원</span></div>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon transport">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="13" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M5 12h14" stroke="currentColor" stroke-width="1.8"/><circle cx="8.5" cy="14.5" r="1" fill="currentColor"/><circle cx="15.5" cy="14.5" r="1" fill="currentColor"/><path d="M8 17l-1 3M16 17l1 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">지하철 — 2호선</div>
+          <div class="t2"><span class="cat">교통</span><span>08:42 · 후불교통</span></div>
+        </div>
+        <div class="tx-amt">−1,550원<span class="after">잔액 3,867,700원</span></div>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon shop">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1.2 10.2A2 2 0 0115.8 20H8.2a2 2 0 01-2-1.8L5 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8V6a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">쿠팡</div>
+          <div class="t2"><span class="cat">쇼핑</span><span>14:02 · 신한카드</span></div>
+        </div>
+        <div class="tx-amt">−5,650원<span class="after">잔액 3,869,250원</span></div>
+      </div>
+
+      <div class="tx-date">
+        <span>어제 · 6월 25일 (수)</span>
+        <span class="total"><span class="i">+3,420,000</span></span>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon salary">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M7 7l5-4 5 4M17 17l-5 4-5-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">6월 급여 (주)토스플레이스</div>
+          <div class="t2"><span class="cat">수입</span><span>15:30 · 입금</span></div>
+        </div>
+        <div class="tx-amt income">+3,420,000원<span class="after">잔액 3,874,900원</span></div>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon subs">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">넷플릭스 정기결제</div>
+          <div class="t2"><span class="cat">구독</span><span>03:00 · 자동결제</span></div>
+        </div>
+        <div class="tx-amt">−13,500원<span class="after">잔액 454,900원</span></div>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon transfer">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 20l-4-4 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">김지우님께 송금</div>
+          <div class="t2"><span class="cat">이체</span><span>11:20 · 토스</span></div>
+        </div>
+        <div class="tx-amt">−50,000원<span class="after">잔액 468,400원</span></div>
+      </div>
+
+      <div class="tx-date">
+        <span>6월 24일 (화)</span>
+        <span class="total"><span class="e">-24,750</span></span>
+      </div>
+
+      <div class="tx-item">
+        <span class="tx-icon food">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 11c0-4 4-6 8-6s8 2 8 6c0 1.5-1 2.5-2 2.5H6c-1 0-2-1-2-2.5z" stroke="currentColor" stroke-width="1.8"/><path d="M6 17h12M5 20h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <div class="tx-meta">
+          <div class="t1">교촌치킨 역삼점</div>
+          <div class="t2"><span class="cat">식비</span><span>19:48 · 카카오페이</span></div>
+        </div>
+        <div class="tx-amt">−24,750원<span class="after">잔액 518,400원</span></div>
+      </div>
+
+    </section>
+
+    <div class="bottom-pad"></div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <nav class="tabbar" aria-label="주요 메뉴">
+    <button class="tab active" data-label="홈">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 11l8-7 8 7v8a2 2 0 01-2 2h-3v-6h-6v6H6a2 2 0 01-2-2v-8z" fill="currentColor"/></svg>
+      홈
+    </button>
+    <button class="tab" data-label="내역">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      내역
+    </button>
+    <div class="fab-wrap">
+      <button class="fab" aria-label="새 거래 추가" onclick="showToast('새 거래를 추가했어요')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2.4" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <button class="tab" data-label="통계">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 19V11M10 19V5M15 19v-9M20 19v-5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+      통계
+    </button>
+    <button class="tab" data-label="마이">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="9" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      마이
+    </button>
+  </nav>
+
+  <div class="toast" id="toast">알림</div>
+</div>
+
+<script>
+  // Balance toggle
+  const eye = document.getElementById('toggleEye');
+  const amt = document.getElementById('balanceAmount');
+  const realAmount = '3,842,500<span class="won">원</span>';
+  const maskedAmount = '••••••<span class="won">원</span>';
+  let hidden = false;
+  eye.addEventListener('click', () => {
+    hidden = !hidden;
+    amt.innerHTML = hidden ? maskedAmount : realAmount;
+    amt.classList.toggle('hidden-amount', hidden);
+    showToast(hidden ? '잔액을 숨겼어요' : '잔액을 다시 표시했어요');
+  });
+
+  // Chip filter
+  document.querySelectorAll('.filters .chip').forEach(c => {
+    c.addEventListener('click', () => {
+      document.querySelectorAll('.filters .chip').forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  // Tab switch
+  document.querySelectorAll('.tabbar .tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tabbar .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      showToast(`${t.dataset.label} 화면`);
+    });
+  });
+
+  // Toast
+  let toastTimer = null;
+  function showToast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>el.classList.remove('show'), 1600);
+  }
+</script>
+</body>
+</html>
