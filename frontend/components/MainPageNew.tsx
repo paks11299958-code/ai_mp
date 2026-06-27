@@ -722,6 +722,10 @@ const PersonaSelectPanel: React.FC<{
             return f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q);
         });
 
+    // 검색 중(현재 탭의 검색어가 있음)이면 상단 큐레이션 섹션(추천·신규·랭킹)을 숨기고
+    // 검색 결과 그리드만 보여준다. (히어로/탭 검색바는 personas/features 상태를 공유)
+    const isSearching = (tab === 'personas' ? searchQuery : featureSearchQuery).trim().length > 0;
+
     return (
         <div className="mpn-root" ref={rootScrollRef} style={{
             flex: 1, display: 'flex', flexDirection: 'column',
@@ -980,8 +984,8 @@ const PersonaSelectPanel: React.FC<{
                 />
 
                 {/* ★ 통합 메인 상단 섹션: 지금 주목 → 나의 즐겨찾기 (검색/탭 위 공통 노출) */}
-                {/* 지금 주목 — 신규·이벤트 기능 가로 캐러셀 */}
-                {spotlightFeatures.length > 0 && (
+                {/* 지금 주목 — 신규·이벤트 기능 가로 캐러셀. 검색 중이면 숨김(검색 결과 가림 방지) */}
+                {!isSearching && spotlightFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <SectionTitle>✨ 오늘의 추천</SectionTitle>
                         {/* 캐러셀: 큐레이션 4개+라 모바일에선 3개 보이고 나머지는 드래그/스와이프로. */}
@@ -1031,7 +1035,7 @@ const PersonaSelectPanel: React.FC<{
 
                 {/* 새로 나온 기능 — 지정 3개 제외, id 최신순 캐러셀. 고정폭(140)+가로스크롤(PC 포함).
                     새 기능 추가 시 자동으로 맨 앞에 노출. 특별 배지 없이 깔끔하게. */}
-                {newFeatures.length > 0 && (
+                {!isSearching && newFeatures.length > 0 && (
                     <div style={{ marginBottom: 18 }}>
                         <SectionTitle>🎁 새로운 기능</SectionTitle>
                         <Carousel>
@@ -1077,8 +1081,8 @@ const PersonaSelectPanel: React.FC<{
                 {/* '이어서 대화' 섹션 제거(2026-06-24): 정보 과부하 해소 + 채팅 헤더 '최근 페르소나' 칩이
                     복귀 동선 대체. 첫 화면 상단 = 오늘의 추천 → 새로운 기능 → AI 페르소나 랭킹 3단. */}
 
-                {/* AI 페르소나 랭킹 — 세션 수 인기순(서버 /ranking). 상위 6명 세로 리스트 + 역할 배지·대화수. */}
-                {newPersonas.length > 0 && (
+                {/* AI 페르소나 랭킹 — 세션 수 인기순(서버 /ranking). 상위 6명 세로 리스트 + 역할 배지·대화수. 검색 중이면 숨김 */}
+                {!isSearching && newPersonas.length > 0 && (
                     <div id="mpn-ranking" style={{ marginBottom: 18 }}>
                         <SectionTitle>🏆 AI 페르소나 랭킹</SectionTitle>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 9 }}>
@@ -1126,7 +1130,8 @@ const PersonaSelectPanel: React.FC<{
                     </div>
                 )}
 
-                {/* CTA 충전 배너 — 실제 보너스 문구(최대 20%). 로그인=충전, 비로그인=로그인 유도 */}
+                {/* CTA 충전 배너 — 실제 보너스 문구(최대 20%). 로그인=충전, 비로그인=로그인 유도. 검색 중이면 숨김 */}
+                {!isSearching && (
                 <div style={{
                     margin: '4px 0 18px', borderRadius: 22,
                     background: 'linear-gradient(120deg, #F1ECFA, #FBF2F8)',
@@ -1146,6 +1151,7 @@ const PersonaSelectPanel: React.FC<{
                         }}
                     >포인트 충전하기</button>
                 </div>
+                )}
 
                 {/* ③-2 최근 사용 기능 줄 — 기능 탭에서만. 최근 사용 없으면 즐겨찾기한 기능으로 대체 */}
                 {user && tab === 'features' && (() => {
