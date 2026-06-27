@@ -33,6 +33,15 @@ omd 스킬/훅/서브에이전트는 **claude 세션 시작 시점의 작업폴�
 3. **omd에 "모바일 390px"만 주면 모바일 앱이 됨**: max-width 430px 고정폭 + 하단탭바·FAB → PC에서 양옆 휑함. 웹사이트는 **"반응형 PC+모바일, @media 분기, max-width 430 금지, PC는 1200 그리드"** 명시 필수.
 4. **이미지는 실제 URL을 프롬프트에 직접 줘야 함**: omd는 우리 GCS URL을 모르니 이모지로 떼움. 페르소나 사진 등 실제 이미지를 쓰려면 **GCS URL 목록을 프롬프트에 명시**(예: `storage.googleapis.com/ai-mp-media/personas/<id>/profile.png`, img onerror 폴백). 윤채린·향기는 imageUrl이 data:(base64)라 URL 없음 주의.
 
+## omd 호출 경로 (2026-06-26 확장 — 지우 디자인 위임 + 시안 omd화)
+omd 로드 조건 = **claude CLI를 cwd=design-lab으로 띄우는 것**. 결과 HTML은 ai_mp/sites/...에 **절대경로** Write, 커밋·배포는 **ai_mp에서**(★design-lab은 자체 git repo라 거기 커밋하면 배포 안 됨 — claude cwd ≠ 커밋 cwd 분리 필수). omd를 쓰는 경로 3가지:
+1. **텔레그램 `/design <스타일+화면>`** (`cmd_design`): 즉석 화면 1장.
+2. **Hermes "○○ 화면 디자인해줘" → 지우(개발 에이전트)** (`dev_agent.run(kind="design")`): PLAN_PROMPT가 단일 화면 요청을 `kind:"design"`·`workdir:design-lab`·`auto_deploy:true` dev_task로 분류 → 지우가 omd로 바로 제작·배포(시안 승인 흐름 안 탐).
+3. **Hermes "사이트 통째 만들어줘" → 시안 3개(design_preview)** (`design_preview.generate_previews`): cwd를 ai_mp→**design-lab**으로 변경(이전엔 omd 미로드)해 시안도 omd 토큰 활용. 시안은 `sites/_preview/` 저장, 커밋은 `_deploy_previews`가 ai_mp에서.
+- **공통 헬퍼 `rag/omd_lib.py`** `run_omd_design(spec, on_progress)→{ok,slug,rel,url,error}`: 1·2번이 공유(중복 0). 3번은 '시안 3개 한 번에' 구조라 design_preview 자체 구현(cwd=design-lab 원칙 동일).
+- ★**design-lab git repo 함정**: dev_agent 기본 auto_commit이 cwd=workdir에서 push → design 작업은 일반 dev 흐름 안 타고 omd_lib 전담(claude=design-lab, 커밋=ai_mp). 시안도 PREVIEW_DIR 절대경로 + 'git 하지 마세요' 프롬프트로 회피. e2e로 design-lab 오염 0 실증.
+- 강지훈(Gemini 서치)이 아니라 지우에게 준 이유: omd=claude CLI 기반이라 지우(claude)와 스택 동일.
+
 ## frontend-design vs omd
 - **frontend-design**(Claude 기본 스킬): 기억 기반 즉석 디자인. 빠름, 특정 브랜드 정확도 낮음("토스는 파란색이었지").
 - **omd**: 652개 실측 토큰 + 서브에이전트 분업검수(critic·a11y·QA·microcopy). "토스처럼"=정확히 #3182f6·radius16. 큰 작업·정확도에 유리.

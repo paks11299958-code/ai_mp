@@ -409,3 +409,12 @@
 - **메인 반영**: `App.tsx`가 `settingsApi.get`으로 순서 읽어 `MainPageNew`에 props(`spotlightOrder`/`newFeaturesOrder`) 전달. 정렬: spotlight=지정순서(기본 webtoon/hair/siwoon/stock), **newFeatures=newFeaturesOrder 지정 시 그것만(표시 정본)·미지정 시 spotlight 제외 전체 출시일순**(기존 8개 제한 제거=모든 기능 노출, 가로 캐러셀이라 개수 무관). 배지 없는 카드는 `f.badge &&`로 배지 미표시.
 - ⚠️★**드래그 안 되던 버그(교훈)**: 드래그 카드/영역을 그리는 `Card`/`Zone`을 **컴포넌트 함수 안에서 정의**하면 부모 리렌더(onDragOver의 setState)마다 **재생성→DOM 언마운트→드래그 도중 drop 이벤트 유실**. 해결=`renderCard`/`renderZone` **인라인 함수**(컴포넌트 아님). + `onDragStart`에서 `dataTransfer.setData`(없으면 일부 브라우저 드래그 시작 안 함) + `onDragOver` 같은 위치면 setState 스킵 + drop `stopPropagation`. **DnD 핸들러를 그리는 자식은 부모 함수 안에서 정의하지 말 것.**
 - ⚠️**2단 컴포넌트 prop 함정 재확인**: MainPageNew는 래퍼→PersonaSelectPanel 2단이라 새 prop을 **5곳**(래퍼 interface·패널 interface·패널 구조분해·래퍼 구조분해·래퍼→패널 전달) 모두 추가해야 함.
+
+### 메인 화면 omd 시안 부분 채택 — 히어로·CTA·하단탭바·랭킹 (2026-06-26)
+omd 시안(`aichat-main-mobile`)을 **통째 교체 대신 부분 채택**으로 `MainPageNew.tsx`에 이식. 시안은 정적 HTML 더미라 사실 오류(헤어="이별"·웹툰="메이커")·가짜 가격/통계·미구현 기능 광고가 섞여 있어, **시각 요소만 가져오고 실제 데이터·기존 기능·핸들러는 보존**. 단일 파일 변경(백엔드 0), 커밋 `e94b143`.
+- **HeroBanner**(신규 내부 컴포넌트): 그라데이션 카드(#6A4B93→#8E6FB7→#B79BE0) + "오늘은 누구와 이야기해 볼까요?" + 검색 input + 통계 3칸. ★검색 input은 기존 `searchQuery`/`onSearchChange`(personas) **그대로 바인딩** + 입력 시 personas 탭 전환 → 탭 아래 기존 검색바와 **상태 공유**(논리적 중복 없음). ★통계는 **실제값만**: `personas.length`+ / `FEATURES_GRID.length`(=18) / 누적대화수(`totalSessions`=랭킹 sessionCount 합계). 시안의 가짜 '★4.9 만족도'·'12.4만'은 **제거**.
+- **랭킹 개선**: 기존 가로 원형 캐러셀 → **세로 리스트 상위6**(시안 .rank-item 풍). 역할 배지(`p.category?.name||p.jobTitle`) + 대화수(`formatCount(sessionCount)` "12.4만"식) + 메달/순위. 데이터 전부 기존 `/personas/ranking` 응답에 있던 것(UI 렌더만 추가, 백엔드 0). 섹션 id=`mpn-ranking`. 시안의 별도 '대화' 버튼은 카드 전체가 이미 클릭=대화라 생략.
+- **CTA 충전 배너**(신규): 연보라 그라데이션 카드. ⚠️시안의 '첫 충전 2000P 보너스'는 **미구현 기능이라 거짓** → 실제 PACKAGES 근거 문구 "💎 충전하고 최대 20% 보너스 / 5만원→60,000P·1만원→11,000P". 로그인=`onChargeClick`·비로그인=`onLoginClick`.
+- **모바일 하단 탭바**(신규 `BottomTabBar`): 홈·기능·대화(FAB)·랭킹·내정보. `position:fixed`. ★인라인 스타일로는 `@media`·`env(safe-area-inset-*)` 불가 → 컴포넌트 내 `<style>` **1블록 주입**(`.mpn-tabbar` PC≥768 `display:none`, `.mpn-root` 모바일만 paddingBottom). 스크롤 컨테이너=루트 div(`rootScrollRef`)라 상단이동은 `ref.scrollTo`, 랭킹은 `getElementById('mpn-ranking').scrollIntoView`. 햄버거 메뉴와 동선 중복 허용(탭바=빠른이동/햄버거=전체).
+- **헬퍼 `formatCount(n)`**: 10000↑ → 'N.N만', else `toLocaleString()`.
+- ★**교훈 — omd 시안은 레퍼런스, 통째 적용 금지**: 더미 텍스트·가짜 수치·미구현 기능 광고 위험. 부분 채택 시 ①데이터는 실제 API ②가격/보너스는 DB·PACKAGES 근거 ③검색 등 상태는 기존 것 공유로 중복 회피. 검증=tsc·빌드·모바일390/PC1280 캡처(탭바 모바일 flex·PC none)·라이브 실데이터(통계 12+/18/160, 랭킹 역할배지·대화수).
