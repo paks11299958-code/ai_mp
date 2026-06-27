@@ -846,6 +846,12 @@ export const adminApi = {
     getErrorSummary: () =>
         get<{ today: number; yesterday: number; recent: string[] }>('/admin/monitor/error-summary'),
 
+    // 이아린 마케팅 산출물(리서치+초안) 조회 — 어드민 전용
+    getMarketingAssets: () =>
+        get<{ id: string; topic: string; channel: string; sourcesCount: number; createdAt: string }[]>('/marketing/assets'),
+    getMarketingAsset: (id: string) =>
+        get<{ id: string; topic: string; channel: string; report: string; draft: string; sourcesCount: number; filePath: string | null; createdAt: string }>(`/marketing/assets/${id}`),
+
     // AI 기능 스카우트 일자별 아이디어
     getAiFeatureIdeas: () =>
         get<{ id: number; ideaDate: string; content: string; createdAt: string }[]>('/admin/ai-feature-ideas'),

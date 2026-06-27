@@ -8,6 +8,7 @@ import { ToolsPanel } from './admin/ToolsPanel';
 import { SettingsPanel } from './admin/SettingsPanel';
 import { UsersPanel } from './admin/UsersPanel';
 import { AiIdeasPanel } from './admin/AiIdeasPanel';
+import { MarketingAssetsPanel } from './admin/MarketingAssetsPanel';
 import { SitesPanel } from './admin/SitesPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
@@ -27,7 +28,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -60,6 +61,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'hero-cards',    label: '메인 카드', icon: 'Image' },
                             { key: 'card-order',    label: '카드 순서', icon: 'Image' },
                             { key: 'omd-designs',   label: 'omd 디자인', icon: 'Image' },
+                            { key: 'marketing-assets', label: '마케팅 자산', icon: 'Megaphone' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
                         { id: 'members', label: '회원·포인트', icon: 'Users', tabs: [
@@ -161,6 +163,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'monitor' && <ServerMonitorPanel />}
                 {mainView === 'ai-usage' && <AiUsagePanel />}
                 {mainView === 'ai-ideas' && <AiIdeasPanel />}
+                {mainView === 'marketing-assets' && <MarketingAssetsPanel />}
                 {mainView === 'sites' && <SitesPanel />}
 
                 {/* 골프장 관리 패널 */}
