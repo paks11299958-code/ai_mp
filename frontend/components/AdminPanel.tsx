@@ -1690,7 +1690,7 @@ const AiUsagePanel: React.FC = () => {
     const fmt = (v: number) => v < 0.01 ? `$${v.toFixed(4)}` : `$${v.toFixed(3)}`;
 
     return (
-        <div className="p-4 space-y-6 text-sm">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 text-sm">
             <div className="flex items-center justify-between">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
                     📊 AI 사용량 대시보드
