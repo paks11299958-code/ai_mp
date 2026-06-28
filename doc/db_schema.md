@@ -276,6 +276,40 @@ ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "referredBy" INTEGER;
 ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 CREATE UNIQUE INDEX IF NOT EXISTS "User_referralCode_key" ON "User"("referralCode");
 -- PointTransaction.type 에 'REFERRAL' 추가(추천 보상, 무상지급 그룹). 별도 ALTER 불필요(type=String).
+
+-- 마케팅 자산 (2026-06-27, 이아린 /marketing 산출물 = 리서치+초안). 어드민 조회·복사용(재발행 X).
+-- ★서버1 운영DB는 raw SQL로만 생성(db push 금지 — git schema 불일치로 기존 테이블 삭제 위험).
+CREATE TABLE IF NOT EXISTS "MarketingAsset" (
+  "id" TEXT PRIMARY KEY,                 -- rag가 'mkt_'+hex 로 생성(cuid 호환)
+  "topic" TEXT NOT NULL, "channel" TEXT NOT NULL,   -- channel: thread|instagram|blog
+  "report" TEXT NOT NULL, "draft" TEXT NOT NULL,    -- 리서치 / 콘텐츠 초안
+  "sourcesCount" INTEGER NOT NULL DEFAULT 0,
+  "filePath" TEXT,                       -- reports/marketing/ 파일 경로
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "MarketingAsset_createdAt_idx" ON "MarketingAsset"("createdAt");
+-- 적재=rag(서버2)가 서버1 DSN 직접 INSERT. 조회=shared-api GET /api/aimp/marketing/assets(requireAdmin).
+
+-- 사용자용 마케팅 서비스 요청 큐 (2026-06-28, 개인 SNS 운영자 '✍️ AI 마케팅 글쓰기').
+-- ★raw SQL CREATE만(db push 금지) + schema.prisma에 MarketingRequest 모델 동기화(db push 지뢰 제거).
+-- 쓰기=shared-api(요청 생성)+서버2 워커(결과/환불 직접 psycopg2). 단가=MenuLimit 'marketing'(폴백 200pt).
+CREATE TABLE IF NOT EXISTS "MarketingRequest" (
+  "id" TEXT PRIMARY KEY,                 -- shared-api가 'mkreq_' 로 생성
+  "userId" TEXT NOT NULL,
+  "topic" TEXT NOT NULL,
+  "channel" TEXT NOT NULL DEFAULT 'instagram',
+  "status" TEXT NOT NULL DEFAULT 'pending',   -- pending|running|done|failed
+  "result" TEXT, "report" TEXT,          -- 완성 초안 / 리서치(참고)
+  "sourcesCount" INTEGER NOT NULL DEFAULT 0,
+  "pointsCharged" INTEGER NOT NULL DEFAULT 0, -- 사전 차감(환불 근거)
+  "isFreeTrial" BOOLEAN NOT NULL DEFAULT false, -- 무료체험 1회 여부
+  "failReason" TEXT,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS "MarketingRequest_status_idx" ON "MarketingRequest"("status");
+CREATE INDEX IF NOT EXISTS "MarketingRequest_userId_idx" ON "MarketingRequest"("userId","createdAt");
+-- 흐름: 웹 POST /marketing/request(차감)→pending→서버2 marketing_request_worker.py(*/2 cron)→done/failed(+환불).
 ```
 
 ### 회원 탈퇴(하드 삭제) 주의
