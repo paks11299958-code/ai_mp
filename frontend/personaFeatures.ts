@@ -27,7 +27,8 @@ export type FeatureKey =
     | 'insurance'
     | 'hair'
     | 'agetransform'
-    | 'lookalike';
+    | 'lookalike'
+    | 'marketing';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -55,6 +56,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'hair',        label: '헤어스타일 진단', icon: 'Zap',       color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'agetransform', label: '나이 변환',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'lookalike',   label: '닮은꼴 찾기',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
+    { key: 'marketing',   label: 'AI 마케팅 글쓰기', icon: 'PenLine',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
@@ -64,7 +66,7 @@ export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
 const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '서아':   ['news'],
     '윤채원': ['stock', 'hotkeyword'],
-    '이아린': ['used', 'hotkeyword'],
+    '이아린': ['used', 'hotkeyword', 'marketing'],
     '신은비': ['luxury'],
     '지우':   ['mathtutor', 'club'],
     '강지훈': ['ebook'],
