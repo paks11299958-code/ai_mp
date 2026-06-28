@@ -212,6 +212,7 @@ const FEATURE_LABELS: Record<string, string> = {
     'webtoon':    '웹툰 보기',
     'club':       '모임(출첵)',
     'ebook':      '전자책 만들기',
+    'marketing':  'AI 마케팅 글쓰기',
 };
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
@@ -221,7 +222,7 @@ const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
     'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
-    'lookalike': 2, 'webtoon': 0, 'club': 0, 'ebook': 1,
+    'lookalike': 2, 'webtoon': 0, 'club': 0, 'ebook': 1, 'marketing': 12,
 };
 const PT_TO_KRW = 1;   // 1pt = 1원 (2026-06-17 전환)
 
