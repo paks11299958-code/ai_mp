@@ -707,25 +707,287 @@ const PersonaSelectPanel: React.FC<{
     }, []);
     const newPersonas = rankedPersonas.length > 0 ? rankedPersonas : fallbackPersonas;
 
-    const filtered = personas
-        .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId)
-        .filter(p => {
-            if (!searchQuery.trim()) return true;
-            const q = searchQuery.toLowerCase();
-            return p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q);
-        });
+    // ── 통합검색 ────────────────────────────────────────────────
+    // 히어로 검색바(searchQuery)와 탭 검색바(featureSearchQuery 포함) 중 입력된 것이 통합 검색어가 된다.
+    // 검색 중이면 탭과 무관하게 페르소나·기능을 '둘 다' 필터해서 두 섹션으로 보여준다.
+    // 사용자는 무엇이 페르소나인지 기능인지 몰라도 한 번에 검색됨.
+    const activeQuery = (searchQuery.trim() || featureSearchQuery.trim());
+    const isSearching = activeQuery.length > 0;
 
-    const filteredFeatures = FEATURES_GRID
-        .filter(f => featureCategory === null || f.category === featureCategory)
-        .filter(f => {
-            if (!featureSearchQuery.trim()) return true;
-            const q = featureSearchQuery.toLowerCase();
-            return f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q);
-        });
+    // 탭별 둘러보기(검색 아님)용 필터: 카테고리만 적용
+    const browsePersonas = personas
+        .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId);
+    const browseFeatures = FEATURES_GRID
+        .filter(f => featureCategory === null || f.category === featureCategory);
 
-    // 검색 중(현재 탭의 검색어가 있음)이면 상단 큐레이션 섹션(추천·신규·랭킹)을 숨기고
-    // 검색 결과 그리드만 보여준다. (히어로/탭 검색바는 personas/features 상태를 공유)
-    const isSearching = (tab === 'personas' ? searchQuery : featureSearchQuery).trim().length > 0;
+    // 통합검색 결과: 카테고리 무시하고 전체에서 검색어로만 매칭(검색은 발견이 목적)
+    const q = activeQuery.toLowerCase();
+    const searchedPersonas = isSearching
+        ? personas.filter(p =>
+            p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q))
+        : [];
+    const searchedFeatures = isSearching
+        ? FEATURES_GRID.filter(f =>
+            f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q))
+        : [];
+
+    // 그리드에 실제로 렌더할 목록: 검색 중이면 검색결과, 아니면 둘러보기(카테고리)
+    const filtered = isSearching ? searchedPersonas : browsePersonas;
+    const filteredFeatures = isSearching ? searchedFeatures : browseFeatures;
+
+    // ── 카드 렌더 함수(탭 그리드·통합검색 결과에서 공용) ──────────────
+    const renderFeatureCard = (feat: typeof FEATURES_GRID[number], i: number) => {
+        const gold = T.gold;
+        const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
+        const isFocused = feat.key === focusFeatureKey;
+        const subItems = (feat as any).subItems as string[] | undefined;
+        const W = 160, H = 280;
+        return (
+            <div key={feat.key}
+                ref={isFocused ? focusFeatureRef : undefined}
+                onClick={() => feat.personaName && onFeatureSelect?.(feat.personaName, feat.key)}
+                style={{
+                    borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
+                    background: `linear-gradient(160deg, ${feat.palette.bg} 0%, #FDFAF6 50%, ${feat.palette.bg} 100%)`,
+                    boxShadow: isFocused
+                        ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
+                        : `0 6px 20px -6px ${feat.palette.accent}40`,
+                    transition: 'transform 0.22s, box-shadow 0.22s',
+                    position: 'relative', height: H,
+                    transform: isFocused ? 'translateY(-5px) scale(1.03)' : 'none',
+                }}
+                onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-5px) scale(1.02)';
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 36px -8px ${feat.palette.accent}55`;
+                }}
+                onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.transform = isFocused ? 'translateY(-5px) scale(1.03)' : 'none';
+                    (e.currentTarget as HTMLElement).style.boxShadow = isFocused
+                        ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
+                        : `0 6px 20px -6px ${feat.palette.accent}40`;
+                }}
+            >
+                {/* 공유 🔗 버튼 (좌상단) — ?f 딥링크 복사/공유 */}
+                {onShareFeature && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onShareFeature(feat.key, feat.name); }}
+                        title="이 기능 공유하기"
+                        style={{
+                            position: 'absolute', top: 6, left: 6, zIndex: 5,
+                            width: 30, height: 30, borderRadius: '50%', border: 'none',
+                            background: 'rgba(255,255,255,0.82)', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 14, lineHeight: 1,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        }}
+                    >
+                        🔗
+                    </button>
+                )}
+                {/* 즐겨찾기 ⭐ 토글 (우상단) — 즐겨찾기 가능한 기능만 */}
+                {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(feat.key)) && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(feat.key); }}
+                        title={isFavorite?.(feat.key) ? '바로가기에서 빼기' : '바로가기에 추가'}
+                        style={{
+                            position: 'absolute', top: 6, right: 6, zIndex: 5,
+                            width: 30, height: 30, borderRadius: '50%', border: 'none',
+                            background: 'rgba(255,255,255,0.82)', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 16, lineHeight: 1,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        }}
+                    >
+                        {isFavorite?.(feat.key) ? '⭐' : '☆'}
+                    </button>
+                )}
+                {/* 시머 */}
+                <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', borderRadius: 16,
+                    background: 'linear-gradient(110deg, transparent 38%, rgba(255,255,255,0.18) 50%, transparent 62%)',
+                    animation: 'mpn-shimmer 4s ease-in-out infinite' }} />
+
+                {/* 트럼프 카드 격자 테두리 SVG */}
+                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }}
+                    viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+                    {/* 외곽 테두리 */}
+                    <rect x="3.5" y="3.5" width={W-7} height={H-7} rx="11" fill="none" stroke={gold} strokeWidth="1.2" opacity="0.6"/>
+                    {/* 안쪽 테두리 */}
+                    <rect x="7" y="7" width={W-14} height={H-14} rx="8" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                    {/* 코너 다이아몬드 장식 — 4개 */}
+                    {[[14,14],[W-14,14],[14,H-14],[W-14,H-14]].map(([cx,cy], idx) => (
+                        <g key={idx} transform={`translate(${cx},${cy})`}>
+                            <polygon points="0,-4.5 4.5,0 0,4.5 -4.5,0" fill={gold} opacity="0.55"/>
+                            <polygon points="0,-2.5 2.5,0 0,2.5 -2.5,0" fill={gold} opacity="0.35"/>
+                        </g>
+                    ))}
+                    {/* 중앙 가로 구분선 */}
+                    <line x1="12" y1={H/2} x2={W-12} y2={H/2} stroke={gold} strokeWidth="0.5" opacity="0.2" strokeDasharray="3 3"/>
+                </svg>
+
+                {/* 로마 숫자 — 좌상 / 우하 (뒤집기) */}
+                <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1 }}>{numeral}</div>
+                <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1, transform: 'rotate(180deg)' }}>{numeral}</div>
+
+                {/* 아이콘 영역 — 카드 상단 62% */}
+                <div style={{
+                    position: 'absolute', top: 18, left: 10, right: 10, height: Math.round(H * 0.62),
+                    borderRadius: 9, border: `1px solid ${gold}40`,
+                    background: `radial-gradient(ellipse at 50% 40%, ${feat.palette.bg} 0%, ${feat.palette.deep}50 100%)`,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    gap: 7, zIndex: 1,
+                }}>
+                    <MpnFeatureIcon kind={feat.icon} size={60} color={feat.palette.accent} bg={feat.palette.bg} />
+                    {/* 태그 뱃지 */}
+                    <div style={{
+                        background: feat.palette.accent, color: '#fff',
+                        fontSize: 10, fontWeight: 700,
+                        padding: '3px 11px', borderRadius: 999,
+                        letterSpacing: '0.04em', boxShadow: `0 2px 6px ${feat.palette.accent}50`,
+                    }}>{feat.tag}</div>
+                </div>
+
+                {/* 네임 플레이트 — 카드 하단 */}
+                <div style={{
+                    position: 'absolute', top: Math.round(H * 0.62) + 22, left: 0, right: 0, bottom: 0,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    padding: '4px 10px 10px', zIndex: 4, textAlign: 'center',
+                }}>
+                    <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', opacity: 0.85, marginBottom: 3, fontWeight: 500 }}>{feat.latin}</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.15 }}>{feat.name}</div>
+                    {subItems && (
+                        <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
+                            {subItems.map((item: string) => (
+                                <span key={item} style={{ fontSize: 9, color: feat.palette.accent, opacity: 0.75 }}>
+                                    {item.replace(/^[^\s]+\s/, '')}
+                                </span>
+                            )).reduce((acc: React.ReactNode[], el, idx, arr) => {
+                                acc.push(el);
+                                if (idx < arr.length - 1) acc.push(<span key={`dot-${idx}`} style={{ fontSize: 9, color: gold, opacity: 0.5 }}>·</span>);
+                                return acc;
+                            }, [])}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const renderPersonaCard = (persona: Persona, i: number) => {
+        const palette = PALETTE_CYCLE[i % PALETTE_CYCLE.length];
+        const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
+        const gold = T.gold;
+        const isFocused = persona.id === focusPersonaId;
+        const isNew = persona.createdAt
+            ? Date.now() - new Date(persona.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
+            : false;
+        return (
+            <div
+                key={persona.id}
+                ref={isFocused ? focusPersonaRef : undefined}
+                onClick={() => onSelect(persona.id)}
+                style={{
+                    borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
+                    background: `linear-gradient(155deg, ${palette.bg} 0%, #FBF8F3 55%, ${palette.bg} 100%)`,
+                    boxShadow: isFocused
+                        ? `0 0 0 3px ${palette.accent}, 0 20px 40px -12px rgba(80,50,110,0.45)`
+                        : '0 8px 24px -12px rgba(80,50,110,0.25)',
+                    transition: 'transform 0.25s, box-shadow 0.25s',
+                    position: 'relative', height: 280,
+                    transform: isFocused ? 'translateY(-6px) scale(1.03)' : 'none',
+                }}
+                onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px) scale(1.02)';
+                    (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 40px -15px rgba(80,50,110,0.4)';
+                }}
+                onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.transform = isFocused ? 'translateY(-6px) scale(1.03)' : 'translateY(0) scale(1)';
+                    (e.currentTarget as HTMLElement).style.boxShadow = isFocused
+                        ? `0 0 0 3px ${palette.accent}, 0 20px 40px -12px rgba(80,50,110,0.45)`
+                        : '0 8px 24px -12px rgba(80,50,110,0.25)';
+                }}
+            >
+                {/* 즐겨찾기 ⭐ 토글 (우상단) */}
+                {onToggleFavoritePersona && (
+                    <button
+                        onClick={(e) => { e.stopPropagation(); onToggleFavoritePersona(persona.id); }}
+                        title={isFavoritePersona?.(persona.id) ? '내 페르소나에서 빼기' : '내 페르소나에 추가'}
+                        style={{
+                            position: 'absolute', top: 6, right: 6, zIndex: 6,
+                            width: 30, height: 30, borderRadius: '50%', border: 'none',
+                            background: 'rgba(255,255,255,0.85)', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 16, lineHeight: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                        }}
+                    >
+                        {isFavoritePersona?.(persona.id) ? '⭐' : '☆'}
+                    </button>
+                )}
+                {/* 시머 */}
+                <div style={{
+                    position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2, pointerEvents: 'none',
+                    background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
+                    animation: 'mpn-shimmer 4s ease-in-out infinite',
+                }} />
+
+                {/* 트럼프 카드 격자 테두리 */}
+                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }}
+                    viewBox="0 0 160 280" preserveAspectRatio="none">
+                    <rect x="4" y="4" width="152" height="272" rx="10" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6"/>
+                    <rect x="8" y="8" width="144" height="264" rx="7" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
+                    {[[15,15],[145,15],[15,265],[145,265]].map(([cx,cy],idx) => (
+                        <g key={idx} transform={`translate(${cx},${cy})`}>
+                            <polygon points="0,-5 5,0 0,5 -5,0" fill={gold} opacity="0.55"/>
+                            <polygon points="0,-2.8 2.8,0 0,2.8 -2.8,0" fill={gold} opacity="0.3"/>
+                        </g>
+                    ))}
+                    <line x1="12" y1="140" x2="148" y2="140" stroke={gold} strokeWidth="0.5" opacity="0.18" strokeDasharray="3 3"/>
+                </svg>
+
+                {/* 로마 숫자 TL / BR */}
+                <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9 }}>{numeral}</div>
+                <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9, transform: 'rotate(180deg)' }}>{numeral}</div>
+
+                {/* 이미지 영역 */}
+                <div style={{
+                    position: 'absolute', top: 22, left: 12, right: 12, height: 172,
+                    borderRadius: 8, overflow: 'hidden',
+                    border: `1px solid ${gold}55`,
+                    background: `radial-gradient(circle at 50% 40%, ${palette.bg} 0%, ${palette.deep}55 100%)`,
+                    zIndex: 1,
+                }}>
+                    {persona.imageUrl ? (
+                        <img src={persona.imageUrl} alt={persona.name}
+                            draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', userSelect: 'none', WebkitUserDrag: 'none' } as React.CSSProperties} />
+                    ) : (
+                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: palette.accent, opacity: 0.4 }}>✦</div>
+                    )}
+                    {/* 하단 페이드 */}
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 40, background: `linear-gradient(to top, ${palette.bg}cc, transparent)` }} />
+                    {/* NEW 뱃지 */}
+                    {isNew && (
+                        <span style={{
+                            position: 'absolute', top: 6, right: 6, zIndex: 3,
+                            background: 'linear-gradient(135deg, #fbbf24, #f97316)',
+                            color: '#000', fontSize: 8, fontWeight: 700,
+                            padding: '2px 6px', borderRadius: 999,
+                            animation: 'mpn-pulse 1.5s ease-in-out infinite',
+                        }}>NEW</span>
+                    )}
+                </div>
+
+                {/* 네임 플레이트 */}
+                <div style={{
+                    position: 'absolute', top: 202, left: 0, right: 0, bottom: 0,
+                    padding: '6px 12px 12px',
+                    textAlign: 'center', zIndex: 3,
+                    display: 'flex', flexDirection: 'column', alignItems: 'center',
+                }}>
+                    <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', marginBottom: 3, opacity: 0.85, fontWeight: 500 }}>{persona.jobTitle || 'PERSONA'}</div>
+                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: palette.accent, lineHeight: 1.1 }}>{persona.name}</div>
+                </div>
+            </div>
+        );
+    };
 
     return (
         <div className="mpn-root" ref={rootScrollRef} style={{
@@ -1323,8 +1585,53 @@ const PersonaSelectPanel: React.FC<{
                 )}
             </div>
 
-            {/* 기능 그리드 - 타로카드 스타일 */}
-            {tab === 'features' && (
+            {/* ── 통합검색 결과 — 검색 중이면 페르소나·기능을 두 섹션으로 함께 보여준다 ── */}
+            {isSearching && (
+                <div style={{ padding: '8px max(28px, calc((100% - 960px) / 2)) 24px' }}>
+                    {searchedPersonas.length === 0 && searchedFeatures.length === 0 && (
+                        <div style={{ textAlign: 'center', color: T.inkMute, paddingTop: 40, fontSize: 14 }}>
+                            '{activeQuery}' 검색 결과가 없습니다
+                        </div>
+                    )}
+
+                    {/* 🧑 페르소나 섹션 */}
+                    {searchedPersonas.length > 0 && (
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '6px 2px 12px' }}>
+                                <span style={{ fontSize: 15, fontWeight: 800, color: T.ink }}>🧑 페르소나</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: T.accent }}>{searchedPersonas.length}</span>
+                            </div>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                                gap: 16, alignContent: 'start', marginBottom: 28,
+                            }}>
+                                {searchedPersonas.map((persona, i) => renderPersonaCard(persona, i))}
+                            </div>
+                        </>
+                    )}
+
+                    {/* ⚡ 기능 섹션 */}
+                    {searchedFeatures.length > 0 && (
+                        <>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, margin: '6px 2px 12px' }}>
+                                <span style={{ fontSize: 15, fontWeight: 800, color: T.ink }}>⚡ 기능</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: '#3a9e6e' }}>{searchedFeatures.length}</span>
+                            </div>
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+                                gap: 16, alignContent: 'start',
+                            }}>
+                                {searchedFeatures.map((feat, i) => renderFeatureCard(feat, i))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {/* 기능 그리드 - 타로카드 스타일 (검색 중 아닐 때만, 탭 둘러보기) */}
+            {!isSearching && tab === 'features' && (
                 <div style={{
                     padding: '14px max(28px, calc((100% - 960px) / 2)) 24px',
                     display: 'grid',
@@ -1334,271 +1641,27 @@ const PersonaSelectPanel: React.FC<{
                 }}>
                     {filteredFeatures.length === 0 && (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', color: T.inkMute, paddingTop: 40, fontSize: 14 }}>
-                            검색 결과가 없습니다
+                            해당 카테고리에 기능이 없습니다
                         </div>
                     )}
-                    {filteredFeatures.map((feat, i) => {
-                        const gold = T.gold;
-                        const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
-                        const isFocused = feat.key === focusFeatureKey;
-                        const subItems = (feat as any).subItems as string[] | undefined;
-                        const W = 160, H = 280;
-                        return (
-                            <div key={feat.key}
-                                ref={isFocused ? focusFeatureRef : undefined}
-                                onClick={() => feat.personaName && onFeatureSelect?.(feat.personaName, feat.key)}
-                                style={{
-                                    borderRadius: 16, overflow: 'hidden', cursor: 'pointer',
-                                    background: `linear-gradient(160deg, ${feat.palette.bg} 0%, #FDFAF6 50%, ${feat.palette.bg} 100%)`,
-                                    boxShadow: isFocused
-                                        ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
-                                        : `0 6px 20px -6px ${feat.palette.accent}40`,
-                                    transition: 'transform 0.22s, box-shadow 0.22s',
-                                    position: 'relative', height: H,
-                                    transform: isFocused ? 'translateY(-5px) scale(1.03)' : 'none',
-                                }}
-                                onMouseEnter={e => {
-                                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-5px) scale(1.02)';
-                                    (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 36px -8px ${feat.palette.accent}55`;
-                                }}
-                                onMouseLeave={e => {
-                                    (e.currentTarget as HTMLElement).style.transform = isFocused ? 'translateY(-5px) scale(1.03)' : 'none';
-                                    (e.currentTarget as HTMLElement).style.boxShadow = isFocused
-                                        ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
-                                        : `0 6px 20px -6px ${feat.palette.accent}40`;
-                                }}
-                            >
-                                {/* 공유 🔗 버튼 (좌상단) — ?f 딥링크 복사/공유 */}
-                                {onShareFeature && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onShareFeature(feat.key, feat.name); }}
-                                        title="이 기능 공유하기"
-                                        style={{
-                                            position: 'absolute', top: 6, left: 6, zIndex: 5,
-                                            width: 30, height: 30, borderRadius: '50%', border: 'none',
-                                            background: 'rgba(255,255,255,0.82)', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 14, lineHeight: 1,
-                                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-                                        }}
-                                    >
-                                        🔗
-                                    </button>
-                                )}
-                                {/* 즐겨찾기 ⭐ 토글 (우상단) — 즐겨찾기 가능한 기능만 */}
-                                {onToggleFavorite && (!favoritableKeys || favoritableKeys.includes(feat.key)) && (
-                                    <button
-                                        onClick={(e) => { e.stopPropagation(); onToggleFavorite(feat.key); }}
-                                        title={isFavorite?.(feat.key) ? '바로가기에서 빼기' : '바로가기에 추가'}
-                                        style={{
-                                            position: 'absolute', top: 6, right: 6, zIndex: 5,
-                                            width: 30, height: 30, borderRadius: '50%', border: 'none',
-                                            background: 'rgba(255,255,255,0.82)', cursor: 'pointer',
-                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                            fontSize: 16, lineHeight: 1,
-                                            boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-                                        }}
-                                    >
-                                        {isFavorite?.(feat.key) ? '⭐' : '☆'}
-                                    </button>
-                                )}
-                                {/* 시머 */}
-                                <div style={{ position: 'absolute', inset: 0, zIndex: 2, pointerEvents: 'none', borderRadius: 16,
-                                    background: 'linear-gradient(110deg, transparent 38%, rgba(255,255,255,0.18) 50%, transparent 62%)',
-                                    animation: 'mpn-shimmer 4s ease-in-out infinite' }} />
-
-                                {/* 트럼프 카드 격자 테두리 SVG */}
-                                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }}
-                                    viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-                                    {/* 외곽 테두리 */}
-                                    <rect x="3.5" y="3.5" width={W-7} height={H-7} rx="11" fill="none" stroke={gold} strokeWidth="1.2" opacity="0.6"/>
-                                    {/* 안쪽 테두리 */}
-                                    <rect x="7" y="7" width={W-14} height={H-14} rx="8" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
-                                    {/* 코너 다이아몬드 장식 — 4개 */}
-                                    {[[14,14],[W-14,14],[14,H-14],[W-14,H-14]].map(([cx,cy], idx) => (
-                                        <g key={idx} transform={`translate(${cx},${cy})`}>
-                                            <polygon points="0,-4.5 4.5,0 0,4.5 -4.5,0" fill={gold} opacity="0.55"/>
-                                            <polygon points="0,-2.5 2.5,0 0,2.5 -2.5,0" fill={gold} opacity="0.35"/>
-                                        </g>
-                                    ))}
-                                    {/* 중앙 가로 구분선 */}
-                                    <line x1="12" y1={H/2} x2={W-12} y2={H/2} stroke={gold} strokeWidth="0.5" opacity="0.2" strokeDasharray="3 3"/>
-                                </svg>
-
-                                {/* 로마 숫자 — 좌상 / 우하 (뒤집기) */}
-                                <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1 }}>{numeral}</div>
-                                <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.15em', opacity: 0.9, lineHeight: 1, transform: 'rotate(180deg)' }}>{numeral}</div>
-
-                                {/* 아이콘 영역 — 카드 상단 62% */}
-                                <div style={{
-                                    position: 'absolute', top: 18, left: 10, right: 10, height: Math.round(H * 0.62),
-                                    borderRadius: 9, border: `1px solid ${gold}40`,
-                                    background: `radial-gradient(ellipse at 50% 40%, ${feat.palette.bg} 0%, ${feat.palette.deep}50 100%)`,
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                    gap: 7, zIndex: 1,
-                                }}>
-                                    <MpnFeatureIcon kind={feat.icon} size={60} color={feat.palette.accent} bg={feat.palette.bg} />
-                                    {/* 태그 뱃지 */}
-                                    <div style={{
-                                        background: feat.palette.accent, color: '#fff',
-                                        fontSize: 10, fontWeight: 700,
-                                        padding: '3px 11px', borderRadius: 999,
-                                        letterSpacing: '0.04em', boxShadow: `0 2px 6px ${feat.palette.accent}50`,
-                                    }}>{feat.tag}</div>
-                                </div>
-
-                                {/* 네임 플레이트 — 카드 하단 */}
-                                <div style={{
-                                    position: 'absolute', top: Math.round(H * 0.62) + 22, left: 0, right: 0, bottom: 0,
-                                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                                    padding: '4px 10px 10px', zIndex: 4, textAlign: 'center',
-                                }}>
-                                    <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', opacity: 0.85, marginBottom: 3, fontWeight: 500 }}>{feat.latin}</div>
-                                    <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.15 }}>{feat.name}</div>
-                                    {subItems && (
-                                        <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 3 }}>
-                                            {subItems.map((item: string) => (
-                                                <span key={item} style={{ fontSize: 9, color: feat.palette.accent, opacity: 0.75 }}>
-                                                    {item.replace(/^[^\s]+\s/, '')}
-                                                </span>
-                                            )).reduce((acc: React.ReactNode[], el, idx, arr) => {
-                                                acc.push(el);
-                                                if (idx < arr.length - 1) acc.push(<span key={`dot-${idx}`} style={{ fontSize: 9, color: gold, opacity: 0.5 }}>·</span>);
-                                                return acc;
-                                            }, [])}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                    {filteredFeatures.map((feat, i) => renderFeatureCard(feat, i))}
                 </div>
             )}
 
-            {/* 페르소나 그리드 */}
-            {tab === 'personas' && <div style={{
+            {/* 페르소나 그리드 (검색 중 아닐 때만, 탭 둘러보기) */}
+            {!isSearching && tab === 'personas' && <div style={{
                 padding: '14px max(28px, calc((100% - 960px) / 2)) 24px',
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 gap: 16,
                 alignContent: 'start',
             }}>
-                {filtered.map((persona, i) => {
-                    const palette = PALETTE_CYCLE[i % PALETTE_CYCLE.length];
-                    const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
-                    const gold = T.gold;
-                    const isFocused = persona.id === focusPersonaId;
-                    const isNew = persona.createdAt
-                        ? Date.now() - new Date(persona.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000
-                        : false;
-                    return (
-                        <div
-                            key={persona.id}
-                            ref={isFocused ? focusPersonaRef : undefined}
-                            onClick={() => onSelect(persona.id)}
-                            style={{
-                                borderRadius: 14, overflow: 'hidden', cursor: 'pointer',
-                                background: `linear-gradient(155deg, ${palette.bg} 0%, #FBF8F3 55%, ${palette.bg} 100%)`,
-                                boxShadow: isFocused
-                                    ? `0 0 0 3px ${palette.accent}, 0 20px 40px -12px rgba(80,50,110,0.45)`
-                                    : '0 8px 24px -12px rgba(80,50,110,0.25)',
-                                transition: 'transform 0.25s, box-shadow 0.25s',
-                                position: 'relative', height: 280,
-                                transform: isFocused ? 'translateY(-6px) scale(1.03)' : 'none',
-                            }}
-                            onMouseEnter={e => {
-                                (e.currentTarget as HTMLElement).style.transform = 'translateY(-6px) scale(1.02)';
-                                (e.currentTarget as HTMLElement).style.boxShadow = '0 20px 40px -15px rgba(80,50,110,0.4)';
-                            }}
-                            onMouseLeave={e => {
-                                (e.currentTarget as HTMLElement).style.transform = isFocused ? 'translateY(-6px) scale(1.03)' : 'translateY(0) scale(1)';
-                                (e.currentTarget as HTMLElement).style.boxShadow = isFocused
-                                    ? `0 0 0 3px ${palette.accent}, 0 20px 40px -12px rgba(80,50,110,0.45)`
-                                    : '0 8px 24px -12px rgba(80,50,110,0.25)';
-                            }}
-                        >
-                            {/* 즐겨찾기 ⭐ 토글 (우상단) */}
-                            {onToggleFavoritePersona && (
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onToggleFavoritePersona(persona.id); }}
-                                    title={isFavoritePersona?.(persona.id) ? '내 페르소나에서 빼기' : '내 페르소나에 추가'}
-                                    style={{
-                                        position: 'absolute', top: 6, right: 6, zIndex: 6,
-                                        width: 30, height: 30, borderRadius: '50%', border: 'none',
-                                        background: 'rgba(255,255,255,0.85)', cursor: 'pointer',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        fontSize: 16, lineHeight: 1, boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
-                                    }}
-                                >
-                                    {isFavoritePersona?.(persona.id) ? '⭐' : '☆'}
-                                </button>
-                            )}
-                            {/* 시머 */}
-                            <div style={{
-                                position: 'absolute', inset: 0, borderRadius: 14, zIndex: 2, pointerEvents: 'none',
-                                background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.15) 50%, transparent 60%)',
-                                animation: 'mpn-shimmer 4s ease-in-out infinite',
-                            }} />
-
-                            {/* 트럼프 카드 격자 테두리 */}
-                            <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', zIndex: 3, pointerEvents: 'none' }}
-                                viewBox="0 0 160 280" preserveAspectRatio="none">
-                                <rect x="4" y="4" width="152" height="272" rx="10" fill="none" stroke={gold} strokeWidth="1.3" opacity="0.6"/>
-                                <rect x="8" y="8" width="144" height="264" rx="7" fill="none" stroke={gold} strokeWidth="0.6" opacity="0.4"/>
-                                {[[15,15],[145,15],[15,265],[145,265]].map(([cx,cy],idx) => (
-                                    <g key={idx} transform={`translate(${cx},${cy})`}>
-                                        <polygon points="0,-5 5,0 0,5 -5,0" fill={gold} opacity="0.55"/>
-                                        <polygon points="0,-2.8 2.8,0 0,2.8 -2.8,0" fill={gold} opacity="0.3"/>
-                                    </g>
-                                ))}
-                                <line x1="12" y1="140" x2="148" y2="140" stroke={gold} strokeWidth="0.5" opacity="0.18" strokeDasharray="3 3"/>
-                            </svg>
-
-                            {/* 로마 숫자 TL / BR */}
-                            <div style={{ position: 'absolute', top: 8, left: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9 }}>{numeral}</div>
-                            <div style={{ position: 'absolute', bottom: 8, right: 10, zIndex: 4, fontFamily: "'Cinzel', serif", fontSize: 9, color: gold, letterSpacing: '0.18em', opacity: 0.9, transform: 'rotate(180deg)' }}>{numeral}</div>
-
-                            {/* 이미지 영역 */}
-                            <div style={{
-                                position: 'absolute', top: 22, left: 12, right: 12, height: 172,
-                                borderRadius: 8, overflow: 'hidden',
-                                border: `1px solid ${gold}55`,
-                                background: `radial-gradient(circle at 50% 40%, ${palette.bg} 0%, ${palette.deep}55 100%)`,
-                                zIndex: 1,
-                            }}>
-                                {persona.imageUrl ? (
-                                    <img src={persona.imageUrl} alt={persona.name}
-                                        draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', userSelect: 'none', WebkitUserDrag: 'none' } as React.CSSProperties} />
-                                ) : (
-                                    <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40, color: palette.accent, opacity: 0.4 }}>✦</div>
-                                )}
-                                {/* 하단 페이드 */}
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 40, background: `linear-gradient(to top, ${palette.bg}cc, transparent)` }} />
-                                {/* NEW 뱃지 */}
-                                {isNew && (
-                                    <span style={{
-                                        position: 'absolute', top: 6, right: 6, zIndex: 3,
-                                        background: 'linear-gradient(135deg, #fbbf24, #f97316)',
-                                        color: '#000', fontSize: 8, fontWeight: 700,
-                                        padding: '2px 6px', borderRadius: 999,
-                                        animation: 'mpn-pulse 1.5s ease-in-out infinite',
-                                    }}>NEW</span>
-                                )}
-                            </div>
-
-                            {/* 네임 플레이트 */}
-                            <div style={{
-                                position: 'absolute', top: 202, left: 0, right: 0, bottom: 0,
-                                padding: '6px 12px 12px',
-                                textAlign: 'center', zIndex: 3,
-                                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                            }}>
-                                <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', marginBottom: 3, opacity: 0.85, fontWeight: 500 }}>{persona.jobTitle || 'PERSONA'}</div>
-                                <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 20, fontWeight: 700, color: palette.accent, lineHeight: 1.1 }}>{persona.name}</div>
-                            </div>
-                        </div>
-                    );
-                })}
+                {filtered.length === 0 && (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', color: T.inkMute, paddingTop: 40, fontSize: 14 }}>
+                        해당 카테고리에 페르소나가 없습니다
+                    </div>
+                )}
+                {filtered.map((persona, i) => renderPersonaCard(persona, i))}
             </div>}
 
             {/* ── 사업자 정보 푸터 (탭 무관 항상 노출) ── */}
