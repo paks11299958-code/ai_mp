@@ -125,6 +125,8 @@ export const MarketingBoard: React.FC<Props> = ({ onClose, freeTrialUsed }) => {
                                 maxLength={200}
                                 placeholder="예) 홍대 수제 마카롱 가게 신메뉴 출시, 20대 여성 타깃, 비주얼 강조"
                                 className="w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 outline-none focus:border-purple-400 resize-none"
+                                // 다크모드/OS 테마에서 글자색이 흐려져 안 보이는 문제 방지 — 색 인라인 고정
+                                style={{ color: '#1f2937', backgroundColor: '#ffffff' }}
                             />
                             <div className="text-[11px] text-gray-400 text-right">{topic.length}/200</div>
                             {error && <div className="text-xs text-red-500">{error}</div>}
@@ -165,7 +167,7 @@ export const MarketingBoard: React.FC<Props> = ({ onClose, freeTrialUsed }) => {
                                     {copied ? '복사됨!' : '📋 복사'}
                                 </button>
                             </div>
-                            <pre className="text-xs whitespace-pre-wrap text-gray-800 font-sans bg-gray-50 rounded-xl p-3 border border-gray-100">{row?.result}</pre>
+                            <pre className="text-xs whitespace-pre-wrap text-gray-800 font-sans bg-gray-50 rounded-xl p-3 border border-gray-100" style={{ color: '#1f2937', backgroundColor: '#f9fafb' }}>{row?.result}</pre>
                             <div className="text-[11px] text-amber-600">⚠️ 발행 전 검토 필요 — 직접 확인 후 올려주세요.</div>
                             <button onClick={reset} className="w-full py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600">다른 주제로 또 만들기</button>
                         </div>

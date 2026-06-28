@@ -11,6 +11,20 @@ html, body {
     font-family: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
+/* ── 폼 요소 가독성 기본값 (다크모드에서 입력 글자 안 보이는 문제 방지) ──
+   원인: OS/브라우저 다크모드가 input·textarea 글자색을 흰색 계열로 바꿔
+   흰 배경 위에서 글씨가 안 보임(예: 마케팅 글쓰기, 마케팅 자산 패널).
+   해결: ① color-scheme를 light로 고정해 자동 반전 차단
+        ② 폼 요소 기본 글자색/배경/placeholder를 명시
+   ※ :where()로 특이도 0 → 컴포넌트의 Tailwind text-*/bg-* 유틸이나
+     인라인 style이 있으면 그쪽이 항상 이김(기존 디자인 안 깨짐). */
+html { color-scheme: light; }
+:where(input, textarea, select) {
+    color: #1f2937;            /* gray-800 — 진한 본문색 */
+    background-color: #ffffff; /* 흰 배경 기본 */
+}
+:where(input, textarea)::placeholder { color: #9ca3af; } /* gray-400 */
+
 @keyframes card-float {
     0%, 100% { transform: translateY(0px); }
     50%       { transform: translateY(-10px); }
