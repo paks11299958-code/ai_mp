@@ -12,6 +12,15 @@ interface Props {
 
 const PURPLE = '#8E6FB7';
 
+// 입력 막막함 해소용 예시 — 칩 클릭 시 입력창에 그대로 채워진다(이후 수정 가능).
+// "업종/대상 + 타깃 + 강조하고 싶은 점" 구조가 좋은 결과를 낸다는 걸 예시로 보여줌.
+const TOPIC_SAMPLES = [
+    '홍대 수제 마카롱 가게 신메뉴 출시, 20대 여성 타깃, 비주얼 강조',
+    '1:1 헬스 PT 회원 모집, 30대 직장인, 첫 달 할인 이벤트',
+    '내가 운영하는 네일샵 가을 신상 아트, 예약 유도',
+    '온라인 스마트스토어 캠핑용품, 가성비와 후기 강조',
+];
+
 export const MarketingBoard: React.FC<Props> = ({ onClose, freeTrialUsed }) => {
     const [topic, setTopic] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -91,12 +100,30 @@ export const MarketingBoard: React.FC<Props> = ({ onClose, freeTrialUsed }) => {
                                     ? '이번 요청부터 포인트가 차감돼요.'
                                     : '🎁 첫 1회는 무료체험! 부담 없이 써보세요.'}
                             </div>
+
+                            {/* 예시(샘플) — 막막할 때 칩을 눌러 채우고 자유롭게 고치세요 */}
+                            <div className="space-y-1.5">
+                                <p className="text-[11px] text-gray-500">💡 이렇게 적으면 좋아요 — <b>업종/상품 + 타깃 + 강조할 점</b>. 아래 예시를 눌러 채운 뒤 고쳐도 돼요.</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {TOPIC_SAMPLES.map(s => (
+                                        <button
+                                            key={s}
+                                            type="button"
+                                            onClick={() => { setTopic(s); setError(null); }}
+                                            className="text-[11px] leading-snug text-left px-2.5 py-1.5 rounded-full border border-purple-200 text-purple-700 bg-white hover:bg-purple-50 transition-colors"
+                                        >
+                                            {s}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
                             <textarea
                                 value={topic}
                                 onChange={e => setTopic(e.target.value)}
                                 rows={3}
                                 maxLength={200}
-                                placeholder="예) 홍대 수제 마카롱 가게, 20대 여성 타깃 / 내 헬스 PT 등록 홍보"
+                                placeholder="예) 홍대 수제 마카롱 가게 신메뉴 출시, 20대 여성 타깃, 비주얼 강조"
                                 className="w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 outline-none focus:border-purple-400 resize-none"
                             />
                             <div className="text-[11px] text-gray-400 text-right">{topic.length}/200</div>
