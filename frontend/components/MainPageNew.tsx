@@ -367,6 +367,7 @@ export const FEATURES_GRID = [
     { id: 16, numeral: 'XVI', latin: 'Webtoon', key: 'webtoon', name: '웹툰 보기',      tag: 'AI 웹툰 연재',   category: 'create',  desc: '향기 작가가 연재하는 웹툰을 회차별로 감상하세요. 한 컷씩 풀스크린으로.',                      icon: 'webtoon',   palette: { bg: '#FCE8EF', deep: '#F0A8C4', accent: '#C84D85' }, personaName: '향기(필명)', releasedAt: '2026-06-12' },
     { id: 17, numeral: 'XVII',latin: 'Hair',    key: 'hair',    name: '헤어스타일 진단',tag: 'AI 뷰티 컨설팅', category: 'life',    desc: '내 사진을 올리고 헤어스타일을 고르면 윤채린이 어울리는지 진단해드려요.',                      icon: 'hair',      palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#9B5FA8' }, personaName: '윤채린',  releasedAt: '2026-06-16' },
     { id: 18, numeral: 'XVIII',latin: 'Lookalike',key: 'lookalike',name: '닮은 연예인 찾기',tag: 'AI 닮은꼴 분석', category: 'life',    desc: '내 사진을 올리면 윤채린이 닮은 연예인을 찾아드려요. 친구에게 자랑해 보세요!',                  icon: 'face',      palette: { bg: '#F0E8F8', deep: '#C4A9E0', accent: '#8E6FB7' }, personaName: '윤채린',  releasedAt: '2026-06-24' },
+    { id: 19, numeral: 'XIX', latin: 'Marketing',key: 'marketing',name: 'AI 마케팅 글쓰기',tag: 'SNS 콘텐츠 작성', category: 'create',  desc: '홍보할 주제만 적으면 아린이가 인스타 콘텐츠 초안(후킹·해시태그·측정안)을 만들어 드려요. 첫 1회 무료!', icon: 'sparkles',  palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#8E6FB7' }, personaName: '이아린',  releasedAt: '2026-06-28' },
 ];
 
 const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII'];

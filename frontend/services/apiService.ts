@@ -485,6 +485,28 @@ export const ageTransformApi = {
     list: () => get<{ id: number; originalUrl: string | null; images: Record<string, string>; createdAt: string }[]>('/age-transform'),
 };
 
+// ── 사용자용 마케팅 콘텐츠 (개인 SNS 운영자, 인스타) ──
+export interface MarketingRequestRow {
+    id: string;
+    topic: string;
+    channel: string;
+    status: 'pending' | 'running' | 'done' | 'failed';
+    isFreeTrial: boolean;
+    result?: string | null;
+    failReason?: string | null;
+    sourcesCount?: number;
+    createdAt: string;
+}
+export const marketingApi = {
+    // 요청 생성(비동기). 무료체험 1회 or 포인트 차감. 202 → { id, status, isFreeTrial }.
+    request: (topic: string) =>
+        post<{ id: string; status: string; isFreeTrial: boolean; pointsCharged: number }>('/marketing/request', { topic }),
+    // 단건 폴링(본인 것). status가 done/failed 될 때까지 클라이언트가 폴링.
+    get: (id: string) => get<MarketingRequestRow>(`/marketing/request/${id}`),
+    // 내 요청 이력(경량).
+    list: () => get<MarketingRequestRow[]>('/marketing/requests'),
+};
+
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {
     lifeLine: string;

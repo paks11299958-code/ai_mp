@@ -34,6 +34,7 @@ import { ResearchBoard } from './components/ResearchBoard';
 import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { InsuranceBoard } from './components/InsuranceBoard';
+import { MarketingBoard } from './components/MarketingBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { HairStyleBoard } from './components/HairStyleBoard';
 import { AgeTransformBoard } from './components/AgeTransformBoard';
@@ -197,6 +198,7 @@ const AppContent: React.FC = () => {
         showSwingInput, setShowSwingInput,
         showMathTutor, setShowMathTutor,
         showClubBoard, setShowClubBoard,
+        showMarketingBoard, setShowMarketingBoard,
     } = useBoardToggles();
     const [comingSoonMsg, setComingSoonMsg] = useState('');
     const [shareToast, setShareToast] = useState('');  // 공유 링크 복사/공유 완료 안내
@@ -281,6 +283,7 @@ const AppContent: React.FC = () => {
         hair: () => setShowHairBoard(true),
         lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),
+        marketing: () => setShowMarketingBoard(true),
     };
 
     // 공지사항
@@ -1211,6 +1214,9 @@ const AppContent: React.FC = () => {
                 {showInsuranceBoard && (
                     <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
                 )}
+                {showMarketingBoard && (
+                    <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
+                )}
                 {showEbookBoard && (
                     <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
                         <EbookBoard onClose={() => setShowEbookBoard(false)} />
@@ -1388,6 +1394,9 @@ const AppContent: React.FC = () => {
             )}
             {showInsuranceBoard && (
                 <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
+            )}
+            {showMarketingBoard && (
+                <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
             )}
             {showTodayNews && (
                 <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
