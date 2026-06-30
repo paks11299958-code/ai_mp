@@ -11,6 +11,13 @@ html, body {
     font-family: 'Pretendard', 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
+/* 모바일 크롬 당겨서 새로고침(pull-to-refresh) 차단.
+   화면을 아래로 쭉 당겼을 때 페이지가 새로고침되는 것을 막음.
+   contain = 스크롤 끝에서의 새로고침/뒤로가기 제스처만 차단, 일반 스크롤은 그대로. */
+html, body {
+    overscroll-behavior-y: contain;
+}
+
 /* ── 폼 요소 가독성 기본값 (다크모드에서 입력 글자 안 보이는 문제 방지) ──
    원인: OS/브라우저 다크모드가 input·textarea 글자색을 흰색 계열로 바꿔
    흰 배경 위에서 글씨가 안 보임(예: 마케팅 글쓰기, 마케팅 자산 패널).
