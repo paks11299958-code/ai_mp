@@ -371,6 +371,40 @@ export const FEATURES_GRID = [
     { id: 20, numeral: 'XX',  latin: 'Future Me',key: 'agetransform',name: '미래의 나',     tag: 'AI 나이 변환',   category: 'life',    desc: '내 사진과 나이를 넣으면 윤채린이 미래(노화)의 모습을 보여드려요. Before/After 슬라이더로 확인!',  icon: 'face',      palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#9B5FA8' }, personaName: '윤채린',  releasedAt: '2026-06-21' },
 ];
 
+// 기능 연관 키워드(동의어) 맵 — 이름/설명에 없는 표현으로도 찾게 함.
+// 예: "심심해" → 운세류, "재테크" → 주식. 검색어가 아래 키워드에 부분일치하면 그 기능이 검색됨.
+// FEATURES_GRID의 key와 1:1. 새 기능 추가 시 여기도 한 줄 넣어주면 의미검색이 넓어짐.
+export const FEATURE_SYNONYMS: Record<string, string[]> = {
+    news:        ['뉴스', '기사', '소식', '신문', '브리핑', '시사', '헤드라인', '오늘일'],
+    stock:       ['주식', '증시', '투자', '재테크', '재테크', '종목', '코스피', '나스닥', '주가', '돈불리기', '자산'],
+    swing:       ['골프', '스윙', '자세', '필드', '라운딩', '운동', '스포츠'],
+    luxury:      ['명품', '진품', '가품', '짝퉁', '정품', '감정', '럭셔리', '브랜드', '가방', '시계'],
+    insurance:   ['보험', '보장', '실비', '중복보장', '설계', '컨설팅', '보험료', '연금'],
+    used:        ['중고', '판매', '당근', '중고나라', '거래', '판매글', '팔기', '마켓'],
+    hotkeyword:  ['키워드', '트렌드', '쇼핑', '인기', '유행', '핫템', '검색어', '순위'],
+    mathtutor:   ['수학', '공부', '학습', '문제풀이', '숙제', '과외', '튜터', '계산', '학생', '학원'],
+    club:        ['모임', '출석', '출첵', '동호회', '커뮤니티', '멤버', '동아리', '단체', '카페'],
+    siwoon:      ['운세', '사주', '토정비결', '점', '점집', '타로', '심심', '오늘운세', '미래', '팔자', '길흉'],
+    wealth:      ['재물운', '금전운', '사업운', '성공', '성취', '돈운', '재물', '부자', '사업'],
+    yeonn:       ['연애', '궁합', '인연', '사랑', '짝사랑', '이성', '연애운', '커플', '솔로', '만남'],
+    dream:       ['꿈', '해몽', '꿈풀이', '악몽', '길몽', '개꿈', '자면서'],
+    gwansang:    ['관상', '얼굴', '인상', '성격', '얼굴분석', 'face', '외모'],
+    ebook:       ['전자책', '책', '출판', '집필', '글쓰기', '작가', '도서', 'pdf', 'docx', '책만들기'],
+    webtoon:     ['웹툰', '만화', '연재', '그림', '향기', '카툰', '툰'],
+    hair:        ['헤어', '머리', '미용', '스타일', '뷰티', '헤어스타일', '펌', '염색', '이발', '미용실'],
+    lookalike:   ['닮은꼴', '닮은연예인', '연예인', '닮은', '얼굴', '나랑닮은', '유명인', '셀럽'],
+    marketing:   ['마케팅', '홍보', 'sns', '인스타', '광고', '콘텐츠', '글쓰기', '피드', '해시태그', '게시물', '바이럴'],
+    agetransform:['나이변환', '노화', '늙은', '미래의나', '나이든', '늙으면', '변환', '얼굴변환', '나이', '미래모습'],
+};
+
+// 기능이 검색어와 매칭되는지 — 이름/태그/설명(부분일치) + 연관 키워드(동의어)까지.
+// q는 이미 소문자·trim 된 검색어. 빈 검색어는 호출 전에 걸러짐.
+const featureMatches = (f: typeof FEATURES_GRID[number], q: string): boolean =>
+    f.name.toLowerCase().includes(q) ||
+    f.desc.toLowerCase().includes(q) ||
+    f.tag.toLowerCase().includes(q) ||
+    (FEATURE_SYNONYMS[f.key] ?? []).some(kw => kw.toLowerCase().includes(q) || q.includes(kw.toLowerCase()));
+
 const ROMAN_MPN = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII'];
 
 // ─────────────────────────────────────────────
@@ -728,8 +762,7 @@ const PersonaSelectPanel: React.FC<{
             p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q))
         : [];
     const searchedFeatures = isSearching
-        ? FEATURES_GRID.filter(f =>
-            f.name.toLowerCase().includes(q) || f.desc.toLowerCase().includes(q) || f.tag.toLowerCase().includes(q))
+        ? FEATURES_GRID.filter(f => featureMatches(f, q))
         : [];
 
     // 그리드에 실제로 렌더할 목록: 검색 중이면 검색결과, 아니면 둘러보기(카테고리)
