@@ -79,7 +79,7 @@ export const TossTraderPanel: React.FC = () => {
                             {st.mode === 'LIVE' ? '🔴 실거래' : '🟢 드라이런'}
                         </span>
                     </Card>
-                    <Card label={`현재가 (${st.symbol || '-'})`}>{won(st.lastPrice)}</Card>
+                    <Card label={`현재가 (${st.symbolName ? `${st.symbolName} ${st.symbol}` : st.symbol || '-'})`}>{won(st.lastPrice)}</Card>
                     <Card label="최근 신호">
                         <span className={
                             st.lastSignal === 'BUY' ? 'text-green-400 font-bold'
