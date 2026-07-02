@@ -506,7 +506,7 @@ const HeroBanner: React.FC<{
                 <input
                     value={searchQuery}
                     onChange={e => { onSwitchToPersonas(); onSearchChange(e.target.value); }}
-                    placeholder="페르소나·기능 검색"
+                    placeholder="예: 파마하고싶어, 돈 굴리고싶다, 앞날이 궁금해"
                     aria-label="검색"
                     style={{ flex: 1, minWidth: 0, border: 'none', outline: 'none', fontSize: 14, color: '#191527', background: 'transparent', padding: '9px 0' }}
                 />
@@ -1569,7 +1569,7 @@ const PersonaSelectPanel: React.FC<{
                     <input
                         value={tab === 'personas' ? searchQuery : featureSearchQuery}
                         onChange={e => tab === 'personas' ? onSearchChange(e.target.value) : setFeatureSearchQuery(e.target.value)}
-                        placeholder={tab === 'personas' ? '이름, 설명으로 검색...' : '기능 이름, 설명으로 검색...'}
+                        placeholder={tab === 'personas' ? '이름, 설명으로 검색...' : '예: 파마하고싶어, 돈 굴리고싶다'}
                         style={{
                             flex: 1, border: 'none', outline: 'none',
                             background: 'transparent', fontSize: 13.5,
