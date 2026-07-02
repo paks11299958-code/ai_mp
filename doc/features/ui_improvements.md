@@ -418,3 +418,21 @@ omd 시안(`aichat-main-mobile`)을 **통째 교체 대신 부분 채택**으로
 - **모바일 하단 탭바**(신규 `BottomTabBar`): 홈·기능·대화(FAB)·랭킹·내정보. `position:fixed`. ★인라인 스타일로는 `@media`·`env(safe-area-inset-*)` 불가 → 컴포넌트 내 `<style>` **1블록 주입**(`.mpn-tabbar` PC≥768 `display:none`, `.mpn-root` 모바일만 paddingBottom). 스크롤 컨테이너=루트 div(`rootScrollRef`)라 상단이동은 `ref.scrollTo`, 랭킹은 `getElementById('mpn-ranking').scrollIntoView`. 햄버거 메뉴와 동선 중복 허용(탭바=빠른이동/햄버거=전체).
 - **헬퍼 `formatCount(n)`**: 10000↑ → 'N.N만', else `toLocaleString()`.
 - ★**교훈 — omd 시안은 레퍼런스, 통째 적용 금지**: 더미 텍스트·가짜 수치·미구현 기능 광고 위험. 부분 채택 시 ①데이터는 실제 API ②가격/보너스는 DB·PACKAGES 근거 ③검색 등 상태는 기존 것 공유로 중복 회피. 검증=tsc·빌드·모바일390/PC1280 캡처(탭바 모바일 flex·PC none)·라이브 실데이터(통계 12+/18/160, 랭킹 역할배지·대화수).
+
+### 메인 통합검색 + 폼 가독성 + 어드민 스크롤 묶음 (2026-06-28)
+마케팅 서비스 출시 직후 사장 피드백 기반 UI 보강. 전부 ai_mp 프론트, master 배포·라이브 검증.
+
+- **메인 통합검색** (`MainPageNew.tsx`, `974459c`): 히어로 검색바가 **현재 탭(페르소나)만** 검색하던 버그 → '뉴스'처럼 기능(FEATURES_GRID)에 있는 항목이 안 잡혀 "검색 안 됨"처럼 보임(사용자는 페르소나/기능 구분 모름). 해결=히어로·탭 검색어를 `activeQuery=(searchQuery.trim()||featureSearchQuery.trim())` 하나로 통합, `isSearching`이면 **탭 무관**하게 페르소나·기능 둘 다 필터 → **🧑 페르소나(N) / ⚡ 기능(M) 두 섹션**으로 함께 표시(둘 다 0건 시 "'검색어' 검색 결과가 없습니다"). 검색 중엔 카테고리 무시(발견 우선), 둘러보기(검색 아님)는 기존 탭별 카테고리 필터 유지. 거대한 카드 JSX(페르소나·기능 각 ~120줄)를 `renderPersonaCard`/`renderFeatureCard` 함수로 추출해 **탭 그리드·통합검색 결과가 동일 카드 공유**(중복0, 디자인 동일). 기존 큐레이션 섹션은 이미 `!isSearching` 가드라 그대로 숨겨짐.
+- **마케팅 글쓰기 입력 가이드** (`MarketingBoard.tsx`, `5370fed`): 빈 입력창이 막막하다는 지적 → "💡 업종/상품+타깃+강조점" 작성 가이드 한 줄 + **예시 칩 4개**(`TOPIC_SAMPLES`, 클릭 시 입력창에 채워지고 자유 수정). placeholder도 가이드 형식과 통일.
+- ★**다크모드 폼 글자 안 보임 전역 해결** (`frontend/index.css`, `cb761da`): OS/브라우저 다크모드가 input·textarea **글자색을 흰색으로 반전** → 흰 배경 위에서 입력 글자 안 보임(마케팅 글쓰기·마케팅 자산 등 **112곳** 위험, 사장 2회 겪음). 112곳 개별 수정 대신 **전역 CSS 1곳**: `html{color-scheme:light}`(폼 자동반전 차단) + `:where(input,textarea,select){color:#1f2937;background:#fff}` + placeholder gray-400. ★**`:where()` 특이도 0** → 컴포넌트의 Tailwind `text-white`/`bg-gray-*`·인라인 style이 **항상 이김** → 의도적 다크 패널(어드민 등)은 안 깨짐. 신규 input도 자동 커버. 검증=Playwright `colorScheme:'dark'`로 라이트폼 가독성+다크패널 유지 둘 다. (라이트 환경에선 재현 안 되니 다크모드 캡처 필수.)
+- **'미래의 나'(나이변환) 메인 카드 추가** (`MainPageNew.tsx` FEATURES_GRID id20, `87ba0ec`): agetransform이 채팅 메뉴(FEATURE_REGISTRY)·핸들러(featureBoardOpeners)는 있었으나 FEATURES_GRID 누락 → 메인 카드·어드민 카드순서에 안 떴음. 어드민 카드순서 점검 중 발견. 클릭 핸들러는 기존 것 재사용.
+- **AI 사용량 대시보드 스크롤 수정** (`AdminPanel.tsx` AiUsagePanel, `c49e2fc`): 어드민 우측 콘텐츠 컨테이너가 `overflow-hidden`이라 각 패널이 **자체 `flex-1 overflow-y-auto`** 를 가져야 하는데 AiUsagePanel만 빠져 일별 비용 차트 아래가 잘림 → root에 추가. 전체 어드민 패널 14개 재점검=나머지 정상.
+- ★**어드민 패널 스크롤 패턴(교훈)**: 어드민 우측 컨테이너(`flex-1 flex flex-col overflow-hidden`)는 **각 패널이 root에 `flex-1 overflow-y-auto`를 직접 가져야** 스크롤됨. 새 어드민 패널 만들 때 이 클래스 빠뜨리면 내용 길어질 때 잘림.
+
+### 하이브리드 기능 의미검색 + 모바일/어드민 UX 묶음 (2026-07-02)
+메인 검색이 이름/설명 부분일치(LIKE)만이라 "파마"→헤어를 못 찾던 문제 해결 + 모바일/어드민 UX 3건. 전부 ai_mp master 배포, shared-api는 신규 라우트로 서버1 수동 배포. 상세·재사용 교훈은 별도 `doc/features/hybrid_feature_search.md` 참조.
+
+- **하이브리드 기능 의미검색** (`MainPageNew.tsx` + shared-api `routes/aimp/feature-search.ts`): 동의어 태그 `FEATURE_SYNONYMS`(기능 20개 key별 연관 키워드)로 이름/태그/설명 부분일치 **OR 동의어** 1차(`featureMatches()`) → **결과 0개일 때만** 350ms debounce 후 `POST /api/aimp/feature-search`로 AI 폴백(`aiSearchKeys` state). 서버는 프론트가 넘긴 items:{key,text}로만 판단(기능 정의는 프론트 단일소스). vercel.json 프록시 2줄. placeholder에 자연어 예시 노출("예: 파마하고싶어…")로 사용법 유도.
+  - ★모델: text-embedding-004(임베딩) 한국어 짧은검색 변별력0(오답)→claude CLI(정확하나 콜드스타트 4~13초)→**Gemini 2.5 Flash + `thinkingConfig.thinkingBudget:0`**(0.5~2초) 최종. 단순 분류엔 thinking 필히 끔. `getGeminiClient()` 직접 호출·배열은 정규식 파싱(parseAiJson은 객체전용)·`answerCache`.
+- **모바일 pull-to-refresh 차단** (`index.css`): `html,body { overscroll-behavior-y: contain }` — 모바일 크롬에서 화면 당겨 새로고침되는 것만 차단, 일반 스크롤은 유지.
+- **어드민 메뉴권한 탭 기능 검색창** (`AdminPanel.tsx` MenuLimitsPanel): 차감 기능 17개로 늘어 찾기 어려움 → 검색 state로 이름(한글)/키(marketing) 실시간 필터 + ✕지우기 + 결과없음 안내.
