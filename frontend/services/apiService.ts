@@ -877,6 +877,13 @@ export const adminApi = {
     // AI 기능 스카우트 일자별 아이디어
     getAiFeatureIdeas: () =>
         get<{ id: number; ideaDate: string; content: string; createdAt: string }[]>('/admin/ai-feature-ideas'),
+    // 토스 자동매매 봇 (읽기 전용)
+    getTossStatus: () =>
+        get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/status'),
+    getTossLogs: (limit = 100) =>
+        get<{ lines: string[]; total?: number }>(`/admin/toss-trader/logs?limit=${limit}`),
+    getTossOrders: (limit = 100) =>
+        get<{ lines: string[]; total?: number }>(`/admin/toss-trader/orders?limit=${limit}`),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),

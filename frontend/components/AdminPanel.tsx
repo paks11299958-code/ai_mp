@@ -17,6 +17,7 @@ import { WebtoonAdminPanel } from './admin/WebtoonAdminPanel';
 import { HeroCardAdminPanel } from './admin/HeroCardAdminPanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
+import { TossTraderPanel } from './admin/TossTraderPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -81,6 +82,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
                             { key: 'ai-ideas',      label: 'AI 아이디어', icon: 'Lightbulb' },
                             { key: 'sites',         label: '독립사이트', icon: 'Globe' },
+                            { key: 'toss-trader',   label: '토스 자동매매', icon: 'TrendingUp' },
                         ] },
                     ] as const;
                     // 현재 mainView가 속한 그룹을 활성 그룹으로
@@ -165,6 +167,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'ai-ideas' && <AiIdeasPanel />}
                 {mainView === 'marketing-assets' && <MarketingAssetsPanel />}
                 {mainView === 'sites' && <SitesPanel />}
+                {mainView === 'toss-trader' && <TossTraderPanel />}
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}
