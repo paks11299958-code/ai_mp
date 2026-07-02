@@ -242,6 +242,7 @@ const MenuLimitsPanel: React.FC = () => {
     const [edits, setEdits] = useState<Record<string, { dailyLimit: string; pointsCost: string }>>({});
     const [savedKey, setSavedKey] = useState<string | null>(null);
     const [error, setError] = useState('');
+    const [search, setSearch] = useState('');   // 기능이 많아 이름/키로 찾기
 
     useEffect(() => {
         fetch('/api/admin/menu-limits', { credentials: 'include' })
@@ -297,7 +298,12 @@ const MenuLimitsPanel: React.FC = () => {
         }
     };
 
-    const features = Object.keys(FEATURE_LABELS);
+    const q = search.trim().toLowerCase();
+    const features = Object.keys(FEATURE_LABELS).filter(feature =>
+        q === '' ||
+        feature.toLowerCase().includes(q) ||                        // 기능 키(예: marketing)
+        (FEATURE_LABELS[feature] ?? '').toLowerCase().includes(q)   // 한글 이름(예: 마케팅)
+    );
 
     if (loading) return <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">불러오는 중...</div>;
 
@@ -322,7 +328,30 @@ const MenuLimitsPanel: React.FC = () => {
                 </div>
             </div>
 
+            {/* 기능 검색 — 항목이 많아 이름/키로 빠르게 찾기 */}
+            <div className="mb-4 relative">
+                <Icon name="Search" size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                    type="text"
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="기능 이름으로 찾기 (예: 마케팅, 주식, marketing)"
+                    className="w-full pl-9 pr-8 py-2 text-sm bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                />
+                {search && (
+                    <button
+                        onClick={() => setSearch('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-xs px-1"
+                        aria-label="검색어 지우기"
+                    >✕</button>
+                )}
+            </div>
+
             {error && <p className="text-red-400 text-xs mb-4">{error}</p>}
+
+            {features.length === 0 && (
+                <p className="text-gray-500 text-sm text-center py-8">"{search}" 검색 결과가 없습니다.</p>
+            )}
 
             <div className="space-y-4">
                 {features.map(feature => (
