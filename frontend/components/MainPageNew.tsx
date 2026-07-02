@@ -655,6 +655,8 @@ const PersonaSelectPanel: React.FC<{
     const [termsModal, setTermsModal] = useState<'terms' | 'privacy' | null>(null);  // 사업자정보 푸터 약관
     const [featureSearchQuery, setFeatureSearchQuery] = useState('');
     const [featureCategory, setFeatureCategory] = useState<string | null>(null);   // null=전체
+    // 하이브리드 검색: 동의어로 못 찾은(0개) 검색어를 AI 의미검색으로 구제한 결과 key들.
+    const [aiSearchKeys, setAiSearchKeys] = useState<string[]>([]);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [showFavorites, setShowFavorites] = useState(false);   // 즐겨찾기 모달(메뉴에서 진입)
     const focusPersonaRef = useRef<HTMLDivElement | null>(null);
@@ -761,9 +763,41 @@ const PersonaSelectPanel: React.FC<{
         ? personas.filter(p =>
             p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q) || p.jobTitle?.toLowerCase().includes(q))
         : [];
-    const searchedFeatures = isSearching
-        ? FEATURES_GRID.filter(f => featureMatches(f, q))
-        : [];
+    // 동의어/이름 매칭 결과. 여기서 0개면 아래 useEffect가 AI 의미검색으로 구제 → aiSearchKeys.
+    const localFeatureMatches = isSearching ? FEATURES_GRID.filter(f => featureMatches(f, q)) : [];
+    const searchedFeatures = !isSearching
+        ? []
+        : localFeatureMatches.length > 0
+            ? localFeatureMatches
+            : FEATURES_GRID.filter(f => aiSearchKeys.includes(f.key));   // 동의어 0개 → AI 구제 결과
+
+    // ── 하이브리드 검색 AI 구제 ──────────────────────────────────────
+    // 동의어·이름으로 기능/페르소나 모두 0개일 때만 /api/feature-search(Vertex 임베딩)로 한 번 더 찾는다.
+    // 350ms debounce로 타이핑 중 과호출 방지. 검색어가 바뀌면 이전 AI 결과는 즉시 비운다.
+    const localHitCount = localFeatureMatches.length + searchedPersonas.length;
+    React.useEffect(() => {
+        if (!isSearching) { setAiSearchKeys([]); return; }
+        if (localHitCount > 0) { setAiSearchKeys([]); return; }   // 로컬로 찾았으면 AI 불필요
+        let cancelled = false;
+        const t = setTimeout(async () => {
+            try {
+                // 각 기능의 검색용 텍스트 = 이름 + 태그 + 설명 + 동의어(의미검색 정확도↑)
+                const items = FEATURES_GRID.map(f => ({
+                    key: f.key,
+                    text: [f.name, f.tag, f.desc, ...(FEATURE_SYNONYMS[f.key] ?? [])].filter(Boolean).join(' '),
+                }));
+                const res = await fetch('/api/feature-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: activeQuery, items }),
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (!cancelled && Array.isArray(data?.keys)) setAiSearchKeys(data.keys);
+            } catch { /* 실패해도 조용히 — 로컬 결과 그대로(0개) */ }
+        }, 350);
+        return () => { cancelled = true; clearTimeout(t); };
+    }, [activeQuery, isSearching, localHitCount]);
 
     // 그리드에 실제로 렌더할 목록: 검색 중이면 검색결과, 아니면 둘러보기(카테고리)
     const filtered = isSearching ? searchedPersonas : browsePersonas;

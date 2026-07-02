@@ -48,6 +48,8 @@
     { "source": "/api/hero-cards/:path*",         "destination": "http://34.50.27.95:3020/api/aimp/hero-cards/:path*" },
     { "source": "/api/marketing",                 "destination": "http://34.50.27.95:3020/api/aimp/marketing" },
     { "source": "/api/marketing/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/marketing/:path*" },
+    { "source": "/api/feature-search",            "destination": "http://34.50.27.95:3020/api/aimp/feature-search" },
+    { "source": "/api/feature-search/:path*",     "destination": "http://34.50.27.95:3020/api/aimp/feature-search/:path*" },
     { "source": "/api/swing-analysis",             "destination": "http://34.50.27.95:3020/api/aimp/swing-analysis" },
     { "source": "/api/swing-analysis/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/swing-analysis/:path*" },
     { "source": "/api/dart-import",                "destination": "http://34.50.27.95:3020/api/aimp/dart/import" },
