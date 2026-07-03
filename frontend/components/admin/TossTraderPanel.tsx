@@ -116,7 +116,7 @@ export const TossTraderPanel: React.FC = () => {
                     <TabBtn on={tab === 'order'} onClick={() => setTab('order')}>주문 로그</TabBtn>
                     <span className="ml-auto text-[10px] text-gray-500 self-center">15초마다 자동 새로고침</span>
                 </div>
-                <pre className="bg-black/60 rounded-lg p-3 text-[11px] leading-relaxed text-gray-300 overflow-auto max-h-96 whitespace-pre-wrap">
+                <pre className="bg-black/60 rounded-lg p-3 text-[11px] leading-relaxed text-gray-300 overflow-auto min-h-[24rem] max-h-[70vh] whitespace-pre-wrap resize-y">
                     {(tab === 'log' ? logs : orders).slice().reverse().join('\n') || '(로그 없음)'}
                 </pre>
             </div>
