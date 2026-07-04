@@ -98,6 +98,31 @@ export const TossTraderPanel: React.FC = () => {
                             : st.lastSignal === 'SELL' ? 'text-red-400 font-bold' : 'text-gray-300'
                         }>{st.lastSignal || '-'}</span>
                     </Card>
+                    {st.score != null && (
+                        <Card label={`매수 점수 (임계 ${st.buyThreshold ?? 80})`}>
+                            <div className="flex items-baseline gap-1">
+                                <span className={`font-bold text-lg ${Number(st.score) >= Number(st.buyThreshold ?? 80) ? 'text-green-400' : 'text-gray-200'}`}
+                                    style={{ fontVariantNumeric: 'tabular-nums' }}>{st.score}</span>
+                                <span className="text-[11px] text-gray-500">/ {st.buyThreshold ?? 80}</span>
+                            </div>
+                            <div className="mt-1 h-1.5 rounded bg-gray-700 overflow-hidden">
+                                <div className={Number(st.score) >= Number(st.buyThreshold ?? 80) ? 'bg-green-500 h-full' : 'bg-blue-500/70 h-full'}
+                                    style={{ width: `${Math.min(100, (Number(st.score) / Number(st.buyThreshold ?? 80)) * 100)}%` }} />
+                            </div>
+                        </Card>
+                    )}
+                    {st.strategy && (
+                        <Card label="전략">
+                            <span className="text-blue-300 font-medium">
+                                {st.strategy === 'ScoreTrend' ? '점수형 추세추종' : st.strategy}
+                            </span>
+                        </Card>
+                    )}
+                    <Card label="보유">
+                        {st.avgPrice
+                            ? <span className="text-gray-200">평단 {won(st.avgPrice)}</span>
+                            : <span className="text-gray-500">미보유</span>}
+                    </Card>
                     <Card label="써킷브레이커">
                         <span className={halted ? 'text-red-400 font-bold' : 'text-green-400'}>
                             {halted ? '🛑 정지됨' : '정상'}
