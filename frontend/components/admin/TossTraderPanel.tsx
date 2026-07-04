@@ -14,6 +14,7 @@ export const TossTraderPanel: React.FC = () => {
     const [orders, setOrders] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [tab, setTab] = useState<'log' | 'order'>('log');
+    const [expanded, setExpanded] = useState(false); // 로그 전체화면 모달
 
     const load = useCallback(async () => {
         try {
@@ -41,6 +42,17 @@ export const TossTraderPanel: React.FC = () => {
     const alive = data?.available && st?.alive;
     const stale = data?.staleSeconds != null && data.staleSeconds > 180; // 3분↑ 미갱신
     const halted = st?.halted;
+
+    // 서버가 최신순(앞=최신)으로 주므로 그대로 join하면 최신이 맨 위.
+    const logText = (tab === 'log' ? logs : orders).join('\n') || '(로그 없음)';
+
+    // ESC로 모달 닫기
+    useEffect(() => {
+        if (!expanded) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setExpanded(false); };
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [expanded]);
 
     return (
         <div className="p-4 space-y-4 text-gray-200">
@@ -111,15 +123,42 @@ export const TossTraderPanel: React.FC = () => {
 
             {/* 로그 뷰어 */}
             <div>
-                <div className="flex gap-2 mb-2">
+                <div className="flex gap-2 mb-2 items-center">
                     <TabBtn on={tab === 'log'} onClick={() => setTab('log')}>실행 로그</TabBtn>
                     <TabBtn on={tab === 'order'} onClick={() => setTab('order')}>주문 로그</TabBtn>
-                    <span className="ml-auto text-[10px] text-gray-500 self-center">15초마다 자동 새로고침</span>
+                    <button onClick={() => setExpanded(true)}
+                        className="ml-auto text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
+                        ⛶ 크게 보기
+                    </button>
+                    <span className="text-[10px] text-gray-500 self-center">15초 자동갱신</span>
                 </div>
                 <pre className="bg-black/60 rounded-lg p-3 text-[11px] leading-relaxed text-gray-300 overflow-auto min-h-[24rem] max-h-[70vh] whitespace-pre-wrap resize-y">
-                    {(tab === 'log' ? logs : orders).slice().reverse().join('\n') || '(로그 없음)'}
+                    {logText}
                 </pre>
             </div>
+
+            {/* 로그 전체화면 모달 */}
+            {expanded && (
+                <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col p-2 sm:p-4"
+                    onClick={() => setExpanded(false)}>
+                    <div className="flex-1 flex flex-col bg-gray-900 rounded-lg overflow-hidden max-w-6xl w-full mx-auto shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-700 bg-gray-800">
+                            <Icon name="TrendingUp" className="w-4 h-4 text-blue-400" />
+                            <span className="text-sm font-bold text-gray-100">토스 자동매매 로그</span>
+                            <TabBtn on={tab === 'log'} onClick={() => setTab('log')}>실행 로그</TabBtn>
+                            <TabBtn on={tab === 'order'} onClick={() => setTab('order')}>주문 로그</TabBtn>
+                            <span className="text-[10px] text-gray-500 hidden sm:inline">15초 자동갱신 · ESC로 닫기</span>
+                            <button onClick={() => setExpanded(false)}
+                                className="ml-auto text-gray-300 hover:text-white text-lg leading-none px-2"
+                                aria-label="닫기">✕</button>
+                        </div>
+                        <pre className="flex-1 bg-black/70 p-3 text-[11px] sm:text-xs leading-relaxed text-gray-200 overflow-auto whitespace-pre-wrap">
+                            {logText}
+                        </pre>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
