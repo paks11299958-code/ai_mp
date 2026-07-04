@@ -56,11 +56,14 @@
 - 종목/모드 바꾸려면 **ecosystem.config.js 수정 → `pm2 restart ecosystem.config.js --update-env`** (단순 `restart toss-trader`는 env 갱신 안 됨).
 - 주요 env: `MODE`(DEBUG/LIVE) · `SYMBOLS`(현재 251270 넷마블) · `MARKET_SYMBOL`(069500) · `BUY_THRESHOLD`(80) · `MAX_CONSECUTIVE_LOSSES`(3) · `DAILY_LOSS_LIMIT_PCT`(3) · `MAX_DAILY_MOVE_PCT`(15).
 
-## 어드민 모니터 탭 (읽기 전용)
+## 어드민 모니터 탭 (읽기 전용, 4탭)
 
 - 봇 → `logs/status.json` → shared-api `admin.ts` 라우트 3개(`/admin/toss-trader/{status,logs,orders}`) → 프론트 `TossTraderPanel.tsx`.
-- 상태 카드: 상태·모드·현재가(종목명)·최근 신호·**매수 점수(임계 대비 진행바)**·전략명·보유 평단·써킷브레이커·실현손익·상한.
-- 로그 뷰어: 실행/주문 로그(최신순), **⛶ 크게 보기 전체화면 모달**(✕/ESC/배경클릭 닫기), 15초 자동 새로고침.
+- **4탭 구조**(2026-07-04):
+  - **모니터링**: 상태·모드·현재가(종목명)·신호·매수 점수(진행바)·전략·보유·써킷·실현손익·연속손절 + 판단 근거.
+  - **평가**: 매수 점수를 **조건별 표**로(추세정배열·MA120·거래량·RSI·신고가·시장상승 / 기준·현재값·획득/배점·✓✗). 봇 `status.scoreDetail`(각 조건 `{ok,pts,max,val,label,crit}`) 사용. 보유 중(청산 모드)이면 detail 없음 → 안내. ★배점 조절(쓰기)은 추후 봇 원격제어.
+  - **로그**: 실행/주문 로그(최신순), ⛶ 크게 보기 전체화면 모달, 15초 자동 새로고침.
+  - **설정**: 봇 설정값 읽기 전용(종목·전략·임계·모드 / 상한·손실한도·연속손절·변동성 / 루프·캔들수). 3-B에서 편집 가능으로 진화 예정.
 - 주문 제어 없음(3-B에서 별도). ★로그는 최신순(`readLogLines`가 reverse) → 라우트 `slice(0, limit)`.
 
 ## 배포
