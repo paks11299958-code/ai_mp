@@ -88,3 +88,7 @@ html { color-scheme: light; }
 .ins-report thead th { background: #F5E6F7; color: #6D4FA0; font-weight: 700; padding: 6px 10px; border: 1px solid #E5D6F0; text-align: left; }
 .ins-report tbody td { padding: 6px 10px; border: 1px solid #F0E9DE; color: #3A3340; vertical-align: top; }
 .ins-report tbody tr:nth-child(even) td { background: #FBF8F3; }
+
+/* 모바일 주소창 대응(2026-07-06): 100vh는 접힌 주소창 높이까지 포함해 채팅 헤더가
+   화면 위로 잘림(크롬·네이버) → dvh(실제 가시 영역)로. 미지원 브라우저는 100vh 폴백. */
+.h-screen-dvh { height: 100vh; height: 100dvh; }

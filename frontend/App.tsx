@@ -728,7 +728,17 @@ const AppContent: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!isAdminMode) messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (isAdminMode) return;
+        // ★scrollIntoView는 body 등 조상 전부를 스크롤시켜 모바일에서 상단 헤더가
+        //   화면 밖으로 밀려났음(2026-07-06 수정) → 메시지 컨테이너(첫 스크롤 가능한
+        //   조상)만 스크롤한다.
+        const end = messagesEndRef.current;
+        if (!end) return;
+        let sc: HTMLElement | null = end.parentElement;
+        while (sc && sc.scrollHeight <= sc.clientHeight + 1) sc = sc.parentElement;
+        if (sc && sc !== document.body && sc !== document.documentElement) {
+            sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' });
+        }
     }, [currentSession.messages, isAdminMode]);
 
     // 포인트 부족(402) 전역 처리: 어느 기능에서든 충전 모달을 띄운다.
@@ -1450,7 +1460,7 @@ const AppContent: React.FC = () => {
                 }
                 .new-ui-chat-header * { color: #2D2438; }
             `}</style>
-        <div className="flex h-screen w-full"
+        <div className="flex h-screen-dvh w-full"
             style={{
                 background: `
                     radial-gradient(ellipse 50% 30% at 0% 0%, #F5E6F7 0%, transparent 60%),
