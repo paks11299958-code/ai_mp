@@ -10,6 +10,7 @@ interface TarotCardModalProps {
     onSend: (message: string) => void;   // 채팅 자동 전송 (App이 스트림 경로로 처리)
     onClose: () => void;
     isTyping: boolean;                    // 유나 응답 중엔 다음 뽑기 잠금
+    onMakeReport?: (drawn: DrawnCard[]) => void;  // 종합까지 끝난 뒤 감정서 생성(App이 해석 수집·저장)
 }
 
 // 메이저 아르카나 22장 (이름·로마숫자·상징)
@@ -51,9 +52,9 @@ function shuffled<T>(arr: T[]): T[] {
     return a;
 }
 
-type Stage = 'intro' | 'shuffling' | 'spread' | 'revealed' | 'finished';
+type Stage = 'intro' | 'shuffling' | 'spread' | 'revealed' | 'finished' | 'report';
 
-export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose, isTyping }) => {
+export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose, isTyping, onMakeReport }) => {
     const [stage, setStage] = useState<Stage>('intro');
     const [minimized, setMinimized] = useState(false);
     // 덱은 셔플 시점에 확정(뽑는 위치 = 그 카드). 역방향은 카드별 30%.
@@ -94,18 +95,23 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
     const askSummary = () => {
         const parts = drawn.map(d => `${d.position}: ${d.card.kr} ${d.reversed ? '역방향' : '정방향'}`).join(', ');
         onSend(`🔮 [타로 리딩 종합] 세 장을 모두 뽑았어 — ${parts}. 세 카드의 흐름을 연결해서 종합 리딩과 실행 조언을 들려줘.`);
-        onClose();
+        // 종합 응답까지 받으면 감정서(보고서)를 만들 수 있게 칩으로 대기
+        setStage('report');
+        setMinimized(true);
     };
 
     // ── 최소화 칩 (해석 읽는 동안) ─────────────────────────────
     if (minimized) {
-        const label = stage === 'finished'
-            ? '🔮 종합 리딩 듣기'
-            : `🔮 ${drawn.length + 1}번째 카드 뽑기 (${POSITIONS[drawn.length]})`;
+        const label = stage === 'report'
+            ? '📜 리딩 보고서 만들기'
+            : stage === 'finished'
+                ? '🔮 종합 리딩 듣기'
+                : `🔮 ${drawn.length + 1}번째 카드 뽑기 (${POSITIONS[drawn.length]})`;
         return (
             <button
                 onClick={() => {
                     if (isTyping) return;
+                    if (stage === 'report') { onMakeReport?.(drawn); onClose(); return; }
                     if (stage === 'finished') { askSummary(); return; }
                     setMinimized(false);
                 }}

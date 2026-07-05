@@ -182,6 +182,16 @@ export const personaApi = {
         del<Persona>(`/personas/${id}/chat-bg`),
 };
 
+// 🔮 타로 리딩 보고서
+export const tarotApi = {
+    save: (body: { question?: string | null; cards: any[]; interpretations: { position: string; text: string }[] }) =>
+        post<{ id: string; createdAt: string }>('/tarot-readings', body),
+    share: (id: string) =>
+        post<{ shareId: string }>(`/tarot-readings/${id}/share`, {}),
+    getShared: (shareId: string) =>
+        get<{ question: string | null; cardsJson: string; interpretationsJson: string; createdAt: string }>(`/tarot-readings/shared/${shareId}`),
+};
+
 // Categories
 export const categoryApi = {
     getAll: () =>

@@ -57,6 +57,8 @@ import { PartnerInfoModal } from './components/PartnerInfoModal';
 import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuModal';
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { TarotCardModal } from './components/TarotCardModal';
+import { TarotReportView, TarotReportData } from './components/TarotReportView';
+import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
 import { LookalikeResultCard } from './components/LookalikeResultCard';
@@ -146,6 +148,30 @@ const AppContent: React.FC = () => {
         if (f) return { kind: 'feature', key: f };
         return null;
     });
+
+    // 🔮 타로 보고서 공개 공유(?tr=shareId) — 비로그인도 열람 가능(바이럴 유입).
+    const [publicTarotShareId] = useState<string | null>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const tr = params.get('tr');
+        if (tr) {
+            params.delete('tr');
+            const qs = params.toString();
+            window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+        }
+        return tr;
+    });
+    const [publicTarotData, setPublicTarotData] = useState<TarotReportData | null>(null);
+    useEffect(() => {
+        if (!publicTarotShareId) return;
+        tarotApi.getShared(publicTarotShareId)
+            .then(r => setPublicTarotData({
+                question: r.question,
+                cards: JSON.parse(r.cardsJson),
+                interpretations: JSON.parse(r.interpretationsJson),
+                createdAt: r.createdAt,
+            }))
+            .catch(() => { /* 만료/비공개 링크 — 조용히 무시 */ });
+    }, [publicTarotShareId]);
 
     const [personas, setPersonas] = useState<Persona[]>(() => {
         try {
@@ -636,7 +662,31 @@ const AppContent: React.FC = () => {
 
     // 🔮 타로 뽑기 모달(유나): 카드 선택마다 채팅 자동 전송(스트림 경로=지식창고 주입)
     const [showTarotModal, setShowTarotModal] = useState(false);
+    const [tarotReport, setTarotReport] = useState<{ id?: string; data: TarotReportData } | null>(null);
     const tarotAutoSendRef = useRef(false);
+
+    // 풀 리딩 종료 후: 세션 메시지에서 카드별 해석(요청 마커 다음 model 응답)을 수집해 보고서 저장.
+    const makeTarotReport = (drawn: { card: { kr: string; en: string; no: string; sym: string }; reversed: boolean; position: string }[]) => {
+        const msgs = (sessions[activePersonaId]?.messages ?? []);
+        const markers = ['[타로 리딩 1/3', '[타로 리딩 2/3', '[타로 리딩 3/3', '[타로 리딩 종합]'];
+        const positions = ['과거', '현재', '미래', '종합'];
+        const interpretations: { position: string; text: string }[] = [];
+        for (let m = 0; m < markers.length; m++) {
+            const idx = msgs.findIndex(x => x.role === 'user' && x.text.includes(markers[m]));
+            if (idx < 0) continue;
+            const reply = msgs.slice(idx + 1).find(x => x.role === 'model' && x.text && !x.isStreaming);
+            if (reply) interpretations.push({ position: positions[m], text: reply.text });
+        }
+        if (interpretations.length < 2) {
+            alert('유나의 해석이 아직 도착하지 않았어요. 답변이 끝난 뒤 다시 눌러 주세요.');
+            return;
+        }
+        const cards = drawn.map(d => ({ position: d.position, kr: d.card.kr, en: d.card.en, no: d.card.no, sym: d.card.sym, reversed: d.reversed }));
+        const data: TarotReportData = { question: null, cards, interpretations, createdAt: new Date().toISOString() };
+        tarotApi.save({ question: null, cards, interpretations })
+            .then(r => setTarotReport({ id: r.id, data }))
+            .catch(() => setTarotReport({ data }));  // 저장 실패 시에도 보고서는 표시(공유만 불가)
+    };
     useEffect(() => {
         if (tarotAutoSendRef.current && inputText.trim()) {
             tarotAutoSendRef.current = false;
@@ -1011,7 +1061,15 @@ const AppContent: React.FC = () => {
                             onShareFeature={(key, label) => shareDeepLink('f', key, label)}
                         />
                     </AuthProvider>
-                    {shareToast && (
+                    {publicTarotData && (
+                    <TarotReportView
+                        data={publicTarotData}
+                        mode="public"
+                        onCta={() => setPublicTarotData(null)}
+                        onClose={() => setPublicTarotData(null)}
+                    />
+                )}
+                {shareToast && (
                         <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 bg-[#2D2438] border border-[#8E6FB7]/40 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
                             <span className="text-[#C4A9E0]">🔗</span>
                             {shareToast}
@@ -1193,6 +1251,14 @@ const AppContent: React.FC = () => {
                     onShareFeature={(key, label) => shareDeepLink('f', key, label)}
                 />
                 </AuthProvider>
+                {publicTarotData && (
+                    <TarotReportView
+                        data={publicTarotData}
+                        mode="public"
+                        onCta={() => setPublicTarotData(null)}
+                        onClose={() => setPublicTarotData(null)}
+                    />
+                )}
                 {shareToast && (
                     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 bg-[#2D2438] border border-[#8E6FB7]/40 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
                         <span className="text-[#C4A9E0]">🔗</span>
@@ -1300,6 +1366,14 @@ const AppContent: React.FC = () => {
                         <span className="text-yellow-400">🚧</span>
                         {comingSoonMsg}
                     </div>
+                )}
+                {publicTarotData && (
+                    <TarotReportView
+                        data={publicTarotData}
+                        mode="public"
+                        onCta={() => setPublicTarotData(null)}
+                        onClose={() => setPublicTarotData(null)}
+                    />
                 )}
                 {shareToast && (
                     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-[#2D2438] border border-[#8E6FB7]/40 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
@@ -1573,6 +1647,20 @@ const AppContent: React.FC = () => {
                     isTyping={currentSession.isTyping}
                     onSend={msg => { tarotAutoSendRef.current = true; setInputText(msg); }}
                     onClose={() => setShowTarotModal(false)}
+                    onMakeReport={makeTarotReport}
+                />
+            )}
+            {tarotReport && (
+                <TarotReportView
+                    data={tarotReport.data}
+                    mode="owner"
+                    onShare={async () => {
+                        if (!tarotReport.id) throw new Error('저장 실패로 공유 불가');
+                        const { shareId } = await tarotApi.share(tarotReport.id);
+                        const refQs = referralCode ? `&ref=${encodeURIComponent(referralCode)}` : '';
+                        return `${window.location.origin}/?tr=${shareId}${refQs}`;
+                    }}
+                    onClose={() => setTarotReport(null)}
                 />
             )}
 
