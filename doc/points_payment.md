@@ -180,3 +180,14 @@
 - ⚠️**raw fetch 함정**: 보드가 `fetch()`를 직접 쓰면 위 자동처리를 안 타서, 402가 와도 충전모달이 안 뜨고 에러 텍스트만 보인다. **수동으로 `if (res.status===402) window.dispatchEvent(new CustomEvent('insufficient-points'))` 추가 필수.**
 - 2026-06-24 누락 수정: 명품·보험·수학(공통 apiFetch 래퍼)·핫키워드(인라인)·오늘뉴스. PointModal z-index 50→70(보드 위 표시).
 - 점검법: `grep -c "await fetch"` (raw) vs `grep -cE "boardFetch|request|insufficient-points"` (안전).
+
+## 2026-07-05 전수 감사 + 보안·경합·환불 정비 (shared-api `eac077c`)
+
+차감 20지점·충전·환불 전수 감사 후 6건 수정. 배포 완료(서버1).
+
+- **quick-menu /activate 취약점 제거**: body.cost 그대로 차감(조작 가능)하던 것 → 서버가 MenuLimit('quick-menu') 단가 결정 + 일일한도 적용. 클라이언트 cost는 무시.
+- **경합(lost update) 방어**: `deductMenuPoints`/`deductPointsForMessage` = 읽은 잔액 그대로일 때만 감액(조건부 updateMany) + 재시도 3회. 환불·충전·가입보너스·레벨업 = `increment` 원자 가산. **원칙: 포인트 잔액에 절대값 set 금지.**
+- **실패 환불 신설**: AI쌤 수학 풀이(출제와 동일 패턴) + 채팅 응답 실패 시 `refundLastChatDeduction`(lib/points) — 최근 5분 내 CHAT 차감 1건당 CHAT_REFUND 1건(멱등), 무과금자(관리자) no-op. chat-stream catch에서 호출.
+- **menuAccess**: 잔액부족 요청은 menuUsageLog 미기록(일일한도 선소모 방지). MenuLimit 미등록 기능이 기본 50P 적용될 때 `[menuAccess][단가미등록]` 에러 로그(어드민 에러카드에서 발견 → 사장이 메뉴권한 탭에 등록).
+- **워커 환불액 정확화**: StockAnalysis·LuxuryVerification·UsedItemListing·InsuranceAnalysis에 `pointsCharged` 컬럼(raw SQL) — 요청 시 실제 차감액 저장, `workers/_shared` 환불이 이 값 우선(옛 레코드는 단가 재조회 폴백).
+- 검증 완료(양호 확인): 충전=패키지 화이트리스트+토스 서버검증+orderId UNIQUE(실DB 인덱스 확인) / AI 성공 후 차감군(관상·손금·닮은꼴·헤어·미래의나·전자책·웹툰) / 선차감+자동환불군(퀵메뉴·출제·핫키워드·마케팅·비동기워커 4종).

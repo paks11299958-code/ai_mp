@@ -315,3 +315,8 @@ CREATE INDEX IF NOT EXISTS "MarketingRequest_userId_idx" ON "MarketingRequest"("
 ### 회원 탈퇴(하드 삭제) 주의
 User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardReply / PartnerReply는 onDelete 미지정(Restrict)** → User 삭제 전 트랜잭션에서 선삭제 필요. 라우트(`DELETE /admin/users/:id` 어드민, `DELETE /api/aimp/user` 본인)가 이를 처리하므로 스키마/FK 변경 없이 무중단.
 
+
+## 2026-07-05 추가 (raw SQL — prisma db push 금지 원칙)
+
+- **`AgentGrowth`** (신규): 직원 AI(지우·지훈·아린) 자기개발 성장 기록. `id SERIAL PK, agent TEXT('dev'|'search'|'marketing'), kind TEXT(study|proposal_approved|proposal_rejected|idea_adopted|work_done), topic, summary, "wikiPath", xp INT, "createdAt"`. 인덱스 (agent,"createdAt"). XP 규칙·레벨 정본=rag/agent_growth.py. 어드민 '직원 성장' 탭(2단계 예정) 데이터 소스. ★schema.prisma 미반영(rag가 psycopg2 직접 사용) — shared-api에서 읽을 땐 $queryRaw.
+- **`pointsCharged INT?`** 컬럼 4개 테이블 추가: StockAnalysis·LuxuryVerification·UsedItemListing·InsuranceAnalysis — 비동기 분석 요청 시 실제 차감 포인트 저장(실패 환불 정확화). schema.prisma 반영됨(+generate).
