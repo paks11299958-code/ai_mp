@@ -1045,6 +1045,11 @@ const AppContent: React.FC = () => {
     const FEATURE_ACTIONS: Record<string, () => void> = {
         ...featureBoardOpeners,
         webtoon: () => setShowWebtoon(true),
+        tarot: () => setShowTarotModal(true),   // 유나 타로 뽑기(채팅 화면 전용 모달)
+        'tarot-daily': () => {                   // 오늘의 카드 — 채팅 자동 전송
+            tarotAutoSendRef.current = true;
+            setInputText('오늘 하루를 위한 카드 한 장을 뽑아서 해석해줘. 카드명과 정/역방향을 명시하고, 오늘의 조언으로 마무리해줘.');
+        },
     };
 
     // 닮은꼴 모달에 넘길 윤채린 personaId. 메인 카드에서 열면 activePersona가 아직

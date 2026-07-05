@@ -13,6 +13,8 @@
 import { Persona } from './types';
 
 export type FeatureKey =
+    | 'tarot'
+    | 'tarot-daily'
     | 'news'
     | 'stock'
     | 'hotkeyword'
@@ -41,6 +43,8 @@ export interface FeatureMeta {
 
 // 표시 순서 = 이 배열 순서. 어드민 체크박스도 이 순서로 렌더.
 export const FEATURE_REGISTRY: FeatureMeta[] = [
+    { key: 'tarot',       label: '타로점 보기',  icon: 'Sparkles',    color: '#7C3AED', bgColor: '#F3E8FF',                  borderColor: '#C4B5FD' },
+    { key: 'tarot-daily', label: '오늘의 카드',  icon: 'Moon',        color: '#B45309', bgColor: '#FEF3C7',                  borderColor: '#FCD34D' },
     { key: 'news',        label: '오늘뉴스',     icon: 'Newspaper',   color: '#5C7BA8', bgColor: '#E8EEF7',                  borderColor: '#9AAFCB' },
     { key: 'stock',       label: '주식 분석',    icon: 'TrendingUp',  color: '#2E6B32', bgColor: '#EAF5EB',                  borderColor: '#9EC4A0' },
     { key: 'hotkeyword',  label: '핫쇼핑키워드', icon: 'ShoppingBag', color: '#8B6020', bgColor: '#FEF6E8',                  borderColor: '#E2C9A0' },
