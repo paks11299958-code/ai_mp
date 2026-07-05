@@ -2144,7 +2144,7 @@ const AppContent: React.FC = () => {
                             );
                         })()}
 
-                        {activeImages.length > 0 && (() => {
+                        {(() => {
                             // 기능 키 → 보드 열기 핸들러는 본체 FEATURE_ACTIONS 재사용(메타는 FEATURE_REGISTRY 단일출처)
                             const standardCards = user
                                 ? getPersonaFeatureKeys(activePersona).map(key => {
@@ -2164,7 +2164,31 @@ const AppContent: React.FC = () => {
                                     onClick: () => handleQuickMenuSelect(menu, !!cfg.useBirthInfo),
                                 }));
                             })();
-                            return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={standardCards} featureChips={quickMenuChips} />;
+                            if (activeImages.length > 0) {
+                                return <PersonaImageViewer images={activeImages} onSelectMain={handleSwitchImage} userXp={user?.personaXp?.[activePersonaId] ?? 0} newUi={true} featureCards={standardCards} featureChips={quickMenuChips} />;
+                            }
+                            // ★갤러리 사진이 없는 페르소나(유나 등)도 퀵메뉴·기능 카드는 보여야 함
+                            //   (종전엔 사진 있는 페르소나만 렌더돼 퀵메뉴가 숨는 커플링 버그, 2026-07-06)
+                            if (standardCards.length === 0 && quickMenuChips.length === 0) return null;
+                            return (
+                                <div className="px-4 py-2.5 shrink-0 border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm">
+                                    <div className="max-w-4xl mx-auto flex items-center gap-2 flex-wrap">
+                                        {standardCards.map((c, i) => (
+                                            <button key={`f${i}`} onClick={c.onClick}
+                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap"
+                                                style={{ color: c.color, background: c.bgColor, borderColor: c.borderColor }}>
+                                                <Icon name={c.icon} size={13} />{c.label}
+                                            </button>
+                                        ))}
+                                        {quickMenuChips.map((c, i) => (
+                                            <button key={`q${i}`} onClick={c.onClick}
+                                                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2] transition-colors whitespace-nowrap">
+                                                {c.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
                         })()}
 
                         {/* 트리거 키워드 버튼 */}
