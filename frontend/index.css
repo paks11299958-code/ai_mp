@@ -91,4 +91,8 @@ html { color-scheme: light; }
 
 /* 모바일 주소창 대응(2026-07-06): 100vh는 접힌 주소창 높이까지 포함해 채팅 헤더가
    화면 위로 잘림(크롬·네이버) → dvh(실제 가시 영역)로. 미지원 브라우저는 100vh 폴백. */
-.h-screen-dvh { height: 100vh; height: 100dvh; }
+.h-screen-dvh {
+  height: 100vh;                         /* 최후 폴백 */
+  height: 100dvh;                        /* 표준 지원 브라우저(크롬 등) */
+  height: calc(var(--app-vh, 1dvh) * 100); /* JS 실측(주소창 상태 반영) — dvh 오구현 브라우저(네이버 등)까지 커버 */
+}

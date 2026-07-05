@@ -660,6 +660,22 @@ const AppContent: React.FC = () => {
         setTimeout(() => textareaRef.current?.focus(), 0);
     }, []);
 
+    // 📱모바일 실측 뷰포트 높이(--app-vh): dvh를 오구현한 브라우저(네이버 등)에서
+    //   주소창이 나타나며 상단 헤더를 가리는 문제 대응 — 주소창 상태가 바뀔 때마다
+    //   window.innerHeight 를 CSS 변수로 반영해 채팅 레이아웃이 항상 '보이는 영역'에 맞게.
+    useEffect(() => {
+        const setVh = () => document.documentElement.style.setProperty('--app-vh', `${window.innerHeight * 0.01}px`);
+        setVh();
+        window.addEventListener('resize', setVh);
+        window.addEventListener('orientationchange', setVh);
+        window.visualViewport?.addEventListener('resize', setVh);
+        return () => {
+            window.removeEventListener('resize', setVh);
+            window.removeEventListener('orientationchange', setVh);
+            window.visualViewport?.removeEventListener('resize', setVh);
+        };
+    }, []);
+
     // 🔮 타로 뽑기 모달(유나): 카드 선택마다 채팅 자동 전송(스트림 경로=지식창고 주입)
     const [tarotModalMode, setTarotModalMode] = useState<null | 'full' | 'daily'>(null);
     const [tarotReport, setTarotReport] = useState<{ id?: string; data: TarotReportData } | null>(null);
