@@ -902,8 +902,14 @@ export const adminApi = {
             summary: { chargePt: number; spent: number; granted: number; refund: number; outstandingPaid: number; outstandingBonus: number };
         }>(`/admin/point-settlement?days=${days}`),
     // 페르소나 반자동 생성: 이름·직업·카테고리 → AI가 4개 텍스트 필드 생성(검토 후 저장)
+    // 카테고리 미지정 시 suggestedCategory(기존명 or 신규명) 추천 포함(2026-07-05)
     generatePersona: (body: { name: string; jobTitle?: string; categoryId?: number | null }) =>
-        post<{ description: string; systemInstruction: string; identityPrompt: string; iconName: string; colorClass: string; usedExamples: string[] }>('/admin/personas/generate', body),
+        post<{ description: string; systemInstruction: string; identityPrompt: string; iconName: string; colorClass: string; usedExamples: string[]; suggestedCategory?: string | null; suggestedCategoryIsNew?: boolean }>('/admin/personas/generate', body),
+    // 지식창고 AI 구축(비동기): 시작 + 진행률 폴링
+    startKnowledgeBuild: (personaId: string) =>
+        post<{ started: boolean }>(`/admin/personas/${personaId}/knowledge-build`, {}),
+    getKnowledgeBuild: (personaId: string) =>
+        get<{ status: 'idle' | 'running' | 'done' | 'failed'; total?: number; done?: number; current?: string; docs?: { title: string; saved: number }[]; needsFactCheck?: boolean; error?: string }>(`/admin/personas/${personaId}/knowledge-build`),
 };
 
 export const chatApi = {

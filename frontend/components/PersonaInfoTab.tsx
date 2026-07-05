@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Persona, Category } from '../types';
-import { personaApi, adminApi } from '../services/apiService';
+import { personaApi, adminApi, categoryApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { FEATURE_REGISTRY } from '../personaFeatures';
 
@@ -92,6 +92,9 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
     const [isGenerating, setIsGenerating] = useState(false);
     const [generateError, setGenerateError] = useState<string | null>(null);
     const [generateNote, setGenerateNote] = useState<string | null>(null);
+    // AI 추천 카테고리(미지정 생성 시) + 이 화면에서 방금 만든 카테고리(부모 목록 갱신 전 표시용)
+    const [suggestedCat, setSuggestedCat] = useState<{ name: string; isNew: boolean } | null>(null);
+    const [localCat, setLocalCat] = useState<Category | null>(null);
 
     const handleAutoGenerate = async () => {
         if (!name.trim()) { setGenerateError('먼저 페르소나 이름을 입력해 주세요.'); return; }
@@ -105,6 +108,12 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
             if (r.colorClass) setColorClass(r.colorClass);
             const ex = r.usedExamples?.length ? ` (참고: ${r.usedExamples.join(', ')})` : '';
             setGenerateNote(`✨ AI가 채웠어요. 항목별로 검토·수정 후 저장하세요.${ex}`);
+            // 카테고리 미지정이었으면 AI 추천 표시(기존이면 바로 선택, 신규면 버튼으로 생성)
+            if (r.suggestedCategory) {
+                const existing = categories.find(c => c.name === r.suggestedCategory);
+                if (existing) { setSelectedCategoryId(existing.id); setSuggestedCat(null); }
+                else setSuggestedCat({ name: r.suggestedCategory, isNew: !!r.suggestedCategoryIsNew });
+            }
         } catch (e: any) {
             setGenerateError(e?.message || 'AI 생성에 실패했어요. 다시 시도해 주세요.');
         } finally {
@@ -319,7 +328,29 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                         {categories.map(cat => (
                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                         ))}
+                        {localCat && !categories.some(c => c.id === localCat.id) && (
+                            <option value={localCat.id}>{localCat.name}</option>
+                        )}
                     </select>
+                    {suggestedCat && (
+                        <div className="flex items-center gap-2 mt-1.5">
+                            <span className="text-[11px] text-purple-300">🤖 AI 추천 카테고리: {suggestedCat.name}</span>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        const created = await categoryApi.create(suggestedCat.name);
+                                        setLocalCat(created);
+                                        setSelectedCategoryId(created.id);
+                                        setSuggestedCat(null);
+                                    } catch { setGenerateError('카테고리 생성에 실패했어요.'); }
+                                }}
+                                className="text-[11px] px-2 py-0.5 rounded bg-purple-600 text-white hover:bg-purple-700"
+                            >
+                                ➕ 만들고 선택
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* AI 반자동 생성 — 이름·직업·카테고리만 넣고 누르면 아래 텍스트 필드를 AI가 채움 */}

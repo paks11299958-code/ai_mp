@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Persona } from '../types';
-import { knowledgeApi } from '../services/apiService';
+import { knowledgeApi, adminApi } from '../services/apiService';
 
 interface PersonaKnowledgeTabProps {
     personaId: string;
@@ -12,15 +12,84 @@ export const PersonaKnowledgeTab: React.FC<PersonaKnowledgeTabProps> = ({ person
     const [knowledgeTitle, setKnowledgeTitle] = useState('');
     const [knowledgeText, setKnowledgeText] = useState('');
     const [isUploadingKnowledge, setIsUploadingKnowledge] = useState(false);
+    // AI 지식창고 구축(비동기) 진행 상태
+    const [build, setBuild] = useState<{ status: string; total?: number; done?: number; current?: string; docs?: { title: string; saved: number }[]; needsFactCheck?: boolean; error?: string } | null>(null);
+    const [buildError, setBuildError] = useState<string | null>(null);
+
+    const refreshList = () => knowledgeApi.getAll(personaId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
 
     useEffect(() => {
-        knowledgeApi.getAll(personaId).then(setKnowledgeList).catch(() => setKnowledgeList([]));
+        refreshList();
+        // 진행 중이던 구축이 있으면 이어서 표시
+        adminApi.getKnowledgeBuild(personaId).then(j => { if (j.status !== 'idle') setBuild(j); }).catch(() => {});
     }, [personaId]);
+
+    // 구축 진행 중이면 4초 폴링(끝나면 목록 갱신)
+    useEffect(() => {
+        if (build?.status !== 'running') return;
+        const t = setInterval(async () => {
+            try {
+                const j = await adminApi.getKnowledgeBuild(personaId);
+                setBuild(j.status === 'idle' ? null : j);
+                if (j.status === 'done' || j.status === 'failed') refreshList();
+            } catch { /* 폴링 실패 무시 */ }
+        }, 4000);
+        return () => clearInterval(t);
+    }, [build?.status, personaId]);
+
+    const startBuild = async () => {
+        setBuildError(null);
+        try {
+            await adminApi.startKnowledgeBuild(personaId);
+            setBuild({ status: 'running', total: 0, done: 0, current: '준비 중…', docs: [] });
+        } catch (e: any) {
+            setBuildError(e?.message || '구축 시작에 실패했어요.');
+        }
+    };
 
     const activePersona = personas.find(p => p.id === personaId);
 
     return (
         <div className="p-6 max-w-2xl mx-auto space-y-6">
+            {/* AI 지식창고 구축 — 직업·캐릭터 기반 전문 지식 문서를 AI가 설계·생성 */}
+            <div className="bg-purple-900/20 border border-purple-500/30 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h3 className="text-sm font-bold text-purple-200">📚 AI로 지식창고 구축</h3>
+                        <p className="text-[11px] text-gray-400 mt-0.5">직업·캐릭터를 분석해 전문 지식 문서 8~12편을 자동 생성합니다 (수 분 소요, 같은 제목은 교체)</p>
+                    </div>
+                    <button
+                        onClick={startBuild}
+                        disabled={build?.status === 'running'}
+                        className="shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                    >
+                        {build?.status === 'running' ? '구축 중…' : '📚 AI 구축 시작'}
+                    </button>
+                </div>
+                {buildError && <div className="text-xs text-red-400">⚠ {buildError}</div>}
+                {build && build.status === 'running' && (
+                    <div>
+                        <div className="flex justify-between text-[11px] text-gray-300 mb-1">
+                            <span>{build.current || '작업 중…'}</span>
+                            <span>{build.done ?? 0}/{build.total || '?'}</span>
+                        </div>
+                        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                            <div className="h-full bg-purple-500 transition-all"
+                                 style={{ width: build.total ? `${Math.round(((build.done ?? 0) / build.total) * 100)}%` : '5%' }} />
+                        </div>
+                    </div>
+                )}
+                {build && build.status === 'done' && (
+                    <div className="text-xs text-emerald-300">
+                        ✅ 완료 — 문서 {build.docs?.filter(d => d.saved > 0).length ?? 0}편, 청크 {build.docs?.reduce((a, d) => a + d.saved, 0) ?? 0}개 저장
+                        {build.needsFactCheck && <span className="block text-amber-400 mt-1">⚠ 사실 정확성이 중요한 분야입니다 — 문서 내용을 검토해 주세요.</span>}
+                    </div>
+                )}
+                {build && build.status === 'failed' && (
+                    <div className="text-xs text-red-400">❌ 실패: {build.error} — 다시 시도해 주세요.</div>
+                )}
+            </div>
+
             {/* 업로드 폼 */}
             <div className="bg-gray-800/40 border border-gray-700/50 rounded-2xl p-5 space-y-4">
                 <h3 className="text-sm font-bold text-white">텍스트 지식 추가</h3>
