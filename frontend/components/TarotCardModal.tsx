@@ -11,6 +11,7 @@ interface TarotCardModalProps {
     onClose: () => void;
     isTyping: boolean;                    // 유나 응답 중엔 다음 뽑기 잠금
     onMakeReport?: (drawn: DrawnCard[]) => void;  // 종합까지 끝난 뒤 감정서 생성(App이 해석 수집·저장)
+    mode?: 'full' | 'daily';              // daily=오늘의 카드 1장(같은 셔플·플립 의식, 보고서 없음)
 }
 
 // 메이저 아르카나 22장 (이름·로마숫자·상징)
@@ -54,7 +55,9 @@ function shuffled<T>(arr: T[]): T[] {
 
 type Stage = 'intro' | 'shuffling' | 'spread' | 'revealed' | 'finished' | 'report';
 
-export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose, isTyping, onMakeReport }) => {
+export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose, isTyping, onMakeReport, mode = 'full' }) => {
+    // 뽑을 자리: 풀 리딩=과거/현재/미래 3장, 오늘의 카드=오늘 1장
+    const positions: readonly string[] = mode === 'daily' ? ['오늘'] : POSITIONS;
     const [stage, setStage] = useState<Stage>('intro');
     const [minimized, setMinimized] = useState(false);
     // 덱은 셔플 시점에 확정(뽑는 위치 = 그 카드). 역방향은 카드별 30%.
@@ -72,9 +75,9 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
     };
 
     const pick = (idx: number) => {
-        if (usedIdx.has(idx) || justRevealed || drawn.length >= 3) return;
+        if (usedIdx.has(idx) || justRevealed || drawn.length >= positions.length) return;
         const d = deck[idx];
-        const dc: DrawnCard = { card: d.card, reversed: d.reversed, position: POSITIONS[drawn.length] };
+        const dc: DrawnCard = { card: d.card, reversed: d.reversed, position: positions[drawn.length] };
         setUsedIdx(prev => new Set(prev).add(idx));
         setDrawn(prev => [...prev, dc]);
         setJustRevealed(dc);
@@ -83,8 +86,13 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
 
     const askYuna = () => {
         if (!justRevealed) return;
-        const n = drawn.length;
         const dir = justRevealed.reversed ? '역방향' : '정방향';
+        if (mode === 'daily') {
+            onSend(`🌙 [오늘의 카드] '${justRevealed.card.kr}(${justRevealed.card.en})' ${dir}을 뽑았어. 오늘 하루의 흐름과 조언으로 해석해줘.`);
+            onClose();   // 해석은 채팅으로 — 한 장 의식은 여기서 마무리
+            return;
+        }
+        const n = drawn.length;
         onSend(`🔮 [타로 리딩 ${n}/3 · ${justRevealed.position}] '${justRevealed.card.kr}(${justRevealed.card.en})' ${dir} 카드를 뽑았어. 이 카드를 ${justRevealed.position} 자리의 의미로 해석해줘.`);
         setJustRevealed(null);
         if (n >= 3) setStage('finished');
@@ -106,7 +114,7 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
             ? '📜 리딩 보고서 만들기'
             : stage === 'finished'
                 ? '🔮 종합 리딩 듣기'
-                : `🔮 ${drawn.length + 1}번째 카드 뽑기 (${POSITIONS[drawn.length]})`;
+                : `🔮 ${drawn.length + 1}번째 카드 뽑기 (${positions[drawn.length]})`;
         return (
             <button
                 onClick={() => {
@@ -153,7 +161,7 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
 
                 {/* 진행 슬롯: 과거/현재/미래 */}
                 <div className="flex justify-center gap-3 mt-3">
-                    {POSITIONS.map((pos, i) => {
+                    {positions.map((pos, i) => {
                         const d = drawn[i];
                         return (
                             <div key={pos} className="flex flex-col items-center gap-1">
@@ -172,8 +180,13 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
                         <div className="text-center space-y-5">
                             <div className="text-5xl">🔮</div>
                             <p className="text-purple-100/90 text-sm leading-relaxed">
-                                마음속으로 <b className="text-amber-200">궁금한 것 하나</b>를 떠올려 봐.<br />
-                                준비되면 카드를 섞을게. 세 장이 <b className="text-amber-200">과거 · 현재 · 미래</b>를 보여줄 거야.
+                                {mode === 'daily' ? (
+                                    <>오늘 하루를 마음에 떠올려 봐.<br />
+                                    카드를 섞고 <b className="text-amber-200">단 한 장</b> — 그 카드가 <b className="text-amber-200">오늘의 조언</b>을 들려줄 거야.</>
+                                ) : (
+                                    <>마음속으로 <b className="text-amber-200">궁금한 것 하나</b>를 떠올려 봐.<br />
+                                    준비되면 카드를 섞을게. 세 장이 <b className="text-amber-200">과거 · 현재 · 미래</b>를 보여줄 거야.</>
+                                )}
                             </p>
                             <button onClick={doShuffle}
                                 className="px-6 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-fuchsia-500 shadow-lg hover:opacity-90">
@@ -205,7 +218,7 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
                     {stage === 'spread' && (
                         <div className="w-full">
                             <p className="text-center text-purple-100/85 text-sm mb-3">
-                                <b className="text-amber-200">{POSITIONS[drawn.length]}</b>의 카드를 골라 봐 ({drawn.length + 1}/3)
+                                <b className="text-amber-200">{positions[drawn.length]}</b>의 카드를 골라 봐{positions.length > 1 ? ` (${drawn.length + 1}/${positions.length})` : ''}
                             </p>
                             <div className="flex overflow-x-auto pb-3 px-2" style={{ scrollbarWidth: 'thin' }}>
                                 {deck.map((_, i) => (

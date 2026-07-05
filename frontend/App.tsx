@@ -661,7 +661,7 @@ const AppContent: React.FC = () => {
     }, []);
 
     // 🔮 타로 뽑기 모달(유나): 카드 선택마다 채팅 자동 전송(스트림 경로=지식창고 주입)
-    const [showTarotModal, setShowTarotModal] = useState(false);
+    const [tarotModalMode, setTarotModalMode] = useState<null | 'full' | 'daily'>(null);
     const [tarotReport, setTarotReport] = useState<{ id?: string; data: TarotReportData } | null>(null);
     const tarotAutoSendRef = useRef(false);
 
@@ -1113,11 +1113,9 @@ const AppContent: React.FC = () => {
     const FEATURE_ACTIONS: Record<string, () => void> = {
         ...featureBoardOpeners,
         webtoon: () => setShowWebtoon(true),
-        tarot: () => setShowTarotModal(true),   // 유나 타로 뽑기(채팅 화면 전용 모달)
-        'tarot-daily': () => {                   // 오늘의 카드 — 채팅 자동 전송
-            tarotAutoSendRef.current = true;
-            setInputText('오늘 하루를 위한 카드 한 장을 뽑아서 해석해줘. 카드명과 정/역방향을 명시하고, 오늘의 조언으로 마무리해줘.');
-        },
+        tarot: () => setTarotModalMode('full'),        // 유나 타로 뽑기(3장 리딩)
+        'tarot-daily': () => setTarotModalMode('daily'), // 오늘의 카드 — 같은 셔플·플립 의식으로 1장(성의)
+
     };
 
     // 닮은꼴 모달에 넘길 윤채린 personaId. 메인 카드에서 열면 activePersona가 아직
@@ -1237,7 +1235,7 @@ const AppContent: React.FC = () => {
                         // 타로는 유나 채팅 화면 위 모달 + 카드마다 채팅 전송 → 페르소나 활성화+채팅 진입 선행.
                         if (featureKey === 'tarot') {
                             const tp = personas.find(p => p.name === personaName);
-                            if (tp) { goTo('chat'); handlePersonaClick(tp.id); setShowTarotModal(true); }
+                            if (tp) { goTo('chat'); handlePersonaClick(tp.id); setTarotModalMode('full'); }
                             return;
                         }
                         // 닮은꼴·헤어는 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
@@ -1652,11 +1650,12 @@ const AppContent: React.FC = () => {
 
             {/* 관상 분석 업로드 모달 */}
             {/* 🔮 타로 뽑기 — 최소화 칩 상태 유지 위해 완료/닫기 전 언마운트 금지 */}
-            {showTarotModal && (
+            {tarotModalMode && (
                 <TarotCardModal
+                    mode={tarotModalMode}
                     isTyping={currentSession.isTyping}
                     onSend={msg => { tarotAutoSendRef.current = true; setInputText(msg); }}
-                    onClose={() => setShowTarotModal(false)}
+                    onClose={() => setTarotModalMode(null)}
                     onMakeReport={makeTarotReport}
                 />
             )}
