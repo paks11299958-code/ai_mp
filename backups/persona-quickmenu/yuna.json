@@ -1,0 +1,15 @@
+{
+  "menus": [
+    {
+      "label": "🔮 타로점 보기",
+      "tarotModal": true,
+      "featured": true
+    },
+    {
+      "label": "🌙 오늘의 카드 한 장",
+      "prompt": "오늘 하루를 위한 카드 한 장을 뽑아서 해석해줘. 카드명과 정/역방향을 명시하고, 오늘의 조언으로 마무리해줘.",
+      "featured": true
+    }
+  ],
+  "useBirthInfo": false
+}

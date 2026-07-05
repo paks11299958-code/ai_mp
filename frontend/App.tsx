@@ -56,6 +56,7 @@ import { BirthInfoModal } from './components/BirthInfoModal';
 import { PartnerInfoModal } from './components/PartnerInfoModal';
 import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuModal';
 import { FaceReadingModal } from './components/FaceReadingModal';
+import { TarotCardModal } from './components/TarotCardModal';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
 import { LookalikeResultCard } from './components/LookalikeResultCard';
@@ -633,6 +634,17 @@ const AppContent: React.FC = () => {
         setTimeout(() => textareaRef.current?.focus(), 0);
     }, []);
 
+    // 🔮 타로 뽑기 모달(유나): 카드 선택마다 채팅 자동 전송(스트림 경로=지식창고 주입)
+    const [showTarotModal, setShowTarotModal] = useState(false);
+    const tarotAutoSendRef = useRef(false);
+    useEffect(() => {
+        if (tarotAutoSendRef.current && inputText.trim()) {
+            tarotAutoSendRef.current = false;
+            handleSendMessage();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [inputText]);
+
     const isAdmin = user?.role === 'ADMIN';
     // #4: 자식(MainPageNew/LandingPageNew)에 prop drilling 대신 Context로 공급.
     // onAdminClick은 화면별 전환 부수효과가 달라 prop 유지(AuthContext 미포함).
@@ -1043,7 +1055,7 @@ const AppContent: React.FC = () => {
 
     // 퀵메뉴(quickMenuJson) 메뉴 클릭 처리 — 상단 기능아이콘/하단 칩 공용.
     // (예전엔 하단 IIFE 안에만 있었으나 상단에서도 쓰려고 컴포넌트 레벨로 승격)
-    type QuickMenuItem = { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; ebookModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig };
+    type QuickMenuItem = { label: string; prompt?: string; placeholder?: string; partnerModal?: boolean; faceModal?: boolean; palmModal?: boolean; ebookModal?: boolean; tarotModal?: boolean; resultCard?: boolean; subMenu?: SubMenuConfig };
     const handleQuickMenuSelect = (menu: QuickMenuItem, useBirthInfo: boolean) => {
         if (menu.subMenu) {
             subMenuResultCardRef.current = menu.resultCard ?? false;
@@ -1052,6 +1064,7 @@ const AppContent: React.FC = () => {
         }
         if (menu.faceModal) { setShowFaceModal(true); return; }
         if (menu.palmModal) { setShowPalmModal(true); return; }
+        if (menu.tarotModal) { setShowTarotModal(true); return; }
         if (menu.ebookModal) { setShowEbookBoard(true); return; }
         if (menu.partnerModal) {
             setPendingPartnerMenu({ label: menu.label, prompt: menu.prompt ?? '' });
@@ -1543,6 +1556,15 @@ const AppContent: React.FC = () => {
             )}
 
             {/* 관상 분석 업로드 모달 */}
+            {/* 🔮 타로 뽑기 — 최소화 칩 상태 유지 위해 완료/닫기 전 언마운트 금지 */}
+            {showTarotModal && (
+                <TarotCardModal
+                    isTyping={currentSession.isTyping}
+                    onSend={msg => { tarotAutoSendRef.current = true; setInputText(msg); }}
+                    onClose={() => setShowTarotModal(false)}
+                />
+            )}
+
             {showFaceModal && (
                 <FaceReadingModal
                     personaId={activePersonaId}
