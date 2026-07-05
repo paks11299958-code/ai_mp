@@ -3,8 +3,21 @@ import { adminApi } from '../../services/apiService';
 
 // 이아린(마케팅) 산출물 조회 — /marketing 으로 생성된 리서치+초안을 목록·상세로 본다.
 // 재발행 없음: 조회 + 복사(클립보드)까지. 실제 발행은 사람이 직접.
-interface AssetRow { id: string; topic: string; channel: string; sourcesCount: number; createdAt: string }
-interface AssetDetail extends AssetRow { report: string; draft: string; filePath: string | null }
+interface AssetRow { id: string; topic: string; channel: string; sourcesCount: number; createdAt: string; score?: number | null }
+interface ScoreItem { pts: number; max: number; label: string; why: string }
+interface AssetDetail extends AssetRow { report: string; draft: string; filePath: string | null; scoreJson?: string | null }
+
+// AI 심사 점수 배지 색: 80+ 좋음 / 60+ 보통 / 미만 개선 필요
+const scoreColor = (s: number) =>
+    s >= 80 ? 'bg-green-500/20 text-green-300' : s >= 60 ? 'bg-yellow-500/20 text-yellow-300' : 'bg-red-500/20 text-red-300';
+
+const parseScoreItems = (raw?: string | null): ScoreItem[] => {
+    if (!raw) return [];
+    try {
+        const obj = JSON.parse(raw);
+        return Object.values(obj) as ScoreItem[];
+    } catch { return []; }
+};
 
 const CHANNEL_LABEL: Record<string, string> = { thread: '스레드', instagram: '인스타', blog: '블로그' };
 const CHANNEL_COLOR: Record<string, string> = {
@@ -63,6 +76,11 @@ export const MarketingAssetsPanel: React.FC = () => {
                                 {CHANNEL_LABEL[r.channel] || r.channel}
                             </span>
                             <span className="text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
+                            {typeof r.score === 'number' && (
+                                <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded ${scoreColor(r.score)}`}>
+                                    {r.score}점
+                                </span>
+                            )}
                         </div>
                         <div className="text-xs font-medium text-gray-100 line-clamp-2">{r.topic}</div>
                     </button>
@@ -86,6 +104,29 @@ export const MarketingAssetsPanel: React.FC = () => {
                             </div>
                             <h3 className="text-base font-bold text-white">{detail.topic}</h3>
                         </div>
+
+                        {/* AI 심사 점수 (루브릭 채점 — 참고용, 발행 판단은 사람이) */}
+                        {typeof detail.score === 'number' && (
+                            <section className="border border-white/10 rounded-lg p-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-xs font-semibold text-gray-200">🧐 AI 심사</span>
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded ${scoreColor(detail.score)}`}>
+                                        {detail.score}점 / 100
+                                    </span>
+                                </div>
+                                <div className="space-y-1">
+                                    {parseScoreItems(detail.scoreJson).map((it, i) => (
+                                        <div key={i} className="flex items-start gap-2 text-[11px]">
+                                            <span className="shrink-0 w-24 text-gray-400">{it.label}</span>
+                                            <span className={`shrink-0 font-bold ${it.pts >= it.max * 0.7 ? 'text-green-300' : it.pts >= it.max * 0.4 ? 'text-yellow-300' : 'text-red-300'}`}>
+                                                {it.pts}/{it.max}
+                                            </span>
+                                            <span className="text-gray-300">{it.why}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
                         {/* 콘텐츠 초안 */}
                         <section className="border border-white/10 rounded-lg">
