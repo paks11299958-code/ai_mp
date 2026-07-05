@@ -324,3 +324,8 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 ## 2026-07-06 추가
 
 - **`TarotReading`** (raw SQL+schema 반영): 타로 리딩 보고서. `id('tr_'), userId, question?, cardsJson, interpretationsJson, shareId?(UNIQUE, 옵트인 공유), createdAt`. 공개조회는 shareId 있는 행만·사용자정보 미포함. 상세 doc/features/tarot.md.
+
+## 2026-07-06~07 추가 (raw SQL)
+
+- **`EmbedGuestLog`**: 임베드 위젯 게스트 사용 로그(guestId·ip·personaId·createdAt) — 무료 3회/일 이중 제한 카운트. doc/features/embed_widget.md.
+- **`CompanyLedger` / `CompanyPlan`**: 주식회사 헤르메스 장부·주간계획(rag가 psycopg2 직접 사용, prisma 미반영이 정상 — shared-api에서 읽을 땐 $queryRaw). 잔액=SUM(amount) WHERE status IN ('recorded','paid'). 정관=company-wiki 운영헌장.
