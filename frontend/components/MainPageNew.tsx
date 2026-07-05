@@ -757,10 +757,16 @@ const PersonaSelectPanel: React.FC<{
     const isSearching = activeQuery.length > 0;
 
     // 탭별 둘러보기(검색 아님)용 필터: 카테고리만 적용
+    // ★둘러보기 정렬 = 생성일 최신순(사장 지시 2026-07-06) — 새 캐릭터/기능이 항상 앞에.
+    //   (서버 order 필드·GRID 배열 순서는 다른 화면용으로 불변, 여기서만 정렬)
     const browsePersonas = personas
-        .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId);
+        .filter(p => selectedCategoryId === null || p.categoryId === selectedCategoryId)
+        .slice()
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     const browseFeatures = FEATURES_GRID
-        .filter(f => featureCategory === null || f.category === featureCategory);
+        .filter(f => featureCategory === null || f.category === featureCategory)
+        .slice()
+        .sort((a, b) => ((b as any).releasedAt || '').localeCompare((a as any).releasedAt || '') || (b.id - a.id));
 
     // 통합검색 결과: 카테고리 무시하고 전체에서 검색어로만 매칭(검색은 발견이 목적)
     const q = activeQuery.toLowerCase();
