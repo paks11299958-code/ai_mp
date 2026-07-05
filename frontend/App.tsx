@@ -58,6 +58,7 @@ import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuMo
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { TarotCardModal } from './components/TarotCardModal';
 import { TarotReportView, TarotReportData } from './components/TarotReportView';
+import { EmbedChat } from './components/EmbedChat';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -2561,7 +2562,12 @@ const AppContent: React.FC = () => {
     );
 };
 
+// 🔌 임베드 위젯 모드(?embed=<personaId|이름>): 외부 사이트 iframe 전용 슬림 채팅.
+// AppContent(훅 수십 개) 진입 전에 분기해 훅 순서·무게 문제를 피한다.
+const EMBED_KEY = new URLSearchParams(window.location.search).get('embed');
+
 const App: React.FC = () => (
+    EMBED_KEY ? <EmbedChat personaKey={EMBED_KEY} /> :
     <PointsProvider>
         <AppContent />
     </PointsProvider>
