@@ -1166,6 +1166,12 @@ const AppContent: React.FC = () => {
                             if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
                             return;
                         }
+                        // 타로는 유나 채팅 화면 위 모달 + 카드마다 채팅 전송 → 페르소나 활성화+채팅 진입 선행.
+                        if (featureKey === 'tarot') {
+                            const tp = personas.find(p => p.name === personaName);
+                            if (tp) { goTo('chat'); handlePersonaClick(tp.id); setShowTarotModal(true); }
+                            return;
+                        }
                         // 닮은꼴·헤어는 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
                         if (featureKey === 'lookalike' || featureKey === 'hair') {
                             const fp = personas.find(p => p.name === personaName);
