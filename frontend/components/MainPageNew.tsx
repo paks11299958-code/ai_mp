@@ -733,6 +733,8 @@ const PersonaSelectPanel: React.FC<{
             .slice(0, 16);
     }, [personas]);
     const [rankedPersonas, setRankedPersonas] = useState<Persona[]>([]);
+    // 홈 리스트 모드: 기본=최신 AI(생성일 순, 신캐릭터 발견 유도). 랭킹은 토글+하단 탭.
+    const [homeListMode, setHomeListMode] = useState<'latest' | 'ranking'>('latest');
     const [totalSessions, setTotalSessions] = useState(0);  // 히어로 통계 '누적 대화수' (랭킹 sessionCount 합계)
     useEffect(() => {
         let alive = true;
@@ -1415,15 +1417,31 @@ const PersonaSelectPanel: React.FC<{
                 {/* '이어서 대화' 섹션 제거(2026-06-24): 정보 과부하 해소 + 채팅 헤더 '최근 페르소나' 칩이
                     복귀 동선 대체. 첫 화면 상단 = 오늘의 추천 → 새로운 기능 → AI 페르소나 랭킹 3단. */}
 
-                {/* AI 페르소나 랭킹 — 세션 수 인기순(서버 /ranking). 상위 6명 세로 리스트 + 역할 배지·대화수. 검색 중이면 숨김 */}
+                {/* 🆕 최신 AI(기본, 생성일 최신순+데뷔일 배지) ↔ 🏆 랭킹(세션 수 인기순) 토글.
+                    랭킹은 하단 탭에도 있어 홈 기본은 '새 캐릭터 발견'에 양보(2026-07-06 사장 지시). 검색 중이면 숨김 */}
                 {!isSearching && newPersonas.length > 0 && (
                     <div id="mpn-ranking" style={{ marginBottom: 18 }}>
-                        <SectionTitle>🏆 AI 페르소나 랭킹</SectionTitle>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                            <SectionTitle>{homeListMode === 'latest' ? '🆕 최신 AI' : '🏆 AI 페르소나 랭킹'}</SectionTitle>
+                            <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                                {([['latest', '최신'], ['ranking', '랭킹']] as const).map(([mode, label]) => (
+                                    <button key={mode} onClick={() => setHomeListMode(mode)} style={{
+                                        fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 999,
+                                        cursor: 'pointer', transition: 'all .15s',
+                                        border: `1px solid ${homeListMode === mode ? T.accent : T.line}`,
+                                        background: homeListMode === mode ? `${T.accent}18` : T.panel,
+                                        color: homeListMode === mode ? T.accent : T.inkMute,
+                                    }}>{label}</button>
+                                ))}
+                            </div>
+                        </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 9 }}>
-                            {newPersonas.slice(0, 6).map((p, i) => {
-                                const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null;
+                            {(homeListMode === 'latest' ? fallbackPersonas : newPersonas).slice(0, 6).map((p, i) => {
+                                const medal = homeListMode === 'ranking' ? (i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null) : null;
                                 const role = p.category?.name || p.jobTitle;
-                                const cnt = (p as any).sessionCount as number | undefined;
+                                const cnt = homeListMode === 'ranking' ? ((p as any).sessionCount as number | undefined) : undefined;
+                                const debut = homeListMode === 'latest' && p.createdAt ? new Date(p.createdAt) : null;
+                                const isNewbie = !!(debut && (Date.now() - debut.getTime()) < 14 * 86400000);
                                 return (
                                 <button key={`rk-${p.id}`} onClick={() => onSelect(p.id)} style={{
                                     display: 'flex', alignItems: 'center', gap: 11, textAlign: 'left',
@@ -1434,9 +1452,9 @@ const PersonaSelectPanel: React.FC<{
                                     onMouseLeave={e => { e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'none'; }}
                                 >
                                     {/* 순위 */}
-                                    <span style={{ flexShrink: 0, width: 18, textAlign: 'center', fontWeight: 800, fontSize: medal ? 16 : 15, color: medal ? undefined : T.inkMute }}>{medal ?? (i + 1)}</span>
+                                    <span style={{ flexShrink: 0, width: 18, textAlign: 'center', fontWeight: 800, fontSize: medal || isNewbie ? 16 : 15, color: medal || isNewbie ? undefined : T.inkMute }}>{medal ?? (isNewbie ? '🆕' : i + 1)}</span>
                                     {/* 아바타 */}
-                                    <div style={{ flexShrink: 0, width: 46, height: 46, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${i < 3 ? T.gold : `${T.accent}33`}`, background: T.lineSoft }}>
+                                    <div style={{ flexShrink: 0, width: 46, height: 46, borderRadius: '50%', overflow: 'hidden', border: `2px solid ${homeListMode === 'ranking' && i < 3 ? T.gold : `${T.accent}33`}`, background: T.lineSoft }}>
                                         {p.imageUrl
                                             ? <img src={p.imageUrl} alt={p.name} draggable={false} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, color: T.inkMute }}>{p.name[0]}</div>}
@@ -1453,9 +1471,17 @@ const PersonaSelectPanel: React.FC<{
                                             <div style={{ fontSize: 12, color: T.inkMute, marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.jobTitle}</div>
                                         )}
                                     </div>
-                                    {/* 대화수 */}
+                                    {/* 우측: 랭킹=대화수 / 최신=데뷔일 */}
                                     {cnt != null && cnt > 0 && (
                                         <span style={{ flexShrink: 0, fontSize: 11.5, color: T.inkMute, fontWeight: 600 }}>{formatCount(cnt)} 대화</span>
+                                    )}
+                                    {debut && (
+                                        <span style={{ flexShrink: 0, fontSize: 11.5, fontWeight: 700,
+                                                       color: isNewbie ? T.accent : T.inkMute,
+                                                       background: isNewbie ? `${T.accent}14` : 'transparent',
+                                                       padding: isNewbie ? '3px 8px' : 0, borderRadius: 8 }}>
+                                            {debut.getMonth() + 1}/{debut.getDate()} 데뷔
+                                        </span>
                                     )}
                                 </button>
                                 );
