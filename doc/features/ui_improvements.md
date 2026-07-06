@@ -436,3 +436,8 @@ omd 시안(`aichat-main-mobile`)을 **통째 교체 대신 부분 채택**으로
   - ★모델: text-embedding-004(임베딩) 한국어 짧은검색 변별력0(오답)→claude CLI(정확하나 콜드스타트 4~13초)→**Gemini 2.5 Flash + `thinkingConfig.thinkingBudget:0`**(0.5~2초) 최종. 단순 분류엔 thinking 필히 끔. `getGeminiClient()` 직접 호출·배열은 정규식 파싱(parseAiJson은 객체전용)·`answerCache`.
 - **모바일 pull-to-refresh 차단** (`index.css`): `html,body { overscroll-behavior-y: contain }` — 모바일 크롬에서 화면 당겨 새로고침되는 것만 차단, 일반 스크롤은 유지.
 - **어드민 메뉴권한 탭 기능 검색창** (`AdminPanel.tsx` MenuLimitsPanel): 차감 기능 17개로 늘어 찾기 어려움 → 검색 state로 이름(한글)/키(marketing) 실시간 필터 + ✕지우기 + 결과없음 안내.
+
+## 2026-07-06 — 토스 자동매매 로그 뷰어 (어드민)
+
+- **KST 표시 변환** (`TossTraderPanel.tsx` `toKstLine()`): 봇 로그(trader.log/orders.log)는 서버1이 UTC로 기록 → 화면 표시만 행 맨 앞 타임스탬프를 KST(+9h)로 변환(원본 파일은 UTC 유지 — 토스 '미등록 IP' 문자 대조법 등 운영 방식 불변). 라벨에 "한국시간" 명시.
+- **모바일 스크롤바 항상 표시** (`.toss-log-scroll`): 모바일 브라우저 오버레이 스크롤바가 기본 숨김이라 로그 위치 파악 불가 → `::-webkit-scrollbar` `-webkit-appearance:none`+두께 8px로 강제 표시(파이어폭스 `scrollbar-width:thin` 병행). 인라인 뷰어+전체화면 모달 둘 다 적용. 컴포넌트 내 `<style>` 1블록 패턴.
