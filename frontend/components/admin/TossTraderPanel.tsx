@@ -10,6 +10,25 @@ import { Icon } from '../Icons';
 const won = (n: any) => (n == null ? '-' : Number(n).toLocaleString() + '원');
 const pct = (n: any) => (n == null ? '-' : Number(n) + '%');
 
+// 봇 로그(trader.log/orders.log)는 서버1이 UTC로 기록 → 표시할 때 KST(+9h)로 변환.
+// 행 맨 앞 "YYYY-MM-DD HH:MM:SS(,ms)" 만 치환하고 나머지 본문은 그대로 둔다.
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const toKstLine = (line: string) =>
+    line.replace(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})(?:,\d+)?/, (m, d, t) => {
+        const utc = new Date(`${d}T${t}Z`);
+        if (isNaN(utc.getTime())) return m;
+        const k = new Date(utc.getTime() + 9 * 3600 * 1000);
+        return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())} ${pad2(k.getUTCHours())}:${pad2(k.getUTCMinutes())}:${pad2(k.getUTCSeconds())}`;
+    });
+
+// 모바일은 오버레이 스크롤바가 기본 숨김이라 로그 위치를 알 수 없음 → 항상 보이게 강제.
+const LOG_SCROLL_CSS = `
+.toss-log-scroll { -webkit-overflow-scrolling: touch; scrollbar-width: thin; scrollbar-color: #6b7280 rgba(255,255,255,0.08); }
+.toss-log-scroll::-webkit-scrollbar { -webkit-appearance: none; width: 8px; height: 8px; }
+.toss-log-scroll::-webkit-scrollbar-thumb { background: #6b7280; border-radius: 4px; }
+.toss-log-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.08); border-radius: 4px; }
+`;
+
 type View = 'monitor' | 'score' | 'log' | 'settings';
 
 export const TossTraderPanel: React.FC = () => {
@@ -48,8 +67,8 @@ export const TossTraderPanel: React.FC = () => {
     const stale = data?.staleSeconds != null && data.staleSeconds > 180; // 3분↑ 미갱신
     const halted = st?.halted;
 
-    // 서버가 최신순(앞=최신)으로 주므로 그대로 join하면 최신이 맨 위.
-    const logText = (logTab === 'log' ? logs : orders).join('\n') || '(로그 없음)';
+    // 서버가 최신순(앞=최신)으로 주므로 그대로 join하면 최신이 맨 위. 표시 시각은 KST 변환.
+    const logText = (logTab === 'log' ? logs : orders).map(toKstLine).join('\n') || '(로그 없음)';
 
     // ESC로 모달 닫기
     useEffect(() => {
@@ -61,6 +80,7 @@ export const TossTraderPanel: React.FC = () => {
 
     return (
         <div className="p-4 space-y-4 text-gray-200">
+            <style>{LOG_SCROLL_CSS}</style>
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
@@ -236,9 +256,9 @@ export const TossTraderPanel: React.FC = () => {
                             className="ml-auto text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
                             ⛶ 크게 보기
                         </button>
-                        <span className="text-[10px] text-gray-500 self-center">15초 자동갱신</span>
+                        <span className="text-[10px] text-gray-500 self-center">한국시간 · 15초 자동갱신</span>
                     </div>
-                    <pre className="bg-black/60 rounded-lg p-3 text-[11px] leading-relaxed text-gray-300 overflow-auto min-h-[24rem] max-h-[70vh] whitespace-pre-wrap resize-y">
+                    <pre className="toss-log-scroll bg-black/60 rounded-lg p-3 text-[11px] leading-relaxed text-gray-300 overflow-auto min-h-[24rem] max-h-[70vh] whitespace-pre-wrap resize-y">
                         {logText}
                     </pre>
                 </div>
@@ -283,12 +303,12 @@ export const TossTraderPanel: React.FC = () => {
                             <span className="text-sm font-bold text-gray-100">토스 자동매매 로그</span>
                             <TabBtn on={logTab === 'log'} onClick={() => setLogTab('log')}>실행 로그</TabBtn>
                             <TabBtn on={logTab === 'order'} onClick={() => setLogTab('order')}>주문 로그</TabBtn>
-                            <span className="text-[10px] text-gray-500 hidden sm:inline">15초 자동갱신 · ESC로 닫기</span>
+                            <span className="text-[10px] text-gray-500 hidden sm:inline">한국시간 · 15초 자동갱신 · ESC로 닫기</span>
                             <button onClick={() => setExpanded(false)}
                                 className="ml-auto text-gray-300 hover:text-white text-lg leading-none px-2"
                                 aria-label="닫기">✕</button>
                         </div>
-                        <pre className="flex-1 bg-black/70 p-3 text-[11px] sm:text-xs leading-relaxed text-gray-200 overflow-auto whitespace-pre-wrap">
+                        <pre className="toss-log-scroll flex-1 bg-black/70 p-3 text-[11px] sm:text-xs leading-relaxed text-gray-200 overflow-auto whitespace-pre-wrap">
                             {logText}
                         </pre>
                     </div>
