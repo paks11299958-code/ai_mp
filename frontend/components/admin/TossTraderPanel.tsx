@@ -197,6 +197,9 @@ export const TossTraderPanel: React.FC = () => {
                                 {alive ? (stale ? '⚠️ 응답없음' : '🟢 작동중') : '🔴 중지'}
                             </span>
                             {stale && <div className="text-[10px] text-red-300 mt-0.5">{data.staleSeconds}s 미갱신</div>}
+                            {alive && !stale && st.marketOpen === false && (
+                                <div className="text-[10px] text-blue-300 mt-0.5">🌙 장외 대기(평일 09:00~15:30 외)</div>
+                            )}
                         </Card>
                         <Card label="모드">
                             <span className={st.mode === 'LIVE' ? 'text-red-400 font-bold' : 'text-blue-300 font-bold'}>
@@ -257,6 +260,34 @@ export const TossTraderPanel: React.FC = () => {
                     {st.signalReason && (
                         <div className="text-xs text-gray-400 bg-gray-800/60 rounded px-3 py-2">
                             판단 근거: {st.signalReason}
+                        </div>
+                    )}
+
+                    {/* 감시 종목 목록 (⑤ Phase 2/3 — 선택∪보유 종목별 스냅샷) */}
+                    {Array.isArray(st.symbols) && st.symbols.length > 0 && (
+                        <div className="bg-gray-800 rounded-lg overflow-hidden">
+                            <div className="text-[11px] font-medium text-gray-400 px-3 py-2 border-b border-gray-700 bg-gray-800/80">
+                                감시 종목 {st.symbols.length}개
+                                {Array.isArray(st.selectedSymbols) && <span className="text-gray-500"> · 웹 선택 {st.selectedSymbols.length}개 · 동시보유 한도 {st.maxPositions ?? '-'}</span>}
+                            </div>
+                            <div className="divide-y divide-gray-700/60">
+                                {st.symbols.map((s: any) => (
+                                    <div key={s.symbol} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 items-center text-sm">
+                                        <span className="text-gray-200">
+                                            {s.symbolName || s.symbol} <span className="text-[10px] text-gray-500">{s.symbol}</span>
+                                            {s.avgPrice ? <span className="ml-1.5 text-[10px] text-amber-300">보유 평단 {won(s.avgPrice)}</span> : null}
+                                        </span>
+                                        <span className="text-right text-[12px] text-gray-300" style={{ fontVariantNumeric: 'tabular-nums' }}>{won(s.lastPrice)}</span>
+                                        <span className="text-right w-14 font-bold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                            <span className={Number(s.score) >= Number(st.buyThreshold ?? 80) ? 'text-green-400' : 'text-gray-400'}>{s.score ?? '-'}</span>
+                                            <span className="text-[10px] text-gray-600">점</span>
+                                        </span>
+                                        <span className={`text-right w-12 text-xs font-medium ${s.lastSignal === 'BUY' ? 'text-green-400' : s.lastSignal === 'SELL' ? 'text-red-400' : 'text-gray-400'}`}>
+                                            {s.lastSignal}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
@@ -509,9 +540,15 @@ export const TossTraderPanel: React.FC = () => {
                         <Row label="연속 손절 차단">{st.maxConsecutiveLosses ?? '-'}회</Row>
                         <Row label="변동성 필터">일일 변동 {pct(st.maxDailyMovePct)} 이상 진입 거부</Row>
                     </SettingsSection>
+                    <SettingsSection title="자금 배분 · 선택 매매">
+                        <Row label="최대 동시 보유">{st.maxPositions ?? '-'}종목</Row>
+                        <Row label="종목당 투입 한도">{won(st.perSymbolLimitKrw)}</Row>
+                        <Row label="웹 선택 상한">{st.maxSelectedSymbols ?? '-'}종목</Row>
+                    </SettingsSection>
                     <SettingsSection title="운영">
                         <Row label="루프 간격">{st.loopIntervalSeconds ?? '-'}초</Row>
                         <Row label="캔들 조회 수">{st.candleCount ?? '-'}봉</Row>
+                        <Row label="장시간 가드">{st.marketHoursOnly ? '켜짐 — 평일 09:00~15:30만 판단·주문' : '꺼짐(24시간 폴링)'}</Row>
                     </SettingsSection>
                 </div>
             )}
