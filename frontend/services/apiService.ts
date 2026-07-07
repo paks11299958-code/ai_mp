@@ -887,6 +887,13 @@ export const adminApi = {
     // AI 기능 스카우트 일자별 아이디어
     getAiFeatureIdeas: () =>
         get<{ id: number; ideaDate: string; content: string; createdAt: string }[]>('/admin/ai-feature-ideas'),
+    // 레퍼럴 지표 (바이럴 측정, 2026-07-07)
+    referralStats: () =>
+        get<{
+            funnel: { visits: number; visitCodes: number; visits7d: number; signups: number; signups7d: number; rewarded: number; codeHolders: number };
+            top: { code: string; invited: number; rewarded: number; owner_name: string | null }[];
+            dailyVisits: { day: string; n: number }[];
+        }>('/admin/referral-stats'),
     // 토스 자동매매 봇 (읽기 전용)
     getTossStatus: () =>
         get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/status'),

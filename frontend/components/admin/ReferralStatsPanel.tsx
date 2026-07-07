@@ -1,0 +1,102 @@
+import React, { useEffect, useState } from 'react';
+import { adminApi } from '../../services/apiService';
+
+// 레퍼럴(추천인) 지표 패널 (2026-07-07 바이럴 측정 Phase1)
+// 퍼널: 링크 방문 → 추천 가입 → 보상 지급(활성). 방문은 ReferralVisit(IP해시 일1회 dedupe) 기준.
+
+interface Funnel {
+    visits: number; visitCodes: number; visits7d: number;
+    signups: number; signups7d: number; rewarded: number; codeHolders: number;
+}
+interface TopRow { code: string; invited: number; rewarded: number; owner_name: string | null }
+interface DailyRow { day: string; n: number }
+
+export const ReferralStatsPanel: React.FC = () => {
+    const [funnel, setFunnel] = useState<Funnel | null>(null);
+    const [top, setTop] = useState<TopRow[]>([]);
+    const [daily, setDaily] = useState<DailyRow[]>([]);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        adminApi.referralStats()
+            .then(d => { setFunnel(d.funnel); setTop(d.top); setDaily(d.dailyVisits); })
+            .catch(e => setError(e?.message || '조회 실패'));
+    }, []);
+
+    if (error) return <div className="p-4 text-red-400 text-sm">레퍼럴 통계 조회 실패: {error}</div>;
+    if (!funnel) return <div className="p-4 text-gray-400 text-sm">불러오는 중…</div>;
+
+    const conv = (a: number, b: number) => (b > 0 ? `${Math.round((a / b) * 100)}%` : '—');
+    const maxDaily = Math.max(1, ...daily.map(d => d.n));
+
+    return (
+        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+            <div>
+                <p className="text-sm font-semibold text-white mb-1">레퍼럴 퍼널</p>
+                <p className="text-xs text-gray-500 mb-3">방문(링크 클릭) → 가입(추천 코드로) → 활성(보상 지급). 방문은 07-07부터 집계.</p>
+                <div className="grid grid-cols-3 gap-3">
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
+                        <p className="text-xs text-gray-400">링크 방문</p>
+                        <p className="text-2xl font-bold text-white">{funnel.visits}</p>
+                        <p className="text-[11px] text-gray-500">최근 7일 {funnel.visits7d} · 코드 {funnel.visitCodes}종</p>
+                    </div>
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
+                        <p className="text-xs text-gray-400">추천 가입</p>
+                        <p className="text-2xl font-bold text-purple-300">{funnel.signups}</p>
+                        <p className="text-[11px] text-gray-500">최근 7일 {funnel.signups7d} · 방문→가입 {conv(funnel.signups, funnel.visits)}</p>
+                    </div>
+                    <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
+                        <p className="text-xs text-gray-400">보상 지급(활성)</p>
+                        <p className="text-2xl font-bold text-yellow-300">{funnel.rewarded}</p>
+                        <p className="text-[11px] text-gray-500">가입→활성 {conv(funnel.rewarded, funnel.signups)} · 코드 보유 {funnel.codeHolders}명</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <p className="text-sm font-semibold text-white mb-2">일별 링크 방문 (최근 14일)</p>
+                {daily.length === 0 ? (
+                    <p className="text-xs text-gray-500">아직 방문 기록이 없습니다.</p>
+                ) : (
+                    <div className="flex items-end gap-1 h-20">
+                        {daily.map(d => (
+                            <div key={String(d.day)} className="flex-1 flex flex-col items-center gap-1" title={`${d.day}: ${d.n}회`}>
+                                <div className="w-full bg-purple-500/60 rounded-t"
+                                     style={{ height: `${Math.max(6, (d.n / maxDaily) * 64)}px` }} />
+                                <span className="text-[9px] text-gray-500">{String(d.day).slice(5)}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div>
+                <p className="text-sm font-semibold text-white mb-2">초대 순위 (가입 기여)</p>
+                {top.length === 0 ? (
+                    <p className="text-xs text-gray-500">아직 추천 가입이 없습니다. — 402 충전모달 초대 CTA·공유 안내로 유입을 늘려보세요.</p>
+                ) : (
+                    <table className="w-full text-xs text-gray-300">
+                        <thead>
+                            <tr className="text-gray-500 border-b border-gray-700">
+                                <th className="text-left py-1.5">코드 주인</th>
+                                <th className="text-left">코드</th>
+                                <th className="text-right">초대 가입</th>
+                                <th className="text-right">보상 성사</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {top.map(r => (
+                                <tr key={r.code} className="border-b border-gray-800">
+                                    <td className="py-1.5">{r.owner_name || '(탈퇴/미상)'}</td>
+                                    <td className="font-mono text-gray-400">{r.code}</td>
+                                    <td className="text-right">{r.invited}</td>
+                                    <td className="text-right text-yellow-300">{r.rewarded}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+            </div>
+        </div>
+    );
+};

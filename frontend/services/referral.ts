@@ -14,7 +14,18 @@ export function captureRefFromUrl(): boolean {
         const ref = params.get('ref');
         if (!ref) return false;
         const code = ref.trim().toUpperCase().slice(0, 16);
-        if (code) localStorage.setItem(KEY, code);
+        if (code) {
+            localStorage.setItem(KEY, code);
+            // 방문 서버 기록(측정 퍼널 시작점, 2026-07-07). 비로그인 OK,
+            // 서버가 IP해시+일1회 dedupe. fire-and-forget — 실패해도 방문자 경험 무영향.
+            try {
+                fetch('/api/auth/referral/visit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code }),
+                }).catch(() => { /* 측정 실패 무시 */ });
+            } catch { /* 무시 */ }
+        }
         params.delete('ref');
         const qs = params.toString();
         window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
@@ -63,7 +74,9 @@ export function buildFeatureShareLink(featureKey: string): string {
  */
 export async function shareResultImage(imageUrl: string, featureKey: string, caption: string): Promise<string> {
     const link = buildFeatureShareLink(featureKey);
-    const shareData: ShareData = { title: 'AI 페르소나 채팅', text: `${caption}\n${link}` };
+    // 링크에 내 추천코드가 붙는 공유라면 보상 안내 1줄 동봉(초대 동기 부여, 2026-07-07 바이럴 P2)
+    const refHint = getMyReferralCode() ? '\n🎁 친구가 이 링크로 가입하면 두 분 다 +1000P!' : '';
+    const shareData: ShareData = { title: 'AI 페르소나 채팅', text: `${caption}${refHint}\n${link}` };
 
     // 1) 이미지 파일까지 첨부 시도(모바일 네이티브 공유). canShare(files)로 가능 여부 확인.
     try {
@@ -82,7 +95,12 @@ export async function shareResultImage(imageUrl: string, featureKey: string, cap
         if (navigator.share) { await navigator.share({ title: shareData.title, text: caption, url: link }); return ''; }
     } catch { return ''; } // 사용자가 시트 닫음 → 추가 안내 없음
 
-    // 3) 클립보드 복사 폴백
-    try { await navigator.clipboard.writeText(link); return '공유 링크가 복사되었습니다'; }
+    // 3) 클립보드 복사 폴백 (+추천 보상 안내 1줄)
+    try {
+        await navigator.clipboard.writeText(link);
+        return getMyReferralCode()
+            ? '공유 링크가 복사되었습니다 · 친구가 가입하면 두 분 다 +1000P 🎁'
+            : '공유 링크가 복사되었습니다';
+    }
     catch { return link; }
 }

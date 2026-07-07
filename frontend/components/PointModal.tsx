@@ -12,9 +12,11 @@ interface PointModalProps {
     currentPoints: number;
     userId: number;
     onClose: () => void;
+    /** '친구 초대하고 +1000P' CTA 클릭 시(충전모달 닫고 초대모달 열기). 미전달 시 CTA 숨김. */
+    onInviteClick?: () => void;
 }
 
-export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, onClose }) => {
+export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, onClose, onInviteClick }) => {
     const [loading, setLoading] = useState(false);
 
     const handlePurchase = async (pkg: typeof PACKAGES[0]) => {
@@ -89,6 +91,16 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
                     <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-4">
                         <Loader2 size={14} className="animate-spin" />결제창으로 이동 중...
                     </div>
+                )}
+
+                {/* 무료 대안: 친구 초대 (2026-07-07 바이럴 P2 — 돈 내기 싫은 순간이 초대 동기 최대) */}
+                {onInviteClick && (
+                    <button
+                        onClick={onInviteClick}
+                        className="w-full mb-4 py-3 rounded-xl border border-purple-500/40 bg-purple-500/10 hover:bg-purple-500/20 transition-colors text-sm font-semibold text-purple-300"
+                    >
+                        🎁 충전 대신 친구 초대하고 <span className="text-purple-200 font-bold">+1,000P</span> 받기
+                    </button>
                 )}
 
                 <p className="text-xs text-gray-600 text-center">레벨이 높을수록 메시지당 포인트 소모가 줄어듭니다</p>
