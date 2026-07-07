@@ -29,27 +29,31 @@ const LOG_SCROLL_CSS = `
 .toss-log-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.08); border-radius: 4px; }
 `;
 
-type View = 'monitor' | 'score' | 'log' | 'settings';
+type View = 'monitor' | 'scan' | 'score' | 'log' | 'settings';
 
 export const TossTraderPanel: React.FC = () => {
     const [data, setData] = useState<any>(null);
+    const [scanData, setScanData] = useState<any>(null);      // 발굴 스캔 결과
     const [logs, setLogs] = useState<string[]>([]);
     const [orders, setOrders] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<View>('monitor');       // 최상위 탭
     const [logTab, setLogTab] = useState<'log' | 'order'>('log'); // 로그 서브탭
     const [expanded, setExpanded] = useState(false);         // 로그 전체화면 모달
+    const [openSymbol, setOpenSymbol] = useState<string | null>(null); // 발굴 표 상세 펼침
 
     const load = useCallback(async () => {
         try {
-            const [s, l, o] = await Promise.all([
+            const [s, l, o, sc] = await Promise.all([
                 adminApi.getTossStatus(),
                 adminApi.getTossLogs(120),
                 adminApi.getTossOrders(80),
+                adminApi.getTossScan().catch(() => null), // 스캔 결과 실패해도 나머진 표시
             ]);
             setData(s);
             setLogs(l.lines || []);
             setOrders(o.lines || []);
+            setScanData(sc);
             setError(null);
         } catch {
             setError('불러오기 실패 (봇 미기동이거나 서버 오류)');
@@ -102,9 +106,10 @@ export const TossTraderPanel: React.FC = () => {
                 <div className="text-sm text-gray-400">상태 파일 없음: {data.reason || '봇이 아직 상태를 기록하지 않음'}</div>
             )}
 
-            {/* 최상위 탭 */}
-            <div className="flex gap-1 border-b border-gray-700">
+            {/* 최상위 탭 — 모바일에선 라벨이 세로로 꺾이지 않게 가로 스크롤 */}
+            <div className="flex gap-1 border-b border-gray-700 overflow-x-auto toss-log-scroll">
                 <ViewTab on={view === 'monitor'} onClick={() => setView('monitor')} icon="Activity">모니터링</ViewTab>
+                <ViewTab on={view === 'scan'} onClick={() => setView('scan')} icon="Search">발굴</ViewTab>
                 <ViewTab on={view === 'score'} onClick={() => setView('score')} icon="BarChart2">평가</ViewTab>
                 <ViewTab on={view === 'log'} onClick={() => setView('log')} icon="Server">로그</ViewTab>
                 <ViewTab on={view === 'settings'} onClick={() => setView('settings')} icon="Settings">설정</ViewTab>
@@ -183,6 +188,113 @@ export const TossTraderPanel: React.FC = () => {
                     )}
                 </div>
             )}
+
+            {/* ── 발굴 탭 (스캐너 결과: 추천 카드 + 점수순 전체 표) ── */}
+            {view === 'scan' && (() => {
+                const scan = scanData?.scan;
+                if (!scan) {
+                    return (
+                        <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-6 text-center">
+                            {scanData?.reason || '스캔 결과가 아직 없습니다. 봇이 장 마감 후(KST 16시) 하루 1회 스캔합니다.'}
+                        </div>
+                    );
+                }
+                const recs: any[] = scan.recommendations || [];
+                const rows: any[] = scan.candidates || [];
+                const th = Number(scan.threshold ?? 60);
+                const buyTh = Number(scan.buyThreshold ?? 80);
+                const hits = rows.filter(r => Number(r.score) >= th).length;
+                return (
+                    <div className="space-y-4">
+                        {/* 스캔 요약 */}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 px-1">
+                            <span>스캔일 <b className="text-gray-300">{scan.scanDate}</b></span>
+                            <span>유니버스 {scan.universeSize}종목 중 {scan.scannedCount}종목 산출</span>
+                            <span>발굴 {th}점↑ <b className="text-gray-300">{hits}개</b> · 진입 {buyTh}점</span>
+                            <span>시장(KODEX200) {scan.marketUp == null ? '판단불가' : scan.marketUp ? '📈 상승' : '📉 하락/횡보'}</span>
+                            {(scan.errors?.length ?? 0) > 0 && <span className="text-amber-400">조회실패 {scan.errors.length}종목</span>}
+                        </div>
+
+                        {/* ⭐ 추천 카드 (규칙 기반 1~2개) */}
+                        {recs.length > 0 ? (
+                            <div className="grid md:grid-cols-2 gap-3">
+                                {recs.map((r, i) => (
+                                    <div key={r.symbol} className="bg-gradient-to-br from-amber-900/25 to-gray-800 border border-amber-600/40 rounded-lg px-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-amber-300 text-sm font-bold">⭐ 오늘의 추천 {i + 1}</span>
+                                            <span className="ml-auto text-xl font-bold text-amber-200" style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}점</span>
+                                        </div>
+                                        <div className="text-base font-bold text-gray-100 mt-1">
+                                            {r.name} <span className="text-xs text-gray-500 font-normal">({r.symbol})</span>
+                                        </div>
+                                        <div className="text-xs text-gray-300 mt-2 leading-relaxed">{r.reason}</div>
+                                        {r.caution && <div className="text-[11px] text-amber-300/90 mt-1.5">⚠️ {r.caution}</div>}
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-4 text-center">
+                                오늘은 추천 없음 — {th}점 이상 후보가 없습니다(억지 추천은 하지 않습니다).
+                            </div>
+                        )}
+
+                        {/* 점수순 전체 표 (행 클릭 → 조건별 상세) */}
+                        <div className="bg-gray-800 rounded-lg overflow-hidden">
+                            <div className="grid grid-cols-[2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 text-[10px] text-gray-500 border-b border-gray-700 bg-gray-800/80">
+                                <span>#</span><span>종목</span>
+                                <span className="text-right w-16">점수</span>
+                                <span className="text-right w-20 hidden sm:block">종가</span>
+                                <span className="text-right w-16 hidden sm:block">거래량배율</span>
+                            </div>
+                            <div className="divide-y divide-gray-700/60 max-h-[32rem] overflow-y-auto toss-log-scroll">
+                                {rows.map((r, i) => {
+                                    const hit = Number(r.score) >= th;
+                                    const open = openSymbol === r.symbol;
+                                    return (
+                                        <div key={r.symbol}>
+                                            <button onClick={() => setOpenSymbol(open ? null : r.symbol)}
+                                                className={`w-full grid grid-cols-[2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 items-center text-left hover:bg-gray-700/40 ${hit ? 'bg-green-900/15' : ''}`}>
+                                                <span className="text-[11px] text-gray-500">{i + 1}</span>
+                                                <span className={`text-sm ${hit ? 'text-green-200 font-medium' : 'text-gray-300'}`}>
+                                                    {r.name} <span className="text-[10px] text-gray-500">{r.symbol}</span>
+                                                    {open ? ' ▾' : ''}
+                                                </span>
+                                                <span className={`text-right w-16 font-bold ${Number(r.score) >= buyTh ? 'text-green-400' : hit ? 'text-amber-300' : 'text-gray-400'}`}
+                                                    style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}</span>
+                                                <span className="text-right w-20 text-[11px] text-gray-400 hidden sm:block" style={{ fontVariantNumeric: 'tabular-nums' }}>{won(r.close)}</span>
+                                                <span className="text-right w-16 text-[11px] text-gray-400 hidden sm:block" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                    {r.volRatio != null ? `${Number(r.volRatio).toFixed(1)}배` : '-'}
+                                                </span>
+                                            </button>
+                                            {open && r.detail && (
+                                                <div className="px-4 pb-2 bg-gray-900/40">
+                                                    {Object.entries<any>(r.detail).map(([key, v]) => (
+                                                        <div key={key} className="flex items-center justify-between py-1 text-[11px]">
+                                                            <span className={v.ok ? 'text-green-400' : 'text-gray-500'}>
+                                                                {v.ok ? '✓' : '✗'} {v.label || key} <span className="text-gray-600">({v.crit})</span>
+                                                            </span>
+                                                            <span className="text-gray-400 truncate max-w-[45%] text-right" title={v.val}>
+                                                                {v.val} <b className={v.ok ? 'text-green-400' : 'text-gray-600'}>+{v.pts}</b><span className="text-gray-600">/{v.max}</span>
+                                                            </span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                                {rows.length === 0 && (
+                                    <div className="text-sm text-gray-500 px-4 py-6 text-center">산출된 종목이 없습니다.</div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="text-[11px] text-gray-500 px-1">
+                            2단계 점수제: <b className="text-amber-300">{th}점=발굴</b>(후보 리스트업) · <b className="text-green-400">{buyTh}점=매수 진입</b>.
+                            현재는 관찰 전용(Phase 1)이며, 종목 선택→자동매매 연결(Phase 2)은 추후 추가됩니다.
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* ── 평가 탭 (조건별 점수) ── */}
             {view === 'score' && st && (
@@ -327,8 +439,8 @@ const Card: React.FC<{ label: string; children: React.ReactNode }> = ({ label, c
 
 const ViewTab: React.FC<{ on: boolean; onClick: () => void; icon: string; children: React.ReactNode }> = ({ on, onClick, icon, children }) => (
     <button onClick={onClick}
-        className={`text-sm px-4 py-2 -mb-px border-b-2 flex items-center gap-1.5 ${on ? 'border-blue-400 text-blue-300 font-medium' : 'border-transparent text-gray-400 hover:text-gray-200'}`}>
-        <Icon name={icon} className="w-4 h-4" />{children}
+        className={`text-sm px-4 py-2 -mb-px border-b-2 flex items-center gap-1.5 whitespace-nowrap shrink-0 ${on ? 'border-blue-400 text-blue-300 font-medium' : 'border-transparent text-gray-400 hover:text-gray-200'}`}>
+        <Icon name={icon} className="w-4 h-4 shrink-0" />{children}
     </button>
 );
 
@@ -348,7 +460,7 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
 
 const TabBtn: React.FC<{ on: boolean; onClick: () => void; children: React.ReactNode }> = ({ on, onClick, children }) => (
     <button onClick={onClick}
-        className={`text-xs px-3 py-1.5 rounded ${on ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+        className={`text-xs px-3 py-1.5 rounded whitespace-nowrap ${on ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
         {children}
     </button>
 );

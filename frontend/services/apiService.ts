@@ -901,6 +901,8 @@ export const adminApi = {
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/logs?limit=${limit}`),
     getTossOrders: (limit = 100) =>
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/orders?limit=${limit}`),
+    getTossScan: () =>
+        get<{ available: boolean; reason?: string; scan?: any }>('/admin/toss-trader/scan'),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),
