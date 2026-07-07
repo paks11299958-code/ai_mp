@@ -341,3 +341,7 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 - ★UNIQUE INDEX `(code, ipHash, (createdAt::date))` — 일1회 dedupe(INSERT ... ON CONFLICT DO NOTHING).
 - 조회는 $queryRawUnsafe(스키마 미반영 테이블). 어드민 레퍼럴 탭 퍼널의 '방문' 데이터 소스.
+
+
+## 인덱스 추가 이력
+- 2026-07-08: `Message(sessionId, createdAt)` · `ChatSession(userId)` — 대화 무료화 일일 한도(countTodayChatMessages) 판정용, 서버1 raw SQL `CREATE INDEX IF NOT EXISTS`.

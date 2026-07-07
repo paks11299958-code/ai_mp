@@ -32,6 +32,16 @@
 
 ---
 
+## 💸 대화 전면 무료화 (2026-07-08 사장 결정)
+
+- **회원 일반 채팅 = 포인트 차감 0**. 기능·이미지(관상/손금/헤어/타로 등 MenuLimit) 과금은 불변.
+- **하루 100회 한도**(KST 자정 리셋): `DAILY_FREE_CHAT_LIMIT`(shared-api lib/points.ts). 초과 시 **429 `DAILY_CHAT_LIMIT`** → 프론트는 충전 모달이 아니라 채팅 내 안내 말풍선(App.tsx).
+- **XP+1·레벨업 보너스는 유지**: `recordFreeChatActivity` — 0원 CHAT 거래는 안 남기고 LEVELUP 거래만 기록.
+- **레퍼럴 트리거 보존**: `tryReferralAfterActivity`는 활동(메시지) 기준이라 무료화와 무관하게 동작.
+- 한도 판정 성능: Message(sessionId,createdAt)·ChatSession(userId) 인덱스 신설(서버1 raw SQL).
+- **롤백 경로**: `deductPointsForMessage` 함수 보존(sessions.ts 호출부만 교체됨). `refundLastChatDeduction`은 무과금이면 no-op라 유지(레거시 차감 커버).
+- 근거: 대화 원가 실측 건당 ≈0.4원(AiUsageLog) — 성장 단계에서 진입장벽 제거가 우선.
+
 ## XP & 레벨별 비용
 
 (2026-06-17 1pt=1원 전환으로 비용·보너스 ×10)
@@ -64,7 +74,7 @@
 | **500pt** | 주식(stock)·명품(luxury)·중고(used-item)·보험(insurance)·운세/퀵메뉴(quick-menu)·골프(golf) | 무거운 전문 분석 |
 | **1000pt** | 헤어스타일 진단(hair) | 합성 실비 높음(~57원) |
 | (사장 설정) | 닮은 연예인 찾기(lookalike) | 텍스트 1회 분석, 실비 ~2원, 바이럴 미끼 저가 의도. **MenuLimit 미등록 시 기본 50pt**(checkMenuAccess 폴백) |
-| 채팅 | 메시지당 레벨별 **100→50pt** (XP↑ 할인, STAGE_COSTS) | `deductPointsForMessage` |
+| 채팅 | **무료**(2026-07-08, 일 100회 한도. 구: 레벨별 100→50pt) | `recordFreeChatActivity` |
 
 - ⚠️ **1pt=1원 전환 시 ×10한 것**: STAGE_COSTS·LEVELUP_BONUS·가입보너스(5000)·미션(5000)·충전 PACKAGES·MenuLimit 단가·**기존 User 잔액(paidPoints·bonusPoints)**. 구매력 동일, 화폐만 직관화. 배포순서 shared-api→DB ×10 즉시→ai_mp.
 - ⚠️ **수학(mathtutor)은 원래 운세와 같은 `quick-menu` 키였다가 분리** → 단가 독립.
