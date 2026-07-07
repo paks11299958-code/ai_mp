@@ -329,3 +329,15 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 - **`EmbedGuestLog`**: 임베드 위젯 게스트 사용 로그(guestId·ip·personaId·createdAt) — 무료 3회/일 이중 제한 카운트. doc/features/embed_widget.md.
 - **`CompanyLedger` / `CompanyPlan`**: 주식회사 헤르메스 장부·주간계획(rag가 psycopg2 직접 사용, prisma 미반영이 정상 — shared-api에서 읽을 땐 $queryRaw). 잔액=SUM(amount) WHERE status IN ('recorded','paid'). 정관=company-wiki 운영헌장.
+
+## ReferralVisit (2026-07-07, 바이럴 측정 — raw SQL 전용, prisma schema 미반영)
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| id | SERIAL PK | |
+| code | TEXT NOT NULL | 추천 코드(대문자 4~16) |
+| ipHash | TEXT NOT NULL | sha256(salt+IP) 32자 — 원본 IP 미저장(PII 최소) |
+| ua | TEXT | User-Agent 120자 절단 |
+| createdAt | TIMESTAMP DEFAULT NOW() | |
+
+- ★UNIQUE INDEX `(code, ipHash, (createdAt::date))` — 일1회 dedupe(INSERT ... ON CONFLICT DO NOTHING).
+- 조회는 $queryRawUnsafe(스키마 미반영 테이블). 어드민 레퍼럴 탭 퍼널의 '방문' 데이터 소스.

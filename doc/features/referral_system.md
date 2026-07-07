@@ -116,3 +116,29 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 - 카카오 가입은 ref 전달 경로(OAuth 콜백) 별도 처리 필요.
 
 상세 포인트 시스템: [points_payment.md](../points_payment.md)
+
+---
+
+## 8. 활성화 P1+P2 (2026-07-07 구현 — "작동"에서 "성과"로)
+
+06-22 구현 후 실적 0(42명 중 추천가입 0) 원인=노출·동기·측정 부재 → 활성화 2단계 구현.
+
+### P1 측정
+- **`ReferralVisit` 테이블**(서버1 raw SQL, prisma schema 미반영): code·ipHash(salt 해시, PII 최소)·ua·createdAt.
+  ★유니크 인덱스 `(code, ipHash, (createdAt::date))` = 같은 사람 하루 1회만(스팸/중복 방어, ON CONFLICT DO NOTHING).
+- **`POST /api/aimp/auth/referral/visit`**(비로그인 OK): 프론트 `captureRefFromUrl()`이 ref 캡처 성공 시
+  fire-and-forget 호출. 서버 오류도 200 반환(측정 실패가 방문자 경험을 해치지 않게).
+- **어드민 '레퍼럴' 탭**(회원·포인트 그룹, `ReferralStatsPanel.tsx`): 퍼널 카드(방문→가입→활성+전환율),
+  일별 방문 14일 막대(div, 라이브러리 없음), 초대 순위 표. `GET /admin/referral-stats`($queryRawUnsafe).
+
+### P2 노출
+- ★**402 충전모달 초대 CTA**: `PointModal`에 `onInviteClick` prop — "충전 대신 친구 초대하고 +1,000P 받기"
+  버튼 → 충전모달 닫고 `InviteFriendModal` 열기. 돈 내기 싫은 순간=초대 동기 최대.
+- **공유 보상 안내**: `shareResultImage()` 공유 문구·클립보드 토스트에 "친구가 가입하면 두 분 다 +1000P"
+  1줄(내 추천코드가 붙는 공유일 때만).
+
+### 남은 것
+- **P3 OG 동적 미리보기**: ?p/?f별 이미지·타이틀. 정적 meta 한계 → Vercel Edge Middleware(봇 UA에만
+  메타 주입) or 프리렌더 중 방식 결정 필요. 별건.
+- (사장 결정) 온보딩 '친구 초대 성공' 미션 보상액 / 메인 초대 배너(HeroCard 어드민 업로드=개발 0).
+- 관찰 신호: 어드민 레퍼럴 탭 방문 수치 → 방문↑·가입 전환↓이면 P3 착수 가치 확인.
