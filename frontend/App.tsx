@@ -884,6 +884,15 @@ const AppContent: React.FC = () => {
                     setSessionTyping(activePersonaId, false);
                     return;
                 }
+                if (e.code === 'DAILY_CHAT_LIMIT') {
+                    // 대화 무료화(2026-07-08) 하루 한도 도달 — 충전 모달 대신 안내만
+                    addMessageToSession(activePersonaId, {
+                        id: (Date.now() + 2).toString(), role: 'model',
+                        text: e.message || '오늘의 무료 대화를 모두 사용했어요. 내일 다시 만나요!',
+                    });
+                    setSessionTyping(activePersonaId, false);
+                    return;
+                }
                 console.error('메시지 저장 실패:', e);
             }
         }

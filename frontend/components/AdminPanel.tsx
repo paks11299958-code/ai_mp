@@ -318,7 +318,7 @@ const MenuLimitsPanel: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
                 <div>
                     <h3 className="text-sm font-bold text-white">포인트 차감 기능 설정</h3>
-                    <p className="text-xs text-gray-500 mt-0.5">기능별·역할별 일일 이용 횟수 및 포인트 차감을 설정합니다. (채팅은 메시지당 별도 차감)</p>
+                    <p className="text-xs text-gray-500 mt-0.5">기능별·역할별 일일 이용 횟수 및 포인트 차감을 설정합니다. (일반 채팅은 무료 — 일 100회 한도)</p>
                 </div>
             </div>
 

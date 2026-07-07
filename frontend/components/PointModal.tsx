@@ -103,7 +103,7 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
                     </button>
                 )}
 
-                <p className="text-xs text-gray-600 text-center">레벨이 높을수록 메시지당 포인트 소모가 줄어듭니다</p>
+                <p className="text-xs text-gray-600 text-center">대화는 무료! 포인트는 관상·타로·이미지 같은 스페셜 기능에 사용돼요</p>
             </div>
         </div>
     );

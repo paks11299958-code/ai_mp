@@ -277,6 +277,11 @@ export const sessionApi = {
             err.code = 'INSUFFICIENT_POINTS';
             throw err;
         }
+        if (res.status === 429 && data.error === 'DAILY_CHAT_LIMIT') {
+            const err: any = new Error(data.message || '오늘의 무료 대화를 모두 사용했어요.');
+            err.code = 'DAILY_CHAT_LIMIT';
+            throw err;
+        }
         if (!res.ok) throw new Error(data.error || `서버 오류 (${res.status})`);
         return data;
     },
