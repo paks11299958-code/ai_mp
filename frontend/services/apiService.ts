@@ -903,6 +903,10 @@ export const adminApi = {
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/orders?limit=${limit}`),
     getTossScan: () =>
         get<{ available: boolean; reason?: string; scan?: any }>('/admin/toss-trader/scan'),
+    getTossSelection: () =>
+        get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; updatedAt?: string }; max: number }>('/admin/toss-trader/selection'),
+    saveTossSelection: (payload: { symbols?: string[]; halt?: boolean }) =>
+        post<{ ok: boolean; selection: { symbols: string[]; halt: boolean; updatedAt?: string } }>('/admin/toss-trader/selection', payload),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),

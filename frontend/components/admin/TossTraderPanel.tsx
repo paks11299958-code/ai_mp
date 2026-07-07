@@ -41,24 +41,76 @@ export const TossTraderPanel: React.FC = () => {
     const [logTab, setLogTab] = useState<'log' | 'order'>('log'); // 로그 서브탭
     const [expanded, setExpanded] = useState(false);         // 로그 전체화면 모달
     const [openSymbol, setOpenSymbol] = useState<string | null>(null); // 발굴 표 상세 펼침
+    // ⑤ Phase 2 — 종목 선택(selection.json). checked=null 이면 아직 서버값 미반영
+    const [selection, setSelection] = useState<any>(null);
+    const [checked, setChecked] = useState<string[] | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         try {
-            const [s, l, o, sc] = await Promise.all([
+            const [s, l, o, sc, sel] = await Promise.all([
                 adminApi.getTossStatus(),
                 adminApi.getTossLogs(120),
                 adminApi.getTossOrders(80),
                 adminApi.getTossScan().catch(() => null), // 스캔 결과 실패해도 나머진 표시
+                adminApi.getTossSelection().catch(() => null),
             ]);
             setData(s);
             setLogs(l.lines || []);
             setOrders(o.lines || []);
             setScanData(sc);
+            setSelection(sel);
             setError(null);
         } catch {
             setError('불러오기 실패 (봇 미기동이거나 서버 오류)');
         }
     }, []);
+
+    const savedSymbols: string[] = selection?.selection?.symbols || [];
+    const maxSelect: number = selection?.max ?? 5;
+    const haltActive: boolean = !!selection?.selection?.halt;
+    const effChecked = checked ?? savedSymbols;           // 편집 전엔 서버 저장값 표시
+    const dirty = checked != null && JSON.stringify([...checked].sort()) !== JSON.stringify([...savedSymbols].sort());
+
+    const toggleSymbol = (sym: string) => {
+        const base = checked ?? savedSymbols;
+        const next = base.includes(sym) ? base.filter(s => s !== sym)
+            : base.length >= maxSelect ? base : [...base, sym];
+        setChecked(next);
+        setSaveMsg(null);
+    };
+
+    const saveSelection = async () => {
+        if (checked == null) return;
+        setSaving(true);
+        try {
+            await adminApi.saveTossSelection({ symbols: checked });
+            setChecked(null);
+            setSaveMsg('저장됨 — 봇이 60초 내 반영합니다');
+            await load();
+        } catch (e: any) {
+            setSaveMsg(`저장 실패: ${e?.message || '오류'}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const setHalt = async (halt: boolean) => {
+        const ask = halt
+            ? '🔴 긴급정지: 봇이 미체결을 전량 취소하고 신규 주문을 중단합니다. 실행할까요?'
+            : '정지 해제 플래그를 저장합니다. 봇 재개는 서버1에서 pm2 restart 후에만 됩니다. 진행할까요?';
+        if (!window.confirm(ask)) return;
+        setSaving(true);
+        try {
+            await adminApi.saveTossSelection({ halt });
+            await load();
+        } catch (e: any) {
+            setSaveMsg(`처리 실패: ${e?.message || '오류'}`);
+        } finally {
+            setSaving(false);
+        }
+    };
 
     useEffect(() => {
         load();
@@ -91,10 +143,31 @@ export const TossTraderPanel: React.FC = () => {
                     <Icon name="TrendingUp" className="w-5 h-5 text-blue-400" />
                     토스 자동매매 봇
                 </h3>
-                <button onClick={load} className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
-                    새로고침
-                </button>
+                <div className="flex items-center gap-2">
+                    {haltActive ? (
+                        <button onClick={() => setHalt(false)} disabled={saving}
+                            className="text-xs px-3 py-1.5 rounded bg-amber-700 hover:bg-amber-600 text-white font-medium disabled:opacity-50">
+                            정지 해제 플래그
+                        </button>
+                    ) : (
+                        <button onClick={() => setHalt(true)} disabled={saving}
+                            className="text-xs px-3 py-1.5 rounded bg-red-700 hover:bg-red-600 text-white font-bold disabled:opacity-50">
+                            🔴 긴급정지
+                        </button>
+                    )}
+                    <button onClick={load} className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
+                        새로고침
+                    </button>
+                </div>
             </div>
+
+            {/* 🔴 웹 긴급정지 상태 배너 */}
+            {(haltActive || st?.webHalt) && (
+                <div className="text-xs bg-red-900/40 border border-red-700/60 rounded-lg px-3 py-2 text-red-200">
+                    🔴 <b>웹 긴급정지 {haltActive ? '활성' : '플래그는 해제됨(봇은 아직 정지 유지)'}</b> — 봇이 신규 주문을 중단하고 미체결을 취소했습니다.
+                    재개 절차: 정지 해제 플래그 저장 → 서버1에서 <code className="text-red-100">pm2 restart toss-trader</code> (수동 재시작 원칙).
+                </div>
+            )}
 
             {/* 안전 안내 */}
             <div className="text-xs bg-amber-900/30 border border-amber-700/40 rounded-lg px-3 py-2 text-amber-200">
@@ -215,7 +288,7 @@ export const TossTraderPanel: React.FC = () => {
                             {(scan.errors?.length ?? 0) > 0 && <span className="text-amber-400">조회실패 {scan.errors.length}종목</span>}
                         </div>
 
-                        {/* ⭐ 추천 카드 (규칙 기반 1~2개) */}
+                        {/* ⭐ 추천 카드 (규칙 기반 1~2개) — 카드에서 바로 선택 가능 */}
                         {recs.length > 0 ? (
                             <div className="grid md:grid-cols-2 gap-3">
                                 {recs.map((r, i) => (
@@ -224,8 +297,13 @@ export const TossTraderPanel: React.FC = () => {
                                             <span className="text-amber-300 text-sm font-bold">⭐ 오늘의 추천 {i + 1}</span>
                                             <span className="ml-auto text-xl font-bold text-amber-200" style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}점</span>
                                         </div>
-                                        <div className="text-base font-bold text-gray-100 mt-1">
-                                            {r.name} <span className="text-xs text-gray-500 font-normal">({r.symbol})</span>
+                                        <div className="text-base font-bold text-gray-100 mt-1 flex items-center gap-2">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input type="checkbox" className="w-4 h-4 accent-amber-400"
+                                                    checked={effChecked.includes(r.symbol)}
+                                                    onChange={() => toggleSymbol(r.symbol)} />
+                                                {r.name} <span className="text-xs text-gray-500 font-normal">({r.symbol})</span>
+                                            </label>
                                         </div>
                                         <div className="text-xs text-gray-300 mt-2 leading-relaxed">{r.reason}</div>
                                         {r.caution && <div className="text-[11px] text-amber-300/90 mt-1.5">⚠️ {r.caution}</div>}
@@ -238,10 +316,37 @@ export const TossTraderPanel: React.FC = () => {
                             </div>
                         )}
 
-                        {/* 점수순 전체 표 (행 클릭 → 조건별 상세) */}
+                        {/* 선택 저장 바 (⑤ Phase 2) — 체크한 종목만 봇이 자동매매 */}
+                        <div className="bg-gray-800 border border-blue-700/40 rounded-lg px-3 py-2.5 flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-gray-300">
+                                매매 대상 선택 <b className="text-blue-300">{effChecked.length}</b>/{maxSelect}
+                            </span>
+                            {effChecked.length > 0 ? effChecked.map(sym => {
+                                const row = rows.find(r => r.symbol === sym);
+                                return (
+                                    <span key={sym} className="text-[11px] bg-blue-900/40 border border-blue-700/40 rounded px-2 py-0.5 text-blue-200">
+                                        {row?.name || sym}
+                                        <button onClick={() => toggleSymbol(sym)} className="ml-1.5 text-blue-300 hover:text-white" aria-label="선택 해제">✕</button>
+                                    </span>
+                                );
+                            }) : <span className="text-[11px] text-gray-500">선택 0개 = 매수 0 (보유분 청산 감시는 유지)</span>}
+                            <div className="ml-auto flex items-center gap-2">
+                                {saveMsg && <span className="text-[11px] text-gray-400">{saveMsg}</span>}
+                                {dirty && (
+                                    <button onClick={() => { setChecked(null); setSaveMsg(null); }}
+                                        className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
+                                )}
+                                <button onClick={saveSelection} disabled={!dirty || saving}
+                                    className={`text-xs px-4 py-1.5 rounded font-medium ${dirty ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
+                                    {saving ? '저장 중…' : '선택 저장'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 점수순 전체 표 (체크=선택, 행 클릭 → 조건별 상세) */}
                         <div className="bg-gray-800 rounded-lg overflow-hidden">
-                            <div className="grid grid-cols-[2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 text-[10px] text-gray-500 border-b border-gray-700 bg-gray-800/80">
-                                <span>#</span><span>종목</span>
+                            <div className="grid grid-cols-[1.5rem_2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 text-[10px] text-gray-500 border-b border-gray-700 bg-gray-800/80">
+                                <span></span><span>#</span><span>종목</span>
                                 <span className="text-right w-16">점수</span>
                                 <span className="text-right w-20 hidden sm:block">종가</span>
                                 <span className="text-right w-16 hidden sm:block">거래량배율</span>
@@ -252,8 +357,14 @@ export const TossTraderPanel: React.FC = () => {
                                     const open = openSymbol === r.symbol;
                                     return (
                                         <div key={r.symbol}>
-                                            <button onClick={() => setOpenSymbol(open ? null : r.symbol)}
-                                                className={`w-full grid grid-cols-[2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 items-center text-left hover:bg-gray-700/40 ${hit ? 'bg-green-900/15' : ''}`}>
+                                            <div role="button" tabIndex={0} onClick={() => setOpenSymbol(open ? null : r.symbol)}
+                                                onKeyDown={(e) => { if (e.key === 'Enter') setOpenSymbol(open ? null : r.symbol); }}
+                                                className={`w-full grid grid-cols-[1.5rem_2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 items-center text-left cursor-pointer hover:bg-gray-700/40 ${hit ? 'bg-green-900/15' : ''}`}>
+                                                <input type="checkbox" className="w-4 h-4 accent-blue-500"
+                                                    checked={effChecked.includes(r.symbol)}
+                                                    disabled={!effChecked.includes(r.symbol) && effChecked.length >= maxSelect}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    onChange={() => toggleSymbol(r.symbol)} />
                                                 <span className="text-[11px] text-gray-500">{i + 1}</span>
                                                 <span className={`text-sm ${hit ? 'text-green-200 font-medium' : 'text-gray-300'}`}>
                                                     {r.name} <span className="text-[10px] text-gray-500">{r.symbol}</span>
@@ -265,7 +376,7 @@ export const TossTraderPanel: React.FC = () => {
                                                 <span className="text-right w-16 text-[11px] text-gray-400 hidden sm:block" style={{ fontVariantNumeric: 'tabular-nums' }}>
                                                     {r.volRatio != null ? `${Number(r.volRatio).toFixed(1)}배` : '-'}
                                                 </span>
-                                            </button>
+                                            </div>
                                             {open && r.detail && (
                                                 <div className="px-4 pb-2 bg-gray-900/40">
                                                     {Object.entries<any>(r.detail).map(([key, v]) => (
@@ -290,7 +401,8 @@ export const TossTraderPanel: React.FC = () => {
                         </div>
                         <div className="text-[11px] text-gray-500 px-1">
                             2단계 점수제: <b className="text-amber-300">{th}점=발굴</b>(후보 리스트업) · <b className="text-green-400">{buyTh}점=매수 진입</b>.
-                            현재는 관찰 전용(Phase 1)이며, 종목 선택→자동매매 연결(Phase 2)은 추후 추가됩니다.
+                            체크→저장한 종목만 봇이 감시하며, {buyTh}점 도달 시에만 매수합니다(선택 저장 후 봇 반영까지 최대 60초).
+                            선택 해제해도 보유 종목의 청산(손절·익절·추세이탈) 감시는 유지됩니다.
                         </div>
                     </div>
                 );
