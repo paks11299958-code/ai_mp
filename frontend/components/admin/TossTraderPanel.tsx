@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '../../services/apiService';
 import { Icon } from '../Icons';
 
-// 토스 자동매매 봇 모니터 (읽기 전용).
-// 봇은 서버1 pm2에서 상시 실행(DEBUG=드라이런). 이 화면은 상태/설정/로그를 보기만 한다.
-// 3탭: 모니터링 / 로그 / 설정(현재 읽기 전용, 3-B 웹 봇제어에서 편집 가능으로 진화).
-// 상태는 봇이 서버1 파일(status.json)에 기록한 것을 읽는다.
+// 토스 자동매매 봇 어드민.
+// 봇은 서버1 pm2에서 상시 실행. 상태는 봇이 서버1 파일(status.json)에 기록한 것을 읽는다.
+// 워크플로우 6탭: 발굴(찾기) → 선택(확정+종목별 점수 설정+직접추가) → 모니터링(실행 현황·
+//   일손실 여유) → 평가(점수 근거) → 로그(레벨 필터) → 설정(읽기 전용).
+// 쓰기 채널은 selection.json(종목 선택·halt·종목별 params)·custom_symbols.json 뿐.
+// ★모드(DEBUG/LIVE) 전환은 안전상 웹에서 불가 — 서버1 ecosystem.config.js 에서만.
 
 const won = (n: any) => (n == null ? '-' : Number(n).toLocaleString() + '원');
 const pct = (n: any) => (n == null ? '-' : Number(n) + '%');
@@ -29,7 +31,9 @@ const LOG_SCROLL_CSS = `
 .toss-log-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.08); border-radius: 4px; }
 `;
 
-type View = 'monitor' | 'scan' | 'score' | 'log' | 'settings';
+// 워크플로우 순서: 발굴(찾기) → 선택(확정·설정) → 모니터링(실행 현황) → 평가(점수 근거) → 로그 → 설정
+type View = 'scan' | 'select' | 'monitor' | 'score' | 'log' | 'settings';
+type LogFilter = 'all' | 'info' | 'order' | 'error';
 
 export const TossTraderPanel: React.FC = () => {
     const [data, setData] = useState<any>(null);
@@ -37,8 +41,9 @@ export const TossTraderPanel: React.FC = () => {
     const [logs, setLogs] = useState<string[]>([]);
     const [orders, setOrders] = useState<string[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const [view, setView] = useState<View>('monitor');       // 최상위 탭
-    const [logTab, setLogTab] = useState<'log' | 'order'>('log'); // 로그 서브탭
+    const [view, setView] = useState<View>('scan');          // 최상위 탭 — 발굴부터 시작
+    const [logTab, setLogTab] = useState<'log' | 'order'>('log'); // 로그 서브탭(실행/주문)
+    const [logFilter, setLogFilter] = useState<LogFilter>('all'); // 로그 레벨 필터
     const [expanded, setExpanded] = useState(false);         // 로그 전체화면 모달
     const [openSymbol, setOpenSymbol] = useState<string | null>(null); // 발굴 표 상세 펼침
     // ⑤ Phase 2 — 종목 선택(selection.json). checked=null 이면 아직 서버값 미반영
@@ -212,7 +217,17 @@ export const TossTraderPanel: React.FC = () => {
     const halted = st?.halted;
 
     // 서버가 최신순(앞=최신)으로 주므로 그대로 join하면 최신이 맨 위. 표시 시각은 KST 변환.
-    const logText = (logTab === 'log' ? logs : orders).map(toKstLine).join('\n') || '(로그 없음)';
+    // 레벨 필터: 정보=INFO, 에러=WARNING/ERROR/CRITICAL, 주문=주문·체결·매수/매도 키워드.
+    const matchesLogFilter = (line: string): boolean => {
+        if (logFilter === 'all') return true;
+        if (logFilter === 'error') return /\[(WARNING|ERROR|CRITICAL)\]|거부|실패|정지|HALT|🛑|🔴/.test(line);
+        if (logFilter === 'order') return /주문|체결|매수|매도|BUY|SELL|청산|취소/.test(line);
+        return /\[INFO\]/.test(line) && !/\[(WARNING|ERROR|CRITICAL)\]/.test(line); // info
+    };
+    const rawLines = (logTab === 'log' ? logs : orders);
+    const shownLines = rawLines.filter(matchesLogFilter);
+    const logText = shownLines.map(toKstLine).join('\n')
+        || (rawLines.length ? '(이 필터에 해당하는 로그 없음)' : '(로그 없음)');
 
     // ESC로 모달 닫기
     useEffect(() => {
@@ -257,10 +272,17 @@ export const TossTraderPanel: React.FC = () => {
                 </div>
             )}
 
-            {/* 안전 안내 */}
-            <div className="text-xs bg-amber-900/30 border border-amber-700/40 rounded-lg px-3 py-2 text-amber-200">
-                읽기 전용 모니터입니다. 봇은 서버1에서 상시 실행되며, 현재 <b>DEBUG(드라이런)</b> 모드에서는 실제 주문이 나가지 않습니다.
-            </div>
+            {/* 안전 안내 — 실제 모드 반영 */}
+            {st?.mode === 'LIVE' ? (
+                <div className="text-xs bg-red-900/30 border border-red-700/50 rounded-lg px-3 py-2 text-red-200">
+                    🔴 <b>실거래(LIVE)</b> 모드 — 실제 주문이 나갑니다. 종목 선택·점수 설정 변경은 다음 장중부터 실매매에 반영됩니다.
+                    모드 전환은 안전상 서버1에서만 가능합니다(웹에서는 긴급정지만).
+                </div>
+            ) : (
+                <div className="text-xs bg-amber-900/30 border border-amber-700/40 rounded-lg px-3 py-2 text-amber-200">
+                    🟢 <b>드라이런(DEBUG)</b> 모드 — 실제 주문이 나가지 않습니다. 봇은 서버1에서 상시 실행됩니다.
+                </div>
+            )}
 
             {error && <div className="text-sm text-red-400">{error}</div>}
             {data && !data.available && (
@@ -269,16 +291,68 @@ export const TossTraderPanel: React.FC = () => {
 
             {/* 최상위 탭 — 모바일에선 라벨이 세로로 꺾이지 않게 가로 스크롤 */}
             <div className="flex gap-1 border-b border-gray-700 overflow-x-auto toss-log-scroll">
-                <ViewTab on={view === 'monitor'} onClick={() => setView('monitor')} icon="Activity">모니터링</ViewTab>
                 <ViewTab on={view === 'scan'} onClick={() => setView('scan')} icon="Search">발굴</ViewTab>
+                <ViewTab on={view === 'select'} onClick={() => setView('select')} icon="CheckCircle">
+                    선택{effChecked.length > 0 && <span className="ml-1 text-[10px] bg-blue-600/70 text-white rounded px-1">{effChecked.length}</span>}
+                </ViewTab>
+                <ViewTab on={view === 'monitor'} onClick={() => setView('monitor')} icon="Activity">모니터링</ViewTab>
                 <ViewTab on={view === 'score'} onClick={() => setView('score')} icon="BarChart2">평가</ViewTab>
                 <ViewTab on={view === 'log'} onClick={() => setView('log')} icon="Server">로그</ViewTab>
                 <ViewTab on={view === 'settings'} onClick={() => setView('settings')} icon="Settings">설정</ViewTab>
             </div>
 
             {/* ── 모니터링 탭 ── */}
-            {view === 'monitor' && st && (
+            {view === 'monitor' && st && (() => {
+                // 일손실 한도까지 남은 여유 — 실거래에서 "봇이 언제 스스로 멈추나"의 핵심 지표.
+                // 오늘 실현손익이 음수일 때 그 손실이 한도(금액)에 얼마나 근접했는지 게이지로.
+                const limit = Number(st.dailyLossLimitKrw) || 0;
+                const realized = Number(st.realizedPnl) || 0;
+                const lossSoFar = realized < 0 ? -realized : 0;   // 오늘 난 손실(양수)
+                const usedPct = limit > 0 ? Math.min(100, (lossSoFar / limit) * 100) : 0;
+                const remain = Math.max(0, limit - lossSoFar);
+                const danger = usedPct >= 80;
+                const warn = usedPct >= 50 && usedPct < 80;
+                return (
                 <div className="space-y-4">
+                    {/* 🛡 일손실 한도 여유 — 최상단 대시보드 */}
+                    {limit > 0 && (
+                        <div className={`rounded-lg px-4 py-3 border ${danger ? 'bg-red-900/30 border-red-600/50' : warn ? 'bg-amber-900/25 border-amber-600/40' : 'bg-gray-800 border-gray-700'}`}>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-gray-400">🛡 오늘 일손실 한도까지 남은 여유</span>
+                                <span className={`text-sm font-bold ${danger ? 'text-red-300' : warn ? 'text-amber-300' : 'text-green-400'}`}>
+                                    {won(remain)} 남음
+                                </span>
+                            </div>
+                            <div className="h-2.5 rounded-full bg-gray-700 overflow-hidden">
+                                <div className={`h-full rounded-full ${danger ? 'bg-red-500' : warn ? 'bg-amber-500' : 'bg-green-500/70'}`}
+                                    style={{ width: `${usedPct}%` }} />
+                            </div>
+                            <div className="flex items-center justify-between mt-1.5 text-[11px]">
+                                <span className="text-gray-500">오늘 손실 {won(lossSoFar)} / 한도 {won(limit)}</span>
+                                <span className={danger ? 'text-red-300 font-medium' : 'text-gray-500'}>
+                                    {danger ? '⚠️ 한도 임박 — 도달 시 봇 자동 정지' : `한도의 ${usedPct.toFixed(0)}% 사용`}
+                                </span>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 총자산 · 미실현 요약 (equity v2) */}
+                    {st.equityKrw != null && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            <Card label="총자산 (평가액)"><span className="text-gray-100 font-bold">{won(st.equityKrw)}</span></Card>
+                            <Card label="오늘 실현손익">
+                                <span className={realized < 0 ? 'text-red-400 font-bold' : realized > 0 ? 'text-green-400 font-bold' : 'text-gray-300'}>
+                                    {realized > 0 ? '+' : ''}{won(realized)}
+                                </span>
+                            </Card>
+                            <Card label="갱신">
+                                <span className={stale ? 'text-red-300' : 'text-gray-400'} style={{ fontSize: '0.8rem' }}>
+                                    {data.staleSeconds != null ? `${data.staleSeconds}s 전` : '-'}
+                                </span>
+                            </Card>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         <Card label="상태">
                             <span className={`font-bold ${alive && !stale ? 'text-green-400' : 'text-red-400'}`}>
@@ -379,7 +453,8 @@ export const TossTraderPanel: React.FC = () => {
                         </div>
                     )}
                 </div>
-            )}
+                );
+            })()}
 
             {/* ── 발굴 탭 (스캐너 결과: 추천 카드 + 점수순 전체 표) ── */}
             {view === 'scan' && (() => {
@@ -435,127 +510,14 @@ export const TossTraderPanel: React.FC = () => {
                             </div>
                         )}
 
-                        {/* 선택 저장 바 (⑤ Phase 2) — 체크한 종목만 봇이 자동매매 */}
-                        <div className="bg-gray-800 border border-blue-700/40 rounded-lg px-3 py-2.5 flex flex-wrap items-center gap-2">
-                            <span className="text-xs text-gray-300">
-                                매매 대상 선택 <b className="text-blue-300">{effChecked.length}</b>/{maxSelect}
-                            </span>
-                            {effChecked.length > 0 ? effChecked.map(sym => {
-                                const row = rows.find(r => r.symbol === sym);
-                                return (
-                                    <span key={sym} className="text-[11px] bg-blue-900/40 border border-blue-700/40 rounded px-2 py-0.5 text-blue-200">
-                                        {row?.name || custom?.symbols?.[sym] || sym}
-                                        <button onClick={() => toggleSymbol(sym)} className="ml-1.5 text-blue-300 hover:text-white" aria-label="선택 해제">✕</button>
-                                    </span>
-                                );
-                            }) : <span className="text-[11px] text-gray-500">선택 0개 = 매수 0 (보유분 청산 감시는 유지)</span>}
-                            <div className="ml-auto flex items-center gap-2">
-                                {saveMsg && <span className="text-[11px] text-gray-400">{saveMsg}</span>}
-                                {(dirty || paramsDirty) && (
-                                    <button onClick={() => { setChecked(null); setEditParams({}); setSaveMsg(null); }}
-                                        className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
-                                )}
-                                <button onClick={saveSelection} disabled={(!dirty && !paramsDirty) || saving}
-                                    className={`text-xs px-4 py-1.5 rounded font-medium ${(dirty || paramsDirty) ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
-                                    {saving ? '저장 중…' : '선택·설정 저장'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* ⚙ 종목별 점수 설정 — 선택 종목마다 매수 임계·손절%·익절% 개별 지정 */}
-                        {effChecked.length > 0 && (
-                            <div className="bg-gray-800 border border-amber-700/40 rounded-lg px-3 py-2.5 space-y-2">
-                                <button onClick={() => setParamsOpen(o => !o)}
-                                    className="flex items-center gap-2 text-xs text-amber-300 hover:text-amber-200">
-                                    <span>⚙ 종목별 점수 설정 {paramsOpen ? '▾' : '▸'}</span>
-                                    <span className="text-[10px] text-gray-500">
-                                        종목마다 매수 임계·손절·익절을 다르게 (미설정=기본값 임계 {defaultThreshold}·손절 3%·익절 8%)
-                                    </span>
-                                </button>
-                                {paramsOpen && (
-                                    <div className="space-y-2">
-                                        {effChecked.map(sym => {
-                                            const row = rows.find(r => r.symbol === sym);
-                                            const name = row?.name || custom?.symbols?.[sym]
-                                                || savedParams[sym]?.name || sym;
-                                            const hasCustom = !!savedParams[sym] || !!editParams[sym];
-                                            return (
-                                                <div key={sym} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center bg-gray-900/50 rounded px-2 py-1.5">
-                                                    <span className="text-xs text-gray-300 truncate">
-                                                        {name} <span className="text-[10px] text-gray-500">{sym}</span>
-                                                        {hasCustom && <span className="ml-1 text-[9px] text-amber-400">개별</span>}
-                                                    </span>
-                                                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
-                                                        임계
-                                                        <input type="number" min={bounds.buyThreshold?.[0]} max={bounds.buyThreshold?.[1]}
-                                                            value={paramDisplay(sym, 'buyThreshold')}
-                                                            onChange={e => setParam(sym, 'buyThreshold', e.target.value)}
-                                                            className="w-14 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-gray-200 text-right" />
-                                                    </label>
-                                                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
-                                                        손절
-                                                        <input type="number" min={0} max={50} step={0.5}
-                                                            value={paramDisplay(sym, 'stopLossPct')}
-                                                            onChange={e => setParam(sym, 'stopLossPct', e.target.value)}
-                                                            className="w-12 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-gray-200 text-right" />%
-                                                    </label>
-                                                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
-                                                        익절
-                                                        <input type="number" min={0} max={50} step={0.5}
-                                                            value={paramDisplay(sym, 'takeProfitPct')}
-                                                            onChange={e => setParam(sym, 'takeProfitPct', e.target.value)}
-                                                            className="w-12 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-gray-200 text-right" />%
-                                                    </label>
-                                                </div>
-                                            );
-                                        })}
-                                        <div className="text-[10px] text-gray-500">
-                                            임계 = 매수 점수 기준(낮출수록 더 자주 매수). 손절/익절 = 평단 대비 %.
-                                            변경 후 위 <b className="text-blue-300">선택·설정 저장</b>을 눌러야 봇에 반영됩니다.
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-
-                        {/* ➕ 직접 추가 종목 (유니버스 62종목 밖 — custom_symbols.json) */}
-                        <div className="bg-gray-800 border border-purple-700/40 rounded-lg px-3 py-2.5 space-y-2">
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="text-xs text-gray-300">➕ 직접 추가 종목 <b className="text-purple-300">{Object.keys(custom?.symbols || {}).length}</b>/{custom?.max ?? 20}</span>
-                                <input value={newCode} onChange={e => setNewCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                                    placeholder="종목코드 6자리" inputMode="numeric"
-                                    className="w-28 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-600" />
-                                <input value={newName} onChange={e => setNewName(e.target.value.slice(0, 20))}
-                                    placeholder="종목명 (예: 카카오)"
-                                    onKeyDown={e => { if (e.key === 'Enter') addCustomSymbol(); }}
-                                    className="w-36 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-600" />
-                                <button onClick={addCustomSymbol} disabled={saving}
-                                    className="text-xs px-3 py-1 rounded bg-purple-700 hover:bg-purple-600 text-white disabled:opacity-60">추가</button>
-                                {customMsg && <span className="text-[11px] text-gray-400">{customMsg}</span>}
-                            </div>
-                            {Object.keys(custom?.symbols || {}).length > 0 && (
-                                <div className="flex flex-wrap gap-1.5">
-                                    {Object.entries(custom!.symbols).map(([sym, name]) => {
-                                        const scanned = rows.find(r => r.symbol === sym);
-                                        return (
-                                            <span key={sym} className="text-[11px] bg-purple-900/30 border border-purple-700/40 rounded px-2 py-1 text-purple-200 flex items-center gap-1.5">
-                                                <input type="checkbox" className="w-3.5 h-3.5 accent-purple-400"
-                                                    checked={effChecked.includes(sym)}
-                                                    disabled={!effChecked.includes(sym) && effChecked.length >= maxSelect}
-                                                    onChange={() => toggleSymbol(sym)} />
-                                                {name} <span className="text-purple-400/70">{sym}</span>
-                                                {scanned ? <b className="text-amber-300">{scanned.score}점</b>
-                                                    : <span className="text-gray-500">스캔 전</span>}
-                                                <button onClick={() => removeCustomSymbol(sym, name)}
-                                                    className="text-purple-300 hover:text-white" aria-label="삭제">✕</button>
-                                            </span>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                            <div className="text-[10px] text-gray-500">
-                                코드를 잘못 넣으면 봇이 시세 조회 실패로 걸러내고 로그에 남습니다. 체크하면 62종목 밖이어도 매매 대상이 되고, 점수는 다음 16시 스캔부터 산출됩니다.
-                            </div>
+                        {/* 선택 요약 배너 — 발굴 탭에선 체크만 하고, 확정·설정은 [선택] 탭에서 */}
+                        <div className="bg-gray-800 border border-blue-700/40 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2 text-xs">
+                            <span className="text-gray-300">체크한 종목 <b className="text-blue-300">{effChecked.length}</b>/{maxSelect}</span>
+                            {(dirty || paramsDirty) && <span className="text-[11px] text-amber-300">· 저장 안 됨</span>}
+                            <button onClick={() => setView('select')}
+                                className="ml-auto text-xs px-3 py-1 rounded bg-blue-600/80 hover:bg-blue-500 text-white">
+                                선택 탭에서 확정·설정 →
+                            </button>
                         </div>
 
                         {/* 점수순 전체 표 (체크=선택, 행 클릭 → 조건별 상세) */}
@@ -617,6 +579,134 @@ export const TossTraderPanel: React.FC = () => {
                         <div className="text-[11px] text-gray-500 px-1">
                             2단계 점수제: <b className="text-amber-300">{th}점=발굴</b>(후보 리스트업) · <b className="text-green-400">{buyTh}점=매수 진입</b>.
                             체크→저장한 종목만 봇이 감시하며, {buyTh}점 도달 시에만 매수합니다(선택 저장 후 봇 반영까지 최대 60초).
+                            선택 해제해도 보유 종목의 청산(손절·익절·추세이탈) 감시는 유지됩니다.
+                        </div>
+                    </div>
+                );
+            })()}
+
+            {/* ── 선택 탭 (매매 대상 확정 + 종목별 점수 설정 + 직접 추가) ── */}
+            {view === 'select' && (() => {
+                const rows: any[] = scanData?.scan?.candidates || [];
+                const nameOf = (sym: string) =>
+                    rows.find(r => r.symbol === sym)?.name || custom?.symbols?.[sym] || st?.symbolName || sym;
+                return (
+                    <div className="space-y-4">
+                        {/* 저장 바 — 선택·설정 확정 */}
+                        <div className="bg-gray-800 border border-blue-700/40 rounded-lg px-3 py-2.5 flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-gray-300">
+                                매매 대상 <b className="text-blue-300">{effChecked.length}</b>/{maxSelect}
+                            </span>
+                            {effChecked.length === 0 && <span className="text-[11px] text-gray-500">선택 0개 = 매수 0 (보유분 청산 감시는 유지)</span>}
+                            <div className="ml-auto flex items-center gap-2">
+                                {saveMsg && <span className="text-[11px] text-gray-400">{saveMsg}</span>}
+                                {(dirty || paramsDirty) && (
+                                    <button onClick={() => { setChecked(null); setEditParams({}); setSaveMsg(null); }}
+                                        className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
+                                )}
+                                <button onClick={saveSelection} disabled={(!dirty && !paramsDirty) || saving}
+                                    className={`text-xs px-4 py-1.5 rounded font-medium ${(dirty || paramsDirty) ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
+                                    {saving ? '저장 중…' : '선택·설정 저장'}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* 선택된 종목별 점수 설정 — 매수 임계·손절%·익절% 개별 지정 */}
+                        {effChecked.length > 0 ? (
+                            <div className="bg-gray-800 rounded-lg overflow-hidden">
+                                <div className="text-[11px] font-medium text-gray-400 px-3 py-2 border-b border-gray-700 bg-gray-800/80 flex items-center justify-between">
+                                    <span>⚙ 종목별 점수 설정</span>
+                                    <span className="text-[10px] text-gray-500">미설정=기본값 임계 {defaultThreshold}·손절 3%·익절 8%</span>
+                                </div>
+                                <div className="divide-y divide-gray-700/60">
+                                    {effChecked.map(sym => {
+                                        const hasCustom = !!savedParams[sym] || !!editParams[sym];
+                                        return (
+                                            <div key={sym} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2.5">
+                                                <span className="text-sm text-gray-200 min-w-[7rem] flex items-center gap-1.5">
+                                                    {nameOf(sym)} <span className="text-[10px] text-gray-500">{sym}</span>
+                                                    {hasCustom && <span className="text-[9px] text-amber-400 bg-amber-900/30 rounded px-1">개별</span>}
+                                                    <button onClick={() => toggleSymbol(sym)} className="text-gray-500 hover:text-red-400 ml-0.5" aria-label="선택 해제">✕</button>
+                                                </span>
+                                                <div className="flex items-center gap-2 ml-auto">
+                                                    <label className="flex items-center gap-1 text-[11px] text-gray-400">
+                                                        임계
+                                                        <input type="number" min={bounds.buyThreshold?.[0]} max={bounds.buyThreshold?.[1]}
+                                                            value={paramDisplay(sym, 'buyThreshold')}
+                                                            onChange={e => setParam(sym, 'buyThreshold', e.target.value)}
+                                                            className="w-14 bg-gray-900 border border-gray-700 rounded px-1.5 py-1 text-xs text-gray-200 text-right" />
+                                                    </label>
+                                                    <label className="flex items-center gap-1 text-[11px] text-gray-400">
+                                                        손절
+                                                        <input type="number" min={0} max={50} step={0.5}
+                                                            value={paramDisplay(sym, 'stopLossPct')}
+                                                            onChange={e => setParam(sym, 'stopLossPct', e.target.value)}
+                                                            className="w-12 bg-gray-900 border border-gray-700 rounded px-1.5 py-1 text-xs text-gray-200 text-right" />%
+                                                    </label>
+                                                    <label className="flex items-center gap-1 text-[11px] text-gray-400">
+                                                        익절
+                                                        <input type="number" min={0} max={50} step={0.5}
+                                                            value={paramDisplay(sym, 'takeProfitPct')}
+                                                            onChange={e => setParam(sym, 'takeProfitPct', e.target.value)}
+                                                            className="w-12 bg-gray-900 border border-gray-700 rounded px-1.5 py-1 text-xs text-gray-200 text-right" />%
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="text-[10px] text-gray-500 px-3 py-2 border-t border-gray-700/60">
+                                    임계 = 매수 점수 기준(낮출수록 더 자주 매수). 손절/익절 = 평단 대비 %. 변경 후 위 <b className="text-blue-300">선택·설정 저장</b> 필수.
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-6 text-center">
+                                아직 선택한 종목이 없습니다. <button onClick={() => setView('scan')} className="text-blue-300 underline">발굴 탭</button>에서 종목을 체크하거나, 아래에서 직접 추가하세요.
+                            </div>
+                        )}
+
+                        {/* ➕ 직접 추가 종목 (유니버스 62종목 밖 — custom_symbols.json) */}
+                        <div className="bg-gray-800 border border-purple-700/40 rounded-lg px-3 py-2.5 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-gray-300">➕ 직접 추가 종목 <b className="text-purple-300">{Object.keys(custom?.symbols || {}).length}</b>/{custom?.max ?? 20}</span>
+                                <input value={newCode} onChange={e => setNewCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="종목코드 6자리" inputMode="numeric"
+                                    className="w-28 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-600" />
+                                <input value={newName} onChange={e => setNewName(e.target.value.slice(0, 20))}
+                                    placeholder="종목명 (예: 카카오)"
+                                    onKeyDown={e => { if (e.key === 'Enter') addCustomSymbol(); }}
+                                    className="w-36 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-600" />
+                                <button onClick={addCustomSymbol} disabled={saving}
+                                    className="text-xs px-3 py-1 rounded bg-purple-700 hover:bg-purple-600 text-white disabled:opacity-60">추가</button>
+                                {customMsg && <span className="text-[11px] text-gray-400">{customMsg}</span>}
+                            </div>
+                            {Object.keys(custom?.symbols || {}).length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {Object.entries(custom!.symbols).map(([sym, name]) => {
+                                        const scanned = rows.find(r => r.symbol === sym);
+                                        return (
+                                            <span key={sym} className="text-[11px] bg-purple-900/30 border border-purple-700/40 rounded px-2 py-1 text-purple-200 flex items-center gap-1.5">
+                                                <input type="checkbox" className="w-3.5 h-3.5 accent-purple-400"
+                                                    checked={effChecked.includes(sym)}
+                                                    disabled={!effChecked.includes(sym) && effChecked.length >= maxSelect}
+                                                    onChange={() => toggleSymbol(sym)} />
+                                                {name} <span className="text-purple-400/70">{sym}</span>
+                                                {scanned ? <b className="text-amber-300">{scanned.score}점</b>
+                                                    : <span className="text-gray-500">스캔 전</span>}
+                                                <button onClick={() => removeCustomSymbol(sym, name)}
+                                                    className="text-purple-300 hover:text-white" aria-label="삭제">✕</button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            <div className="text-[10px] text-gray-500">
+                                체크하면 62종목 밖이어도 매매 대상이 되고, 점수는 다음 16시 스캔부터 산출됩니다. 잘못된 코드는 봇이 시세 조회 실패로 걸러냅니다.
+                            </div>
+                        </div>
+
+                        <div className="text-[11px] text-gray-500 px-1">
+                            여기서 확정·저장한 종목만 봇이 감시하며, 각 종목의 임계 점수 도달 시 매수합니다(반영까지 최대 60초).
                             선택 해제해도 보유 종목의 청산(손절·익절·추세이탈) 감시는 유지됩니다.
                         </div>
                     </div>
@@ -688,7 +778,7 @@ export const TossTraderPanel: React.FC = () => {
             {/* ── 로그 탭 ── */}
             {view === 'log' && (
                 <div>
-                    <div className="flex gap-2 mb-2 items-center">
+                    <div className="flex gap-2 mb-2 items-center flex-wrap">
                         <TabBtn on={logTab === 'log'} onClick={() => setLogTab('log')}>실행 로그</TabBtn>
                         <TabBtn on={logTab === 'order'} onClick={() => setLogTab('order')}>주문 로그</TabBtn>
                         <button onClick={() => setExpanded(true)}
@@ -696,6 +786,18 @@ export const TossTraderPanel: React.FC = () => {
                             ⛶ 크게 보기
                         </button>
                         <span className="text-[10px] text-gray-500 self-center">한국시간 · 15초 자동갱신</span>
+                    </div>
+                    {/* 레벨 필터 */}
+                    <div className="flex gap-1.5 mb-2 items-center flex-wrap">
+                        {([['all', '전체'], ['info', '정보'], ['order', '주문'], ['error', '에러']] as [LogFilter, string][]).map(([f, label]) => (
+                            <button key={f} onClick={() => setLogFilter(f)}
+                                className={`text-[11px] px-2.5 py-1 rounded-full border ${logFilter === f
+                                    ? (f === 'error' ? 'bg-red-700/60 border-red-500 text-red-100' : 'bg-blue-700/60 border-blue-500 text-blue-100')
+                                    : 'bg-gray-800 border-gray-700 text-gray-400 hover:text-gray-200'}`}>
+                                {label}
+                            </button>
+                        ))}
+                        <span className="text-[10px] text-gray-500 ml-1">{shownLines.length}/{rawLines.length}줄</span>
                     </div>
                     <pre className="toss-log-scroll bg-black/60 rounded-lg p-3 text-[11px] leading-relaxed text-gray-300 overflow-auto min-h-[24rem] max-h-[70vh] whitespace-pre-wrap resize-y">
                         {logText}
