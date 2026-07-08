@@ -912,6 +912,10 @@ export const adminApi = {
         get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; updatedAt?: string }; max: number }>('/admin/toss-trader/selection'),
     saveTossSelection: (payload: { symbols?: string[]; halt?: boolean }) =>
         post<{ ok: boolean; selection: { symbols: string[]; halt: boolean; updatedAt?: string } }>('/admin/toss-trader/selection', payload),
+    getTossCustomSymbols: () =>
+        get<{ symbols: Record<string, string>; max: number }>('/admin/toss-trader/custom-symbols'),
+    saveTossCustomSymbols: (payload: { add?: { symbol: string; name: string }; remove?: string }) =>
+        post<{ ok: boolean; symbols: Record<string, string>; max: number }>('/admin/toss-trader/custom-symbols', payload),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),

@@ -46,21 +46,28 @@ export const TossTraderPanel: React.FC = () => {
     const [checked, setChecked] = useState<string[] | null>(null);
     const [saving, setSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState<string | null>(null);
+    // 사장 직접 추가 종목(유니버스 밖) — custom_symbols.json
+    const [custom, setCustom] = useState<{ symbols: Record<string, string>; max: number } | null>(null);
+    const [newCode, setNewCode] = useState('');
+    const [newName, setNewName] = useState('');
+    const [customMsg, setCustomMsg] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         try {
-            const [s, l, o, sc, sel] = await Promise.all([
+            const [s, l, o, sc, sel, cu] = await Promise.all([
                 adminApi.getTossStatus(),
                 adminApi.getTossLogs(120),
                 adminApi.getTossOrders(80),
                 adminApi.getTossScan().catch(() => null), // 스캔 결과 실패해도 나머진 표시
                 adminApi.getTossSelection().catch(() => null),
+                adminApi.getTossCustomSymbols().catch(() => null),
             ]);
             setData(s);
             setLogs(l.lines || []);
             setOrders(o.lines || []);
             setScanData(sc);
             setSelection(sel);
+            setCustom(cu);
             setError(null);
         } catch {
             setError('불러오기 실패 (봇 미기동이거나 서버 오류)');
@@ -91,6 +98,37 @@ export const TossTraderPanel: React.FC = () => {
             await load();
         } catch (e: any) {
             setSaveMsg(`저장 실패: ${e?.message || '오류'}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const addCustomSymbol = async () => {
+        const symbol = newCode.trim();
+        const name = newName.trim();
+        if (!/^\d{6}$/.test(symbol)) { setCustomMsg('종목코드는 6자리 숫자'); return; }
+        if (!name) { setCustomMsg('종목명을 입력하세요'); return; }
+        setSaving(true);
+        try {
+            await adminApi.saveTossCustomSymbols({ add: { symbol, name } });
+            setNewCode(''); setNewName('');
+            setCustomMsg(`${name}(${symbol}) 추가됨 — 선택하면 봇이 60초 내 반영, 점수는 다음 스캔(16시)부터`);
+            await load();
+        } catch (e: any) {
+            setCustomMsg(`추가 실패: ${e?.message || '오류'}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const removeCustomSymbol = async (symbol: string, name: string) => {
+        if (!window.confirm(`직접 추가 종목 ${name}(${symbol})을 삭제할까요? 선택돼 있으면 선택도 해제해야 합니다.`)) return;
+        setSaving(true);
+        try {
+            await adminApi.saveTossCustomSymbols({ remove: symbol });
+            await load();
+        } catch (e: any) {
+            setCustomMsg(`삭제 실패: ${e?.message || '오류'}`);
         } finally {
             setSaving(false);
         }
@@ -356,7 +394,7 @@ export const TossTraderPanel: React.FC = () => {
                                 const row = rows.find(r => r.symbol === sym);
                                 return (
                                     <span key={sym} className="text-[11px] bg-blue-900/40 border border-blue-700/40 rounded px-2 py-0.5 text-blue-200">
-                                        {row?.name || sym}
+                                        {row?.name || custom?.symbols?.[sym] || sym}
                                         <button onClick={() => toggleSymbol(sym)} className="ml-1.5 text-blue-300 hover:text-white" aria-label="선택 해제">✕</button>
                                     </span>
                                 );
@@ -371,6 +409,46 @@ export const TossTraderPanel: React.FC = () => {
                                     className={`text-xs px-4 py-1.5 rounded font-medium ${dirty ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
                                     {saving ? '저장 중…' : '선택 저장'}
                                 </button>
+                            </div>
+                        </div>
+
+                        {/* ➕ 직접 추가 종목 (유니버스 62종목 밖 — custom_symbols.json) */}
+                        <div className="bg-gray-800 border border-purple-700/40 rounded-lg px-3 py-2.5 space-y-2">
+                            <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-xs text-gray-300">➕ 직접 추가 종목 <b className="text-purple-300">{Object.keys(custom?.symbols || {}).length}</b>/{custom?.max ?? 20}</span>
+                                <input value={newCode} onChange={e => setNewCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                    placeholder="종목코드 6자리" inputMode="numeric"
+                                    className="w-28 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-600" />
+                                <input value={newName} onChange={e => setNewName(e.target.value.slice(0, 20))}
+                                    placeholder="종목명 (예: 카카오)"
+                                    onKeyDown={e => { if (e.key === 'Enter') addCustomSymbol(); }}
+                                    className="w-36 bg-gray-900 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-600" />
+                                <button onClick={addCustomSymbol} disabled={saving}
+                                    className="text-xs px-3 py-1 rounded bg-purple-700 hover:bg-purple-600 text-white disabled:opacity-60">추가</button>
+                                {customMsg && <span className="text-[11px] text-gray-400">{customMsg}</span>}
+                            </div>
+                            {Object.keys(custom?.symbols || {}).length > 0 && (
+                                <div className="flex flex-wrap gap-1.5">
+                                    {Object.entries(custom!.symbols).map(([sym, name]) => {
+                                        const scanned = rows.find(r => r.symbol === sym);
+                                        return (
+                                            <span key={sym} className="text-[11px] bg-purple-900/30 border border-purple-700/40 rounded px-2 py-1 text-purple-200 flex items-center gap-1.5">
+                                                <input type="checkbox" className="w-3.5 h-3.5 accent-purple-400"
+                                                    checked={effChecked.includes(sym)}
+                                                    disabled={!effChecked.includes(sym) && effChecked.length >= maxSelect}
+                                                    onChange={() => toggleSymbol(sym)} />
+                                                {name} <span className="text-purple-400/70">{sym}</span>
+                                                {scanned ? <b className="text-amber-300">{scanned.score}점</b>
+                                                    : <span className="text-gray-500">스캔 전</span>}
+                                                <button onClick={() => removeCustomSymbol(sym, name)}
+                                                    className="text-purple-300 hover:text-white" aria-label="삭제">✕</button>
+                                            </span>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            <div className="text-[10px] text-gray-500">
+                                코드를 잘못 넣으면 봇이 시세 조회 실패로 걸러내고 로그에 남습니다. 체크하면 62종목 밖이어도 매매 대상이 되고, 점수는 다음 16시 스캔부터 산출됩니다.
                             </div>
                         </div>
 
