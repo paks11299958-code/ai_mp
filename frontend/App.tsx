@@ -59,6 +59,7 @@ import { FaceReadingModal } from './components/FaceReadingModal';
 import { TarotCardModal } from './components/TarotCardModal';
 import { TarotReportView, TarotReportData } from './components/TarotReportView';
 import { EmbedChat } from './components/EmbedChat';
+import { ConsultPage } from './components/ConsultPage';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -2576,8 +2577,12 @@ const AppContent: React.FC = () => {
 // AppContent(훅 수십 개) 진입 전에 분기해 훅 순서·무게 문제를 피한다.
 const EMBED_KEY = new URLSearchParams(window.location.search).get('embed');
 
+// 🤖 AI상담 봇 페이지(/consult/{slug}): 발급 링크 전용 전체화면(아바타+마스터 Typebot)
+const CONSULT_SLUG = window.location.pathname.match(/^\/consult\/([a-z0-9-]{3,40})\/?$/)?.[1] ?? null;
+
 const App: React.FC = () => (
     EMBED_KEY ? <EmbedChat personaKey={EMBED_KEY} /> :
+    CONSULT_SLUG ? <ConsultPage slug={CONSULT_SLUG} /> :
     <PointsProvider>
         <AppContent />
     </PointsProvider>

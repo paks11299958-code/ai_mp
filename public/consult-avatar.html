@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <style>
+    body {
+      margin: 0; width: 100vw; height: 100vh;
+      background: linear-gradient(135deg, #020617 0%, #1e3a8a 100%);
+      overflow: hidden; display: flex; justify-content: center; align-items: center;
+    }
+    model-viewer { width: 100%; height: 100%; background-color: transparent; }
+    .progress-bar {
+      display: block; width: 50%; height: 6px; position: absolute;
+      left: 50%; top: 50%; transform: translate3d(-50%, -50%, 0);
+      border-radius: 25px; background-color: rgba(255,255,255,0.15);
+    }
+    .progress-bar.hide { visibility: hidden; transition: visibility 0.3s; }
+    .update-bar {
+      background-color: #2563eb; width: 0%; height: 100%;
+      border-radius: 25px; float: left; transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <!-- AI상담 봇 캐릭터: www.dbzone.kr이 CORS 허용(access-control-allow-origin: *)이라 직접 로드 -->
+  <model-viewer
+    id="avatar"
+    src="https://www.dbzone.kr/via3.glb"
+    camera-controls
+    autoplay
+    animation-name="Wave"
+    tone-mapping="neutral"
+    shadow-intensity="0.8"
+    interaction-prompt="none">
+    <div class="progress-bar hide" slot="progress-bar">
+      <div class="update-bar"></div>
+    </div>
+  </model-viewer>
+
+  <script>
+    const onProgress = (event) => {
+      const progressBar = event.target.querySelector('.progress-bar');
+      const updatingBar = event.target.querySelector('.update-bar');
+      updatingBar.style.width = `${event.detail.totalProgress * 100}%`;
+      if (event.detail.totalProgress === 1) {
+        progressBar.classList.add('hide');
+        event.target.removeEventListener('progress', onProgress);
+      } else {
+        progressBar.classList.remove('hide');
+      }
+    };
+    const mv = document.querySelector('model-viewer');
+    mv.addEventListener('progress', onProgress);
+    mv.addEventListener('load', () => {
+      const duration = mv.duration * 1000;
+      setTimeout(() => { mv.pause(); }, duration);
+    });
+  </script>
+</body>
+</html>
