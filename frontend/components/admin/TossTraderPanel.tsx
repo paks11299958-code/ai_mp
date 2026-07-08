@@ -80,6 +80,16 @@ export const TossTraderPanel: React.FC = () => {
     const effChecked = checked ?? savedSymbols;           // 편집 전엔 서버 저장값 표시
     const dirty = checked != null && JSON.stringify([...checked].sort()) !== JSON.stringify([...savedSymbols].sort());
 
+    // ── 종목별 점수 설정(params) — 매수 임계·손절%·익절%를 종목마다 개별 지정 ──
+    // 서버 저장값(소수: 0.03=3%). 편집분은 editParams 에 문자열로 담아 입력 자유도 확보.
+    const savedParams: Record<string, any> = selection?.selection?.params || {};
+    const bounds: Record<string, [number, number]> = selection?.paramBounds || {
+        buyThreshold: [1, 100], stopLossPct: [0, 0.5], takeProfitPct: [0, 0.5],
+    };
+    const defaultThreshold: number = Number(scanData?.scan?.buyThreshold ?? data?.status?.buyThreshold ?? 80);
+    const [editParams, setEditParams] = useState<Record<string, Record<string, string>>>({});
+    const [paramsOpen, setParamsOpen] = useState(false);
+
     const toggleSymbol = (sym: string) => {
         const base = checked ?? savedSymbols;
         const next = base.includes(sym) ? base.filter(s => s !== sym)
@@ -88,12 +98,52 @@ export const TossTraderPanel: React.FC = () => {
         setSaveMsg(null);
     };
 
+    // 종목·항목의 현재 표시값(편집 중이면 편집값, 아니면 저장값, 없으면 기본값).
+    // 화면 단위는 %(사람이 읽기 쉽게), 저장은 소수 — buyThreshold 만 정수 그대로.
+    const paramDisplay = (sym: string, key: string): string => {
+        const e = editParams[sym]?.[key];
+        if (e !== undefined) return e;
+        const saved = savedParams[sym]?.[key];
+        if (saved !== undefined) {
+            return key === 'buyThreshold' ? String(saved) : String(+(saved * 100).toFixed(2));
+        }
+        // 저장값 없음 = 기본값(표시용)
+        if (key === 'buyThreshold') return String(defaultThreshold);
+        return key === 'stopLossPct' ? '3' : '8'; // 전략 기본 3%/8%
+    };
+    const setParam = (sym: string, key: string, val: string) => {
+        setEditParams(p => ({ ...p, [sym]: { ...(p[sym] || {}), [key]: val } }));
+        setSaveMsg(null);
+    };
+    const paramsDirty = Object.keys(editParams).length > 0;
+
+    // 편집분(%표시)을 저장 단위(소수)로 환산 + 범위 클램프. 잘못된 입력은 그 항목 제외.
+    const buildParamsPayload = (): Record<string, Record<string, number>> => {
+        const out: Record<string, Record<string, number>> = {};
+        for (const sym of effChecked) {
+            const merged: Record<string, number> = {};
+            for (const key of ['buyThreshold', 'stopLossPct', 'takeProfitPct']) {
+                const raw = paramDisplay(sym, key);
+                const num = Number(raw);
+                if (!Number.isFinite(num)) continue;
+                const val = key === 'buyThreshold' ? Math.round(num) : +(num / 100).toFixed(4);
+                const [lo, hi] = bounds[key] || [0, 1e9];
+                if (val < lo || val > hi) continue;
+                merged[key] = val;
+            }
+            if (Object.keys(merged).length) out[sym] = merged;
+        }
+        return out;
+    };
+
     const saveSelection = async () => {
-        if (checked == null) return;
+        // 선택(symbols)과 점수설정(params)을 함께 저장 — 한 번의 저장으로 봇에 반영.
         setSaving(true);
         try {
-            await adminApi.saveTossSelection({ symbols: checked });
+            const payload: any = { symbols: effChecked, params: buildParamsPayload() };
+            await adminApi.saveTossSelection(payload);
             setChecked(null);
+            setEditParams({});
             setSaveMsg('저장됨 — 봇이 60초 내 반영합니다');
             await load();
         } catch (e: any) {
@@ -401,16 +451,72 @@ export const TossTraderPanel: React.FC = () => {
                             }) : <span className="text-[11px] text-gray-500">선택 0개 = 매수 0 (보유분 청산 감시는 유지)</span>}
                             <div className="ml-auto flex items-center gap-2">
                                 {saveMsg && <span className="text-[11px] text-gray-400">{saveMsg}</span>}
-                                {dirty && (
-                                    <button onClick={() => { setChecked(null); setSaveMsg(null); }}
+                                {(dirty || paramsDirty) && (
+                                    <button onClick={() => { setChecked(null); setEditParams({}); setSaveMsg(null); }}
                                         className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
                                 )}
-                                <button onClick={saveSelection} disabled={!dirty || saving}
-                                    className={`text-xs px-4 py-1.5 rounded font-medium ${dirty ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
-                                    {saving ? '저장 중…' : '선택 저장'}
+                                <button onClick={saveSelection} disabled={(!dirty && !paramsDirty) || saving}
+                                    className={`text-xs px-4 py-1.5 rounded font-medium ${(dirty || paramsDirty) ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
+                                    {saving ? '저장 중…' : '선택·설정 저장'}
                                 </button>
                             </div>
                         </div>
+
+                        {/* ⚙ 종목별 점수 설정 — 선택 종목마다 매수 임계·손절%·익절% 개별 지정 */}
+                        {effChecked.length > 0 && (
+                            <div className="bg-gray-800 border border-amber-700/40 rounded-lg px-3 py-2.5 space-y-2">
+                                <button onClick={() => setParamsOpen(o => !o)}
+                                    className="flex items-center gap-2 text-xs text-amber-300 hover:text-amber-200">
+                                    <span>⚙ 종목별 점수 설정 {paramsOpen ? '▾' : '▸'}</span>
+                                    <span className="text-[10px] text-gray-500">
+                                        종목마다 매수 임계·손절·익절을 다르게 (미설정=기본값 임계 {defaultThreshold}·손절 3%·익절 8%)
+                                    </span>
+                                </button>
+                                {paramsOpen && (
+                                    <div className="space-y-2">
+                                        {effChecked.map(sym => {
+                                            const row = rows.find(r => r.symbol === sym);
+                                            const name = row?.name || custom?.symbols?.[sym]
+                                                || savedParams[sym]?.name || sym;
+                                            const hasCustom = !!savedParams[sym] || !!editParams[sym];
+                                            return (
+                                                <div key={sym} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center bg-gray-900/50 rounded px-2 py-1.5">
+                                                    <span className="text-xs text-gray-300 truncate">
+                                                        {name} <span className="text-[10px] text-gray-500">{sym}</span>
+                                                        {hasCustom && <span className="ml-1 text-[9px] text-amber-400">개별</span>}
+                                                    </span>
+                                                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
+                                                        임계
+                                                        <input type="number" min={bounds.buyThreshold?.[0]} max={bounds.buyThreshold?.[1]}
+                                                            value={paramDisplay(sym, 'buyThreshold')}
+                                                            onChange={e => setParam(sym, 'buyThreshold', e.target.value)}
+                                                            className="w-14 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-gray-200 text-right" />
+                                                    </label>
+                                                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
+                                                        손절
+                                                        <input type="number" min={0} max={50} step={0.5}
+                                                            value={paramDisplay(sym, 'stopLossPct')}
+                                                            onChange={e => setParam(sym, 'stopLossPct', e.target.value)}
+                                                            className="w-12 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-gray-200 text-right" />%
+                                                    </label>
+                                                    <label className="flex items-center gap-1 text-[10px] text-gray-400">
+                                                        익절
+                                                        <input type="number" min={0} max={50} step={0.5}
+                                                            value={paramDisplay(sym, 'takeProfitPct')}
+                                                            onChange={e => setParam(sym, 'takeProfitPct', e.target.value)}
+                                                            className="w-12 bg-gray-800 border border-gray-700 rounded px-1.5 py-0.5 text-xs text-gray-200 text-right" />%
+                                                    </label>
+                                                </div>
+                                            );
+                                        })}
+                                        <div className="text-[10px] text-gray-500">
+                                            임계 = 매수 점수 기준(낮출수록 더 자주 매수). 손절/익절 = 평단 대비 %.
+                                            변경 후 위 <b className="text-blue-300">선택·설정 저장</b>을 눌러야 봇에 반영됩니다.
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* ➕ 직접 추가 종목 (유니버스 62종목 밖 — custom_symbols.json) */}
                         <div className="bg-gray-800 border border-purple-700/40 rounded-lg px-3 py-2.5 space-y-2">

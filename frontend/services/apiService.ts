@@ -909,9 +909,9 @@ export const adminApi = {
     getTossScan: () =>
         get<{ available: boolean; reason?: string; scan?: any }>('/admin/toss-trader/scan'),
     getTossSelection: () =>
-        get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; updatedAt?: string }; max: number }>('/admin/toss-trader/selection'),
-    saveTossSelection: (payload: { symbols?: string[]; halt?: boolean }) =>
-        post<{ ok: boolean; selection: { symbols: string[]; halt: boolean; updatedAt?: string } }>('/admin/toss-trader/selection', payload),
+        get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string }; max: number; paramBounds?: Record<string, [number, number]> }>('/admin/toss-trader/selection'),
+    saveTossSelection: (payload: { symbols?: string[]; halt?: boolean; params?: Record<string, Record<string, number>> }) =>
+        post<{ ok: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string } }>('/admin/toss-trader/selection', payload),
     getTossCustomSymbols: () =>
         get<{ symbols: Record<string, string>; max: number }>('/admin/toss-trader/custom-symbols'),
     saveTossCustomSymbols: (payload: { add?: { symbol: string; name: string }; remove?: string }) =>
