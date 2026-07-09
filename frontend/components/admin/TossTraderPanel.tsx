@@ -12,16 +12,20 @@ import { Icon } from '../Icons';
 const won = (n: any) => (n == null ? '-' : Number(n).toLocaleString() + '원');
 const pct = (n: any) => (n == null ? '-' : Number(n) + '%');
 
-// 봇 로그(trader.log/orders.log)는 서버1이 UTC로 기록 → 표시할 때 KST(+9h)로 변환.
-// 행 맨 앞 "YYYY-MM-DD HH:MM:SS(,ms)" 만 치환하고 나머지 본문은 그대로 둔다.
+// 봇 로그 표시 시각 = 한국시간(KST).
+// 2026-07-09부터 봇 logger.py 가 KST 로 직접 찍고 라인에 " KST" 표기를 붙인다.
+//  - "KST" 표기가 있으면 이미 한국시간 → 그대로 둔다(이중변환 방지).
+//  - 표기가 없으면 옛 UTC 로그 → 기존처럼 +9h 변환(하위호환, 로테이션 후엔 사라짐).
 const pad2 = (n: number) => String(n).padStart(2, '0');
-const toKstLine = (line: string) =>
-    line.replace(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})(?:,\d+)?/, (m, d, t) => {
+const toKstLine = (line: string) => {
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(?:,\d+)? KST\b/.test(line)) return line;
+    return line.replace(/^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})(?:,\d+)?/, (m, d, t) => {
         const utc = new Date(`${d}T${t}Z`);
         if (isNaN(utc.getTime())) return m;
         const k = new Date(utc.getTime() + 9 * 3600 * 1000);
-        return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())} ${pad2(k.getUTCHours())}:${pad2(k.getUTCMinutes())}:${pad2(k.getUTCSeconds())}`;
+        return `${k.getUTCFullYear()}-${pad2(k.getUTCMonth() + 1)}-${pad2(k.getUTCDate())} ${pad2(k.getUTCHours())}:${pad2(k.getUTCMinutes())}:${pad2(k.getUTCSeconds())} KST`;
     });
+};
 
 // 모바일은 오버레이 스크롤바가 기본 숨김이라 로그 위치를 알 수 없음 → 항상 보이게 강제.
 const LOG_SCROLL_CSS = `
