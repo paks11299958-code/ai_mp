@@ -921,6 +921,11 @@ export const adminApi = {
         post<{ id: number; status: string; reused?: boolean }>('/admin/toss-trader/analyze', payload),
     getTossAnalyze: (id: number) =>
         get<{ id: number; stockName: string; status: string; analysisReport: string | null; errorMessage: string | null; updatedAt: string }>(`/admin/toss-trader/analyze/${id}`),
+    // 채원 발굴 일기(StockDiscovery, 매일 아침 누적)
+    getTossDiscovery: () =>
+        get<{ dates: string[]; latest: any | null }>('/admin/toss-trader/discovery'),
+    getTossDiscoveryByDate: (date: string) =>
+        get<any>(`/admin/toss-trader/discovery/${date}`),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),

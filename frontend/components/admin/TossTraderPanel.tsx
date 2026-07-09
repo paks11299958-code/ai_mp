@@ -66,21 +66,25 @@ export const TossTraderPanel: React.FC = () => {
     const [newCode, setNewCode] = useState('');
     const [newName, setNewName] = useState('');
     const [customMsg, setCustomMsg] = useState<string | null>(null);
+    // 채원 발굴 일기(StockDiscovery) — 날짜별 누적. discovery.latest=최신, discovery.dates=날짜목록
+    const [discovery, setDiscovery] = useState<{ dates: string[]; latest: any } | null>(null);
+    const [discoveryDay, setDiscoveryDay] = useState<any>(null);   // 선택한 날짜의 상세(없으면 latest)
+    const [pickedDate, setPickedDate] = useState<string | null>(null);
 
     const load = useCallback(async () => {
         try {
-            const [s, l, o, sc, sel, cu] = await Promise.all([
+            const [s, l, o, sel, cu, disc] = await Promise.all([
                 adminApi.getTossStatus(),
                 adminApi.getTossLogs(120),
                 adminApi.getTossOrders(80),
-                adminApi.getTossScan().catch(() => null), // 스캔 결과 실패해도 나머진 표시
                 adminApi.getTossSelection().catch(() => null),
                 adminApi.getTossCustomSymbols().catch(() => null),
+                adminApi.getTossDiscovery().catch(() => null), // 채원 발굴 일기
             ]);
             setData(s);
             setLogs(l.lines || []);
             setOrders(o.lines || []);
-            setScanData(sc);
+            setDiscovery(disc);
             setSelection(sel);
             setCustom(cu);
             setError(null);
@@ -101,7 +105,7 @@ export const TossTraderPanel: React.FC = () => {
     const bounds: Record<string, [number, number]> = selection?.paramBounds || {
         buyThreshold: [1, 100], stopLossPct: [0, 0.5], takeProfitPct: [0, 0.5],
     };
-    const defaultThreshold: number = Number(scanData?.scan?.buyThreshold ?? data?.status?.buyThreshold ?? 80);
+    const defaultThreshold: number = Number(data?.status?.buyThreshold ?? 80);
     const [editParams, setEditParams] = useState<Record<string, Record<string, string>>>({});
     const [paramsOpen, setParamsOpen] = useState(false);
 
@@ -282,7 +286,7 @@ export const TossTraderPanel: React.FC = () => {
     }, [expanded]);
 
     return (
-        <div className="p-4 space-y-4 text-gray-200">
+        <div className="p-4 space-y-4 text-gray-200 h-full overflow-y-auto toss-log-scroll">
             <style>{LOG_SCROLL_CSS}</style>
             {/* 헤더 */}
             <div className="flex items-center justify-between">
@@ -500,134 +504,102 @@ export const TossTraderPanel: React.FC = () => {
                 );
             })()}
 
-            {/* ── 발굴 탭 (스캐너 결과: 추천 카드 + 점수순 전체 표) ── */}
+            {/* ── 발굴 탭 (채원 발굴 일기: 날짜별 누적, 코스피·코스닥 각 1종목 + 설명) ── */}
             {view === 'scan' && (() => {
-                const scan = scanData?.scan;
-                if (!scan) {
+                const dates: string[] = discovery?.dates || [];
+                const day = discoveryDay || discovery?.latest || null;
+                if (!day) {
                     return (
                         <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-6 text-center">
-                            {scanData?.reason || '스캔 결과가 아직 없습니다. 봇이 장 마감 후(KST 16시) 하루 1회 스캔합니다.'}
+                            아직 발굴 기록이 없습니다. 애널리스트 <b className="text-emerald-300">윤채원</b>이 매일 아침 7시에
+                            코스피·코스닥 각 1종목을 발굴해 여기에 기록합니다.
                         </div>
                     );
                 }
-                const recs: any[] = scan.recommendations || [];
-                const rows: any[] = scan.candidates || [];
-                const th = Number(scan.threshold ?? 60);
-                const buyTh = Number(scan.buyThreshold ?? 80);
-                const hits = rows.filter(r => Number(r.score) >= th).length;
+                const pickDate = async (d: string) => {
+                    setPickedDate(d);
+                    if (discovery?.latest?.tradeDate === d) { setDiscoveryDay(discovery.latest); return; }
+                    try { setDiscoveryDay(await adminApi.getTossDiscoveryByDate(d)); }
+                    catch { setDiscoveryDay(null); }
+                };
+                const kospi = day.kospiJson, kosdaq = day.kosdaqJson;
+                const curDate = pickedDate || day.tradeDate;
+
+                const stockCard = (title: string, s: any) => {
+                    if (!s) return (
+                        <div className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-sm text-gray-500">
+                            <b className="text-gray-400">{title}</b> — 발굴 없음
+                        </div>
+                    );
+                    const emoji = s.score >= s.threshold ? '🟢' : s.score >= 60 ? '🟡' : '⚪';
+                    const badge = s.score >= s.threshold ? '매수 신호' : s.score >= 60 ? '감시 대상' : '관망';
+                    return (
+                        <div className="bg-gradient-to-br from-emerald-900/20 to-gray-800 border border-emerald-700/40 rounded-lg px-4 py-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-emerald-300 text-xs font-bold">{title}</span>
+                                <span className="ml-auto text-2xl font-bold text-emerald-200" style={{ fontVariantNumeric: 'tabular-nums' }}>{s.score}점</span>
+                            </div>
+                            <div className="text-lg font-bold text-gray-100">
+                                {s.name} <span className="text-xs text-gray-500 font-normal">({s.symbol})</span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                                <span className={`px-2 py-0.5 rounded-full ${s.score >= s.threshold ? 'bg-green-800/60 text-green-200' : s.score >= 60 ? 'bg-amber-800/50 text-amber-200' : 'bg-gray-700 text-gray-400'}`}>{emoji} {badge} · 임계 {s.threshold}</span>
+                                {s.price ? <span className="text-gray-400">현재가 {Number(s.price).toLocaleString()}원</span> : null}
+                            </div>
+                            {/* 6조건 */}
+                            {s.detail && (
+                                <div className="text-[11px] text-gray-400 border-t border-gray-700/60 pt-1.5">
+                                    {Object.values<any>(s.detail).map((v, i) => (
+                                        <span key={i} className={v.ok ? 'text-green-400 mr-2' : 'text-gray-600 mr-2'}>
+                                            {v.ok ? '✓' : '✗'}{v.label}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                            {/* 왜 이 종목인가 — 통합분석 요약 */}
+                            {s.summary && (
+                                <div className="text-[12px] text-gray-300 leading-relaxed bg-gray-900/50 rounded px-3 py-2 border-t border-emerald-800/30 whitespace-pre-wrap">
+                                    <div className="text-[10px] text-emerald-400 mb-1 font-medium">📊 왜 이 종목인가 (재무·수급·뉴스+AI)</div>
+                                    {s.summary}
+                                </div>
+                            )}
+                            <button onClick={() => runAnalyze(s.symbol, s.name)}
+                                className="text-[11px] px-3 py-1 rounded bg-emerald-800/60 border border-emerald-600/50 text-emerald-200 hover:bg-emerald-700/60">
+                                📊 지금 다시 분석
+                            </button>
+                        </div>
+                    );
+                };
+
                 return (
                     <div className="space-y-4">
-                        {/* 스캔 요약 */}
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 px-1">
-                            <span>스캔일 <b className="text-gray-300">{scan.scanDate}</b></span>
-                            <span>유니버스 {scan.universeSize}종목 중 {scan.scannedCount}종목 산출</span>
-                            <span>발굴 {th}점↑ <b className="text-gray-300">{hits}개</b> · 진입 {buyTh}점</span>
-                            <span>시장(KODEX200) {scan.marketUp == null ? '판단불가' : scan.marketUp ? '📈 상승' : '📉 하락/횡보'}</span>
-                            {(scan.errors?.length ?? 0) > 0 && <span className="text-amber-400">조회실패 {scan.errors.length}종목</span>}
+                        {/* 날짜 선택 (일기장 넘기기) */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-gray-400">📅 발굴 일자</span>
+                            <select value={curDate} onChange={e => pickDate(e.target.value)}
+                                className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200">
+                                {dates.map(d => <option key={d} value={d}>{d}{d === discovery?.latest?.tradeDate ? ' (최신)' : ''}</option>)}
+                            </select>
+                            <span className="text-[11px] text-gray-500 ml-auto">애널리스트 윤채원 · 매일 07:00 발굴</span>
                         </div>
 
-                        {/* ⭐ 추천 카드 (규칙 기반 1~2개) — 카드에서 바로 선택 가능 */}
-                        {recs.length > 0 ? (
-                            <div className="grid md:grid-cols-2 gap-3">
-                                {recs.map((r, i) => (
-                                    <div key={r.symbol} className="bg-gradient-to-br from-amber-900/25 to-gray-800 border border-amber-600/40 rounded-lg px-4 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-amber-300 text-sm font-bold">⭐ 오늘의 추천 {i + 1}</span>
-                                            <span className="ml-auto text-xl font-bold text-amber-200" style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}점</span>
-                                        </div>
-                                        <div className="text-base font-bold text-gray-100 mt-1 flex items-center gap-2">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input type="checkbox" className="w-4 h-4 accent-amber-400"
-                                                    checked={effChecked.includes(r.symbol)}
-                                                    onChange={() => toggleSymbol(r.symbol)} />
-                                                {r.name} <span className="text-xs text-gray-500 font-normal">({r.symbol})</span>
-                                            </label>
-                                        </div>
-                                        <div className="text-xs text-gray-300 mt-2 leading-relaxed">{r.reason}</div>
-                                        {r.caution && <div className="text-[11px] text-amber-300/90 mt-1.5">⚠️ {r.caution}</div>}
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-4 text-center">
-                                오늘은 추천 없음 — {th}점 이상 후보가 없습니다(억지 추천은 하지 않습니다).
+                        {/* 코스피 · 코스닥 각 1종목 */}
+                        <div className="grid md:grid-cols-2 gap-3">
+                            {stockCard('🏛 코스피 추천', kospi)}
+                            {stockCard('💹 코스닥 추천', kosdaq)}
+                        </div>
+
+                        {/* 채원 종합 코멘트 */}
+                        {day.comment && (
+                            <div className="bg-gray-800/60 rounded-lg px-4 py-3 text-sm text-gray-300 leading-relaxed">
+                                <span className="text-emerald-300 font-medium">💬 채원 코멘트</span><br />
+                                {day.comment}
                             </div>
                         )}
 
-                        {/* 선택 요약 배너 — 발굴 탭에선 체크만 하고, 확정·설정은 [선택] 탭에서 */}
-                        <div className="bg-gray-800 border border-blue-700/40 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2 text-xs">
-                            <span className="text-gray-300">체크한 종목 <b className="text-blue-300">{effChecked.length}</b>/{maxSelect}</span>
-                            {(dirty || paramsDirty) && <span className="text-[11px] text-amber-300">· 저장 안 됨</span>}
-                            <button onClick={() => setView('select')}
-                                className="ml-auto text-xs px-3 py-1 rounded bg-blue-600/80 hover:bg-blue-500 text-white">
-                                선택 탭에서 확정·설정 →
-                            </button>
-                        </div>
-
-                        {/* 점수순 전체 표 (체크=선택, 행 클릭 → 조건별 상세) */}
-                        <div className="bg-gray-800 rounded-lg overflow-hidden">
-                            <div className="grid grid-cols-[1.5rem_2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 text-[10px] text-gray-500 border-b border-gray-700 bg-gray-800/80">
-                                <span></span><span>#</span><span>종목</span>
-                                <span className="text-right w-16">점수</span>
-                                <span className="text-right w-20 hidden sm:block">종가</span>
-                                <span className="text-right w-16 hidden sm:block">거래량배율</span>
-                            </div>
-                            <div className="divide-y divide-gray-700/60 max-h-[32rem] overflow-y-auto toss-log-scroll">
-                                {rows.map((r, i) => {
-                                    const hit = Number(r.score) >= th;
-                                    const open = openSymbol === r.symbol;
-                                    return (
-                                        <div key={r.symbol}>
-                                            <div role="button" tabIndex={0} onClick={() => setOpenSymbol(open ? null : r.symbol)}
-                                                onKeyDown={(e) => { if (e.key === 'Enter') setOpenSymbol(open ? null : r.symbol); }}
-                                                className={`w-full grid grid-cols-[1.5rem_2rem_1fr_auto_auto_auto] gap-2 px-3 py-2 items-center text-left cursor-pointer hover:bg-gray-700/40 ${hit ? 'bg-green-900/15' : ''}`}>
-                                                <input type="checkbox" className="w-4 h-4 accent-blue-500"
-                                                    checked={effChecked.includes(r.symbol)}
-                                                    disabled={!effChecked.includes(r.symbol) && effChecked.length >= maxSelect}
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    onChange={() => toggleSymbol(r.symbol)} />
-                                                <span className="text-[11px] text-gray-500">{i + 1}</span>
-                                                <span className={`text-sm ${hit ? 'text-green-200 font-medium' : 'text-gray-300'}`}>
-                                                    {r.name} <span className="text-[10px] text-gray-500">{r.symbol}</span>
-                                                    {open ? ' ▾' : ''}
-                                                </span>
-                                                <span className={`text-right w-16 font-bold ${Number(r.score) >= buyTh ? 'text-green-400' : hit ? 'text-amber-300' : 'text-gray-400'}`}
-                                                    style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}</span>
-                                                <span className="text-right w-20 text-[11px] text-gray-400 hidden sm:block" style={{ fontVariantNumeric: 'tabular-nums' }}>{won(r.close)}</span>
-                                                <span className="text-right w-16 text-[11px] text-gray-400 hidden sm:block" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                                    {r.volRatio != null ? `${Number(r.volRatio).toFixed(1)}배` : '-'}
-                                                </span>
-                                            </div>
-                                            {open && r.detail && (
-                                                <div className="px-4 pb-2 bg-gray-900/40">
-                                                    {Object.entries<any>(r.detail).map(([key, v]) => (
-                                                        <div key={key} className="flex items-center justify-between py-1 text-[11px]">
-                                                            <span className={v.ok ? 'text-green-400' : 'text-gray-500'}>
-                                                                {v.ok ? '✓' : '✗'} {v.label || key} <span className="text-gray-600">({v.crit})</span>
-                                                            </span>
-                                                            <span className="text-gray-400 truncate max-w-[45%] text-right" title={v.val}>
-                                                                {v.val} <b className={v.ok ? 'text-green-400' : 'text-gray-600'}>+{v.pts}</b><span className="text-gray-600">/{v.max}</span>
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                    <button onClick={() => runAnalyze(r.symbol, r.name)}
-                                                        className="mt-1.5 text-[11px] px-3 py-1 rounded bg-emerald-800/60 border border-emerald-600/50 text-emerald-200 hover:bg-emerald-700/60">
-                                                        📊 이 종목 통합 분석 (봇 점수 + 재무·수급·뉴스)
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
-                                {rows.length === 0 && (
-                                    <div className="text-sm text-gray-500 px-4 py-6 text-center">산출된 종목이 없습니다.</div>
-                                )}
-                            </div>
-                        </div>
                         <div className="text-[11px] text-gray-500 px-1">
-                            2단계 점수제: <b className="text-amber-300">{th}점=발굴</b>(후보 리스트업) · <b className="text-green-400">{buyTh}점=매수 진입</b>.
-                            체크→저장한 종목만 봇이 감시하며, {buyTh}점 도달 시에만 매수합니다(선택 저장 후 봇 반영까지 최대 60초).
-                            선택 해제해도 보유 종목의 청산(손절·익절·추세이탈) 감시는 유지됩니다.
+                            봇 추세 점수(6조건, 임계 이상=매수 신호) + 통합분석(재무·수급·뉴스+AI)을 종합한 발굴입니다.
+                            실제 매매 선택은 <button onClick={() => setView('select')} className="text-blue-300 underline">선택 탭</button>에서 직접 하세요.
                         </div>
                     </div>
                 );
