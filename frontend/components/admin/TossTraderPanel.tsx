@@ -466,6 +466,24 @@ export const TossTraderPanel: React.FC = () => {
                         </Card>
                     </div>
 
+                    {/* 🧭 지금 봇이 뭘 하고 있나 — 사람 말 요약 */}
+                    {(() => {
+                        const sel: string[] = Array.isArray(st.selectedSymbols) ? st.selectedSymbols : [];
+                        const closed = st.marketOpen === false;
+                        const halted = st.halted;
+                        let line: string;
+                        if (halted) line = '🔴 긴급정지 상태입니다. 신규 주문을 멈추고 미체결을 취소했습니다. 재개하려면 정지를 해제하고 서버에서 봇을 재시작해야 합니다.';
+                        else if (closed) line = `🌙 지금은 장이 열리지 않은 시간(장외)이라 봇이 매매 판단을 쉬고 있습니다. 평일 09:00~15:30에만 사고팝니다. 아래 선택한 종목을 장이 열리면 감시·매매합니다.`;
+                        else if (sel.length === 0) line = '봇이 켜져 있지만 감시할 종목이 없습니다. [선택] 탭이나 [발굴] 탭에서 종목을 담아 저장하세요.';
+                        else line = `봇이 선택된 ${sel.length}개 종목을 실시간 감시 중입니다. 각 종목의 매수 점수가 임계에 도달하면 사고, 보유 중이면 손절·익절·추세이탈을 지켜봅니다.`;
+                        return (
+                            <div className="text-sm text-gray-200 bg-gray-800/80 border border-gray-700 rounded-lg px-3 py-2.5">
+                                <span className="text-emerald-300 text-xs font-medium">🧭 봇 현황</span><br />
+                                {line}
+                            </div>
+                        );
+                    })()}
+
                     {/* 신호 근거 */}
                     {st.signalReason && (
                         <div className="text-xs text-gray-400 bg-gray-800/60 rounded px-3 py-2">
@@ -473,11 +491,12 @@ export const TossTraderPanel: React.FC = () => {
                         </div>
                     )}
 
-                    {/* 감시 종목 목록 (⑤ Phase 2/3 — 선택∪보유 종목별 스냅샷) */}
-                    {Array.isArray(st.symbols) && st.symbols.length > 0 && (
+                    {/* 감시 종목 목록 — 장중엔 종목별 실시간 스냅샷(st.symbols),
+                        장외엔 선택 목록(selectedSymbols)만이라도 "무엇을 감시할지" 보여준다. */}
+                    {Array.isArray(st.symbols) && st.symbols.length > 0 ? (
                         <div className="bg-gray-800 rounded-lg overflow-hidden">
                             <div className="text-[11px] font-medium text-gray-400 px-3 py-2 border-b border-gray-700 bg-gray-800/80">
-                                감시 종목 {st.symbols.length}개
+                                감시 종목 {st.symbols.length}개 <span className="text-gray-500">(실시간)</span>
                                 {Array.isArray(st.selectedSymbols) && <span className="text-gray-500"> · 웹 선택 {st.selectedSymbols.length}개 · 동시보유 한도 {st.maxPositions ?? '-'}</span>}
                             </div>
                             <div className="divide-y divide-gray-700/60">
@@ -499,7 +518,37 @@ export const TossTraderPanel: React.FC = () => {
                                 ))}
                             </div>
                         </div>
-                    )}
+                    ) : (Array.isArray(st.selectedSymbols) && st.selectedSymbols.length > 0 && (
+                        <div className="bg-gray-800 rounded-lg overflow-hidden">
+                            <div className="text-[11px] font-medium text-gray-400 px-3 py-2 border-b border-gray-700 bg-gray-800/80">
+                                감시 예정 종목 {st.selectedSymbols.length}개 <span className="text-gray-500">(장이 열리면 실시간 감시 시작)</span>
+                            </div>
+                            <div className="divide-y divide-gray-700/60">
+                                {st.selectedSymbols.map((code: string) => (
+                                    <div key={code} className="flex items-center gap-2 px-3 py-2 text-sm">
+                                        <span className="text-gray-200">{custom?.symbols?.[code] || code}</span>
+                                        <span className="text-[10px] text-gray-500">{code}</span>
+                                        <span className="ml-auto text-[11px] text-gray-500">장외 대기</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* 각 지표 뜻 — 접이식 설명 */}
+                    <details className="bg-gray-800/40 rounded-lg border border-gray-700/60">
+                        <summary className="text-xs text-gray-400 px-3 py-2 cursor-pointer select-none hover:text-gray-200">ℹ️ 위 지표들이 무슨 뜻인가요? (펼치기)</summary>
+                        <div className="text-[11px] text-gray-400 px-3 pb-3 space-y-1.5 leading-relaxed">
+                            <div><b className="text-gray-300">일손실 한도 여유</b> — 오늘 손실이 이 한도에 닿으면 봇이 스스로 매매를 멈춥니다(하루치 최대 손실 방어). 총투자금의 10%가 기본.</div>
+                            <div><b className="text-gray-300">상태 / 장외 대기</b> — 봇이 켜져 있는지. 평일 09:00~15:30만 매매하고, 그 외엔 '장외 대기'로 판단을 쉽니다.</div>
+                            <div><b className="text-gray-300">모드</b> — 🔴실거래는 진짜 돈으로 주문, 🟢드라이런은 흉내만(주문 0). 전환은 서버에서만.</div>
+                            <div><b className="text-gray-300">최근 신호</b> — BUY(매수)/SELL(매도)/HOLD(보유·관망)/CLOSED(장외). 봇이 마지막으로 내린 판단.</div>
+                            <div><b className="text-gray-300">전략</b> — 점수형 추세추종: 오르는 추세를 점수로 확인하고 따라 사는 방식.</div>
+                            <div><b className="text-gray-300">써킷브레이커</b> — 위험 신호(연속 손절·일손실 초과) 때 봇을 자동 정지시키는 안전 차단기. '정상'이면 문제 없음.</div>
+                            <div><b className="text-gray-300">연속 손절</b> — 연달아 손절한 횟수. 일정 횟수(기본 3회) 넘으면 그날 매매를 멈춥니다(손실 악순환 방지).</div>
+                            <div><b className="text-gray-300">실현손익</b> — 오늘 실제로 사고팔아 확정된 손익(보유만 한 건 미포함).</div>
+                        </div>
+                    </details>
                 </div>
                 );
             })()}
