@@ -916,6 +916,11 @@ export const adminApi = {
         get<{ symbols: Record<string, string>; max: number }>('/admin/toss-trader/custom-symbols'),
     saveTossCustomSymbols: (payload: { add?: { symbol: string; name: string }; remove?: string }) =>
         post<{ ok: boolean; symbols: Record<string, string>; max: number }>('/admin/toss-trader/custom-symbols', payload),
+    // 종목 통합 분석(봇 추세 점수 + 채원 펀더멘털) — 어드민 전용, 포인트 차감 없음
+    requestTossAnalyze: (payload: { symbol?: string; stockName?: string }) =>
+        post<{ id: number; status: string; reused?: boolean }>('/admin/toss-trader/analyze', payload),
+    getTossAnalyze: (id: number) =>
+        get<{ id: number; stockName: string; status: string; analysisReport: string | null; errorMessage: string | null; updatedAt: string }>(`/admin/toss-trader/analyze/${id}`),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),

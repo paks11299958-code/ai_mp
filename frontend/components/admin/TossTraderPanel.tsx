@@ -50,6 +50,12 @@ export const TossTraderPanel: React.FC = () => {
     const [logFilter, setLogFilter] = useState<LogFilter>('all'); // 로그 레벨 필터
     const [expanded, setExpanded] = useState(false);         // 로그 전체화면 모달
     const [openSymbol, setOpenSymbol] = useState<string | null>(null); // 발굴 표 상세 펼침
+    // 종목 통합 분석(봇 점수 + 채원 펀더멘털) 보고서 모달
+    const [analyzeOpen, setAnalyzeOpen] = useState(false);
+    const [analyzeSym, setAnalyzeSym] = useState<string | null>(null);   // 분석 중인 종목
+    const [analyzeReport, setAnalyzeReport] = useState<string | null>(null);
+    const [analyzeStatus, setAnalyzeStatus] = useState<string>('');      // '', 'loading', 'done', 'error'
+    const [analyzeMsg, setAnalyzeMsg] = useState<string>('');
     // ⑤ Phase 2 — 종목 선택(selection.json). checked=null 이면 아직 서버값 미반영
     const [selection, setSelection] = useState<any>(null);
     const [checked, setChecked] = useState<string[] | null>(null);
@@ -159,6 +165,40 @@ export const TossTraderPanel: React.FC = () => {
             setSaveMsg(`저장 실패: ${e?.message || '오류'}`);
         } finally {
             setSaving(false);
+        }
+    };
+
+    // 종목 통합 분석 — 봇 추세 점수 + 채원 펀더멘털을 합친 보고서. 비동기(등록→워커 처리→폴링).
+    const runAnalyze = async (sym: string, name: string) => {
+        setAnalyzeOpen(true);
+        setAnalyzeSym(sym);
+        setAnalyzeReport(null);
+        setAnalyzeStatus('loading');
+        setAnalyzeMsg(`${name}(${sym}) 분석 요청 중… (봇 점수 + 재무·수급·뉴스 종합, 20~40초 소요)`);
+        try {
+            const { id } = await adminApi.requestTossAnalyze({ symbol: sym });
+            // 최대 ~90초 폴링(3초 간격). 워커가 크론으로 도므로 처리까지 시간차 있음.
+            for (let i = 0; i < 30; i++) {
+                await new Promise(r => setTimeout(r, 3000));
+                const t = await adminApi.getTossAnalyze(id);
+                if (t.status === 'completed' && t.analysisReport) {
+                    setAnalyzeReport(t.analysisReport);
+                    setAnalyzeStatus('done');
+                    setAnalyzeMsg('');
+                    return;
+                }
+                if (t.status === 'failed') {
+                    setAnalyzeStatus('error');
+                    setAnalyzeMsg(`분석 실패: ${t.errorMessage || '워커 오류'}`);
+                    return;
+                }
+                setAnalyzeMsg(`${name}(${sym}) 분석 중… (${(i + 1) * 3}초 경과, 보고서 생성에 시간이 걸립니다)`);
+            }
+            setAnalyzeStatus('error');
+            setAnalyzeMsg('시간이 초과됐습니다. 잠시 후 다시 시도하거나, 채원(주식 분석)에서 결과를 확인하세요.');
+        } catch (e: any) {
+            setAnalyzeStatus('error');
+            setAnalyzeMsg(`분석 요청 오류: ${e?.message || '오류'}`);
         }
     };
 
@@ -570,6 +610,10 @@ export const TossTraderPanel: React.FC = () => {
                                                             </span>
                                                         </div>
                                                     ))}
+                                                    <button onClick={() => runAnalyze(r.symbol, r.name)}
+                                                        className="mt-1.5 text-[11px] px-3 py-1 rounded bg-emerald-800/60 border border-emerald-600/50 text-emerald-200 hover:bg-emerald-700/60">
+                                                        📊 이 종목 통합 분석 (봇 점수 + 재무·수급·뉴스)
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
@@ -630,6 +674,9 @@ export const TossTraderPanel: React.FC = () => {
                                                 <span className="text-sm text-gray-200 min-w-[7rem] flex items-center gap-1.5">
                                                     {nameOf(sym)} <span className="text-[10px] text-gray-500">{sym}</span>
                                                     {hasCustom && <span className="text-[9px] text-amber-400 bg-amber-900/30 rounded px-1">개별</span>}
+                                                    <button onClick={() => runAnalyze(sym, nameOf(sym))}
+                                                        className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-800/60 border border-emerald-600/50 text-emerald-200 hover:bg-emerald-700/60"
+                                                        title="봇 추세 점수 + 재무·수급·뉴스 통합 분석 보고서">📊 분석</button>
                                                     <button onClick={() => toggleSymbol(sym)} className="text-gray-500 hover:text-red-400 ml-0.5" aria-label="선택 해제">✕</button>
                                                 </span>
                                                 <div className="flex items-center gap-2 ml-auto">
@@ -840,6 +887,46 @@ export const TossTraderPanel: React.FC = () => {
                         <Row label="캔들 조회 수">{st.candleCount ?? '-'}봉</Row>
                         <Row label="장시간 가드">{st.marketHoursOnly ? '켜짐 — 평일 09:00~15:30만 판단·주문' : '꺼짐(24시간 폴링)'}</Row>
                     </SettingsSection>
+                </div>
+            )}
+
+            {/* 종목 통합 분석 보고서 모달 (봇 점수 + 채원 펀더멘털) */}
+            {analyzeOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col p-2 sm:p-4"
+                    onClick={() => setAnalyzeOpen(false)}>
+                    <div className="flex-1 flex flex-col bg-gray-900 rounded-lg overflow-hidden max-w-4xl w-full mx-auto shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-700 bg-gray-800">
+                            <span className="text-sm font-bold text-emerald-300">📊 종목 통합 분석</span>
+                            {analyzeSym && <span className="text-xs text-gray-400">{analyzeSym}</span>}
+                            {analyzeStatus === 'done' && analyzeReport && (
+                                <button onClick={() => {
+                                    const blob = new Blob([analyzeReport], { type: 'text/markdown' });
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url; a.download = `${analyzeSym}_통합분석.md`; a.click();
+                                    URL.revokeObjectURL(url);
+                                }} className="text-[11px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600">⬇ 저장</button>
+                            )}
+                            <button onClick={() => setAnalyzeOpen(false)}
+                                className="ml-auto text-gray-300 hover:text-white text-lg leading-none px-2" aria-label="닫기">✕</button>
+                        </div>
+                        <div className="flex-1 overflow-auto toss-log-scroll p-4">
+                            {analyzeStatus === 'loading' && (
+                                <div className="text-center text-gray-400 py-10">
+                                    <div className="text-3xl mb-3 animate-pulse">📊</div>
+                                    <div className="text-sm">{analyzeMsg}</div>
+                                    <div className="text-[11px] text-gray-600 mt-2">봇 추세 점수 + DART 재무 + 네이버 수급 + 증권사 리포트 + 뉴스를 종합합니다.</div>
+                                </div>
+                            )}
+                            {analyzeStatus === 'error' && (
+                                <div className="text-center text-red-300 py-10 text-sm">{analyzeMsg}</div>
+                            )}
+                            {analyzeStatus === 'done' && analyzeReport && (
+                                <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-gray-200 font-sans">{analyzeReport}</pre>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
 
