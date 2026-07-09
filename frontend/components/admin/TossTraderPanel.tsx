@@ -274,6 +274,19 @@ export const TossTraderPanel: React.FC = () => {
     const stale = data?.staleSeconds != null && data.staleSeconds > 180; // 3분↑ 미갱신
     const halted = st?.halted;
 
+    // 종목코드 → 한글명 통합 조회(어드민 전 화면에서 이름이 항상 뜨도록).
+    // 여러 소스를 순서대로: 봇 status 이름맵 > 직접추가 > 발굴일기 > 못 찾으면 코드.
+    const symName = (code: string): string => {
+        if (!code) return code;
+        const fromStatus = st?.symbolNames?.[code];
+        if (fromStatus && fromStatus !== code) return fromStatus;
+        if (custom?.symbols?.[code]) return custom.symbols[code];
+        const disc = discovery?.latest;
+        if (disc?.kospiJson?.symbol === code && disc.kospiJson.name) return disc.kospiJson.name;
+        if (disc?.kosdaqJson?.symbol === code && disc.kosdaqJson.name) return disc.kosdaqJson.name;
+        return code;
+    };
+
     // 서버가 최신순(앞=최신)으로 주므로 그대로 join하면 최신이 맨 위. 표시 시각은 KST 변환.
     // 레벨 필터: 정보=INFO, 에러=WARNING/ERROR/CRITICAL, 주문=주문·체결·매수/매도 키워드.
     const matchesLogFilter = (line: string): boolean => {
@@ -513,7 +526,7 @@ export const TossTraderPanel: React.FC = () => {
                                 {st.symbols.map((s: any) => (
                                     <div key={s.symbol} className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 items-center text-sm">
                                         <span className="text-gray-200">
-                                            {s.symbolName || s.symbol} <span className="text-[10px] text-gray-500">{s.symbol}</span>
+                                            {s.symbolName && s.symbolName !== s.symbol ? s.symbolName : symName(s.symbol)} <span className="text-[10px] text-gray-500">{s.symbol}</span>
                                             {s.avgPrice ? <span className="ml-1.5 text-[10px] text-amber-300">보유 평단 {won(s.avgPrice)}</span> : null}
                                         </span>
                                         <span className="text-right text-[12px] text-gray-300" style={{ fontVariantNumeric: 'tabular-nums' }}>{won(s.lastPrice)}</span>
@@ -536,7 +549,7 @@ export const TossTraderPanel: React.FC = () => {
                             <div className="divide-y divide-gray-700/60">
                                 {st.selectedSymbols.map((code: string) => (
                                     <div key={code} className="flex items-center gap-2 px-3 py-2 text-sm">
-                                        <span className="text-gray-200">{custom?.symbols?.[code] || code}</span>
+                                        <span className="text-gray-200">{symName(code)}</span>
                                         <span className="text-[10px] text-gray-500">{code}</span>
                                         <span className="ml-auto text-[11px] text-gray-500">장외 대기</span>
                                     </div>
@@ -698,8 +711,11 @@ export const TossTraderPanel: React.FC = () => {
             {/* ── 선택 탭 (매매 대상 확정 + 종목별 점수 설정 + 직접 추가) ── */}
             {view === 'select' && (() => {
                 const rows: any[] = scanData?.scan?.candidates || [];
-                const nameOf = (sym: string) =>
-                    rows.find(r => r.symbol === sym)?.name || custom?.symbols?.[sym] || st?.symbolName || sym;
+                const nameOf = (sym: string) => {
+                    const n = symName(sym);
+                    if (n !== sym) return n;                    // 통합 조회로 이름 찾으면 사용
+                    return rows.find(r => r.symbol === sym)?.name || sym;  // 스캔 결과 폴백
+                };
                 return (
                     <div className="space-y-4">
                         {/* 저장 바 — 선택·설정 확정 */}
