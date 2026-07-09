@@ -56,6 +56,11 @@ export const TossTraderPanel: React.FC = () => {
     const [analyzeReport, setAnalyzeReport] = useState<string | null>(null);
     const [analyzeStatus, setAnalyzeStatus] = useState<string>('');      // '', 'loading', 'done', 'error'
     const [analyzeMsg, setAnalyzeMsg] = useState<string>('');
+    // 손절·익절·임계 최적값 백테스트 모달
+    const [btOpen, setBtOpen] = useState(false);
+    const [btData, setBtData] = useState<any>(null);
+    const [btStatus, setBtStatus] = useState<string>('');   // '', 'loading', 'done', 'error'
+    const [btSym, setBtSym] = useState<string>('');
     // ⑤ Phase 2 — 종목 선택(selection.json). checked=null 이면 아직 서버값 미반영
     const [selection, setSelection] = useState<any>(null);
     const [checked, setChecked] = useState<string[] | null>(null);
@@ -173,6 +178,25 @@ export const TossTraderPanel: React.FC = () => {
     };
 
     // 종목 통합 분석 — 봇 추세 점수 + 채원 펀더멘털을 합친 보고서. 비동기(등록→워커 처리→폴링).
+    // 손절·익절·임계 최적값 백테스트 실행(봇 동일 로직, AI 없어 빠름·무료)
+    const runBacktest = async (sym: string, name: string) => {
+        setBtOpen(true); setBtSym(`${name} (${sym})`); setBtData(null); setBtStatus('loading');
+        try {
+            const d = await adminApi.getTossBacktest(sym);
+            setBtData(d); setBtStatus(d?.ok ? 'done' : 'error');
+        } catch (e: any) {
+            setBtData({ error: e?.message || '오류' }); setBtStatus('error');
+        }
+    };
+    // 추천 조합을 이 종목의 설정 입력에 바로 채우기(저장은 사장이)
+    const applyBacktest = (sym: string, stop: number, take: number, threshold?: number) => {
+        if (threshold != null) setParam(sym, 'buyThreshold', String(threshold));
+        setParam(sym, 'stopLossPct', String(+(stop * 100).toFixed(1)));
+        setParam(sym, 'takeProfitPct', String(+(take * 100).toFixed(1)));
+        setBtOpen(false);
+        setView('select');
+    };
+
     const runAnalyze = async (sym: string, name: string) => {
         setAnalyzeOpen(true);
         setAnalyzeSym(sym);
@@ -729,6 +753,9 @@ export const TossTraderPanel: React.FC = () => {
                                                     <button onClick={() => runAnalyze(sym, nameOf(sym))}
                                                         className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-800/60 border border-emerald-600/50 text-emerald-200 hover:bg-emerald-700/60"
                                                         title="봇 추세 점수 + 재무·수급·뉴스 통합 분석 보고서">📊 분석</button>
+                                                    <button onClick={() => runBacktest(sym, nameOf(sym))}
+                                                        className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-800/60 border border-indigo-600/50 text-indigo-200 hover:bg-indigo-700/60"
+                                                        title="과거 데이터로 손절·익절·임계 최적값 찾기">🔬 최적값</button>
                                                     <button onClick={() => toggleSymbol(sym)} className="text-gray-500 hover:text-red-400 ml-0.5" aria-label="선택 해제">✕</button>
                                                 </span>
                                                 <div className="flex items-center gap-2 ml-auto">
@@ -959,6 +986,116 @@ export const TossTraderPanel: React.FC = () => {
                         <Row label="캔들 조회 수">{st.candleCount ?? '-'}봉</Row>
                         <Row label="장시간 가드">{st.marketHoursOnly ? '켜짐 — 평일 09:00~15:30만 판단·주문' : '꺼짐(24시간 폴링)'}</Row>
                     </SettingsSection>
+                </div>
+            )}
+
+            {/* 손절·익절·임계 최적값 백테스트 모달 */}
+            {btOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col p-2 sm:p-4" onClick={() => setBtOpen(false)}>
+                    <div className="flex-1 flex flex-col bg-gray-900 rounded-lg overflow-hidden max-w-3xl w-full mx-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-700 bg-gray-800">
+                            <span className="text-sm font-bold text-indigo-300">🔬 손절·익절·임계 최적값</span>
+                            <span className="text-xs text-gray-400">{btSym}</span>
+                            <button onClick={() => setBtOpen(false)} className="ml-auto text-gray-300 hover:text-white text-lg px-2" aria-label="닫기">✕</button>
+                        </div>
+                        <div className="flex-1 overflow-auto toss-log-scroll p-4 space-y-4">
+                            {btStatus === 'loading' && (
+                                <div className="text-center text-gray-400 py-10">
+                                    <div className="text-3xl mb-3 animate-pulse">🔬</div>
+                                    <div className="text-sm">과거 200봉(약 9~10개월)으로 손절·익절 조합을 모두 시뮬레이션 중…</div>
+                                    <div className="text-[11px] text-gray-600 mt-1">봇과 동일한 판단 로직 · AI 없음 · 수 초</div>
+                                </div>
+                            )}
+                            {btStatus === 'error' && (
+                                <div className="text-center text-red-300 py-10 text-sm">{btData?.error || '백테스트 실패'}</div>
+                            )}
+                            {btStatus === 'done' && btData?.ok && (() => {
+                                const pctPnl = (v: any) => v == null ? '-' : `${(v * 100).toFixed(1)}%`;
+                                const pctW = (v: any) => v == null ? '-' : `${(v * 100).toFixed(0)}%`;
+                                const best = btData.best, cur = btData.current;
+                                const hasTrades = (btData.grid || []).some((g: any) => g.trades > 0);
+                                return (
+                                    <>
+                                        {/* 추천 요약 */}
+                                        <div className="bg-indigo-900/25 border border-indigo-700/40 rounded-lg px-4 py-3 text-sm">
+                                            {hasTrades ? (
+                                                <>
+                                                    <div className="text-indigo-200 font-medium mb-1">💡 과거 데이터 기준 추천</div>
+                                                    <div className="text-gray-200">
+                                                        손절 <b className="text-red-300">{(best.stop * 100).toFixed(0)}%</b> · 익절 <b className="text-blue-300">{(best.take * 100).toFixed(0)}%</b>
+                                                        <span className="text-gray-400"> → 누적 {pctPnl(best.cumReturnPct)} (거래 {best.trades}회, 낙폭 {pctPnl(best.mddPct)})</span>
+                                                    </div>
+                                                    {cur && (
+                                                        <div className="text-[12px] text-gray-500 mt-1">
+                                                            현재 기본(손절 3%·익절 8%): 누적 {pctPnl(cur.cumReturnPct)} (거래 {cur.trades}회)
+                                                        </div>
+                                                    )}
+                                                    <button onClick={() => applyBacktest(btData.symbol, best.stop, best.take)}
+                                                        className="mt-2 text-xs px-3 py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium">
+                                                        이 손절·익절을 설정에 적용 →
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <div className="text-amber-200">이 종목은 임계 80에선 과거 구간에 매수가 없었습니다. 아래 <b>임계별 표</b>를 보고 임계를 낮추는 걸 검토하세요.</div>
+                                            )}
+                                        </div>
+
+                                        {/* 임계별 표 (거래 발생 여부) */}
+                                        <div>
+                                            <div className="text-xs text-gray-400 mb-1">📊 임계별 성과 (손익 3%/8% 고정) — 이 종목은 몇 점부터 사는 게 좋은가</div>
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-[11px] text-gray-300">
+                                                    <thead className="text-gray-500 border-b border-gray-700">
+                                                        <tr><th className="text-left py-1">임계</th><th className="text-right">거래</th><th className="text-right">승률</th><th className="text-right">누적수익</th><th className="text-right">최대낙폭</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {(btData.thresholdGrid || []).map((t: any) => (
+                                                            <tr key={t.threshold} className="border-b border-gray-800">
+                                                                <td className="py-1">{t.threshold}{t.threshold === 80 ? ' (기본)' : ''}</td>
+                                                                <td className="text-right">{t.trades}</td>
+                                                                <td className="text-right">{pctW(t.winRate)}</td>
+                                                                <td className={`text-right ${t.cumReturnPct > 0 ? 'text-green-400' : t.cumReturnPct < 0 ? 'text-red-400' : ''}`}>{pctPnl(t.cumReturnPct)}</td>
+                                                                <td className="text-right text-gray-500">{pctPnl(t.mddPct)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {/* 손절×익절 그리드 상위 */}
+                                        {hasTrades && (
+                                            <div>
+                                                <div className="text-xs text-gray-400 mb-1">📈 손절·익절 조합 상위 (임계 80 기준, 성과순)</div>
+                                                <div className="overflow-x-auto">
+                                                    <table className="w-full text-[11px] text-gray-300">
+                                                        <thead className="text-gray-500 border-b border-gray-700">
+                                                            <tr><th className="text-left py-1">손절</th><th className="text-left">익절</th><th className="text-right">거래</th><th className="text-right">승률</th><th className="text-right">누적수익</th><th className="text-right">낙폭</th><th></th></tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {(btData.grid || []).slice(0, 8).map((g: any, i: number) => (
+                                                                <tr key={i} className="border-b border-gray-800">
+                                                                    <td className="py-1 text-red-300">{(g.stop * 100).toFixed(0)}%</td>
+                                                                    <td className="text-blue-300">{(g.take * 100).toFixed(0)}%</td>
+                                                                    <td className="text-right">{g.trades}</td>
+                                                                    <td className="text-right">{pctW(g.winRate)}</td>
+                                                                    <td className={`text-right ${g.cumReturnPct > 0 ? 'text-green-400' : g.cumReturnPct < 0 ? 'text-red-400' : ''}`}>{pctPnl(g.cumReturnPct)}</td>
+                                                                    <td className="text-right text-gray-500">{pctPnl(g.mddPct)}</td>
+                                                                    <td className="text-right"><button onClick={() => applyBacktest(btData.symbol, g.stop, g.take)} className="text-indigo-300 hover:text-indigo-100 underline">적용</button></td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="text-[10px] text-gray-500 border-t border-gray-700/60 pt-2">⚠️ {btData.note}</div>
+                                    </>
+                                );
+                            })()}
+                        </div>
+                    </div>
                 </div>
             )}
 

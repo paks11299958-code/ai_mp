@@ -926,6 +926,9 @@ export const adminApi = {
         get<{ dates: string[]; latest: any | null }>('/admin/toss-trader/discovery'),
     getTossDiscoveryByDate: (date: string) =>
         get<any>(`/admin/toss-trader/discovery/${date}`),
+    // 손절·익절·임계 최적값 백테스트(봇 동일 로직, AI 없음)
+    getTossBacktest: (symbol: string) =>
+        get<any>(`/admin/toss-trader/backtest/${symbol}`),
     // 개발 요청 큐(어드민 → Hermes)
     createDevRequest: (request: string, source?: string) =>
         post<{ ok: boolean; id: number }>('/admin/dev-request', { request, source }),
