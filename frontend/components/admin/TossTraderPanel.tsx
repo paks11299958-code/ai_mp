@@ -539,8 +539,21 @@ export const TossTraderPanel: React.FC = () => {
                                 <span className="text-emerald-300 text-xs font-bold">{title}</span>
                                 <span className="ml-auto text-2xl font-bold text-emerald-200" style={{ fontVariantNumeric: 'tabular-nums' }}>{s.score}점</span>
                             </div>
-                            <div className="text-lg font-bold text-gray-100">
-                                {s.name} <span className="text-xs text-gray-500 font-normal">({s.symbol})</span>
+                            <div className="text-lg font-bold text-gray-100 flex items-center gap-2">
+                                {(() => {
+                                    const on = effChecked.includes(s.symbol);
+                                    const full = !on && effChecked.length >= maxSelect;
+                                    return (
+                                        <label className={`flex items-center gap-1.5 cursor-pointer text-xs font-medium px-2 py-1 rounded border ${on ? 'bg-blue-700/50 border-blue-500 text-blue-100' : full ? 'border-gray-700 text-gray-600 cursor-not-allowed' : 'border-gray-600 text-gray-300 hover:border-blue-500'}`}
+                                            title={full ? `최대 ${maxSelect}종목까지 선택` : on ? '감시 목록에서 빼기' : '감시 목록에 담기'}>
+                                            <input type="checkbox" className="w-3.5 h-3.5 accent-blue-500"
+                                                checked={on} disabled={full}
+                                                onChange={() => toggleSymbol(s.symbol)} />
+                                            {on ? '감시 중' : '감시 담기'}
+                                        </label>
+                                    );
+                                })()}
+                                <span>{s.name} <span className="text-xs text-gray-500 font-normal">({s.symbol})</span></span>
                             </div>
                             <div className="flex flex-wrap items-center gap-2 text-[11px]">
                                 <span className={`px-2 py-0.5 rounded-full ${s.score >= s.threshold ? 'bg-green-800/60 text-green-200' : s.score >= 60 ? 'bg-amber-800/50 text-amber-200' : 'bg-gray-700 text-gray-400'}`}>{emoji} {badge} · 임계 {s.threshold}</span>
@@ -582,6 +595,24 @@ export const TossTraderPanel: React.FC = () => {
                             </select>
                             <span className="text-[11px] text-gray-500 ml-auto">애널리스트 윤채원 · 매일 07:00 발굴</span>
                         </div>
+
+                        {/* 감시 선택 저장 바 — 카드에서 '감시 담기' 체크 후 여기서 바로 저장 */}
+                        {(dirty || paramsDirty) && (
+                            <div className="bg-blue-900/30 border border-blue-700/50 rounded-lg px-3 py-2 flex flex-wrap items-center gap-2 text-xs">
+                                <span className="text-blue-200">감시 목록 변경됨 — 저장해야 봇에 반영됩니다 (현재 {effChecked.length}/{maxSelect})</span>
+                                <div className="ml-auto flex items-center gap-2">
+                                    <button onClick={() => { setChecked(null); setEditParams({}); setSaveMsg(null); }}
+                                        className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
+                                    <button onClick={saveSelection} disabled={saving}
+                                        className="px-4 py-1 rounded font-medium bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-60">
+                                        {saving ? '저장 중…' : '감시 목록 저장'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        {saveMsg && !dirty && !paramsDirty && (
+                            <div className="text-[11px] text-emerald-400 px-1">{saveMsg}</div>
+                        )}
 
                         {/* 코스피 · 코스닥 각 1종목 */}
                         <div className="grid md:grid-cols-2 gap-3">
@@ -678,8 +709,28 @@ export const TossTraderPanel: React.FC = () => {
                                         );
                                     })}
                                 </div>
-                                <div className="text-[10px] text-gray-500 px-3 py-2 border-t border-gray-700/60">
-                                    임계 = 매수 점수 기준(낮출수록 더 자주 매수). 손절/익절 = 평단 대비 %. 변경 후 위 <b className="text-blue-300">선택·설정 저장</b> 필수.
+                                <div className="text-[11px] text-gray-400 px-3 py-3 border-t border-gray-700/60 space-y-2 leading-relaxed">
+                                    <div className="text-gray-300 font-medium">💡 각 수치가 하는 일 (그대로 두면 봇 기본값)</div>
+                                    <div>
+                                        <span className="text-emerald-300 font-medium">임계 (기본 80)</span> — 매수 점수 기준입니다.
+                                        봇이 종목을 <b>6가지 조건</b>(추세 정배열·장기추세·거래량·RSI·신고가·시장)으로 채점해 <b>100점 만점</b>으로 매기는데,
+                                        이 점수가 <b>임계 이상</b>이면 매수합니다.
+                                        <span className="text-gray-500"> 낮추면(예: 70) 더 약한 신호에도 자주 사고, 높이면(예: 90) 아주 강한 신호에만 삽니다. 너무 낮추면 잘못된 신호에 물릴 수 있어 주의.</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-red-300 font-medium">손절 (기본 3%)</span> — 산 가격(평단)보다 이만큼 <b>떨어지면 자동으로 팝니다</b>.
+                                        더 큰 손실을 막는 안전장치예요. 3%면 10만원에 샀을 때 <b>9만 7천원</b>에 손절.
+                                        <span className="text-gray-500"> 좁히면(1~2%) 조금만 빠져도 빨리 나와 손실은 작지만 잔파동에 자주 털리고, 넓히면(5%) 여유는 있지만 한 번에 크게 잃을 수 있습니다.</span>
+                                    </div>
+                                    <div>
+                                        <span className="text-blue-300 font-medium">익절 (기본 8%)</span> — 평단보다 이만큼 <b>오르면 자동으로 팔아 수익을 확정</b>합니다.
+                                        8%면 10만원에 샀을 때 <b>10만 8천원</b>에 익절.
+                                        <span className="text-gray-500"> 낮추면(5%) 자주 짧게 먹고 나오고, 높이면(15%) 크게 노리지만 다시 떨어져 못 팔 수도 있습니다.</span>
+                                    </div>
+                                    <div className="text-gray-500 pt-1 border-t border-gray-700/40">
+                                        ※ 이 밖에 <b className="text-gray-400">추세이탈</b>(주가가 20일 이동평균선 아래로 내려가면 매도)도 자동 적용됩니다.
+                                        변경 후 위 <b className="text-blue-300">선택·설정 저장</b>을 눌러야 봇에 반영됩니다(최대 60초).
+                                    </div>
                                 </div>
                             </div>
                         ) : (
