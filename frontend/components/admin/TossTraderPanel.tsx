@@ -197,33 +197,19 @@ export const TossTraderPanel: React.FC = () => {
         setView('select');
     };
 
+    // 종목 통합 분석 — 비동기(요청만 하고 창 닫힘). 완료되면 채원이 텔레그램으로 요약 발송.
+    // ★3중 AI라 ~1분 걸려서, 창을 붙잡지 않고 백그라운드로 돌린다(2026-07-09 사장 요청).
     const runAnalyze = async (sym: string, name: string) => {
         setAnalyzeOpen(true);
         setAnalyzeSym(sym);
         setAnalyzeReport(null);
-        setAnalyzeStatus('loading');
-        setAnalyzeMsg(`${name}(${sym}) 분석 요청 중… (봇 점수 + 재무·수급·뉴스 종합, 20~40초 소요)`);
+        setAnalyzeStatus('requested');
+        setAnalyzeMsg('');
         try {
-            const { id } = await adminApi.requestTossAnalyze({ symbol: sym });
-            // 최대 ~90초 폴링(3초 간격). 워커가 크론으로 도므로 처리까지 시간차 있음.
-            for (let i = 0; i < 30; i++) {
-                await new Promise(r => setTimeout(r, 3000));
-                const t = await adminApi.getTossAnalyze(id);
-                if (t.status === 'completed' && t.analysisReport) {
-                    setAnalyzeReport(t.analysisReport);
-                    setAnalyzeStatus('done');
-                    setAnalyzeMsg('');
-                    return;
-                }
-                if (t.status === 'failed') {
-                    setAnalyzeStatus('error');
-                    setAnalyzeMsg(`분석 실패: ${t.errorMessage || '워커 오류'}`);
-                    return;
-                }
-                setAnalyzeMsg(`${name}(${sym}) 분석 중… (${(i + 1) * 3}초 경과, 보고서 생성에 시간이 걸립니다)`);
-            }
-            setAnalyzeStatus('error');
-            setAnalyzeMsg('시간이 초과됐습니다. 잠시 후 다시 시도하거나, 채원(주식 분석)에서 결과를 확인하세요.');
+            const r = await adminApi.requestTossAnalyze({ symbol: sym });
+            setAnalyzeMsg(r?.reused
+                ? `${name}(${sym})은 이미 분석 중입니다. 완료되면 텔레그램으로 보내드립니다.`
+                : `${name}(${sym}) 분석을 요청했습니다. 재무·수급·뉴스·봇 점수를 종합해 약 1분 뒤 텔레그램으로 요약을 보내드립니다. 결과는 DB에도 저장됩니다.`);
         } catch (e: any) {
             setAnalyzeStatus('error');
             setAnalyzeMsg(`분석 요청 오류: ${e?.message || '오류'}`);
@@ -1099,40 +1085,29 @@ export const TossTraderPanel: React.FC = () => {
                 </div>
             )}
 
-            {/* 종목 통합 분석 보고서 모달 (봇 점수 + 채원 펀더멘털) */}
+            {/* 종목 통합 분석 — 비동기 안내 모달(요청만 하고 결과는 텔레그램) */}
             {analyzeOpen && (
-                <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col p-2 sm:p-4"
+                <div className="fixed inset-0 z-[100] bg-black/70 flex items-center justify-center p-4"
                     onClick={() => setAnalyzeOpen(false)}>
-                    <div className="flex-1 flex flex-col bg-gray-900 rounded-lg overflow-hidden max-w-4xl w-full mx-auto shadow-2xl"
+                    <div className="bg-gray-900 rounded-lg overflow-hidden max-w-md w-full shadow-2xl border border-gray-700"
                         onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-700 bg-gray-800">
                             <span className="text-sm font-bold text-emerald-300">📊 종목 통합 분석</span>
                             {analyzeSym && <span className="text-xs text-gray-400">{analyzeSym}</span>}
-                            {analyzeStatus === 'done' && analyzeReport && (
-                                <button onClick={() => {
-                                    const blob = new Blob([analyzeReport], { type: 'text/markdown' });
-                                    const url = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = url; a.download = `${analyzeSym}_통합분석.md`; a.click();
-                                    URL.revokeObjectURL(url);
-                                }} className="text-[11px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600">⬇ 저장</button>
-                            )}
                             <button onClick={() => setAnalyzeOpen(false)}
                                 className="ml-auto text-gray-300 hover:text-white text-lg leading-none px-2" aria-label="닫기">✕</button>
                         </div>
-                        <div className="flex-1 overflow-auto toss-log-scroll p-4">
-                            {analyzeStatus === 'loading' && (
-                                <div className="text-center text-gray-400 py-10">
-                                    <div className="text-3xl mb-3 animate-pulse">📊</div>
-                                    <div className="text-sm">{analyzeMsg}</div>
-                                    <div className="text-[11px] text-gray-600 mt-2">봇 추세 점수 + DART 재무 + 네이버 수급 + 증권사 리포트 + 뉴스를 종합합니다.</div>
-                                </div>
-                            )}
-                            {analyzeStatus === 'error' && (
-                                <div className="text-center text-red-300 py-10 text-sm">{analyzeMsg}</div>
-                            )}
-                            {analyzeStatus === 'done' && analyzeReport && (
-                                <pre className="whitespace-pre-wrap text-[12px] leading-relaxed text-gray-200 font-sans">{analyzeReport}</pre>
+                        <div className="p-5 text-center space-y-3">
+                            {analyzeStatus === 'error' ? (
+                                <div className="text-red-300 text-sm">{analyzeMsg}</div>
+                            ) : (
+                                <>
+                                    <div className="text-3xl">📨</div>
+                                    <div className="text-sm text-gray-200">{analyzeMsg || '분석을 요청하고 있습니다…'}</div>
+                                    <div className="text-[11px] text-gray-500">봇 추세 점수 + DART 재무 + 네이버 수급 + 증권사 리포트 + 뉴스를 종합합니다. 창을 닫아도 백그라운드에서 진행됩니다.</div>
+                                    <button onClick={() => setAnalyzeOpen(false)}
+                                        className="text-xs px-4 py-1.5 rounded bg-emerald-700 hover:bg-emerald-600 text-white">확인</button>
+                                </>
                             )}
                         </div>
                     </div>
