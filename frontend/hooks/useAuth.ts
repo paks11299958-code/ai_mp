@@ -32,7 +32,17 @@ export function useAuth() {
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [showAuthModal, setShowAuthModal] = useState(false);
     // 통합 메인: 옛 guest/hero 화면을 없애고 모든 진입을 main(MainPageNew)으로 일원화.
-    const [screen, setScreen] = useState<Screen>('main');
+    // ?login=1 (학습자료 게이트 등 외부 페이지의 로그인 유도) → 비로그인일 때만 로그인 화면으로 직행.
+    const [screen, setScreen] = useState<Screen>(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('login') === '1') {
+            params.delete('login');
+            const qs = params.toString();
+            window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+            if (!localStorage.getItem('token')) return 'authPage';
+        }
+        return 'main';
+    });
 
     const goTo = (next: Screen) => setScreen(next);
 

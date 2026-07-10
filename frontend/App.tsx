@@ -119,6 +119,17 @@ const AppContent: React.FC = () => {
         // 공유 딥링크(?p / ?f) 대기 중이면 user 변경 감지 useEffect가 해당 화면으로 진입시킨다.
     }, [handleAuthSuccess, setShowAuthModal]);
 
+    // 학습자료(/learn) 게이트에서 온 로그인 복귀 — 이메일/카카오/모달 등 모든 로그인 경로 공통.
+    // 게이트가 sessionStorage에 복귀 경로를 심고 ?login=1로 보냄 → 로그인 확정 시 원래 페이지로.
+    useEffect(() => {
+        if (!user) return;
+        const rt = sessionStorage.getItem('afterAuthRedirect');
+        if (rt && rt.startsWith('/')) {
+            sessionStorage.removeItem('afterAuthRedirect');
+            window.location.href = rt;
+        }
+    }, [user]);
+
     const { isFavorite, toggleFavorite, favorites } = useFavorites(!!user, handleMissionAwarded);
     const { isFavorite: isFavoritePersona, toggleFavorite: toggleFavoritePersona, favorites: favoritePersonaIds } = useFavoritePersonas(!!user, handleMissionAwarded);
     const { paymentSuccess } = usePayment(user, setUserPaidPoints, setUserBonusPoints);

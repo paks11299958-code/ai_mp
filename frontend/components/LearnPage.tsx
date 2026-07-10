@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 // 📚 학습자료 페이지 (/learn/homepage) — 지우의 "AI로 홈페이지 만들기" 단계별 강의 자료.
 // 강의장에서 주소/QR로 직접 접속하는 용도라 EmbedChat·ConsultPage처럼 AppContent
@@ -109,7 +109,66 @@ const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
     </details>
 );
 
+// 로그인으로 보내기 — 복귀 경로를 심고 메인의 로그인 화면(?login=1)으로
+const goLogin = () => {
+    sessionStorage.setItem('afterAuthRedirect', '/learn/homepage');
+    window.location.href = '/?login=1';
+};
+
+// 비가입자 게이트 — 코스 소개 + 얻는 것 목록으로 가입 유도(사장 결정: 회원 전용)
+const GuestGate: React.FC = () => (
+    <div className="min-h-screen bg-[#FAF8FC] flex items-center justify-center px-4 py-10">
+        <div className="max-w-md w-full text-center">
+            <div className="text-5xl mb-4">🔒</div>
+            <span className="inline-block bg-[#FF6B9D]/10 text-[#D85C95] text-xs font-bold px-3 py-1.5 rounded-full mb-3">무료 학습 코스 · 회원 전용</span>
+            <h1 className="text-2xl font-extrabold text-[#2D2438] leading-snug">🏠 AI로 홈페이지 만들어<br />내 컴퓨터에서 띄워보기</h1>
+            <p className="mt-3 text-sm text-[#6E6480] leading-relaxed">
+                코딩을 몰라도 따라 할 수 있는 5단계 강의예요.<br /><b>무료 회원가입</b>만 하면 전부 열립니다.
+            </p>
+            <div className="mt-5 bg-white border border-[#8E6FB7]/15 rounded-2xl p-5 text-left space-y-2.5">
+                {[
+                    '📚 5단계 따라하기 강의 (기획 → 완성)',
+                    '🎨 홈페이지 디자인 시안 3종 다운로드',
+                    '📋 AI에게 그대로 붙여넣는 프롬프트 모음',
+                    '🆘 막혔을 때 보는 FAQ',
+                    '🎁 지금 가입하면 보너스 500P',
+                ].map(t => (
+                    <div key={t} className="flex items-start gap-2 text-sm text-[#4A4058]"><span className="text-green-500 font-bold">✓</span>{t}</div>
+                ))}
+            </div>
+            <button onClick={goLogin} className="mt-6 w-full bg-[#8E6FB7] hover:bg-[#7A5FA0] text-white font-extrabold py-3.5 rounded-xl">
+                무료 회원가입하고 시작하기 →
+            </button>
+            <button onClick={goLogin} className="mt-2.5 w-full text-sm font-semibold text-[#6E5DA3] py-2">
+                이미 회원이에요 · 로그인
+            </button>
+            <button onClick={() => { window.location.href = '/'; }} className="mt-1 w-full text-xs text-[#9A8FB0] py-2">
+                ← AI 스퀘어 둘러보기
+            </button>
+        </div>
+    </div>
+);
+
 export const LearnPage: React.FC = () => {
+    // 회원 전용 게이트 — 토큰 없으면 즉시 게이트, 있으면 /auth/me로 유효성 확인.
+    // 네트워크 오류(서버 순단)는 열어줌: 강의 중 일시 장애로 수강생 전원이 막히는 것 방지.
+    const [auth, setAuth] = useState<'checking' | 'ok' | 'guest'>(() => localStorage.getItem('token') ? 'checking' : 'guest');
+    useEffect(() => {
+        if (auth !== 'checking') return;
+        fetch('/api/auth/me', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+            .then(r => setAuth(r.ok ? 'ok' : 'guest'))
+            .catch(() => setAuth('ok'));
+    }, [auth]);
+
+    if (auth === 'guest') return <GuestGate />;
+    if (auth === 'checking') {
+        return (
+            <div className="min-h-screen bg-[#FAF8FC] flex items-center justify-center">
+                <p className="text-sm text-[#9A8FB0]">확인 중...</p>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#FAF8FC] text-[#2D2438]">
             {/* 헤더 */}
@@ -123,26 +182,44 @@ export const LearnPage: React.FC = () => {
                 </div>
             </header>
 
-            <main className="max-w-2xl mx-auto px-4 py-8 space-y-12 pb-24">
+            {/* 모바일 전용 — 얇은 단계 칩 바(가로 스크롤). 큰 목차 카드 대신 어지러움 최소화 */}
+            <nav className="lg:hidden sticky top-14 z-10 bg-[#FAF8FC]/95 backdrop-blur border-b border-[#8E6FB7]/10">
+                <div className="flex gap-2 overflow-x-auto px-4 py-2.5" style={{ scrollbarWidth: 'none' }}>
+                    {COURSE_STEPS.map(s => (
+                        <a key={s.id} href={`#${s.id}`} className="flex-shrink-0 flex items-center gap-1.5 bg-white border border-[#8E6FB7]/20 rounded-full pl-1.5 pr-3 py-1">
+                            <span className="w-5 h-5 rounded-full bg-[#8E6FB7] text-white text-[10px] font-extrabold flex items-center justify-center">{s.no}</span>
+                            <span className="text-xs font-semibold whitespace-nowrap">{s.title.split(' — ')[0]}</span>
+                        </a>
+                    ))}
+                    <a href="#faq" className="flex-shrink-0 flex items-center bg-white border border-[#D85C95]/25 rounded-full px-3 py-1 text-xs font-semibold text-[#D85C95] whitespace-nowrap">🆘 막혔을 때</a>
+                </div>
+            </nav>
+
+            <div className="max-w-5xl mx-auto lg:grid lg:grid-cols-[230px_minmax(0,1fr)] lg:gap-10 lg:px-6">
+            {/* 데스크톱 전용 — 왼쪽 고정 목차 */}
+            <aside className="hidden lg:block">
+                <nav className="sticky top-20 py-8 space-y-1.5">
+                    <div className="text-xs font-extrabold text-[#9A8FB0] tracking-wider mb-3 px-3">목차</div>
+                    {COURSE_STEPS.map(s => (
+                        <a key={s.id} href={`#${s.id}`} className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-white border border-transparent hover:border-[#8E6FB7]/20 transition-colors">
+                            <span className="w-5 h-5 rounded-full bg-[#F0E8F8] text-[#6E5DA3] text-[10px] font-extrabold flex items-center justify-center flex-shrink-0">{s.no}</span>
+                            <span className="text-[13px] font-semibold leading-tight">{s.title.split(' — ')[0]}</span>
+                        </a>
+                    ))}
+                    <a href="#faq" className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-white border border-transparent hover:border-[#D85C95]/25 text-[13px] font-semibold text-[#D85C95]">🆘 막혔을 때</a>
+                </nav>
+            </aside>
+
+            <main className="max-w-2xl mx-auto lg:mx-0 lg:max-w-none px-4 lg:px-0 py-8 space-y-12 pb-24">
                 {/* 코스 소개 */}
-                <section className="text-center">
+                <section className="text-center lg:text-left">
                     <span className="inline-block bg-[#FF6B9D]/10 text-[#D85C95] text-xs font-bold px-3 py-1.5 rounded-full mb-3">무료 학습 코스 · 1호</span>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold leading-snug">🏠 AI로 홈페이지 만들어<br />내 컴퓨터에서 띄워보기</h1>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold leading-snug">🏠 AI로 홈페이지 만들어<br className="lg:hidden" /> 내 컴퓨터에서 띄워보기</h1>
                     <p className="mt-3 text-sm sm:text-base text-[#6E6480] leading-relaxed">
                         코딩을 몰라도 괜찮아요. AI에게 부탁해서 홈페이지 디자인을 만들고,<br className="hidden sm:block" />
                         내 컴퓨터(로컬호스트)에서 직접 띄워보는 것까지 5단계로 함께해요.
                     </p>
                     <p className="mt-2 text-xs text-[#9A8FB0]">실습 예제: 오창AI 연구회 — 배우고 만들어가는 커뮤니티 홈페이지</p>
-
-                    {/* 목차 */}
-                    <nav className="mt-6 grid gap-2 text-left">
-                        {COURSE_STEPS.map(s => (
-                            <a key={s.id} href={`#${s.id}`} className="flex items-center gap-3 bg-white border border-[#8E6FB7]/15 rounded-xl px-4 py-3 hover:border-[#8E6FB7]/50 transition-colors">
-                                <span className="w-6 h-6 rounded-full bg-[#F0E8F8] text-[#6E5DA3] text-xs font-extrabold flex items-center justify-center flex-shrink-0">{s.no}</span>
-                                <span className="text-sm font-semibold">{s.emoji} {s.title}</span>
-                            </a>
-                        ))}
-                    </nav>
                 </section>
 
                 {/* 1단계 — 기획 */}
@@ -312,6 +389,7 @@ export const LearnPage: React.FC = () => {
                     </button>
                 </section>
             </main>
+            </div>
         </div>
     );
 };
