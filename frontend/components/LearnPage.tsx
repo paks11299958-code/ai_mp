@@ -105,6 +105,8 @@ const FAQS: Array<[string, string]> = [
     ['Live Server를 설치했는데 우클릭 메뉴에 안 보여요', 'VS Code를 완전히 껐다 켜 보세요. 그래도 안 되면 "폴더"를 연 게 아니라 "파일"만 연 경우예요. 파일 > 폴더 열기로 my-homepage 폴더를 다시 여세요.'],
     ['localhost 화면이 하얗게만 나와요', '파일 이름이 index.html이 맞는지 확인하세요(index.html.txt처럼 뒤에 .txt가 붙는 경우가 많아요). 그리고 파일이 폴더 안에 있는지도요.'],
     ['수정했는데 브라우저에 반영이 안 돼요', '저장(Ctrl+S)을 먼저! 그다음 브라우저 새로고침(F5)이에요. Live Server는 저장하면 자동 새로고침됩니다.'],
+    ['꼭 VS Code를 써야 하나요? 다른 건 안 되나요?', '아니요, 필수는 아니에요. 코드 수정은 메모장으로도 되고, 열어보는 건 더블클릭으로도 됩니다. 다만 VS Code는 무료인 데다 편집기+로컬서버(Live Server)+Claude Code 터미널을 한 화면에서 해결해줘서 수업 기준으로 삼았어요. Cursor 같은 다른 편집기를 이미 쓰신다면 그대로 쓰셔도 됩니다.'],
+    ['폰에 있는 클로드(Claude) 앱으로는 안 되나요?', '절반 이상 됩니다! 클로드 앱에 2단계 프롬프트를 넣으면 결과가 "미리보기(아티팩트)" 화면으로 바로 떠서, 폰에서도 완성된 홈페이지 모습을 즉시 보고 "파란색으로 바꿔줘" 같은 수정 요청까지 할 수 있어요. 챗GPT·제미나이 앱도 비슷한 미리보기(캔버스)를 지원합니다. 다만 폰의 클로드 앱은 PC 터미널 도구인 Claude Code와는 달라서, 파일로 저장해 로컬호스트로 띄우는 3~4단계는 PC가 필요해요.'],
 ];
 
 const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
@@ -167,6 +169,27 @@ export const LearnPage: React.FC = () => {
             .catch(() => setAuth('ok'));
     }, [auth]);
 
+    // 스크롤 스파이 — 지금 보고 있는 단계를 목차(칩/사이드바)에 선택 표시.
+    // 화면 상단 20%~40% 밴드에 걸린 섹션을 활성으로 판단(제목이 그 근처에 올 때 자연 전환).
+    const [activeStep, setActiveStep] = useState('');
+    useEffect(() => {
+        if (auth !== 'ok') return;
+        const obs = new IntersectionObserver(entries => {
+            const vis = entries.filter(e => e.isIntersecting)
+                .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            if (vis[0]) setActiveStep(vis[0].target.id);
+        }, { rootMargin: '-15% 0px -60% 0px' });
+        document.querySelectorAll('section[id^="step"], section#faq').forEach(el => obs.observe(el));
+        return () => obs.disconnect();
+    }, [auth]);
+
+    // 활성 칩이 모바일 칩 바 밖에 있으면 보이게 따라 스크롤(세로 점프 방지 block:nearest)
+    useEffect(() => {
+        if (!activeStep) return;
+        document.querySelector(`a[data-chip="${activeStep}"]`)
+            ?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+    }, [activeStep]);
+
     if (auth === 'guest') return <GuestGate />;
     if (auth === 'checking') {
         return (
@@ -192,13 +215,18 @@ export const LearnPage: React.FC = () => {
             {/* 모바일 전용 — 얇은 단계 칩 바(가로 스크롤). 큰 목차 카드 대신 어지러움 최소화 */}
             <nav className="lg:hidden sticky top-14 z-10 bg-[#FAF8FC]/95 backdrop-blur border-b border-[#8E6FB7]/10">
                 <div className="flex gap-2 overflow-x-auto px-4 py-2.5" style={{ scrollbarWidth: 'none' }}>
-                    {COURSE_STEPS.map(s => (
-                        <a key={s.id} href={`#${s.id}`} className="flex-shrink-0 flex items-center gap-1.5 bg-white border border-[#8E6FB7]/20 rounded-full pl-1.5 pr-3 py-1">
-                            <span className="w-5 h-5 rounded-full bg-[#8E6FB7] text-white text-[10px] font-extrabold flex items-center justify-center">{s.no}</span>
-                            <span className="text-xs font-semibold whitespace-nowrap">{s.title.split(' — ')[0]}</span>
-                        </a>
-                    ))}
-                    <a href="#faq" className="flex-shrink-0 flex items-center bg-white border border-[#D85C95]/25 rounded-full px-3 py-1 text-xs font-semibold text-[#D85C95] whitespace-nowrap">🆘 막혔을 때</a>
+                    {COURSE_STEPS.map(s => {
+                        const on = activeStep === s.id;
+                        return (
+                            <a key={s.id} href={`#${s.id}`} data-chip={s.id}
+                               className={`flex-shrink-0 flex items-center gap-1.5 border rounded-full pl-1.5 pr-3 py-1 transition-colors ${on ? 'bg-[#8E6FB7] border-[#8E6FB7]' : 'bg-white border-[#8E6FB7]/20'}`}>
+                                <span className={`w-5 h-5 rounded-full text-[10px] font-extrabold flex items-center justify-center ${on ? 'bg-white text-[#6E5DA3]' : 'bg-[#8E6FB7] text-white'}`}>{s.no}</span>
+                                <span className={`text-xs font-semibold whitespace-nowrap ${on ? 'text-white' : ''}`}>{s.title.split(' — ')[0]}</span>
+                            </a>
+                        );
+                    })}
+                    <a href="#faq" data-chip="faq"
+                       className={`flex-shrink-0 flex items-center border rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'bg-white border-[#D85C95]/25 text-[#D85C95]'}`}>🆘 막혔을 때</a>
                 </div>
             </nav>
 
@@ -207,13 +235,18 @@ export const LearnPage: React.FC = () => {
             <aside className="hidden lg:block">
                 <nav className="sticky top-20 py-8 space-y-1.5">
                     <div className="text-xs font-extrabold text-[#9A8FB0] tracking-wider mb-3 px-3">목차</div>
-                    {COURSE_STEPS.map(s => (
-                        <a key={s.id} href={`#${s.id}`} className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-white border border-transparent hover:border-[#8E6FB7]/20 transition-colors">
-                            <span className="w-5 h-5 rounded-full bg-[#F0E8F8] text-[#6E5DA3] text-[10px] font-extrabold flex items-center justify-center flex-shrink-0">{s.no}</span>
-                            <span className="text-[13px] font-semibold leading-tight">{s.title.split(' — ')[0]}</span>
-                        </a>
-                    ))}
-                    <a href="#faq" className="flex items-center gap-2.5 rounded-lg px-3 py-2 hover:bg-white border border-transparent hover:border-[#D85C95]/25 text-[13px] font-semibold text-[#D85C95]">🆘 막혔을 때</a>
+                    {COURSE_STEPS.map(s => {
+                        const on = activeStep === s.id;
+                        return (
+                            <a key={s.id} href={`#${s.id}`}
+                               className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border transition-colors ${on ? 'bg-[#8E6FB7] border-[#8E6FB7]' : 'border-transparent hover:bg-white hover:border-[#8E6FB7]/20'}`}>
+                                <span className={`w-5 h-5 rounded-full text-[10px] font-extrabold flex items-center justify-center flex-shrink-0 ${on ? 'bg-white text-[#6E5DA3]' : 'bg-[#F0E8F8] text-[#6E5DA3]'}`}>{s.no}</span>
+                                <span className={`text-[13px] font-semibold leading-tight ${on ? 'text-white' : ''}`}>{s.title.split(' — ')[0]}</span>
+                            </a>
+                        );
+                    })}
+                    <a href="#faq"
+                       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'border-transparent text-[#D85C95] hover:bg-white hover:border-[#D85C95]/25'}`}>🆘 막혔을 때</a>
                 </nav>
             </aside>
 
@@ -304,9 +337,9 @@ export const LearnPage: React.FC = () => {
                         ))}
                     </div>
                     <Mobile>
-                        이 단계도 폰으로 가능해요! 제미나이·챗GPT·클로드 <b>앱</b>을 설치하고 위 프롬프트를 붙여넣으면
-                        폰에서도 코드가 만들어집니다. 시안 <b>[미리보기]</b>도 폰에서 바로 열려요 — 완성 모습을 폰으로 먼저 구경해 보세요.
-                        (다운로드한 파일은 폰의 '파일' 앱에 저장됩니다)
+                        이 단계도 폰으로 가능해요! 특히 <b>클로드 앱</b>은 위 프롬프트를 넣으면 결과가
+                        <b> 미리보기(아티팩트)</b>로 바로 떠서, 폰 화면에서 완성된 홈페이지를 즉시 볼 수 있어요.
+                        (챗GPT·제미나이 앱도 비슷한 미리보기 지원) 시안 <b>[미리보기]</b> 버튼도 폰에서 바로 열립니다.
                     </Mobile>
                     <Success>index.html 파일이 내 컴퓨터의 다운로드 폴더에 저장되어 있다. (AI로 직접 만들었다면 코드를 index.html로 저장했다)</Success>
                 </Step>
@@ -388,8 +421,9 @@ export const LearnPage: React.FC = () => {
                     ))}
                     <Tip>정해진 문장은 없어요. "더 고급스럽게", "글씨 크게" 처럼 <b>친구에게 말하듯</b> 부탁하는 게 요령입니다.</Tip>
                     <Mobile>
-                        Claude Code는 PC 전용이에요. 대신 폰에서는 제미나이·챗GPT·클로드 <b>앱에 기존 코드를 붙여넣고</b>
-                        "헤더를 파란색으로 바꿔서 전체 코드를 다시 줘"라고 부탁하면 같은 결과를 얻을 수 있습니다 — 조금 번거로울 뿐 원리는 같아요.
+                        Claude Code는 PC 전용이지만, 폰에서는 <b>클로드 앱</b>이 그 역할을 대신해요 —
+                        기존 코드를 붙여넣고 "헤더를 파란색으로 바꿔줘"라고 하면 <b>미리보기(아티팩트)</b>가
+                        바로 바뀐 모습으로 갱신됩니다. 보면서 고치는 경험은 폰에서도 똑같아요.
                     </Mobile>
                     <Success>부탁 → 저장 → 새로고침 사이클로 홈페이지가 내 말대로 바뀐다. 이제 여러분은 개발자예요!</Success>
                 </Step>
