@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오창AI 연구회 — 함께 배우고 만들어가는 AI 커뮤니티</title>
+<style>
+  :root {
+    --primary: #4F46E5;
+    --primary-light: #EEF2FF;
+    --ink: #1E293B;
+    --ink-soft: #64748B;
+    --line: #E2E8F0;
+    --bg: #FFFFFF;
+    --bg-soft: #F8FAFC;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif; color: var(--ink); background: var(--bg); line-height: 1.7; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  header { position: sticky; top: 0; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); z-index: 10; }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+  .logo { font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 8px; }
+  .logo .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--primary); }
+  .menu { display: flex; gap: 28px; font-size: .95rem; color: var(--ink-soft); }
+  .menu a:hover { color: var(--primary); }
+  .join-btn { background: var(--primary); color: #fff; padding: 9px 18px; border-radius: 10px; font-size: .9rem; font-weight: 600; }
+  .join-btn:hover { opacity: .9; }
+
+  .hero { text-align: center; padding: 96px 20px 80px; background: linear-gradient(180deg, var(--primary-light) 0%, #fff 100%); }
+  .hero .badge { display: inline-block; background: #fff; border: 1px solid var(--line); color: var(--primary); font-size: .85rem; font-weight: 600; padding: 6px 14px; border-radius: 999px; margin-bottom: 20px; }
+  .hero h1 { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.3; }
+  .hero h1 em { font-style: normal; color: var(--primary); }
+  .hero p { margin: 18px auto 32px; max-width: 560px; color: var(--ink-soft); font-size: 1.05rem; }
+  .hero .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-main { background: var(--primary); color: #fff; padding: 13px 28px; border-radius: 12px; font-weight: 700; }
+  .btn-sub { background: #fff; border: 1px solid var(--line); padding: 13px 28px; border-radius: 12px; font-weight: 600; color: var(--ink-soft); }
+
+  section { padding: 72px 0; }
+  .sec-title { text-align: center; margin-bottom: 44px; }
+  .sec-title small { color: var(--primary); font-weight: 700; font-size: .85rem; letter-spacing: .08em; }
+  .sec-title h2 { font-size: 1.7rem; font-weight: 800; margin-top: 6px; }
+
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .card { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 16px; padding: 28px; }
+  .card .icon { font-size: 1.8rem; }
+  .card h3 { margin: 14px 0 8px; font-size: 1.1rem; }
+  .card p { color: var(--ink-soft); font-size: .93rem; }
+
+  .news-list { display: grid; gap: 14px; max-width: 720px; margin: 0 auto; }
+  .news-item { display: flex; align-items: center; gap: 16px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; }
+  .news-item:hover { border-color: var(--primary); }
+  .news-item .date { color: var(--primary); font-weight: 700; font-size: .85rem; white-space: nowrap; }
+  .news-item .title { font-weight: 600; font-size: .97rem; }
+
+  .study { background: var(--bg-soft); }
+  .study-row { display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 22px; margin-bottom: 12px; max-width: 720px; margin-left: auto; margin-right: auto; }
+  .study-row .lv { font-size: .78rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--primary-light); color: var(--primary); white-space: nowrap; }
+  .study-row b { font-size: .97rem; }
+  .study-row span { color: var(--ink-soft); font-size: .85rem; }
+
+  .cta { text-align: center; background: var(--primary); color: #fff; border-radius: 24px; padding: 56px 24px; margin: 0 20px; }
+  .cta h2 { font-size: 1.6rem; margin-bottom: 10px; }
+  .cta p { opacity: .85; margin-bottom: 26px; }
+  .cta a { background: #fff; color: var(--primary); font-weight: 800; padding: 13px 32px; border-radius: 12px; display: inline-block; }
+
+  footer { border-top: 1px solid var(--line); padding: 36px 0; text-align: center; color: var(--ink-soft); font-size: .85rem; margin-top: 72px; }
+
+  @media (max-width: 720px) {
+    .menu { display: none; }
+    .grid3 { grid-template-columns: 1fr; }
+    .hero { padding: 64px 20px 56px; }
+    section { padding: 52px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#" class="logo"><span class="dot"></span>오창AI 연구회</a>
+    <nav class="menu">
+      <a href="#about">소개</a>
+      <a href="#news">활동소식</a>
+      <a href="#study">스터디자료</a>
+      <a href="#join">가입안내</a>
+    </nav>
+    <a href="#join" class="join-btn">가입하기</a>
+  </div>
+</header>
+
+<section class="hero">
+  <span class="badge">🤖 매주 화요일 저녁, 오창에서 만나요</span>
+  <h1>AI를 <em>함께 배우고</em><br>직접 <em>만들어가는</em> 사람들</h1>
+  <p>오창AI 연구회는 AI가 처음인 분부터 실무에 활용하는 분까지, 서로 배우고 나누며 성장하는 지역 커뮤니티입니다.</p>
+  <div class="actions">
+    <a href="#join" class="btn-main">연구회 가입하기</a>
+    <a href="#news" class="btn-sub">활동 둘러보기</a>
+  </div>
+</section>
+
+<section id="about" class="wrap">
+  <div class="sec-title">
+    <small>ABOUT</small>
+    <h2>이런 걸 함께 해요</h2>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <div class="icon">📚</div>
+      <h3>AI 기초 스터디</h3>
+      <p>ChatGPT·제미나이·클로드 활용법을 처음부터 차근차근. 매주 한 가지 주제로 함께 실습합니다.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🛠️</div>
+      <h3>만들기 프로젝트</h3>
+      <p>홈페이지, 챗봇, 자동화 도구까지. 배운 것을 직접 만들어보며 내 것으로 만듭니다.</p>
+    </div>
+    <div class="card">
+      <div class="icon">🤝</div>
+      <h3>지역 네트워킹</h3>
+      <p>오창·청주 지역의 AI에 관심 있는 이웃들과 경험을 나누고 함께 성장합니다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="news" class="wrap">
+  <div class="sec-title">
+    <small>NEWS</small>
+    <h2>활동 소식</h2>
+  </div>
+  <div class="news-list">
+    <a class="news-item" href="#"><span class="date">07.08</span><span class="title">7월 정기모임 — AI로 홈페이지 만들기 실습 후기</span></a>
+    <a class="news-item" href="#"><span class="date">06.24</span><span class="title">챗봇 만들기 워크숍, 12명 참여로 성황리 마무리</span></a>
+    <a class="news-item" href="#"><span class="date">06.10</span><span class="title">신규 회원 환영 모임 & 상반기 활동 공유회</span></a>
+  </div>
+</section>
+
+<section id="study" class="study">
+  <div class="wrap">
+    <div class="sec-title">
+      <small>STUDY</small>
+      <h2>스터디 자료</h2>
+    </div>
+    <div class="study-row"><div><b>1주차 — AI와 첫 대화하기</b><br><span>ChatGPT·제미나이 가입부터 좋은 질문법까지</span></div><span class="lv">입문</span></div>
+    <div class="study-row"><div><b>2주차 — 프롬프트 잘 쓰는 법</b><br><span>원하는 답을 얻는 질문 공식 5가지</span></div><span class="lv">입문</span></div>
+    <div class="study-row"><div><b>3주차 — AI로 홈페이지 만들기</b><br><span>디자인 생성부터 내 컴퓨터에서 띄워보기까지</span></div><span class="lv">실습</span></div>
+  </div>
+</section>
+
+<section id="join">
+  <div class="wrap">
+    <div class="cta">
+      <h2>오창AI 연구회와 함께하세요</h2>
+      <p>회비 없음 · 준비물은 노트북과 호기심 · 매주 화요일 저녁 7시</p>
+      <a href="#">가입 신청하기</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  © 2026 오창AI 연구회 · 충북 청주시 청원구 오창읍 · ochang.ai.study@gmail.com
+</footer>
+
+</body>
+</html>

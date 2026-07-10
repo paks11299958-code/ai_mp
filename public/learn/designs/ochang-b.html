@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>오창AI 연구회 — 이웃과 함께하는 따뜻한 AI 배움터</title>
+<style>
+  :root {
+    --accent: #E07B39;
+    --accent-deep: #B85C1F;
+    --cream: #FBF6EF;
+    --paper: #FFFDF9;
+    --ink: #3D2E23;
+    --ink-soft: #8A7462;
+    --line: #EADFD2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Malgun Gothic', sans-serif; background: var(--cream); color: var(--ink); line-height: 1.75; }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+
+  header { background: var(--cream); border-bottom: 2px dashed var(--line); }
+  .nav { display: flex; align-items: center; justify-content: space-between; height: 72px; }
+  .logo { font-weight: 800; font-size: 1.2rem; }
+  .logo span { color: var(--accent); }
+  .menu { display: flex; gap: 24px; font-size: .95rem; color: var(--ink-soft); font-weight: 500; }
+  .menu a:hover { color: var(--accent); }
+
+  .hero { padding: 80px 0 64px; }
+  .hero-inner { display: flex; align-items: center; gap: 48px; }
+  .hero-text { flex: 1; }
+  .hero-text .hello { color: var(--accent); font-weight: 700; margin-bottom: 12px; }
+  .hero-text h1 { font-size: clamp(1.8rem, 4.5vw, 2.7rem); font-weight: 800; line-height: 1.35; letter-spacing: -0.01em; }
+  .hero-text h1 mark { background: linear-gradient(transparent 62%, #FBD9A8 62%); color: inherit; }
+  .hero-text p { margin: 18px 0 28px; color: var(--ink-soft); font-size: 1.02rem; max-width: 460px; }
+  .btn { display: inline-block; background: var(--accent); color: #fff; font-weight: 700; padding: 14px 30px; border-radius: 999px; box-shadow: 0 4px 14px rgba(224,123,57,.3); }
+  .btn:hover { background: var(--accent-deep); }
+  .hero-art { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .hero-art .tile { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 22px; text-align: center; font-size: .88rem; font-weight: 600; color: var(--ink-soft); }
+  .hero-art .tile b { display: block; font-size: 2rem; margin-bottom: 6px; }
+
+  section { padding: 64px 0; }
+  h2.title { font-size: 1.55rem; font-weight: 800; margin-bottom: 8px; }
+  h2.title::before { content: "🧡 "; }
+  .subtitle { color: var(--ink-soft); margin-bottom: 36px; }
+
+  .about-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .acard { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 26px; }
+  .acard .num { display: inline-flex; width: 34px; height: 34px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; align-items: center; justify-content: center; font-size: .95rem; }
+  .acard h3 { margin: 14px 0 8px; font-size: 1.08rem; }
+  .acard p { color: var(--ink-soft); font-size: .92rem; }
+
+  .news { background: var(--paper); border-top: 2px dashed var(--line); border-bottom: 2px dashed var(--line); }
+  .news-item { display: flex; gap: 18px; padding: 20px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+  .news-item:last-child { border-bottom: none; }
+  .news-item .date { font-weight: 800; color: var(--accent); font-size: .88rem; white-space: nowrap; }
+  .news-item .txt b { font-size: 1rem; }
+  .news-item .txt p { color: var(--ink-soft); font-size: .88rem; margin-top: 2px; }
+
+  .study-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .scard { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 24px; position: relative; }
+  .scard .week { font-size: .78rem; font-weight: 800; color: var(--accent); letter-spacing: .06em; }
+  .scard h3 { margin: 8px 0 6px; font-size: 1.05rem; }
+  .scard p { color: var(--ink-soft); font-size: .9rem; }
+
+  .join { text-align: center; }
+  .join-box { background: var(--paper); border: 2px solid var(--accent); border-radius: 28px; padding: 52px 28px; }
+  .join-box h2 { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; }
+  .join-box p { color: var(--ink-soft); margin-bottom: 26px; }
+  .join-info { display: flex; justify-content: center; gap: 28px; margin-bottom: 28px; flex-wrap: wrap; color: var(--ink-soft); font-size: .92rem; }
+  .join-info b { color: var(--ink); }
+
+  footer { text-align: center; padding: 40px 20px; color: var(--ink-soft); font-size: .85rem; }
+
+  @media (max-width: 720px) {
+    .menu { display: none; }
+    .hero-inner { flex-direction: column; }
+    .about-cards, .study-grid { grid-template-columns: 1fr; }
+    .hero { padding: 52px 0 40px; }
+    section { padding: 48px 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#" class="logo">오창<span>AI</span> 연구회</a>
+    <nav class="menu">
+      <a href="#about">소개</a>
+      <a href="#news">활동소식</a>
+      <a href="#study">스터디자료</a>
+      <a href="#join">가입안내</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero wrap">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hello">👋 어서 오세요, 이웃님!</div>
+      <h1>AI, 어렵지 않아요.<br><mark>이웃과 함께</mark> 배우면<br>더 재밌으니까요.</h1>
+      <p>오창AI 연구회는 매주 모여 AI를 배우고, 배운 것으로 직접 만들어보는 동네 배움터입니다. 나이도 직업도 상관없어요.</p>
+      <a href="#join" class="btn">함께하기 →</a>
+    </div>
+    <div class="hero-art">
+      <div class="tile"><b>🤖</b>매주 화요일<br>정기 모임</div>
+      <div class="tile"><b>👨‍👩‍👧‍👦</b>회원 24명과<br>함께 성장</div>
+      <div class="tile"><b>🛠️</b>홈페이지·챗봇<br>직접 제작</div>
+      <div class="tile"><b>☕</b>커피 한 잔과<br>편한 분위기</div>
+    </div>
+  </div>
+</section>
+
+<section id="about" class="wrap">
+  <h2 class="title">우리 연구회는요</h2>
+  <p class="subtitle">배우고, 만들고, 나누는 세 가지를 가장 소중히 여깁니다.</p>
+  <div class="about-cards">
+    <div class="acard">
+      <span class="num">1</span>
+      <h3>같이 배워요</h3>
+      <p>ChatGPT, 제미나이, 클로드 같은 AI 도구를 기초부터 실습 중심으로 배웁니다.</p>
+    </div>
+    <div class="acard">
+      <span class="num">2</span>
+      <h3>직접 만들어요</h3>
+      <p>배우기만 하면 금방 잊혀요. 내 홈페이지, 내 챗봇을 직접 만들어 완성합니다.</p>
+    </div>
+    <div class="acard">
+      <span class="num">3</span>
+      <h3>서로 나눠요</h3>
+      <p>각자의 발견과 노하우를 모임에서 공유합니다. 오늘 배운 사람이 내일의 선생님!</p>
+    </div>
+  </div>
+</section>
+
+<section id="news" class="news">
+  <div class="wrap">
+    <h2 class="title">활동 소식</h2>
+    <p class="subtitle">우리가 함께 걸어온 발자국이에요.</p>
+    <div class="news-item">
+      <span class="date">7월 8일</span>
+      <div class="txt"><b>AI로 홈페이지 만들기 실습</b><p>회원 전원이 자기만의 홈페이지 시안을 만들고 컴퓨터에서 띄워봤어요.</p></div>
+    </div>
+    <div class="news-item">
+      <span class="date">6월 24일</span>
+      <div class="txt"><b>챗봇 만들기 워크숍</b><p>우리 가게, 우리 모임을 위한 상담 챗봇을 만들어봤습니다.</p></div>
+    </div>
+    <div class="news-item">
+      <span class="date">6월 10일</span>
+      <div class="txt"><b>신규 회원 환영회</b><p>새 얼굴 다섯 분과 함께 상반기 활동을 돌아봤어요.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="study" class="wrap">
+  <h2 class="title">스터디 자료</h2>
+  <p class="subtitle">모임에서 쓰는 자료를 차곡차곡 모아둡니다.</p>
+  <div class="study-grid">
+    <div class="scard"><span class="week">WEEK 1</span><h3>AI와 첫 대화하기</h3><p>가입부터 첫 질문까지, 처음이라면 여기부터.</p></div>
+    <div class="scard"><span class="week">WEEK 2</span><h3>프롬프트 질문법</h3><p>원하는 답을 얻는 다섯 가지 질문 공식.</p></div>
+    <div class="scard"><span class="week">WEEK 3</span><h3>홈페이지 만들기</h3><p>AI로 디자인하고 내 컴퓨터에서 띄워보기.</p></div>
+  </div>
+</section>
+
+<section id="join" class="wrap join">
+  <div class="join-box">
+    <h2>이번 주 화요일, 놀러 오세요</h2>
+    <p>처음 오시는 분도 언제나 환영해요. 노트북 하나만 들고 오시면 됩니다.</p>
+    <div class="join-info">
+      <span>🗓 <b>매주 화요일</b> 저녁 7시</span>
+      <span>📍 <b>오창읍</b> 커뮤니티센터</span>
+      <span>💸 회비 <b>없음</b></span>
+    </div>
+    <a href="#" class="btn">가입 신청하기</a>
+  </div>
+</section>
+
+<footer>
+  © 2026 오창AI 연구회 · 함께 배우고 만들어가는 AI 커뮤니티 · ochang.ai.study@gmail.com
+</footer>
+
+</body>
+</html>

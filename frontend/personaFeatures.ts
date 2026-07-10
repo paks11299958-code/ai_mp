@@ -30,7 +30,8 @@ export type FeatureKey =
     | 'hair'
     | 'agetransform'
     | 'lookalike'
-    | 'marketing';
+    | 'marketing'
+    | 'learn';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -61,6 +62,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'agetransform', label: '나이 변환',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'lookalike',   label: '닮은꼴 찾기',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
     { key: 'marketing',   label: 'AI 마케팅 글쓰기', icon: 'PenLine',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
+    { key: 'learn',       label: '학습자료',       icon: 'BookOpen',   color: '#FF6B9D', bgColor: 'rgba(255,107,157,0.12)',   borderColor: '#FFB3D1' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
@@ -72,7 +74,7 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '윤채원': ['stock', 'hotkeyword'],
     '이아린': ['used', 'hotkeyword', 'marketing'],
     '신은비': ['luxury'],
-    '지우':   ['mathtutor', 'club'],
+    '지우':   ['mathtutor', 'club', 'learn'],
     '강지훈': ['ebook'],
     '향기(필명)': ['webtoon'],
     '윤채린': ['hair', 'agetransform', 'lookalike'],

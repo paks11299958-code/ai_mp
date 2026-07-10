@@ -60,6 +60,7 @@ import { TarotCardModal } from './components/TarotCardModal';
 import { TarotReportView, TarotReportData } from './components/TarotReportView';
 import { EmbedChat } from './components/EmbedChat';
 import { ConsultPage } from './components/ConsultPage';
+import { LearnPage } from './components/LearnPage';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -313,6 +314,7 @@ const AppContent: React.FC = () => {
         lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),
         marketing: () => setShowMarketingBoard(true),
+        learn: () => { window.location.href = '/learn/homepage'; }, // 지우 학습자료 — 전용 페이지(얼리리턴 라우트)
     };
 
     // 공지사항
@@ -1142,7 +1144,6 @@ const AppContent: React.FC = () => {
         webtoon: () => setShowWebtoon(true),
         tarot: () => setTarotModalMode('full'),        // 유나 타로 뽑기(3장 리딩)
         'tarot-daily': () => setTarotModalMode('daily'), // 오늘의 카드 — 같은 셔플·플립 의식으로 1장(성의)
-
     };
 
     // 닮은꼴 모달에 넘길 윤채린 personaId. 메인 카드에서 열면 activePersona가 아직
@@ -2580,9 +2581,14 @@ const EMBED_KEY = new URLSearchParams(window.location.search).get('embed');
 // 🤖 AI상담 봇 페이지(/consult/{slug}): 발급 링크 전용 전체화면(아바타+마스터 Typebot)
 const CONSULT_SLUG = window.location.pathname.match(/^\/consult\/([a-z0-9-]{3,40})\/?$/)?.[1] ?? null;
 
+// 📚 학습자료 페이지(/learn 또는 /learn/homepage): 강의장 QR/주소 직접 접속용 전체화면(비회원 OK).
+// 정적 시안(/learn/designs/*.html)은 파일시스템 우선이라 이 분기에 걸리지 않음.
+const IS_LEARN_PAGE = /^\/learn(\/homepage)?\/?$/.test(window.location.pathname);
+
 const App: React.FC = () => (
     EMBED_KEY ? <EmbedChat personaKey={EMBED_KEY} /> :
     CONSULT_SLUG ? <ConsultPage slug={CONSULT_SLUG} /> :
+    IS_LEARN_PAGE ? <LearnPage /> :
     <PointsProvider>
         <AppContent />
     </PointsProvider>

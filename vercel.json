@@ -123,6 +123,9 @@
     { "source": "/api/consult-bots/:path*", "destination": "http://34.50.27.95:3020/api/aimp/consult-bots/:path*" },
     { "source": "/consult/:slug",           "destination": "/index.html" },
 
+    { "source": "/learn",                   "destination": "/index.html" },
+    { "source": "/learn/homepage",          "destination": "/index.html" },
+
     { "source": "/api/:d/:s1/:s2/:s3", "destination": "/api/router?d=:d&s1=:s1&s2=:s2&s3=:s3" },
     { "source": "/api/:d/:s1/:s2", "destination": "/api/router?d=:d&s1=:s1&s2=:s2" },
     { "source": "/api/:d/:s1", "destination": "/api/router?d=:d&s1=:s1" },
