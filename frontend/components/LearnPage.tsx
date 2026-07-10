@@ -91,6 +91,13 @@ const Success: React.FC<{ children: React.ReactNode }> = ({ children }) => (
     </div>
 );
 
+// "모바일에서는" — 폰으로 따라오는 수강생용 단계별 안내(가능/대안/PC 필요 명시)
+const Mobile: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+    <div className="bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 text-sm text-sky-900 leading-relaxed">
+        📱 <b>모바일에서는:</b> {children}
+    </div>
+);
+
 // 🆘 막혔을 때 — 강의장에서 실제로 나오는 질문 모음 (접이식)
 const FAQS: Array<[string, string]> = [
     ['다운로드한 파일을 더블클릭하면 브라우저로 열려요. 잘못된 건가요?', '아니에요, 정상이에요! 더블클릭으로 열리는 건 "파일로 열기"이고, 우리가 배우는 건 "서버로 열기(localhost)"예요. 4단계의 Live Server나 Claude Code를 쓰면 주소창에 localhost가 뜹니다.'],
@@ -220,6 +227,10 @@ export const LearnPage: React.FC = () => {
                         내 컴퓨터(로컬호스트)에서 직접 띄워보는 것까지 5단계로 함께해요.
                     </p>
                     <p className="mt-2 text-xs text-[#9A8FB0]">실습 예제: 오창AI 연구회 — 배우고 만들어가는 커뮤니티 홈페이지</p>
+                    <div className="mt-4 bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 text-sm text-sky-900 leading-relaxed text-left">
+                        📱 <b>폰으로 보고 계신가요?</b> 1~2단계(기획·AI로 시안 만들기)는 폰으로도 충분히 실습할 수 있어요.
+                        3단계부터(내 컴퓨터에서 띄우기)는 PC/노트북이 필요합니다 — 각 단계의 <b>"모바일에서는"</b> 파란 박스를 참고하세요.
+                    </div>
                 </section>
 
                 {/* 1단계 — 기획 */}
@@ -241,6 +252,7 @@ export const LearnPage: React.FC = () => {
                         ))}
                     </div>
                     <Tip>이 4가지가 곧 다음 단계에서 AI에게 부탁하는 말(프롬프트)의 재료가 됩니다.</Tip>
+                    <Mobile>폰 메모앱에 적으면 됩니다. 이 단계는 폰으로 100% 가능해요.</Mobile>
                     <Success>4칸이 다 채워진 메모가 손에 있다.</Success>
                 </Step>
 
@@ -291,6 +303,11 @@ export const LearnPage: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                    <Mobile>
+                        이 단계도 폰으로 가능해요! 제미나이·챗GPT·클로드 <b>앱</b>을 설치하고 위 프롬프트를 붙여넣으면
+                        폰에서도 코드가 만들어집니다. 시안 <b>[미리보기]</b>도 폰에서 바로 열려요 — 완성 모습을 폰으로 먼저 구경해 보세요.
+                        (다운로드한 파일은 폰의 '파일' 앱에 저장됩니다)
+                    </Mobile>
                     <Success>index.html 파일이 내 컴퓨터의 다운로드 폴더에 저장되어 있다. (AI로 직접 만들었다면 코드를 index.html로 저장했다)</Success>
                 </Step>
 
@@ -310,6 +327,10 @@ export const LearnPage: React.FC = () => {
                         ))}
                     </ol>
                     <Tip>폴더 이름을 영어로 하는 이유: 일부 개발 도구가 한글 경로에서 오작동할 수 있어서예요. 습관을 들이면 좋아요.</Tip>
+                    <Mobile>
+                        여기부터는 <b>PC/노트북이 필요해요</b>. 폰에서 만든 코드는 카카오톡 '나에게 보내기'나
+                        이메일로 PC에 옮기면 이어서 할 수 있습니다. 지금 폰뿐이라면 이 단계부터는 눈으로 읽어두고, 집에서 노트북으로 해보세요.
+                    </Mobile>
                     <Success>VS Code 왼쪽 파일 목록에 my-homepage 폴더와 그 안의 index.html이 보인다.</Success>
                 </Step>
 
@@ -348,6 +369,11 @@ export const LearnPage: React.FC = () => {
                         <CopyBlock text={CLAUDE_CODE_PROMPTS[0].text} label="Claude Code 프롬프트" />
                     </div>
                     <Tip>주소창의 localhost는 내 컴퓨터에서만 보여요. 다른 사람에게 보여주려면 인터넷에 올려야 하는데, 그건 다음 코스에서 배워요.</Tip>
+                    <Mobile>
+                        localhost 실습은 PC 전용이지만, <b>비슷한 체험</b>은 폰으로도 돼요 — 안드로이드는 '파일' 앱에서
+                        다운로드한 index.html을 눌러 <b>Chrome으로 열기</b>를 하면 내 폰 화면에 내 홈페이지가 뜹니다.
+                        (아이폰은 파일 앱에서 미리보기로 확인) "내 기기에서 내 홈페이지를 열었다"는 경험은 동일해요.
+                    </Mobile>
                     <Success>브라우저 주소창에 localhost로 시작하는 주소가 있고, 내 홈페이지가 화면에 떠 있다. 🎉</Success>
                 </Step>
 
@@ -361,6 +387,10 @@ export const LearnPage: React.FC = () => {
                         <CopyBlock key={p.label} text={p.text} label={`실습 — ${p.label}`} />
                     ))}
                     <Tip>정해진 문장은 없어요. "더 고급스럽게", "글씨 크게" 처럼 <b>친구에게 말하듯</b> 부탁하는 게 요령입니다.</Tip>
+                    <Mobile>
+                        Claude Code는 PC 전용이에요. 대신 폰에서는 제미나이·챗GPT·클로드 <b>앱에 기존 코드를 붙여넣고</b>
+                        "헤더를 파란색으로 바꿔서 전체 코드를 다시 줘"라고 부탁하면 같은 결과를 얻을 수 있습니다 — 조금 번거로울 뿐 원리는 같아요.
+                    </Mobile>
                     <Success>부탁 → 저장 → 새로고침 사이클로 홈페이지가 내 말대로 바뀐다. 이제 여러분은 개발자예요!</Success>
                 </Step>
 
