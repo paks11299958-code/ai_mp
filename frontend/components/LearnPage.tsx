@@ -36,6 +36,27 @@ const CLAUDE_CODE_PROMPTS = [
     { label: '모바일 최적화', text: '휴대폰에서 봤을 때 글자가 잘리거나 메뉴가 넘치지 않게 고쳐줘.' },
 ];
 
+// 📖 용어 사전 — 본문에서 단어를 드래그(셀렉트)하면 뜻 툴팁이 뜬다(초보자 배려).
+// 키는 소문자 정규화 형태. 값 = 한두 문장 설명.
+const GLOSSARY: Record<string, string> = {
+    'html': "웹페이지의 '뼈대'를 만드는 언어예요. 제목·글·버튼 같은 내용을 담습니다. 우리가 만드는 index.html이 바로 HTML 파일이에요.",
+    'css': "웹페이지를 '꾸미는' 언어예요(색·글씨·배치). 이번 수업에서는 HTML 파일 안에 함께 넣어 파일 하나로 관리해요.",
+    'index.html': "홈페이지의 대문 파일이에요. 주소만 입력하면 서버가 기본으로 이 파일을 보여줍니다. 그래서 파일 이름이 중요해요.",
+    '로컬호스트': "'내 컴퓨터 자신'을 가리키는 주소예요. 인터넷에 올리기 전에 내 컴퓨터에서만 미리 보는 무대입니다.",
+    'localhost': "'내 컴퓨터 자신'을 가리키는 주소예요. 인터넷에 올리기 전에 내 컴퓨터에서만 미리 보는 무대입니다.",
+    '프롬프트': "AI에게 건네는 부탁의 말이에요. 구체적으로 쓸수록 원하는 결과가 나옵니다.",
+    'vs code': "마이크로소프트가 만든 무료 코드 편집기예요. 편집 + 로컬서버 + 터미널을 한 화면에서 해결해줍니다.",
+    'live server': "VS Code에 설치하는 확장 프로그램이에요. 클릭 한 번으로 내 컴퓨터에 작은 웹서버를 켜줍니다(localhost:5500).",
+    '터미널': "글자로 명령을 내리는 검은 창이에요. VS Code에서는 Ctrl+` 로 열 수 있어요.",
+    'claude code': "터미널에서 쓰는 AI 개발 도우미예요(PC 전용). 말로 부탁하면 파일 수정부터 서버 실행까지 대신해줍니다.",
+    '아티팩트': "클로드 앱이 코드 결과를 바로 '미리보기 화면'으로 보여주는 기능이에요. 폰에서도 완성 모습을 즉시 확인할 수 있어요.",
+    '서버': "요청을 받으면 웹페이지를 건네주는 프로그램이에요. localhost는 내 컴퓨터 속 작은 서버입니다.",
+    '브라우저': "크롬·엣지·사파리처럼 웹페이지를 보는 프로그램이에요.",
+    'file://': "서버 없이 파일을 '직접' 열었다는 표시예요. 구경은 되지만, 진짜 웹사이트 방식은 http(localhost)입니다.",
+    '확장': "VS Code에 기능을 더하는 부품이에요. 폰에 앱을 설치하는 것과 같아요.",
+    '새로고침': "브라우저가 페이지를 다시 불러오게 하는 거예요(F5). 수정한 결과를 확인하는 기본 동작입니다.",
+};
+
 // 프롬프트 복사 블록 — 복사 버튼 + 2초 "복사됨" 피드백
 const CopyBlock: React.FC<{ text: string; label?: string }> = ({ text, label }) => {
     const [copied, setCopied] = useState(false);
@@ -190,6 +211,32 @@ export const LearnPage: React.FC = () => {
             ?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
     }, [activeStep]);
 
+    // 📖 단어 셀렉트 → 용어 툴팁. selectionchange는 드래그 중 연발되므로 250ms 디바운스.
+    const [tip, setTip] = useState<{ term: string; desc: string; x: number; y: number } | null>(null);
+    useEffect(() => {
+        if (auth !== 'ok') return;
+        let timer: ReturnType<typeof setTimeout>;
+        const onSel = () => {
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+                const sel = window.getSelection();
+                const raw = sel?.toString().trim() ?? '';
+                const key = raw.toLowerCase().replace(/[.,!?'"()“”]/g, '').trim();
+                const desc = GLOSSARY[key];
+                if (!raw || raw.length > 24 || !desc || !sel || sel.rangeCount === 0) { setTip(null); return; }
+                const rect = sel.getRangeAt(0).getBoundingClientRect();
+                setTip({
+                    term: raw,
+                    desc,
+                    x: Math.min(Math.max(rect.left + rect.width / 2, 150), window.innerWidth - 150),
+                    y: Math.min(rect.bottom + 10, window.innerHeight - 40),
+                });
+            }, 250);
+        };
+        document.addEventListener('selectionchange', onSel);
+        return () => { clearTimeout(timer); document.removeEventListener('selectionchange', onSel); };
+    }, [auth]);
+
     if (auth === 'guest') return <GuestGate />;
     if (auth === 'checking') {
         return (
@@ -211,6 +258,15 @@ export const LearnPage: React.FC = () => {
                     <span className="w-16" />
                 </div>
             </header>
+
+            {/* 📖 용어 툴팁 — 셀렉트한 단어가 사전에 있으면 그 아래 말풍선 */}
+            {tip && (
+                <div className="fixed z-50 -translate-x-1/2 max-w-[280px] bg-[#2D2438] text-white rounded-xl px-4 py-3 shadow-2xl pointer-events-none"
+                     style={{ left: tip.x, top: tip.y }}>
+                    <div className="text-xs font-extrabold text-[#C4A9E0] mb-1">📖 {tip.term}</div>
+                    <div className="text-[13px] leading-relaxed">{tip.desc}</div>
+                </div>
+            )}
 
             {/* 모바일 전용 — 얇은 단계 칩 바(가로 스크롤). 큰 목차 카드 대신 어지러움 최소화 */}
             <nav className="lg:hidden sticky top-14 z-10 bg-[#FAF8FC]/95 backdrop-blur border-b border-[#8E6FB7]/10">
@@ -263,6 +319,10 @@ export const LearnPage: React.FC = () => {
                     <div className="mt-4 bg-sky-50 border border-sky-200 rounded-xl px-4 py-3 text-sm text-sky-900 leading-relaxed text-left">
                         📱 <b>폰으로 보고 계신가요?</b> 1~2단계(기획·AI로 시안 만들기)는 폰으로도 충분히 실습할 수 있어요.
                         3단계부터(내 컴퓨터에서 띄우기)는 PC/노트북이 필요합니다 — 각 단계의 <b>"모바일에서는"</b> 파란 박스를 참고하세요.
+                    </div>
+                    <div className="mt-2.5 bg-[#F5EFFA] border border-[#8E6FB7]/25 rounded-xl px-4 py-3 text-sm text-[#5A4A6E] leading-relaxed text-left">
+                        📖 <b>모르는 단어가 나오면 드래그해 보세요.</b> CSS, 로컬호스트, 터미널 같은 단어를
+                        손가락이나 마우스로 선택하면 뜻이 말풍선으로 나타나요.
                     </div>
                 </section>
 
