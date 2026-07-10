@@ -41,7 +41,13 @@ export function usePayment(
                 setPaymentSuccess({ points: result.points });
                 setTimeout(() => setPaymentSuccess(null), 4000);
             })
-            .catch(e => console.error('[payment confirm]', e));
+            .catch(e => {
+                // ★2026-07-10: 승인 실패가 console에만 남아 사용자는 '결제했는데 포인트가
+                // 안 들어왔다'고 오인(라이브 첫 결제 402 사례). 반드시 화면으로 알린다.
+                // 승인 실패 = 매입 안 됨 → 카드 가승인은 자동 취소(실제 청구 없음).
+                console.error('[payment confirm]', e);
+                alert(`결제 승인에 실패했어요. 카드에는 청구되지 않으니 안심하세요.\n사유: ${e?.message || '알 수 없는 오류'}\n잠시 후 다시 시도해 주세요.`);
+            });
     }, [user?.id]); // eslint-disable-line
 
     return { paymentSuccess };
