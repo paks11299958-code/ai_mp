@@ -122,7 +122,11 @@
 - **클라이언트 키**(`VITE_TOSS_CLIENT_KEY`, `test_ck_...`/`live_ck_...`) = **공개값**(브라우저 번들 노출 정상) → `frontend/.env.production`에 두고 **git 커밋**. Vite가 빌드 시 `import.meta.env`로 주입(Vercel 자체 빌드라 .env.local은 안 들어감→.env.production 필요).
 - **시크릿 키**(`TOSS_SECRET_KEY`, `test_sk_...`/`live_sk_...`) = **민감값** → **git 절대 금지**. 서버1 `.env`에만 직접 등록 + pm2 reload. `routes/aimp/payments.ts`의 `/confirm`이 사용(없으면 "결제 설정 오류" 500).
 - 키 없을 때 증상: 클라이언트 키 없음→PointModal에서 "결제 설정이 준비되지 않았습니다"(결제창 안 열림). 시크릿 키 없음→결제창은 열리나 승인(confirm) 단계 500.
-- 현재 상태(2026-06-17): 클라이언트 키(테스트) 등록 완료→결제창 열림 확인. 시크릿 키는 미등록(추후)→실제 충전 완료는 시크릿 키 등록 후.
+- ✅**라이브 전환 완료(2026-07-10) — 첫 실결제 5,000원 검증**. 이 과정의 함정 3개(재발 방지 필독):
+  1. **키는 상점(MID)별×연동방식별 쌍**: 토스는 연동 신청마다 상점(MID)을 따로 만들어 개별 심사(우리 계정 3개: daichaojij=계약완료, 나머지 2개=심사중). **심사중 상점 키를 쓰면 402 "업체 사정으로 결제를 일시 중지"** — 키 자체는 인증되니 헷갈림. 반드시 상점관리자에서 **계약완료 상점**을 선택한 화면의 키 쌍을 쓸 것.
+  2. **결제위젯 키(live_gck_) ≠ API 개별 연동 키(live_ck_)**: 우리 코드는 v1 결제창(requestPayment)이라 **API 개별 연동** 탭의 쌍만 유효. 클라·시크릿은 같은 탭에서 같이 복사.
+  3. **시크릿 유효성 무해 검증**: `curl -u "KEY:" https://api.tosspayments.com/v1/payments/없는ID` → 404=인증OK, 401=키 불량 (결제 없이 확인 가능).
+- confirm 거절 시 서버 로그에 사유 기록(`[payments/confirm] 토스 거절 code=... orderId=...`, 2026-07-10 추가) + 프론트 usePayment가 승인 실패를 **alert로 사용자에게 표시**(종전 console만 → 회원이 결제된 줄 오인했던 사고 후 수정).
 
 ### 관련 파일
 - `frontend/components/PointModal.tsx` — 패키지 선택 + `toss.requestPayment`
@@ -165,10 +169,9 @@
 - 생성(/generate) 시 잔액 사전검사=개당×개수(402), 차감은 **저장(/save) 시 개당×개수**("미래의 나 N장"). 취소=미저장·무과금. 상세 [features/age_transform.md](features/age_transform.md).
 - 헤어와 같은 나노바나나 쿼터 → 생성 신호등(lib/imageGenBusy) 공유, 혼잡 시 사전 안내.
 
-## 결제(토스) 오픈 상태 (2026-06-18)
+## 결제(토스) 오픈 상태 — ✅ 실결제 오픈 (2026-07-10)
 - confirm 코드 안전장치 완비: 금액 화이트리스트(5000/10000/50000), 토스 서버검증(시크릿키), orderId UNIQUE 중복차단(1차 조회+DB unique), 지급실패 `[지급실패-수동보정필요]` 로깅.
-- 클라이언트키(test_ck) 빌드 포함·SDK 로드 라이브 확인됨 → **결제창은 뜸**.
-- ⚠️**마지막 차단점 = `TOSS_SECRET_KEY` 미설정**(서버1 .env). 키 입력+reload 시 충전 완료(confirm) 동작. 테스트키(test_sk)로 검증 후 라이브 전환 권장(클라이언트·시크릿 키 짝 맞출 것).
+- ✅**2026-07-10 첫 실결제 성공**: 라이브 키(계약완료 상점 daichaojij, API 개별 연동 쌍) 전환 → 5,000원 실충전 → confirm 200 → CHARGE +5,000P(balanceAfter 정합) → 화면 실시간 반영까지 전 구간 실전 검증. 키 함정 3개는 위 "토스 키 설정" 절 참조.
 
 ## 환불 (2026-06-17, 정책 갱신은 위 "차감 시점 정책 2026-06-18" 참조)
 - `refundMenuPoints`는 `type='MENU'` 양수 거래로 기록(결산에서 '환불'로 분류).
