@@ -57,6 +57,24 @@ const GLOSSARY: Record<string, string> = {
     '새로고침': "브라우저가 페이지를 다시 불러오게 하는 거예요(F5). 수정한 결과를 확인하는 기본 동작입니다.",
 };
 
+// 📝 학습평가 — 10문제×10점=100점 만점, 다 맞으면 합격(서버 기록→'완료' 배지·다음 코스 조건).
+// 출제는 랜덤 순서, 오답이면 해설과 함께 같은 문제 재출제(맞힐 때까지 = 완전학습).
+const QUIZ: Array<{ q: string; options: string[]; answer: number; explain: string }> = [
+    { q: '홈페이지의 "대문 파일" 이름으로 저장해야 하는 것은?', options: ['home.txt', 'index.html', 'main.doc', 'page.css'], answer: 1, explain: '서버는 주소만 입력받으면 기본으로 index.html을 보여줘요. 그래서 파일 이름이 꼭 index.html이어야 합니다.' },
+    { q: 'AI에게 디자인을 부탁할 때 꼭 넣어야 하는 조건은?', options: ['"파일을 여러 개로 나눠줘"', '"HTML 파일 하나로, CSS 포함해서"', '"이미지를 최대한 많이 넣어줘"', '"영어로 만들어줘"'], answer: 1, explain: '파일이 하나여야 초보자도 저장·실행이 쉬워요. CSS까지 한 파일에 담아달라고 해야 합니다.' },
+    { q: 'localhost(로컬호스트)란 무엇일까요?', options: ['유명한 웹사이트 이름', '내 컴퓨터 자신을 가리키는 주소', '와이파이 공유기 이름', 'AI 프로그램 이름'], answer: 1, explain: 'localhost는 "내 컴퓨터 자신"을 가리키는 주소예요. 인터넷에 올리기 전에 내 컴퓨터에서만 미리 보는 무대입니다.' },
+    { q: '파일을 더블클릭해서 열면 주소가 file:// 로 시작해요. 이것의 의미는?', options: ['홈페이지가 인터넷에 올라갔다', '서버 없이 파일을 직접 열었다', '파일이 고장났다', '바이러스에 걸렸다'], answer: 1, explain: 'file://은 서버 없이 파일을 "구경"하는 방식이에요. 진짜 웹사이트 방식은 서버로 여는 것(localhost)입니다.' },
+    { q: 'VS Code에서 클릭 한 번으로 로컬 서버를 켜주는 확장 프로그램은?', options: ['Photoshop', 'Live Server', 'Excel', 'Zoom'], answer: 1, explain: 'Live Server 확장을 설치하고 index.html을 우클릭 → "Open with Live Server"를 누르면 localhost:5500으로 열려요.' },
+    { q: 'HTML과 CSS의 역할을 바르게 짝지은 것은?', options: ['HTML=꾸미기, CSS=뼈대', 'HTML=뼈대(내용), CSS=꾸미기(색·배치)', '둘 다 이미지 편집용', 'HTML=계산, CSS=저장'], answer: 1, explain: 'HTML은 제목·글·버튼 같은 내용(뼈대)을 담고, CSS는 색·글씨·배치로 꾸미는 역할이에요.' },
+    { q: '코드를 수정했는데 브라우저에 반영이 안 될 때 제일 먼저 할 일은?', options: ['컴퓨터를 포맷한다', '저장(Ctrl+S) 후 새로고침(F5)', '새 컴퓨터를 산다', 'AI에게 항의한다'], answer: 1, explain: '수정 → 저장(Ctrl+S) → 새로고침(F5)이 기본 사이클이에요. 저장을 빼먹는 경우가 가장 많아요.' },
+    { q: '폴더 이름을 my-homepage처럼 영어로 만드는 이유는?', options: ['영어 공부를 위해', '일부 개발 도구가 한글 경로에서 오작동할 수 있어서', '한글은 저장이 안 돼서', '보안 때문에'], answer: 1, explain: '일부 개발 도구가 한글 경로에서 오작동할 수 있어요. 폴더·파일 이름은 영어로 하는 습관을 들이면 좋아요.' },
+    { q: 'Claude Code(클로드 코드)는 무엇일까요?', options: ['게임 이름', 'PC 터미널에서 말로 부탁하는 AI 개발 도우미', '폰 배경화면 앱', '암호 프로그램'], answer: 1, explain: 'Claude Code는 PC 터미널에서 쓰는 AI 도우미예요. "서버 띄워줘", "색 바꿔줘"라고 부탁하면 대신 해줍니다.' },
+    { q: '폰의 클로드 앱으로 할 수 있는 것은?', options: ['아무것도 못 한다', '아티팩트 미리보기로 홈페이지 생성·수정', 'localhost 서버 실행', 'VS Code 설치'], answer: 1, explain: '클로드 앱은 결과를 아티팩트(미리보기)로 바로 보여줘서 폰에서도 생성·수정이 돼요. 단, localhost 실습은 PC가 필요합니다.' },
+];
+
+const shuffle = <T,>(arr: T[]): T[] =>
+    arr.map(v => [Math.random(), v] as const).sort((a, b) => a[0] - b[0]).map(([, v]) => v);
+
 // 프롬프트 복사 블록 — 복사 버튼 + 2초 "복사됨" 피드백
 const CopyBlock: React.FC<{ text: string; label?: string }> = ({ text, label }) => {
     const [copied, setCopied] = useState(false);
@@ -139,6 +157,169 @@ const FaqItem: React.FC<{ q: string; a: string }> = ({ q, a }) => (
     </details>
 );
 
+// 📝 학습평가 섹션 — 랜덤 출제·즉시 채점·오답 재출제·100점 합격 기록
+const QuizSection: React.FC<{ record: { passed: boolean; passedAt: string | null } | null; onPassed: () => void }> = ({ record, onPassed }) => {
+    const [mode, setMode] = useState<'idle' | 'run' | 'done'>('idle');
+    const [order, setOrder] = useState<number[]>([]);          // 셔플된 문제 인덱스
+    const [pos, setPos] = useState(0);                          // 현재 몇 번째 문제인지
+    const [optOrder, setOptOrder] = useState<number[]>([]);     // 현재 문제의 보기 셔플
+    const [phase, setPhase] = useState<'answer' | 'wrong' | 'correct'>('answer');
+    const [picked, setPicked] = useState<number | null>(null);
+    const [saveFailed, setSaveFailed] = useState(false);
+
+    const start = () => {
+        const o = shuffle(QUIZ.map((_, i) => i));
+        setOrder(o); setPos(0);
+        setOptOrder(shuffle(QUIZ[o[0]].options.map((_, i) => i)));
+        setPhase('answer'); setPicked(null); setSaveFailed(false);
+        setMode('run');
+    };
+
+    const qi = order[pos] ?? 0;
+    const question = QUIZ[qi];
+    const score = pos * 10; // 맞힌 문제 수 × 10 (맞혀야만 다음으로 진행)
+
+    const pick = (optIdx: number) => {
+        if (phase !== 'answer') return;
+        setPicked(optIdx);
+        setPhase(optIdx === question.answer ? 'correct' : 'wrong');
+    };
+
+    const retrySame = () => { // 오답 → 같은 문제, 보기만 다시 셔플
+        setOptOrder(shuffle(question.options.map((_, i) => i)));
+        setPicked(null); setPhase('answer');
+    };
+
+    const next = async () => {
+        if (pos + 1 < order.length) {
+            const np = pos + 1;
+            setPos(np);
+            setOptOrder(shuffle(QUIZ[order[np]].options.map((_, i) => i)));
+            setPicked(null); setPhase('answer');
+            return;
+        }
+        // 10문제 완주 = 100점 합격 → 서버 기록(실패 시 로컬 보존 + 안내)
+        setMode('done');
+        try {
+            const r = await fetch('/api/learn/quiz-record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                body: JSON.stringify({ course: 'homepage', score: 100 }),
+            });
+            if (!r.ok) throw new Error(String(r.status));
+            onPassed();
+        } catch {
+            localStorage.setItem('learnQuizPass.homepage', new Date().toISOString());
+            setSaveFailed(true);
+            onPassed();
+        }
+    };
+
+    return (
+        <section id="quiz" className="scroll-mt-20">
+            <div className="flex items-center gap-3 mb-4">
+                <span className="flex-shrink-0 w-9 h-9 rounded-full bg-[#6E5DA3] text-white font-extrabold flex items-center justify-center text-sm">📝</span>
+                <h2 className="text-lg sm:text-xl font-extrabold text-[#2D2438]">학습평가 — 10문제 도전</h2>
+            </div>
+
+            {mode === 'idle' && (
+                <div className="bg-white border border-[#8E6FB7]/15 rounded-2xl p-6 text-center">
+                    {record?.passed ? (
+                        <>
+                            <div className="text-4xl mb-2">🏅</div>
+                            <p className="font-extrabold text-green-600 text-lg">100점 합격!</p>
+                            <p className="text-xs text-[#9A8FB0] mt-1">
+                                합격일: {record.passedAt ? new Date(record.passedAt).toLocaleDateString('ko-KR') : '기록됨'} — 다음 코스가 열리면 바로 입장할 수 있어요.
+                            </p>
+                            <button onClick={start} className="mt-4 text-sm font-bold text-[#6E5DA3] border border-[#8E6FB7]/40 px-5 py-2.5 rounded-xl hover:bg-[#F5EFFA]">
+                                🔄 다시 도전하기
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <div className="text-4xl mb-2">📝</div>
+                            <p className="text-sm text-[#4A4058] leading-relaxed">
+                                이 단원을 잘 이해했는지 확인해 볼까요?<br />
+                                <b>10문제 × 10점 = 100점 만점.</b> 다 맞히면 <b>합격</b>이 기록되고 다음 학습으로 넘어갈 수 있어요.<br />
+                                틀려도 괜찮아요 — 해설을 보고 같은 문제를 다시 풀 수 있습니다.
+                            </p>
+                            <button onClick={start} className="mt-4 bg-[#8E6FB7] hover:bg-[#7A5FA0] text-white font-extrabold px-8 py-3 rounded-xl">
+                                평가 시작하기 →
+                            </button>
+                        </>
+                    )}
+                </div>
+            )}
+
+            {mode === 'run' && (
+                <div className="bg-white border border-[#8E6FB7]/15 rounded-2xl p-5 sm:p-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="text-xs font-extrabold text-[#6E5DA3]">문제 {pos + 1} / {order.length}</span>
+                        <span className="text-xs font-extrabold text-[#D85C95]">현재 {score}점</span>
+                    </div>
+                    {/* 진행 바 */}
+                    <div className="h-1.5 bg-[#F0E8F8] rounded-full mb-4 overflow-hidden">
+                        <div className="h-full bg-[#8E6FB7] rounded-full transition-all" style={{ width: `${(pos / order.length) * 100}%` }} />
+                    </div>
+                    <p className="font-bold text-[15px] text-[#2D2438] leading-relaxed mb-4">Q. {question.q}</p>
+                    <div className="grid gap-2">
+                        {optOrder.map(oi => {
+                            const isPicked = picked === oi;
+                            const isAnswer = oi === question.answer;
+                            let cls = 'bg-[#FAF8FC] border-[#8E6FB7]/20 hover:border-[#8E6FB7]/60';
+                            if (phase === 'correct' && isAnswer) cls = 'bg-green-50 border-green-400';
+                            if (phase === 'wrong' && isPicked) cls = 'bg-red-50 border-red-300';
+                            return (
+                                <button key={oi} onClick={() => pick(oi)} disabled={phase !== 'answer'}
+                                        className={`text-left text-sm font-semibold border rounded-xl px-4 py-3 transition-colors ${cls}`}>
+                                    {question.options[oi]}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {phase === 'correct' && (
+                        <div className="mt-4">
+                            <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
+                                ✅ <b>정답이에요! +10점</b>
+                            </div>
+                            <button onClick={next} className="mt-3 w-full bg-[#8E6FB7] hover:bg-[#7A5FA0] text-white font-extrabold py-3 rounded-xl">
+                                {pos + 1 < order.length ? '다음 문제 →' : '결과 보기 🎉'}
+                            </button>
+                        </div>
+                    )}
+                    {phase === 'wrong' && (
+                        <div className="mt-4">
+                            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-800 leading-relaxed">
+                                ❌ <b>아쉬워요!</b> {question.explain}
+                            </div>
+                            <button onClick={retrySame} className="mt-3 w-full bg-[#D85C95] hover:bg-[#C04A82] text-white font-extrabold py-3 rounded-xl">
+                                같은 문제 다시 풀기 🔄
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {mode === 'done' && (
+                <div className="bg-gradient-to-br from-[#8E6FB7] to-[#6E5DA3] rounded-2xl p-8 text-center text-white">
+                    <div className="text-5xl mb-3">🎉</div>
+                    <p className="text-2xl font-extrabold">100점 합격!</p>
+                    <p className="text-sm opacity-90 mt-2 leading-relaxed">
+                        10문제를 모두 맞혔어요. 합격이 기록되었고,<br />다음 학습 코스가 열리면 바로 입장할 수 있습니다.
+                    </p>
+                    {saveFailed && (
+                        <p className="text-xs mt-2 opacity-80">⚠ 서버 저장이 잠시 안 되어 이 기기에 임시 저장했어요. 다음 접속 때 다시 저장됩니다.</p>
+                    )}
+                    <button onClick={() => setMode('idle')} className="mt-5 bg-white text-[#6E5DA3] font-extrabold text-sm px-6 py-3 rounded-xl">
+                        확인
+                    </button>
+                </div>
+            )}
+        </section>
+    );
+};
+
 // 로그인으로 보내기 — 복귀 경로를 심고 메인의 로그인 화면(?login=1)으로
 const goLogin = () => {
     sessionStorage.setItem('afterAuthRedirect', '/learn/homepage');
@@ -190,6 +371,22 @@ export const LearnPage: React.FC = () => {
             .catch(() => setAuth('ok'));
     }, [auth]);
 
+    // 📝 학습평가 합격 기록 — 제목 옆 (학습/완료) 배지 + 평가 섹션 상태의 근거.
+    // 서버 기록 우선, 실패 시 로컬 임시 기록 폴백.
+    const [record, setRecord] = useState<{ passed: boolean; passedAt: string | null } | null>(null);
+    useEffect(() => {
+        if (auth !== 'ok') return;
+        fetch('/api/learn/quiz-record?course=homepage', {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        })
+            .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+            .then(d => setRecord({ passed: !!d.passed, passedAt: d.passedAt ?? null }))
+            .catch(() => {
+                const local = localStorage.getItem('learnQuizPass.homepage');
+                setRecord({ passed: !!local, passedAt: local });
+            });
+    }, [auth]);
+
     // 스크롤 스파이 — 지금 보고 있는 단계를 목차(칩/사이드바)에 선택 표시.
     // 화면 상단 20%~40% 밴드에 걸린 섹션을 활성으로 판단(제목이 그 근처에 올 때 자연 전환).
     const [activeStep, setActiveStep] = useState('');
@@ -200,7 +397,7 @@ export const LearnPage: React.FC = () => {
                 .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
             if (vis[0]) setActiveStep(vis[0].target.id);
         }, { rootMargin: '-15% 0px -60% 0px' });
-        document.querySelectorAll('section[id^="step"], section#faq').forEach(el => obs.observe(el));
+        document.querySelectorAll('section[id^="step"], section#faq, section#quiz').forEach(el => obs.observe(el));
         return () => obs.disconnect();
     }, [auth]);
 
@@ -283,6 +480,8 @@ export const LearnPage: React.FC = () => {
                     })}
                     <a href="#faq" data-chip="faq"
                        className={`flex-shrink-0 flex items-center border rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'bg-white border-[#D85C95]/25 text-[#D85C95]'}`}>🆘 막혔을 때</a>
+                    <a href="#quiz" data-chip="quiz"
+                       className={`flex-shrink-0 flex items-center border rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${activeStep === 'quiz' ? 'bg-[#6E5DA3] border-[#6E5DA3] text-white' : 'bg-white border-[#6E5DA3]/25 text-[#6E5DA3]'}`}>📝 학습평가{record?.passed ? ' ✅' : ''}</a>
                 </div>
             </nav>
 
@@ -303,6 +502,8 @@ export const LearnPage: React.FC = () => {
                     })}
                     <a href="#faq"
                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'border-transparent text-[#D85C95] hover:bg-white hover:border-[#D85C95]/25'}`}>🆘 막혔을 때</a>
+                    <a href="#quiz"
+                       className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'quiz' ? 'bg-[#6E5DA3] border-[#6E5DA3] text-white' : 'border-transparent text-[#6E5DA3] hover:bg-white hover:border-[#6E5DA3]/25'}`}>📝 학습평가{record?.passed ? ' ✅' : ''}</a>
                 </nav>
             </aside>
 
@@ -310,7 +511,14 @@ export const LearnPage: React.FC = () => {
                 {/* 코스 소개 */}
                 <section className="text-center lg:text-left">
                     <span className="inline-block bg-[#FF6B9D]/10 text-[#D85C95] text-xs font-bold px-3 py-1.5 rounded-full mb-3">무료 학습 코스 · 1호</span>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold leading-snug">🏠 AI로 홈페이지 만들어<br className="lg:hidden" /> 내 컴퓨터에서 띄워보기</h1>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold leading-snug">
+                        🏠 AI로 홈페이지 만들어<br className="lg:hidden" /> 내 컴퓨터에서 띄워보기
+                        {record && (
+                            <span className={`align-middle inline-block ml-2 text-xs font-extrabold px-2.5 py-1 rounded-full ${record.passed ? 'bg-green-100 text-green-700' : 'bg-[#F0E8F8] text-[#6E5DA3]'}`}>
+                                {record.passed ? '✅ 완료' : '📖 학습'}
+                            </span>
+                        )}
+                    </h1>
                     <p className="mt-3 text-sm sm:text-base text-[#6E6480] leading-relaxed">
                         코딩을 몰라도 괜찮아요. AI에게 부탁해서 홈페이지 디자인을 만들고,<br className="hidden sm:block" />
                         내 컴퓨터(로컬호스트)에서 직접 띄워보는 것까지 5단계로 함께해요.
@@ -499,19 +707,8 @@ export const LearnPage: React.FC = () => {
                     </div>
                 </section>
 
-                {/* 마무리 CTA */}
-                <section className="text-center bg-gradient-to-br from-[#8E6FB7] to-[#6E5DA3] rounded-2xl px-6 py-10 text-white">
-                    <div className="text-3xl mb-2">🎓</div>
-                    <h2 className="text-xl font-extrabold">수고하셨어요!</h2>
-                    <p className="text-sm opacity-90 mt-2 leading-relaxed">
-                        나만의 홈페이지가 내 컴퓨터에서 돌아가고 있나요?<br />
-                        막히는 부분은 AI 스퀘어의 지우에게 물어보세요.
-                    </p>
-                    <button onClick={() => { window.location.href = '/'; }}
-                            className="mt-5 bg-white text-[#6E5DA3] font-extrabold text-sm px-6 py-3 rounded-xl">
-                        지우에게 물어보러 가기 →
-                    </button>
-                </section>
+                {/* 📝 학습평가 — 10문제 합격 시 '완료' 기록(구 지우 CTA 대체) */}
+                <QuizSection record={record} onPassed={() => setRecord({ passed: true, passedAt: record?.passedAt ?? new Date().toISOString() })} />
             </main>
             </div>
         </div>
