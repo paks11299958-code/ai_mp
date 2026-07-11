@@ -185,8 +185,20 @@ const ClaudeCodeInstall: React.FC = () => {
             </button>
             <p className="text-xs text-[#9A8FB0] mt-2">
                 Claude Code는 파일 다운로드가 아니라 <b>명령 한 줄 설치</b> 방식이에요(앤트로픽 공식 — 늘 최신버전).
-                Mac은 <button onClick={() => copy('mac')} className="underline font-semibold text-[#6E5DA3]">여기를 눌러 복사</button>
             </p>
+            {/* 복사될 명령을 눈으로 확인할 수 있게 항상 노출(왕초보 안심) */}
+            <div className="mt-2.5 space-y-1.5 text-left">
+                {([['Windows', 'win', CLAUDE_INSTALL_WIN], ['Mac', 'mac', CLAUDE_INSTALL_MAC]] as const).map(([os, key, cmd]) => (
+                    <div key={key} className="bg-[#1E1B2E] rounded-lg pl-3 pr-1.5 py-1.5 flex items-center gap-2">
+                        <span className="text-[10px] font-extrabold text-[#C4A9E0] w-14 flex-shrink-0">{os}</span>
+                        <code className="text-[12px] text-gray-200 break-all flex-1">{cmd}</code>
+                        <button onClick={() => copy(key)}
+                                className={`flex-shrink-0 text-[11px] font-bold px-2.5 py-1.5 rounded-md ${copied === key ? 'bg-green-500/20 text-green-300' : 'bg-[#8E6FB7] text-white hover:bg-[#7A5FA0]'}`}>
+                            {copied === key ? '✓ 복사됨' : '복사'}
+                        </button>
+                    </div>
+                ))}
+            </div>
             {copied && (
                 <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 text-left leading-relaxed">
                     ✓ <b>설치 명령이 복사됐어요!</b> 이제 이 순서대로:
