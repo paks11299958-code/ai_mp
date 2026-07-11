@@ -123,28 +123,62 @@ const CopyBlock: React.FC<{ text: string; label?: string }> = ({ text, label }) 
     );
 };
 
-// 🎬 단계별 강의 영상 — 회원 전용 스트리밍(시청토큰 ?t=, 공개 URL 없음).
-// controlsList=nodownload+우클릭 차단으로 일반 다운로드를 막는다(화면녹화까지는 불가).
-const StepVideo: React.FC<{ step: string; token: string; onExpired: () => void }> = ({ step, token, onExpired }) => {
-    if (!token) return null;
+// 🎬 강의 영상 — 회원 전용 스트리밍(시청토큰 ?t=, 공개 URL 없음).
+// 본문엔 작은 버튼만 두고(화면 점유 최소화) 클릭 시 모달에서 재생.
+// 모달은 이어보기 플레이리스트: 어느 단계로 열어도 끝까지 자동 연속 재생.
+const VIDEO_META = [
+    { step: 'step1', title: '1단계 기획', dur: '1:03' },
+    { step: 'step2', title: '2단계 AI 디자인 시안', dur: '1:09' },
+    { step: 'step3', title: '3단계 다운로드 & VS Code', dur: '0:45' },
+    { step: 'step4', title: '4단계 로컬호스트', dur: '1:01' },
+    { step: 'step5', title: '5단계 Claude Code 수정', dur: '0:50' },
+];
+
+// 본문 속 작은 재생 버튼 — 클릭하면 모달로
+const VideoChip: React.FC<{ idx: number; onOpen: (idx: number) => void; visible: boolean }> = ({ idx, onOpen, visible }) => {
+    if (!visible) return null;
     return (
-        <div className="bg-[#1E1B2E] rounded-xl overflow-hidden border border-[#8E6FB7]/30">
-            <div className="px-4 py-2 text-xs font-semibold text-[#C4A9E0] flex items-center justify-between">
-                <span>🎬 영상으로 먼저 보기 (1분)</span>
-                <span className="opacity-60">회원 전용</span>
+        <button onClick={() => onOpen(idx)}
+                className="inline-flex items-center gap-2 bg-[#1E1B2E] text-white text-xs font-bold pl-2.5 pr-3.5 py-2 rounded-full hover:bg-[#2D2438] transition-colors">
+            <span className="w-5 h-5 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[9px]">▶</span>
+            영상으로 보기 ({VIDEO_META[idx].dur}) <span className="opacity-50 font-medium">회원 전용</span>
+        </button>
+    );
+};
+
+// 영상 모달 — 이어보기 플레이리스트(자동 다음 재생 + 하단 칩 점프)
+const VideoModal: React.FC<{ idx: number; token: string; onJump: (idx: number) => void; onClose: () => void; onExpired: () => void }> =
+    ({ idx, token, onJump, onClose, onExpired }) => {
+    const meta = VIDEO_META[idx];
+    return (
+        <div className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4" onClick={onClose}>
+            <div className="w-full max-w-3xl" onClick={e => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-2 text-white">
+                    <span className="text-sm font-extrabold">🎬 {meta.title} <span className="opacity-50 font-medium text-xs">({idx + 1}/{VIDEO_META.length} · 끝나면 다음 영상 자동 재생)</span></span>
+                    <button onClick={onClose} className="text-2xl leading-none px-2 opacity-80 hover:opacity-100">×</button>
+                </div>
+                <video
+                    key={`${meta.step}-${token}`}
+                    controls
+                    autoPlay
+                    controlsList="nodownload noremoteplayback"
+                    disablePictureInPicture
+                    playsInline
+                    className="w-full aspect-video bg-black rounded-xl"
+                    src={`/api/learn/video/${meta.step}?t=${encodeURIComponent(token)}`}
+                    onContextMenu={e => e.preventDefault()}
+                    onError={onExpired}
+                    onEnded={() => { if (idx + 1 < VIDEO_META.length) onJump(idx + 1); }}
+                />
+                <div className="flex gap-2 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                    {VIDEO_META.map((v, i) => (
+                        <button key={v.step} onClick={() => onJump(i)}
+                                className={`flex-shrink-0 text-xs font-bold px-3 py-2 rounded-full border transition-colors ${i === idx ? 'bg-[#8E6FB7] border-[#8E6FB7] text-white' : 'border-white/30 text-white/80 hover:border-white/70'}`}>
+                            {i + 1}. {v.title.replace(/^\d단계 /, '')} <span className="opacity-60">{v.dur}</span>
+                        </button>
+                    ))}
+                </div>
             </div>
-            <video
-                key={token}
-                controls
-                controlsList="nodownload noremoteplayback"
-                disablePictureInPicture
-                playsInline
-                preload="metadata"
-                className="w-full aspect-video bg-black"
-                src={`/api/learn/video/${step}?t=${encodeURIComponent(token)}`}
-                onContextMenu={e => e.preventDefault()}
-                onError={onExpired}
-            />
         </div>
     );
 };
@@ -428,6 +462,8 @@ export const LearnPage: React.FC = () => {
     const onVideoExpired = React.useCallback(() => {
         if (Date.now() - videoTokenAt.current > 20 * 60 * 1000) fetchVideoToken();
     }, [fetchVideoToken]);
+    // 🎬 영상 모달 — null=닫힘, 숫자=현재 재생 중인 인덱스(이어보기)
+    const [videoIdx, setVideoIdx] = useState<number | null>(null);
 
     // 📝 학습평가 합격 기록 — 제목 옆 (학습/완료) 배지 + 평가 섹션 상태의 근거.
     // 서버 기록 우선, 실패 시 로컬 임시 기록 폴백.
@@ -514,6 +550,12 @@ export const LearnPage: React.FC = () => {
                 </div>
             </header>
 
+            {/* 🎬 영상 모달 — 이어보기 플레이리스트 */}
+            {videoIdx !== null && videoToken && (
+                <VideoModal idx={videoIdx} token={videoToken} onJump={setVideoIdx}
+                            onClose={() => setVideoIdx(null)} onExpired={onVideoExpired} />
+            )}
+
             {/* 📖 용어 툴팁 — 셀렉트한 단어가 사전에 있으면 그 아래 말풍선 */}
             {tip && (
                 <div className="fixed z-50 -translate-x-1/2 max-w-[280px] bg-[#2D2438] text-white rounded-xl px-4 py-3 shadow-2xl pointer-events-none"
@@ -540,6 +582,12 @@ export const LearnPage: React.FC = () => {
                        className={`flex-shrink-0 flex items-center border rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'bg-white border-[#D85C95]/25 text-[#D85C95]'}`}>🆘 막혔을 때</a>
                     <a href="#quiz" data-chip="quiz"
                        className={`flex-shrink-0 flex items-center border rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap transition-colors ${activeStep === 'quiz' ? 'bg-[#6E5DA3] border-[#6E5DA3] text-white' : 'bg-white border-[#6E5DA3]/25 text-[#6E5DA3]'}`}>📝 학습평가{record?.passed ? ' ✅' : ''}</a>
+                    {videoToken && (
+                        <button onClick={() => setVideoIdx(0)}
+                                className="flex-shrink-0 flex items-center gap-1 border rounded-full px-3 py-1 text-xs font-bold whitespace-nowrap bg-[#1E1B2E] border-[#1E1B2E] text-white">
+                            🎬 전체 영상
+                        </button>
+                    )}
                 </div>
             </nav>
 
@@ -562,6 +610,13 @@ export const LearnPage: React.FC = () => {
                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'border-transparent text-[#D85C95] hover:bg-white hover:border-[#D85C95]/25'}`}>🆘 막혔을 때</a>
                     <a href="#quiz"
                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'quiz' ? 'bg-[#6E5DA3] border-[#6E5DA3] text-white' : 'border-transparent text-[#6E5DA3] hover:bg-white hover:border-[#6E5DA3]/25'}`}>📝 학습평가{record?.passed ? ' ✅' : ''}</a>
+                    {videoToken && (
+                        <button onClick={() => setVideoIdx(0)}
+                                className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 mt-2 text-[13px] font-bold bg-[#1E1B2E] text-white hover:bg-[#2D2438] transition-colors">
+                            <span className="w-5 h-5 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[9px] flex-shrink-0">▶</span>
+                            전체 영상 보기 <span className="opacity-50 font-medium">4:48</span>
+                        </button>
+                    )}
                 </nav>
             </aside>
 
@@ -594,7 +649,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 1단계 — 기획 */}
                 <Step step={COURSE_STEPS[0]}>
-                    <StepVideo step="step1" token={videoToken} onExpired={onVideoExpired} />
+                    <VideoChip idx={0} onOpen={setVideoIdx} visible={!!videoToken} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         홈페이지를 만들기 전에 딱 4가지만 정하면 됩니다. 종이에 적어보세요.
                     </p>
@@ -618,7 +673,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 2단계 — AI 디자인 */}
                 <Step step={COURSE_STEPS[1]}>
-                    <StepVideo step="step2" token={videoToken} onExpired={onVideoExpired} />
+                    <VideoChip idx={1} onOpen={setVideoIdx} visible={!!videoToken} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         아래 프롬프트를 <b>복사</b>해서 제미나이(gemini.google.com), 챗GPT(chatgpt.com), 클로드(claude.ai) 중
                         아무 곳에나 붙여넣어 보세요. 1단계에서 정한 내용으로 이름·메뉴·분위기만 바꾸면 내 모임 홈페이지가 됩니다.
@@ -709,7 +764,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 3단계 — VS Code */}
                 <Step step={COURSE_STEPS[2]}>
-                    <StepVideo step="step3" token={videoToken} onExpired={onVideoExpired} />
+                    <VideoChip idx={2} onOpen={setVideoIdx} visible={!!videoToken} />
                     <ol className="bg-white border border-[#8E6FB7]/15 rounded-xl divide-y divide-[#8E6FB7]/10 text-sm">
                         {[
                             ['VS Code 설치', 'code.visualstudio.com 에서 다운로드 → 설치. 전부 "다음"만 눌러도 됩니다.'],
@@ -733,7 +788,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 4단계 — 로컬호스트 */}
                 <Step step={COURSE_STEPS[3]}>
-                    <StepVideo step="step4" token={videoToken} onExpired={onVideoExpired} />
+                    <VideoChip idx={3} onOpen={setVideoIdx} visible={!!videoToken} />
                     <div className="bg-white border-2 border-dashed border-[#D85C95]/40 rounded-xl p-4">
                         <div className="font-extrabold text-sm mb-1.5">🍭 준비운동 — 일단 더블클릭!</div>
                         <p className="text-sm text-[#4A4058] leading-relaxed">
@@ -777,7 +832,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 5단계 — Claude Code 수정 */}
                 <Step step={COURSE_STEPS[4]}>
-                    <StepVideo step="step5" token={videoToken} onExpired={onVideoExpired} />
+                    <VideoChip idx={4} onOpen={setVideoIdx} visible={!!videoToken} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         여기가 제일 재밌는 부분! Claude Code에게 말로 부탁하고 → 브라우저 새로고침 → 바로 바뀐 모습 확인.
                         아래 프롬프트로 하나씩 실습해 보세요.
