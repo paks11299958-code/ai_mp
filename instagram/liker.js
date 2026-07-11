@@ -10,8 +10,9 @@ chromium.use(StealthPlugin());
 const fs   = require('fs');
 const path = require('path');
 
-const INSTA_ID  = 'concealeunbi';
-const INSTA_PW  = 'wlsgur0879@';
+// 자격증명은 shared-api/.env(INSTA_ID/INSTA_PW)에서만 — 평문 하드코딩 금지(2026-07-11 이관)
+const INSTA_ID  = process.env.INSTA_ID;
+const INSTA_PW  = process.env.INSTA_PW;
 const MAX_LIKES = parseInt(process.env.INSTA_MAX_LIKES || '10', 10);
 
 const LOG_FILE = path.join(__dirname, 'daily_log.json');
