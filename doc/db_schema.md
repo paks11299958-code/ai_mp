@@ -367,6 +367,10 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 - upsert 정책: score=GREATEST(최고점 유지), passedAt=COALESCE(재응시해도 최초 합격일 보존).
 - 라우트=shared-api `routes/aimp/learn.ts`(GET/POST /api/aimp/learn/quiz-record, 코스 화이트리스트). 상세 doc/features/learn_course.md.
 
+## DailyBizReport / BizDirective (2026-07-11, 헤르메스 경영 루프 — raw SQL 전용, prisma schema 미반영)
+- **`DailyBizReport`**: 일일 경영 지표(reportDate UNIQUE upsert). `revenueKrw·chargeCount·aiCostUsd·newUsers·dau·chatCount·pointSpent·topFeaturesJson·errorCount·tossPnlKrw·reportMd`. 생산=서버2 rag/biz_report.py(크론 KST09:03, ★KST 하루→UTC 경계 변환). 소비=어드민 경영 리포트 탭(GET /api/aimp/biz/daily-reports).
+- **`BizDirective`**: 헤르메스 경영 지시 추적. `createdDate·source('council')·title·detail·assignee(dev/search/marketing)·status(proposed→queued→done/failed→evaluated | boss_decision)·devRequestId·resultNote·effectNote`. 생산=biz_council.py(화·금 09:30), staff 지시는 DevRequest(pending) 기안과 연동.
+
 ## 인덱스 추가 이력
 - 2026-07-08: `Message(sessionId, createdAt)` · `ChatSession(userId)` — 대화 무료화 일일 한도(countTodayChatMessages) 판정용, 서버1 raw SQL `CREATE INDEX IF NOT EXISTS`.
 - 2026-07-09: `StockDiscovery("tradeDate")` UNIQUE · `StockDiscovery("createdAt" DESC)`.
