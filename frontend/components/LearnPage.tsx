@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { authApi } from '../services/apiService';
+import { captureRefFromUrl } from '../services/referral';
 
 // 📚 학습자료 페이지 (/learn/homepage) — 지우의 "AI로 홈페이지 만들기" 단계별 강의 자료.
 // 강의장에서 주소/QR로 직접 접속하는 용도라 EmbedChat·ConsultPage처럼 AppContent
@@ -119,6 +121,46 @@ const CopyBlock: React.FC<{ text: string; label?: string }> = ({ text, label }) 
                 </button>
             </div>
             <pre className="px-4 py-3 text-[13px] leading-relaxed text-gray-200 whitespace-pre-wrap break-words font-sans">{text}</pre>
+        </div>
+    );
+};
+
+// 📣 추천 링크 공유 박스 — 회원이 자기 ?ref 링크로 강의를 퍼뜨린다(친구 가입 시 양쪽 +1000P)
+const ReferralShareBox: React.FC<{ code: string }> = ({ code }) => {
+    const [copied, setCopied] = useState(false);
+    if (!code) return null;
+    const link = `${window.location.origin}/learn/homepage?ref=${encodeURIComponent(code)}`;
+    const copy = async () => {
+        try { await navigator.clipboard.writeText(link); } catch {
+            const ta = document.createElement('textarea');
+            ta.value = link; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+    const share = async () => {
+        try {
+            await navigator.share({ title: 'AI로 홈페이지 만들기 — 무료 강의', text: '코딩 몰라도 홈페이지를 만들어 내 컴퓨터에서 띄우는 무료 강의! 이 링크로 가입하면 우리 둘 다 +1000P 🎁', url: link });
+        } catch { copy(); }
+    };
+    return (
+        <div className="bg-gradient-to-r from-[#FF6B9D]/10 to-[#8E6FB7]/10 border border-[#FF6B9D]/30 rounded-2xl p-4">
+            <div className="font-extrabold text-sm">📣 이 강의를 친구에게 선물하세요</div>
+            <p className="text-xs text-[#6E6480] mt-1 leading-relaxed">
+                아래는 <b>나만의 추천 링크</b>예요. 친구가 이 링크로 와서 가입하면 <b>친구도 나도 +1,000P</b>!
+            </p>
+            <div className="mt-2.5 bg-white border border-[#8E6FB7]/20 rounded-lg pl-3 pr-1.5 py-1.5 flex items-center gap-2">
+                <code className="text-[11px] text-[#6E5DA3] break-all flex-1">{link}</code>
+                <button onClick={copy}
+                        className={`flex-shrink-0 text-[11px] font-bold px-2.5 py-1.5 rounded-md ${copied ? 'bg-green-100 text-green-700' : 'bg-[#8E6FB7] text-white hover:bg-[#7A5FA0]'}`}>
+                    {copied ? '✓ 복사됨' : '복사'}
+                </button>
+                <button onClick={share}
+                        className="flex-shrink-0 text-[11px] font-bold px-2.5 py-1.5 rounded-md bg-[#FF6B9D] text-white hover:bg-[#E05589]">
+                    공유
+                </button>
+            </div>
         </div>
     );
 };
@@ -507,6 +549,10 @@ const GuestGate: React.FC = () => (
 );
 
 export const LearnPage: React.FC = () => {
+    // 추천 링크(?ref=코드) 캡처 — 얼리리턴 라우트라 App 본체 캡처가 안 돌아 여기서 1회.
+    // 게스트가 친구 링크로 와서 게이트 가입하면 추천 보상(+1000P 양쪽)이 이어진다.
+    useEffect(() => { captureRefFromUrl(); }, []);
+
     // 회원 전용 게이트 — 토큰 없으면 즉시 게이트, 있으면 /auth/me로 유효성 확인.
     // 네트워크 오류(서버 순단)는 열어줌: 강의 중 일시 장애로 수강생 전원이 막히는 것 방지.
     const [auth, setAuth] = useState<'checking' | 'ok' | 'guest'>(() => localStorage.getItem('token') ? 'checking' : 'guest');
@@ -533,6 +579,13 @@ export const LearnPage: React.FC = () => {
     }, [fetchVideoToken]);
     // 🎬 영상 모달 — null=닫힘, 숫자=현재 재생 중인 인덱스(이어보기)
     const [videoIdx, setVideoIdx] = useState<number | null>(null);
+
+    // 📣 내 추천 코드 — 강의 공유 링크(?ref=) 생성용 (친구 가입 시 양쪽 +1000P)
+    const [refCode, setRefCode] = useState('');
+    useEffect(() => {
+        if (auth !== 'ok') return;
+        authApi.referral().then(d => setRefCode(d.code || '')).catch(() => {});
+    }, [auth]);
 
     // 📝 학습평가 합격 기록 — 제목 옆 (학습/완료) 배지 + 평가 섹션 상태의 근거.
     // 서버 기록 우선, 실패 시 로컬 임시 기록 폴백.
@@ -714,6 +767,7 @@ export const LearnPage: React.FC = () => {
                         📖 <b>모르는 단어가 나오면 드래그해 보세요.</b> CSS, 로컬호스트, 터미널 같은 단어를
                         손가락이나 마우스로 선택하면 뜻이 말풍선으로 나타나요.
                     </div>
+                    <div className="mt-2.5 text-left"><ReferralShareBox code={refCode} /></div>
                 </section>
 
                 {/* 1단계 — 기획 */}
@@ -983,6 +1037,9 @@ export const LearnPage: React.FC = () => {
 
                 {/* 📝 학습평가 — 10문제 합격 시 '완료' 기록(구 지우 CTA 대체) */}
                 <QuizSection record={record} onPassed={() => setRecord({ passed: true, passedAt: record?.passedAt ?? new Date().toISOString() })} />
+
+                {/* 📣 완주 후 공유 — 추천 링크로 바이럴 */}
+                <ReferralShareBox code={refCode} />
             </main>
             </div>
         </div>
