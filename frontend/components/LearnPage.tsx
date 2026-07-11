@@ -134,6 +134,37 @@ const VIDEO_META = [
     { step: 'step5', title: '5단계 Claude Code 수정', dur: '0:50' },
 ];
 
+// ⬇ VS Code 원클릭 다운로드 — 마이크로소프트 공식 '항상 최신' 고정 링크(주소 찾기 불필요).
+// 접속 기기 OS를 감지해 맞는 버튼을 크게, 다른 OS는 작은 링크로(윈도우·맥 둘 다).
+const VSCODE_DL = {
+    win: 'https://update.code.visualstudio.com/latest/win32-x64-user/stable',
+    mac: 'https://update.code.visualstudio.com/latest/darwin-universal/stable',
+};
+const VSCodeDownload: React.FC = () => {
+    const isMac = /Mac|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+    const [mainLabel, mainUrl] = isMac ? ['Mac용', VSCODE_DL.mac] : ['Windows용', VSCODE_DL.win];
+    const [otherLabel, otherUrl] = isMac ? ['Windows용은 여기', VSCODE_DL.win] : ['Mac용은 여기', VSCODE_DL.mac];
+    return (
+        <div className="bg-[#F5EFFA] border border-[#8E6FB7]/25 rounded-xl p-4 text-center">
+            <a href={mainUrl}
+               className="inline-block bg-[#0078D4] hover:bg-[#106EBE] text-white font-extrabold text-sm px-6 py-3 rounded-xl">
+                ⬇ VS Code 다운로드 ({mainLabel} · 항상 최신버전)
+            </a>
+            <p className="text-xs text-[#9A8FB0] mt-2">
+                누르면 바로 다운로드가 시작돼요 — 마이크로소프트 공식 링크라 늘 최신 버전입니다.
+                다른 컴퓨터라면 <a href={otherUrl} className="underline font-semibold text-[#6E5DA3]">{otherLabel}</a>
+            </p>
+            <p className="text-xs text-[#6E5DA3] font-semibold mt-1.5">
+                💡 노트북·데스크탑 구분은 없어요 — 윈도우 컴퓨터라면 종류와 상관없이 이 파일 하나면 됩니다.
+            </p>
+        </div>
+    );
+};
+
+// Claude Code 설치 — 파일 다운로드가 아니라 명령 한 줄(앤트로픽 공식 설치 방식)
+const CLAUDE_INSTALL_WIN = 'irm https://claude.ai/install.ps1 | iex';
+const CLAUDE_INSTALL_MAC = 'curl -fsSL https://claude.ai/install.sh | bash';
+
 // 본문 속 작은 재생 버튼 — 클릭하면 모달로
 const VideoChip: React.FC<{ idx: number; onOpen: (idx: number) => void; visible: boolean }> = ({ idx, onOpen, visible }) => {
     if (!visible) return null;
@@ -778,6 +809,7 @@ export const LearnPage: React.FC = () => {
                             </li>
                         ))}
                     </ol>
+                    <VSCodeDownload />
                     <Tip>폴더 이름을 영어로 하는 이유: 일부 개발 도구가 한글 경로에서 오작동할 수 있어서예요. 습관을 들이면 좋아요.</Tip>
                     <Mobile>
                         여기부터는 <b>PC/노트북이 필요해요</b>. 폰에서 만든 코드는 카카오톡 '나에게 보내기'나
@@ -815,11 +847,15 @@ export const LearnPage: React.FC = () => {
                     <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
                         <div className="font-extrabold text-sm mb-2">🅱 멋진 길 — Claude Code에게 부탁하기</div>
                         <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside mb-3">
-                            <li>claude.com/claude-code 안내에 따라 Claude Code 설치 → 로그인</li>
-                            <li>VS Code에서 터미널 열기(Ctrl+`) → <b>claude</b> 입력해 실행</li>
+                            <li>아래 <b>설치 명령</b>을 복사해 실행 — 윈도우는 시작메뉴에서 "PowerShell"을 검색해 열고 붙여넣기(Enter)</li>
+                            <li>설치가 끝나면 VS Code에서 터미널 열기(Ctrl+`) → <b>claude</b> 입력해 실행 → 처음 한 번 로그인</li>
                             <li>아래 프롬프트를 붙여넣으면 알아서 서버를 띄워줍니다</li>
                         </ol>
-                        <CopyBlock text={CLAUDE_CODE_PROMPTS[0].text} label="Claude Code 프롬프트" />
+                        <div className="space-y-2.5">
+                            <CopyBlock text={CLAUDE_INSTALL_WIN} label="Claude Code 설치 명령 — Windows (PowerShell에 붙여넣기)" />
+                            <CopyBlock text={CLAUDE_INSTALL_MAC} label="Mac은 이걸로 — 터미널에 붙여넣기" />
+                            <CopyBlock text={CLAUDE_CODE_PROMPTS[0].text} label="설치 후 — 로컬 서버 띄우기 프롬프트" />
+                        </div>
                     </div>
                     <Tip>주소창의 localhost는 내 컴퓨터에서만 보여요. 다른 사람에게 보여주려면 인터넷에 올려야 하는데, 그건 다음 코스에서 배워요.</Tip>
                     <Mobile>
