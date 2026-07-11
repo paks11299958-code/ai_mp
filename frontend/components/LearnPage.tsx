@@ -64,7 +64,7 @@ const GLOSSARY: Record<string, string> = {
     '프롬프트': "AI에게 건네는 부탁의 말이에요. 구체적으로 쓸수록 원하는 결과가 나옵니다.",
     'vs code': "마이크로소프트가 만든 무료 코드 편집기예요. 편집 + 로컬서버 + 터미널을 한 화면에서 해결해줍니다.",
     'live server': "VS Code에 설치하는 확장 프로그램이에요. 클릭 한 번으로 내 컴퓨터에 작은 웹서버를 켜줍니다(localhost:5500).",
-    '터미널': "글자로 명령을 내리는 검은 창이에요. VS Code에서는 Ctrl+` 로 열 수 있어요.",
+    '터미널': "글자로 명령을 내리는 검은 창이에요. VS Code에서는 Ctrl+` 로 열어요 (` = 숫자 1 왼쪽의 물결(~) 키).",
     'claude code': "터미널에서 쓰는 AI 개발 도우미예요(PC 전용). 말로 부탁하면 파일 수정부터 서버 실행까지 대신해줍니다.",
     '아티팩트': "클로드 앱이 코드 결과를 바로 '미리보기 화면'으로 보여주는 기능이에요. 폰에서도 완성 모습을 즉시 확인할 수 있어요.",
     '서버': "요청을 받으면 웹페이지를 건네주는 프로그램이에요. localhost는 내 컴퓨터 속 작은 서버입니다.",
@@ -247,6 +247,7 @@ const Mobile: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 
 // 🆘 막혔을 때 — 강의장에서 실제로 나오는 질문 모음 (접이식)
 const FAQS: Array<[string, string]> = [
+    ['다운받은 파일이 어디 있는지 모르겠어요', '파일 탐색기(⊞윈도우 키+E)를 열고 왼쪽의 "다운로드"를 클릭하세요. 최근 받은 파일이 맨 위에 있어요. 브라우저 오른쪽 위의 ↓(다운로드) 아이콘을 눌러 "폴더에 표시"를 해도 됩니다.'],
     ['다운로드한 파일을 더블클릭하면 브라우저로 열려요. 잘못된 건가요?', '아니에요, 정상이에요! 더블클릭으로 열리는 건 "파일로 열기"이고, 우리가 배우는 건 "서버로 열기(localhost)"예요. 4단계의 Live Server나 Claude Code를 쓰면 주소창에 localhost가 뜹니다.'],
     ['AI가 준 코드가 너무 길어서 어디까지 복사해야 할지 모르겠어요', '코드 블록 오른쪽 위의 "복사" 버튼을 누르면 전체가 복사돼요. 메모장이 아니라 VS Code에 붙여넣고 index.html로 저장하세요.'],
     ['Live Server를 설치했는데 우클릭 메뉴에 안 보여요', 'VS Code를 완전히 껐다 켜 보세요. 그래도 안 되면 "폴더"를 연 게 아니라 "파일"만 연 경우예요. 파일 > 폴더 열기로 my-homepage 폴더를 다시 여세요.'],
@@ -810,6 +811,24 @@ export const LearnPage: React.FC = () => {
                         ))}
                     </ol>
                     <VSCodeDownload />
+                    {/* 왕초보 사고 다발 지점 2가지 — 다운로드 폴더 못 찾음 + 확장자 숨김 */}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
+                            <div className="font-extrabold text-sm mb-1.5">📂 다운받은 파일 찾기</div>
+                            <p className="text-sm text-[#4A4058] leading-relaxed">
+                                키보드 <b>⊞윈도우 키 + E</b>를 누르면 파일 탐색기가 열려요.
+                                왼쪽 목록에서 <b>"다운로드"</b>를 클릭 — 방금 받은 파일이 맨 위에 있습니다.
+                            </p>
+                        </div>
+                        <div className="bg-white border border-[#D85C95]/25 rounded-xl p-4">
+                            <div className="font-extrabold text-sm mb-1.5">🔤 확장자 보이게 하기 (중요!)</div>
+                            <p className="text-sm text-[#4A4058] leading-relaxed">
+                                파일 이름이 ".html" 없이 그냥 <b>index</b>로만 보이면 확장자가 숨겨진 거예요.
+                                파일 탐색기 위쪽 <b>보기 → 표시 → 파일 확장명</b>에 체크하세요.
+                                이걸 켜야 index.html.<b>txt</b> 같은 이름 사고를 막을 수 있어요.
+                            </p>
+                        </div>
+                    </div>
                     <Tip>폴더 이름을 영어로 하는 이유: 일부 개발 도구가 한글 경로에서 오작동할 수 있어서예요. 습관을 들이면 좋아요.</Tip>
                     <Mobile>
                         여기부터는 <b>PC/노트북이 필요해요</b>. 폰에서 만든 코드는 카카오톡 '나에게 보내기'나
@@ -848,13 +867,18 @@ export const LearnPage: React.FC = () => {
                         <div className="font-extrabold text-sm mb-2">🅱 멋진 길 — Claude Code에게 부탁하기</div>
                         <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside mb-3">
                             <li>아래 <b>설치 명령</b>을 복사해 실행 — 윈도우는 시작메뉴에서 "PowerShell"을 검색해 열고 붙여넣기(Enter)</li>
-                            <li>설치가 끝나면 VS Code에서 터미널 열기(Ctrl+`) → <b>claude</b> 입력해 실행 → 처음 한 번 로그인</li>
+                            <li>설치가 끝나면 VS Code에서 터미널 열기(<b>Ctrl + `</b>) → <b>claude</b> 입력해 실행 → 처음 한 번 로그인
+                                <span className="block text-xs text-[#9A8FB0] mt-0.5 ml-5">` 키 위치 = 키보드 <b>숫자 1 왼쪽</b>, 물결(~)이 그려진 키예요</span></li>
                             <li>아래 프롬프트를 붙여넣으면 알아서 서버를 띄워줍니다</li>
                         </ol>
                         <div className="space-y-2.5">
                             <CopyBlock text={CLAUDE_INSTALL_WIN} label="Claude Code 설치 명령 — Windows (PowerShell에 붙여넣기)" />
                             <CopyBlock text={CLAUDE_INSTALL_MAC} label="Mac은 이걸로 — 터미널에 붙여넣기" />
                             <CopyBlock text={CLAUDE_CODE_PROMPTS[0].text} label="설치 후 — 로컬 서버 띄우기 프롬프트" />
+                        </div>
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 leading-relaxed mt-2.5">
+                            🛡️ <b>설치 중 경고창이 떠도 정상이에요!</b> 파란 보안 경고나 "계속하시겠습니까?" 질문은
+                            여러분이 뭘 잘못한 게 아닙니다. 공식 설치 프로그램이니 <b>"추가 정보 → 실행"</b> 또는 <b>Y(예)</b>를 눌러 진행하세요.
                         </div>
                     </div>
                     <Tip>주소창의 localhost는 내 컴퓨터에서만 보여요. 다른 사람에게 보여주려면 인터넷에 올려야 하는데, 그건 다음 코스에서 배워요.</Tip>
