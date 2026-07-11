@@ -289,6 +289,7 @@ const FAQS: Array<[string, string]> = [
     ['Live Server를 설치했는데 우클릭 메뉴에 안 보여요', 'VS Code를 완전히 껐다 켜 보세요. 그래도 안 되면 "폴더"를 연 게 아니라 "파일"만 연 경우예요. 파일 > 폴더 열기로 my-homepage 폴더를 다시 여세요.'],
     ['localhost 화면이 하얗게만 나와요', '파일 이름이 index.html이 맞는지 확인하세요(index.html.txt처럼 뒤에 .txt가 붙는 경우가 많아요). 그리고 파일이 폴더 안에 있는지도요.'],
     ['수정했는데 브라우저에 반영이 안 돼요', '저장(Ctrl+S)을 먼저! 그다음 브라우저 새로고침(F5)이에요. Live Server는 저장하면 자동 새로고침됩니다.'],
+    ['claude에게 부탁했는데 index.html이 없다고 해요', '지금 터미널이 index.html이 있는 폴더 "밖"에서 실행 중이라 그래요. VS Code에서 파일 > 폴더 열기로 my-homepage 폴더를 연 다음, 터미널을 새로 열고(Ctrl+`) 다시 claude를 실행하세요. VS Code 터미널은 열어 둔 폴더에서 시작됩니다.'],
     ['꼭 VS Code를 써야 하나요? 다른 건 안 되나요?', '아니요, 필수는 아니에요. 코드 수정은 메모장으로도 되고, 열어보는 건 더블클릭으로도 됩니다. 다만 VS Code는 무료인 데다 편집기+로컬서버(Live Server)+Claude Code 터미널을 한 화면에서 해결해줘서 수업 기준으로 삼았어요. Cursor 같은 다른 편집기를 이미 쓰신다면 그대로 쓰셔도 됩니다.'],
     ['폰에 있는 클로드(Claude) 앱으로는 안 되나요?', '절반 이상 됩니다! 클로드 앱에 2단계 프롬프트를 넣으면 결과가 "미리보기(아티팩트)" 화면으로 바로 떠서, 폰에서도 완성된 홈페이지 모습을 즉시 보고 "파란색으로 바꿔줘" 같은 수정 요청까지 할 수 있어요. 챗GPT·제미나이 앱도 비슷한 미리보기(캔버스)를 지원합니다. 다만 폰의 클로드 앱은 PC 터미널 도구인 Claude Code와는 달라서, 파일로 저장해 로컬호스트로 띄우는 3~4단계는 PC가 필요해요.'],
 ];
@@ -898,9 +899,12 @@ export const LearnPage: React.FC = () => {
                     <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
                         <div className="font-extrabold text-sm mb-2">🅱 멋진 길 — Claude Code에게 부탁하기</div>
                         <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside mb-3">
-                            <li>아래 <b>설치 명령</b>을 복사해 실행 — 윈도우는 시작메뉴에서 "PowerShell"을 검색해 열고 붙여넣기(Enter)</li>
-                            <li>설치가 끝나면 VS Code에서 터미널 열기(<b>Ctrl + `</b>) → <b>claude</b> 입력해 실행 → 처음 한 번 로그인
+                            <li>아래 <b>설치 명령</b>을 복사해 실행 — 윈도우는 시작메뉴에서 "PowerShell"을 검색해 열고 붙여넣기(Enter). 설치가 끝나면 이 창은 닫아도 돼요</li>
+                            <li>⚠️ <b>중요: claude는 index.html이 있는 폴더 안에서 실행해야 해요.</b> 제일 쉬운 방법 —
+                                3단계처럼 <b>VS Code로 my-homepage 폴더를 연 상태</b>에서 터미널 열기(<b>Ctrl + `</b>).
+                                VS Code 터미널은 <b>열어 둔 폴더에서 자동으로 시작</b>되거든요
                                 <span className="block text-xs text-[#9A8FB0] mt-0.5 ml-5">` 키 위치 = 키보드 <b>숫자 1 왼쪽</b>, 물결(~)이 그려진 키예요</span></li>
+                            <li>터미널에 <b>claude</b> 입력해 실행 → 처음 한 번 로그인</li>
                             <li>아래 프롬프트를 붙여넣으면 알아서 서버를 띄워줍니다</li>
                         </ol>
                         <div className="space-y-2.5">
