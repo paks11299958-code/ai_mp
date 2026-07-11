@@ -123,6 +123,32 @@ const CopyBlock: React.FC<{ text: string; label?: string }> = ({ text, label }) 
     );
 };
 
+// 🎬 단계별 강의 영상 — 회원 전용 스트리밍(시청토큰 ?t=, 공개 URL 없음).
+// controlsList=nodownload+우클릭 차단으로 일반 다운로드를 막는다(화면녹화까지는 불가).
+const StepVideo: React.FC<{ step: string; token: string; onExpired: () => void }> = ({ step, token, onExpired }) => {
+    if (!token) return null;
+    return (
+        <div className="bg-[#1E1B2E] rounded-xl overflow-hidden border border-[#8E6FB7]/30">
+            <div className="px-4 py-2 text-xs font-semibold text-[#C4A9E0] flex items-center justify-between">
+                <span>🎬 영상으로 먼저 보기 (1분)</span>
+                <span className="opacity-60">회원 전용</span>
+            </div>
+            <video
+                key={token}
+                controls
+                controlsList="nodownload noremoteplayback"
+                disablePictureInPicture
+                playsInline
+                preload="metadata"
+                className="w-full aspect-video bg-black"
+                src={`/api/learn/video/${step}?t=${encodeURIComponent(token)}`}
+                onContextMenu={e => e.preventDefault()}
+                onError={onExpired}
+            />
+        </div>
+    );
+};
+
 // 단계 섹션 래퍼 — 번호 뱃지 + 제목 + 내용
 const Step: React.FC<{ step: typeof COURSE_STEPS[number]; children: React.ReactNode }> = ({ step, children }) => (
     <section id={step.id} className="scroll-mt-20">
@@ -388,6 +414,21 @@ export const LearnPage: React.FC = () => {
             .catch(() => setAuth('ok'));
     }, [auth]);
 
+    // 🎬 시청 전용 토큰(30분 만료) — <video>는 인증 헤더를 못 보내 쿼리 토큰으로 재생.
+    // 만료로 재생 오류가 나면 20분 경과 시에만 1회 재발급(오류 루프 방지).
+    const [videoToken, setVideoToken] = useState('');
+    const videoTokenAt = React.useRef(0);
+    const fetchVideoToken = React.useCallback(() => {
+        fetch('/api/learn/video-token', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+            .then(r => (r.ok ? r.json() : null))
+            .then(d => { if (d?.token) { setVideoToken(d.token); videoTokenAt.current = Date.now(); } })
+            .catch(() => {});
+    }, []);
+    useEffect(() => { if (auth === 'ok') fetchVideoToken(); }, [auth, fetchVideoToken]);
+    const onVideoExpired = React.useCallback(() => {
+        if (Date.now() - videoTokenAt.current > 20 * 60 * 1000) fetchVideoToken();
+    }, [fetchVideoToken]);
+
     // 📝 학습평가 합격 기록 — 제목 옆 (학습/완료) 배지 + 평가 섹션 상태의 근거.
     // 서버 기록 우선, 실패 시 로컬 임시 기록 폴백.
     const [record, setRecord] = useState<{ passed: boolean; passedAt: string | null } | null>(null);
@@ -553,6 +594,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 1단계 — 기획 */}
                 <Step step={COURSE_STEPS[0]}>
+                    <StepVideo step="step1" token={videoToken} onExpired={onVideoExpired} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         홈페이지를 만들기 전에 딱 4가지만 정하면 됩니다. 종이에 적어보세요.
                     </p>
@@ -576,6 +618,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 2단계 — AI 디자인 */}
                 <Step step={COURSE_STEPS[1]}>
+                    <StepVideo step="step2" token={videoToken} onExpired={onVideoExpired} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         아래 프롬프트를 <b>복사</b>해서 제미나이(gemini.google.com), 챗GPT(chatgpt.com), 클로드(claude.ai) 중
                         아무 곳에나 붙여넣어 보세요. 1단계에서 정한 내용으로 이름·메뉴·분위기만 바꾸면 내 모임 홈페이지가 됩니다.
@@ -666,6 +709,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 3단계 — VS Code */}
                 <Step step={COURSE_STEPS[2]}>
+                    <StepVideo step="step3" token={videoToken} onExpired={onVideoExpired} />
                     <ol className="bg-white border border-[#8E6FB7]/15 rounded-xl divide-y divide-[#8E6FB7]/10 text-sm">
                         {[
                             ['VS Code 설치', 'code.visualstudio.com 에서 다운로드 → 설치. 전부 "다음"만 눌러도 됩니다.'],
@@ -689,6 +733,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 4단계 — 로컬호스트 */}
                 <Step step={COURSE_STEPS[3]}>
+                    <StepVideo step="step4" token={videoToken} onExpired={onVideoExpired} />
                     <div className="bg-white border-2 border-dashed border-[#D85C95]/40 rounded-xl p-4">
                         <div className="font-extrabold text-sm mb-1.5">🍭 준비운동 — 일단 더블클릭!</div>
                         <p className="text-sm text-[#4A4058] leading-relaxed">
@@ -732,6 +777,7 @@ export const LearnPage: React.FC = () => {
 
                 {/* 5단계 — Claude Code 수정 */}
                 <Step step={COURSE_STEPS[4]}>
+                    <StepVideo step="step5" token={videoToken} onExpired={onVideoExpired} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         여기가 제일 재밌는 부분! Claude Code에게 말로 부탁하고 → 브라우저 새로고침 → 바로 바뀐 모습 확인.
                         아래 프롬프트로 하나씩 실습해 보세요.
