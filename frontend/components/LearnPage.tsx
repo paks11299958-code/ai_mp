@@ -831,20 +831,47 @@ export const LearnPage: React.FC = () => {
 
                 {/* 3단계 — VS Code */}
                 <Step step={COURSE_STEPS[2]}>
-                    <ol className="bg-white border border-[#8E6FB7]/15 rounded-xl divide-y divide-[#8E6FB7]/10 text-sm">
-                        {[
-                            ['VS Code 설치', 'code.visualstudio.com 에서 다운로드 → 설치. 전부 "다음"만 눌러도 됩니다.'],
-                            ['폴더 만들기', '바탕화면에 새 폴더를 만드세요. 이름은 영어로: my-homepage'],
-                            ['파일 넣기', '2단계에서 다운로드한 index.html 파일을 my-homepage 폴더에 넣습니다.'],
-                            ['VS Code로 열기', 'VS Code 실행 → 파일 > 폴더 열기 → my-homepage 폴더 선택.'],
-                        ].map(([t, d], i) => (
-                            <li key={t} className="px-4 py-3 flex gap-3">
-                                <span className="font-extrabold text-[#6E5DA3] flex-shrink-0">{i + 1}.</span>
-                                <span><b>{t}</b> — <span className="text-[#4A4058]">{d}</span></span>
-                            </li>
-                        ))}
-                    </ol>
+                    <p className="text-sm leading-relaxed text-[#4A4058]">
+                        VS Code는 우리의 작업실이에요. <b>설치 → 첫 실행 → 폴더 준비 → 열어서 테스트</b>, 네 걸음이면 끝납니다.
+                    </p>
                     <VSCodeDownload />
+
+                    <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
+                        <div className="font-extrabold text-sm mb-2">① VS Code 설치하기</div>
+                        <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside">
+                            <li>위 파란 버튼으로 받은 <b>VSCodeUserSetup...exe</b> 파일을 더블클릭</li>
+                            <li><b>"동의합니다"</b> 선택 → 계속 <b>"다음"</b> (중간 옵션들은 그대로 둬도 괜찮아요)</li>
+                            <li>마지막에 <b>"설치"</b> → 끝나면 <b>"종료"</b> — VS Code가 저절로 열리면 설치 성공! 🎉</li>
+                        </ol>
+                    </div>
+
+                    <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
+                        <div className="font-extrabold text-sm mb-2">② 처음 켰을 때 — 당황하지 마세요</div>
+                        <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside">
+                            <li><b>화면이 온통 영어</b>여도 정상이에요! 잠시 뒤 오른쪽 아래에 <b>"표시 언어를 한국어로 변경..."</b> 알림이 뜨면
+                                → <b>[설치 및 다시 시작]</b> 클릭. VS Code가 한국어로 변신합니다</li>
+                            <li>알림을 놓쳤다면: 왼쪽의 <b>블록 4개 모양 아이콘(확장)</b> 클릭 → <b>"Korean"</b> 검색 → Korean Language Pack <b>Install</b> → 재시작</li>
+                            <li>화면이 <b>어두운 색(다크 테마)</b>인 것도 정상이에요 — 개발자들이 눈 편하려고 쓰는 기본값입니다</li>
+                        </ol>
+                    </div>
+
+                    <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
+                        <div className="font-extrabold text-sm mb-2">③ 작업 폴더 준비하기</div>
+                        <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside">
+                            <li>바탕화면 빈 곳에 <b>마우스 우클릭</b> → 새로 만들기 → 폴더 → 이름을 <b>my-homepage</b>로</li>
+                            <li>다운로드 폴더에서 <b>index.html</b>을 클릭하고 <b>복사(Ctrl+C)</b> → my-homepage 폴더를 열고 <b>붙여넣기(Ctrl+V)</b></li>
+                        </ol>
+                    </div>
+
+                    <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
+                        <div className="font-extrabold text-sm mb-2">④ VS Code로 폴더 열고 테스트</div>
+                        <ol className="text-sm text-[#4A4058] space-y-1.5 list-decimal list-inside">
+                            <li>VS Code에서 <b>파일 &gt; 폴더 열기</b> → 바탕화면의 <b>my-homepage</b> 선택</li>
+                            <li>⚠️ <b>"이 폴더의 파일 작성자를 신뢰합니까?"</b> 창이 뜨면 → <b>"예, 작성자를 신뢰합니다"</b> 클릭.
+                                방금 내가 만든 폴더니까 안심하세요 — 겁주는 게 아니라 확인 절차일 뿐이에요</li>
+                            <li><b>테스트</b>: 왼쪽 목록의 index.html을 클릭 → 오른쪽에 <b>알록달록한 코드</b>가 보이면 통과! 🎉</li>
+                        </ol>
+                    </div>
                     {/* 왕초보 사고 다발 지점 2가지 — 다운로드 폴더 못 찾음 + 확장자 숨김 */}
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div className="bg-white border border-[#8E6FB7]/15 rounded-xl p-4">
