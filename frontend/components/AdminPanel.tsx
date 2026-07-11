@@ -19,6 +19,7 @@ import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
+import { BizReportPanel } from './admin/BizReportPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -67,6 +68,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
                         { id: 'members', label: '회원·포인트', icon: 'Users', tabs: [
+                            { key: 'biz',           label: '경영 리포트', icon: 'BarChart2' },
                             { key: 'users',         label: '회원 관리',   icon: 'Users' },
                             { key: 'points',        label: '포인트 통계', icon: 'Coins' },
                             { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
@@ -171,6 +173,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'sites' && <SitesPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}
+                {mainView === 'biz' && <BizReportPanel />}
 
                 {/* 골프장 관리 패널 */}
                 {mainView === 'golf-courses' && <GolfCoursesPanel />}

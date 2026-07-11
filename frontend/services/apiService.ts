@@ -899,6 +899,11 @@ export const adminApi = {
             top: { code: string; invited: number; rewarded: number; owner_name: string | null }[];
             dailyVisits: { day: string; n: number }[];
         }>('/admin/referral-stats'),
+    // 📊 헤르메스 일일 경영 리포트 (2026-07-11)
+    bizDailyReports: (days = 30) =>
+        get<{ reports: { reportDate: string; revenueKrw: number; chargeCount: number; aiCostUsd: number; newUsers: number; dau: number; chatCount: number; pointSpent: number; topFeatures: { name: string; count: number }[]; errorCount: number; tossPnlKrw: number | null; reportMd: string | null }[] }>(`/biz/daily-reports?days=${days}`),
+    bizDirectives: () =>
+        get<{ directives: { id: number; createdDate: string; source: string; title: string; detail: string | null; assignee: string | null; status: string; devRequestId: number | null; resultNote: string | null; effectNote: string | null }[] }>('/biz/directives'),
     // 토스 자동매매 봇 (읽기 전용)
     getTossStatus: () =>
         get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/status'),
