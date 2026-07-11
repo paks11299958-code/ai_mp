@@ -343,5 +343,30 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 - 조회는 $queryRawUnsafe(스키마 미반영 테이블). 어드민 레퍼럴 탭 퍼널의 '방문' 데이터 소스.
 
 
+## ConsultBot / ConsultLead (2026-07-08, AI상담 봇 만들기 — raw SQL 전용, prisma schema 미반영)
+
+- **`ConsultBot`**: 사용자가 만든 상담봇 테넌트. `slug`(UNIQUE, 링크 /consult/{slug}, 랜덤 11자=PII 미노출)·
+  `ownerId`(User.id 문자열)·`companyName`·`greeting`·`notifyEmail/Phone/TelegramChatId`·`showAvatar`·
+  `themeColor`·`customTypebotId`(Phase2 예약)·`isActive`. 유저당 활성 3개 한도(라우트에서).
+- **`ConsultLead`**: 방문자 문의. `botSlug`(FK→ConsultBot.slug)·`userName`·`userPhone`·`userEmail`·
+  `inquiryType`·`message`·`notifiedAt`(알림 발송 성공 시각).
+- 조회/삽입 전부 $queryRawUnsafe/$executeRawUnsafe (스키마 미반영). 공개 조회 응답에 알림 연락처 금지.
+- 상세: doc/features/consult_bot.md, 라우트=shared-api routes/aimp/consult.ts.
+
+## StockDiscovery (2026-07-09, 채원 발굴 일기 — raw SQL 전용, prisma schema 미반영)
+- 윤채원이 매일 아침 발굴한 코스피·코스닥 각 1종목을 날짜별로 누적 저장. 어드민 발굴 탭이 조회.
+- 컬럼: `id, "tradeDate"(TEXT, UNIQUE=하루 1행), "kospiJson"(JSONB), "kosdaqJson"(JSONB), comment(TEXT), "createdAt"`.
+- kospiJson/kosdaqJson = `{symbol,name,score,threshold,signal,price,detail,summary}`. ON CONFLICT("tradeDate") DO UPDATE(같은날 재실행 덮어쓰기). 조회는 shared-api `$queryRawUnsafe`. 상세 doc/features/toss_trader_admin.md.
+
+## 2026-07-09 추가 (raw SQL)
+- **`StockAnalysis.tgNotifiedAt TIMESTAMP?`** 컬럼: 어드민 종목 분석(비동기) 완료분을 텔레그램으로 1회만 발송하기 위한 발송 시각 플래그. admin_analysis_notify 크론(서버2, 2분)이 NULL인 완료건을 찾아 발송 후 기록.
+
+## LearnQuizRecord (2026-07-10, 학습자료 학습평가 합격 기록 — raw SQL 전용, prisma schema 미반영)
+- 학습 코스(/learn/{course}) 학습평가(10문제×10점) 합격 기록. 100점 합격 시 제목 '✅ 완료' 배지+다음 코스 잠금해제 근거.
+- 컬럼: `id, "userId"(INT), "courseKey"(TEXT), score(INT), "passedAt"(TIMESTAMP?, 최초 합격일 고정), "updatedAt"`. UNIQUE("userId","courseKey").
+- upsert 정책: score=GREATEST(최고점 유지), passedAt=COALESCE(재응시해도 최초 합격일 보존).
+- 라우트=shared-api `routes/aimp/learn.ts`(GET/POST /api/aimp/learn/quiz-record, 코스 화이트리스트). 상세 doc/features/learn_course.md.
+
 ## 인덱스 추가 이력
 - 2026-07-08: `Message(sessionId, createdAt)` · `ChatSession(userId)` — 대화 무료화 일일 한도(countTodayChatMessages) 판정용, 서버1 raw SQL `CREATE INDEX IF NOT EXISTS`.
+- 2026-07-09: `StockDiscovery("tradeDate")` UNIQUE · `StockDiscovery("createdAt" DESC)`.

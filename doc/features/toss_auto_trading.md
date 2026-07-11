@@ -75,4 +75,24 @@
 ## 로드맵
 
 - 🟢 1단계(봇 드라이런)·3-A(어드민 모니터)·2번(점수형 전략) 완료.
-- 🔵 다음: 드라이런 관찰·튜닝(가중치/임계) → 극소액 LIVE / 3-B 웹 봇제어(긴급정지·설정변경).
+- 🟢 ⑤발굴 스캐너+웹 선택매매+긴급정지·④백테스트·⑥장시간 가드 완료(2026-07-08 로드맵 종결).
+
+## 🔴 LIVE 실거래 가동 (2026-07-08 사장 지시)
+
+- **MODE=LIVE**(ecosystem.config.js — "DEBUG"로 되돌리면 실주문 0). 넷마블 1주 실보유를
+  봇이 관리(평단 39,600 인식·청산 감시). selection.json=["251270"].
+- **보유 item 실측 키 확정**(live_probe): `averagePurchasePrice`(평단)·
+  `marketValue.purchaseAmount`(매입금)·주문응답 `{"result":{orderId}}` 래퍼 — broker.py 반영.
+- **종목 직접 추가**: 어드민 발굴 탭 ➕(코드 6자리+이름, 최대 20) → shared-api
+  `/admin/toss-trader/custom-symbols` → `logs/custom_symbols.json` → 봇
+  `universe.full_universe()`가 mtime 재로드(재시작 불필요) → 선택·스캔 대상 합류.
+  잘못된 코드는 시세 조회 실패로 걸러지고 로그에 남음.
+- **equity v2**(미수 과대 교정): `cashBuyingPower`=미수 포함 매수가능금액(실측)·순예수금 API
+  없음 → `equity = INITIAL_CAPITAL_KRW(config.env) + 실현손익 누적(ledger.py→
+  logs/pnl_ledger.json, LIVE 실체결만) + 미실현(profitLoss.amountAfterCost 우선)`.
+  env 미설정(0)=기존 방식 폴백. ★**입금/출금 시 INITIAL_CAPITAL_KRW 갱신 필수**.
+- **일손실 한도 = 총투자금의 10%**(사장 규칙): DAILY_LOSS_LIMIT_KRW=10,000(10만 계좌).
+  입출금 시 이 값도 10%로 함께 갱신. %일손실 3%(equity 기준)와 병행.
+- **긴급정지 절차 실증**: 웹 🔴긴급정지=halt 래치(보유 청산 감시까지 전면 중단 유의) →
+  해제=웹에서 정지 해제 저장 후 서버1 `pm2 restart toss-trader`.
+- 테스트 **81개**(전략13·리스크9·백테스트·선택+커스텀·스캐너·장부4·equity8 등).

@@ -34,8 +34,27 @@ ai_mp 프론트: TossTraderPanel.tsx (시스템 그룹 '토스 자동매매' 탭
 - 2단계 점수제: 60점=발굴(리스트업) / **80점=매수 진입**. 자금배분=동시보유 2종목·종목당 10만원(봇 env).
 - 봇이 selection.json을 **검증 후 수용**(6자리 코드·유니버스 내·상한). 파일 깨짐/삭제=직전 선택 유지.
 
+## 종목 직접 추가 (2026-07-08)
+
+- 발굴 탭 ➕섹션: 코드 6자리+종목명 입력→추가(최대 20). 칩=체크(매매 선택, 최대 5 공유)·
+  점수 or '스캔 전' 표시·✕삭제. API=`/admin/toss-trader/custom-symbols`(GET/POST add·remove).
+- 파일 `logs/custom_symbols.json` → 봇 `universe.full_universe()`가 mtime 재로드(재시작 불필요).
+  다음 16시 스캔부터 점수 산출. 잘못된 코드=봇 시세조회 실패로 걸러짐(로그).
+
+## 어드민 6탭 재구성 + 대규모 개선 (2026-07-09~10)
+
+- **6탭 워크플로우**: 발굴 → 선택 → 모니터링 → 평가 → 로그 → 설정. TossTraderPanel.tsx 최상위에 `h-full overflow-y-auto`(PC 스크롤 버그 수정).
+- **종목별 점수 설정**(선택 탭): 종목마다 매수 임계·손절%·익절%를 개별 지정 → selection.json `params:{코드:{buyThreshold,stopLossPct,takeProfitPct}}`. 봇이 종목별 ScoreTrendStrategy로 그 기준대로 매매. 각 값 실전 설명 박스(임계=score>=값 매수, 손절=평단×(1-%), 익절=평단×(1+%), 예시 금액).
+- **발굴 탭 = 채원 발굴 일기**: 봇 62종목 스캔 리스트 **제거** → `StockDiscovery` DB(윤채원이 매일 07:00 발굴, 하루 1행 누적)를 날짜별 조회. 코스피·코스닥 각 1종목 카드(점수·6조건·'왜 이 종목인가' 통합분석 요약). 카드에서 '감시 담기' 체크→바로 선택. API `/admin/toss-trader/discovery[/:date]`.
+- **모니터링 탭**: 🛡 일손실 한도 여유 게이지+🧭 봇 현황 설명(장외/긴급정지/감시중)+장외에도 감시 예정 종목 표시+접이식 지표 설명.
+- **📊 종목 통합 분석**(발굴 카드·선택 탭 버튼): 봇 6조건 점수 + 채원 펀더멘털(DART·네이버 수급·뉴스·3중 AI). **비동기**=요청만 하고 결과는 텔레그램(admin_analysis_notify 크론). API `/admin/toss-trader/analyze[/:id]`. 결과는 StockAnalysis DB 저장.
+- **🔬 손절·익절·임계 백테스트**(선택 탭 버튼): 과거 200봉으로 손절×익절 그리드+임계별 성과(봇 동일 로직·AI 없음·수초)→추천·적용. API `/admin/toss-trader/backtest/:symbol`(backtest_grid.py execFile).
+- **종목명 항상 표시**: 봇 status에 `symbolNames` 맵 + 프론트 `symName()` 통합 조회. 봇 유니버스 222종목 확대.
+- **봇 로그 KST**: logger.py가 KST로 기록. 어드민 toKstLine이 KST표기 감지해 이중변환 방지.
+
 ## 함정
 
 - `Icon name` 미등록 lucide 아이콘은 조용히 Bot 폴백 — Icons.tsx import 목록 확인.
 - status.json은 대표 종목 1개 스냅샷+`symbols[]` 병행(하위호환). 다종목 전면 개편 시 기존 카드 깨지지 않게.
 - shared-api 배포는 push≠배포 — 서버1 git pull+pm2 reload 수동.
+- ★신규 DB 테이블(StockDiscovery)·컬럼(StockAnalysis.tgNotifiedAt)=raw SQL만(prisma db push 금지).
