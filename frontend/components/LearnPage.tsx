@@ -161,19 +161,43 @@ const VSCodeDownload: React.FC = () => {
     );
 };
 
-// Claude Code 설치 — 파일 다운로드가 아니라 명령 한 줄(앤트로픽 공식 설치 방식)
+// Claude Code 설치 — 파일 다운로드가 아니라 명령 한 줄(앤트로픽 공식 설치 방식).
+// VS Code 버튼과 같은 경험을 주기 위해: 버튼 클릭=명령 자동 복사+다음 할 일 3단계 표시.
 const CLAUDE_INSTALL_WIN = 'irm https://claude.ai/install.ps1 | iex';
 const CLAUDE_INSTALL_MAC = 'curl -fsSL https://claude.ai/install.sh | bash';
 
-// 본문 속 작은 재생 버튼 — 클릭하면 모달로
-const VideoChip: React.FC<{ idx: number; onOpen: (idx: number) => void; visible: boolean }> = ({ idx, onOpen, visible }) => {
-    if (!visible) return null;
+const ClaudeCodeInstall: React.FC = () => {
+    const [copied, setCopied] = useState<'win' | 'mac' | null>(null);
+    const copy = async (which: 'win' | 'mac') => {
+        const cmd = which === 'win' ? CLAUDE_INSTALL_WIN : CLAUDE_INSTALL_MAC;
+        try { await navigator.clipboard.writeText(cmd); } catch {
+            const ta = document.createElement('textarea');
+            ta.value = cmd; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+        }
+        setCopied(which);
+    };
     return (
-        <button onClick={() => onOpen(idx)}
-                className="inline-flex items-center gap-2 bg-[#1E1B2E] text-white text-xs font-bold pl-2.5 pr-3.5 py-2 rounded-full hover:bg-[#2D2438] transition-colors">
-            <span className="w-5 h-5 rounded-full bg-[#FF6B9D] flex items-center justify-center text-[9px]">▶</span>
-            영상으로 보기 ({VIDEO_META[idx].dur}) <span className="opacity-50 font-medium">회원 전용</span>
-        </button>
+        <div className="bg-[#FDF3EC] border border-[#D97757]/30 rounded-xl p-4 text-center">
+            <button onClick={() => copy('win')}
+                    className="inline-block bg-[#D97757] hover:bg-[#C2643F] text-white font-extrabold text-sm px-6 py-3 rounded-xl">
+                🤖 Claude Code 설치 (Windows · 클릭하면 설치 명령 복사)
+            </button>
+            <p className="text-xs text-[#9A8FB0] mt-2">
+                Claude Code는 파일 다운로드가 아니라 <b>명령 한 줄 설치</b> 방식이에요(앤트로픽 공식 — 늘 최신버전).
+                Mac은 <button onClick={() => copy('mac')} className="underline font-semibold text-[#6E5DA3]">여기를 눌러 복사</button>
+            </p>
+            {copied && (
+                <div className="mt-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800 text-left leading-relaxed">
+                    ✓ <b>설치 명령이 복사됐어요!</b> 이제 이 순서대로:
+                    {copied === 'win' ? (
+                        <span className="block mt-1">① 시작메뉴에서 <b>"PowerShell"</b> 검색해 열기 → ② <b>붙여넣기(Ctrl+V)</b> → ③ <b>Enter</b></span>
+                    ) : (
+                        <span className="block mt-1">① 런치패드에서 <b>"터미널"</b> 검색해 열기 → ② <b>붙여넣기(Cmd+V)</b> → ③ <b>Enter</b></span>
+                    )}
+                </div>
+            )}
+        </div>
     );
 };
 
@@ -681,7 +705,6 @@ export const LearnPage: React.FC = () => {
 
                 {/* 1단계 — 기획 */}
                 <Step step={COURSE_STEPS[0]}>
-                    <VideoChip idx={0} onOpen={setVideoIdx} visible={!!videoToken} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         홈페이지를 만들기 전에 딱 4가지만 정하면 됩니다. 종이에 적어보세요.
                     </p>
@@ -705,7 +728,6 @@ export const LearnPage: React.FC = () => {
 
                 {/* 2단계 — AI 디자인 */}
                 <Step step={COURSE_STEPS[1]}>
-                    <VideoChip idx={1} onOpen={setVideoIdx} visible={!!videoToken} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         아래 프롬프트를 <b>복사</b>해서 제미나이(gemini.google.com), 챗GPT(chatgpt.com), 클로드(claude.ai) 중
                         아무 곳에나 붙여넣어 보세요. 1단계에서 정한 내용으로 이름·메뉴·분위기만 바꾸면 내 모임 홈페이지가 됩니다.
@@ -796,7 +818,6 @@ export const LearnPage: React.FC = () => {
 
                 {/* 3단계 — VS Code */}
                 <Step step={COURSE_STEPS[2]}>
-                    <VideoChip idx={2} onOpen={setVideoIdx} visible={!!videoToken} />
                     <ol className="bg-white border border-[#8E6FB7]/15 rounded-xl divide-y divide-[#8E6FB7]/10 text-sm">
                         {[
                             ['VS Code 설치', 'code.visualstudio.com 에서 다운로드 → 설치. 전부 "다음"만 눌러도 됩니다.'],
@@ -839,7 +860,6 @@ export const LearnPage: React.FC = () => {
 
                 {/* 4단계 — 로컬호스트 */}
                 <Step step={COURSE_STEPS[3]}>
-                    <VideoChip idx={3} onOpen={setVideoIdx} visible={!!videoToken} />
                     <div className="bg-white border-2 border-dashed border-[#D85C95]/40 rounded-xl p-4">
                         <div className="font-extrabold text-sm mb-1.5">🍭 준비운동 — 일단 더블클릭!</div>
                         <p className="text-sm text-[#4A4058] leading-relaxed">
@@ -872,8 +892,7 @@ export const LearnPage: React.FC = () => {
                             <li>아래 프롬프트를 붙여넣으면 알아서 서버를 띄워줍니다</li>
                         </ol>
                         <div className="space-y-2.5">
-                            <CopyBlock text={CLAUDE_INSTALL_WIN} label="Claude Code 설치 명령 — Windows (PowerShell에 붙여넣기)" />
-                            <CopyBlock text={CLAUDE_INSTALL_MAC} label="Mac은 이걸로 — 터미널에 붙여넣기" />
+                            <ClaudeCodeInstall />
                             <CopyBlock text={CLAUDE_CODE_PROMPTS[0].text} label="설치 후 — 로컬 서버 띄우기 프롬프트" />
                         </div>
                         <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-amber-800 leading-relaxed mt-2.5">
@@ -892,7 +911,6 @@ export const LearnPage: React.FC = () => {
 
                 {/* 5단계 — Claude Code 수정 */}
                 <Step step={COURSE_STEPS[4]}>
-                    <VideoChip idx={4} onOpen={setVideoIdx} visible={!!videoToken} />
                     <p className="text-sm leading-relaxed text-[#4A4058]">
                         여기가 제일 재밌는 부분! Claude Code에게 말로 부탁하고 → 브라우저 새로고침 → 바로 바뀐 모습 확인.
                         아래 프롬프트로 하나씩 실습해 보세요.
