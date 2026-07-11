@@ -29,6 +29,23 @@ const DESIGN_PROMPT = `오창AI 연구회 커뮤니티 홈페이지를 만들어
 - 조건: HTML 파일 하나(index.html)로 완성하고, CSS는 파일 안에 포함해줘.
   이미지 없이 이모지와 색만으로 꾸며줘.`;
 
+// 2단계 — 디자인 시안 "이미지"를 먼저 만드는 프롬프트(제미나이·챗GPT 이미지 생성)
+const IMAGE_GEN_PROMPT = `오창AI 연구회 커뮤니티 홈페이지의 웹디자인 시안 이미지를 만들어줘.
+
+- 상단에 로고와 메뉴(소개/활동소식/스터디자료/가입안내)
+- 그 아래 큰 환영 문구가 있는 히어로 영역과 버튼
+- 활동을 소개하는 카드 3개
+- 분위기: 따뜻하고 신뢰감 있는 커뮤니티, 한국어
+- 데스크톱 웹사이트 화면 한 장으로`;
+
+// 2단계 — 이미지(스케치·시안)를 첨부해서 홈페이지로 바꾸는 프롬프트
+const IMAGE_PROMPT = `첨부한 이미지의 디자인을 그대로 구현한 홈페이지를 만들어줘.
+
+- 배치(메뉴 위치·섹션 순서)와 색 분위기를 이미지와 최대한 비슷하게
+- 글자가 잘 안 보이면 어울리는 예시 문구로 채워줘
+- 조건: HTML 파일 하나(index.html)로 완성하고, CSS는 파일 안에 포함해줘.
+  이미지 파일 없이 이모지와 색만으로 꾸며줘.`;
+
 const CLAUDE_CODE_PROMPTS = [
     { label: '로컬 서버 띄우기', text: '이 폴더의 index.html을 로컬 서버로 띄워줘. 브라우저에서 볼 수 있는 주소를 알려줘.' },
     { label: '색 바꾸기', text: '헤더와 버튼 색을 파란색 계열로 바꿔줘.' },
@@ -563,11 +580,45 @@ export const LearnPage: React.FC = () => {
                         아래 프롬프트를 <b>복사</b>해서 제미나이(gemini.google.com), 챗GPT(chatgpt.com), 클로드(claude.ai) 중
                         아무 곳에나 붙여넣어 보세요. 1단계에서 정한 내용으로 이름·메뉴·분위기만 바꾸면 내 모임 홈페이지가 됩니다.
                     </p>
-                    <CopyBlock text={DESIGN_PROMPT} label="디자인 생성 프롬프트 (제미나이·챗GPT·클로드 공용)" />
+                    <CopyBlock text={DESIGN_PROMPT} label="방법① 글로 부탁하기 — 디자인 생성 프롬프트 (제미나이·챗GPT·클로드 공용)" />
                     <Tip>
                         핵심은 마지막 조건이에요 — <b>"HTML 파일 하나로, CSS 포함"</b>. 파일이 하나여야
                         초보자도 저장·실행이 쉽습니다. AI가 코드를 주면 <b>index.html</b> 이름으로 저장하세요.
                     </Tip>
+
+                    {/* 🖼️ 방법② — 이미지 만들기 → 이미지를 홈페이지로 변환 (2스텝) */}
+                    <div className="bg-white border border-[#8E6FB7]/15 rounded-2xl p-4 sm:p-5 space-y-4">
+                        <div>
+                            <div className="font-extrabold text-sm">🖼️ 방법② 그림으로 부탁하기 — 이미지 → 홈페이지</div>
+                            <p className="text-sm text-[#4A4058] leading-relaxed mt-1.5">
+                                글 대신 <b>그림</b>으로 보여줘도 AI가 홈페이지를 만들어줘요. 2스텝입니다:
+                                <b> 디자인 이미지를 준비</b>하고 → 그 이미지를 <b>첨부해서 코드로 변환</b>.
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-bold text-[#2D2438] mb-2">STEP 1. 디자인 이미지 준비 — 세 가지 길</p>
+                            <div className="text-sm text-[#4A4058] space-y-1.5 mb-3">
+                                <div>🎨 <b>AI로 이미지 만들기</b> — 제미나이·챗GPT에 아래 프롬프트로 시안 이미지를 생성</div>
+                                <div>✏️ <b>손그림 스케치</b> — 종이에 메뉴 배치를 그려서 폰으로 찰칵! (네모와 글씨면 충분해요)</div>
+                                <div>📷 <b>참고 화면</b> — 마음에 드는 분위기의 화면 캡처 (⚠️ 남의 사이트를 그대로 베끼면 저작권 문제가 될 수 있어요 — 분위기 참고용으로만)</div>
+                            </div>
+                            <CopyBlock text={IMAGE_GEN_PROMPT} label="STEP 1 — 시안 이미지 생성 프롬프트 (제미나이·챗GPT 이미지 생성)" />
+                        </div>
+
+                        <div>
+                            <p className="text-sm font-bold text-[#2D2438] mb-2">STEP 2. 이미지를 첨부하고 홈페이지로 변환</p>
+                            <p className="text-sm text-[#4A4058] leading-relaxed mb-2">
+                                클로드·챗GPT·제미나이 채팅창의 <b>📎 첨부(+) 버튼</b>으로 준비한 이미지를 올리고, 아래 프롬프트를 함께 보내세요.
+                            </p>
+                            <CopyBlock text={IMAGE_PROMPT} label="STEP 2 — 이미지 → index.html 변환 프롬프트" />
+                        </div>
+
+                        <Tip>
+                            강의 하이라이트로 추천 — <b>종이에 그린 손그림이 홈페이지가 되는 순간</b>,
+                            "코딩은 이제 그리는 것"이라는 걸 모두가 체감합니다.
+                        </Tip>
+                    </div>
 
                     <p className="text-sm leading-relaxed text-[#4A4058] pt-2">
                         지우가 위 프롬프트로 미리 만들어 둔 시안 3종이에요. 마음에 드는 것을 골라 <b>미리보기</b>로 확인하고
@@ -607,7 +658,8 @@ export const LearnPage: React.FC = () => {
                     <Mobile>
                         이 단계도 폰으로 가능해요! 특히 <b>클로드 앱</b>은 위 프롬프트를 넣으면 결과가
                         <b> 미리보기(아티팩트)</b>로 바로 떠서, 폰 화면에서 완성된 홈페이지를 즉시 볼 수 있어요.
-                        (챗GPT·제미나이 앱도 비슷한 미리보기 지원) 시안 <b>[미리보기]</b> 버튼도 폰에서 바로 열립니다.
+                        (챗GPT·제미나이 앱도 비슷한 미리보기 지원) 이미지 방법②도 폰이 오히려 편해요 —
+                        <b> 손그림을 폰 카메라로 찍어 그 자리에서 첨부</b>하면 끝. 시안 <b>[미리보기]</b> 버튼도 폰에서 바로 열립니다.
                     </Mobile>
                     <Success>index.html 파일이 내 컴퓨터의 다운로드 폴더에 저장되어 있다. (AI로 직접 만들었다면 코드를 index.html로 저장했다)</Success>
                 </Step>
