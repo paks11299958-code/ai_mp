@@ -48,3 +48,4 @@
 - **2단계 방법② 이미지→홈페이지**: 시안 이미지 생성 프롬프트+손그림 폰카+참고화면(저작권 주의)→첨부+변환 프롬프트(IMAGE_GEN_PROMPT/IMAGE_PROMPT).
 - **원클릭 설치**: VS Code=`update.code.visualstudio.com/latest/{win32-x64-user|darwin-universal}/stable`(공식 '항상 최신', ★sha/download 맥 경로는 404). OS 자동감지+노트북/데스크탑 무구분 안내. Claude Code=버튼 클릭→설치 명령 자동복사(Win irm/Mac curl)+PowerShell 3단계 안내(ClaudeCodeInstall).
 - **왕초보 보강 4종**: 확장자 보이게 하기·PowerShell 경고 안심·백틱 위치·다운로드 폴더 찾기(+FAQ 1문). 보류=0단계 AI계정·진행 체크박스·용어 밑줄·실화면 스크린샷(사장 캡처 협업).
+- **07-11 마무리 3건(사장 왕초보 검수)**: ①Claude Code 설치 명령 상시 노출(Win/Mac 코드 스트립+개별 복사) ②★claude 실행 위치=index.html 폴더 안(VS Code 터미널이 열어 둔 폴더에서 시작하는 원리 명시+FAQ) ③VS Code 4박스 상세화(설치 마법사→첫 실행 한국어 알림 [설치 및 다시 시작]→'작성자를 신뢰합니까' 팝업=예→index.html 클릭 테스트).
