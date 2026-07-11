@@ -40,3 +40,11 @@
 
 - 2호 코스 추가 시: `/learn` 목차 페이지화 + COURSE_KEYS 등록 + 합격 게이트(1호 완료자만 입장).
 - 시안 갤러리 확장, 강의장 QR 카드 등.
+
+## 07-11 완성 라운드 (영상·이미지법·설치·왕초보)
+
+- **🎬 강의 영상 5편**(step1~5, 총 4:48, 비용≈0): 대본→TTS(math-tutor-tts)→Playwright 녹화(절대시간 동기)→ffmpeg. **재제작=agent-wiki/common/scripts/learn-video/**(대본 JSON·recorder.cjs·README). 원본 mp4=서버1 `~/learn-videos/`.
+- **회원 전용 스트리밍**(공개 GCS 삭제): `GET /api/learn/video-token`(JWT→30분 시청토큰)→`GET /api/learn/video/:step?t=`(Range 206). 프론트=VideoModal 이어보기 플레이리스트(다음 자동재생+칩 점프), 진입=목차 '🎬 전체 영상 보기'만(본문 칩은 사장 지시로 제거). 시청토큰 만료 시 20분 경과 조건부 재발급.
+- **2단계 방법② 이미지→홈페이지**: 시안 이미지 생성 프롬프트+손그림 폰카+참고화면(저작권 주의)→첨부+변환 프롬프트(IMAGE_GEN_PROMPT/IMAGE_PROMPT).
+- **원클릭 설치**: VS Code=`update.code.visualstudio.com/latest/{win32-x64-user|darwin-universal}/stable`(공식 '항상 최신', ★sha/download 맥 경로는 404). OS 자동감지+노트북/데스크탑 무구분 안내. Claude Code=버튼 클릭→설치 명령 자동복사(Win irm/Mac curl)+PowerShell 3단계 안내(ClaudeCodeInstall).
+- **왕초보 보강 4종**: 확장자 보이게 하기·PowerShell 경고 안심·백틱 위치·다운로드 폴더 찾기(+FAQ 1문). 보류=0단계 AI계정·진행 체크박스·용어 밑줄·실화면 스크린샷(사장 캡처 협업).
