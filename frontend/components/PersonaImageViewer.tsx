@@ -123,28 +123,27 @@ export const PersonaImageViewer: React.FC<PersonaImageViewerProps> = ({ images, 
                         })}
                     </div>
 
+                    {/* 표준 기능 — 사진 썸네일 행 인라인 아이콘 카드(서아·윤채원 등 1~2개) */}
+                    {featureCards && featureCards.length > 0 && (
+                        <div className="flex gap-1.5 shrink-0">
+                            {featureCards.map((card, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={card.onClick}
+                                    className="flex flex-col items-center justify-center gap-0.5 px-2.5 py-2 rounded-xl border transition-all shrink-0"
+                                    style={{
+                                        borderColor: card.borderColor ?? '#B49AC9',
+                                        background: card.bgColor ?? '#F5E6F7',
+                                        color: card.color ?? '#8E6FB7',
+                                    }}
+                                >
+                                    <Icon name={card.icon as any} size={16} />
+                                    <span className="text-[10px] font-medium whitespace-nowrap">{card.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
-
-                {/* 표준 기능 — 사진 행 아래 별도 줄, 한 줄 가로 스크롤(기능이 많아도 이미지 폭을 잠식하지 않음) */}
-                {featureCards && featureCards.length > 0 && (
-                    <div className="flex gap-1.5 overflow-x-auto hide-scrollbar mt-2">
-                        {featureCards.map((card, idx) => (
-                            <button
-                                key={idx}
-                                onClick={card.onClick}
-                                className="flex items-center gap-1 px-3 py-1.5 rounded-full border transition-all shrink-0"
-                                style={{
-                                    borderColor: card.borderColor ?? '#B49AC9',
-                                    background: card.bgColor ?? '#F5E6F7',
-                                    color: card.color ?? '#8E6FB7',
-                                }}
-                            >
-                                <Icon name={card.icon as any} size={14} />
-                                <span className="text-xs font-medium whitespace-nowrap">{card.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
 
                 {/* 도결 퀵메뉴 — 사진 행 아래 전체 폭 텍스트 칩(메뉴 많음, 줄바꿈) */}
                 {featureChips && featureChips.length > 0 && (

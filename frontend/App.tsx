@@ -2333,18 +2333,17 @@ const AppContent: React.FC = () => {
                             if (standardCards.length === 0 && quickMenuChips.length === 0) return null;
                             return (
                                 <div className="px-4 py-2.5 shrink-0 border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm">
-                                    {/* 한 줄 가로 스크롤(wrap 금지) — 기능이 많아도 세로로 안 커져서 페르소나 이미지를 안 밀어냄 */}
-                                    <div className="max-w-4xl mx-auto flex items-center gap-2 overflow-x-auto hide-scrollbar">
+                                    <div className="max-w-4xl mx-auto flex items-center gap-2 flex-wrap">
                                         {standardCards.map((c, i) => (
                                             <button key={`f${i}`} onClick={c.onClick}
-                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap shrink-0"
+                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap"
                                                 style={{ color: c.color, background: c.bgColor, borderColor: c.borderColor }}>
                                                 <Icon name={c.icon} size={13} />{c.label}
                                             </button>
                                         ))}
                                         {quickMenuChips.map((c, i) => (
                                             <button key={`q${i}`} onClick={c.onClick}
-                                                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2] transition-colors whitespace-nowrap shrink-0">
+                                                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2] transition-colors whitespace-nowrap">
                                                 {c.label}
                                             </button>
                                         ))}

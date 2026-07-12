@@ -62,7 +62,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'hair',        label: '헤어Style', icon: 'Zap',       color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'outfit',      label: '전통의상', icon: 'Globe',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'agetransform', label: '시간여행',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
-    { key: 'lookalike',   label: '닮은꼴',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
+    { key: 'lookalike',   label: '연예인 매칭',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
     { key: 'marketing',   label: 'AI 마케팅 글쓰기', icon: 'PenLine',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'learn',       label: '학습자료',       icon: 'BookOpen',   color: '#FF6B9D', bgColor: 'rgba(255,107,157,0.12)',   borderColor: '#FFB3D1' },
 ];
