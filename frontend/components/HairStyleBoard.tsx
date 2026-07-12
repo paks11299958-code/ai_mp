@@ -39,7 +39,8 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
         return m ? `/api/hair/image?path=${encodeURIComponent(m[1])}` : url;
     };
 
-    // 저장: blob으로 받아 iOS=공유시트(사진 앱 저장), 그 외=다운로드(갤러리/다운로드 폴더)
+    // 저장: '사진 파일만' 갤러리로. iOS=이미지 파일 하나만 담은 공유시트('이미지 저장'→사진앱), 그 외=다운로드.
+    // ★링크/캡션 등 텍스트는 절대 안 넣음(자랑하기와 분리) — files만 전달해 '사진 저장' 전용 시트가 뜨게 함.
     const handleSaveImage = async () => {
         if (!resultImage || saving) return;
         setSaving(true);
@@ -49,8 +50,9 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
             const blob = await res.blob();
             const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
             const file = new File([blob], `ai-hairstyle-${Date.now()}.${ext}`, { type: blob.type || 'image/png' });
-            // iOS는 <a download>가 '파일' 앱으로 가므로 공유시트의 '이미지 저장'이 갤러리 저장의 정석
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            // iOS(최신 iPad는 UA가 Mac으로 위장 → 터치+canShare(files)로 보강 판별): <a download>는 '파일'앱행이라 갤러리 저장은 공유시트뿐
+            const ua = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && (navigator as any).maxTouchPoints > 1);
             if (isIOS && navigator.canShare?.({ files: [file] }) && navigator.share) {
                 try { await navigator.share({ files: [file] }); } catch { /* 사용자가 시트 닫음 — 폴백 불필요 */ }
             } else {
