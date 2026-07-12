@@ -363,12 +363,15 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
               ★부모 최상위 div(onClick=onClose=헤어창 닫기)의 자식이라, 라이트박스 클릭이 버블링되면
                 헤어 창까지 닫힌다 → 배경/✕/저장 모두 stopPropagation으로 부모 전파 차단(닫기=viewer만). */}
           {viewerOpen && resultImage && (
-              <div style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+              <div style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', padding: 16 }}
                    onClick={e => { e.stopPropagation(); setViewerOpen(false); }}>
-                  <button onClick={e => { e.stopPropagation(); setViewerOpen(false); }} style={{ position: 'absolute', top: 14, right: 16, background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: 20, width: 40, height: 40, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
-                  <img src={resultImage} alt="합성 결과 크게 보기" onClick={e => e.stopPropagation()}
-                       style={{ maxWidth: '100%', maxHeight: 'calc(100% - 104px)', objectFit: 'contain', borderRadius: 12 }} />
-                  <div style={{ display: 'flex', gap: 10, marginTop: 14, width: '100%', maxWidth: 380 }}>
+                  <button onClick={e => { e.stopPropagation(); setViewerOpen(false); }} style={{ position: 'absolute', top: 14, right: 16, zIndex: 2, background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: 20, width: 40, height: 40, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
+                  <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', width: '100%' }}
+                       onClick={e => { e.stopPropagation(); setViewerOpen(false); }}>
+                      <img src={resultImage} alt="합성 결과 크게 보기" onClick={e => e.stopPropagation()}
+                           style={{ width: '100%', maxWidth: 560, height: 'auto', display: 'block', borderRadius: 12 }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, marginTop: 14, width: '100%', maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' }}>
                       <button onClick={e => { e.stopPropagation(); setViewerOpen(false); }}
                               style={{ flex: '0 0 auto', padding: '14px 20px', borderRadius: 14, border: '1.5px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.12)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
                           닫기
