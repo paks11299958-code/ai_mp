@@ -15,6 +15,7 @@ const T = {
 export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const { priceOf, requirePoints } = usePoints();
     const cost = priceOf('outfit');
+    const [gender, setGender] = useState<'female' | 'male'>('female'); // 디폴트 여성(여성 사용 비중 높음)
     const [styles, setStyles] = useState<OutfitStyle[] | null>(null);
     const [selected, setSelected] = useState<OutfitStyle | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
@@ -89,8 +90,9 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
     }, [resultImage]);
 
     useEffect(() => {
-        outfitApi.styles().then(setStyles).catch(() => setError('의상 목록을 불러오지 못했어요.'));
-    }, []);
+        setStyles(null); setSelected(null);
+        outfitApi.styles(gender).then(setStyles).catch(() => setError('의상 목록을 불러오지 못했어요.'));
+    }, [gender]);
 
     const handleFile = async (file: File) => {
         if (!file.type.startsWith('image/')) { setError('이미지 파일만 올려주세요.'); return; }
@@ -255,7 +257,18 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             </button>
                         </div>
 
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>② 입어볼 의상 선택</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>② 성별</div>
+                        <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+                            {(['female', 'male'] as const).map(g => (
+                                <button key={g} onClick={() => setGender(g)} style={{
+                                    flex: 1, padding: '11px', borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+                                    background: gender === g ? `linear-gradient(135deg, ${T.accent}, ${T.accent2})` : T.card,
+                                    color: gender === g ? '#fff' : T.inkSoft, border: gender === g ? 'none' : `1px solid ${T.line}`,
+                                }}>{g === 'female' ? '👸 여성' : '🤴 남성'}</button>
+                            ))}
+                        </div>
+
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>③ 입어볼 의상 선택</div>
                         {styles === null ? (
                             <div style={{ textAlign: 'center', color: T.inkMute, padding: 30, fontSize: 14 }}>불러오는 중…</div>
                         ) : styles.length === 0 ? (

@@ -488,9 +488,9 @@ export const hairApi = {
 };
 
 // ── 전통의상 체험(윤채린) ── 얼굴 사진 → 나라별 전통의상 전신 화보
-export interface OutfitStyle { id: number; styleKey: string; name: string; country: string; emoji?: string; imageUrl?: string | null; description?: string }
+export interface OutfitStyle { id: number; styleKey: string; name: string; country: string; gender?: string; emoji?: string; imageUrl?: string | null; description?: string }
 export const outfitApi = {
-    styles: () => get<OutfitStyle[]>('/outfit/styles'),
+    styles: (gender?: 'male' | 'female') => get<OutfitStyle[]>(`/outfit/styles${gender ? `?gender=${gender}` : ''}`),
     status: () => get<{ status: 'ok' | 'busy'; retryAfterSec: number }>('/outfit/status'),
     analyze: (imageBase64: string, mimeType: string, outfitStyleId: number) =>
         post<{ resultImageUrl: string | null; outfitName: string; country: string }>('/outfit/analyze', { imageBase64, mimeType, outfitStyleId }),
