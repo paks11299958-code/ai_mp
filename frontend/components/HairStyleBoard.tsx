@@ -339,7 +339,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                         borderRadius: 12, overflow: 'hidden', background: T.card, cursor: 'pointer', padding: 0,
                                         boxShadow: selected?.id === s.id ? `0 6px 16px -6px ${T.accent}66` : 'none',
                                     }}>
-                                        <img src={s.imageUrl} alt={s.name} style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
+                                        <img src={s.imageUrl} alt={s.name} loading="lazy" decoding="async" style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
                                         <div style={{ fontSize: 11, fontWeight: 600, color: selected?.id === s.id ? T.accent : T.inkSoft, padding: '5px 2px' }}>{s.name}</div>
                                     </button>
                                 ))}
