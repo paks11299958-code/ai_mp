@@ -367,11 +367,17 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                    onClick={e => { e.stopPropagation(); setViewerOpen(false); }}>
                   <button onClick={e => { e.stopPropagation(); setViewerOpen(false); }} style={{ position: 'absolute', top: 14, right: 16, background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: 20, width: 40, height: 40, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
                   <img src={resultImage} alt="합성 결과 크게 보기" onClick={e => e.stopPropagation()}
-                       style={{ maxWidth: '100%', maxHeight: 'calc(100% - 92px)', objectFit: 'contain', borderRadius: 12 }} />
-                  <button onClick={e => { e.stopPropagation(); handleSaveImage(); }} disabled={saving}
-                          style={{ marginTop: 14, width: '100%', maxWidth: 380, padding: '14px', borderRadius: 14, border: 'none', background: saving ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 15, cursor: saving ? 'default' : 'pointer' }}>
-                      {saving ? '저장 중…' : '📥 갤러리에 저장'}
-                  </button>
+                       style={{ maxWidth: '100%', maxHeight: 'calc(100% - 104px)', objectFit: 'contain', borderRadius: 12 }} />
+                  <div style={{ display: 'flex', gap: 10, marginTop: 14, width: '100%', maxWidth: 380 }}>
+                      <button onClick={e => { e.stopPropagation(); setViewerOpen(false); }}
+                              style={{ flex: '0 0 auto', padding: '14px 20px', borderRadius: 14, border: '1.5px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.12)', color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
+                          닫기
+                      </button>
+                      <button onClick={e => { e.stopPropagation(); handleSaveImage(); }} disabled={saving}
+                              style={{ flex: 1, padding: '14px', borderRadius: 14, border: 'none', background: saving ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 15, cursor: saving ? 'default' : 'pointer' }}>
+                          {saving ? '저장 중…' : '📥 갤러리에 저장'}
+                      </button>
+                  </div>
               </div>
           )}
           {shareToast && (
