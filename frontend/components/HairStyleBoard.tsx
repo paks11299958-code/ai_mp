@@ -28,15 +28,57 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [error, setError] = useState<string | null>(null);
     const [hairBusy, setHairBusy] = useState(false);          // 합성 혼잡 신호등(🔴)
     const [busyRetrySec, setBusyRetrySec] = useState(0);
-    const [shareToast, setShareToast] = useState('');         // 결과 공유 안내
+    const [shareToast, setShareToast] = useState('');         // 결과 공유·저장 안내
+    const [viewerOpen, setViewerOpen] = useState(false);      // 크게 보기(라이트박스)
+    const [saving, setSaving] = useState(false);
     const fileRef = useRef<HTMLInputElement>(null);
+
+    // GCS 직접 fetch는 CORS로 막혀서(버킷 설정 권한 없음) 같은 출처 중계 라우트로 변환
+    const proxyImageUrl = (url: string) => {
+        const m = url.match(/\/ai-mp-media\/(hair-tryon\/[^?#]+)/);
+        return m ? `/api/hair/image?path=${encodeURIComponent(m[1])}` : url;
+    };
+
+    // 저장: blob으로 받아 iOS=공유시트(사진 앱 저장), 그 외=다운로드(갤러리/다운로드 폴더)
+    const handleSaveImage = async () => {
+        if (!resultImage || saving) return;
+        setSaving(true);
+        try {
+            const res = await fetch(proxyImageUrl(resultImage));
+            if (!res.ok) throw new Error('fetch fail');
+            const blob = await res.blob();
+            const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
+            const file = new File([blob], `ai-hairstyle-${Date.now()}.${ext}`, { type: blob.type || 'image/png' });
+            // iOS는 <a download>가 '파일' 앱으로 가므로 공유시트의 '이미지 저장'이 갤러리 저장의 정석
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            if (isIOS && navigator.canShare?.({ files: [file] }) && navigator.share) {
+                try { await navigator.share({ files: [file] }); } catch { /* 사용자가 시트 닫음 — 폴백 불필요 */ }
+            } else {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+                setShareToast('사진을 저장했어요 — 갤러리(다운로드)에서 확인하세요 📥');
+                setTimeout(() => setShareToast(''), 3000);
+            }
+        } catch {
+            // 중계 실패 폴백: 새 탭에서 열어 길게 눌러 저장
+            window.open(resultImage, '_blank', 'noopener');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     // 순간 진입점: 합성 결과+딥링크(?f=hair&ref=내코드) 공유. 막 떴을 때 자랑→바이럴.
     const handleShareResult = async () => {
         if (!resultImage) return;
         const caption = `${selected?.name ?? '이 헤어'}로 바꾼 내 모습 어때? AI로 미리 해봤어 ✂️`;
-        const msg = await shareResultImage(resultImage, 'hair', caption);
-        if (msg) { setShareToast(msg); setTimeout(() => setShareToast(''), 2500); }
+        // GCS 직접 fetch는 CORS로 이미지 첨부가 실패해 링크 공유로 폴백되던 것 → 같은 출처 중계 URL로
+        const msg = await shareResultImage(proxyImageUrl(resultImage), 'hair', caption);
+        if (msg) { setShareToast(`🔗 ${msg}`); setTimeout(() => setShareToast(''), 2500); }
     };
 
     const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', '윤채린이 어울림을 진단하고 있어요'];
@@ -209,7 +251,14 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                         </div>
                                     )}
                                 </div>
-                                <a href={resultImage} target="_blank" rel="noopener noreferrer" style={{ display: 'block', textAlign: 'center', fontSize: 12, color: T.accent, marginTop: 8, textDecoration: 'underline' }}>크게 보기 / 저장</a>
+                                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                                    <button onClick={() => setViewerOpen(true)} style={{ flex: 1, padding: '12px', borderRadius: 14, border: `1.5px solid ${T.accent}`, background: T.card, color: T.accent, fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
+                                        🔍 크게 보기
+                                    </button>
+                                    <button onClick={handleSaveImage} disabled={saving} style={{ flex: 1, padding: '12px', borderRadius: 14, border: 'none', background: saving ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 14, cursor: saving ? 'default' : 'pointer' }}>
+                                        {saving ? '저장 중…' : '📥 갤러리에 저장'}
+                                    </button>
+                                </div>
                                 {/* 순간 진입점: 결과 자랑 공유(이미지+초대링크). 막 떴을 때가 공유 충동 최고조. */}
                                 <button onClick={handleShareResult} style={{ width: '100%', marginTop: 10, padding: '12px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 14, cursor: 'pointer' }}>
                                     📲 친구에게 자랑하기
@@ -308,9 +357,22 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                 )}
             </div>
           </div>
+          {/* 크게 보기 라이트박스: 원본 크게 + 저장 버튼 */}
+          {viewerOpen && resultImage && (
+              <div style={{ position: 'fixed', inset: 0, zIndex: 75, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                   onClick={() => setViewerOpen(false)}>
+                  <button onClick={() => setViewerOpen(false)} style={{ position: 'absolute', top: 14, right: 16, background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: 20, width: 40, height: 40, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
+                  <img src={resultImage} alt="합성 결과 크게 보기" onClick={e => e.stopPropagation()}
+                       style={{ maxWidth: '100%', maxHeight: 'calc(100% - 92px)', objectFit: 'contain', borderRadius: 12 }} />
+                  <button onClick={e => { e.stopPropagation(); handleSaveImage(); }} disabled={saving}
+                          style={{ marginTop: 14, width: '100%', maxWidth: 380, padding: '14px', borderRadius: 14, border: 'none', background: saving ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 15, cursor: saving ? 'default' : 'pointer' }}>
+                      {saving ? '저장 중…' : '📥 갤러리에 저장'}
+                  </button>
+              </div>
+          )}
           {shareToast && (
               <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[80] px-4 py-2.5 rounded-xl text-sm text-white shadow-xl" style={{ background: '#2D2438' }}>
-                  🔗 {shareToast}
+                  {shareToast}
               </div>
           )}
         </div>
