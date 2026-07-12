@@ -359,11 +359,13 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                 )}
             </div>
           </div>
-          {/* 크게 보기 라이트박스: 원본 크게 + 저장 버튼 */}
+          {/* 크게 보기 라이트박스: 헤어 창 위에 겹치는 별도 모달.
+              ★부모 최상위 div(onClick=onClose=헤어창 닫기)의 자식이라, 라이트박스 클릭이 버블링되면
+                헤어 창까지 닫힌다 → 배경/✕/저장 모두 stopPropagation으로 부모 전파 차단(닫기=viewer만). */}
           {viewerOpen && resultImage && (
-              <div style={{ position: 'fixed', inset: 0, zIndex: 75, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-                   onClick={() => setViewerOpen(false)}>
-                  <button onClick={() => setViewerOpen(false)} style={{ position: 'absolute', top: 14, right: 16, background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: 20, width: 40, height: 40, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 85, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+                   onClick={e => { e.stopPropagation(); setViewerOpen(false); }}>
+                  <button onClick={e => { e.stopPropagation(); setViewerOpen(false); }} style={{ position: 'absolute', top: 14, right: 16, background: 'rgba(255,255,255,0.12)', border: 'none', color: '#fff', fontSize: 20, width: 40, height: 40, borderRadius: '50%', cursor: 'pointer' }}>✕</button>
                   <img src={resultImage} alt="합성 결과 크게 보기" onClick={e => e.stopPropagation()}
                        style={{ maxWidth: '100%', maxHeight: 'calc(100% - 92px)', objectFit: 'contain', borderRadius: 12 }} />
                   <button onClick={e => { e.stopPropagation(); handleSaveImage(); }} disabled={saving}
