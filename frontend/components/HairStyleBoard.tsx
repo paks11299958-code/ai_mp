@@ -31,6 +31,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [shareToast, setShareToast] = useState('');         // 결과 공유·저장 안내
     const [viewerOpen, setViewerOpen] = useState(false);      // 크게 보기(라이트박스)
     const [saving, setSaving] = useState(false);
+    const [studioBg, setStudioBg] = useState(false);          // 스튜디오 배경 교체(체크 시)
     const fileRef = useRef<HTMLInputElement>(null);
 
     // GCS 직접 fetch는 CORS로 막혀서(버킷 설정 권한 없음) 같은 출처 중계 라우트로 변환
@@ -138,7 +139,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
         const t1 = setTimeout(() => setLoadingStep(1), 2500);
         const t2 = setTimeout(() => setLoadingStep(2), 8000);
         try {
-            const { analysis, resultImageUrl } = await hairApi.analyze(base64, mimeType, selected.id, personaId);
+            const { analysis, resultImageUrl } = await hairApi.analyze(base64, mimeType, selected.id, personaId, studioBg);
             setResult(analysis);
             setResultImage(resultImageUrl);
         } catch (e: any) {
@@ -345,6 +346,25 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                 ))}
                             </div>
                         )}
+
+                        {/* 스튜디오 배경 옵션 — 체크 시 배경을 스튜디오로 교체, 미체크 시 원래 배경 유지 */}
+                        <button onClick={() => setStudioBg(v => !v)} style={{
+                            width: '100%', display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12,
+                            padding: '11px 13px', borderRadius: 12, cursor: 'pointer', textAlign: 'left',
+                            background: studioBg ? 'rgba(142,111,183,0.08)' : T.card,
+                            border: `1.5px solid ${studioBg ? T.accent : T.line}`,
+                        }}>
+                            <span style={{
+                                width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: studioBg ? T.accent : '#fff', border: `1.5px solid ${studioBg ? T.accent : T.inkMute}`,
+                                color: '#fff', fontSize: 14, fontWeight: 800,
+                            }}>{studioBg ? '✓' : ''}</span>
+                            <span style={{ flex: 1 }}>
+                                <span style={{ display: 'block', fontSize: 13.5, fontWeight: 700, color: T.ink }}>📸 스튜디오 배경으로</span>
+                                <span style={{ display: 'block', fontSize: 11, color: T.inkMute, marginTop: 1 }}>체크하면 깔끔한 스튜디오 배경, 안 하면 원래 배경 그대로</span>
+                            </span>
+                        </button>
 
                         {error && <div style={{ fontSize: 13, color: '#D9534F', marginBottom: 10, textAlign: 'center' }}>{error}</div>}
 

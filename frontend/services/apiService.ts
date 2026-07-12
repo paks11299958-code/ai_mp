@@ -483,8 +483,8 @@ export const hairApi = {
         get<HairStyle[]>(`/hair/styles${gender ? `?gender=${gender}` : ''}`),
     // 합성 가능 상태(신호등) — 폴링용
     status: () => get<{ status: 'ok' | 'busy'; retryAfterSec: number }>('/hair/status'),
-    analyze: (imageBase64: string, mimeType: string, hairStyleId: number, personaId?: string) =>
-        post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
+    analyze: (imageBase64: string, mimeType: string, hairStyleId: number, personaId?: string, studioBg?: boolean) =>
+        post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId, studioBg }),
 };
 
 // ── 전통의상 체험(윤채린) ── 얼굴 사진 → 나라별 전통의상 전신 화보
