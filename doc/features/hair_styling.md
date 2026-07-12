@@ -37,6 +37,13 @@
 - **윤채린 채팅 버튼**: `personaFeatures.ts`의 NAME_FALLBACK['윤채린']=['hair'] (강지훈→ebook 패턴 동일)
 - `App.tsx` FEATURE_ACTIONS.hair + 보드 렌더 2곳, vercel.json `/api/hair` 프록시
 
+### 결과 저장·크게 보기 (2026-07-12)
+- **버튼 2개**(밑줄 링크 폐지): 🔍 크게 보기(라이트박스) · 📥 갤러리에 저장.
+- **갤러리 저장 = 사진 파일만**(`handleSaveImage`): iOS=`navigator.share({files:[file]})`(이미지만 담은 공유시트→'이미지 저장'이 사진앱; iPad는 UA가 Mac이라 `maxTouchPoints>1`로 보정) / 그 외=`<a download>`. ★링크·캡션 미포함(공유=자랑하기 전용과 분리).
+- **크게 보기 라이트박스**: z-85 오버레이(헤어창 z-70 위), 하단 [닫기·저장] + 우상단 ✕. ★버블링 버그 주의: 라이트박스가 최상위 div(onClick=onClose)의 자식이라, 닫기/배경 클릭이 부모로 버블링되면 헤어 진단 창까지 닫힘 → 배경·✕·닫기 전부 `stopPropagation` 필수.
+- **★GCS CORS 우회 중계 라우트** `GET /api/hair/image?path=hair-tryon/*.png|jpg|webp`(shared-api hair.ts): 저장·공유의 blob fetch가 CORS 필요한데 **ai-mp-media 버킷 CORS 설정 권한 없음**(SA=storage.buckets.update 거부, VM 스코프=read_only) → 버킷 대신 서버가 GCS 원본을 받아 같은 출처로 재전송(경로 화이트리스트=조작 차단, 24h 캐시). 프론트는 `imageUrl`을 `/api/hair/image?path=` 로 변환(`proxyImageUrl`)해 저장·공유·자랑하기에 사용.
+- **견본 썸네일 lazy-load**(`<img loading="lazy" decoding="async">`): 스타일 개수 늘어도 초기 로딩 일정. ★근본은 견본 원본이 장당 ~1.3MB(성별당 16장). 견본은 화면 표시 전용(합성은 `promptEn` 텍스트만 씀=화질 무관)이라 대량 추가 시 썸네일 축소(40배)가 정석.
+
 ## 주의·교훈
 - **EXIF 회전 필수**: 폰 사진은 EXIF 회전정보로 화면엔 똑바로/픽셀은 누워있음 → AI 합성결과가 옆으로 90도 돌아 나옴. `createImageBitmap(file,{imageOrientation:'from-image'})`로 픽셀에 회전 적용 + canvas 1280 축소 후 전송.
 - **로딩 UX**: 10초+ 단건은 단계 로딩 오버레이(사진분석→합성→진단 타이머 순차)가 맞음. 주식분석식 비동기 큐는 "오래걸림+여러개+백그라운드"일 때만(헤어엔 과함).
