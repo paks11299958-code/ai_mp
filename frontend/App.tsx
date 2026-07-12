@@ -37,6 +37,7 @@ import { InsuranceBoard } from './components/InsuranceBoard';
 import { MarketingBoard } from './components/MarketingBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { HairStyleBoard } from './components/HairStyleBoard';
+import { OutfitBoard } from './components/OutfitBoard';
 import { AgeTransformBoard } from './components/AgeTransformBoard';
 import { WebtoonEpisodeList } from './components/WebtoonEpisodeList';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -302,6 +303,7 @@ const AppContent: React.FC = () => {
     // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal) — 훅은 조건부 return보다 위에 있어야 함
     const [showEbookBoard, setShowEbookBoard] = useState(false);
     const [showHairBoard, setShowHairBoard] = useState(false);
+    const [showOutfitBoard, setShowOutfitBoard] = useState(false);
     const [showLookalikeModal, setShowLookalikeModal] = useState(false);
     const [lookalikeResult, setLookalikeResult] = useState<LookalikeResult | null>(null);
     const [showAgeBoard, setShowAgeBoard] = useState(false);
@@ -322,6 +324,7 @@ const AppContent: React.FC = () => {
         'golf-record': () => setShowSwingBoard(true),
         ebook: () => setShowEbookBoard(true),
         hair: () => setShowHairBoard(true),
+        outfit: () => setShowOutfitBoard(true),
         lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),
         marketing: () => setShowMarketingBoard(true),
@@ -1277,8 +1280,8 @@ const AppContent: React.FC = () => {
                             if (tp) { goTo('chat'); handlePersonaClick(tp.id); setTarotModalMode('full'); }
                             return;
                         }
-                        // 닮은꼴·헤어는 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
-                        if (featureKey === 'lookalike' || featureKey === 'hair') {
+                        // 닮은꼴·헤어·전통의상은 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
+                        if (featureKey === 'lookalike' || featureKey === 'hair' || featureKey === 'outfit') {
                             const fp = personas.find(p => p.name === personaName);
                             if (fp) setActivePersonaId(fp.id);
                             FEATURE_ACTIONS[featureKey]?.();
@@ -1368,6 +1371,11 @@ const AppContent: React.FC = () => {
                 {showHairBoard && (
                     <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                         <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
+                    </ErrorBoundary>
+                )}
+                {showOutfitBoard && (
+                    <ErrorBoundary label="전통의상 체험 화면 오류" onClose={() => setShowOutfitBoard(false)}>
+                        <OutfitBoard personaId={activePersona?.id} onClose={() => setShowOutfitBoard(false)} />
                     </ErrorBoundary>
                 )}
                 {/* 닮은 연예인 찾기 (윤채린) — 메인 화면 블록에서도 렌더돼야 카드 클릭 시 모달이 뜸 */}
@@ -1771,6 +1779,11 @@ const AppContent: React.FC = () => {
             {showHairBoard && (
                 <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                     <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
+                </ErrorBoundary>
+            )}
+            {showOutfitBoard && (
+                <ErrorBoundary label="전통의상 체험 화면 오류" onClose={() => setShowOutfitBoard(false)}>
+                    <OutfitBoard personaId={activePersona?.id} onClose={() => setShowOutfitBoard(false)} />
                 </ErrorBoundary>
             )}
             {/* 닮은 연예인 찾기 (윤채린) */}

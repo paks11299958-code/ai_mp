@@ -487,6 +487,15 @@ export const hairApi = {
         post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId }),
 };
 
+// ── 전통의상 체험(윤채린) ── 얼굴 사진 → 나라별 전통의상 전신 화보
+export interface OutfitStyle { id: number; styleKey: string; name: string; country: string; emoji?: string; imageUrl?: string | null; description?: string }
+export const outfitApi = {
+    styles: () => get<OutfitStyle[]>('/outfit/styles'),
+    status: () => get<{ status: 'ok' | 'busy'; retryAfterSec: number }>('/outfit/status'),
+    analyze: (imageBase64: string, mimeType: string, outfitStyleId: number) =>
+        post<{ resultImageUrl: string | null; outfitName: string; country: string }>('/outfit/analyze', { imageBase64, mimeType, outfitStyleId }),
+};
+
 // ── 나이 변환(윤채린) ──
 export const ageTransformApi = {
     // 4개 나이대 이미지 생성(DB 저장 안 함). { images: {"10s":url,...}, succeeded }

@@ -28,6 +28,7 @@ export type FeatureKey =
     | 'webtoon'
     | 'insurance'
     | 'hair'
+    | 'outfit'
     | 'agetransform'
     | 'lookalike'
     | 'marketing'
@@ -59,6 +60,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'webtoon',     label: '웹툰 보기',     icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F0E9F7',                  borderColor: '#C4B0DC' },
     { key: 'insurance',   label: '보험 분석',     icon: 'Shield',     color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
     { key: 'hair',        label: '헤어Style', icon: 'Zap',       color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
+    { key: 'outfit',      label: '전통의상 체험', icon: 'Globe',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'agetransform', label: '시간여행',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'lookalike',   label: '연예인 매칭',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
     { key: 'marketing',   label: 'AI 마케팅 글쓰기', icon: 'PenLine',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
@@ -77,7 +79,7 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '지우':   ['mathtutor', 'club', 'learn'],
     '강지훈': ['ebook'],
     '향기(필명)': ['webtoon'],
-    '윤채린': ['hair', 'agetransform', 'lookalike'],
+    '윤채린': ['hair', 'outfit', 'agetransform', 'lookalike'],
 };
 
 function isGolf(persona: Persona): boolean {
