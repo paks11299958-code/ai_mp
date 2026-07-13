@@ -369,7 +369,7 @@ export const FEATURES_GRID = [
     { id: 23, numeral: 'XXIII',latin: 'Outfit', key: 'outfit',  name: '전통의상 체험',tag: 'AI 세계 의상', category: 'life',    desc: '내 얼굴 사진만 올리면 한복·기모노·치파오 등 세계 전통의상을 입은 전신 화보를 만들어드려요.',       icon: 'outfit',    palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#8E6FB7' }, personaName: '윤채린',  releasedAt: '2026-07-12' },
     { id: 18, numeral: 'XVIII',latin: 'Lookalike',key: 'lookalike',name: '연예인 매칭',tag: 'AI 닮은꼴 분석', category: 'life',    desc: '내 사진을 올리면 윤채린이 닮은 연예인을 찾아드려요. 친구에게 자랑해 보세요!',                  icon: 'face',      palette: { bg: '#F0E8F8', deep: '#C4A9E0', accent: '#8E6FB7' }, personaName: '윤채린',  releasedAt: '2026-06-24' },
     { id: 19, numeral: 'XIX', latin: 'Marketing',key: 'marketing',name: 'AI 마케팅 글쓰기',tag: 'SNS 콘텐츠 작성', category: 'create',  desc: '홍보할 주제만 적으면 아린이가 인스타 콘텐츠 초안(후킹·해시태그·측정안)을 만들어 드려요. 첫 1회 무료!', icon: 'sparkles',  palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#8E6FB7' }, personaName: '이아린',  releasedAt: '2026-06-28' },
-    { id: 20, numeral: 'XX',  latin: 'Future Me',key: 'agetransform',name: '시간여행',     tag: 'AI 나이 변환',   category: 'life',    desc: '내 사진과 나이를 넣으면 윤채린이 미래(노화)의 모습을 보여드려요. Before/After 슬라이더로 확인!',  icon: 'face',      palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#9B5FA8' }, personaName: '윤채린',  releasedAt: '2026-06-21' },
+    { id: 20, numeral: 'XX',  latin: 'Time Travel',key: 'agetransform',name: '시간여행',     tag: 'AI 나이 변환',   category: 'life',    desc: '내 사진과 나이를 넣으면 윤채린이 과거(젊은 시절)와 미래(노화)의 모습을 보여드려요. Before/After 슬라이더로 확인!',  icon: 'face',      palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#9B5FA8' }, personaName: '윤채린',  releasedAt: '2026-06-21' },
     { id: 21, numeral: 'XXI', latin: 'Tarot',   key: 'tarot',   name: '타로점',         tag: 'AI 타로 리딩',   category: 'fortune', desc: '카드를 직접 섞고 세 장을 뽑으면 타로술사 유나가 과거·현재·미래를 읽어드려요.',                icon: 'tarot',     palette: { bg: '#EFE7F7', deep: '#B79BD9', accent: '#6E4A9E' }, personaName: '유나',    releasedAt: '2026-07-06' },
     { id: 22, numeral: 'XXII',latin: 'Learn',   key: 'learn',   name: 'AI로 홈페이지 만들기', tag: '무료 학습자료', category: 'info', desc: '코딩 몰라도 OK! AI로 홈페이지를 만들어 내 컴퓨터에서 띄워보는 5단계 무료 강의. 지우가 함께해요.', icon: 'book',      palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우',    releasedAt: '2026-07-10' },
 ];
@@ -398,7 +398,7 @@ export const FEATURE_SYNONYMS: Record<string, string[]> = {
     hair:        ['헤어', '머리', '미용', '스타일', '뷰티', '헤어스타일', '펌', '염색', '이발', '미용실'],
     lookalike:   ['닮은꼴', '닮은연예인', '연예인', '닮은', '얼굴', '나랑닮은', '유명인', '셀럽'],
     marketing:   ['마케팅', '홍보', 'sns', '인스타', '광고', '콘텐츠', '글쓰기', '피드', '해시태그', '게시물', '바이럴'],
-    agetransform:['나이변환', '노화', '늙은', '미래의나', '나이든', '늙으면', '변환', '얼굴변환', '나이', '미래모습'],
+    agetransform:['나이변환', '노화', '늙은', '미래의나', '나이든', '늙으면', '변환', '얼굴변환', '나이', '미래모습', '시간여행', '회춘', '젊어', '동안', '어릴때', '과거모습'],
     outfit:      ['전통의상', '의상', '한복', '기모노', '치파오', '나라의상', '세계의상', '옷', '입어보기', '코스프레', '전통복', '민속의상', '드레스', '체험'],
     learn:       ['학습', '학습자료', '강의', '홈페이지', '홈페이지만들기', '웹사이트', '사이트제작', '코딩', '배우기', '교육', '로컬호스트', '무료강의', '클로드코드'],
 };
