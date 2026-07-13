@@ -96,7 +96,8 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const myDecade = ageToDecade(ageNum);
     // 선택 가능한 연대 = 내 연대를 뺀 나머지(회춘·노화 모두). 대표 나이로 변환해 pick.
     const selectableDecades = DECADES.filter(d => d !== myDecade);
-    const togglePick = (a: number) => setPicks(p => p.includes(a) ? p.filter(x => x !== a) : (p.length >= 3 ? p : [...p, a]));
+    // 1개만 선택(라디오 방식): 같은 걸 다시 누르면 해제, 다른 걸 누르면 교체.
+    const togglePick = (a: number) => setPicks(p => p.includes(a) ? [] : [a]);
 
     const [generating, setGenerating] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
@@ -274,23 +275,22 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
 
-                            {/* 볼 나이 선택(최대 3개) — 가로 스크롤로 10대~80대. 내 연대는 제외(회춘·노화 모두). */}
+                            {/* 볼 나이 선택(1개) — 10대~80대를 한 줄에 균등 분할(스크롤 없이 다 보임). 내 연대 제외. */}
                             {preview && (
                                 <div>
-                                    <p className="text-[11px] text-[#9089A1] mb-1.5 px-1">보고 싶은 나이대를 골라주세요 (최대 3개, 좌우로 스크롤)</p>
-                                    <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-1 -mx-1 px-1" style={{ scrollSnapType: 'x proximity' }}>
+                                    <p className="text-[11px] text-[#9089A1] mb-1.5 px-1">보고 싶은 나이대를 골라주세요 <span className="text-[#B79AC9]">(1개)</span></p>
+                                    <div className="flex gap-1">
                                         {selectableDecades.map(d => {
                                             const a = decadeToAge(d);
                                             const on = picks.includes(a);
                                             const past = a < ageNum;
                                             return (
                                                 <button key={d} onClick={() => togglePick(a)}
-                                                    style={{ scrollSnapAlign: 'center', minWidth: 72 }}
-                                                    className={`flex-shrink-0 py-2.5 px-2 rounded-xl text-xs font-bold leading-tight border transition-colors ${
+                                                    className={`flex-1 min-w-0 py-2 px-0.5 rounded-lg font-bold leading-tight border transition-colors ${
                                                         on ? 'bg-[#9B5FA8] text-white border-[#9B5FA8]' : 'bg-white text-[#8a5296] border-[#EADBF5]'
                                                     }`}>
-                                                    {on ? '✓ ' : ''}{d}대<br />
-                                                    <span className="text-[10px] font-medium opacity-80">{past ? '↩ ' : '↪ '}{yearsLabel(a, ageNum)}</span>
+                                                    <span className="text-[11px]">{d}대</span><br />
+                                                    <span className="text-[8px] font-medium opacity-75">{past ? '↩' : '↪'}{Math.abs(a - ageNum)}년</span>
                                                 </button>
                                             );
                                         })}
@@ -306,7 +306,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                 {generating ? '변환 중…'
                                     : busy ? `⏳ 지금 혼잡해요 · ${busyRetrySec}초 후 다시`
                                     : picks.length === 0 ? '🕰️ 볼 나이를 선택하세요'
-                                    : `🕰️ 시간 여행 떠나기 · ${picks.length}장 · ${picks.length * UNIT_PT}pt`}
+                                    : `🕰️ 시간 여행 떠나기 · ${UNIT_PT}pt`}
                             </button>
                         </>
                     )}
