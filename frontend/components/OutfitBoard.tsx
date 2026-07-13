@@ -12,6 +12,21 @@ const T = {
     inkSoft: '#5B5168', inkMute: '#9089A1', accent: '#8E6FB7', accent2: '#A98AD0',
 };
 
+// 국기: 이모지(🇰🇷)는 Windows에서 'KR' 글자로 폴백돼 깨짐 → 우리 서버의 국기 이미지(public/flags/*.svg,
+// twemoji MIT)를 <img>로 표시해 모든 OS 동일. 나라 이름(DB country)→파일 매핑. 새 나라=SVG 추가+여기 한 줄.
+const FLAG_FILE: Record<string, string> = {
+    '대한민국': 'kr', '일본': 'jp', '중국': 'cn',
+};
+const CountryFlag: React.FC<{ country: string; size?: number }> = ({ country, size = 24 }) => {
+    const code = FLAG_FILE[country];
+    if (!code) return null; // 미매핑 나라는 국기 생략(카드 나라명 텍스트로 대체)
+    return (
+        <img src={`/flags/${code}.svg`} alt={`${country} 국기`} width={size} height={Math.round(size * 0.72)}
+             loading="lazy" decoding="async"
+             style={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.18)', objectFit: 'cover', display: 'block' }} />
+    );
+};
+
 export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const { priceOf, requirePoints } = usePoints();
     const cost = priceOf('outfit');
@@ -282,7 +297,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                         boxShadow: selected?.id === s.id ? `0 6px 16px -6px ${T.accent}66` : 'none',
                                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                                     }}>
-                                        <span style={{ fontSize: 34, lineHeight: 1 }}>{s.emoji ?? '👘'}</span>
+                                        <CountryFlag country={s.country} size={46} />
                                         <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === s.id ? T.accent : T.ink }}>{s.name}</span>
                                         <span style={{ fontSize: 10, color: T.inkMute }}>{s.country}</span>
                                     </button>
