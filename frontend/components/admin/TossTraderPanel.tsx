@@ -12,6 +12,30 @@ import { Icon } from '../Icons';
 const won = (n: any) => (n == null ? '-' : Number(n).toLocaleString() + '원');
 const pct = (n: any) => (n == null ? '-' : Number(n) + '%');
 
+// 수익률 화면 표기 헬퍼 — 한국 주식 관례: 이익=빨강(▲), 손실=파랑(▼).
+// (토스·증권사 앱과 동일. 서구식 초록/빨강과 반대이므로 주의.)
+const signWon = (n: any) => {
+    if (n == null || !Number.isFinite(Number(n))) return '-';
+    const v = Number(n);
+    return (v > 0 ? '+' : '') + v.toLocaleString() + '원';
+};
+const signPct = (n: any, digits = 2) => {
+    if (n == null || !Number.isFinite(Number(n))) return '-';
+    const v = Number(n);
+    return (v > 0 ? '+' : '') + v.toFixed(digits) + '%';
+};
+// 이익=빨강 / 손실=파랑 / 0=회색 (한국 관례)
+const pnlColor = (n: any) => {
+    const v = Number(n);
+    if (!Number.isFinite(v) || v === 0) return 'text-gray-300';
+    return v > 0 ? 'text-red-400' : 'text-blue-400';
+};
+const pnlArrow = (n: any) => {
+    const v = Number(n);
+    if (!Number.isFinite(v) || v === 0) return '';
+    return v > 0 ? '▲' : '▼';
+};
+
 // 봇 로그 표시 시각 = 한국시간(KST).
 // 2026-07-09부터 봇 logger.py 가 KST 로 직접 찍고 라인에 " KST" 표기를 붙인다.
 //  - "KST" 표기가 있으면 이미 한국시간 → 그대로 둔다(이중변환 방지).
@@ -36,7 +60,7 @@ const LOG_SCROLL_CSS = `
 `;
 
 // 워크플로우 순서: 발굴(찾기) → 선택(확정·설정) → 모니터링(실행 현황) → 평가(점수 근거) → 로그 → 설정
-type View = 'scan' | 'select' | 'monitor' | 'score' | 'log' | 'settings';
+type View = 'scan' | 'select' | 'profit' | 'monitor' | 'score' | 'log' | 'settings';
 type LogFilter = 'all' | 'info' | 'order' | 'error';
 
 export const TossTraderPanel: React.FC = () => {
@@ -366,11 +390,153 @@ export const TossTraderPanel: React.FC = () => {
                 <ViewTab on={view === 'select'} onClick={() => setView('select')} icon="CheckCircle">
                     선택{effChecked.length > 0 && <span className="ml-1 text-[10px] bg-blue-600/70 text-white rounded px-1">{effChecked.length}</span>}
                 </ViewTab>
+                <ViewTab on={view === 'profit'} onClick={() => setView('profit')} icon="TrendingUp">수익률</ViewTab>
                 <ViewTab on={view === 'monitor'} onClick={() => setView('monitor')} icon="Activity">모니터링</ViewTab>
                 <ViewTab on={view === 'score'} onClick={() => setView('score')} icon="BarChart2">평가</ViewTab>
                 <ViewTab on={view === 'log'} onClick={() => setView('log')} icon="Server">로그</ViewTab>
                 <ViewTab on={view === 'settings'} onClick={() => setView('settings')} icon="Settings">설정</ViewTab>
             </div>
+
+            {/* ── 수익률 탭 (토스 '내 투자' 스타일 대표 화면) ── */}
+            {view === 'profit' && (() => {
+                if (!st) {
+                    return <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-6 text-center">봇 상태를 불러오는 중입니다…</div>;
+                }
+                // ── 계좌 전체 수익률: (총평가액 − 초기자본) / 초기자본 ──
+                const equity = Number(st.equityKrw);
+                const initCap = Number(st.initialCapitalKrw);
+                const hasEquity = Number.isFinite(equity) && equity > 0;
+                const hasInit = Number.isFinite(initCap) && initCap > 0;
+                const totalPnl = hasEquity && hasInit ? equity - initCap : null;      // 총손익(실현+미실현)
+                const totalPct = totalPnl != null ? (totalPnl / initCap) * 100 : null;
+
+                // ── 보유 종목별 평가손익 (미실현) ──
+                // 장중엔 st.symbols[]에 평단·현재가·수량이 담김. 보유(avgPrice 있고 수량>0)만.
+                const rows: any[] = Array.isArray(st.symbols) ? st.symbols : [];
+                const holdings = rows.filter(s => s.avgPrice && Number(s.avgPrice) > 0
+                    && (s.quantity == null || Number(s.quantity) > 0));
+                const holdMetric = (s: any) => {
+                    const avg = Number(s.avgPrice);
+                    const cur = Number(s.lastPrice);
+                    const qty = s.quantity != null && Number.isFinite(Number(s.quantity)) ? Number(s.quantity) : null;
+                    const okPrice = Number.isFinite(avg) && avg > 0 && Number.isFinite(cur) && cur > 0;
+                    const pctVal = okPrice ? ((cur - avg) / avg) * 100 : null;         // 미실현 수익률
+                    const amtVal = okPrice && qty != null ? (cur - avg) * qty : null;  // 미실현 금액(수량 필요)
+                    return { avg, cur, qty, pctVal, amtVal };
+                };
+                // 보유분 미실현 손익 합계(금액 계산 가능한 종목만)
+                const unrealTotal = holdings.reduce((acc, s) => {
+                    const m = holdMetric(s); return acc + (m.amtVal != null ? m.amtVal : 0);
+                }, 0);
+                const anyAmt = holdings.some(s => holdMetric(s).amtVal != null);
+
+                const realizedToday = Number(st.realizedPnl);
+                const realizedTotal = st.realizedPnlTotalKrw;
+                const marketClosed = st.marketOpen === false;
+
+                return (
+                    <div className="space-y-4">
+                        {/* 🏆 대표 카드 — 총평가액 + 계좌 전체 손익 */}
+                        <div className="rounded-2xl px-5 py-5 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700">
+                            <div className="text-xs text-gray-400 mb-1">내 투자 · 총 평가금액</div>
+                            <div className="text-3xl font-bold text-gray-50 tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                {hasEquity ? equity.toLocaleString() : '-'}<span className="text-lg text-gray-400 font-medium ml-1">원</span>
+                            </div>
+                            {totalPnl != null ? (
+                                <div className={`mt-1.5 text-base font-bold flex items-center gap-1.5 ${pnlColor(totalPnl)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    <span>{pnlArrow(totalPnl)} {signWon(totalPnl)}</span>
+                                    <span className="text-sm">({signPct(totalPct)})</span>
+                                </div>
+                            ) : (
+                                <div className="mt-1.5 text-xs text-gray-500">
+                                    {!hasInit ? '초기자본(원금) 미설정 — 서버 config의 INITIAL_CAPITAL_KRW 필요' : '평가금액 산출 대기(봇 갱신)'}
+                                </div>
+                            )}
+                            {hasInit && (
+                                <div className="mt-3 pt-3 border-t border-gray-700/60 flex items-center justify-between text-[11px] text-gray-500">
+                                    <span>원금(초기자본) {initCap.toLocaleString()}원</span>
+                                    <span className={stale ? 'text-red-300' : ''}>{data?.staleSeconds != null ? `${data.staleSeconds}s 전 갱신` : ''}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 실현 / 미실현 손익 요약 2칸 */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-gray-800 rounded-xl px-4 py-3">
+                                <div className="text-[11px] text-gray-500 mb-1">누적 실현손익</div>
+                                <div className={`text-lg font-bold ${pnlColor(realizedTotal)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {realizedTotal == null ? '-' : signWon(realizedTotal)}
+                                </div>
+                                <div className="text-[10px] text-gray-500 mt-0.5">지금까지 사고팔아 확정된 손익 누계</div>
+                            </div>
+                            <div className="bg-gray-800 rounded-xl px-4 py-3">
+                                <div className="text-[11px] text-gray-500 mb-1">오늘 실현손익</div>
+                                <div className={`text-lg font-bold ${pnlColor(realizedToday)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {Number.isFinite(realizedToday) ? signWon(realizedToday) : '-'}
+                                </div>
+                                <div className="text-[10px] text-gray-500 mt-0.5">오늘 확정된 손익(장 마감 시 리셋)</div>
+                            </div>
+                        </div>
+
+                        {/* 📈 보유 종목별 평가손익(미실현) */}
+                        <div className="bg-gray-800 rounded-xl overflow-hidden">
+                            <div className="text-[11px] font-medium text-gray-400 px-4 py-2.5 border-b border-gray-700 bg-gray-800/80 flex items-center justify-between">
+                                <span>📈 보유 종목 평가손익 {holdings.length > 0 && <span className="text-gray-500">({holdings.length})</span>}</span>
+                                {anyAmt && (
+                                    <span className={`text-xs font-bold ${pnlColor(unrealTotal)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        합계 {signWon(unrealTotal)}
+                                    </span>
+                                )}
+                            </div>
+                            {holdings.length > 0 ? (
+                                <div className="divide-y divide-gray-700/60">
+                                    {holdings.map((s: any) => {
+                                        const m = holdMetric(s);
+                                        return (
+                                            <div key={s.symbol} className="px-4 py-3">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span className="text-sm text-gray-100 font-medium">
+                                                        {s.symbolName && s.symbolName !== s.symbol ? s.symbolName : symName(s.symbol)}
+                                                        <span className="text-[10px] text-gray-500 ml-1.5">{s.symbol}</span>
+                                                        {m.qty != null && <span className="text-[10px] text-gray-400 ml-1.5">{m.qty}주</span>}
+                                                    </span>
+                                                    <span className={`text-sm font-bold ${pnlColor(m.pctVal)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                        {pnlArrow(m.pctVal)} {signPct(m.pctVal)}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between text-[11px] text-gray-500" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                    <span>평단 {won(m.avg)} → 현재 {won(m.cur)}</span>
+                                                    {m.amtVal != null
+                                                        ? <span className={pnlColor(m.amtVal)}>{signWon(m.amtVal)}</span>
+                                                        : <span className="text-gray-600">금액=수량 확인 중</span>}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="px-4 py-6 text-center text-sm text-gray-500">
+                                    {marketClosed
+                                        ? '🌙 지금은 장외 시간이라 실시간 보유 스냅샷이 없습니다. 보유 종목이 있으면 장중(평일 09:00~15:30)에 종목별 평가손익이 여기 표시됩니다.'
+                                        : '현재 보유 중인 종목이 없습니다. (봇이 매수하면 여기에 실시간 평가손익이 표시됩니다.)'}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* 설명 */}
+                        <details className="bg-gray-800/40 rounded-lg border border-gray-700/60">
+                            <summary className="text-xs text-gray-400 px-3 py-2 cursor-pointer select-none hover:text-gray-200">ℹ️ 이 수치들은 어떻게 계산되나요? (펼치기)</summary>
+                            <div className="text-[11px] text-gray-400 px-3 pb-3 space-y-1.5 leading-relaxed">
+                                <div><b className="text-gray-300">총 평가금액</b> — 지금 계좌를 다 팔면 받는 돈(보유주식 현재가 평가 + 현금). 봇이 증권 API로 실측.</div>
+                                <div><b className="text-gray-300">계좌 전체 손익 / 수익률</b> — (총평가액 − 원금) ÷ 원금. 원금=입금액(INITIAL_CAPITAL_KRW). 실현+미실현이 모두 반영된 진짜 성과입니다.</div>
+                                <div><b className="text-gray-300">누적 실현손익</b> — 시작 이후 실제로 사고팔아 확정된 손익 총합.</div>
+                                <div><b className="text-gray-300">보유 종목 평가손익</b> — 아직 안 판 종목의 (현재가 − 평단) × 수량. 팔기 전이라 '평가상' 손익(미실현).</div>
+                                <div className="text-gray-500 pt-1 border-t border-gray-700/40">🇰🇷 색: <span className="text-red-400">빨강 ▲ 이익</span> / <span className="text-blue-400">파랑 ▼ 손실</span> (한국 증권 관례, 토스와 동일).</div>
+                            </div>
+                        </details>
+                    </div>
+                );
+            })()}
 
             {/* ── 모니터링 탭 ── */}
             {view === 'monitor' && st && (() => {
