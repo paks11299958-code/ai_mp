@@ -940,7 +940,14 @@ const PersonaSelectPanel: React.FC<{
                     <div style={{ fontSize: 11, color: gold, letterSpacing: '0.08em', opacity: 0.85, marginBottom: 3, fontWeight: 500 }}>{feat.latin}</div>
                     <div style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 19, fontWeight: 700, color: feat.palette.accent, lineHeight: 1.15 }}>{feat.name}</div>
                     {catchCopy && !subItems && (
-                        <div style={{ marginTop: 4, fontSize: 10.5, lineHeight: 1.3, color: T.ink, opacity: 0.78, fontWeight: 500, wordBreak: 'keep-all', padding: '0 2px' }}>
+                        <div style={{
+                            marginTop: 5, paddingTop: 5,
+                            borderTop: `1px solid ${gold}33`,
+                            fontFamily: "'Pretendard', system-ui, sans-serif",
+                            fontSize: 10, lineHeight: 1.35, letterSpacing: '-0.01em',
+                            color: feat.palette.accent, opacity: 0.72, fontWeight: 500,
+                            wordBreak: 'keep-all', padding: '5px 4px 0',
+                        }}>
                             {catchCopy}
                         </div>
                     )}
@@ -1379,6 +1386,9 @@ const PersonaSelectPanel: React.FC<{
                                     )}
                                     <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={32} color={f.palette.accent} bg={f.palette.bg} /></div>
                                     <div style={{ fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                                    {(f as any).catch && (
+                                        <div style={{ fontSize: 10.5, color: f.palette.accent, opacity: 0.82, marginTop: 3, lineHeight: 1.3, wordBreak: 'keep-all', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{(f as any).catch}</div>
+                                    )}
                                     <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
                                 </button>
                             ))}
@@ -1421,6 +1431,9 @@ const PersonaSelectPanel: React.FC<{
                                     )}
                                     <div style={{ marginBottom: 8 }}><MpnFeatureIcon kind={f.icon} size={32} color={f.palette.accent} bg={f.palette.bg} /></div>
                                     <div style={{ fontSize: 12.5, fontWeight: 700, color: T.ink, lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</div>
+                                    {(f as any).catch && (
+                                        <div style={{ fontSize: 10.5, color: f.palette.accent, opacity: 0.82, marginTop: 3, lineHeight: 1.3, wordBreak: 'keep-all', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{(f as any).catch}</div>
+                                    )}
                                     <div style={{ fontSize: 10, color: T.inkMute, marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.personaName}</div>
                                 </button>
                             ))}
