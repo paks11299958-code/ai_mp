@@ -4,13 +4,15 @@
 
 ## 흐름
 1. 윤채린 채팅 '전통의상' 버튼 (또는 기능 둘러보기 카드)
-2. 내 얼굴 사진 업로드(정면 셀카 OK, 전신 불필요) → 성별(👸 여성/🤴 남성, **디폴트 여성**) → 나라 선택(이모지 카드)
+2. 내 얼굴 사진 업로드(정면 셀카 OK, 전신 불필요) → 성별(👸 여성/🤴 남성, **디폴트 여성**) → 나라 선택(국기 카드)
 3. "✨ 입어보기" → ~10초 → 전신 화보 결과 + 📥 갤러리 저장 + 🔍 크게 보기 + 친구에게 자랑하기
 
 ## 구성
 
 ### DB — OutfitStyle (남3/여3)
-`styleKey · name · country · gender · emoji · imageUrl(nullable) · promptEn · order · isVisible`. HairStyle 구조 복제(gender→성별, country 추가). 견본 이미지는 없이 이모지(국기)로 표시. raw SQL CREATE + schema.prisma 반영(generate).
+`styleKey · name · country · gender · emoji · imageUrl(nullable) · promptEn · order · isVisible`. HairStyle 구조 복제(gender→성별, country 추가). raw SQL CREATE + schema.prisma 반영(generate).
+
+**★국기 표시(2026-07-13)**: 카드에 나라 국기를 보여준다. 국기 이모지(🇰🇷)는 **Windows 크롬에서 'KR' 글자로 폴백돼 깨짐**(OS별 지역표시문자 지원 차이) → **twemoji 국기 SVG(MIT)를 `public/flags/kr·jp·cn.svg`에 저장**하고 `<img src="/flags/{code}.svg">`로 표시(외부 CDN 의존 X, 모든 OS 동일). `FLAG_FILE` 매핑(나라명→코드). 새 나라 추가 시 SVG 파일 + 매핑 한 줄. (DB emoji 컬럼은 유지하나 카드는 국기 이미지 사용)
 - 남: 한복(왕)곤룡포 · 기모노(천황) · 용포(황제)
 - 여: 한복(왕비)원삼 · 기모노(황후) · 봉의(황후)
 
@@ -25,6 +27,7 @@
 **프롬프트 구조 = 나라별 의상(DB) + 공통 연출(코드):**
 - 나라별 의상 = DB `promptEn` (왕실 완전세트를 나라마다 명시: 관모+상의+하의)
 - 공통 연출(코드) = ①왕실 완전세트(head-to-toe, no bare head/missing lower garment) ②8등신·작은 얼굴 모델 비율(small head, 8-head-tall, long slender legs) ③은은한 대칭 비네팅 배경(★split/diagonal/abrupt boundary 금지 = 반반색 오류 방지, 완전 균일 단색은 밋밋해서 회피) ④여성=발끝까지 긴 치마로 다리 완전히 덮기(맨다리 노출 합성오류 방지)
+- **★얼굴 보존 프롬프트 강화(2026-07-13, A/B 검증 후 배포)**: 전신 생성 과정에서 얼굴이 어리고 갸름한 미인형으로 변형되던 문제 → 기존 "Keep the exact same facial features and identity" 한 줄을 "얼굴은 원본 정확 복제(눈·코·입·얼굴형·턱선·나이 유지, 성형·미화 금지)"로 강화. ★헤어와 달리 **"몸·의상·배경은 새로 생성 유지"를 명시**(전신 생성 기능이라 "얼굴만 변경금지"만 넣으면 안 됨). A/B(여왕비·남왕) 원본 얼굴 보존 확연 개선 실증. 원가 영향 없음(이미지 정액과금). 헤어 동일 강화와 세트. 시간여행(age-transform)은 **의도적 미적용**(노화=얼굴 변형이 목적).
 - `gender` 파라미터(디폴트 female): 여성=`as an elegant graceful woman`+다리 덮기 규칙, 남성=`as a dignified man`.
 - 비용/속도 ~53원·9~10초(헤어와 동일 엔진).
 

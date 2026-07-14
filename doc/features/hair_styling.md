@@ -11,11 +11,14 @@
 
 ## 구성
 
-### DB — HairStyle (남8/여8)
-`styleKey · name · gender · imageUrl · promptEn · order · isVisible`. 견본은 Imagen 생성물, GCS `hairstyles/`. (db_schema.md 참조)
+### DB — HairStyle (남24/여24, 총 48종 · 2026-07-13 트렌디 16종 추가)
+`styleKey · name · gender · imageUrl · promptEn · order · isVisible`. 견본은 gemini-2.5-flash-image 생성물, GCS `hairstyles/{styleKey}.png`. (db_schema.md 참조)
+- **2026-07-13 트렌디 16종 추가**(32→48): 여8=커튼뱅레이어드·글램웨이브·허쉬울프·물결펌·슬릭번·숏울프·태슬컷·플로우펌 / 남8=리젠트·커튼컷·다운펌·힙합펌·이루마펌·페이드·가르마다운펌·물결펌 (order 32~47). 프론트 `/styles` 실시간 조회라 **배포 불필요, 새로고침 즉시 반영**.
 
 ### 헤어 견본 생성 (일회성)
-- 모델 `imagen-3.0-generate-002` (Vertex, **us-central1**)
+- 모델: 초기 imagen-3.0 → **2026-07-13부터 `gemini-2.5-flash-image`(합성과 동일, Vertex global)** text→image로 견본 생성. 완성도 imagen 동등 이상.
+- 상주 스크립트: `shared-api/scripts/gen_hair_samples.ts`(SAMPLES 배열만 교체→서버1 로컬 저장) + `upload_hair_samples.ts`(GCS 업로드+DB upsert; ★prisma/storage는 dotenv 이후 **동적 import** 필수). 워크플로=파일럿 2~3종 검수→통과 후 전체→전부 검수(기존 규격 재현: 정면 상반신·라이트그레이 배경·무지니트·1024 정사각).
+- (구) 모델 `imagen-3.0-generate-002` (Vertex, **us-central1**)
 - ⚠️ Imagen 분당 쿼터가 빡빡(2~3건/분) → 429 시 70초 대기 재시도 + 장당 18초 간격으로 16장 생성
 - 추가/교체 시에만 재생성. 어드민 등록 화면은 아직 없음(필요 시 추가)
 
@@ -24,6 +27,7 @@
 - `POST /api/aimp/hair/analyze` — 인증 필요. 텍스트 진단 + 합성을 **Promise.all 병렬**
   - `analyzeHairStyle()` — Gemini 2.5 Flash, 사진 inlineData → JSON 진단 (관상/손금과 동일 패턴, 윤채린 systemInstruction 주입)
   - `generateHairTryOn()` — **합성**. 합성 실패해도 null 반환해 텍스트 진단은 살림
+    - **★얼굴 보존 프롬프트 강화(2026-07-13, A/B 검증 후 배포)**: 합성 시 얼굴이 갸름·V라인화되던 문제 → "헤어만 변경, 눈·코·입·얼굴형·턱선·나이 원본 정확 보존, 성형·미화 금지"로 강화. **우리는 Gemini(나노바나나) API라 SD계열 ControlNet/InsightFace/Denoising Strength 개념 없음** → 프롬프트 강화가 정답. A/B(여·남) 원본 얼굴 보존 확연 개선 실증. 원가 영향 없음(이미지 정액과금).
 - `lib/gemini.ts`에 두 함수, `routes/aimp/hair.ts` 라우트
 
 ### ★ AI 헤어 합성 (gemini-2.5-flash-image / nano-banana)

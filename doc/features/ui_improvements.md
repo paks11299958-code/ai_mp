@@ -1,5 +1,11 @@
 # UI 개선 이력
 
+## 사이트 로고 교체 — Ploppy 브랜드 (2026-07-14)
+- **'✦ AI PERSONAS' 텍스트 → Ploppy 로고**(헤더·푸터, MainPageNew.tsx): 산호+민트 두 말풍선 캐릭터 이미지 + "Ploppy" 워드마크. 홈 이동 버튼 동작은 유지.
+- **로고 파일**: `public/ploppy-logo.png`(투명 배경 캐릭터). ★**Vite publicDir=레포 루트 `public/`**(frontend/public 아님) → `<img src="/ploppy-logo.png">`. 원본·후보는 `public/brand/`에 git 보관.
+- **워드마크 폰트**: Quicksand(index.html 구글폰트 추가). ★지정 폰트가 로드 안 되면 fallback으로 떠서 미리보기와 달라짐 — 폰트 로드 확인 필수. Quicksand 최대 굵기 700(800 지정 시 fallback).
+- **로고 제작 노하우**: 사장 목업(종이 음각 홍보이미지=웹 부적합)을 gemini-2.5-flash-image로 재현→sharp 흰배경 투명화. 상세=logo-maker 스킬. ★손 SVG=조잡 실패, AI 이미지 생성이 정답.
+
 ## 기능 명칭 변경 + 채팅 칩 레이아웃 (2026-07-12)
 - **명칭 변경**(사장): 헤어스타일 진단→**헤어Style**, 미래의 나→**시간여행**, 닮은 연예인 찾기→**연예인 매칭**. 메인 카드(MainPageNew)·채팅 기능 칩(personaFeatures)·어드민 표시명(AdminPanel) 3곳 일괄. 동의어 검색 키워드는 유지(옛 이름으로도 검색 가능).
 - **채팅 칩**: 기능이 늘어 긴 라벨이 페르소나 이미지를 밀어내는 이슈 → 칩 라벨 축약(전통의상 체험→전통의상)으로 완화. 레이아웃은 이미지행 인라인(원래 방식) 유지.
