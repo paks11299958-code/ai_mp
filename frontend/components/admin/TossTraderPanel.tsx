@@ -274,7 +274,7 @@ export const TossTraderPanel: React.FC = () => {
     const setHalt = async (halt: boolean) => {
         const ask = halt
             ? '🔴 긴급정지: 봇이 미체결을 전량 취소하고 신규 주문을 중단합니다. 실행할까요?'
-            : '정지 해제 플래그를 저장합니다. 봇 재개는 서버1에서 pm2 restart 후에만 됩니다. 진행할까요?';
+            : '정지 해제 플래그만 저장합니다(봇 재시작은 안 함). 보통은 "정지 해제 + 재시작"을 쓰세요. 진행할까요?';
         if (!window.confirm(ask)) return;
         setSaving(true);
         try {
@@ -282,6 +282,36 @@ export const TossTraderPanel: React.FC = () => {
             await load();
         } catch (e: any) {
             setSaveMsg(`처리 실패: ${e?.message || '오류'}`);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // 🔴 긴급정지 해제 + 봇 재시작을 한 번에(래치 해제). 리스크 halt(위험 감지)면
+    // 서버가 409로 막고, 사용자가 원인 확인 후 force 로 재확인해야 진행된다.
+    const restartBot = async (force = false) => {
+        const ask = force
+            ? '⚠️ 리스크 정지(위험 감지)를 무시하고 재시작합니다. 원인을 확인하셨습니까? 계속할까요?'
+            : '정지를 해제하고 봇을 재시작합니다(래치 해제). 재시작 후 정상 가동됩니다. 진행할까요?';
+        if (!window.confirm(ask)) return;
+        setSaving(true);
+        setSaveMsg('봇 재시작 중… (최대 15초)');
+        try {
+            const r = await adminApi.restartTossBot(force);
+            setSaveMsg(r?.message || '재시작 완료');
+            await load();
+        } catch (e: any) {
+            // 409 risk_halt = 위험 정지라 force 재확인 유도
+            const detail = e?.response?.data || e?.data || {};
+            if (detail?.error === 'risk_halt' || /risk_halt|리스크/.test(e?.message || '')) {
+                if (window.confirm(`${detail?.message || '리스크 정지 상태입니다.'}\n\n그래도 재시작하시겠습니까?`)) {
+                    setSaving(false);
+                    return restartBot(true);
+                }
+                setSaveMsg('재시작 취소(리스크 정지 확인 필요).');
+            } else {
+                setSaveMsg(`재시작 실패: ${detail?.message || e?.message || '오류'}`);
+            }
         } finally {
             setSaving(false);
         }
@@ -342,10 +372,10 @@ export const TossTraderPanel: React.FC = () => {
                     토스 자동매매 봇
                 </h3>
                 <div className="flex items-center gap-2">
-                    {haltActive ? (
-                        <button onClick={() => setHalt(false)} disabled={saving}
-                            className="text-xs px-3 py-1.5 rounded bg-amber-700 hover:bg-amber-600 text-white font-medium disabled:opacity-50">
-                            정지 해제 플래그
+                    {(haltActive || st?.webHalt || halted) ? (
+                        <button onClick={() => restartBot(false)} disabled={saving}
+                            className="text-xs px-3 py-1.5 rounded bg-green-700 hover:bg-green-600 text-white font-bold disabled:opacity-50">
+                            ▶ 정지 해제 + 재시작
                         </button>
                     ) : (
                         <button onClick={() => setHalt(true)} disabled={saving}
@@ -363,7 +393,7 @@ export const TossTraderPanel: React.FC = () => {
             {(haltActive || st?.webHalt) && (
                 <div className="text-xs bg-red-900/40 border border-red-700/60 rounded-lg px-3 py-2 text-red-200">
                     🔴 <b>웹 긴급정지 {haltActive ? '활성' : '플래그는 해제됨(봇은 아직 정지 유지)'}</b> — 봇이 신규 주문을 중단하고 미체결을 취소했습니다.
-                    재개 절차: 정지 해제 플래그 저장 → 서버1에서 <code className="text-red-100">pm2 restart toss-trader</code> (수동 재시작 원칙).
+                    재개하려면 위의 <b className="text-green-300">▶ 정지 해제 + 재시작</b> 버튼을 누르세요(해제 후 봇이 자동 재시작됩니다).
                 </div>
             )}
 
