@@ -112,11 +112,11 @@ const AppContent: React.FC = () => {
         pointApi.getBalance().then(d => { setUserPaidPoints(d.paidPoints); setUserBonusPoints(d.bonusPoints); }).catch(() => {});
     }, [setUserPaidPoints, setUserBonusPoints]);
 
-    // 로그인/가입 성공 — 신규 가입이면 환영 알럿(가입 보너스 500P) 표시
+    // 로그인/가입 성공 — 신규 가입이면 환영 알럿(가입 보너스 1,000P = 백엔드 SIGNUP_BONUS와 동일) 표시
     const handleAuthSuccessWithWelcome = useCallback((u: User, token: string, isNewUser?: boolean) => {
         handleAuthSuccess(u, token);
         setShowAuthModal(false); // 로그인 모달 닫기(딥링크 진입 시 모달 잔존 방지)
-        if (isNewUser) setRewardAlert({ kind: 'welcome', amount: 500 });
+        if (isNewUser) setRewardAlert({ kind: 'welcome', amount: 1000 });
         // 공유 딥링크(?p / ?f) 대기 중이면 user 변경 감지 useEffect가 해당 화면으로 진입시킨다.
     }, [handleAuthSuccess, setShowAuthModal]);
 

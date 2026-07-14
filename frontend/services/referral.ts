@@ -104,3 +104,13 @@ export async function shareResultImage(imageUrl: string, featureKey: string, cap
     }
     catch { return link; }
 }
+
+// 마케팅 채널 코드(유튜브 숏츠 QR 등) — 회원 추천코드가 아니라 유입 소스 표시.
+// 가입 배너 문구 분기("친구가 초대" vs "환영") + 백엔드 채널 가입 측정과 짝(2026-07-14).
+// 새 채널 추가 시 여기와 shared-api lib/referral.ts CHANNEL_CODES 둘 다 갱신.
+export const CHANNEL_CODES = ['YOUTUBE', 'SHORTS', 'INSTA', 'INSTAGRAM', 'THREADS', 'BLOG', 'NAVER'];
+
+/** 보관된 ref가 마케팅 채널 코드인지(친구 추천코드가 아닌지). */
+export function isChannelRef(code?: string): boolean {
+    return !!code && CHANNEL_CODES.includes(code.trim().toUpperCase());
+}

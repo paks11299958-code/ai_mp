@@ -10,16 +10,18 @@ interface Funnel {
 }
 interface TopRow { code: string; invited: number; rewarded: number; owner_name: string | null }
 interface DailyRow { day: string; n: number }
+interface ChannelRow { code: string; visits: number; signups: number }
 
 export const ReferralStatsPanel: React.FC = () => {
     const [funnel, setFunnel] = useState<Funnel | null>(null);
     const [top, setTop] = useState<TopRow[]>([]);
     const [daily, setDaily] = useState<DailyRow[]>([]);
+    const [channels, setChannels] = useState<ChannelRow[]>([]);
     const [error, setError] = useState('');
 
     useEffect(() => {
         adminApi.referralStats()
-            .then(d => { setFunnel(d.funnel); setTop(d.top); setDaily(d.dailyVisits); })
+            .then(d => { setFunnel(d.funnel); setTop(d.top); setDaily(d.dailyVisits); setChannels(d.channels || []); })
             .catch(e => setError(e?.message || '조회 실패'));
     }, []);
 
@@ -67,6 +69,35 @@ export const ReferralStatsPanel: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                )}
+            </div>
+
+            <div>
+                <p className="text-sm font-semibold text-white mb-2">마케팅 채널 유입 (유튜브 QR 등)</p>
+                <p className="text-xs text-gray-500 mb-2">?ref=YOUTUBE 같은 채널 링크의 방문→가입 전환. 보상 없이 측정만 하는 코드입니다.</p>
+                {channels.length === 0 ? (
+                    <p className="text-xs text-gray-500">아직 채널 유입이 없습니다. — 숏츠 QR이 나가면 여기에 잡힙니다.</p>
+                ) : (
+                    <table className="w-full text-xs text-gray-300">
+                        <thead>
+                            <tr className="text-gray-500 border-b border-gray-700">
+                                <th className="text-left py-1.5">채널</th>
+                                <th className="text-right">방문</th>
+                                <th className="text-right">가입</th>
+                                <th className="text-right">전환율</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {channels.map(c => (
+                                <tr key={c.code} className="border-b border-gray-800">
+                                    <td className="py-1.5 font-mono text-gray-400">{c.code}</td>
+                                    <td className="text-right">{c.visits}</td>
+                                    <td className="text-right text-purple-300">{c.signups}</td>
+                                    <td className="text-right">{conv(c.signups, c.visits)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 )}
             </div>
 

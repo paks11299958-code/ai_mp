@@ -530,7 +530,7 @@ const GuestGate: React.FC = () => (
                     '🎨 홈페이지 디자인 시안 3종 다운로드',
                     '📋 AI에게 그대로 붙여넣는 프롬프트 모음',
                     '🆘 막혔을 때 보는 FAQ',
-                    '🎁 지금 가입하면 보너스 500P',
+                    '🎁 지금 가입하면 보너스 1,000P',
                 ].map(t => (
                     <div key={t} className="flex items-start gap-2 text-sm text-[#4A4058]"><span className="text-green-500 font-bold">✓</span>{t}</div>
                 ))}

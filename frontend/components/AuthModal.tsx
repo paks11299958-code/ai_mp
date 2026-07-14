@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { authApi } from '../services/apiService';
-import { getStoredRef, clearStoredRef } from '../services/referral';
+import { getStoredRef, clearStoredRef, isChannelRef } from '../services/referral';
 import { User } from '../types';
 import { Icon } from './Icons';
 
@@ -408,6 +408,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
             ) : (
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
 
+                    {/* 회원가입 전용: 가입 혜택 안내(실지급액과 동일 표기 — SIGNUP_BONUS=1000) */}
+                    {mode === 'register' && (
+                        <div className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                             style={{ background: '#F3E9F4', border: '1px solid #D4A8DC' }}>
+                            <span style={{ fontSize: 16 }}>🎁</span>
+                            <span className="text-xs font-semibold" style={{ color: '#7A4B96' }}>
+                                지금 가입하면 무료 <b>1,000P</b> 즉시 지급 — AI 기능 바로 체험
+                            </span>
+                        </div>
+                    )}
+
                     {/* 회원가입 전용: 이메일/전화번호 탭 */}
                     {mode === 'register' && (
                         <div className="flex rounded-xl p-1" style={{ background: '#EFE8DE' }}>
@@ -605,15 +616,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                 </div>
                 <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
                     {referralBanner && (
-                        <div className="w-full max-w-md mb-4 rounded-2xl px-5 py-4 text-center text-white shadow-lg"
-                             style={{ background: 'linear-gradient(135deg, #9B5FA8 0%, #7A4B96 100%)' }}>
-                            <div className="text-2xl mb-1">🎁</div>
-                            <div className="text-base font-bold">친구가 초대했어요!</div>
-                            <div className="text-sm mt-1 opacity-95">
-                                지금 가입하면 <span className="font-bold">1,000P</span> 적립<br />
-                                친구도 함께 <span className="font-bold">1,000P</span>를 받아요
+                        // 배너 분기(2026-07-14): 채널 코드(유튜브 QR 등)면 '환영' 문구,
+                        // 진짜 친구 추천코드면 기존 '친구 초대' 문구(양방향 보상 안내).
+                        isChannelRef(getStoredRef()) ? (
+                            <div className="w-full max-w-md mb-4 rounded-2xl px-5 py-4 text-center text-white shadow-lg"
+                                 style={{ background: 'linear-gradient(135deg, #9B5FA8 0%, #7A4B96 100%)' }}>
+                                <div className="text-2xl mb-1">🎉</div>
+                                <div className="text-base font-bold">환영해요!</div>
+                                <div className="text-sm mt-1 opacity-95">
+                                    지금 가입하면 무료 <span className="font-bold">1,000P</span> 즉시 지급<br />
+                                    AI 헤어스타일 등 기능을 바로 체험해 보세요
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <div className="w-full max-w-md mb-4 rounded-2xl px-5 py-4 text-center text-white shadow-lg"
+                                 style={{ background: 'linear-gradient(135deg, #9B5FA8 0%, #7A4B96 100%)' }}>
+                                <div className="text-2xl mb-1">🎁</div>
+                                <div className="text-base font-bold">친구가 초대했어요!</div>
+                                <div className="text-sm mt-1 opacity-95">
+                                    지금 가입하면 <span className="font-bold">1,000P</span> 적립<br />
+                                    친구도 함께 <span className="font-bold">1,000P</span>를 받아요
+                                </div>
+                            </div>
+                        )
                     )}
                     {formCard}
                 </div>

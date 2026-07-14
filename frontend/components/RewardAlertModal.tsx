@@ -74,11 +74,11 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                         </p>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#7A6A86' }}>
                             <Users size={15} style={{ color: '#8E6FB7', flexShrink: 0 }} />
-                            <span>나의 AI 페르소나 등록 <b style={{ color: '#8E6FB7' }}>+500P</b></span>
+                            <span>나의 AI 페르소나 등록 <b style={{ color: '#8E6FB7' }}>+1,000P</b></span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#7A6A86' }}>
                             <Sparkles size={15} style={{ color: '#8E6FB7', flexShrink: 0 }} />
-                            <span>나의 AI 기능 등록 <b style={{ color: '#8E6FB7' }}>+500P</b></span>
+                            <span>나의 AI 기능 등록 <b style={{ color: '#8E6FB7' }}>+1,000P</b></span>
                         </div>
                     </div>
                 )}
