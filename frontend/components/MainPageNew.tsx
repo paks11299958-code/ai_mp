@@ -1267,15 +1267,18 @@ const PersonaSelectPanel: React.FC<{
                 backdropFilter: 'blur(10px)',
             }}>
                 <div style={{ textAlign: 'left', position: 'relative' }}>
-                    <button onClick={() => onGoHome?.()} title="첫 화면으로" style={{
+                    <button onClick={() => onGoHome?.()} title="첫 화면으로" aria-label="Ploppy 홈으로" style={{
                         background: 'none', border: 'none', cursor: 'pointer',
-                        padding: 0, display: 'inline-block',
+                        padding: 0, display: 'inline-flex', alignItems: 'center', gap: 8,
                     }}>
+                        <img src="/ploppy-logo.png" alt="Ploppy" style={{
+                            height: 34, width: 'auto', display: 'block',
+                        }} />
                         <span style={{
-                            fontFamily: "'Cinzel', serif", fontSize: 13,
-                            fontWeight: 700, letterSpacing: '0.35em',
-                            color: T.gold, opacity: 1,
-                        }}>✦ AI PERSONAS</span>
+                            fontFamily: "'Quicksand', 'Verdana', system-ui, sans-serif",
+                            fontSize: 21, fontWeight: 700, letterSpacing: '-0.02em',
+                            color: T.ink, lineHeight: 1,
+                        }}>Ploppy</span>
                     </button>
                     {/* 즐겨찾기 ⭐ — 햄버거 왼쪽. 회원은 즐겨찾기 모달, 비회원은 로그인 유도 */}
                     <button
@@ -1799,10 +1802,14 @@ const PersonaSelectPanel: React.FC<{
                 marginTop: 8,
             }}>
                 <div style={{
-                    fontFamily: "'Cinzel', serif", fontSize: 12, fontWeight: 700,
-                    letterSpacing: '0.3em', color: T.gold, marginBottom: 14,
+                    display: 'inline-flex', alignItems: 'center', gap: 7,
+                    marginBottom: 14,
                 }}>
-                    ✦ AI PERSONAS
+                    <img src="/ploppy-logo.png" alt="Ploppy" style={{ height: 22, width: 'auto', display: 'block' }} />
+                    <span style={{
+                        fontFamily: "'Quicksand', 'Verdana', system-ui, sans-serif",
+                        fontSize: 15, fontWeight: 700, letterSpacing: '-0.02em', color: T.ink,
+                    }}>Ploppy</span>
                 </div>
                 <div style={{
                     display: 'flex', flexWrap: 'wrap', justifyContent: 'center',
