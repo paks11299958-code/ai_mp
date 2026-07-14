@@ -368,6 +368,22 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
                         {error && <div style={{ fontSize: 13, color: '#D9534F', marginBottom: 10, textAlign: 'center' }}>{error}</div>}
 
+                        {/* 혼잡 능동 안내(2026-07-15): 사진까지 올렸는데 혼잡이면 버튼 위에 크게 안내.
+                            선언적 렌더(상태 파생)라 풀리면 자동으로 사라짐 — 신호등(작은 배지)보다 눈에 띄게. */}
+                        {preview && hairBusy && !analyzing && (
+                            <div style={{
+                                display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10,
+                                padding: '10px 12px', borderRadius: 12, background: 'rgba(230,162,60,0.12)',
+                                border: '1px solid rgba(230,162,60,0.4)',
+                            }}>
+                                <span style={{ fontSize: 15 }}>⏳</span>
+                                <span style={{ fontSize: 12.5, color: '#9A6B1F', lineHeight: 1.5 }}>
+                                    지금 합성 요청이 많아요{busyRetrySec > 0 ? ` — 약 ${busyRetrySec}초 뒤 자동으로 풀려요` : ''}.<br />
+                                    사진은 그대로 두시면 돼요. 풀리는 즉시 아래 버튼이 열립니다. (대기 중엔 포인트 차감 없음)
+                                </span>
+                            </div>
+                        )}
+
                         <button onClick={handleAnalyze} disabled={analyzing || hairBusy} style={{
                             width: '100%', padding: '14px', borderRadius: 14, border: 'none',
                             background: (analyzing || hairBusy) ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
