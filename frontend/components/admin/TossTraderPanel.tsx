@@ -919,6 +919,16 @@ export const TossTraderPanel: React.FC = () => {
                     catch { setDiscoveryDay(null); }
                 };
                 const kospi = day.kospiJson, kosdaq = day.kosdaqJson;
+                // 💼 보유 재점검(2026-07-16): 실봇 보유 종목을 매일 아침 재분석해 별도 표시.
+                // holdingsJson 은 TEXT 컬럼(문자열)일 수 있어 방어적 파싱.
+                const heldReviews: any[] = (() => {
+                    const raw = day.holdingsJson;
+                    if (!raw) return [];
+                    try {
+                        const v = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                        return Array.isArray(v) ? v : [];
+                    } catch { return []; }
+                })();
                 const curDate = pickedDate || day.tradeDate;
 
                 const stockCard = (title: string, s: any) => {
@@ -1010,11 +1020,26 @@ export const TossTraderPanel: React.FC = () => {
                             <div className="text-[11px] text-emerald-400 px-1">{saveMsg}</div>
                         )}
 
-                        {/* 코스피 · 코스닥 각 1종목 */}
+                        {/* 코스피 · 코스닥 각 1종목 (신규 발굴) */}
                         <div className="grid md:grid-cols-2 gap-3">
                             {stockCard('🏛 코스피 추천', kospi)}
                             {stockCard('💹 코스닥 추천', kosdaq)}
                         </div>
+
+                        {/* 💼 보유 종목 재점검 — 신규 발굴과 별개로 보유분을 매일 재분석 */}
+                        {heldReviews.length > 0 && (
+                            <div className="space-y-2">
+                                <div className="text-xs text-gray-400 font-medium px-1 pt-1">
+                                    💼 보유 종목 재점검
+                                    <span className="text-gray-600 font-normal ml-2">실계좌 보유분 — 매일 아침 점수·요약 재분석 (매도 신호·점수 하락 조기 감지)</span>
+                                </div>
+                                <div className="grid md:grid-cols-2 gap-3">
+                                    {heldReviews.map((h: any) => (
+                                        <React.Fragment key={h.symbol}>{stockCard('💼 보유 재점검', h)}</React.Fragment>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* 채원 종합 코멘트 */}
                         {day.comment && (
