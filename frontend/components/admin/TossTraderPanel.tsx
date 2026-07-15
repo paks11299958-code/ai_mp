@@ -99,6 +99,27 @@ export const TossTraderPanel: React.FC = () => {
     const [discovery, setDiscovery] = useState<{ dates: string[]; latest: any } | null>(null);
     const [discoveryDay, setDiscoveryDay] = useState<any>(null);   // 선택한 날짜의 상세(없으면 latest)
     const [pickedDate, setPickedDate] = useState<string | null>(null);
+    // 발굴 아카이브(DiscoveryRecord) — 발굴일 당일정보 박제 + D+1/D+7 추이. 서브탭 진입 시 로드.
+    const [scanSub, setScanSub] = useState<'today' | 'history'>('today');
+    const [archDates, setArchDates] = useState<any[] | null>(null);   // null=미로드, []=기록 없음
+    const [archDate, setArchDate] = useState<string | null>(null);
+    const [archDay, setArchDay] = useState<any>(null);                // {date, market, records[]}
+    const [archLoading, setArchLoading] = useState(false);
+    const [archOpenSym, setArchOpenSym] = useState<string | null>(null);
+
+    const pickArchDate = useCallback(async (date: string) => {
+        setArchDate(date); setArchLoading(true); setArchOpenSym(null);
+        try { setArchDay(await adminApi.getDiscoveryRecordsByDate(date)); }
+        catch { setArchDay(null); }
+        finally { setArchLoading(false); }
+    }, []);
+    const loadArchive = useCallback(async () => {
+        try {
+            const d = await adminApi.getDiscoveryRecordDates();
+            setArchDates(d.dates || []);
+            if (d.dates?.length) await pickArchDate(d.dates[0].tradeDate);
+        } catch { setArchDates([]); }
+    }, [pickArchDate]);
 
     const load = useCallback(async () => {
         try {
@@ -777,8 +798,22 @@ export const TossTraderPanel: React.FC = () => {
                 );
             })()}
 
-            {/* ── 발굴 탭 (채원 발굴 일기: 날짜별 누적, 코스피·코스닥 각 1종목 + 설명) ── */}
-            {view === 'scan' && (() => {
+            {/* ── 발굴 탭: 오늘의 발굴(채원 일기) ↔ 📅 발굴 이력(아카이브 대시보드+D+N 추이) ── */}
+            {view === 'scan' && (
+            <div className="space-y-4">
+                <div className="flex items-center gap-1.5">
+                    <button onClick={() => setScanSub('today')}
+                        className={`text-xs px-3 py-1.5 rounded-full border ${scanSub === 'today' ? 'bg-emerald-800/60 border-emerald-600/60 text-emerald-200 font-medium' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+                        오늘의 발굴
+                    </button>
+                    <button onClick={() => { setScanSub('history'); if (archDates === null) loadArchive(); }}
+                        className={`text-xs px-3 py-1.5 rounded-full border ${scanSub === 'history' ? 'bg-indigo-800/60 border-indigo-600/60 text-indigo-200 font-medium' : 'border-gray-700 text-gray-400 hover:border-gray-500'}`}>
+                        📅 발굴 이력
+                    </button>
+                    <span className="text-[10px] text-gray-600 ml-auto">이력=발굴일 당일정보 박제 + 이후 주가 추이</span>
+                </div>
+
+            {scanSub === 'today' && (() => {
                 const dates: string[] = discovery?.dates || [];
                 const day = discoveryDay || discovery?.latest || null;
                 if (!day) {
@@ -908,6 +943,177 @@ export const TossTraderPanel: React.FC = () => {
                     </div>
                 );
             })()}
+
+            {/* 📅 발굴 이력 — 날짜별 아카이브: 증시요약 + 종목별(수급·뉴스·조건표) + D+1/D+7 추이 */}
+            {scanSub === 'history' && (() => {
+                if (archDates === null) return <div className="text-xs text-gray-500 px-1">불러오는 중…</div>;
+                if (!archDates.length) return (
+                    <div className="text-sm text-gray-400 bg-gray-800/60 rounded-lg px-4 py-6 text-center">
+                        아직 발굴 아카이브가 없습니다. 매 영업일 <b className="text-indigo-300">16:10</b>에 봇 스캔(60점↑ 후보)과
+                        채원 발굴의 당일 정보(고저·수급·뉴스·증시요약)를 자동 수집해 여기에 쌓입니다.
+                    </div>
+                );
+                const mk = archDay?.market;
+                const records: any[] = archDay?.records || [];
+                const srcLabel = (s: string) => s === 'chaewon' ? '채원' : s === 'bot_scan+chaewon' ? '봇+채원' : '봇 스캔';
+                const flowCell = (v: number | null, maxAbs: number) => (
+                    <div className="min-w-[5.5rem]">
+                        <div className={`text-right text-[11px] ${pnlColor(v)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                            {v == null ? '-' : (v > 0 ? '+' : '') + v.toLocaleString()}
+                        </div>
+                        <div className="h-1 bg-gray-700/50 rounded overflow-hidden">
+                            <div className={`h-full ${(v ?? 0) > 0 ? 'bg-red-400' : 'bg-blue-400'}`}
+                                style={{ width: maxAbs && v != null ? Math.min(100, Math.abs(v) / maxAbs * 100) + '%' : '0%' }} />
+                        </div>
+                    </div>
+                );
+                return (
+                    <div className="space-y-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs text-gray-400">📅 발굴 일자</span>
+                            <select value={archDate ?? ''} onChange={e => pickArchDate(e.target.value)}
+                                className="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs text-gray-200">
+                                {archDates.map((d: any) => (
+                                    <option key={d.tradeDate} value={d.tradeDate}>
+                                        {d.tradeDate} · {d.count}종목{d.recommendedNames ? ` · ⭐${d.recommendedNames}` : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <span className="text-[11px] text-gray-500 ml-auto">종목을 누르면 당일 대시보드가 펼쳐집니다</span>
+                        </div>
+
+                        {archLoading && <div className="text-xs text-gray-500 px-1">불러오는 중…</div>}
+                        {!archLoading && !archDay && <div className="text-xs text-gray-500 px-1">이 날짜의 데이터를 불러오지 못했습니다.</div>}
+                        {!archLoading && archDay && (<>
+                            {/* 그날의 증시 (지수 스냅샷 + AI 요약) */}
+                            {mk && (
+                                <div className="bg-gray-800/70 border border-gray-700 rounded-lg px-4 py-3 space-y-2">
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        <span className="text-xs text-gray-400 font-medium">🌐 그날의 증시</span>
+                                        <span className="text-gray-200">코스피 <b>{mk.kospiClose != null ? Number(mk.kospiClose).toLocaleString() : '-'}</b>{' '}
+                                            <span className={pnlColor(mk.kospiChangePct)}>{signPct(mk.kospiChangePct)}</span></span>
+                                        <span className="text-gray-200">코스닥 <b>{mk.kosdaqClose != null ? Number(mk.kosdaqClose).toLocaleString() : '-'}</b>{' '}
+                                            <span className={pnlColor(mk.kosdaqChangePct)}>{signPct(mk.kosdaqChangePct)}</span></span>
+                                    </div>
+                                    {mk.summary && <div className="text-[12px] text-gray-300 leading-relaxed whitespace-pre-wrap border-t border-gray-700/60 pt-2">{mk.summary}</div>}
+                                </div>
+                            )}
+
+                            {/* 종목 카드 목록 (클릭=당일 대시보드 펼침) */}
+                            <div className="space-y-2">
+                                {records.map((r: any) => {
+                                    const open = archOpenSym === r.symbol;
+                                    const t = r.trend;
+                                    const flowDays: any[] = r.investorFlow?.days || [];
+                                    const maxAbs = Math.max(0, ...flowDays.flatMap((d: any) =>
+                                        [d.individual, d.organ, d.foreigner].map((v: any) => Math.abs(v ?? 0))));
+                                    return (
+                                        <div key={r.symbol} className="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
+                                            <button onClick={() => setArchOpenSym(open ? null : r.symbol)}
+                                                className="w-full px-3 py-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-left hover:bg-gray-700/40">
+                                                <span className="text-sm font-bold text-gray-100">{r.name} <span className="text-[10px] text-gray-500 font-normal">{r.symbol}</span></span>
+                                                {r.recommended && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50">⭐ 추천</span>}
+                                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">{srcLabel(r.source)}</span>
+                                                {r.score != null && <span className="text-sm font-bold text-emerald-300" style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}점</span>}
+                                                <span className="ml-auto flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                    <span className="text-gray-400">종가 {won(r.close)}</span>
+                                                    <span className={pnlColor(t?.d1Pct)}>D+1 {signPct(t?.d1Pct)}</span>
+                                                    <span className={pnlColor(t?.d7Pct)}>D+7 {signPct(t?.d7Pct)}</span>
+                                                    <span className={pnlColor(t?.latestPct)}>현재 {signPct(t?.latestPct)}</span>
+                                                    <span className="text-gray-600">{open ? '▲' : '▼'}</span>
+                                                </span>
+                                            </button>
+                                            {open && (
+                                                <div className="px-3 pb-3 pt-2 border-t border-gray-700/60 space-y-3">
+                                                    {/* 발굴일 시세 */}
+                                                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                        <span>고가 <b className="text-gray-300">{won(r.high)}</b></span>
+                                                        <span>저가 <b className="text-gray-300">{won(r.low)}</b></span>
+                                                        <span>거래량 <b className="text-gray-300">{r.volume != null ? Number(r.volume).toLocaleString() : '-'}</b>{r.volRatio ? ` (20일 평균의 ${r.volRatio}배)` : ''}</span>
+                                                    </div>
+                                                    {/* 점수 조건표 (발굴 시점) */}
+                                                    {r.scoreDetail && (
+                                                        <div className="text-[11px] text-gray-400">
+                                                            {Object.values<any>(r.scoreDetail).map((v, i) => (
+                                                                <span key={i} className={v.ok ? 'text-green-400 mr-2' : 'text-gray-600 mr-2'}>
+                                                                    {v.ok ? '✓' : '✗'}{v.label}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    {/* 수급 (개인/기관/외국인 순매수량, 발굴 시점 최근 5영업일) */}
+                                                    {flowDays.length > 0 && (
+                                                        <div>
+                                                            <div className="text-[10px] text-gray-500 mb-1.5">🧭 수급 — 순매수량(주), 발굴 시점 최근 5영업일 {flowDays[0]?.foreignerHoldRatio != null ? `· 외국인 보유 ${flowDays[0].foreignerHoldRatio}%` : ''}</div>
+                                                            <div className="overflow-x-auto">
+                                                                <div className="min-w-[22rem] space-y-1.5">
+                                                                    <div className="flex items-center gap-3 text-[10px] text-gray-500">
+                                                                        <span className="w-[4.2rem]">일자</span>
+                                                                        <span className="min-w-[5.5rem] text-right">개인</span>
+                                                                        <span className="min-w-[5.5rem] text-right">기관</span>
+                                                                        <span className="min-w-[5.5rem] text-right">외국인</span>
+                                                                    </div>
+                                                                    {flowDays.map((d: any, i: number) => (
+                                                                        <div key={i} className="flex items-center gap-3">
+                                                                            <span className="w-[4.2rem] text-[10px] text-gray-500" style={{ fontVariantNumeric: 'tabular-nums' }}>{(d.date || '').slice(5)}</span>
+                                                                            {flowCell(d.individual, maxAbs)}
+                                                                            {flowCell(d.organ, maxAbs)}
+                                                                            {flowCell(d.foreigner, maxAbs)}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {/* 발굴일 뉴스 */}
+                                                    {Array.isArray(r.newsJson) && r.newsJson.length > 0 && (
+                                                        <div>
+                                                            <div className="text-[10px] text-gray-500 mb-1">📰 발굴일 뉴스</div>
+                                                            <ul className="space-y-1">
+                                                                {r.newsJson.map((n: any, i: number) => (
+                                                                    <li key={i} className="text-[12px] leading-snug">
+                                                                        <a href={n.link} target="_blank" rel="noreferrer" className="text-blue-300 hover:underline">{n.title}</a>
+                                                                        <span className="text-[10px] text-gray-600 ml-1.5">{n.office}</span>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    {/* 발굴 후 주가 추이 */}
+                                                    {t?.after?.length > 0 && (
+                                                        <div>
+                                                            <div className="text-[10px] text-gray-500 mb-1">📈 발굴 후 종가 추이 (발굴일 종가 대비)</div>
+                                                            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                                {t.after.map((a: any, i: number) => {
+                                                                    const p = r.close && a.close ? ((a.close - r.close) / r.close) * 100 : null;
+                                                                    return (
+                                                                        <span key={i} className="text-gray-500">
+                                                                            {(a.date || '').slice(5)} <span className={pnlColor(p)}>{signPct(p, 1)}</span>
+                                                                        </span>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    <button onClick={() => runAnalyze(r.symbol, r.name)}
+                                                        className="text-[11px] px-3 py-1 rounded bg-emerald-800/60 border border-emerald-600/50 text-emerald-200 hover:bg-emerald-700/60">
+                                                        📊 지금 다시 분석
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="text-[11px] text-gray-500 px-1">
+                                D+1/D+7/현재 = 발굴일 종가 대비 등락률(조회 시점에 계산). 수급·뉴스는 발굴 당일 박제된 스냅샷입니다.
+                            </div>
+                        </>)}
+                    </div>
+                );
+            })()}
+            </div>
+            )}
 
             {/* ── 선택 탭 (매매 대상 확정 + 종목별 점수 설정 + 직접 추가) ── */}
             {view === 'select' && (() => {

@@ -943,6 +943,11 @@ export const adminApi = {
         get<{ dates: string[]; latest: any | null }>('/admin/toss-trader/discovery'),
     getTossDiscoveryByDate: (date: string) =>
         get<any>(`/admin/toss-trader/discovery/${date}`),
+    // 발굴 아카이브(DiscoveryRecord — 매 영업일 16:10 수집: 봇 60점↑ 후보+채원 발굴의 당일정보 박제)
+    getDiscoveryRecordDates: () =>
+        get<{ dates: { tradeDate: string; count: number; recommendedCount: number; recommendedNames: string | null; chaewonNames: string | null }[] }>('/admin/toss-trader/discovery-records'),
+    getDiscoveryRecordsByDate: (date: string) =>
+        get<{ date: string; market: any | null; records: any[] }>(`/admin/toss-trader/discovery-records/${date}`),
     // 손절·익절·임계 최적값 백테스트(봇 동일 로직, AI 없음)
     getTossBacktest: (symbol: string) =>
         get<any>(`/admin/toss-trader/backtest/${symbol}`),
