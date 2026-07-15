@@ -494,9 +494,12 @@ export const TossTraderPanel: React.FC = () => {
                         <div className="rounded-2xl px-5 py-5 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700">
                             <div className="text-xs text-gray-400 mb-1 flex items-center gap-2">
                                 <span>내 투자 · 총 평가금액</span>
-                                {/* 장외에도 봇이 마감가 스냅샷을 실어줌(2026-07-15) — 기준 표기 */}
+                                {/* 장외에도 봇이 스냅샷을 실어줌 — 기준 표기.
+                                    priceBasis: nxt=넥스트장(NXT, 평일 08~20시) 실시간 / close=마지막 체결가 동결 */}
                                 {marketClosed && hasEquity && (
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">🌙 마감가 기준</span>
+                                    st.priceBasis === 'nxt'
+                                        ? <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30">🌃 넥스트장(NXT) 반영</span>
+                                        : <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">🌙 넥스트장 마감가 기준</span>
                                 )}
                             </div>
                             <div className="text-3xl font-bold text-gray-50 tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
@@ -552,23 +555,29 @@ export const TossTraderPanel: React.FC = () => {
                                 <div className="divide-y divide-gray-700/60">
                                     {holdings.map((s: any) => {
                                         const m = holdMetric(s);
+                                        const invest = m.qty != null && Number.isFinite(m.avg) ? m.avg * m.qty : null;   // 종목별 총 투자금
+                                        const evalAmt = m.qty != null && Number.isFinite(m.cur) ? m.cur * m.qty : null;  // 현재 평가금
                                         return (
                                             <div key={s.symbol} className="px-4 py-3">
-                                                <div className="flex items-center justify-between mb-1">
+                                                <div className="flex items-center justify-between mb-1.5">
                                                     <span className="text-sm text-gray-100 font-medium">
                                                         {s.symbolName && s.symbolName !== s.symbol ? s.symbolName : symName(s.symbol)}
                                                         <span className="text-[10px] text-gray-500 ml-1.5">{s.symbol}</span>
                                                         {m.qty != null && <span className="text-[10px] text-gray-400 ml-1.5">{m.qty}주</span>}
                                                     </span>
-                                                    <span className={`text-sm font-bold ${pnlColor(m.pctVal)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                    <span className={`text-base font-bold ${pnlColor(m.pctVal)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
                                                         {pnlArrow(m.pctVal)} {signPct(m.pctVal)}
+                                                        {m.amtVal != null && <span className="text-sm ml-1.5">{signWon(m.amtVal)}</span>}
                                                     </span>
                                                 </div>
-                                                <div className="flex items-center justify-between text-[11px] text-gray-500" style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                                    <span>평단 {won(m.avg)} → 현재 {won(m.cur)}</span>
-                                                    {m.amtVal != null
-                                                        ? <span className={pnlColor(m.amtVal)}>{signWon(m.amtVal)}</span>
-                                                        : <span className="text-gray-600">금액=수량 확인 중</span>}
+                                                {/* 평단→현재가: 크게(사장 지시 07-16). 현재가=넥스트장 반영(priceBasis) */}
+                                                <div className="text-base text-gray-200 font-semibold" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                    평단 {won(m.avg)} → 현재 <span className={pnlColor(m.pctVal)}>{won(m.cur)}</span>
+                                                </div>
+                                                <div className="mt-1 flex items-center justify-between text-[12px] text-gray-400" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                    <span>투자 <b className="text-gray-300">{invest != null ? won(Math.round(invest)) : '-'}</b>
+                                                        {' → '}평가 <b className={evalAmt != null && invest != null ? pnlColor(evalAmt - invest) : 'text-gray-300'}>{evalAmt != null ? won(Math.round(evalAmt)) : '-'}</b></span>
+                                                    {m.amtVal == null && <span className="text-gray-600">금액=수량 확인 중</span>}
                                                 </div>
                                             </div>
                                         );
