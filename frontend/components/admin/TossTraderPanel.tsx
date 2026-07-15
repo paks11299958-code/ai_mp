@@ -1041,11 +1041,32 @@ export const TossTraderPanel: React.FC = () => {
                             </div>
                         )}
 
-                        {/* 채원 종합 코멘트 */}
+                        {/* 채원 시황 브리핑 — [시황]/[대외]/[대내]/[발굴]/[리스크] 5줄 구조(2026-07-16).
+                            줄 단위로 라벨을 강조해 렌더, 구형 한 덩어리 코멘트는 그대로 표시(폴백). */}
                         {day.comment && (
                             <div className="bg-gray-800/60 rounded-lg px-4 py-3 text-sm text-gray-300 leading-relaxed">
-                                <span className="text-emerald-300 font-medium">💬 채원 코멘트</span><br />
-                                {day.comment}
+                                <div className="text-emerald-300 font-medium mb-1.5">📋 채원 시황 브리핑 <span className="text-[10px] text-gray-500 font-normal">대외→대내→발굴 탑다운</span></div>
+                                {String(day.comment).includes('[시황]') ? (
+                                    <div className="space-y-1.5">
+                                        {String(day.comment).split('\n').filter((l: string) => l.trim()).map((l: string, i: number) => {
+                                            const m = l.match(/^\[(시황|대외|대내|발굴|리스크)\]\s*(.*)$/);
+                                            if (!m) return <div key={i}>{l}</div>;
+                                            const tone: Record<string, string> = {
+                                                '시황': 'bg-emerald-900/50 text-emerald-300', '대외': 'bg-sky-900/50 text-sky-300',
+                                                '대내': 'bg-indigo-900/50 text-indigo-300', '발굴': 'bg-amber-900/50 text-amber-300',
+                                                '리스크': 'bg-red-900/50 text-red-300',
+                                            };
+                                            return (
+                                                <div key={i} className="flex gap-2 items-start">
+                                                    <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded mt-0.5 ${tone[m[1]]}`}>{m[1]}</span>
+                                                    <span>{m[2]}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                ) : (
+                                    <div className="whitespace-pre-line">{day.comment}</div>
+                                )}
                             </div>
                         )}
 
@@ -1126,6 +1147,7 @@ export const TossTraderPanel: React.FC = () => {
                                                 className="w-full px-3 py-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-left hover:bg-gray-700/40">
                                                 <span className="text-sm font-bold text-gray-100">{r.name} <span className="text-[10px] text-gray-500 font-normal">{r.symbol}</span></span>
                                                 {r.recommended && <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/50 text-amber-300 border border-amber-700/50">⭐ 추천</span>}
+                                                {r.pullback && <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-900/50 text-purple-300 border border-purple-700/50" title="20일선 1차 돌파 후 눌림에서 지지·재반등 — 2차 상승 후보(사장 개별요건)">🔁 눌림목 반등</span>}
                                                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">{srcLabel(r.source)}</span>
                                                 {r.score != null && <span className="text-sm font-bold text-emerald-300" style={{ fontVariantNumeric: 'tabular-nums' }}>{r.score}점</span>}
                                                 <span className="ml-auto flex flex-wrap items-center gap-x-2.5 gap-y-0.5 text-[11px]" style={{ fontVariantNumeric: 'tabular-nums' }}>
