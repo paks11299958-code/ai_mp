@@ -257,7 +257,7 @@ export const TossTraderPanel: React.FC = () => {
             const r = await adminApi.requestTossAnalyze({ symbol: sym });
             setAnalyzeMsg(r?.reused
                 ? `${name}(${sym})은 이미 분석 중입니다. 완료되면 텔레그램으로 보내드립니다.`
-                : `${name}(${sym}) 분석을 요청했습니다. 재무·수급·뉴스·봇 점수를 종합해 약 1분 뒤 텔레그램으로 요약을 보내드립니다. 결과는 DB에도 저장됩니다.`);
+                : `${name}(${sym}) 분석을 요청했습니다. 재무·수급·뉴스·봇 점수를 종합해 약 1분 뒤 텔레그램으로 요약을 보내드립니다. 발굴 카드의 '투자 요약'이 비어 있었다면 완료 후 자동으로 채워집니다.`);
         } catch (e: any) {
             setAnalyzeStatus('error');
             setAnalyzeMsg(`분석 요청 오류: ${e?.message || '오류'}`);
