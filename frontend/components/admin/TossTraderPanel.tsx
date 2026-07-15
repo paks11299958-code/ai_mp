@@ -468,7 +468,13 @@ export const TossTraderPanel: React.FC = () => {
                     <div className="space-y-4">
                         {/* 🏆 대표 카드 — 총평가액 + 계좌 전체 손익 */}
                         <div className="rounded-2xl px-5 py-5 bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700">
-                            <div className="text-xs text-gray-400 mb-1">내 투자 · 총 평가금액</div>
+                            <div className="text-xs text-gray-400 mb-1 flex items-center gap-2">
+                                <span>내 투자 · 총 평가금액</span>
+                                {/* 장외에도 봇이 마감가 스냅샷을 실어줌(2026-07-15) — 기준 표기 */}
+                                {marketClosed && hasEquity && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">🌙 마감가 기준</span>
+                                )}
+                            </div>
                             <div className="text-3xl font-bold text-gray-50 tracking-tight" style={{ fontVariantNumeric: 'tabular-nums' }}>
                                 {hasEquity ? equity.toLocaleString() : '-'}<span className="text-lg text-gray-400 font-medium ml-1">원</span>
                             </div>
@@ -546,9 +552,8 @@ export const TossTraderPanel: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="px-4 py-6 text-center text-sm text-gray-500">
-                                    {marketClosed
-                                        ? '🌙 지금은 장외 시간이라 실시간 보유 스냅샷이 없습니다. 보유 종목이 있으면 장중(평일 09:00~15:30)에 종목별 평가손익이 여기 표시됩니다.'
-                                        : '현재 보유 중인 종목이 없습니다. (봇이 매수하면 여기에 실시간 평가손익이 표시됩니다.)'}
+                                    {'현재 보유 중인 종목이 없습니다. (봇이 매수하면 여기에 평가손익이 표시됩니다' +
+                                     (marketClosed ? ' — 장외엔 마감가 기준)' : ')')}
                                 </div>
                             )}
                         </div>
