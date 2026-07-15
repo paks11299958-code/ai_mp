@@ -374,3 +374,15 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 ## 인덱스 추가 이력
 - 2026-07-08: `Message(sessionId, createdAt)` · `ChatSession(userId)` — 대화 무료화 일일 한도(countTodayChatMessages) 판정용, 서버1 raw SQL `CREATE INDEX IF NOT EXISTS`.
 - 2026-07-09: `StockDiscovery("tradeDate")` UNIQUE · `StockDiscovery("createdAt" DESC)`.
+
+## 운영 DB 전용 테이블 (raw SQL — prisma schema 밖, db push 금지)
+
+토스 자동매매·발굴 관련(2026-07 신설, 접근=$queryRawUnsafe):
+
+- **StockDiscovery** — 채원 아침 발굴 일기(하루 1행): tradeDate(UNIQUE)·kospiJson·kosdaqJson·
+  comment(📋 시황 브리핑 5줄 포맷)·**holdingsJson**(💼 보유 재점검, 2026-07-16 추가)·createdAt
+- **DiscoveryRecord** — 발굴 아카이브(발굴일×종목 UNIQUE, 2026-07-15): score·scoreDetail(JSONB)·
+  recommended·**pullback**(🔁 눌림목, 07-16 추가)·close/high/low/volume·volRatio·
+  investorFlow(JSONB)·newsJson(JSONB)·source(bot_scan/chaewon)
+- **DiscoveryMarket** — 발굴일 1행: 코스피/코스닥 종가·등락률+Gemini 증시요약
+- 생성 스크립트: `shared-api/scripts/add-discovery-tables.cjs` (컬럼 추가는 ALTER 단발)

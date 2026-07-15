@@ -142,3 +142,11 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
   메타 주입) or 프리렌더 중 방식 결정 필요. 별건.
 - (사장 결정) 온보딩 '친구 초대 성공' 미션 보상액 / 메인 초대 배너(HeroCard 어드민 업로드=개발 0).
 - 관찰 신호: 어드민 레퍼럴 탭 방문 수치 → 방문↑·가입 전환↓이면 P3 착수 가치 확인.
+
+## 마케팅 채널 코드 (2026-07-15 — 유튜브 숏츠 QR 연계)
+
+- **개념**: `?ref=YOUTUBE` 같은 채널 코드는 회원 추천코드가 아니라 **유입 소스 표시**. 보상 없음, 측정만.
+- **코드 목록**: `CHANNEL_CODES` = YOUTUBE/SHORTS/INSTA/INSTAGRAM/THREADS/BLOG/NAVER — **프론트(`services/referral.ts`)와 백엔드(`shared-api/lib/referral.ts`) 양쪽 상수**. 새 채널 추가 시 둘 다 갱신.
+- **가입 측정**: `referredBy`는 유저 id(int)라 채널 코드 저장 불가 → `recordReferredBy`가 채널 코드면 **`ChannelSignup`**(raw SQL 테이블, userId UNIQUE=멱등)에 기록. 가입 3경로(이메일·휴대폰·카카오) 모두 커버.
+- **어드민**: 레퍼럴 탭 '마케팅 채널 유입' 표 — ReferralVisit(방문)과 ChannelSignup(가입) JOIN, 전환율 표시(`GET /admin/referral-stats` 응답 `channels`).
+- **가입 배너**: 채널 코드 유입 = "환영" 배너(1,000P), 친구 코드 = 기존 "친구 초대" 배너 (AuthModal 분기).

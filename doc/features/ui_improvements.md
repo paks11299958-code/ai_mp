@@ -458,3 +458,9 @@ omd 시안(`aichat-main-mobile`)을 **통째 교체 대신 부분 채택**으로
 
 - **KST 표시 변환** (`TossTraderPanel.tsx` `toKstLine()`): 봇 로그(trader.log/orders.log)는 서버1이 UTC로 기록 → 화면 표시만 행 맨 앞 타임스탬프를 KST(+9h)로 변환(원본 파일은 UTC 유지 — 토스 '미등록 IP' 문자 대조법 등 운영 방식 불변). 라벨에 "한국시간" 명시.
 - **모바일 스크롤바 항상 표시** (`.toss-log-scroll`): 모바일 브라우저 오버레이 스크롤바가 기본 숨김이라 로그 위치 파악 불가 → `::-webkit-scrollbar` `-webkit-appearance:none`+두께 8px로 강제 표시(파이어폭스 `scrollbar-width:thin` 병행). 인라인 뷰어+전체화면 모달 둘 다 적용. 컴포넌트 내 `<style>` 1블록 패턴.
+
+## 2026-07-15 — 가입 혜택 문구 정비 + 이미지 합성 혼잡 능동 안내
+
+- **가입 혜택 표기 정정**: 실지급(백엔드 `SIGNUP_BONUS=1000`·`MISSION_REWARD=1000`)보다 과소 표기된 **500P 문구 5곳**을 1,000P로 정정(App.tsx 환영알럿·LearnPage·RewardAlertModal 미션 2곳·LandingPageNew ⭐담기 2곳). 회원가입 탭에 "🎁 지금 가입하면 무료 1,000P 즉시 지급" 안내 배지 신설(AuthModal).
+- **가입 배너 분기** (`AuthModal.tsx`+`services/referral.ts CHANNEL_CODES`): `?ref` 유입이 마케팅 채널 코드(YOUTUBE 등)면 "🎉 환영해요! 무료 1,000P" 배너, 실제 친구 추천코드면 기존 "친구가 초대했어요"(양방향 1,000P) 배너. 유튜브 숏츠 QR 유입에 친구초대 문구가 뜨던 오용 해소.
+- **이미지 합성 3종 혼잡 능동 안내** (HairStyleBoard·AgeTransformBoard·OutfitBoard): 사진을 첨부한 상태에서 서버 혼잡(imageGenBusy)이면 실행 버튼 위에 호박색 배너("약 N초 뒤 자동 해제·사진 유지·대기 중 무과금") + 버튼 비활성("⏳ 대기 중") 통일. 상태 파생 선언 렌더(`preview && busy && !running`)라 혼잡 해제 시 자동 소멸 — 기존 15초 폴링·신호등·503 무과금 로직 재사용(백엔드 무수정). ★대상은 나노바나나 공유 3종뿐 — 관상·손금·닮은꼴은 분석 모델이라 혼잡 신호 없음.

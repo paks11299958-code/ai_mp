@@ -52,9 +52,50 @@ ai_mp 프론트: TossTraderPanel.tsx (시스템 그룹 '토스 자동매매' 탭
 - **종목명 항상 표시**: 봇 status에 `symbolNames` 맵 + 프론트 `symName()` 통합 조회. 봇 유니버스 222종목 확대.
 - **봇 로그 KST**: logger.py가 KST로 기록. 어드민 toKstLine이 KST표기 감지해 이중변환 방지.
 
+
+## 발굴 아카이브 + 발굴 이력 뷰 (2026-07-15, 폐루프 P1)
+
+- **발굴 탭 서브탭**: '오늘의 발굴'(채원 일기) ↔ '📅 발굴 이력'(아카이브 대시보드).
+- 매 영업일 16:10 수집(서버2 크론 `rag/discovery_collect_cron.py` → shared-api
+  `POST /internal-cron/discovery-collect`, 서버1 실행): 봇 스캔 60점↑(상위 20)+채원 발굴 →
+  `DiscoveryRecord`(tradeDate×symbol: 점수·6조건·OHLCV(토스 캔들 당일봉 candles_json.py)·
+  거래량배율·수급 5일(네이버 trend)·뉴스 5건·⭐추천·🔁눌림목) + `DiscoveryMarket`(지수+Gemini 증시요약).
+- 이력 뷰: 날짜 셀렉트 → 증시요약 카드 → 종목 카드 펼침(수급 막대·뉴스 링크·조건표) +
+  **D+1/D+7/현재 등락률**(저장 안 함 — 조회 시점에 네이버 일봉으로 계산).
+- API: GET `/admin/toss-trader/discovery-records[/:date]`. ★두 테이블=운영 DB raw SQL
+  (scripts/add-discovery-tables.cjs), $queryRawUnsafe 전용.
+
+## 가상매매(페이퍼 봇) 비교 카드 (2026-07-15, 폐루프 P2)
+
+- 수익률 탭 하단 '📝 가상매매' 카드: 실계좌 vs 가상 수익률%·가상 보유·오늘/누적 실현·자동선택 종목.
+- 봇 `toss-trader-paper`(MODE=PAPER): 실주문 0, 파일 전부 `*_paper` 격리(paths.py),
+  발굴 추천 상위 2개 자동선택(auto_select.py), 시뮬 포지션 영속화. 초기자본=실계좌와 동일
+  (★입출금 시 ecosystem paper env도 갱신).
+- API: GET `/admin/toss-trader/paper/status`·`paper/logs`.
+
+## 수익률 탭 개선 — NXT(넥스트장) 반영 (2026-07-16)
+
+- 보유 카드: 평단→현재가 큰 글씨(text-base, 현재가 손익색), **종목별 투자→평가 금액** 줄 추가.
+- 장외 현재가·수익률=NXT(대체거래소, 평일 08~20시) 체결가 반영: 봇이 NXT 시간대 매 루프 스냅샷 갱신
+  (`clock.is_nxt_hours`), status `priceBasis: nxt|close` → 배지 🌃 NXT 반영 / 🌙 NXT 마감가 기준.
+  ★표시 전용 — 매매 판단은 정규장(09:00~15:30)만.
+
+## 발굴 탭 강화 (2026-07-16)
+
+- **💼 보유 종목 재점검**: 채원 아침 크론이 실봇 보유(status.json heldSymbols)를 매일 재분석
+  (봇 점수+투자 요약) → `StockDiscovery.holdingsJson` → 오늘의 발굴 하단 섹션+텔레그램.
+  백필=`chaewon_stock_cron.py --holdings-only`.
+- **📋 채원 시황 브리핑**: 코멘트를 [시황][대외][대내][발굴][리스크] 5줄 고정 포맷으로
+  (나스닥·S&P·다우·SOX·상해·달러원 실측 + 코스피/코스닥 장세판정 🟢🟡🔴 + 구글서치 그라운딩).
+  프론트가 줄 라벨 배지로 렌더(구형 한 덩어리 코멘트는 pre-line 폴백). 백필=`--briefing-only`.
+- **투자 요약 자동 백필**: 어떤 경로든 종목 분석 완료 시 발굴 일기의 빈 요약을 자동으로 채움
+  (shared-api stock 워커 backfillDiscoverySummary — '지금 다시 분석'→카드 연결, 15초 새로고침).
+- **🔁 눌림목 반등 배지**(발굴 이력 카드): 스캐너 `_pullback_rebound` 태그(20일선 1차 돌파→눌림
+  지지→재반등, 사장 개별요건). ★관찰 전용 — 매매 진입 규칙 반영은 백테스트+결재 후.
+
 ## 함정
 
 - `Icon name` 미등록 lucide 아이콘은 조용히 Bot 폴백 — Icons.tsx import 목록 확인.
 - status.json은 대표 종목 1개 스냅샷+`symbols[]` 병행(하위호환). 다종목 전면 개편 시 기존 카드 깨지지 않게.
-- shared-api 배포는 push≠배포 — 서버1 git pull+pm2 reload 수동.
+- shared-api 배포는 push≠배포 — 서버1 git pull+pm2 reload 수동(07-15 서버1 git 리셋 정상화로 pull 복원, ★서버1 직접 수정·scp 금지).
 - ★신규 DB 테이블(StockDiscovery)·컬럼(StockAnalysis.tgNotifiedAt)=raw SQL만(prisma db push 금지).

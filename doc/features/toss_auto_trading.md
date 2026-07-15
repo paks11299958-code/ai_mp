@@ -96,3 +96,30 @@
 - **긴급정지 절차 실증**: 웹 🔴긴급정지=halt 래치(보유 청산 감시까지 전면 중단 유의) →
   해제=웹에서 정지 해제 저장 후 서버1 `pm2 restart toss-trader`.
 - 테스트 **81개**(전략13·리스크9·백테스트·선택+커스텀·스캐너·장부4·equity8 등).
+
+## 가상매매 페이퍼 봇 (2026-07-15, MODE=PAPER)
+
+- pm2 `toss-trader-paper` — 실봇과 동일 코드·같은 cwd, ecosystem env로 격리.
+  MODE=PAPER면 **dry_run 강제(실주문 0)** + `paths.py` 접미사 격리(`*_paper`:
+  status/selection/pnl_ledger/trader.log/orders.log/sim_positions). 공유=token_cache(★신규 발급이
+  기존 무효화하므로 반드시 공유)·custom_symbols·scan_results(읽기).
+- PAPER 전용: ①시뮬 포지션 파일 영속화(재시작 생존) ②실현손익 장부 기록 허용(격리 장부)
+  ③`auto_select.py` 발굴 추천 상위 2개 자동선택(멱등=autoScanDate, halt·params 보존,
+  선택파일 없으면 빈 선택 생성=env SYMBOLS 폴백 매매 차단) ④드라이런 미실현손익·장외 스냅샷=
+  시뮬 포지션 기준(종전엔 실계좌 API 혼입).
+- 초기자본/일손실=실계좌와 동일 값(사이징까지 동등 비교). ★입출금 시 ecosystem paper env도 갱신.
+
+## NXT(넥스트장) 수익률 반영 (2026-07-16)
+
+- 토스 시세 API는 NXT(대체거래소, 평일 08~20시) 체결가를 반영(실측: KRX 종가와 상이).
+- `clock.is_nxt_hours()`: 장외라도 NXT 시간대면 수익률 스냅샷을 매 루프 갱신, status에
+  `priceBasis: nxt|close`. ★표시 전용 — 매매 판단은 정규장만.
+
+## 🔁 20일선 눌림목 재반등 태그 (2026-07-16, 관찰 전용)
+
+- `scanner._pullback_rebound`: ①20일선 위 ②최근 10일 내 저가 터치+종가 지지(-2% 이내)
+  ③터치 전 5일 안착 ④재반등 시작 → scan_results 후보에 `pullback: true`.
+- 발굴 아카이브(DiscoveryRecord.pullback)·어드민 배지·채원 브리핑으로 노출.
+  ★매매 규칙 아님 — 진입 반영은 태그 데이터 백테스트로 우위 확인 후 사장 결재.
+
+테스트 **185개**(2026-07-16 기준: paper 20·눌림목 5 포함).
