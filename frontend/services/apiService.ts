@@ -922,6 +922,11 @@ export const adminApi = {
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/orders?limit=${limit}`),
     getTossScan: () =>
         get<{ available: boolean; reason?: string; scan?: any }>('/admin/toss-trader/scan'),
+    // 가상매매(P2 페이퍼 봇) — 실봇과 동일 status 형식(파일 격리 status_paper.json)
+    getTossPaperStatus: () =>
+        get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/paper/status'),
+    getTossPaperLogs: (limit = 100) =>
+        get<{ lines: string[]; total?: number }>(`/admin/toss-trader/paper/logs?limit=${limit}`),
     getTossSelection: () =>
         get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string }; max: number; paramBounds?: Record<string, [number, number]> }>('/admin/toss-trader/selection'),
     saveTossSelection: (payload: { symbols?: string[]; halt?: boolean; params?: Record<string, Record<string, number>> }) =>

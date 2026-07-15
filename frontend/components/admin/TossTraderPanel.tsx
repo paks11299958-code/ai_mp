@@ -65,6 +65,7 @@ type LogFilter = 'all' | 'info' | 'order' | 'error';
 
 export const TossTraderPanel: React.FC = () => {
     const [data, setData] = useState<any>(null);
+    const [paperData, setPaperData] = useState<any>(null);    // 가상매매(페이퍼 봇) 상태
     const [scanData, setScanData] = useState<any>(null);      // 발굴 스캔 결과
     const [logs, setLogs] = useState<string[]>([]);
     const [orders, setOrders] = useState<string[]>([]);
@@ -123,15 +124,17 @@ export const TossTraderPanel: React.FC = () => {
 
     const load = useCallback(async () => {
         try {
-            const [s, l, o, sel, cu, disc] = await Promise.all([
+            const [s, l, o, sel, cu, disc, paper] = await Promise.all([
                 adminApi.getTossStatus(),
                 adminApi.getTossLogs(120),
                 adminApi.getTossOrders(80),
                 adminApi.getTossSelection().catch(() => null),
                 adminApi.getTossCustomSymbols().catch(() => null),
                 adminApi.getTossDiscovery().catch(() => null), // 채원 발굴 일기
+                adminApi.getTossPaperStatus().catch(() => null), // 가상매매(페이퍼)
             ]);
             setData(s);
+            setPaperData(paper);
             setLogs(l.lines || []);
             setOrders(o.lines || []);
             setDiscovery(disc);
@@ -578,6 +581,82 @@ export const TossTraderPanel: React.FC = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* 📝 가상매매(P2 페이퍼 봇) — 실계좌 vs 가상 수익률 비교 */}
+                        {(() => {
+                            const pst = paperData?.status;
+                            if (!paperData?.available || !pst) {
+                                return (
+                                    <div className="bg-gray-800/40 rounded-xl border border-dashed border-gray-700 px-4 py-3 text-[11px] text-gray-500">
+                                        📝 가상매매(페이퍼 봇)가 아직 미기동입니다. 기동되면 여기에 실계좌 vs 가상 수익률 비교가 표시됩니다.
+                                    </div>
+                                );
+                            }
+                            const pEquity = Number(pst.equityKrw);
+                            const pInit = Number(pst.initialCapitalKrw);
+                            const pOk = Number.isFinite(pEquity) && pEquity > 0 && Number.isFinite(pInit) && pInit > 0;
+                            const pPnl = pOk ? pEquity - pInit : null;
+                            const pPct = pPnl != null ? (pPnl / pInit) * 100 : null;
+                            const pRows: any[] = Array.isArray(pst.symbols) ? pst.symbols : [];
+                            const pHold = pRows.filter((s: any) => s.avgPrice && Number(s.avgPrice) > 0
+                                && (s.quantity == null || Number(s.quantity) > 0));
+                            const pStale = (paperData?.staleSeconds ?? 0) > 300;
+                            const cmpCol = (label: string, pct: number | null, sub: string) => (
+                                <div className="bg-gray-900/60 rounded-lg px-3 py-2.5 text-center">
+                                    <div className="text-[10px] text-gray-500 mb-0.5">{label}</div>
+                                    <div className={`text-lg font-bold ${pnlColor(pct)}`} style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        {pct == null ? '-' : `${pnlArrow(pct)} ${signPct(pct)}`}
+                                    </div>
+                                    <div className="text-[10px] text-gray-500" style={{ fontVariantNumeric: 'tabular-nums' }}>{sub}</div>
+                                </div>
+                            );
+                            return (
+                                <div className="bg-gray-800 rounded-xl overflow-hidden border border-indigo-700/30">
+                                    <div className="text-[11px] font-medium text-indigo-300 px-4 py-2.5 border-b border-gray-700 bg-indigo-900/20 flex items-center justify-between">
+                                        <span>📝 가상매매 (페이퍼 봇 — 실주문 없음, 발굴 추천 자동선택)</span>
+                                        <span className={`text-[10px] ${pStale ? 'text-red-300' : 'text-gray-500'}`}>
+                                            {paperData?.staleSeconds != null ? `${paperData.staleSeconds}s 전 갱신` : ''}
+                                        </span>
+                                    </div>
+                                    <div className="p-3 space-y-3">
+                                        {/* 수익률 비교: 실계좌 vs 가상 */}
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {cmpCol('💰 실계좌 (LIVE)', totalPct,
+                                                hasEquity ? `${equity.toLocaleString()}원 / 원금 ${hasInit ? initCap.toLocaleString() : '-'}원` : '평가액 대기')}
+                                            {cmpCol('📝 가상 (PAPER)', pPct,
+                                                pOk ? `${pEquity.toLocaleString()}원 / 원금 ${pInit.toLocaleString()}원` : '평가액 대기')}
+                                        </div>
+                                        {/* 가상 보유 + 오늘/누적 실현 */}
+                                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-gray-400" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                            <span>가상 오늘 실현 <b className={pnlColor(pst.realizedPnl)}>{Number.isFinite(Number(pst.realizedPnl)) ? signWon(pst.realizedPnl) : '-'}</b></span>
+                                            <span>가상 누적 실현 <b className={pnlColor(pst.realizedPnlTotalKrw)}>{pst.realizedPnlTotalKrw == null ? '-' : signWon(pst.realizedPnlTotalKrw)}</b></span>
+                                            <span>가상 감시 종목 {Array.isArray(pst.selectedSymbols) ? pst.selectedSymbols.length : 0}개
+                                                {Array.isArray(pst.selectedSymbols) && pst.selectedSymbols.length > 0 &&
+                                                    ` (${pst.selectedSymbols.map((c: string) => pst.symbolNames?.[c] || c).join(', ')})`}</span>
+                                        </div>
+                                        {pHold.length > 0 && (
+                                            <div className="divide-y divide-gray-700/60 border-t border-gray-700/60">
+                                                {pHold.map((s: any) => {
+                                                    const m = holdMetric(s);
+                                                    return (
+                                                        <div key={s.symbol} className="flex items-center justify-between py-2 text-[12px]" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                                            <span className="text-gray-200">{s.symbolName && s.symbolName !== s.symbol ? s.symbolName : symName(s.symbol)}
+                                                                <span className="text-[10px] text-gray-500 ml-1">{m.qty != null ? `${m.qty}주` : ''}</span></span>
+                                                            <span className="text-gray-500">평단 {won(m.avg)} → {won(m.cur)}</span>
+                                                            <span className={`font-bold ${pnlColor(m.pctVal)}`}>{pnlArrow(m.pctVal)} {signPct(m.pctVal)}</span>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        <div className="text-[10px] text-gray-600">
+                                            같은 전략을 실계좌와 가상 계좌가 나란히 굴립니다. 가상은 발굴 추천을 자동 선택하므로,
+                                            수익률 차이 = "사장 선택 vs 봇 추천"의 성과 비교이기도 합니다.
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* 설명 */}
                         <details className="bg-gray-800/40 rounded-lg border border-gray-700/60">
