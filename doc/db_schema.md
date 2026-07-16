@@ -318,7 +318,7 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 ## 2026-07-05 추가 (raw SQL — prisma db push 금지 원칙)
 
-- **`AgentGrowth`** (신규): 직원 AI(지우·지훈·아린) 자기개발 성장 기록. `id SERIAL PK, agent TEXT('dev'|'search'|'marketing'), kind TEXT(study|proposal_approved|proposal_rejected|idea_adopted|work_done), topic, summary, "wikiPath", xp INT, "createdAt"`. 인덱스 (agent,"createdAt"). XP 규칙·레벨 정본=rag/agent_growth.py. 어드민 '직원 성장' 탭(2단계 예정) 데이터 소스. ★schema.prisma 미반영(rag가 psycopg2 직접 사용) — shared-api에서 읽을 땐 $queryRaw.
+- **`AgentGrowth`** (신규): 직원 AI(지우·지훈·아린·채원) 자기개발 성장 기록. `id SERIAL PK, agent TEXT('dev'|'search'|'marketing'|'stock'), kind TEXT(study|proposal_approved|proposal_rejected|idea_adopted|work_done), topic, summary, "wikiPath", xp INT, "createdAt"`. 인덱스 (agent,"createdAt"). XP 규칙·레벨 정본=rag/agent_growth.py. 어드민 '직원 성장' 탭(✅2단계 완료 07-17) 데이터 소스. ★schema.prisma 미반영(rag가 psycopg2 직접 사용) — shared-api에서 읽을 땐 $queryRaw.
 - **`pointsCharged INT?`** 컬럼 4개 테이블 추가: StockAnalysis·LuxuryVerification·UsedItemListing·InsuranceAnalysis — 비동기 분석 요청 시 실제 차감 포인트 저장(실패 환불 정확화). schema.prisma 반영됨(+generate).
 
 ## 2026-07-06 추가
@@ -386,3 +386,9 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   investorFlow(JSONB)·newsJson(JSONB)·source(bot_scan/chaewon)
 - **DiscoveryMarket** — 발굴일 1행: 코스피/코스닥 종가·등락률+Gemini 증시요약
 - 생성 스크립트: `shared-api/scripts/add-discovery-tables.cjs` (컬럼 추가는 ALTER 단발)
+
+## AgentIdea (2026-07-17, 직원 성장 엔진 3단계 — raw SQL 전용, prisma schema 미반영)
+- 직원(지우·지훈·아린·채원)의 학습 지식 기반 아이디어 제안 큐. 생산=서버2 rag/agent_idea_cron.py(화·목 KST09:20, 직원당 1건·14일 중복회피). 소비=어드민 AI 아이디어 탭 '직원 제안' 섹션.
+- 컬럼: `id SERIAL PK, agent TEXT(dev|search|marketing|stock), title, content, status TEXT(pending|converted|archived), "devRequestId" INT?, "createdAt"`. 인덱스 (status)·(agent).
+- 전환: POST /admin/agent-ideas/:id/convert → DevRequest(source='agent-idea') 생성+status=converted+devRequestId 기록+**AgentGrowth idea_adopted(+100)**. 완수: dev_request_worker가 done 시 devRequestId 역조회→work_done(+150).
+- ★AiFeatureIdea 재사용 불가 사유: ideaDate UNIQUE(스카우트 하루 1행 blob)라 직원 다건 제안과 충돌 — 분리 신설. 생성 스크립트=shared-api/scripts/add-agent-idea-table.cjs.
