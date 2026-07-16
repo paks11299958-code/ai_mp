@@ -6,6 +6,9 @@ import { Icon } from '../Icons';
 // 날짜 클릭 → 후보들이 체크박스 리스트로 펼쳐짐 → 체크하면 상단 고정 입력창에 자동 반영 → Hermes 개발 요청.
 interface Idea { id: number; ideaDate: string; content: string; createdAt: string }
 interface Candidate { key: string; title: string; body: string }  // key = `${ideaId}:${idx}`
+// 직원 제안(성장 엔진 3단계): 학습 지식 기반 아이디어 → 채택 시 DevRequest 전환+XP
+interface AgentIdea { id: number; agent: string; title: string; content: string; status: string; devRequestId: number | null; createdAt: string }
+const AGENT_LABELS: Record<string, string> = { dev: '🛠️ 지우', search: '🔎 강지훈', marketing: '📣 이아린', stock: '📈 윤채원' };
 
 // 하루치 content("【후보 N: 제목】 ...")를 후보 단위로 파싱
 function parseCandidates(ideaId: number, content: string): Candidate[] {
@@ -28,11 +31,34 @@ export const AiIdeasPanel: React.FC = () => {
     const [sentMsg, setSentMsg] = useState('');
     const [userEdited, setUserEdited] = useState(false);  // 사용자가 직접 손대면 자동덮어쓰기 중단
 
+    const [agentIdeas, setAgentIdeas] = useState<AgentIdea[]>([]);
+    const [openAgentIdea, setOpenAgentIdea] = useState<number | null>(null);
+    const [busyIdea, setBusyIdea] = useState<number | null>(null);
+
     useEffect(() => {
         adminApi.getAiFeatureIdeas()
             .then(rows => { setIdeas(rows); if (rows.length) setOpenId(rows[0].id); })
             .catch(() => setError('불러오기 실패'));
+        adminApi.getAgentIdeas().then(setAgentIdeas).catch(() => {});
     }, []);
+
+    const convertIdea = async (idea: AgentIdea) => {
+        setBusyIdea(idea.id);
+        try {
+            const r = await adminApi.convertAgentIdea(idea.id, extra.trim() || undefined);
+            setAgentIdeas(prev => prev.map(x => x.id === idea.id ? { ...x, status: 'converted', devRequestId: r.devRequestId } : x));
+            setSentMsg(`✅ ${AGENT_LABELS[idea.agent] ?? idea.agent}의 제안을 Hermes에 전달했어요 (+100 XP). 곧 텔레그램 결재가 옵니다.`);
+        } catch {
+            setSentMsg('❌ 전환 실패. 다시 시도해 주세요.');
+        } finally { setBusyIdea(null); }
+    };
+    const archiveIdea = async (idea: AgentIdea) => {
+        setBusyIdea(idea.id);
+        try {
+            await adminApi.archiveAgentIdea(idea.id);
+            setAgentIdeas(prev => prev.map(x => x.id === idea.id ? { ...x, status: 'archived' } : x));
+        } catch { /* 무시 */ } finally { setBusyIdea(null); }
+    };
 
     const checkedList = useMemo(() => Object.values(checked), [checked]);
 
@@ -99,6 +125,48 @@ export const AiIdeasPanel: React.FC = () => {
                 </div>
 
                 {error && <div className="text-xs text-red-400">{error}</div>}
+
+                {/* ── 직원 제안 (성장 엔진 3단계: 학습→제안→채택 XP) ── */}
+                {agentIdeas.length > 0 && (
+                    <div className="mb-5">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Icon name="Sparkles" size={14} className="text-emerald-400" />
+                            <h4 className="text-xs font-bold text-white">직원 제안 <span className="text-gray-500 font-normal">— 학습 지식 기반, 채택 시 해당 직원 +100 XP</span></h4>
+                        </div>
+                        <div className="space-y-1.5">
+                            {agentIdeas.map(ai => (
+                                <div key={ai.id} className={`rounded-lg border px-3 py-2.5 ${ai.status === 'pending' ? 'bg-emerald-400/5 border-emerald-400/20' : 'bg-white/5 border-transparent opacity-60'}`}>
+                                    <button onClick={() => setOpenAgentIdea(openAgentIdea === ai.id ? null : ai.id)} className="w-full flex items-center gap-2 text-left">
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 text-gray-300 shrink-0">{AGENT_LABELS[ai.agent] ?? ai.agent}</span>
+                                        <span className="text-xs font-bold text-white truncate flex-1">{ai.title}</span>
+                                        {ai.status === 'converted' && <span className="text-[10px] text-blue-300 shrink-0">✅ 개발요청 #{ai.devRequestId}</span>}
+                                        {ai.status === 'archived' && <span className="text-[10px] text-gray-500 shrink-0">보관됨</span>}
+                                        <span className="text-[10px] text-gray-500 shrink-0">{String(ai.createdAt).slice(5, 10)}</span>
+                                    </button>
+                                    {openAgentIdea === ai.id && (
+                                        <div className="mt-2">
+                                            <div className="text-xs text-gray-400 whitespace-pre-wrap leading-relaxed">{ai.content}</div>
+                                            {ai.status === 'pending' && (
+                                                <div className="flex gap-2 mt-2">
+                                                    <button onClick={() => convertIdea(ai)} disabled={busyIdea === ai.id}
+                                                        className="text-[11px] font-bold rounded-lg px-2.5 py-1.5 disabled:opacity-40"
+                                                        style={{ background: '#8E6FB7', color: '#fff' }}>
+                                                        {busyIdea === ai.id ? '전달 중…' : '🚀 개발 요청'}
+                                                    </button>
+                                                    <button onClick={() => archiveIdea(ai)} disabled={busyIdea === ai.id}
+                                                        className="text-[11px] rounded-lg px-2.5 py-1.5 bg-white/10 text-gray-300 disabled:opacity-40">
+                                                        보관
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {ideas === null && !error && <div className="text-sm text-gray-500 py-8 text-center">불러오는 중…</div>}
                 {ideas && ideas.length === 0 && <div className="text-sm text-gray-500 py-8 text-center">아직 수집된 아이디어가 없어요.</div>}
 

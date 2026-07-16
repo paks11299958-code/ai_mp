@@ -901,6 +901,17 @@ export const adminApi = {
     // AI 기능 스카우트 일자별 아이디어
     getAiFeatureIdeas: () =>
         get<{ id: number; ideaDate: string; content: string; createdAt: string }[]>('/admin/ai-feature-ideas'),
+    // 직원 성장 엔진 (2026-07-17): 성장 요약·이력 + 직원 제안(아이디어 순환)
+    getAgentGrowthSummary: () =>
+        get<Record<string, { totalXp: number; level: number; nextLevelXp: number; levelBase: number; levelNext: number; xp7: number; xp30: number; kinds: Record<string, { n: number; xp: number }>; weekly: { week: string; xp: number }[] }>>('/admin/agent-growth/summary'),
+    getAgentGrowthLogs: (agent: string, limit = 50) =>
+        get<{ id: number; kind: string; topic: string; summary: string; wikiPath: string; xp: number; createdAt: string }[]>(`/admin/agent-growth/${agent}/logs?limit=${limit}`),
+    getAgentIdeas: () =>
+        get<{ id: number; agent: string; title: string; content: string; status: string; devRequestId: number | null; createdAt: string }[]>('/admin/agent-ideas'),
+    convertAgentIdea: (id: number, extra?: string) =>
+        post<{ ok: boolean; devRequestId: number }>(`/admin/agent-ideas/${id}/convert`, { extra }),
+    archiveAgentIdea: (id: number) =>
+        post<{ ok: boolean; updated: number }>(`/admin/agent-ideas/${id}/archive`, {}),
     // 레퍼럴 지표 (바이럴 측정, 2026-07-07)
     referralStats: () =>
         get<{

@@ -18,6 +18,7 @@ import { HeroCardAdminPanel } from './admin/HeroCardAdminPanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
+import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
 import { BizReportPanel } from './admin/BizReportPanel';
 
@@ -85,6 +86,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
                             { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
                             { key: 'ai-ideas',      label: 'AI 아이디어', icon: 'Lightbulb' },
+                            { key: 'agent-growth',  label: '직원 성장',   icon: 'Sparkles' },
                             { key: 'sites',         label: '독립사이트', icon: 'Globe' },
                             { key: 'toss-trader',   label: '토스 자동매매', icon: 'TrendingUp' },
                         ] },
@@ -169,6 +171,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'monitor' && <ServerMonitorPanel />}
                 {mainView === 'ai-usage' && <AiUsagePanel />}
                 {mainView === 'ai-ideas' && <AiIdeasPanel />}
+                {mainView === 'agent-growth' && <AgentGrowthPanel />}
                 {mainView === 'marketing-assets' && <MarketingAssetsPanel />}
                 {mainView === 'sites' && <SitesPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
