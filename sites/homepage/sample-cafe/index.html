@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>모모의 뜰 — 골목 안 작은 정원 카페</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --cream:       #FBF6EE;
+      --warm-bg:     #F5ECD7;
+      --brown-dark:  #4A2C17;
+      --brown-mid:   #7B4F2E;
+      --brown-light: #C4956A;
+      --green-soft:  #7A9E7E;
+      --text-main:   #3A2412;
+      --text-sub:    #6B4C35;
+    }
+
+    body {
+      font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', 'Noto Sans KR', sans-serif;
+      background: var(--cream);
+      color: var(--text-main);
+      line-height: 1.65;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(160deg, #3B2010 0%, #7B4F2E 55%, #C4956A 100%);
+      color: var(--cream);
+      text-align: center;
+      padding: 72px 24px 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 110%, rgba(122,158,126,.28) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .hero-icon {
+      font-size: 2.6rem;
+      display: block;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      position: relative;
+    }
+    .hero .tagline {
+      margin-top: 12px;
+      font-size: 1.05rem;
+      opacity: .85;
+      position: relative;
+      font-weight: 400;
+    }
+    .hero-divider {
+      width: 36px;
+      height: 2px;
+      background: rgba(251,246,238,.4);
+      margin: 22px auto;
+      position: relative;
+    }
+    .btn-call {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--cream);
+      color: var(--brown-dark);
+      font-size: 1.05rem;
+      font-weight: 700;
+      padding: 14px 30px;
+      border-radius: 50px;
+      text-decoration: none;
+      position: relative;
+    }
+    .btn-call:active { opacity: .82; }
+
+    /* ── SECTION SHELL ── */
+    section { padding: 56px 24px; }
+    section:nth-of-type(odd)  { background: var(--cream); }
+    section:nth-of-type(even) { background: var(--warm-bg); }
+    .inner { max-width: 660px; margin: 0 auto; }
+
+    .eyebrow {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--green-soft);
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: var(--brown-dark);
+      letter-spacing: -.025em;
+      margin-bottom: 18px;
+    }
+    p { color: var(--text-sub); font-size: .98rem; }
+
+    /* ── ABOUT ── */
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .badge {
+      background: var(--brown-light);
+      color: #fff;
+      font-size: .78rem;
+      font-weight: 700;
+      padding: 5px 14px;
+      border-radius: 20px;
+      letter-spacing: .02em;
+    }
+
+    /* ── MENU ── */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+    .menu-item {
+      background: #fff;
+      border: 1px solid #E8D9C5;
+      border-radius: 14px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .menu-left { display: flex; align-items: center; gap: 12px; }
+    .menu-emoji { font-size: 1.5rem; flex-shrink: 0; }
+    .menu-name { font-weight: 600; color: var(--text-main); font-size: .98rem; }
+    .menu-price {
+      font-weight: 700;
+      color: var(--brown-mid);
+      font-size: .98rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* ── INFO CARD ── */
+    .info-card {
+      background: #fff;
+      border: 1px solid #E8D9C5;
+      border-radius: 16px;
+      padding: 8px 0;
+      margin-top: 6px;
+    }
+    .info-row {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      padding: 14px 22px;
+      border-bottom: 1px solid #F0E5D5;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-icon { font-size: 1.25rem; flex-shrink: 0; margin-top: 1px; }
+    .info-lbl {
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--brown-light);
+      margin-bottom: 3px;
+    }
+    .info-val { font-size: .97rem; color: var(--text-main); }
+    .info-note { font-size: .82rem; color: var(--text-sub); margin-top: 2px; }
+    a.tel-link {
+      color: var(--brown-mid);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      background: linear-gradient(135deg, #3B2010 0%, #7B4F2E 100%);
+      color: var(--cream);
+      text-align: center;
+      padding: 60px 24px;
+    }
+    .cta-band h2 { color: var(--cream); margin-bottom: 8px; }
+    .cta-band p  { color: rgba(251,246,238,.78); margin-bottom: 28px; }
+    .btn-cta-lg {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--green-soft);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 16px 40px;
+      border-radius: 50px;
+      text-decoration: none;
+    }
+    .btn-cta-lg:active { opacity: .85; }
+    .cta-tel {
+      display: block;
+      margin-top: 14px;
+      font-size: .88rem;
+      color: rgba(251,246,238,.55);
+      letter-spacing: .07em;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--brown-dark);
+      color: rgba(251,246,238,.55);
+      text-align: center;
+      padding: 30px 24px;
+      font-size: .8rem;
+      line-height: 1.8;
+    }
+    footer strong { color: rgba(251,246,238,.9); }
+
+    /* ── DESKTOP ── */
+    @media (min-width: 640px) {
+      .hero h1 { font-size: 3.2rem; }
+      .menu-grid { grid-template-columns: 1fr 1fr; }
+      section { padding: 72px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── HERO ── -->
+<header class="hero">
+  <span class="hero-icon">🌿</span>
+  <h1>모모의 뜰</h1>
+  <p class="tagline">골목 안 작은 정원에서 내리는 핸드드립</p>
+  <div class="hero-divider"></div>
+  <a class="btn-call" href="tel:02-1234-5678">
+    <span>📞</span> 02-1234-5678
+  </a>
+</header>
+
+<!-- ── ABOUT ── -->
+<section>
+  <div class="inner">
+    <span class="eyebrow">About</span>
+    <h2>동네와 함께한<br>따뜻한 12석</h2>
+    <p>2019년부터 성미산 골목을 지켜온 소형 카페입니다. 직접 로스팅한 원두로 한 잔씩 정성껏 내리는 핸드드립, 계절마다 달라지는 수제청 음료, 그리고 매일 아침 구워내는 버터 스콘이 여러분을 기다립니다.</p>
+    <div class="badges">
+      <span class="badge">☕ 직접 로스팅</span>
+      <span class="badge">🍋 계절 수제청</span>
+      <span class="badge">🥐 매일 굽는 스콘</span>
+      <span class="badge">🪴 아늑한 12석</span>
+    </div>
+  </div>
+</section>
+
+<!-- ── MENU ── -->
+<section>
+  <div class="inner">
+    <span class="eyebrow">Menu</span>
+    <h2>메뉴</h2>
+    <div class="menu-grid">
+      <div class="menu-item">
+        <div class="menu-left">
+          <span class="menu-emoji">☕</span>
+          <span class="menu-name">핸드드립</span>
+        </div>
+        <span class="menu-price">5,500원</span>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">
+          <span class="menu-emoji">🥛</span>
+          <span class="menu-name">카페라떼</span>
+        </div>
+        <span class="menu-price">5,000원</span>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">
+          <span class="menu-emoji">🍊</span>
+          <span class="menu-name">계절 수제청에이드</span>
+        </div>
+        <span class="menu-price">6,000원</span>
+      </div>
+      <div class="menu-item">
+        <div class="menu-left">
+          <span class="menu-emoji">🥐</span>
+          <span class="menu-name">버터 스콘</span>
+        </div>
+        <span class="menu-price">3,500원</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── VISIT ── -->
+<section>
+  <div class="inner">
+    <span class="eyebrow">Visit</span>
+    <h2>찾아오세요</h2>
+    <div class="info-card">
+      <div class="info-row">
+        <span class="info-icon">📍</span>
+        <div>
+          <div class="info-lbl">주소</div>
+          <div class="info-val">서울 마포구 성미산로23길 12 1층</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">🕙</span>
+        <div>
+          <div class="info-lbl">영업시간</div>
+          <div class="info-val">화 – 일 &nbsp; 11:00 – 21:00</div>
+          <div class="info-note">월요일 정기 휴무</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">📞</span>
+        <div>
+          <div class="info-lbl">전화</div>
+          <div class="info-val"><a class="tel-link" href="tel:02-1234-5678">02-1234-5678</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA BAND ── -->
+<div class="cta-band">
+  <h2>뜰에서 만나요 🌱</h2>
+  <p>편하게 전화 주시거나 골목 안으로 바로 오세요.</p>
+  <a class="btn-cta-lg" href="tel:02-1234-5678">
+    <span>📞</span> 지금 전화하기
+  </a>
+  <span class="cta-tel">02-1234-5678</span>
+</div>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <strong>모모의 뜰</strong><br>
+  서울 마포구 성미산로23길 12 1층&nbsp;&nbsp;·&nbsp;&nbsp;화–일 11:00–21:00&nbsp;&nbsp;·&nbsp;&nbsp;월 휴무
+</footer>
+
+</body>
+</html>

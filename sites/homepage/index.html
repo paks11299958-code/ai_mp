@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>홈페이지 만들기 — 샘플 갤러리</title>
+<style>
+  :root { --purple:#8E6FB7; --ink:#2D2438; --sub:#7A6A86; --line:#eee6f2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",sans-serif; color:var(--ink); background:#FBF8FF; line-height:1.7; }
+  .wrap { max-width:640px; margin:0 auto; padding:48px 20px 80px; }
+  .eyebrow { font-size:12px; letter-spacing:.24em; color:var(--purple); font-weight:800; text-align:center; }
+  h1 { font-size:26px; font-weight:800; text-align:center; margin:10px 0 8px; }
+  .lead { text-align:center; color:var(--sub); font-size:14.5px; margin-bottom:36px; }
+  .card { display:block; text-decoration:none; color:inherit; background:#fff; border:1px solid var(--line); border-radius:18px; padding:22px; margin-bottom:14px; transition:transform .15s, box-shadow .15s; }
+  .card:hover { transform:translateY(-2px); box-shadow:0 12px 28px rgba(142,111,183,.15); }
+  .card .top { display:flex; align-items:center; gap:12px; margin-bottom:6px; }
+  .card .ico { font-size:26px; }
+  .card b { font-size:17px; }
+  .card .mood { font-size:12px; color:var(--purple); background:rgba(142,111,183,.1); border-radius:999px; padding:4px 10px; margin-left:auto; }
+  .card p { font-size:13.5px; color:var(--sub); }
+  .card .go { display:inline-block; margin-top:10px; font-size:13px; font-weight:700; color:var(--purple); }
+  .foot { text-align:center; margin-top:34px; font-size:13px; color:var(--sub); }
+  .foot a { color:var(--purple); font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">SAMPLE GALLERY</div>
+  <h1>이런 홈페이지가 나와요</h1>
+  <p class="lead">신청서만 채우면 AI가 우리 가게 홈페이지 시안을 만들어 링크로 드려요.<br>아래는 실제 생성 결과 샘플입니다.</p>
+
+  <a class="card" href="./sample-cafe/">
+    <div class="top"><span class="ico">☕</span><b>동네 카페 — 모모의 뜰</b><span class="mood">따뜻한</span></div>
+    <p>핸드드립 전문 12석 소형 카페. 메뉴판·오시는길·전화 예약 버튼까지.</p>
+    <span class="go">샘플 보기 →</span>
+  </a>
+  <a class="card" href="./sample-salon/">
+    <div class="top"><span class="ico">💇</span><b>미용실 — 살롱 드 윤</b><span class="mood">모던한</span></div>
+    <p>1:1 예약제 살롱. 시술 가격표와 예약 전화 플로팅 버튼.</p>
+    <span class="go">샘플 보기 →</span>
+  </a>
+  <a class="card" href="./sample-realty/">
+    <div class="top"><span class="ico">🏢</span><b>공인중개사무소 — 든든</b><span class="mood">신뢰감</span></div>
+    <p>서비스 4종·계약 진행 절차 안내·무료 상담 CTA.</p>
+    <span class="go">샘플 보기 →</span>
+  </a>
+
+  <p class="foot">내 가게 홈페이지도 만들고 싶다면 → <a href="https://aichat.dbzone.kr/">AI 페르소나에서 만들기</a></p>
+</div>
+</body>
+</html>
