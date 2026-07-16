@@ -11,11 +11,13 @@ interface Props {
     onUserUpdate?: (updated: Partial<User>) => void;
     // 탈퇴 완료 시 — App에서 로그아웃(상태 리셋 + 게스트 화면) 처리
     onAccountDeleted?: () => void;
+    // 친구 초대 미션 배너 클릭 → App이 InviteFriendModal 오픈(PointModal 패턴)
+    onInviteClick?: () => void;
 }
 
 type Tab = 'info' | 'stats';
 
-export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate, onAccountDeleted }) => {
+export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate, onAccountDeleted, onInviteClick }) => {
     const [tab, setTab] = useState<Tab>('info');
     // 실시간 보유 포인트(채팅 중 변동 반영). user prop 값은 로그인 시점이라 stale할 수 있음.
     const { paidPoints, bonusPoints } = usePoints();
@@ -175,6 +177,25 @@ export const UserProfileModal: React.FC<Props> = ({ user, onClose, onUserUpdate,
                                 </div>
                                 <p className="text-[11px] text-[#9089A1] mt-1.5 px-1">충전·사용 상세 내역은 ‘페르소나 통계’ 탭에서 확인할 수 있어요.</p>
                             </div>
+
+                            {/* 친구 초대 미션 배너 — 기존 레퍼럴 보상(양방향 +1,000P)의 노출용, 지급 로직 무변경 (2026-07-17 바이럴 P2 잔여) */}
+                            {onInviteClick && (
+                                <button
+                                    onClick={onInviteClick}
+                                    className="w-full rounded-xl p-4 text-left transition-transform active:scale-[0.99]"
+                                    style={{ background: 'linear-gradient(135deg, rgba(142,111,183,0.12), rgba(228,139,176,0.12))', border: '1px solid rgba(142,111,183,0.35)' }}
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <div className="text-sm font-bold text-[#5C4A6E]">🎁 친구 초대 미션 <span className="text-[#8E6FB7]">+1,000P</span></div>
+                                            <div className="text-[11px] text-[#9089A1] mt-1 leading-relaxed">
+                                                친구가 내 링크로 가입해 이용하면 <b className="text-[#8E6FB7]">두 분 다 1,000P</b> — 초대할 때마다 계속 받아요!
+                                            </div>
+                                        </div>
+                                        <span className="text-[#8E6FB7] text-lg shrink-0">›</span>
+                                    </div>
+                                </button>
+                            )}
 
                             {/* 기본 정보 */}
                             <div>

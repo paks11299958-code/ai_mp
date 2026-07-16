@@ -80,6 +80,10 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                             <Sparkles size={15} style={{ color: '#8E6FB7', flexShrink: 0 }} />
                             <span>나의 AI 기능 등록 <b style={{ color: '#8E6FB7' }}>+1,000P</b></span>
                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#7A6A86' }}>
+                            <Gift size={15} style={{ color: '#8E6FB7', flexShrink: 0 }} />
+                            <span>친구 초대 (초대마다 두 분 다) <b style={{ color: '#8E6FB7' }}>+1,000P</b></span>
+                        </div>
                     </div>
                 )}
 
