@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { homepageApi, HomepageRequestRow } from '../services/apiService';
 import { buildFeatureShareLink, getMyReferralCode } from '../services/referral';
 
-// 홈페이지 만들기 보드 — 신청서를 채우면 AI(지우)가 홈페이지 시안을 만들어
+// 홈페이지 만들기 보드 — 신청서를 채우면 AI(박하진, 웹 전문가)가 홈페이지 시안을 만들어
 // ①실제 링크(주인공) ②소스 zip(보조) 둘 다 제공. 결제 전 샘플 갤러리로 신뢰 형성.
 // 비동기 큐: 신청(202, 1,000pt 선차감) → 서버2 워커가 생성·배포(2~5분) → 폴링 → done/failed(자동환불).
 // 사장 확정(2026-07-17): 단가 1,000pt, 시안 링크가 주인공(위계 뒤집기 금지).
@@ -11,7 +11,7 @@ interface Props {
     onClose: () => void;
 }
 
-const PINK = '#D85C95';          // 지우 팔레트(FEATURES_GRID mathtutor/learn과 동일 계열)
+const INDIGO = '#5C6AC4';        // 박하진 팔레트(웹 전문가, from-indigo-500 to-violet-500 계열)
 
 // 실배포 샘플(뼈대 단계에서 생성 엔진으로 실산출·검수 완료)
 const SAMPLES = [
@@ -112,7 +112,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
         setReqId(null); setRow(null); setForm(EMPTY_FORM); setError(null); setStep('form');
     };
 
-    const inputCls = 'w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 outline-none focus:border-pink-400';
+    const inputCls = 'w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 outline-none focus:border-indigo-400';
     // 다크모드/OS 테마에서 입력 글자 흐려짐 방지 — 색 인라인 고정(전역 규칙)
     const inputStyle: React.CSSProperties = { color: '#1f2937', backgroundColor: '#ffffff' };
 
@@ -125,7 +125,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
                         <span className="text-lg">🏠</span>
-                        <h2 className="text-base font-bold" style={{ color: PINK }}>홈페이지 만들기</h2>
+                        <h2 className="text-base font-bold" style={{ color: INDIGO }}>홈페이지 만들기</h2>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
                 </div>
@@ -135,7 +135,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                     {step === 'intro' && (
                         <>
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                신청서만 채우면 지우가 <b>우리 가게 홈페이지 시안</b>을 만들어 <b>실제 링크</b>로 드려요.
+                                신청서만 채우면 웹 전문가 <b>박하진</b>이 <b>우리 가게 홈페이지 시안</b>을 만들어 <b>실제 링크</b>로 드려요.
                                 링크는 바로 공유할 수 있고, 소스코드(zip)도 함께 드려요.
                             </p>
                             <div className="space-y-1.5">
@@ -143,7 +143,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                 <div className="grid grid-cols-3 gap-2">
                                     {SAMPLES.map(s => (
                                         <a key={s.slug} href={s.url} target="_blank" rel="noopener noreferrer"
-                                           className="rounded-xl border border-pink-100 bg-pink-50/50 p-2.5 text-center hover:bg-pink-50 transition-colors">
+                                           className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 text-center hover:bg-indigo-50 transition-colors">
                                             <div className="text-2xl">{s.emoji}</div>
                                             <div className="text-[11px] font-semibold text-gray-700 mt-1">{s.label}</div>
                                             <div className="text-[10px] text-gray-400">{s.mood}</div>
@@ -155,15 +155,15 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                 <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-600 flex items-center justify-between gap-2">
                                     <span>🔗 지난번에 만든 시안이 있어요</span>
                                     <a href={lastDone.url} target="_blank" rel="noopener noreferrer"
-                                       className="shrink-0 font-semibold underline" style={{ color: PINK }}>보러 가기</a>
+                                       className="shrink-0 font-semibold underline" style={{ color: INDIGO }}>보러 가기</a>
                                 </div>
                             )}
-                            <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
+                            <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs" style={{ color: INDIGO }}>
                                 💎 1회 1,000P — 완성까지 약 2~5분, 실패하면 자동 환불돼요.
                             </div>
                             <button onClick={() => setStep('form')}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
-                                    style={{ backgroundColor: PINK }}>
+                                    style={{ backgroundColor: INDIGO }}>
                                 ✨ 내 홈페이지 만들기 시작
                             </button>
                         </>
@@ -202,7 +202,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                         {MOOD_CHIPS.map(m => (
                                             <button key={m} type="button" onClick={() => setForm(f => ({ ...f, mood: m }))}
                                                     className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${form.mood === m ? 'text-white' : 'text-gray-500 bg-white border-gray-200'}`}
-                                                    style={form.mood === m ? { backgroundColor: PINK, borderColor: PINK } : undefined}>
+                                                    style={form.mood === m ? { backgroundColor: INDIGO, borderColor: INDIGO } : undefined}>
                                                 {m}
                                             </button>
                                         ))}
@@ -215,7 +215,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                             {error && <div className="text-xs text-red-500">{error}</div>}
                             <button onClick={submit} disabled={submitting}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
-                                    style={{ backgroundColor: PINK }}>
+                                    style={{ backgroundColor: INDIGO }}>
                                 {submitting ? '신청 중…' : '🏠 홈페이지 만들기 (1,000P)'}
                             </button>
                             <button onClick={() => setStep('intro')} className="w-full py-2 text-xs text-gray-400">← 샘플 다시 보기</button>
@@ -225,8 +225,8 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                     {/* [3] 생성 대기 */}
                     {step === 'waiting' && (
                         <div className="py-10 text-center space-y-3">
-                            <div className="inline-block w-8 h-8 border-3 border-pink-200 border-t-pink-500 rounded-full animate-spin" />
-                            <p className="text-sm font-medium text-gray-700">지우가 홈페이지를 만들고 있어요…</p>
+                            <div className="inline-block w-8 h-8 border-3 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+                            <p className="text-sm font-medium text-gray-700">박하진이 홈페이지를 만들고 있어요…</p>
                             <p className="text-xs text-gray-400">디자인부터 배포까지 약 2~5분 걸려요.<br />이 화면을 닫아도 완성돼요 — 다시 열면 결과를 볼 수 있어요.</p>
                         </div>
                     )}
@@ -238,15 +238,15 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                             <p className="text-sm font-semibold text-gray-800">홈페이지 시안이 완성됐어요!</p>
                             <a href={row.url} target="_blank" rel="noopener noreferrer"
                                className="block w-full py-4 rounded-xl text-white font-bold text-base shadow-md"
-                               style={{ backgroundColor: PINK }}>
+                               style={{ backgroundColor: INDIGO }}>
                                 🔗 내 홈페이지 시안 보기
                             </a>
                             <button onClick={() => share(row.url!)}
                                     className="w-full py-2.5 rounded-xl border text-sm font-semibold"
-                                    style={{ borderColor: PINK, color: PINK }}>
+                                    style={{ borderColor: INDIGO, color: INDIGO }}>
                                 📣 친구·단골에게 공유하기
                             </button>
-                            {shareMsg && <div className="text-xs" style={{ color: PINK }}>{shareMsg}</div>}
+                            {shareMsg && <div className="text-xs" style={{ color: INDIGO }}>{shareMsg}</div>}
                             <div className="flex items-center justify-center gap-3 text-[11px] text-gray-400 pt-1">
                                 {row.zipUrl && (
                                     <a href={row.zipUrl} className="underline hover:text-gray-600" download>
@@ -256,7 +256,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                 <button onClick={reset} className="underline hover:text-gray-600">다른 홈페이지 만들기</button>
                             </div>
                             <p className="text-[11px] text-gray-400 leading-relaxed pt-1">
-                                링크는 계속 열려 있어요. 수정하고 싶은 부분이 있으면 소스코드를 개발자(또는 지우 채팅)에게 전달해 보세요.
+                                링크는 계속 열려 있어요. 수정하고 싶은 부분이 있으면 소스코드를 개발자(또는 박하진 채팅)에게 전달해 보세요.
                             </p>
                         </div>
                     )}
