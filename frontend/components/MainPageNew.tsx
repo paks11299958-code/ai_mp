@@ -371,7 +371,8 @@ export const FEATURES_GRID = [
     { id: 19, numeral: 'XIX', latin: 'Marketing',key: 'marketing',name: 'AI 마케팅 글쓰기',tag: 'SNS 콘텐츠 작성', catch: '인스타 글, 아린이가 대신 써줘요 (첫 회 무료!)', category: 'create',  desc: '홍보할 주제만 적으면 아린이가 인스타 콘텐츠 초안(후킹·해시태그·측정안)을 만들어 드려요. 첫 1회 무료!', icon: 'sparkles',  palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#8E6FB7' }, personaName: '이아린',  releasedAt: '2026-06-28' },
     { id: 20, numeral: 'XX',  latin: 'Time Travel',key: 'agetransform',name: '시간여행',     tag: 'AI 나이 변환',   catch: '10년 뒤 내 얼굴이 궁금해? ⏳', category: 'life',    desc: '내 사진과 나이를 넣으면 윤채린이 과거(젊은 시절)와 미래(노화)의 모습을 보여드려요. Before/After 슬라이더로 확인!',  icon: 'face',      palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#9B5FA8' }, personaName: '윤채린',  releasedAt: '2026-06-21' },
     { id: 21, numeral: 'XXI', latin: 'Tarot',   key: 'tarot',   name: '타로점',         tag: 'AI 타로 리딩',   catch: '카드가 오늘의 답을 알아요 🔮', category: 'fortune', desc: '카드를 직접 섞고 세 장을 뽑으면 타로술사 유나가 과거·현재·미래를 읽어드려요.',                icon: 'tarot',     palette: { bg: '#EFE7F7', deep: '#B79BD9', accent: '#6E4A9E' }, personaName: '유나',    releasedAt: '2026-07-06' },
-    { id: 22, numeral: 'XXII',latin: 'Learn',   key: 'learn',   name: 'AI로 홈페이지 만들기', tag: '무료 학습자료', catch: '코딩 몰라도 내 홈페이지 완성! 🎓', category: 'info', desc: '코딩 몰라도 OK! AI로 홈페이지를 만들어 내 컴퓨터에서 띄워보는 5단계 무료 강의. 지우가 함께해요.', icon: 'book',      palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우',    releasedAt: '2026-07-10' },
+    // learn(무료 학습자료, 구 id22)은 메인 카드에서 제거(2026-07-17 사장) — '홈페이지 만들기'와 혼동 방지.
+    // 진입은 박하진 채팅의 '학습자료' 버튼(FEATURE_REGISTRY+DB features)으로만.
     { id: 24, numeral: 'XXIV',latin: 'Homepage',key: 'homepage',name: '홈페이지 만들기',  tag: 'AI 시안 제작',   catch: '신청서만 쓰면 우리 가게 홈페이지 완성 🏠', category: 'create', desc: '업종·상호·소개만 적으면 웹 전문가 박하진이 홈페이지 시안을 만들어 실제 링크로 드려요. 소스코드(zip)도 함께!', icon: 'homepage',  palette: { bg: '#E9EBF9', deep: '#AEB4E8', accent: '#5C6AC4' }, personaName: '박하진',  releasedAt: '2026-07-17' },
 ];
 
@@ -401,8 +402,7 @@ export const FEATURE_SYNONYMS: Record<string, string[]> = {
     marketing:   ['마케팅', '홍보', 'sns', '인스타', '광고', '콘텐츠', '글쓰기', '피드', '해시태그', '게시물', '바이럴'],
     agetransform:['나이변환', '노화', '늙은', '미래의나', '나이든', '늙으면', '변환', '얼굴변환', '나이', '미래모습', '시간여행', '회춘', '젊어', '동안', '어릴때', '과거모습'],
     outfit:      ['전통의상', '의상', '한복', '기모노', '치파오', '나라의상', '세계의상', '옷', '입어보기', '코스프레', '전통복', '민속의상', '드레스', '체험'],
-    learn:       ['학습', '학습자료', '강의', '홈페이지', '홈페이지만들기', '웹사이트', '사이트제작', '코딩', '배우기', '교육', '로컬호스트', '무료강의', '클로드코드'],
-    homepage:    ['홈페이지', '웹사이트', '홈피', '사이트', '사이트만들기', '홈페이지만들기', '사이트제작', '랜딩페이지', '가게홈페이지', '홈페이지제작', '웹', '소상공인', '창업'],
+    homepage:    ['홈페이지', '웹사이트', '홈피', '사이트', '사이트만들기', '홈페이지만들기', '사이트제작', '랜딩페이지', '가게홈페이지', '홈페이지제작', '웹', '소상공인', '창업', '학습', '배우기', '강의'],
 };
 
 // 기능이 검색어와 매칭되는지 — 이름/태그/설명(부분일치) + 연관 키워드(동의어)까지.

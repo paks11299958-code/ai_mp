@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { authApi } from '../services/apiService';
 import { captureRefFromUrl } from '../services/referral';
 
-// 📚 학습자료 페이지 (/learn/homepage) — 지우의 "AI로 홈페이지 만들기" 단계별 강의 자료.
+// 📚 학습자료 페이지 (/learn/homepage) — 박하진(웹 전문가)의 "AI로 홈페이지 만들기" 단계별 강의 자료.
 // 강의장에서 주소/QR로 직접 접속하는 용도라 EmbedChat·ConsultPage처럼 AppContent
 // 진입 전 얼리리턴으로 렌더된다(비회원 접근 가능, 앱 훅·컨텍스트 비의존).
 // 시안 파일은 public/learn/designs/*.html 정적 서빙(다운로드 시 index.html로 저장).
@@ -667,7 +667,7 @@ export const LearnPage: React.FC = () => {
                     <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 text-sm text-[#6E5DA3] font-semibold">
                         ← AI 스퀘어
                     </button>
-                    <span className="text-sm font-extrabold text-[#2D2438]">📚 지우의 학습자료</span>
+                    <span className="text-sm font-extrabold text-[#2D2438]">📚 박하진의 학습자료</span>
                     <span className="w-16" />
                 </div>
             </header>
@@ -840,7 +840,7 @@ export const LearnPage: React.FC = () => {
                     </div>
 
                     <p className="text-sm leading-relaxed text-[#4A4058] pt-2">
-                        지우가 위 프롬프트로 미리 만들어 둔 시안 3종이에요. 마음에 드는 것을 골라 <b>미리보기</b>로 확인하고
+                        박하진이 위 프롬프트로 미리 만들어 둔 시안 3종이에요. 마음에 드는 것을 골라 <b>미리보기</b>로 확인하고
                         <b> 다운로드</b>하면 바로 3단계로 넘어갈 수 있어요. (다운로드하면 index.html 파일로 저장됩니다)
                     </p>
                     <div className="grid gap-5">
