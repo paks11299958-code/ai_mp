@@ -159,7 +159,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
                             <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs" style={{ color: INDIGO }}>
-                                💎 1회 1,000P — 완성까지 약 2~5분, 실패하면 자동 환불돼요.
+                                💎 1회 3,000P — 리서치·기획·사진 생성까지 약 10~20분, 실패하면 자동 환불돼요.
                             </div>
                             <button onClick={() => setStep('form')}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
@@ -225,7 +225,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                             <button onClick={submit} disabled={submitting}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
                                     style={{ backgroundColor: INDIGO }}>
-                                {submitting ? '신청 중…' : '🏠 홈페이지 만들기 (1,000P)'}
+                                {submitting ? '신청 중…' : '🏠 홈페이지 만들기 (3,000P)'}
                             </button>
                             <button onClick={() => setStep('intro')} className="w-full py-2 text-xs text-gray-400">← 샘플 다시 보기</button>
                         </>
@@ -236,7 +236,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                         <div className="py-10 text-center space-y-3">
                             <div className="inline-block w-8 h-8 border-3 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
                             <p className="text-sm font-medium text-gray-700">박하진이 홈페이지를 만들고 있어요…</p>
-                            <p className="text-xs text-gray-400">디자인부터 배포까지 약 2~5분 걸려요.<br />이 화면을 닫아도 완성돼요 — 다시 열면 결과를 볼 수 있어요.</p>
+                            <p className="text-xs text-gray-400">업종 리서치 → 기획 → 사진 생성 → 제작까지 약 10~20분 걸려요.<br />이 화면을 닫아도 완성돼요 — 다시 열면 결과를 볼 수 있어요.</p>
                         </div>
                     )}
 
