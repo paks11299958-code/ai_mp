@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="동네에서 제일 싱싱한 꽃, 매일 아침 직접 고릅니다 — 꽃길상점">
+  <title>꽃길상점</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --rose:    #d4748c;
+      --rose-dk: #b85c74;
+      --green:   #7a9e7e;
+      --cream:   #fffdf9;
+      --warm-bg: #fff8f0;
+      --text:    #3d2b1f;
+      --text-m:  #7a5c4a;
+      --text-lt: #a07a65;
+      --border:  #f0ddd5;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo',
+                   'Malgun Gothic', '맑은 고딕', sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255, 253, 249, 0.94);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.8rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.01em;
+    }
+
+    .header-hours {
+      font-size: 0.78rem;
+      color: var(--text-m);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(160deg, #fce8ed 0%, #fdf5e6 55%, #e8f2e8 100%);
+      min-height: calc(100vh - 53px);
+      min-height: calc(100svh - 53px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem 3.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-deco {
+      position: absolute;
+      font-size: 9rem;
+      opacity: 0.07;
+      pointer-events: none;
+      line-height: 1;
+    }
+    .hero-deco-tl { top: -1rem; left: -2rem; transform: rotate(-20deg); }
+    .hero-deco-br { bottom: -1rem; right: -2rem; transform: rotate(15deg); }
+
+    .hero-flowers {
+      font-size: 2.2rem;
+      letter-spacing: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-label {
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: var(--rose-dk);
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 0.85rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2rem, 9vw, 3.6rem);
+      font-weight: 800;
+      line-height: 1.18;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--rose);
+    }
+
+    .hero-sub {
+      font-size: clamp(0.95rem, 3.5vw, 1.15rem);
+      color: var(--text-m);
+      max-width: 400px;
+      margin-bottom: 2.25rem;
+      line-height: 1.75;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      background: var(--rose);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 0.9rem 2.25rem;
+      border-radius: 50px;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      box-shadow: 0 6px 20px rgba(212,116,140,0.35);
+      transition: background 0.18s, transform 0.15s;
+    }
+    .btn-primary:hover, .btn-primary:active {
+      background: var(--rose-dk);
+      transform: translateY(-1px);
+    }
+
+    /* ── SECTION WRAPPER ── */
+    .section {
+      padding: 4rem 1.5rem;
+    }
+
+    .inner {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      color: var(--rose);
+      text-transform: uppercase;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .sec-title {
+      font-size: clamp(1.5rem, 5.5vw, 2rem);
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.25;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+    }
+
+    .bar {
+      width: 36px;
+      height: 3px;
+      background: linear-gradient(90deg, var(--rose), var(--green));
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── ABOUT ── */
+    .about { background: var(--warm-bg); }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: #fce8e8;
+      border: 1px solid #f0b8c8;
+      color: #b05060;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.3rem 0.85rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+
+    .about-body {
+      font-size: 1.02rem;
+      color: #5e3d2e;
+      line-height: 1.9;
+    }
+
+    /* ── SERVICES ── */
+    .services { background: var(--cream); }
+
+    .cards {
+      display: grid;
+      gap: 0.9rem;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.2rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      box-shadow: 0 2px 10px rgba(60,30,20,0.05);
+      transition: box-shadow 0.18s;
+    }
+    .card:hover { box-shadow: 0 4px 16px rgba(212,116,140,0.13); }
+
+    .card-icon {
+      font-size: 2rem;
+      flex-shrink: 0;
+      width: 2.6rem;
+      text-align: center;
+    }
+
+    .card-info { flex: 1; }
+
+    .card-name {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 0.18rem;
+    }
+
+    .card-note {
+      font-size: 0.82rem;
+      color: var(--text-lt);
+    }
+
+    .card-price {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--rose);
+      white-space: nowrap;
+    }
+
+    /* ── HOURS ── */
+    .hours {
+      background: linear-gradient(135deg, #fce8ed 0%, #e8f2e8 100%);
+    }
+
+    .hours-box {
+      background: rgba(255,255,255,0.72);
+      border-radius: 18px;
+      padding: 1.6rem 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.2rem;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.9);
+    }
+
+    .hours-icon { font-size: 2.4rem; flex-shrink: 0; }
+
+    .hours-text { font-size: 1rem; color: var(--text); }
+
+    .hours-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .hours-row .day { font-weight: 600; }
+    .hours-row .time { color: var(--text-m); }
+
+    .hours-closed {
+      margin-top: 0.6rem;
+      font-size: 0.88rem;
+      color: #c0424e;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* ── CTA BANNER ── */
+    .cta-banner {
+      background: var(--rose);
+      padding: 3.8rem 1.5rem;
+      text-align: center;
+    }
+
+    .cta-banner h2 {
+      font-size: clamp(1.35rem, 5vw, 1.9rem);
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 0.65rem;
+      line-height: 1.3;
+    }
+
+    .cta-banner p {
+      color: rgba(255,255,255,0.88);
+      font-size: 0.97rem;
+      margin-bottom: 1.8rem;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .btn-white {
+      display: inline-block;
+      background: #fff;
+      color: var(--rose-dk);
+      font-size: 0.97rem;
+      font-weight: 700;
+      padding: 0.85rem 2.1rem;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--text);
+      color: rgba(255,255,255,0.55);
+      text-align: center;
+      padding: 2.2rem 1.5rem;
+      font-size: 0.84rem;
+      line-height: 1.9;
+    }
+
+    footer .f-brand {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    /* ── DESKTOP ── */
+    @media (min-width: 640px) {
+      .cards {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .card {
+        flex-direction: column;
+        text-align: center;
+        align-items: center;
+        padding: 1.5rem 1rem;
+      }
+      .card-icon { width: auto; }
+    }
+
+    @media (min-width: 768px) {
+      .hero { min-height: 80vh; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="brand">🌸 꽃길상점</span>
+  <span class="header-hours">매일 09:00–20:00 · 일요일 휴무</span>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-deco hero-deco-tl">🌺</div>
+    <div class="hero-deco hero-deco-br">🌷</div>
+    <p class="hero-flowers">🌸 🌷 🌺</p>
+    <p class="hero-label">Flower Shop · 꽃길상점</p>
+    <h1>꽃이 있는<br><em>하루</em>를<br>드려요</h1>
+    <p class="hero-sub">동네에서 제일 싱싱한 꽃,<br>매일 아침 직접 고릅니다</p>
+    <a href="#services" class="btn-primary">🌷 꽃 구경하기</a>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="section about" id="about">
+    <div class="inner">
+      <p class="eyebrow">About</p>
+      <h2 class="sec-title">10년째 같은 자리,<br>변하지 않는 정성</h2>
+      <div class="bar"></div>
+      <span class="badge">🌿 10년 단골 꽃집</span>
+      <p class="about-body">
+        10년째 같은 자리를 지키는 동네 꽃집입니다.<br>
+        꽃다발·화분·개업 화환까지,<br>
+        용도와 예산을 말씀하시면 딱 맞게 만들어 드려요.
+      </p>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section services" id="services">
+    <div class="inner">
+      <p class="eyebrow">Services &amp; Price</p>
+      <h2 class="sec-title">서비스 안내</h2>
+      <div class="bar"></div>
+      <div class="cards">
+        <div class="card">
+          <span class="card-icon">💐</span>
+          <div class="card-info">
+            <div class="card-name">꽃다발</div>
+            <div class="card-note">생일 · 기념일 · 프러포즈</div>
+          </div>
+          <div class="card-price">20,000원~</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">🪴</span>
+          <div class="card-info">
+            <div class="card-name">화분</div>
+            <div class="card-note">인테리어 · 선물용</div>
+          </div>
+          <div class="card-price">15,000원~</div>
+        </div>
+        <div class="card">
+          <span class="card-icon">🎊</span>
+          <div class="card-info">
+            <div class="card-name">개업 화환</div>
+            <div class="card-note">개업 · 이전 · 축하</div>
+          </div>
+          <div class="card-price">60,000원</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOURS -->
+  <section class="section hours" id="hours">
+    <div class="inner">
+      <p class="eyebrow">Hours</p>
+      <h2 class="sec-title">영업시간</h2>
+      <div class="bar"></div>
+      <div class="hours-box">
+        <span class="hours-icon">🕘</span>
+        <div class="hours-text">
+          <div class="hours-row">
+            <span class="day">월요일 – 토요일</span>
+            <span class="time">09:00 – 20:00</span>
+          </div>
+          <div class="hours-closed">
+            <span>●</span> 일요일 휴무
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA BANNER -->
+  <section class="cta-banner">
+    <h2>용도와 예산을<br>말씀해 주세요 🌸</h2>
+    <p>꽃다발부터 개업 화환까지,<br>딱 맞게 만들어 드립니다</p>
+    <a href="#about" class="btn-white">가게 소개 보기</a>
+  </section>
+
+</main>
+
+<footer>
+  <span class="f-brand">🌸 꽃길상점</span>
+  영업시간 · 월–토 09:00–20:00 / 일요일 휴무<br>
+  © 2026 꽃길상점. All rights reserved.
+</footer>
+
+</body>
+</html>
