@@ -23,9 +23,9 @@ const SAMPLES = [
 interface FormState {
     biz: string; name: string; tagline: string;
     detail: string; menu: string; address: string;
-    hours: string; phone: string; mood: string;
+    hours: string; phone: string; kakao: string; mood: string;
 }
-const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu: '', address: '', hours: '', phone: '', mood: '' };
+const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu: '', address: '', hours: '', phone: '', kakao: '', mood: '' };
 
 const MOOD_CHIPS = ['따뜻한', '모던한', '고급스러운', '아기자기한', '신뢰감 있는', '활기찬'];
 
@@ -194,6 +194,15 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                            placeholder="영업시간" />
                                     <input value={form.phone} onChange={set('phone')} maxLength={30} className={inputCls} style={inputStyle}
                                            placeholder="전화번호" />
+                                </div>
+                                <div>
+                                    <input value={form.kakao} onChange={set('kakao')} maxLength={120} className={inputCls} style={inputStyle}
+                                           placeholder="카카오톡 채널 링크 (예: pf.kakao.com/_abc123)" />
+                                    <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                                        💬 넣으면 홈페이지의 <b>문의하기 버튼</b>이 내 카카오톡 채팅으로 바로 연결돼요.
+                                        링크는 <b>카카오톡 채널 관리자센터 → 채널 링크 복사</b>에서, 채널이 없다면{' '}
+                                        <a href="https://center-pf.kakao.com" target="_blank" rel="noopener noreferrer" className="underline">여기서 무료 개설</a>할 수 있어요.
+                                    </p>
                                 </div>
                                 <div>
                                     <input value={form.mood} onChange={set('mood')} maxLength={60} className={inputCls} style={inputStyle}
