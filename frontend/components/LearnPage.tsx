@@ -417,10 +417,25 @@ const QuizSection: React.FC<{ record: { passed: boolean; passedAt: string | null
                             <div className="text-4xl mb-2">🏅</div>
                             <p className="font-extrabold text-green-600 text-lg">100점 합격!</p>
                             <p className="text-xs text-[#9A8FB0] mt-1">
-                                합격일: {record.passedAt ? new Date(record.passedAt).toLocaleDateString('ko-KR') : '기록됨'} — 다음 코스가 열리면 바로 입장할 수 있어요.
+                                합격일: {record.passedAt ? new Date(record.passedAt).toLocaleDateString('ko-KR') : '기록됨'}
                             </p>
-                            <button onClick={start} className="mt-4 text-sm font-bold text-[#6E5DA3] border border-[#8E6FB7]/40 px-5 py-2.5 rounded-xl hover:bg-[#F5EFFA]">
-                                🔄 다시 도전하기
+
+                            {/* 🎉 2편 잠금해제 — 1편 합격자에게만 보이는 다음 편 진입 버튼 */}
+                            <div className="mt-5 bg-gradient-to-r from-[#FF6B9D]/10 to-[#8E6FB7]/10 border border-[#8E6FB7]/30 rounded-2xl p-5">
+                                <div className="text-2xl mb-1">🔓</div>
+                                <div className="font-extrabold text-[#2D2438]">2편이 열렸어요!</div>
+                                <p className="text-sm text-[#6E6480] mt-1 leading-relaxed">
+                                    이제 <b>내 홈페이지를 인터넷에 올려서</b> 친구에게 주소를 보내볼 차례예요.<br />
+                                    깃허브와 버셀로 진짜 홈페이지 주소를 만듭니다.
+                                </p>
+                                <button onClick={() => { window.location.href = '/learn/homepage/2'; }}
+                                        className="mt-4 w-full bg-[#8E6FB7] hover:bg-[#7A5FA0] text-white font-extrabold py-3.5 rounded-xl">
+                                    🌍 2편 — 내 홈페이지를 인터넷에 올리기 →
+                                </button>
+                            </div>
+
+                            <button onClick={start} className="mt-3 text-sm font-bold text-[#6E5DA3] border border-[#8E6FB7]/40 px-5 py-2.5 rounded-xl hover:bg-[#F5EFFA]">
+                                🔄 1편 평가 다시 도전하기
                             </button>
                         </>
                     ) : (
@@ -732,6 +747,11 @@ export const LearnPage: React.FC = () => {
                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'faq' ? 'bg-[#D85C95] border-[#D85C95] text-white' : 'border-transparent text-[#D85C95] hover:bg-white hover:border-[#D85C95]/25'}`}>🆘 막혔을 때</a>
                     <a href="#quiz"
                        className={`flex items-center gap-2.5 rounded-lg px-3 py-2 border text-[13px] font-semibold transition-colors ${activeStep === 'quiz' ? 'bg-[#6E5DA3] border-[#6E5DA3] text-white' : 'border-transparent text-[#6E5DA3] hover:bg-white hover:border-[#6E5DA3]/25'}`}>📝 학습평가{record?.passed ? ' ✅' : ''}</a>
+                    {/* 다음 편 — 합격자는 바로 2편, 아니면 학습평가로 유도 */}
+                    <a href={record?.passed ? '/learn/homepage/2' : '#quiz'}
+                       className="flex items-center gap-2.5 rounded-lg px-3 py-2 mt-1 border text-[13px] font-bold text-[#8E6FB7] border-[#8E6FB7]/30 hover:bg-[#F5EFFA] transition-colors">
+                        {record?.passed ? '🌍 2편 — 인터넷에 올리기' : '🔒 2편 (평가 후 열림)'}
+                    </a>
                     {videoToken && (
                         <button onClick={() => setVideoIdx(0)}
                                 className="w-full flex items-center gap-2.5 rounded-lg px-3 py-2 mt-2 text-[13px] font-bold bg-[#1E1B2E] text-white hover:bg-[#2D2438] transition-colors">

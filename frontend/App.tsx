@@ -333,7 +333,7 @@ const AppContent: React.FC = () => {
         agetransform: () => setShowAgeBoard(true),
         marketing: () => setShowMarketingBoard(true),
         homepage: () => setShowHomepageBoard(true),
-        learn: () => { window.location.href = '/learn/homepage'; }, // 지우 학습자료 — 전용 페이지(얼리리턴 라우트)
+        learn: () => { window.location.href = '/learn'; }, // 박하진 학습자료 — 시리즈 목록(1편·2편 선택). 얼리리턴 라우트
     };
 
     // 공지사항
