@@ -727,6 +727,24 @@ export const heroCardApi = {
     },
 };
 
+// 📸 학습자료 스크린샷 — 사장이 실제 화면(깃허브·버셀)을 캡처해 강의 본문의 고정 자리에 채운다.
+// 자리 목록은 서버(SHOT_SLOTS)가 정본. 업로드는 hero-cards와 같은 signed-url 방식.
+export interface LearnShotSlot { key: string; label: string; imageUrl: string; updatedAt: string | null; }
+
+export const learnShotApi = {
+    adminList: (course: string) => get<LearnShotSlot[]>(`/learn/shots/admin?course=${encodeURIComponent(course)}`),
+    save: (course: string, slotKey: string, imageUrl: string) =>
+        put<{ ok: boolean }>('/learn/shots', { course, slotKey, imageUrl }),
+    upload: async (course: string, slotKey: string, file: File): Promise<string> => {
+        const { signedUrl, publicUrl } = await post<{ signedUrl: string; publicUrl: string }>(
+            '/learn/shots/upload-url', { course, slotKey, mimeType: file.type });
+        const r = await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file });
+        if (!r.ok) throw new Error('이미지 업로드에 실패했어요.');
+        await put<{ ok: boolean }>('/learn/shots', { course, slotKey, imageUrl: publicUrl });
+        return publicUrl;
+    },
+};
+
 export const quickMenuApi = {
     generate: (personaId: string, prompt: string) =>
         post<{ result: string; newBalance: number; paidBalance: number; bonusBalance: number }>('/quick-menu-result', { personaId, prompt }),

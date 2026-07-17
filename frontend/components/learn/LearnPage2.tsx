@@ -158,6 +158,16 @@ export const LearnPage2: React.FC = () => {
         authApi.referral().then(d => setRefCode(d.code || '')).catch(() => {});
     }, [auth]);
 
+    // 📸 스크린샷 — 사장이 어드민에서 올린 실제 화면. 없는 자리는 안내 박스로 남는다.
+    const [shots, setShots] = useState<Record<string, string>>({});
+    useEffect(() => {
+        if (auth !== 'ok') return;
+        fetch('/api/learn/shots?course=homepage2')
+            .then(r => (r.ok ? r.json() : {}))
+            .then(d => setShots(d || {}))
+            .catch(() => {});
+    }, [auth]);
+
     const open = auth === 'ok' && pass1 === 'yes';
     const activeStep = useScrollSpy(open);
     const tip = useGlossaryTip(GLOSSARY, open);
@@ -299,7 +309,7 @@ export const LearnPage2: React.FC = () => {
                             ))}
                         </div>
 
-                        <Shot alt="깃허브 가입 화면 (github.com → Sign up)" />
+                        <Shot src={shots['step1-signup']} alt="깃허브 가입 화면 (github.com → Sign up)" />
 
                         <Caution>
                             <b>Username(사용자 이름)은 신중하게!</b> 이건 나중에 <b>홈페이지 주소에 그대로 들어갑니다.</b><br />
@@ -346,7 +356,7 @@ export const LearnPage2: React.FC = () => {
                             ))}
                         </div>
 
-                        <Shot alt="새 저장소 만들기 화면 (＋ → New repository → 이름·Public·README 체크)" />
+                        <Shot src={shots['step2-newrepo']} alt="새 저장소 만들기 화면 (＋ → New repository → 이름·Public·README 체크)" />
 
                         <Tip>
                             <b>Public(공개)이 맞나요?</b> 네, 맞습니다. 홈페이지는 어차피 누구나 보라고 만드는 거잖아요.
@@ -402,7 +412,7 @@ export const LearnPage2: React.FC = () => {
                             ))}
                         </div>
 
-                        <Shot alt="파일 업로드 화면 (Add file → Upload files → 드래그앤드롭 → Commit changes)" />
+                        <Shot src={shots['step3-upload']} alt="파일 업로드 화면 (Add file → Upload files → 드래그앤드롭 → Commit changes)" />
 
                         <Tip>
                             <b>커밋(Commit)이 뭔가요?</b> "이렇게 바꿨어요"라고 <b>도장을 찍어 저장</b>하는 일이에요.
@@ -449,7 +459,7 @@ export const LearnPage2: React.FC = () => {
                             ))}
                         </div>
 
-                        <Shot alt="버셀 가입 화면 (vercel.com → Sign Up → Hobby → Continue with GitHub)" />
+                        <Shot src={shots['step4-vercel-signup']} alt="버셀 가입 화면 (vercel.com → Sign Up → Hobby → Continue with GitHub)" />
 
                         <Caution>
                             <b>Hobby(무료)를 꼭 고르세요.</b> Pro는 유료(월 20달러)입니다.
@@ -493,7 +503,7 @@ export const LearnPage2: React.FC = () => {
                             ))}
                         </div>
 
-                        <Shot alt="배포 화면 (Add New → Project → Import → Deploy → 축하 폭죽)" />
+                        <Shot src={shots['step5-deploy']} alt="배포 화면 (Add New → Project → Import → Deploy → 축하 폭죽)" />
 
                         <Tip>
                             <b>설정 화면이 복잡해 보여도 괜찮아요.</b> Framework Preset, Build Command, Output Directory…

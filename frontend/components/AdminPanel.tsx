@@ -15,6 +15,7 @@ import { CategoriesPanel } from './admin/CategoriesPanel';
 import { PersonasPanel } from './admin/PersonasPanel';
 import { WebtoonAdminPanel } from './admin/WebtoonAdminPanel';
 import { HeroCardAdminPanel } from './admin/HeroCardAdminPanel';
+import { LearnShotsPanel } from './admin/LearnShotsPanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
@@ -32,7 +33,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -65,6 +66,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'hero-cards',    label: '메인 카드', icon: 'Image' },
                             { key: 'card-order',    label: '카드 순서', icon: 'Image' },
                             { key: 'omd-designs',   label: 'omd 디자인', icon: 'Image' },
+                            { key: 'learn-shots',   label: '학습자료 이미지', icon: 'Image' },
                             { key: 'marketing-assets', label: '마케팅 자산', icon: 'Megaphone' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
@@ -193,6 +195,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {/* 웹툰 관리 패널 (향기 페르소나 회차·컷) */}
                 {mainView === 'webtoon' && <WebtoonAdminPanel />}
                 {mainView === 'hero-cards' && <HeroCardAdminPanel personas={personas} />}
+                {mainView === 'learn-shots' && <LearnShotsPanel />}
                 {mainView === 'card-order' && <CardOrderPanel />}
                 {mainView === 'omd-designs' && <OmdDesignsPanel />}
 
