@@ -36,9 +36,33 @@
 - 공지 초안 id20(isVisible=false) — 사장이 어드민 공지 탭에서 노출 토글로 게시.
 - **하이브리드 2차(맞춤 시안 생성)=07-10 착수 후 사장 지시로 전면 롤백**(LearnCustomDesign DROP·코드 원복). 재지시 전 착수 금지.
 
+## 📚 시리즈 구조 + 2편 (2026-07-17)
+
+**1편 주소는 불변**(`/learn/homepage`) — QR·기능카드·박하진 채팅이 전부 이걸 가리킴. `/learn`만 목록으로 바뀜.
+
+- `/learn` = **LearnIndex**(시리즈 목록): 세로 카드+연결선(순서 있음을 배치로 전달). 잠긴 편=회색조+자물쇠, 클릭 시 **카드 자리에서 안내 펼침**(모달 금지 — 닫으면 끝나니 '1편 하러 가기'로 행동이 이어지게).
+- `/learn/homepage/2` = **LearnPage2**(2편, 6단계): 깃허브 가입→레포 생성→index.html 업로드→버셀 가입→배포→**자동 재배포**. 1편 결과물 index.html 전제. 6단계는 지시엔 없었으나 "푸시=자동 재배포"가 왕초보에게 가장 큰 효용이라 추가.
+- **LearnKit.tsx** = 1편에서 뽑은 공용 부품(CopyBlock·Step·Tip·Success·Mobile·FaqItem·useGlossaryTip·useScrollSpy·useLearnAuth). 동작 무변경. **새 편은 여기서 가져다 쓸 것**(1편 LearnPage.tsx는 아직 자체 사본 사용 — 통합은 보류).
+- 2편 신설 장치: **⚠️Caution 박스**(유저명·Public·Hobby 등 되돌리기 번거로운 지점), 용어 21개(깃허브·레포·커밋·배포…), FAQ 10문.
+- 2편은 폰으로 거의 다 됨(설치 없음) — 1편과 반대. 단 index.html이 폰에 있어야 함.
+
+### 🔒 게이트 = 1편 학습평가 완료자만 2편
+
+- **프론트는 안내, 차단은 서버**: `PREREQUISITE={homepage2:'homepage'}` → `video-token`·`quiz-record POST`가 1편 `passedAt` 확인 후 403. 개발자도구로 프론트 뚫어도 막힘(실측 검증).
+- ★1편 평가는 **오답 재출제(맞힐 때까지)** = 끝까지 풀면 누구나 100점 → **탈락자 없음**. 게이트의 실질 의미는 "1편을 훑었는가". 사장 확정(07-17): 그대로 유지, 안내 문구는 "완료하면 열려요"로 정직하게.
+
+### 📸 강의 스크린샷 (어드민 업로드)
+
+- **자리(슬롯)는 서버 `SHOT_SLOTS`가 정본** — 강의 본문에 박힌 고정 자리. 자유 카드 아님(추가·삭제 없이 채우기만).
+- 어드민 **콘텐츠 > 학습자료 이미지**(LearnShotsPanel) → 자리별 업로드/교체/삭제. 올리면 즉시 반영(no-store).
+- 업로드=hero-cards 패턴(signed-url → 브라우저가 GCS 직접 PUT). 테이블 `LearnShot`(운영 DB raw SQL, prisma schema에 없음).
+- **빈 자리는 안내 박스로 남음** — 글만으로도 읽히게 설계(1편도 스크린샷 없이 운영 중).
+- ★AI는 브라우저 화면을 못 봄 → 깃허브·버셀 실화면 캡처는 **사장만 가능**. 이 탭이 그 통로.
+
 ## 확장 방향 (미착수)
 
-- 2호 코스 추가 시: `/learn` 목차 페이지화 + COURSE_KEYS 등록 + 합격 게이트(1호 완료자만 입장).
+- **2편 영상·학습평가 10문제** — 사장 OK 후 제작(`QUIZ_READY=false`로 '준비 중' 표시 중). 영상 재제작=agent-wiki scripts/learn-video.
+- 3편 추가 시: 서버 `COURSE_KEYS`+`PREREQUISITE`+`SHOT_SLOTS`, 프론트 `LearnIndex.COURSES`+`LearnShotsPanel.COURSES`, App.tsx 라우트, vercel.json 1줄.
 - 시안 갤러리 확장, 강의장 QR 카드 등.
 
 ## 07-11 완성 라운드 (영상·이미지법·설치·왕초보)
