@@ -32,6 +32,7 @@ export function useBoardToggles() {
     const [showMathTutor, setShowMathTutor] = useState(false);
     const [showClubBoard, setShowClubBoard] = useState(false);
     const [showMarketingBoard, setShowMarketingBoard] = useState(false);
+    const [showHomepageBoard, setShowHomepageBoard] = useState(false);
 
     return {
         showBoard, setShowBoard,
@@ -51,5 +52,6 @@ export function useBoardToggles() {
         showMathTutor, setShowMathTutor,
         showClubBoard, setShowClubBoard,
         showMarketingBoard, setShowMarketingBoard,
+        showHomepageBoard, setShowHomepageBoard,
     };
 }

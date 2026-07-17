@@ -372,6 +372,7 @@ export const FEATURES_GRID = [
     { id: 20, numeral: 'XX',  latin: 'Time Travel',key: 'agetransform',name: '시간여행',     tag: 'AI 나이 변환',   catch: '10년 뒤 내 얼굴이 궁금해? ⏳', category: 'life',    desc: '내 사진과 나이를 넣으면 윤채린이 과거(젊은 시절)와 미래(노화)의 모습을 보여드려요. Before/After 슬라이더로 확인!',  icon: 'face',      palette: { bg: '#F3E9F4', deep: '#D4A8DC', accent: '#9B5FA8' }, personaName: '윤채린',  releasedAt: '2026-06-21' },
     { id: 21, numeral: 'XXI', latin: 'Tarot',   key: 'tarot',   name: '타로점',         tag: 'AI 타로 리딩',   catch: '카드가 오늘의 답을 알아요 🔮', category: 'fortune', desc: '카드를 직접 섞고 세 장을 뽑으면 타로술사 유나가 과거·현재·미래를 읽어드려요.',                icon: 'tarot',     palette: { bg: '#EFE7F7', deep: '#B79BD9', accent: '#6E4A9E' }, personaName: '유나',    releasedAt: '2026-07-06' },
     { id: 22, numeral: 'XXII',latin: 'Learn',   key: 'learn',   name: 'AI로 홈페이지 만들기', tag: '무료 학습자료', catch: '코딩 몰라도 내 홈페이지 완성! 🎓', category: 'info', desc: '코딩 몰라도 OK! AI로 홈페이지를 만들어 내 컴퓨터에서 띄워보는 5단계 무료 강의. 지우가 함께해요.', icon: 'book',      palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우',    releasedAt: '2026-07-10' },
+    { id: 24, numeral: 'XXIV',latin: 'Homepage',key: 'homepage',name: '홈페이지 만들기',  tag: 'AI 시안 제작',   catch: '신청서만 쓰면 우리 가게 홈페이지 완성 🏠', category: 'create', desc: '업종·상호·소개만 적으면 지우가 홈페이지 시안을 만들어 실제 링크로 드려요. 소스코드(zip)도 함께!', icon: 'homepage',  palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '지우',    releasedAt: '2026-07-17' },
 ];
 
 // 기능 연관 키워드(동의어) 맵 — 이름/설명에 없는 표현으로도 찾게 함.
@@ -401,6 +402,7 @@ export const FEATURE_SYNONYMS: Record<string, string[]> = {
     agetransform:['나이변환', '노화', '늙은', '미래의나', '나이든', '늙으면', '변환', '얼굴변환', '나이', '미래모습', '시간여행', '회춘', '젊어', '동안', '어릴때', '과거모습'],
     outfit:      ['전통의상', '의상', '한복', '기모노', '치파오', '나라의상', '세계의상', '옷', '입어보기', '코스프레', '전통복', '민속의상', '드레스', '체험'],
     learn:       ['학습', '학습자료', '강의', '홈페이지', '홈페이지만들기', '웹사이트', '사이트제작', '코딩', '배우기', '교육', '로컬호스트', '무료강의', '클로드코드'],
+    homepage:    ['홈페이지', '웹사이트', '홈피', '사이트', '사이트만들기', '홈페이지만들기', '사이트제작', '랜딩페이지', '가게홈페이지', '홈페이지제작', '웹', '소상공인', '창업'],
 };
 
 // 기능이 검색어와 매칭되는지 — 이름/태그/설명(부분일치) + 연관 키워드(동의어)까지.
@@ -616,6 +618,7 @@ const MpnFeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg
         case 'moon':      return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M62 18 Q38 22 34 48 Q30 72 54 80 Q30 82 20 62 Q10 38 28 22 Q42 10 62 18 Z" fill={c} opacity="0.9"/><circle cx="66" cy="28" r="4" fill={c} opacity="0.5"/><circle cx="72" cy="40" r="2.5" fill={c} opacity="0.35"/><circle cx="60" cy="42" r="2" fill={c} opacity="0.3"/></svg>;
         case 'gwansang':  return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><ellipse cx="48" cy="42" rx="24" ry="28" fill={c} opacity="0.9"/><circle cx="38" cy="38" r="3.5" fill={a} opacity="0.9"/><circle cx="58" cy="38" r="3.5" fill={a} opacity="0.9"/><path d="M37 52 Q48 58 59 52" stroke={a} strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M34 30 Q48 22 62 30" stroke={c} strokeWidth="3.5" fill="none" strokeLinecap="round" opacity="0.5"/><line x1="48" y1="70" x2="48" y2="80" stroke={c} strokeWidth="2" opacity="0.3"/><path d="M36 80 Q48 76 60 80" stroke={c} strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.3"/></svg>;
         case 'outfit':    return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M48 20 L64 26 L60 40 L58 42 L58 78 L38 78 L38 42 L36 40 L32 26 Z" fill={c} opacity="0.9"/><path d="M48 20 L48 44 L58 42" stroke={a} strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/><path d="M48 20 L42 32" stroke={a} strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.7"/><circle cx="48" cy="52" r="3" fill={a} opacity="0.7"/></svg>;
+        case 'homepage':  return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><rect x="14" y="20" width="68" height="56" rx="6" fill={c} opacity="0.9"/><rect x="14" y="20" width="68" height="12" rx="6" fill={a} opacity="0.55"/><circle cx="22" cy="26" r="2.5" fill={c}/><circle cx="30" cy="26" r="2.5" fill={c} opacity="0.7"/><circle cx="38" cy="26" r="2.5" fill={c} opacity="0.5"/><rect x="22" y="40" width="32" height="18" rx="3" fill={a} opacity="0.7"/><line x1="22" y1="66" x2="60" y2="66" stroke={a} strokeWidth="2.5" strokeLinecap="round" opacity="0.6"/><path d="M62 44 L74 48 L68 52 L72 58 L68 61 L64 55 L60 60 Z" fill={a} opacity="0.9"/></svg>;
         default: return null;
     }
 };

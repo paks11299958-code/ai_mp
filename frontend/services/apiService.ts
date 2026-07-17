@@ -531,6 +531,28 @@ export const marketingApi = {
     list: () => get<MarketingRequestRow[]>('/marketing/requests'),
 };
 
+// ── 홈페이지 만들기 (신청서 → AI 시안 링크 + 소스 zip) ──
+export interface HomepageRequestRow {
+    id: number;
+    status: 'pending' | 'processing' | 'done' | 'failed';
+    slug?: string | null;
+    url?: string | null;       // 시안 공개 URL(주인공)
+    zipUrl?: string | null;    // 소스 zip URL(보조, 정적 파일)
+    errorMessage?: string | null;
+    pointsCharged: number;
+    formJson?: string;
+    createdAt: string;
+}
+export const homepageApi = {
+    // 신청(비동기). 1,000pt 선차감(MenuLimit 'homepage'), 실패 시 워커가 자동환불. 202 → { id }.
+    create: (form: Record<string, string>) =>
+        post<{ id: number; status: string; pointsCharged: number }>('/homepage/requests', form),
+    // 단건 폴링(본인 것만). done/failed 될 때까지 클라이언트가 폴링.
+    get: (id: number) => get<HomepageRequestRow>(`/homepage/requests/${id}`),
+    // 내 신청 이력(최근순) — 보드 재진입 시 진행 중/완성본 복원.
+    mine: () => get<HomepageRequestRow[]>('/homepage/requests/mine'),
+};
+
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {
     lifeLine: string;

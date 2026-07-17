@@ -56,25 +56,25 @@ describe('parseGeminiOpinion (표 형식)', () => {
   });
 });
 
-describe('opinionColor (점수→색상)', () => {
-  it('점수 구간별 색상', () => {
-    expect(opinionColor('매수', 90)).toBe('#16a34a'); // >=85
-    expect(opinionColor('매수', 70)).toBe('#2563eb'); // >=65
-    expect(opinionColor('중립', 50)).toBe('#d97706'); // >=40
-    expect(opinionColor('매도', 25)).toBe('#ea580c'); // >=20
-    expect(opinionColor('매도', 10)).toBe('#dc2626'); // <20
+describe('opinionColor (의견 텍스트→색상, 한국 관습: 매수=빨강·매도=파랑)', () => {
+  // 1a7391d에서 점수 구간제 → 의견 텍스트 기준으로 변경됨(테스트 동기화)
+  it('매수 계열 = 빨강', () => {
+    expect(opinionColor('적극매수', 90)).toBe('#dc2626');
+    expect(opinionColor('강력매수', null)).toBe('#dc2626');
+    expect(opinionColor('비중확대', null)).toBe('#dc2626');
+    expect(opinionColor('매수', 70)).toBe('#e11d48');
   });
 
-  it('경계값 포함 확인 (>=)', () => {
-    expect(opinionColor('x', 85)).toBe('#16a34a');
-    expect(opinionColor('x', 65)).toBe('#2563eb');
-    expect(opinionColor('x', 40)).toBe('#d97706');
-    expect(opinionColor('x', 20)).toBe('#ea580c');
+  it('매도 계열 = 파랑', () => {
+    expect(opinionColor('적극매도', 10)).toBe('#1d4ed8');
+    expect(opinionColor('강력매도', null)).toBe('#1d4ed8');
+    expect(opinionColor('매도', 25)).toBe('#2563eb');
+    expect(opinionColor('비중축소', null)).toBe('#2563eb');
   });
 
-  it('점수 null이면 의견 키워드로 추정 (매수→72, 매도→30, 기타→50)', () => {
-    expect(opinionColor('매수', null)).toBe('#2563eb'); // 72 → >=65
-    expect(opinionColor('매도', null)).toBe('#ea580c'); // 30 → >=20 (40 미만)
-    expect(opinionColor('중립', null)).toBe('#d97706'); // 50 → >=40
+  it('중립/관망/보유/빈값 = 회색 (점수는 무시)', () => {
+    expect(opinionColor('중립', 50)).toBe('#6b7280');
+    expect(opinionColor('관망', 85)).toBe('#6b7280');
+    expect(opinionColor('', null)).toBe('#6b7280');
   });
 });

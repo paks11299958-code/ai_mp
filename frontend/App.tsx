@@ -35,6 +35,7 @@ import { UsedItemBoard } from './components/UsedItemBoard';
 import { LuxuryBoard } from './components/LuxuryBoard';
 import { InsuranceBoard } from './components/InsuranceBoard';
 import { MarketingBoard } from './components/MarketingBoard';
+import { HomepageBoard } from './components/HomepageBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { HairStyleBoard } from './components/HairStyleBoard';
 import { OutfitBoard } from './components/OutfitBoard';
@@ -241,6 +242,7 @@ const AppContent: React.FC = () => {
         showMathTutor, setShowMathTutor,
         showClubBoard, setShowClubBoard,
         showMarketingBoard, setShowMarketingBoard,
+        showHomepageBoard, setShowHomepageBoard,
     } = useBoardToggles();
     const [comingSoonMsg, setComingSoonMsg] = useState('');
     const [shareToast, setShareToast] = useState('');  // 공유 링크 복사/공유 완료 안내
@@ -328,6 +330,7 @@ const AppContent: React.FC = () => {
         lookalike: () => setShowLookalikeModal(true),
         agetransform: () => setShowAgeBoard(true),
         marketing: () => setShowMarketingBoard(true),
+        homepage: () => setShowHomepageBoard(true),
         learn: () => { window.location.href = '/learn/homepage'; }, // 지우 학습자료 — 전용 페이지(얼리리턴 라우트)
     };
 
@@ -1358,6 +1361,9 @@ const AppContent: React.FC = () => {
                 {showMarketingBoard && (
                     <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
                 )}
+                {showHomepageBoard && (
+                    <HomepageBoard onClose={() => setShowHomepageBoard(false)} />
+                )}
                 {showEbookBoard && (
                     <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
                         <EbookBoard onClose={() => setShowEbookBoard(false)} />
@@ -1551,6 +1557,9 @@ const AppContent: React.FC = () => {
             )}
             {showMarketingBoard && (
                 <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
+            )}
+            {showHomepageBoard && (
+                <HomepageBoard onClose={() => setShowHomepageBoard(false)} />
             )}
             {showTodayNews && (
                 <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
