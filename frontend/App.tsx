@@ -2619,7 +2619,9 @@ const CONSULT_SLUG = window.location.pathname.match(/^\/consult\/([a-z0-9-]{3,40
 // 📚 학습자료 — 강의장 QR/주소 직접 접속용 전체화면(비회원은 각 페이지가 가입 유도).
 // /learn=시리즈 목록 · /learn/homepage=1편(기존 주소 유지: QR·기능카드·박하진 채팅이 전부 이걸 가리킴)
 // · /learn/homepage/2=2편(1편 합격자만). 정적 시안(/learn/designs/*.html)은 파일시스템 우선이라 안 걸림.
-const LEARN_PATH = window.location.pathname.replace(/\/+$/, '') || '/learn';
+// ★ 뒤 슬래시만 제거(빈 문자열로 만들지 말 것) — '/'→'' 후 '|| /learn'이 붙으면
+//   메인 페이지가 학습자료로 둔갑한다(2026-07-17 실장애). 루트는 정규식이 안 걸리게 원형 유지.
+const LEARN_PATH = window.location.pathname.replace(/(.)\/+$/, '$1');
 const IS_LEARN_INDEX = /^\/learn$/.test(LEARN_PATH);
 const IS_LEARN_1 = /^\/learn\/homepage$/.test(LEARN_PATH);
 const IS_LEARN_2 = /^\/learn\/homepage\/2$/.test(LEARN_PATH);
