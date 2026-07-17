@@ -63,6 +63,8 @@ import { TarotReportView, TarotReportData } from './components/TarotReportView';
 import { EmbedChat } from './components/EmbedChat';
 import { ConsultPage } from './components/ConsultPage';
 import { LearnPage } from './components/LearnPage';
+import { LearnIndex } from './components/learn/LearnIndex';
+import { LearnPage2 } from './components/learn/LearnPage2';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -2614,14 +2616,20 @@ const EMBED_KEY = new URLSearchParams(window.location.search).get('embed');
 // 🤖 AI상담 봇 페이지(/consult/{slug}): 발급 링크 전용 전체화면(아바타+마스터 Typebot)
 const CONSULT_SLUG = window.location.pathname.match(/^\/consult\/([a-z0-9-]{3,40})\/?$/)?.[1] ?? null;
 
-// 📚 학습자료 페이지(/learn 또는 /learn/homepage): 강의장 QR/주소 직접 접속용 전체화면(비회원 OK).
-// 정적 시안(/learn/designs/*.html)은 파일시스템 우선이라 이 분기에 걸리지 않음.
-const IS_LEARN_PAGE = /^\/learn(\/homepage)?\/?$/.test(window.location.pathname);
+// 📚 학습자료 — 강의장 QR/주소 직접 접속용 전체화면(비회원은 각 페이지가 가입 유도).
+// /learn=시리즈 목록 · /learn/homepage=1편(기존 주소 유지: QR·기능카드·박하진 채팅이 전부 이걸 가리킴)
+// · /learn/homepage/2=2편(1편 합격자만). 정적 시안(/learn/designs/*.html)은 파일시스템 우선이라 안 걸림.
+const LEARN_PATH = window.location.pathname.replace(/\/+$/, '') || '/learn';
+const IS_LEARN_INDEX = /^\/learn$/.test(LEARN_PATH);
+const IS_LEARN_1 = /^\/learn\/homepage$/.test(LEARN_PATH);
+const IS_LEARN_2 = /^\/learn\/homepage\/2$/.test(LEARN_PATH);
 
 const App: React.FC = () => (
     EMBED_KEY ? <EmbedChat personaKey={EMBED_KEY} /> :
     CONSULT_SLUG ? <ConsultPage slug={CONSULT_SLUG} /> :
-    IS_LEARN_PAGE ? <LearnPage /> :
+    IS_LEARN_INDEX ? <LearnIndex /> :
+    IS_LEARN_1 ? <LearnPage /> :
+    IS_LEARN_2 ? <LearnPage2 /> :
     <PointsProvider>
         <AppContent />
     </PointsProvider>

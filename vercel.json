@@ -128,6 +128,7 @@
 
     { "source": "/learn",                   "destination": "/index.html" },
     { "source": "/learn/homepage",          "destination": "/index.html" },
+    { "source": "/learn/homepage/2",        "destination": "/index.html" },
     { "source": "/api/learn/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/learn/:path*" },
     { "source": "/api/biz/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/biz/:path*" },
 
