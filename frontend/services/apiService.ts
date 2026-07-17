@@ -542,6 +542,11 @@ export interface HomepageRequestRow {
     pointsCharged: number;
     formJson?: string;
     createdAt: string;
+    // 대기·처리중일 때만 서버가 얹어줌 — 순번·예상시간·운영시간 안내
+    queuePosition?: number;    // 내 순번(1=바로 다음)
+    etaMinutes?: number;       // 예상 완료까지 분
+    withinOpsHours?: boolean;  // 지금 워커 가동 시간대인가(KST 09~19)
+    opsWaitMinutes?: number;   // 운영시간 밖이면 시작까지 남은 분
 }
 export const homepageApi = {
     // 신청(비동기). 1,000pt 선차감(MenuLimit 'homepage'), 실패 시 워커가 자동환불. 202 → { id }.
@@ -551,7 +556,20 @@ export const homepageApi = {
     get: (id: number) => get<HomepageRequestRow>(`/homepage/requests/${id}`),
     // 내 신청 이력(최근순) — 보드 재진입 시 진행 중/완성본 복원.
     mine: () => get<HomepageRequestRow[]>('/homepage/requests/mine'),
+    // 🛠️ 어드민 — 회원 전체 신청 관리(누가·언제·상태·주소·과금).
+    adminList: (status = '') =>
+        get<HomepageAdminRow[]>(`/homepage/admin/requests${status ? `?status=${status}` : ''}`),
+    adminSummary: () =>
+        get<{ byStatus: Record<string, number>; withinOpsHours: boolean; opsWaitMinutes: number; opsHours: string }>('/homepage/admin/summary'),
 };
+
+export interface HomepageAdminRow extends HomepageRequestRow {
+    userId: number;
+    userName?: string | null;
+    userEmail?: string | null;
+    updatedAt?: string | null;
+    waitingMinutes?: number | null;  // 대기·처리중 경과분(밀림 감지)
+}
 
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {

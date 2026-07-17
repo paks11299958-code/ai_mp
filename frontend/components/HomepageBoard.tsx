@@ -29,6 +29,14 @@ const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu
 
 const MOOD_CHIPS = ['따뜻한', '모던한', '고급스러운', '아기자기한', '신뢰감 있는', '활기찬'];
 
+// 예상 분 → 읽기 쉬운 표기(60분 미만=분, 이상=시간+분). 운영시간 밖 대기(수백 분)도 자연스럽게.
+function fmtEta(min: number): string {
+    if (min < 1) return '곧';
+    if (min < 60) return `${min}분`;
+    const h = Math.floor(min / 60), m = min % 60;
+    return m ? `${h}시간 ${m}분` : `${h}시간`;
+}
+
 export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'result'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -231,12 +239,39 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                         </>
                     )}
 
-                    {/* [3] 생성 대기 */}
+                    {/* [3] 생성 대기 — 순번·예상시간·운영시간 안내(서버가 폴링 응답에 얹어줌) */}
                     {step === 'waiting' && (
                         <div className="py-10 text-center space-y-3">
                             <div className="inline-block w-8 h-8 border-3 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
-                            <p className="text-sm font-medium text-gray-700">박하진이 홈페이지를 만들고 있어요…</p>
-                            <p className="text-xs text-gray-400">업종 리서치 → 기획 → 사진 생성 → 제작까지 약 10~20분 걸려요.<br />이 화면을 닫아도 완성돼요 — 다시 열면 결과를 볼 수 있어요.</p>
+                            {row?.status === 'processing' ? (
+                                <p className="text-sm font-medium text-gray-700">박하진이 지금 홈페이지를 만들고 있어요…</p>
+                            ) : (
+                                <p className="text-sm font-medium text-gray-700">신청이 접수됐어요! 순서대로 만들어 드릴게요.</p>
+                            )}
+
+                            {/* 순번 + 예상시간 카드 */}
+                            {(row?.queuePosition || row?.etaMinutes) && (
+                                <div className="mx-auto max-w-xs bg-indigo-50 border border-indigo-100 rounded-2xl px-4 py-3.5 space-y-1.5">
+                                    {row?.status === 'processing' ? (
+                                        <div className="text-sm font-bold text-indigo-700">🛠️ 제작 중 · 곧 완성돼요</div>
+                                    ) : (
+                                        <div className="text-sm font-bold text-indigo-700">
+                                            {row?.queuePosition === 1 ? '🎫 바로 다음 차례예요' : `🎫 대기 순번 ${row?.queuePosition}번째`}
+                                        </div>
+                                    )}
+                                    {row?.etaMinutes != null && (
+                                        <div className="text-xs text-indigo-500">⏱️ 예상 완성까지 약 {fmtEta(row.etaMinutes)}</div>
+                                    )}
+                                    {row?.withinOpsHours === false && (
+                                        <div className="text-[11px] text-amber-600 leading-relaxed pt-0.5">
+                                            🌙 지금은 제작 시간(오전 9시~오후 7시)이 아니에요.<br />
+                                            <b>내일 오전 9시부터</b> 순서대로 만들어 드려요.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <p className="text-xs text-gray-400">업종 리서치 → 기획 → 사진 생성 → 제작 순으로 진행돼요.<br />이 화면을 닫아도 계속 만들어져요 — 다시 열면 결과를 볼 수 있어요.</p>
                         </div>
                     )}
 
