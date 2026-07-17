@@ -392,3 +392,12 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 - 컬럼: `id SERIAL PK, agent TEXT(dev|search|marketing|stock), title, content, status TEXT(pending|converted|archived), "devRequestId" INT?, "createdAt"`. 인덱스 (status)·(agent).
 - 전환: POST /admin/agent-ideas/:id/convert → DevRequest(source='agent-idea') 생성+status=converted+devRequestId 기록+**AgentGrowth idea_adopted(+100)**. 완수: dev_request_worker가 done 시 devRequestId 역조회→work_done(+150).
 - ★AiFeatureIdea 재사용 불가 사유: ideaDate UNIQUE(스카우트 하루 1행 blob)라 직원 다건 제안과 충돌 — 분리 신설. 생성 스크립트=shared-api/scripts/add-agent-idea-table.cjs.
+
+## HomepageRequest (2026-07-17, 홈페이지 만들기 — raw SQL 전용, prisma schema 미반영)
+- 신청 큐(선차감+실패 자동환불): `id SERIAL PK, "userId" INT, "formJson" TEXT(신청서 JSON:
+  biz/name/tagline/detail/menu/address/hours/phone/kakao/mood), status TEXT(pending|processing|done|failed),
+  slug TEXT UNIQUE(h+hex10, 공개 URL 경로), "zipPath" TEXT(공개 zip URL), "errorMessage",
+  "pointsCharged" INT DEFAULT 3000, "createdAt"/"updatedAt"`. 인덱스 (status)·(userId).
+- 흐름: shared-api routes/aimp/homepage.ts(차감·409 동시 1건·순번/ETA) → 서버2 rag/homepage_worker.py
+  (KST09~19 크론, v2 4단계 파이프라인) → sites/homepage/{slug}/ 배포. 상세=doc/features/homepage_builder.md.
+- 단가 정본=MenuLimit 'homepage' 3롤 3,000pt(사장 확정 07-17). 어드민='홈페이지 신청' 탭.
