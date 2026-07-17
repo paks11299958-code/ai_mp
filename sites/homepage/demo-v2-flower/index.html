@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="꽃길상점 — 동네에서 제일 싱싱한 꽃, 매일 아침 직접 고릅니다. 꽃다발·화분·개업 화환, 용도와 예산에 맞게 만들어 드립니다.">
+<meta property="og:title" content="꽃길상점 — 매일 아침 직접 고른 싱싱한 꽃">
+<meta property="og:description" content="10년째 같은 자리를 지키는 동네 꽃집. 꽃다발·화분·개업 화환까지, 용도와 예산을 말씀하시면 딱 맞게 만들어 드려요.">
+<meta property="og:image" content="img/hero.jpg"><meta property="og:type" content="website">
+<title>꽃길상점 — 동네에서 제일 싱싱한 꽃</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600&family=Noto+Serif+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --p:#5C8A5A;--s:#C4845A;--a:#E8A598;--bg:#FDFAF6;--sf:#FFF8F2;
+  --tx:#2C2C2C;--mu:#7A7A6E;--bo:#E8E0D4;
+  --rS:12px;--rM:16px;--rL:20px;
+  --sh:0 4px 24px rgba(44,44,44,.08);--shL:0 8px 48px rgba(44,44,44,.14);
+  --serif:'Noto Serif KR',serif;--sans:'Noto Sans KR',sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);font-size:16px;line-height:1.8;color:var(--tx);background:var(--bg)}
+img{display:block;max-width:100%} a{color:inherit;text-decoration:none}
+a:focus-visible{outline:2px solid var(--p);outline-offset:3px;border-radius:4px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,4vw,48px);background:rgba(253,250,246,.93);
+  backdrop-filter:blur(16px);border-bottom:1px solid var(--bo)}
+.nb{font-family:var(--serif);font-weight:700;font-size:17px;color:var(--p);letter-spacing:-.02em}
+.nl{display:flex;gap:28px;list-style:none}
+.nl a{font-size:13px;color:var(--mu);font-weight:600;transition:color .2s}
+.nl a:hover{color:var(--p)}
+@media(max-width:640px){.nl{display:none}}
+
+/* LAYOUT */
+.w{max-width:1120px;margin:0 auto;padding:0 clamp(16px,4vw,48px)}
+.sec{padding:clamp(72px,10vw,108px) 0}
+.sl{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--p);font-weight:600;margin-bottom:14px}
+.sh2{font-family:var(--serif);font-weight:700;letter-spacing:-.025em;
+  font-size:clamp(26px,3.5vw,36px);line-height:1.3;color:var(--tx)}
+.sc{text-align:center;margin-bottom:52px}
+
+/* HERO */
+#hero{position:relative;min-height:100vh;display:flex;align-items:center;padding-top:56px;overflow:hidden}
+.hbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hov{position:absolute;inset:0;background:linear-gradient(120deg,rgba(8,18,10,.72) 0%,rgba(8,18,10,.44) 55%,rgba(8,18,10,.08) 100%)}
+.hc{position:relative;z-index:1;color:#fff;padding:clamp(48px,8vw,96px) 0;max-width:620px}
+.hp{display:inline-block;font-size:12px;letter-spacing:.08em;border:1px solid rgba(255,255,255,.35);
+  border-radius:100px;padding:5px 16px;margin-bottom:26px;color:rgba(255,255,255,.88)}
+.hh1{font-family:var(--serif);font-weight:700;line-height:1.18;
+  font-size:clamp(38px,6.5vw,58px);letter-spacing:-.035em;margin-bottom:14px}
+.hsub{font-family:var(--serif);font-size:clamp(18px,2.5vw,24px);font-weight:400;opacity:.88;margin-bottom:24px}
+.hbody{font-size:16px;line-height:1.85;opacity:.8;max-width:460px;margin-bottom:44px}
+.hctas{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.bk{display:inline-flex;align-items:center;gap:10px;background:#FEE500;color:#1A1A1A;
+  font-family:var(--sans);font-weight:700;font-size:15px;padding:0 28px;height:52px;
+  border-radius:var(--rM);box-shadow:0 2px 12px rgba(254,229,0,.35);
+  transition:transform .15s,box-shadow .15s}
+.bk:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(254,229,0,.55)}
+.bg{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.88);
+  font-weight:600;font-size:15px;height:52px;border-bottom:1.5px solid rgba(255,255,255,.4);
+  transition:color .2s,border-color .2s}
+.bg:hover{color:#fff;border-color:rgba(255,255,255,.9)}
+
+/* STORY */
+#story{background:var(--sf)}
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center}
+@media(max-width:768px){.sg{grid-template-columns:1fr;gap:40px}}
+.st{order:1} .sv{order:2}
+@media(max-width:768px){.st{order:2}.sv{order:1}}
+.sh{font-family:var(--serif);font-size:clamp(28px,4vw,42px);font-weight:700;
+  line-height:1.22;letter-spacing:-.03em;color:var(--tx);margin-bottom:28px}
+.sb{color:var(--mu);margin-bottom:32px}
+.sq{border-left:3px solid var(--a);padding-left:22px;font-family:var(--serif);
+  font-size:18px;line-height:1.65;color:var(--s)}
+.siw{position:relative;border-radius:var(--rL);overflow:hidden;aspect-ratio:4/5;box-shadow:var(--shL)}
+.siw img{width:100%;height:100%;object-fit:cover}
+.sdg{position:absolute;bottom:24px;left:24px;background:rgba(253,250,246,.96);
+  border-radius:var(--rS);padding:14px 20px;box-shadow:var(--sh)}
+.sdn{font-family:var(--serif);font-size:36px;font-weight:700;color:var(--p);line-height:1}
+.sdt{font-size:12px;color:var(--mu);font-weight:600;margin-top:3px}
+
+/* SERVICE */
+.simg{width:100%;aspect-ratio:21/7;object-fit:cover;border-radius:var(--rL);
+  margin-bottom:44px;box-shadow:var(--sh)}
+.scr{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:768px){.scr{grid-template-columns:1fr;gap:14px}}
+.sc2{background:var(--sf);border:1px solid var(--bo);border-radius:var(--rL);
+  padding:28px 24px 24px;display:flex;flex-direction:column;transition:box-shadow .2s,transform .2s}
+.sc2:hover{box-shadow:var(--shL);transform:translateY(-4px)}
+.si{width:52px;height:52px;border-radius:var(--rS);background:var(--bg);
+  display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+  border:1px solid var(--bo)}
+.sc2 h3{font-family:var(--serif);font-size:21px;font-weight:700;margin-bottom:8px}
+.sbg{display:inline-block;background:var(--s);color:#fff;font-size:10px;font-weight:700;
+  padding:3px 9px;border-radius:6px;margin-bottom:10px;letter-spacing:.03em}
+.sc2 p{font-size:14px;color:var(--mu);line-height:1.75;flex:1;margin-bottom:20px}
+.sp{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--p);margin-bottom:16px}
+.sl2{display:inline-flex;align-items:center;gap:4px;color:var(--p);font-weight:600;
+  font-size:14px;border-bottom:1px solid currentColor;padding-bottom:1px;
+  align-self:flex-start;transition:opacity .2s}
+.sl2:hover{opacity:.65}
+
+/* WHY */
+#why{background:var(--sf)}
+.wc{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:768px){.wc{grid-template-columns:1fr;gap:14px}}
+.wcd{background:var(--bg);border:1px solid var(--bo);border-radius:var(--rL);padding:32px 24px}
+.wi{width:56px;height:56px;border-radius:var(--rM);background:var(--sf);
+  border:1px solid var(--bo);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+.wcd h3{font-family:var(--serif);font-size:18px;font-weight:700;margin-bottom:10px;color:var(--tx)}
+.wcd p{font-size:14px;color:var(--mu);line-height:1.75}
+
+/* ORDER */
+.steps{display:flex;position:relative;align-items:flex-start}
+.steps::before{content:'';position:absolute;top:31px;left:16.67%;right:16.67%;
+  height:2px;background:var(--bo);z-index:0}
+.step{flex:1;text-align:center;padding:0 16px;position:relative}
+.sn{width:62px;height:62px;border-radius:50%;background:var(--p);color:#fff;
+  font-family:var(--serif);font-size:24px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 22px;position:relative;z-index:1;
+  box-shadow:0 4px 16px rgba(92,138,90,.3)}
+.step h3{font-family:var(--serif);font-size:17px;font-weight:700;margin-bottom:10px;color:var(--tx)}
+.step p{font-size:14px;color:var(--mu);line-height:1.7}
+@media(max-width:640px){
+  .steps{flex-direction:column;align-items:center;gap:32px}
+  .steps::before{display:none}
+  .step{max-width:320px}
+}
+
+/* REVIEWS */
+#reviews{background:var(--sf)}
+.rg{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:768px){
+  .rg{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+    gap:14px;padding-bottom:12px;-webkit-overflow-scrolling:touch}
+  .rc{min-width:78vw;scroll-snap-align:start}
+}
+.rc{background:var(--bg);border:1px solid var(--bo);border-radius:var(--rL);
+  padding:28px 24px;position:relative;overflow:hidden}
+.rl{display:inline-block;background:var(--a);color:#fff;font-size:10px;font-weight:700;
+  padding:2px 8px;border-radius:5px;margin-bottom:14px;letter-spacing:.04em}
+.rs{display:flex;gap:3px;margin-bottom:14px}
+.rs svg{width:16px;height:16px}
+.rt{font-size:15px;line-height:1.78;color:var(--tx);margin-bottom:20px}
+.ra{font-size:13px;color:var(--mu);font-weight:600}
+.rq{position:absolute;top:16px;right:20px;font-family:var(--serif);font-size:72px;
+  color:var(--bo);line-height:.8;pointer-events:none;user-select:none}
+
+/* INFO */
+.ic{max-width:580px;margin:0 auto;text-align:center}
+.ic .sh2{margin-bottom:14px}
+.ic>p{color:var(--mu);margin-bottom:44px}
+.ib{background:var(--sf);border:1px solid var(--bo);border-radius:var(--rL);
+  padding:28px;text-align:left;margin-bottom:36px;
+  display:flex;flex-direction:column;gap:14px}
+.ir{display:flex;gap:16px;align-items:flex-start}
+.ilb{font-size:13px;font-weight:600;color:var(--p);min-width:64px}
+.iv{font-size:15px;color:var(--tx)}
+.iv.dim{color:var(--mu);font-style:italic}
+.cs{display:flex;flex-direction:column;gap:12px;align-items:center}
+.bkm{display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:#FEE500;color:#1A1A1A;font-weight:700;font-size:16px;
+  width:100%;max-width:360px;height:58px;border-radius:var(--rM);
+  box-shadow:0 2px 12px rgba(254,229,0,.3);transition:transform .15s,box-shadow .15s}
+.bkm:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(254,229,0,.5)}
+.bc{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;max-width:360px;height:52px;border-radius:var(--rM);
+  border:2px solid var(--p);color:var(--p);font-weight:600;font-size:15px;
+  transition:background .15s,color .15s}
+.bc:hover{background:var(--p);color:#fff}
+
+/* FOOTER */
+footer{background:var(--tx);color:rgba(255,255,255,.65);padding:52px clamp(16px,4vw,48px);text-align:center}
+.fl{font-family:var(--serif);font-size:22px;font-weight:700;color:#fff;margin-bottom:8px}
+.ft{font-size:14px;margin-bottom:28px}
+.fi2{font-size:13px;line-height:1.9;margin-bottom:24px}
+.fc{font-size:12px;opacity:.4}
+
+/* FLOATING */
+.fab{position:fixed;bottom:24px;right:20px;z-index:900;
+  display:flex;align-items:center;gap:8px;
+  background:#FEE500;color:#1A1A1A;font-weight:700;font-size:14px;
+  padding:0 20px;height:48px;border-radius:100px;
+  box-shadow:0 4px 20px rgba(0,0,0,.18);transition:transform .15s,box-shadow .15s}
+.fab:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.24)}
+
+/* FADE-IN */
+.fi{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.fi.on{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}
+</style>
+</head>
+<body>
+
+<nav aria-label="주요 내비게이션">
+  <span class="nb">꽃길상점</span>
+  <ul class="nl">
+    <li><a href="#story">스토리</a></li>
+    <li><a href="#service">상품</a></li>
+    <li><a href="#why">선택 이유</a></li>
+    <li><a href="#order">주문 방법</a></li>
+    <li><a href="#info">문의</a></li>
+  </ul>
+</nav>
+
+<main>
+
+<!-- ① HERO -->
+<section id="hero" aria-label="히어로">
+  <img src="img/hero.jpg" alt="따뜻한 조명 아래 신선한 꽃들이 풍성하게 진열된 꽃길상점 내부" class="hbg">
+  <div class="hov" aria-hidden="true"></div>
+  <div class="w">
+    <div class="hc">
+      <span class="hp">10년째 같은 자리 · 매일 아침 직접 선별</span>
+      <h1 class="hh1">동네에서 제일<br>싱싱한 꽃</h1>
+      <p class="hsub">매일 아침, 직접 골라옵니다.</p>
+      <p class="hbody">10년째 같은 자리를 지켜온 꽃길상점입니다.<br>기념일도, 개업 축하도, 오늘의 소소한 선물도 — 여기서 시작하세요.</p>
+      <div class="hctas">
+        <a href="#info" class="bk">
+          <svg width="20" height="20" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path d="M11 2C6.03 2 2 5.37 2 9.5c0 2.66 1.59 4.99 4.01 6.37l-.91 3.4c-.08.3.25.54.5.37L9.87 17.18c.37.05.74.07 1.13.07 4.97 0 9-3.37 9-7.5S15.97 2 11 2z" fill="#1A1A1A"/>
+          </svg>
+          카카오톡으로 문의하기
+        </a>
+        <a href="#service" class="bg">
+          상품 보기
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ② STORY -->
+<section id="story" class="sec" aria-label="가게 스토리">
+  <div class="w">
+    <div class="sg">
+      <div class="st fi">
+        <span class="sl">우리의 이야기</span>
+        <h2 class="sh">꽃은 시간이<br>전부입니다</h2>
+        <p class="sb">저는 매일 새벽, 시장에서 그날 가장 좋은 꽃을 직접 고릅니다. 10년 동안 단 하루도 빠진 날이 없었어요. 오늘 꽂아두는 꽃이 내일도 싱그럽기를 바라기 때문입니다.</p>
+        <blockquote class="sq">
+          꽃길상점의 꽃이 특별한 이유는 한 가지입니다 —<br>신선함을 타협하지 않는 것.
+        </blockquote>
+      </div>
+      <div class="sv fi d1">
+        <div class="siw">
+          <img src="img/shop.jpg" alt="10년째 같은 자리를 지켜온 꽃길상점 외관" loading="lazy">
+          <div class="sdg" aria-label="10년 운영">
+            <div class="sdn">10년</div>
+            <div class="sdt">같은 자리, 같은 마음</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ③ SERVICE -->
+<section id="service" class="sec" aria-label="상품 안내">
+  <div class="w">
+    <div class="sc fi">
+      <span class="sl">상품 &amp; 가격</span>
+      <h2 class="sh2">어떤 마음을 전하고 싶으세요?</h2>
+    </div>
+    <img src="img/bouquet.jpg" alt="정성껏 손으로 감싼 계절 꽃다발" class="simg fi" loading="lazy">
+    <div class="scr">
+      <article class="sc2 fi d1">
+        <div class="si" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <path d="M14 5c0 0-5 3.5-5 7 0 2.76 2.24 5 5 5s5-2.24 5-5c0-3.5-5-7-5-7z" fill="var(--a)"/>
+            <path d="M6 14c0 0 2-5 8-4" stroke="var(--p)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M22 14c0 0-2-5-8-4" stroke="var(--p)" stroke-width="1.4" stroke-linecap="round"/>
+            <path d="M14 17v6" stroke="var(--p)" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M11 21h6" stroke="var(--bo)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>꽃다발</h3>
+        <p>생일, 기념일, 감사 인사까지. 드리는 분과 받는 분이 모두 환히 웃을 수 있도록 만들어 드립니다.</p>
+        <p class="sp">20,000원부터</p>
+        <a href="#info" class="sl2">문의하기 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </article>
+      <article class="sc2 fi d2">
+        <div class="si" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="7" y="15" width="14" height="9" rx="2" fill="var(--bo)" stroke="var(--p)" stroke-width="1.4"/>
+            <path d="M14 15c0 0-4-3.5-4-7 0-2.21 1.79-4 4-4s4 1.79 4 4c0 3.5-4 7-4 7z" fill="var(--a)"/>
+            <path d="M14 15v8" stroke="var(--p)" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>화분</h3>
+        <p>집 안에 생기를 더하거나, 소중한 분께 오래 남는 선물로. 관리법도 함께 알려드립니다.</p>
+        <p class="sp">15,000원부터</p>
+        <a href="#info" class="sl2">문의하기 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </article>
+      <article class="sc2 fi d3">
+        <div class="si" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="9" stroke="var(--p)" stroke-width="1.5" fill="none"/>
+            <path d="M14 5c0 0-3 2-3 4 0 1.66 1.34 3 3 3s3-1.34 3-3c0-2-3-4-3-4z" fill="var(--a)"/>
+            <path d="M5.5 14c0 0 2-3 5-2.5" stroke="var(--p)" stroke-width="1.2" stroke-linecap="round"/>
+            <path d="M22.5 14c0 0-2-3-5-2.5" stroke="var(--p)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>개업 화환</h3>
+        <span class="sbg">당일 배달 협의 가능</span>
+        <p>새 출발을 축하하는 마음을 크고 풍성하게 담아드립니다.</p>
+        <p class="sp">60,000원</p>
+        <a href="#info" class="sl2">문의하기 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ④ WHY US -->
+<section id="why" class="sec" aria-label="선택 이유">
+  <div class="w">
+    <div class="sc fi">
+      <span class="sl">왜 꽃길상점인가</span>
+      <h2 class="sh2">꽃길상점을 선택하는 이유</h2>
+    </div>
+    <div class="wc">
+      <div class="wcd fi d1">
+        <div class="wi" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="12" r="5" stroke="var(--p)" stroke-width="1.5" fill="none"/>
+            <path d="M14 4V2M14 22v-5M6 12H4M24 12h-2M8.34 6.34 6.93 4.93M21.07 19.07l-1.41-1.41M8.34 17.66l-1.41 1.41M21.07 4.93l-1.41 1.41" stroke="var(--s)" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>오늘 꺾은 꽃</h3>
+        <p>매일 아침 직접 선별한 꽃만을 진열합니다. 사진보다 실물이 더 예쁩니다.</p>
+      </div>
+      <div class="wcd fi d2">
+        <div class="wi" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <rect x="4" y="4" width="20" height="20" rx="3" stroke="var(--bo)" stroke-width="1.4" fill="none"/>
+            <path d="M8 10h12M8 14h8M8 18h10" stroke="var(--p)" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="21" cy="21" r="4" fill="var(--a)"/>
+            <path d="M19 21h4M21 19v4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h3>예산에 맞는 맞춤 제작</h3>
+        <p>"얼마 정도 생각하세요?"라고 먼저 여쭙습니다. 예산을 말씀해 주시면 그 안에서 최선을 다합니다.</p>
+      </div>
+      <div class="wcd fi d3">
+        <div class="wi" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+            <circle cx="14" cy="14" r="9" stroke="var(--p)" stroke-width="1.5" fill="none"/>
+            <path d="M14 8v6l4 2" stroke="var(--s)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>10년 단골 신뢰</h3>
+        <p>10년 동안 같은 자리를 지켜온 덕분에, 이 동네 어머니들이 딸 결혼식 부케를 부탁하십니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ HOW TO ORDER -->
+<section id="order" class="sec" aria-label="주문 방법">
+  <div class="w">
+    <div class="sc fi">
+      <span class="sl">주문 안내</span>
+      <h2 class="sh2">주문은 간단합니다</h2>
+    </div>
+    <div class="steps" role="list">
+      <div class="step fi d1" role="listitem">
+        <div class="sn" aria-hidden="true">1</div>
+        <h3>카카오톡 또는<br>전화로 문의</h3>
+        <p>용도, 예산, 원하는 날짜를<br>말씀해 주세요.</p>
+      </div>
+      <div class="step fi d2" role="listitem">
+        <div class="sn" aria-hidden="true">2</div>
+        <h3>제작 확인</h3>
+        <p>재고와 제작 가능 여부를<br>빠르게 안내드립니다.</p>
+      </div>
+      <div class="step fi d3" role="listitem">
+        <div class="sn" aria-hidden="true">3</div>
+        <h3>방문 수령<br>또는 배달</h3>
+        <p>직접 오시거나, 배달 가능<br>여부를 협의해 드립니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑥ REVIEWS -->
+<section id="reviews" class="sec" aria-label="고객 후기">
+  <div class="w">
+    <div class="sc fi">
+      <span class="sl">고객 후기</span>
+      <h2 class="sh2">이미 다녀가신 분들의 이야기</h2>
+    </div>
+    <div class="rg" role="list">
+      <article class="rc fi d1" role="listitem">
+        <span class="rl">예시</span>
+        <div class="rs" aria-label="별점 5점">
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+        </div>
+        <p class="rt">"생일 꽃다발 주문했는데 예산 말씀드리니까 그 안에서 정말 예쁘게 만들어주셨어요. 사진보다 실물이 훨씬 좋았습니다."</p>
+        <p class="ra">— 30대 직장인</p>
+        <span class="rq" aria-hidden="true">"</span>
+      </article>
+      <article class="rc fi d2" role="listitem">
+        <span class="rl">예시</span>
+        <div class="rs" aria-label="별점 5점">
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+        </div>
+        <p class="rt">"개업 화환 당일 부탁드렸는데 흔쾌히 해주셨어요. 손님들이 꽃이 싱싱하다고 다들 물어보더라고요."</p>
+        <p class="ra">— 카페 사장님</p>
+        <span class="rq" aria-hidden="true">"</span>
+      </article>
+      <article class="rc fi d3" role="listitem">
+        <span class="rl">예시</span>
+        <div class="rs" aria-label="별점 5점">
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+          <svg viewBox="0 0 16 16" fill="#F5A623" aria-hidden="true"><path d="M8 1l1.9 3.85 4.1.6-3 2.92.71 4.13L8 10.5l-3.71 2-.71-4.13L.5 5.45l4.1-.6z"/></svg>
+        </div>
+        <p class="rt">"10년 넘게 여기서만 사요. 꽃이 진짜 오래가요. 다른 곳이랑 확실히 달라요."</p>
+        <p class="ra">— 동네 단골</p>
+        <span class="rq" aria-hidden="true">"</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ⑦ INFO + CTA -->
+<section id="info" class="sec" aria-label="문의 및 영업 정보">
+  <div class="w">
+    <div class="ic fi">
+      <span class="sl">문의 &amp; 방문</span>
+      <h2 class="sh2">언제든 편하게 연락 주세요</h2>
+      <p>용도와 예산만 말씀해 주시면, 나머지는 제가 알아서 해드립니다.</p>
+      <div class="ib">
+        <div class="ir">
+          <span class="ilb">영업시간</span>
+          <span class="iv">매일 09:00 ~ 20:00 (일요일 휴무)</span>
+        </div>
+        <div class="ir">
+          <span class="ilb">전화</span>
+          <span class="iv dim">[가게 확인 필요]</span>
+        </div>
+        <div class="ir">
+          <span class="ilb">주소</span>
+          <span class="iv dim">[가게 확인 필요]</span>
+        </div>
+      </div>
+      <div class="cs">
+        <a href="#" class="bkm" aria-label="카카오톡 채널로 문의하기">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+            <path d="M11 2C6.03 2 2 5.37 2 9.5c0 2.66 1.59 4.99 4.01 6.37l-.91 3.4c-.08.3.25.54.5.37L9.87 17.18c.37.05.74.07 1.13.07 4.97 0 9-3.37 9-7.5S15.97 2 11 2z" fill="#1A1A1A"/>
+          </svg>
+          카카오톡 채널로 문의하기
+        </a>
+        <a href="#" class="bc" aria-label="전화로 연락하기 (번호 확인 필요)">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M16 12.5c0 .3-.07.59-.22.87-.15.28-.35.54-.61.76a3.3 3.3 0 01-2.22.87c-.58 0-1.21-.14-1.88-.43a17.5 17.5 0 01-1.88-.97 30.2 30.2 0 01-1.8-1.4 29.8 29.8 0 01-1.4-1.79 18.3 18.3 0 01-.97-1.86C4.67 7.8 4.5 7.18 4.5 6.58c0-.57.12-1.12.36-1.62.24-.5.6-.96 1.08-1.37.58-.5 1.22-.75 1.89-.75.26 0 .52.05.75.16.24.11.45.28.62.52l2.07 2.92c.17.24.29.46.38.67.09.2.14.4.14.58 0 .23-.06.46-.19.68-.12.22-.3.45-.52.68l-.71.74c-.1.1-.15.22-.15.37 0 .07.01.14.03.21.03.07.06.12.08.17.17.31.46.71.86 1.2.41.49.84.99 1.31 1.49.48.5.95.93 1.43 1.31.48.38.88.63 1.2.75.04.01.09.03.15.04.07.01.14.02.22.02.15 0 .28-.05.38-.16l.71-.72c.24-.24.47-.42.69-.53.22-.12.44-.18.68-.18.18 0 .37.04.58.13.21.09.43.22.67.4l2.95 2.1c.24.17.41.38.52.62.1.24.16.49.16.77z" fill="var(--p)"/>
+          </svg>
+          전화로 연락하기
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p class="fl">꽃길상점</p>
+  <p class="ft">매일 아침 직접 고른 꽃으로 만든 공간</p>
+  <p class="fi2">
+    영업시간: 매일 09:00~20:00 (일요일 휴무)<br>
+    전화: [가게 확인 필요] &nbsp;·&nbsp; 주소: [가게 확인 필요]
+  </p>
+  <p class="fc">© 2026 꽃길상점. All rights reserved.</p>
+</footer>
+
+<a href="#info" class="fab" aria-label="카카오톡으로 문의하기">
+  <svg width="18" height="18" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+    <path d="M11 2C6.03 2 2 5.37 2 9.5c0 2.66 1.59 4.99 4.01 6.37l-.91 3.4c-.08.3.25.54.5.37L9.87 17.18c.37.05.74.07 1.13.07 4.97 0 9-3.37 9-7.5S15.97 2 11 2z" fill="#1A1A1A"/>
+  </svg>
+  카카오톡 문의
+</a>
+
+<script>
+(function(){
+  var els=document.querySelectorAll('.fi');
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('on');io.unobserve(e.target);}
+    });
+  },{threshold:0.14});
+  els.forEach(function(el){io.observe(el);});
+})();
+</script>
+</body>
+</html>
