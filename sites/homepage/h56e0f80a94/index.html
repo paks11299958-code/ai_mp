@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DB-zone | Oracle DB 전문 유지보수 & AI 지능형 솔루션</title>
+  <meta name="description" content="20년의 Oracle DB 전문성과 AI 지능형 솔루션으로 귀사의 비즈니스 연속성을 보장합니다. 24/7 실시간 모니터링, 긴급 장애 복구, AI 장애 예측 시스템." />
+  <meta property="og:title" content="DB-zone | Oracle DB 전문 유지보수 & AI 지능형 솔루션" />
+  <meta property="og:description" content="20년의 Oracle DB 전문성과 AI 지능형 솔루션으로 귀사의 비즈니스 연속성을 보장합니다." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary:   #0B2447;
+      --secondary: #19376D;
+      --accent:    #0EA5E9;
+      --bg:        #F8FAFC;
+      --surface:   #FFFFFF;
+      --text:      #0F172A;
+      --muted:     #64748B;
+      --border:    #E2E8F0;
+      --danger:    #EF4444;
+      --font:      'Noto Sans KR', sans-serif;
+      --r-card:    12px;
+      --r-btn:     8px;
+      --shadow:    0 4px 24px rgba(0,0,0,0.06);
+      --shadow-md: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); font-size: 16px; color: var(--text); background: var(--bg); line-height: 1.6; }
+    img { max-width: 100%; height: auto; display: block; }
+    a { text-decoration: none; color: inherit; }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 28px; border-radius: var(--r-btn);
+      font-family: var(--font); font-size: 15px; font-weight: 600;
+      cursor: pointer; border: none; transition: all 0.22s ease;
+      text-decoration: none; line-height: 1;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #0284c7; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(14,165,233,0.38); }
+    .btn-ghost { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.6); }
+    .btn-ghost:hover { background: rgba(255,255,255,0.1); border-color: #fff; }
+    .btn-outline { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+    .btn-outline:hover { background: var(--accent); color: #fff; }
+
+    .label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+    .h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 700; line-height: 1.22; margin-bottom: 16px; }
+    .sub { font-size: 17px; color: var(--muted); line-height: 1.72; }
+
+    .fade-in { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .fade-in.visible { opacity: 1; transform: none; }
+    .fade-in:nth-child(2) { transition-delay: 0.1s; }
+    .fade-in:nth-child(3) { transition-delay: 0.2s; }
+    .fade-in:nth-child(4) { transition-delay: 0.3s; }
+
+    /* ── NAV ─────────────────────────────────────────── */
+    #navbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      background: rgba(11,36,71,0.96); backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      transition: box-shadow 0.3s;
+    }
+    #navbar.scrolled { box-shadow: 0 2px 24px rgba(0,0,0,0.35); }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-logo { font-size: 21px; font-weight: 800; color: #fff; letter-spacing: -0.5px; }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
+    .nav-links a { color: rgba(255,255,255,0.78); font-size: 15px; font-weight: 500; transition: color 0.2s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta { padding: 10px 20px; font-size: 14px; }
+    .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: all 0.3s; }
+    .mobile-nav { display: none; flex-direction: column; padding: 12px 24px 20px; gap: 4px; border-top: 1px solid rgba(255,255,255,0.09); }
+    .mobile-nav a { color: rgba(255,255,255,0.82); font-size: 16px; font-weight: 500; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .mobile-nav.open { display: flex; }
+    @media (max-width: 768px) {
+      .nav-links, .nav-cta { display: none; }
+      .hamburger { display: flex; }
+    }
+
+    /* ── HERO ────────────────────────────────────────── */
+    #hero {
+      min-height: 100vh; display: flex; align-items: center; position: relative; overflow: hidden;
+      background: linear-gradient(150deg, #020b18 0%, #0B2447 50%, #091e40 100%);
+    }
+    .hero-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 70% 60% at 75% 45%, rgba(14,165,233,0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 20% 75%, rgba(25,55,109,0.5) 0%, transparent 55%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(14,165,233,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(14,165,233,0.05) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 20%, transparent 75%);
+    }
+    .hero-content { position: relative; z-index: 2; padding-top: 80px; padding-bottom: 60px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(14,165,233,0.14); border: 1px solid rgba(14,165,233,0.32);
+      color: var(--accent); padding: 6px 16px; border-radius: 100px;
+      font-size: 13px; font-weight: 600; margin-bottom: 28px;
+    }
+    .hero-h1 {
+      font-size: clamp(32px, 5.5vw, 58px); font-weight: 700; color: #fff;
+      line-height: 1.14; margin-bottom: 24px; letter-spacing: -0.025em;
+    }
+    .hero-h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub { font-size: clamp(16px, 2vw, 18px); color: rgba(255,255,255,0.72); max-width: 540px; line-height: 1.72; margin-bottom: 40px; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 60px; }
+    .hero-stats { display: flex; flex-wrap: wrap; gap: 0; }
+    .hero-stat { padding: 0 32px; border-right: 1px solid rgba(255,255,255,0.12); }
+    .hero-stat:first-child { padding-left: 0; }
+    .hero-stat:last-child { border-right: none; }
+    .h-stat-n { font-size: clamp(22px, 3vw, 30px); font-weight: 800; color: #fff; line-height: 1; }
+    .h-stat-n span { color: var(--accent); }
+    .h-stat-l { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 5px; }
+    @media (max-width: 520px) {
+      .hero-stats { gap: 20px; }
+      .hero-stat { padding: 0; border: none; border-left: 2px solid var(--accent); padding-left: 14px; }
+    }
+
+    /* ── TRUST ───────────────────────────────────────── */
+    #trust { background: var(--primary); padding: 72px 0; }
+    .trust-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      gap: 1px; background: rgba(255,255,255,0.09);
+      border-radius: var(--r-card); overflow: hidden;
+    }
+    .trust-card { background: rgba(255,255,255,0.04); padding: 40px 28px; text-align: center; transition: background 0.2s; }
+    .trust-card:hover { background: rgba(255,255,255,0.08); }
+    .trust-n { font-size: clamp(30px, 4vw, 48px); font-weight: 800; color: #fff; line-height: 1; margin-bottom: 8px; }
+    .trust-n span { color: var(--accent); }
+    .trust-n.word { font-size: clamp(20px, 2.5vw, 28px); padding-top: 8px; }
+    .trust-l { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.55); }
+    @media (max-width: 768px) { .trust-grid { grid-template-columns: repeat(2,1fr); } }
+    @media (max-width: 440px) { .trust-grid { grid-template-columns: 1fr; } }
+
+    /* ── SERVICES ────────────────────────────────────── */
+    #services { padding: 100px 0; background: var(--bg); }
+    .sec-header { margin-bottom: 56px; }
+    .sec-header.center { text-align: center; }
+    .sec-header.center .sub { margin: 0 auto; max-width: 580px; }
+
+    .svc-img-wrap { position: relative; border-radius: var(--r-card); overflow: hidden; margin-bottom: 56px; height: 300px; }
+    .svc-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+    .svc-img-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(100deg, rgba(11,36,71,0.88) 0%, rgba(11,36,71,0.45) 55%, rgba(11,36,71,0.1) 100%);
+      display: flex; align-items: center; padding: 48px;
+    }
+    .svc-img-text { max-width: 380px; }
+    .svc-img-text h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .svc-img-text p { font-size: 15px; color: rgba(255,255,255,0.72); line-height: 1.65; }
+    @media (max-width: 600px) { .svc-img-wrap { height: 220px; } .svc-img-overlay { padding: 24px; } .svc-img-text h3 { font-size: 18px; } }
+
+    .svc-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .svc-card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card);
+      padding: 40px; box-shadow: var(--shadow); transition: box-shadow 0.3s, transform 0.3s;
+    }
+    .svc-card:hover { box-shadow: var(--shadow-md); transform: translateY(-5px); }
+    .svc-icon { width: 52px; height: 52px; margin-bottom: 20px; }
+    .svc-tag {
+      display: inline-block; padding: 4px 12px;
+      background: rgba(14,165,233,0.1); color: var(--accent);
+      border-radius: 100px; font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+    .svc-card h3 { font-size: 21px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .svc-card .card-sub { font-size: 15px; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .svc-features { list-style: none; margin-bottom: 32px; display: flex; flex-direction: column; gap: 14px; }
+    .svc-features li { display: flex; gap: 12px; align-items: flex-start; font-size: 15px; color: var(--text); }
+    .svc-features li svg { flex-shrink: 0; margin-top: 2px; }
+    .svc-features strong { font-weight: 600; }
+    @media (max-width: 768px) { .svc-cards { grid-template-columns: 1fr; } }
+
+    /* ── DIFFERENTIATORS ─────────────────────────────── */
+    #diff { padding: 100px 0; background: var(--primary); }
+    .diff-header { margin-bottom: 56px; }
+    .diff-header .h2 { color: #fff; }
+    .diff-header .sub { color: rgba(255,255,255,0.6); max-width: 600px; }
+    .diff-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+    .diff-card {
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--r-card); padding: 36px 30px;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .diff-card:hover { background: rgba(255,255,255,0.09); transform: translateY(-4px); }
+    .diff-icon { width: 48px; height: 48px; margin-bottom: 20px; }
+    .diff-card h3 { font-size: 19px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+    .diff-card p { font-size: 15px; color: rgba(255,255,255,0.58); line-height: 1.72; }
+    @media (max-width: 768px) { .diff-grid { grid-template-columns: 1fr; } }
+
+    /* ── TESTIMONIALS ────────────────────────────────── */
+    #results { padding: 100px 0; background: var(--bg); }
+    .testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+    .testi-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r-card); padding: 32px; box-shadow: var(--shadow);
+    }
+    .testi-badge {
+      display: inline-block; padding: 3px 10px;
+      background: #FEF3C7; color: #92400E;
+      border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .testi-q { font-size: 15px; color: var(--text); line-height: 1.78; margin-bottom: 20px; position: relative; padding-left: 20px; }
+    .testi-q::before { content: '\201C'; position: absolute; left: 0; top: -4px; font-size: 36px; color: var(--accent); line-height: 1; font-weight: 800; }
+    .testi-author { font-size: 14px; font-weight: 600; color: var(--muted); padding-top: 16px; border-top: 1px solid var(--border); }
+    @media (max-width: 900px) { .testi-grid { grid-template-columns: 1fr; } }
+
+    /* ── CONTACT ─────────────────────────────────────── */
+    #contact { padding: 100px 0; background: linear-gradient(140deg, var(--primary) 0%, var(--secondary) 100%); }
+    .contact-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
+    .contact-left h2 { font-size: clamp(26px, 4vw, 36px); font-weight: 700; color: #fff; line-height: 1.22; margin-bottom: 16px; }
+    .contact-left > p { font-size: 16px; color: rgba(255,255,255,0.65); line-height: 1.72; margin-bottom: 36px; }
+    .info-item { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .info-icon {
+      width: 44px; height: 44px; background: rgba(14,165,233,0.15);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .info-lbl { font-size: 12px; color: rgba(255,255,255,0.45); margin-bottom: 3px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+    .info-val { font-size: 16px; font-weight: 600; color: #fff; }
+    .info-val a { color: var(--accent); transition: color 0.2s; }
+    .info-val a:hover { color: #38bdf8; }
+    .contact-note { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 28px; line-height: 1.6; }
+
+    .c-form { background: #fff; border-radius: var(--r-card); padding: 40px; }
+    .fg { margin-bottom: 18px; }
+    .flbl { display: block; font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .flbl .req { color: var(--danger); margin-left: 2px; }
+    .fc {
+      width: 100%; padding: 12px 16px;
+      border: 1.5px solid var(--border); border-radius: var(--r-btn);
+      font-family: var(--font); font-size: 15px; color: var(--text);
+      background: var(--bg); transition: border-color 0.2s; outline: none;
+    }
+    .fc:focus { border-color: var(--accent); background: #fff; }
+    .fc::placeholder { color: var(--muted); }
+    select.fc {
+      appearance: none; cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748B' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 16px center; padding-right: 44px;
+    }
+    textarea.fc { resize: vertical; min-height: 96px; }
+    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .btn-submit { width: 100%; justify-content: center; padding: 16px; font-size: 16px; margin-top: 4px; }
+    #form-success { display: none; padding: 40px 24px; text-align: center; }
+    @media (max-width: 900px) { .contact-wrap { grid-template-columns: 1fr; gap: 40px; } .frow { grid-template-columns: 1fr; } }
+
+    /* ── FOOTER ──────────────────────────────────────── */
+    #footer { background: #030c18; padding: 48px 0 28px; }
+    .footer-inner { display: flex; flex-wrap: wrap; gap: 28px; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
+    .footer-logo { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+    .footer-logo span { color: var(--accent); }
+    .footer-tag { font-size: 14px; color: rgba(255,255,255,0.45); max-width: 300px; line-height: 1.65; }
+    .footer-right { font-size: 14px; color: rgba(255,255,255,0.45); line-height: 2; text-align: right; }
+    .footer-right a { color: rgba(255,255,255,0.65); transition: color 0.2s; }
+    .footer-right a:hover { color: #fff; }
+    hr.fdiv { border: none; border-top: 1px solid rgba(255,255,255,0.08); margin-bottom: 22px; }
+    .footer-copy { font-size: 13px; color: rgba(255,255,255,0.3); text-align: center; }
+    @media (max-width: 600px) { .footer-inner { flex-direction: column; } .footer-right { text-align: left; } }
+
+    /* ── MOBILE CALL BAR ─────────────────────────────── */
+    .mob-call { display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 999; background: var(--accent); }
+    .mob-call a {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      color: #fff; font-size: 15px; font-weight: 700; padding: 15px 20px;
+    }
+    @media (max-width: 768px) { .mob-call { display: block; } body { padding-bottom: 56px; } }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ─────────────────────────────────────────────── -->
+<header id="navbar" role="banner">
+  <nav class="container nav-inner" aria-label="주요 내비게이션">
+    <a class="nav-logo" href="#hero">DB<span>-zone</span></a>
+    <ul class="nav-links" role="list">
+      <li><a href="#services">서비스</a></li>
+      <li><a href="#diff">기술력</a></li>
+      <li><a href="#results">실적</a></li>
+      <li><a href="#contact">문의하기</a></li>
+    </ul>
+    <a href="tel:0502-468-0502" class="btn btn-primary nav-cta">무료 상담 신청</a>
+    <button class="hamburger" id="ham-btn" aria-label="메뉴 열기" aria-expanded="false" aria-controls="mob-nav">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <nav id="mob-nav" class="mobile-nav container" aria-label="모바일 내비게이션">
+    <a href="#services">서비스</a>
+    <a href="#diff">기술력</a>
+    <a href="#results">실적</a>
+    <a href="#contact">문의하기</a>
+    <a href="tel:0502-468-0502" class="btn btn-primary" style="margin-top:8px; justify-content:center;">무료 상담 신청</a>
+  </nav>
+</header>
+
+<main>
+<!-- ── HERO ─────────────────────────────────────────────── -->
+<section id="hero" aria-label="히어로">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="container hero-content">
+    <div class="hero-badge" aria-hidden="true">
+      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#0EA5E9"/></svg>
+      Oracle DB 전문 유지보수 &amp; AI 지능형 솔루션
+    </div>
+    <h1 class="hero-h1">데이터베이스,<br><em>단 한 번의 중단도</em><br>허용하지 않습니다.</h1>
+    <p class="hero-sub">20년의 Oracle DB 전문성과 AI 지능형 솔루션으로 귀사의 비즈니스 연속성을 보장합니다.</p>
+    <div class="hero-actions">
+      <a href="tel:0502-468-0502" class="btn btn-primary">
+        <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true"><path d="M2.5 2h3l1.5 3.5-2 1.5a10.5 10.5 0 0 0 4 4l1.5-2 3.5 1.5v3a1 1 0 0 1-1 1A13.5 13.5 0 0 1 1.5 3a1 1 0 0 1 1-1z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        지금 무료 상담 받기
+      </a>
+      <a href="#services" class="btn btn-ghost">서비스 살펴보기</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="h-stat-n">20<span>년+</span></div>
+        <div class="h-stat-l">Oracle DB 전문 경력</div>
+      </div>
+      <div class="hero-stat">
+        <div class="h-stat-n">24<span>/7</span></div>
+        <div class="h-stat-l">연중무휴 모니터링</div>
+      </div>
+      <div class="hero-stat">
+        <div class="h-stat-n" style="font-size:clamp(18px,2.5vw,24px);padding-top:4px;">공공기관</div>
+        <div class="h-stat-l">사업 수행 이력 보유</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TRUST NUMBERS ────────────────────────────────────── -->
+<section id="trust" aria-label="신뢰 지표">
+  <div class="container">
+    <div class="trust-grid">
+      <div class="trust-card fade-in">
+        <div class="trust-n">20<span>년+</span></div>
+        <div class="trust-l">Oracle DB 전문 운영 경력</div>
+      </div>
+      <div class="trust-card fade-in">
+        <div class="trust-n">24<span>/7</span></div>
+        <div class="trust-l">연중무휴 실시간 모니터링</div>
+      </div>
+      <div class="trust-card fade-in">
+        <div class="trust-n word">공공기관</div>
+        <div class="trust-l">국가 주요 사업 수행 이력</div>
+      </div>
+      <div class="trust-card fade-in">
+        <div class="trust-n word">AI 기반</div>
+        <div class="trust-l">차세대 지능형 장애 예측</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICES ─────────────────────────────────────────── -->
+<section id="services" aria-label="서비스">
+  <div class="container">
+    <div class="sec-header center fade-in">
+      <p class="label">CORE SERVICES</p>
+      <h2 class="h2">비즈니스의 심장,<br>데이터베이스를 지킵니다</h2>
+      <p class="sub">운영의 안정성이 필요한 지금과, 경쟁력의 도약이 필요한 내일을 함께 준비합니다.</p>
+    </div>
+
+    <div class="svc-img-wrap fade-in">
+      <img src="img/service.jpg" alt="다중 모니터에 Oracle DB 성능 대시보드가 표시된 운영 워크스테이션" loading="lazy" />
+      <div class="svc-img-overlay">
+        <div class="svc-img-text">
+          <h3>실시간 운영 현황을 한눈에</h3>
+          <p>DB-zone 엔지니어들은 24시간, 365일 귀사의 데이터베이스 상태를 모니터링합니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="svc-cards">
+      <!-- Card A: Oracle DB 유지보수 -->
+      <article class="svc-card fade-in">
+        <svg class="svc-icon" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+          <rect width="52" height="52" rx="12" fill="rgba(11,36,71,0.07)"/>
+          <path d="M26 11L40 17.5V28C40 35.5 33.5 42 26 44C18.5 42 12 35.5 12 28V17.5L26 11Z" stroke="#0B2447" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M20 27l4.5 4.5L33 23" stroke="#0B2447" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="svc-tag">DB 유지보수</span>
+        <h3>Oracle DB 전문 유지보수</h3>
+        <p class="card-sub">중단 없는 운영, 지금 바로 필요한 안정성</p>
+        <ul class="svc-features">
+          <li>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#0EA5E9" stroke-width="1.4"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="#0EA5E9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>24/7 실시간 모니터링</strong> — 장애 징후를 먼저 발견합니다</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#0EA5E9" stroke-width="1.4"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="#0EA5E9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>정기 Health Check</strong> — 체계적 예방 관리로 사전 리스크 제거</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#0EA5E9" stroke-width="1.4"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="#0EA5E9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>긴급 장애 복구</strong> — 숙련된 엔지니어 즉각 투입, 다운타임 최소화</span>
+          </li>
+        </ul>
+        <a href="tel:0502-468-0502" class="btn btn-outline">유지보수 상담 신청</a>
+      </article>
+
+      <!-- Card B: AI 솔루션 -->
+      <article class="svc-card fade-in">
+        <svg class="svc-icon" viewBox="0 0 52 52" fill="none" aria-hidden="true">
+          <rect width="52" height="52" rx="12" fill="rgba(14,165,233,0.09)"/>
+          <circle cx="26" cy="13" r="3.5" fill="#0EA5E9" opacity="0.95"/>
+          <circle cx="14" cy="24" r="3.5" fill="#0EA5E9" opacity="0.75"/>
+          <circle cx="38" cy="24" r="3.5" fill="#0EA5E9" opacity="0.75"/>
+          <circle cx="18" cy="38" r="3.5" fill="#0EA5E9" opacity="0.85"/>
+          <circle cx="34" cy="38" r="3.5" fill="#0EA5E9" opacity="0.85"/>
+          <line x1="26" y1="13" x2="14" y2="24" stroke="#0EA5E9" stroke-width="1.2" opacity="0.45"/>
+          <line x1="26" y1="13" x2="38" y2="24" stroke="#0EA5E9" stroke-width="1.2" opacity="0.45"/>
+          <line x1="14" y1="24" x2="18" y2="38" stroke="#0EA5E9" stroke-width="1.2" opacity="0.45"/>
+          <line x1="14" y1="24" x2="34" y2="38" stroke="#0EA5E9" stroke-width="1.2" opacity="0.45"/>
+          <line x1="38" y1="24" x2="18" y2="38" stroke="#0EA5E9" stroke-width="1.2" opacity="0.45"/>
+          <line x1="38" y1="24" x2="34" y2="38" stroke="#0EA5E9" stroke-width="1.2" opacity="0.45"/>
+        </svg>
+        <span class="svc-tag">AI 솔루션</span>
+        <h3>AI 기반 지능형 DB 솔루션</h3>
+        <p class="card-sub">미래형 데이터 관리, 다음 세대의 경쟁력</p>
+        <ul class="svc-features">
+          <li>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#0EA5E9" stroke-width="1.4"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="#0EA5E9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>지능형 자동 관리</strong> — AI 모델이 장애를 예측하고 선제 대응</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#0EA5E9" stroke-width="1.4"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="#0EA5E9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>딥러닝 이상 탐지</strong> — 사람이 놓치는 패턴까지 감지</span>
+          </li>
+          <li>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="10" cy="10" r="9" stroke="#0EA5E9" stroke-width="1.4"/><path d="M6.5 10.5l2.5 2.5 4.5-5" stroke="#0EA5E9" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>데이터 인텔리전스</strong> — DB 로그 분석으로 비즈니스 인사이트 제공</span>
+          </li>
+        </ul>
+        <a href="tel:0502-468-0502" class="btn btn-primary">AI 솔루션 데모 신청</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ── DIFFERENTIATORS ──────────────────────────────────── -->
+<section id="diff" aria-label="기술 차별점">
+  <div class="container">
+    <div class="diff-header fade-in">
+      <p class="label" style="color:rgba(14,165,233,0.85);">WHY DB-ZONE</p>
+      <h2 class="h2" style="color:#fff">단순 유지보수를 넘어,<br>진화하는 파트너십</h2>
+      <p class="sub" style="color:rgba(255,255,255,0.58); max-width:580px;">DB-zone은 Oracle DB 전문 조직으로서, 고객사의 IT 인프라가 사업의 걸림돌이 아닌 성장의 기반이 되도록 지원합니다.</p>
+    </div>
+    <div class="diff-grid">
+      <article class="diff-card fade-in">
+        <svg class="diff-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect width="48" height="48" rx="10" fill="rgba(14,165,233,0.12)"/>
+          <path d="M24 8L38 14.5V25C38 33 31.5 39.5 24 42C16.5 39.5 10 33 10 25V14.5L24 8Z" stroke="#0EA5E9" stroke-width="1.7" stroke-linejoin="round"/>
+          <path d="M18 25l4.5 4.5L30 21" stroke="#0EA5E9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h3>검증된 전문성</h3>
+        <p>20년 이상 Oracle DB에만 집중해 온 단일 전문 팀. 공공기관 핵심 시스템 운영 경험이 증명합니다.</p>
+      </article>
+      <article class="diff-card fade-in">
+        <svg class="diff-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect width="48" height="48" rx="10" fill="rgba(14,165,233,0.12)"/>
+          <circle cx="24" cy="27" r="4.5" fill="#0EA5E9" opacity="0.9"/>
+          <path d="M16.5 34.5a10.5 10.5 0 0 1 0-15" stroke="#0EA5E9" stroke-width="1.7" stroke-linecap="round" opacity="0.7"/>
+          <path d="M31.5 34.5a10.5 10.5 0 0 0 0-15" stroke="#0EA5E9" stroke-width="1.7" stroke-linecap="round" opacity="0.7"/>
+          <path d="M12 39a16 16 0 0 1 0-24" stroke="#0EA5E9" stroke-width="1.7" stroke-linecap="round" opacity="0.35"/>
+          <path d="M36 39a16 16 0 0 0 0-24" stroke="#0EA5E9" stroke-width="1.7" stroke-linecap="round" opacity="0.35"/>
+        </svg>
+        <h3>선제적 대응 체계</h3>
+        <p>장애가 발생한 후 대응하는 것이 아니라, AI 예측 모델로 발생 전에 차단합니다.</p>
+      </article>
+      <article class="diff-card fade-in">
+        <svg class="diff-icon" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <rect width="48" height="48" rx="10" fill="rgba(14,165,233,0.12)"/>
+          <rect x="9" y="11" width="30" height="8" rx="3" stroke="#0EA5E9" stroke-width="1.7"/>
+          <rect x="9" y="22" width="30" height="8" rx="3" stroke="#0EA5E9" stroke-width="1.7" opacity="0.65"/>
+          <rect x="9" y="33" width="30" height="8" rx="3" stroke="#0EA5E9" stroke-width="1.7" opacity="0.35"/>
+          <path d="M24 19v3M24 30v3" stroke="#0EA5E9" stroke-width="1.7" stroke-linecap="round" opacity="0.55"/>
+        </svg>
+        <h3>통합 서비스 구조</h3>
+        <p>전통적 유지보수부터 AI 솔루션까지 단일 파트너로 해결. 복잡한 멀티벤더 관리가 필요 없습니다.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ─────────────────────────────────────── -->
+<section id="results" aria-label="사업 실적 및 고객 후기">
+  <div class="container">
+    <div class="sec-header center fade-in">
+      <p class="label">CLIENT SUCCESS</p>
+      <h2 class="h2">신뢰는 수치와 현장에서<br>증명됩니다</h2>
+      <p class="sub" style="margin:0 auto; max-width:560px;">공공기관부터 민간 기업까지, 검증된 운영 경험이 귀사의 안정성을 보장합니다.</p>
+    </div>
+    <divclass="testi-grid">
+      <article class="testi-card fade-in">
+        <span class="testi-badge">예시</span>
+        <p class="testi-q">DB 장애로 인한 업무 중단이 연간 수차례 발생하던 환경에서, DB-zone 도입 후 12개월간 무중단 운영을 달성했습니다.</p>
+        <p class="testi-author">제조업 IT 팀장</p>
+      </article>
+      <article class="testi-card fade-in">
+        <span class="testi-badge">예시</span>
+        <p class="testi-q">공공기관 특성상 보안과 안정성이 최우선인데, DB-zone의 전문 엔지니어들은 항상 기대 이상의 대응 속도를 보여줬습니다.</p>
+        <p class="testi-author">공공기관 정보화 담당자</p>
+      </article>
+      <article class="testi-card fade-in">
+        <span class="testi-badge">예시</span>
+        <p class="testi-q">AI 기반 이상 탐지 도입 후, 장애 예측 정확도가 크게 향상되어 선제적 유지보수가 가능해졌습니다.</p>
+        <p class="testi-author">금융사 DBA</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ── CONTACT ──────────────────────────────────────────── -->
+<section id="contact" aria-label="문의 및 상담 신청">
+  <div class="container">
+    <div class="contact-wrap">
+      <div class="contact-left fade-in">
+        <h2>지금 바로 전문가와<br>이야기하세요</h2>
+        <p>현재 운영 중인 Oracle DB 환경을 무료로 진단해 드립니다. 부담 없이 연락 주세요.</p>
+        <div class="info-item">
+          <div class="info-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M3.5 2.5h4l1.5 4-2.5 1.5A12 12 0 0 0 11.5 12l1.5-2.5 4 1.5v4a1 1 0 0 1-1 1A15.5 15.5 0 0 1 2.5 3.5a1 1 0 0 1 1-1z" stroke="#0EA5E9" stroke-width="1.5" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="info-lbl">전화 상담</div>
+            <div class="info-val"><a href="tel:0502-468-0502">0502-468-0502</a></div>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="8.5" stroke="#0EA5E9" stroke-width="1.5"/><path d="M11 7v5l3 3" stroke="#0EA5E9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="info-lbl">긴급 대응</div>
+            <div class="info-val" style="color:rgba(255,255,255,0.88);">24/7 연중무휴 대응 가능</div>
+          </div>
+        </div>
+        <div class="info-item">
+          <div class="info-icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path d="M11 2a6 6 0 0 1 6 6c0 5-6 12-6 12S5 13 5 8a6 6 0 0 1 6-6z" stroke="#0EA5E9" stroke-width="1.5" stroke-linejoin="round"/><circle cx="11" cy="8" r="2" stroke="#0EA5E9" stroke-width="1.5"/></svg>
+          </div>
+          <div>
+            <div class="info-lbl">소재지</div>
+            <div class="info-val" style="color:rgba(255,255,255,0.88);">충청북도 청주시 흥덕구 오송</div>
+          </div>
+        </div>
+        <p class="contact-note">영업일 기준 24시간 이내 담당 엔지니어가 직접 연락드립니다.</p>
+      </div>
+
+      <div class="c-form fade-in">
+        <form id="inquiry-form" novalidate>
+          <div class="frow">
+            <div class="fg">
+              <label class="flbl" for="f-company">회사명<span class="req" aria-label="필수">*</span></label>
+              <input class="fc" type="text" id="f-company" name="company" placeholder="(주)회사명" required autocomplete="organization" />
+            </div>
+            <div class="fg">
+              <label class="flbl" for="f-name">담당자명<span class="req" aria-label="필수">*</span></label>
+              <input class="fc" type="text" id="f-name" name="name" placeholder="홍길동" required autocomplete="name" />
+            </div>
+          </div>
+          <div class="fg">
+            <label class="flbl" for="f-phone">연락처<span class="req" aria-label="필수">*</span></label>
+            <input class="fc" type="tel" id="f-phone" name="phone" placeholder="010-0000-0000" required autocomplete="tel" />
+          </div>
+          <div class="fg">
+            <label class="flbl" for="f-type">문의 유형</label>
+            <select class="fc" id="f-type" name="type">
+              <option value="">선택해 주세요</option>
+              <option value="maintenance">유지보수 문의</option>
+              <option value="ai">AI 솔루션 문의</option>
+              <option value="other">기타</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label class="flbl" for="f-msg">문의 내용 <span style="color:var(--muted);font-weight:400;">(선택)</span></label>
+            <textarea class="fc" id="f-msg" name="message" placeholder="현재 DB 환경, 문의 사항 등을 간략히 작성해 주세요."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-submit">
+            <svg width="17" height="17" viewBox="0 0 17 17" fill="none" aria-hidden="true"><path d="M2 8.5h13M9.5 3.5l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            무료 상담 신청하기
+          </button>
+        </form>
+        <div id="form-success" style="display:none; padding:48px 24px; text-align:center;">
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" style="margin:0 auto 18px;" aria-hidden="true"><circle cx="26" cy="26" r="24" stroke="#0EA5E9" stroke-width="2"/><path d="M16 26.5l7.5 7.5L36 20" stroke="#0EA5E9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <p style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">접수되었습니다!</p>
+          <p style="font-size:14px;color:var(--muted);">영업일 기준 24시간 이내 담당 엔지니어가 직접 연락드립니다.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ── FOOTER ───────────────────────────────────────────── -->
+<footer id="footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-logo">DB<span>-zone</span></div>
+        <p class="footer-tag">전통적인 DB 기술력부터 미래형 AI 솔루션까지<br>귀사의 비즈니스 안정을 위한 통합 서비스를 제공합니다.</p>
+      </div>
+      <div class="footer-right">
+        <div>전화: <a href="tel:0502-468-0502">0502-468-0502</a></div>
+        <div>충청북도 청주시 흥덕구 오송</div>
+      </div>
+    </div>
+    <hr class="fdiv" />
+    <p class="footer-copy">© 2025 DB-zone. All rights reserved.</p>
+  </div>
+</footer>
+
+<!-- ── MOBILE CALL BAR ──────────────────────────────────── -->
+<div class="mob-call" role="complementary" aria-label="전화 문의">
+  <a href="tel:0502-468-0502">
+    <svg width="19" height="19" viewBox="0 0 19 19" fill="none" aria-hidden="true"><path d="M3 2h3.5l1.5 4-2 1.5A11 11 0 0 0 11.5 13l1.5-2 4 1.5V16a1 1 0 0 1-1 1A15 15 0 0 1 2 3a1 1 0 0 1 1-1z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/></svg>
+    0502-468-0502 바로 전화
+  </a>
+</div>
+
+<script>
+  const navbar = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    navbar.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+
+  const hamBtn = document.getElementById('ham-btn');
+  const mobNav = document.getElementById('mob-nav');
+  hamBtn.addEventListener('click', () => {
+    const open = mobNav.classList.toggle('open');
+    hamBtn.setAttribute('aria-expanded', String(open));
+  });
+  mobNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    mobNav.classList.remove('open');
+    hamBtn.setAttribute('aria-expanded', 'false');
+  }));
+
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.fade-in').forEach(el => obs.observe(el));
+
+  const form = document.getElementById('inquiry-form');
+  const success = document.getElementById('form-success');
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    let valid = true;
+    form.querySelectorAll('[required]').forEach(f => {
+      const ok = f.value.trim().length > 0;
+      f.style.borderColor = ok ? '' : 'var(--danger)';
+      if (!ok) valid = false;
+    });
+    if (valid) { form.style.display = 'none'; success.style.display = 'block'; }
+  });
+  form.querySelectorAll('[required]').forEach(f => f.addEventListener('input', () => { f.style.borderColor = ''; }));
+</script>
+</body>
+</html>
