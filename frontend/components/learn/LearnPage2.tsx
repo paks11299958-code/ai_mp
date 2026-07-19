@@ -447,10 +447,11 @@ export const LearnPage2: React.FC = () => {
                             {[
                                 [<>브라우저에서 <b>vercel.com</b> 으로 갑니다.</>],
                                 [<>오른쪽 위 <b>Sign Up</b>(가입)을 누릅니다.</>],
-                                [<>용도를 묻는 화면이 나오면 <b>Hobby</b>(취미·개인용)를 선택합니다. ← <b>무료</b>예요</>],
-                                [<>이름을 물으면 아무거나 넣고 <b>Continue</b>.</>],
-                                [<><b>Continue with GitHub</b> 버튼을 누릅니다. ← 이게 핵심!</>],
+                                [<>로그인 방법을 고르는 화면이 나옵니다. 여기서 <b>Continue with GitHub</b>을 누릅니다. ← 이게 핵심!<br />
+                                    <span className="text-xs text-[#9A8FB0]">구글·애플 버튼도 같이 보이지만 <b>깃허브를 골라야</b> 합니다. 아래 주의사항 꼭 보세요.</span></>],
                                 [<>깃허브가 <b>"버셀이 접근해도 될까요?"</b>라고 물으면 <b>Authorize Vercel</b>(허용)을 누릅니다.</>],
+                                [<>이름·용도를 묻는 화면이 이어서 나옵니다. 이름은 아무거나 넣고 <b>Continue</b>.</>],
+                                [<><b>Hobby</b>(취미·개인용)를 선택합니다. ← <b>무료</b>예요</>],
                             ].map((t, i) => (
                                 <div key={i} className="flex items-start gap-3 px-4 py-3 text-sm">
                                     <span className="flex-shrink-0 w-5 h-5 rounded-full bg-[#F0E8F8] text-[#6E5DA3] text-[10px] font-extrabold flex items-center justify-center mt-0.5">{i + 1}</span>
@@ -459,11 +460,13 @@ export const LearnPage2: React.FC = () => {
                             ))}
                         </div>
 
-                        <Shot src={shots['step4-vercel-signup']} alt="버셀 가입 화면 (vercel.com → Sign Up → Hobby → Continue with GitHub)" />
+                        <Shot src={shots['step4-vercel-signup']} alt="버셀 가입 화면 (vercel.com → Sign Up → Continue with GitHub)" />
 
                         <Caution>
-                            <b>Hobby(무료)를 꼭 고르세요.</b> Pro는 유료(월 20달러)입니다.
-                            우리가 만드는 홈페이지 정도는 <b>무료로 충분</b>하고, 카드 등록도 필요 없어요.
+                            <b>반드시 Continue with GitHub을 누르세요.</b> 구글·애플로 가입해도 버셀 계정은 만들어지지만,
+                            <b>깃허브와 연결되지 않습니다.</b> 그러면 다음 5단계에서 <b>내 저장소 목록이 텅 비어</b> 보이고,
+                            깃허브를 따로 연결하는 번거로운 과정을 다시 거쳐야 해요.<br />
+                            <span className="text-xs">※ 우리가 만든 index.html은 <b>깃허브 창고</b>에 있습니다. 버셀이 그 창고를 들여다볼 수 있어야 홈페이지가 만들어져요.</span>
                         </Caution>
 
                         <Tip>
@@ -471,6 +474,11 @@ export const LearnPage2: React.FC = () => {
                             허락하는 겁니다. 이 허락이 있어야 버셀이 내 index.html을 읽어서 홈페이지로 띄울 수 있어요.
                             나중에 언제든 깃허브 설정에서 취소할 수 있습니다.
                         </Tip>
+
+                        <Caution>
+                            <b>Hobby(무료)를 꼭 고르세요.</b> Pro는 유료(월 20달러)입니다.
+                            우리가 만드는 홈페이지 정도는 <b>무료로 충분</b>하고, 카드 등록도 필요 없어요.
+                        </Caution>
 
                         <Success>
                             버셀 <b>대시보드</b>(내 프로젝트 목록) 화면이 나오면 가입 완료예요. 아직 비어 있는 게 정상입니다.
