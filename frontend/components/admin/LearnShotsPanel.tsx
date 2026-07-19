@@ -55,43 +55,43 @@ export const LearnShotsPanel: React.FC = () => {
     const filled = slots.filter(s => s.imageUrl).length;
 
     return (
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
             <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div>
-                    <h2 className="text-lg font-bold">📸 학습자료 이미지</h2>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <h2 className="text-lg font-bold text-white">📸 학습자료 이미지</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">
                         강의에 넣을 실제 화면 캡처예요. 올리면 <b>바로</b> 강의에 반영됩니다.
                     </p>
                 </div>
                 <select value={course} onChange={e => setCourse(e.target.value)}
-                        className="border rounded-lg px-3 py-2 text-sm bg-white">
+                        className="border border-gray-700 rounded-lg px-3 py-2 text-sm bg-gray-800 text-gray-100">
                     {COURSES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                 </select>
             </div>
 
             {!loading && (
-                <div className="bg-indigo-50 border border-indigo-200 rounded-xl px-4 py-3 text-sm text-indigo-900">
+                <div className="bg-indigo-950 border border-indigo-500/40 rounded-xl px-4 py-3 text-sm text-indigo-100">
                     {filled}/{slots.length} 자리 채워짐
                     {filled < slots.length && ' — 빈 자리는 강의에서 📸 안내 박스로 보여요(글만으로도 읽힙니다).'}
                 </div>
             )}
 
             {err && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-center justify-between gap-3">
+                <div className="bg-red-950 border border-red-500/40 rounded-xl px-4 py-3 text-sm text-red-100 flex items-center justify-between gap-3">
                     <span>{err}</span>
                     <button onClick={() => setErr('')} className="text-xs font-bold underline flex-shrink-0">닫기</button>
                 </div>
             )}
 
             {loading ? (
-                <p className="text-sm text-gray-400 py-8 text-center">불러오는 중...</p>
+                <p className="text-sm text-gray-500 py-8 text-center">불러오는 중...</p>
             ) : (
                 <div className="space-y-3">
                     {slots.map(s => (
-                        <div key={s.key} className="bg-white border rounded-xl p-4">
+                        <div key={s.key} className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
                             <div className="flex items-start justify-between gap-3 flex-wrap">
                                 <div className="min-w-0 flex-1">
-                                    <div className="font-bold text-sm">{s.label}</div>
+                                    <div className="font-bold text-sm text-gray-100">{s.label}</div>
                                     <div className="text-[11px] text-gray-400 mt-0.5">
                                         {s.imageUrl
                                             ? `올림 · ${s.updatedAt ? new Date(s.updatedAt).toLocaleString('ko-KR') : ''}`
@@ -100,7 +100,7 @@ export const LearnShotsPanel: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <label className={`text-xs font-bold px-3 py-2 rounded-lg cursor-pointer ${
-                                        busy === s.key ? 'bg-gray-200 text-gray-400' : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                                        busy === s.key ? 'bg-gray-700 text-gray-500' : 'bg-indigo-600 text-white hover:bg-indigo-700'
                                     }`}>
                                         {busy === s.key ? '올리는 중...' : s.imageUrl ? '📷 바꾸기' : '📷 사진 올리기'}
                                         <input type="file" accept="image/*" className="hidden" disabled={busy === s.key}
@@ -108,7 +108,7 @@ export const LearnShotsPanel: React.FC = () => {
                                     </label>
                                     {s.imageUrl && (
                                         <button onClick={() => clear(s.key)} disabled={busy === s.key}
-                                                className="text-xs font-bold px-3 py-2 rounded-lg border text-red-600 hover:bg-red-50 disabled:opacity-40">
+                                                className="text-xs font-bold px-3 py-2 rounded-lg border border-gray-700 text-red-400 hover:bg-red-500/10 disabled:opacity-40">
                                             지우기
                                         </button>
                                     )}
@@ -118,7 +118,7 @@ export const LearnShotsPanel: React.FC = () => {
                             {s.imageUrl && (
                                 <a href={s.imageUrl} target="_blank" rel="noreferrer" className="block mt-3">
                                     <img src={s.imageUrl} alt={s.label}
-                                         className="w-full max-w-md rounded-lg border hover:opacity-90 transition-opacity" />
+                                         className="w-full max-w-md rounded-lg border border-gray-700 hover:opacity-90 transition-opacity" />
                                 </a>
                             )}
                         </div>
