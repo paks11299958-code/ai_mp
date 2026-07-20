@@ -2056,16 +2056,18 @@ const AppContent: React.FC = () => {
             {showBoard ? (
                 <BoardPanel user={user} personaId={activePersonaId} onClose={() => setShowBoard(false)} />
             ) : isAdminMode ? (
-                <AdminPanel
-                    personas={personas}
-                    onSave={handleSavePersona}
-                    onDelete={handleDeletePersona}
-                    onClose={() => setIsAdminMode(false)}
-                    onImagesChanged={(personaId: string) => {
-                        refreshPersonaImages(personaId);
-                    }}
-                    user={user}
-                />
+                <ErrorBoundary label="관리자 화면 오류" onClose={() => setIsAdminMode(false)}>
+                    <AdminPanel
+                        personas={personas}
+                        onSave={handleSavePersona}
+                        onDelete={handleDeletePersona}
+                        onClose={() => setIsAdminMode(false)}
+                        onImagesChanged={(personaId: string) => {
+                            refreshPersonaImages(personaId);
+                        }}
+                        user={user}
+                    />
+                </ErrorBoundary>
             ) : (
                 <div className="flex-1 flex h-full relative min-w-0">
                     {(() => {
