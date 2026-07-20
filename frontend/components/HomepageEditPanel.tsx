@@ -413,7 +413,11 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                                 </div>
                                                 <div>
                                                     <p className="text-xs font-semibold text-gray-700 mb-1.5">📷 내 사진으로 교체</p>
-                                                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" onChange={onPickFile} className="text-xs" />
+                                                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" onChange={onPickFile} className="hidden" />
+                                                    <button type="button" onClick={() => fileInputRef.current?.click()}
+                                                            className="w-full py-2 rounded-xl border text-sm font-semibold text-gray-500 border-gray-200 hover:bg-gray-50">
+                                                        {uploadPreviewUrl ? '📷 다른 사진 선택' : '📷 사진 선택하기'}
+                                                    </button>
                                                     {uploadPreviewUrl && (
                                                         <div className="mt-1.5 space-y-1.5">
                                                             <img src={uploadPreviewUrl} alt="업로드 미리보기" className="w-full h-24 object-cover rounded-lg" />
