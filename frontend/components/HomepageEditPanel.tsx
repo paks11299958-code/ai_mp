@@ -50,6 +50,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
     const [iframeKey, setIframeKey] = useState(0);
     const [lastAppliedEditId, setLastAppliedEditId] = useState<number | null>(null);
     const [reverting, setReverting] = useState(false);
+    const [urlCopied, setUrlCopied] = useState(false);
 
     const [slots, setSlots] = useState<ImageSlot[]>([]);
     const [selectedSlot, setSelectedSlot] = useState<ImageSlot | null>(null);
@@ -328,10 +329,22 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                 {/* 본문: 데스크톱 좌우 분할, 모바일 상하 스택 */}
                 <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                     {/* 왼쪽: 미리보기 */}
-                    <div className="flex-1 md:flex-[3] min-h-[40vh] md:min-h-0 border-b md:border-b-0 md:border-r border-gray-100">
+                    <div className="flex-1 md:flex-[3] min-h-[40vh] md:min-h-0 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col">
+                        {baseUrl && (
+                            <div className="flex items-center gap-2 px-3 py-1.5 border-b border-gray-100 bg-gray-50 shrink-0">
+                                <a href={baseUrl} target="_blank" rel="noopener noreferrer"
+                                   className="flex-1 text-[11px] text-gray-500 truncate hover:underline">
+                                    🔗 {baseUrl}
+                                </a>
+                                <button onClick={() => { navigator.clipboard?.writeText(baseUrl); setUrlCopied(true); setTimeout(() => setUrlCopied(false), 1500); }}
+                                        className="text-[11px] font-semibold shrink-0" style={{ color: INDIGO }}>
+                                    {urlCopied ? '복사됨!' : '복사'}
+                                </button>
+                            </div>
+                        )}
                         {baseUrl && (
                             <iframe key={iframeKey} src={`${baseUrl}?v=${iframeKey}`} title="홈페이지 미리보기"
-                                    className="w-full h-full" style={{ border: 'none' }} />
+                                    className="w-full flex-1" style={{ border: 'none' }} />
                         )}
                     </div>
 
