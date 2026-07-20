@@ -969,6 +969,12 @@ export const adminApi = {
     getServer2Metrics: () =>
         get<any>('/admin/monitor/server2/metrics'),
 
+    getBalances: () =>
+        get<{
+            solapi: { balance?: number; lowBalanceThreshold?: number; error?: string } | null;
+            openai: { monthToDateUsd?: number; error?: string } | null;
+        }>('/admin/monitor/balances'),
+
     getLogDates: () =>
         get<{ dates: string[] }>('/admin/monitor/logs'),
 

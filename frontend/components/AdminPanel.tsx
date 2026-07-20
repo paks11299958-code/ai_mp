@@ -70,7 +70,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'omd-designs',   label: 'omd 디자인', icon: 'Image' },
                             { key: 'learn-shots',   label: '학습자료 이미지', icon: 'Image' },
                             { key: 'homepage-reqs', label: '홈페이지 신청', icon: 'BookOpen' },
-                            { key: 'kin-answer',    label: '지식인 답변', icon: 'BookOpen' },
+                            { key: 'kin-answer',    label: '지식인 답변', icon: 'Search' },
                             { key: 'marketing-assets', label: '마케팅 자산', icon: 'Megaphone' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
@@ -771,6 +771,65 @@ const GolfCoursesPanel: React.FC = () => {
 };
 
 // ── 서버 모니터링 패널 ──────────────────────────────────────
+// ── 외부 서비스 잔액(솔라피 SMS·OpenAI 사용액) — 서버 모니터링·AI 사용량 양쪽에서 재사용 ──
+// 2026-07-20 사장 지시: 부족하면 직접 충전해야 하니 상시 확인 가능하게.
+const BalancesCard: React.FC = () => {
+    const [data, setData] = useState<Awaited<ReturnType<typeof adminApi.getBalances>> | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const load = React.useCallback(() => {
+        setLoading(true);
+        adminApi.getBalances().then(setData).catch(() => setData(null)).finally(() => setLoading(false));
+    }, []);
+    useEffect(() => { load(); const t = setInterval(load, 60000); return () => clearInterval(t); }, [load]);
+
+    const solapiLow = data?.solapi?.balance != null && data?.solapi?.lowBalanceThreshold != null
+        && data.solapi.balance <= data.solapi.lowBalanceThreshold;
+
+    return (
+        <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-gray-300 flex items-center gap-1.5">
+                    <Icon name="Coins" size={13} />외부 서비스 잔액
+                </p>
+                <button onClick={load} className="text-xs text-blue-400 hover:text-blue-300">
+                    <Icon name="RefreshCw" size={11} />
+                </button>
+            </div>
+            {loading ? (
+                <p className="text-xs text-gray-500 text-center py-3">불러오는 중...</p>
+            ) : (
+                <div className="grid grid-cols-2 gap-3">
+                    <div className={`rounded-lg p-3 ${solapiLow ? 'bg-red-950/60 border border-red-500/50' : 'bg-gray-900/60'}`}>
+                        <p className="text-[11px] text-gray-400 mb-1">솔라피(문자발송)</p>
+                        {data?.solapi?.error ? (
+                            <p className="text-xs text-gray-500">{data.solapi.error}</p>
+                        ) : (
+                            <>
+                                <p className={`text-lg font-bold ${solapiLow ? 'text-red-300' : 'text-white'}`}>
+                                    {data?.solapi?.balance?.toLocaleString() ?? '-'}원
+                                </p>
+                                {solapiLow && <p className="text-[10px] text-red-400 mt-0.5">⚠️ 잔액이 낮아요, 충전이 필요할 수 있어요</p>}
+                            </>
+                        )}
+                    </div>
+                    <div className="rounded-lg p-3 bg-gray-900/60">
+                        <p className="text-[11px] text-gray-400 mb-1">OpenAI(ChatGPT API)</p>
+                        {data?.openai?.error ? (
+                            <p className="text-xs text-gray-500">{data.openai.error}</p>
+                        ) : (
+                            <p className="text-lg font-bold text-white">
+                                ${data?.openai?.monthToDateUsd?.toFixed(2) ?? '-'}
+                                <span className="text-[10px] text-gray-400 font-normal ml-1">이번달 누적</span>
+                            </p>
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
 const ServerMonitorPanel: React.FC = () => {
     const [serverTab, setServerTab] = useState<'server1' | 'server2'>('server1');
 
@@ -880,6 +939,8 @@ const Server1MonitorView: React.FC = () => {
 
     return (
         <div className="p-5 space-y-5">
+            <BalancesCard />
+
             {/* 시스템 지표 */}
             <div>
                 <div className="flex items-center justify-between mb-3">
@@ -1759,6 +1820,8 @@ const AiUsagePanel: React.FC = () => {
                     ))}
                 </div>
             </div>
+
+            <BalancesCard />
 
             {loading && <div className="text-center text-gray-400 py-8">불러오는 중...</div>}
 
