@@ -64,16 +64,18 @@ const RetryImage: React.FC<{ src: string; alt: string; className?: string }> = (
 };
 
 // index.html 원본에서 img/ 상대경로 이미지 슬롯을 뽑는다(별도 메타 API 없이 배포 산출물 재사용).
+// ★적용된 이미지는 캐시버스터(?v=editId)가 붙어(img/service.jpg?v=13") 있어 확장자 뒤에
+// 쿼리스트링이 올 수 있음 — 이를 빠뜨리면 "방금 바꾼 사진이 목록에서 사라짐" 버그가 남(2026-07-20).
 function parseImageSlots(html: string, baseUrl: string): ImageSlot[] {
     const out: ImageSlot[] = [];
     const seen = new Set<string>();
-    const re = /(?:src|href)=["'](img\/[a-z0-9_-]{1,40}\.(?:jpg|jpeg|png))["']/gi;
+    const re = /(?:src|href)=["'](img\/[a-z0-9_-]{1,40}\.(?:jpg|jpeg|png))(\?v=\d+)?["']/gi;
     let m: RegExpExecArray | null;
     while ((m = re.exec(html))) {
         const file = m[1];
         if (seen.has(file) || file.includes('_preview/')) continue;
         seen.add(file);
-        out.push({ file, url: baseUrl + file });
+        out.push({ file, url: baseUrl + file + (m[2] || '') });
     }
     return out;
 }
