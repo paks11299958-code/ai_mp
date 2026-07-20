@@ -14,6 +14,9 @@ const isInApp = isKakao || isNaver;
 const isIOS = /iPhone|iPad|iPod/i.test(UA) || (/Macintosh/i.test(UA) && (navigator as any).maxTouchPoints > 1);
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches
     || (window.navigator as any).standalone === true; // iOS Safari 홈화면 실행 여부
+const isEdge = /Edg\//i.test(UA);
+const isFirefox = /Firefox/i.test(UA);
+const isDesktopChrome = !isEdge && !isFirefox && /Chrome\//i.test(UA); // Edge도 Chrome UA를 포함해 순서 중요
 
 type Guide = 'android-native' | 'ios-safari' | 'inapp' | 'desktop' | null;
 
@@ -144,13 +147,43 @@ export const InstallBanner: React.FC = () => {
                             {(guide === 'desktop' || guide === null) && (
                                 <>
                                     <p className="leading-relaxed">
-                                        PC에서는 주소창 오른쪽의 <b className="text-white">설치 아이콘</b>
-                                        (⊕ 또는 컴퓨터 모양)을 눌러 추가할 수 있어요.
+                                        {isFirefox
+                                            ? <>파이어폭스는 <b className="text-white">앱 설치 기능이 없어요.</b> 대신 이 페이지를 <b className="text-white">즐겨찾기(북마크)</b>에 추가해 주세요(Ctrl+D).</>
+                                            : <>주소창 오른쪽의 <b className="text-white">설치 아이콘</b>을 누르면 바로 추가돼요.</>
+                                        }
                                     </p>
-                                    <p className="text-xs text-gray-500 leading-relaxed">
-                                        아이콘이 안 보이면 브라우저 메뉴(⋮) → <b>앱 설치</b> 또는 <b>이 사이트를 앱으로 설치</b>를 찾아주세요.
-                                        (모바일에서 보고 계시다면 브라우저를 최신 버전으로 업데이트해 주세요)
-                                    </p>
+
+                                    {!isFirefox && (
+                                        <>
+                                            {/* 실제 브라우저 주소창을 흉내낸 미니 일러스트 — 아이콘 위치를 그림으로 정확히 지목 */}
+                                            <div className="rounded-xl border border-gray-700 bg-gray-800/60 p-3">
+                                                <div className="flex items-center gap-2 bg-gray-950 rounded-lg px-3 py-2 border border-gray-700">
+                                                    <span className="text-[10px] text-gray-600 flex-shrink-0">🔒</span>
+                                                    <span className="flex-1 text-[11px] text-gray-500 truncate">aichat.dbzone.kr</span>
+                                                    <span
+                                                        className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full ring-2 ring-purple-400 animate-pulse"
+                                                        style={{ background: 'rgba(196,132,252,0.15)' }}
+                                                    >
+                                                        {isEdge ? (
+                                                            <span className="text-[13px]">🖥️</span>
+                                                        ) : (
+                                                            <span className="text-white text-[14px] leading-none font-bold">⊕</span>
+                                                        )}
+                                                    </span>
+                                                    <span className="text-gray-600 text-[13px] flex-shrink-0">⋮</span>
+                                                </div>
+                                                <p className="text-[11px] text-center text-purple-300 mt-2 font-semibold">
+                                                    ↑ 동그라미 친 아이콘이에요
+                                                </p>
+                                            </div>
+
+                                            <p className="text-xs text-gray-500 leading-relaxed">
+                                                아이콘이 안 보이면 오른쪽 위 <b>⋮ 메뉴</b> →{' '}
+                                                {isEdge ? <><b>앱</b> → <b>이 사이트를 앱으로 설치</b></> : <><b>도구 더보기</b> → <b>{isDesktopChrome ? '앱 설치' : '홈 화면에 추가'}</b></>}
+                                                를 찾아주세요.
+                                            </p>
+                                        </>
+                                    )}
                                 </>
                             )}
                         </div>
