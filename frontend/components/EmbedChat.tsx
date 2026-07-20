@@ -46,7 +46,8 @@ export const EmbedChat: React.FC<{ personaKey: string }> = ({ personaKey }) => {
     // 무료 체험(하루 3회) 소진 알림 → 확인 시 본 사이트 회원가입 화면으로 이동.
     // 창을 새로 열면(target=_blank) iframe 안에 갇힌 위젯에서도 항상 새 탭으로 빠져나간다.
     const notifyLimitAndRedirect = () => {
-        if (window.confirm(`오늘 무료 체험 3회를 모두 사용했어요.\n가입하면 ${persona?.name ?? ''}와 계속 대화할 수 있어요 — 가입 화면으로 이동할까요?`)) {
+        // 이름 받침 유무에 따라 '와/과'가 갈려 조사 없이 자연스러운 문장으로(간단·안전).
+        if (window.confirm(`오늘 무료 체험 3회를 모두 사용했어요.\n가입하면 ${persona?.name ?? '이 페르소나'}랑 계속 대화할 수 있어요 — 가입 화면으로 이동할까요?`)) {
             window.open(mainUrl, '_blank', 'noopener');
         }
     };
