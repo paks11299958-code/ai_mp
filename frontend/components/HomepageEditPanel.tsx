@@ -46,6 +46,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
     ]);
     const [input, setInput] = useState('');
     const [busy, setBusy] = useState(false);
+    const [busyStage, setBusyStage] = useState<'queued' | 'working' | null>(null);
     const [iframeKey, setIframeKey] = useState(0);
 
     const [slots, setSlots] = useState<ImageSlot[]>([]);
@@ -103,18 +104,25 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
         }
     };
 
-    // 공용 폴링(text/image/upload 공통) — done/failed까지.
+    // 공용 폴링(text/image/upload 공통) — done/failed까지. pending=대기(워커가 아직 안 집음),
+    // processing/applying/reverting=처리 중 — 단계를 구분해서 보여줘야 "눌렀는데 반응 없다"는
+    // 불안을 줄인다(사장 피드백 2026-07-20).
     const pollEdit = (editId: number, handlers: { onDone: (row: HomepageEditRow) => void; onFailed: (msg?: string | null) => void }) => {
         stopPoll();
+        setBusyStage('queued');
         const tick = async () => {
             try {
                 const row = await homepageApi.getEdit(request.id, editId);
                 if (row.status === 'done') {
-                    stopPoll(); setBusy(false);
+                    stopPoll(); setBusy(false); setBusyStage(null);
                     handlers.onDone(row);
                 } else if (row.status === 'failed') {
-                    stopPoll(); setBusy(false);
+                    stopPoll(); setBusy(false); setBusyStage(null);
                     handlers.onFailed(row.errorMessage);
+                } else if (row.status === 'pending') {
+                    setBusyStage('queued');
+                } else {
+                    setBusyStage('working');   // processing/applying/reverting
                 }
             } catch { /* 다음 폴링에서 재시도 */ }
         };
@@ -199,6 +207,18 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
     const inputCls = 'w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 outline-none focus:border-indigo-400';
     const inputStyle: React.CSSProperties = { color: '#1f2937', backgroundColor: '#ffffff' };
 
+    // 대기(queued)=요청 접수, 아직 워커가 안 집음(최대 1분) / 처리 중(working)=지금 반영 중.
+    const StageBadge: React.FC = () => {
+        if (!busyStage) return null;
+        const label = busyStage === 'queued' ? '접수됐어요 — 곧 시작해요…' : '반영하고 있어요…';
+        return (
+            <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                <span className="inline-block w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+                {label}
+            </div>
+        );
+    };
+
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
             <div className="bg-white flex-1 flex flex-col overflow-hidden">
@@ -247,7 +267,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                             </div>
                                         </div>
                                     ))}
-                                    {busy && <div className="text-xs text-gray-400">박하진이 반영하고 있어요…</div>}
+                                    {busy && <StageBadge />}
                                 </div>
                                 <div className="border-t border-gray-100 p-3 space-y-2 shrink-0">
                                     <textarea value={input} onChange={e => setInput(e.target.value)} rows={2} maxLength={500}
@@ -256,7 +276,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                     <button onClick={sendText} disabled={busy || input.trim().length < 2}
                                             className="w-full py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
                                             style={{ backgroundColor: INDIGO }}>
-                                        {busy ? '적용 중…' : '적용 (100P)'}
+                                        {busy ? (busyStage === 'queued' ? '접수됐어요…' : '반영 중…') : '적용 (100P)'}
                                     </button>
                                 </div>
                             </div>
@@ -288,7 +308,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                                     <button onClick={generateImage} disabled={busy}
                                                             className="w-full mt-1.5 py-2 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
                                                             style={{ backgroundColor: INDIGO }}>
-                                                        {busy ? '생성 중…' : '생성 (200P)'}
+                                                        {busy ? (busyStage === 'queued' ? '접수됐어요…' : '생성 중…') : '생성 (200P)'}
                                                     </button>
                                                 </div>
                                                 <div>
@@ -300,11 +320,12 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                                             <button onClick={submitUpload} disabled={busy}
                                                                     className="w-full py-2 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
                                                                     style={{ backgroundColor: INDIGO }}>
-                                                                {busy ? '확인 중…' : '이 사진으로 교체 (100P)'}
+                                                                {busy ? (busyStage === 'queued' ? '접수됐어요…' : '확인 중…') : '이 사진으로 교체 (100P)'}
                                                             </button>
                                                         </div>
                                                     )}
                                                 </div>
+                                                {busy && <StageBadge />}
                                                 {imgError && <div className="text-xs text-red-500">{imgError}</div>}
                                             </div>
                                         )}
@@ -324,6 +345,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                                 {pendingEdit.previewUrl && <img src={pendingEdit.previewUrl} alt="새 사진" className="w-full h-28 object-cover rounded-lg" />}
                                             </div>
                                         </div>
+                                        {busy && <StageBadge />}
                                         {imgError && <div className="text-xs text-red-500">{imgError}</div>}
                                         <div className="flex gap-2">
                                             <button onClick={discardPreview} disabled={busy}
@@ -333,7 +355,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                             <button onClick={applyPreview} disabled={busy}
                                                     className="flex-1 py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
                                                     style={{ backgroundColor: INDIGO }}>
-                                                {busy ? '적용 중…' : '적용'}
+                                                {busy ? (busyStage === 'queued' ? '접수됐어요…' : '적용 중…') : '적용'}
                                             </button>
                                         </div>
                                     </div>
