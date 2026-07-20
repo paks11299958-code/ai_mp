@@ -110,6 +110,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
     const [busy, setBusy] = useState(false);          // 생성 혼잡 신호등(헤어와 공유)
     const [busyRetrySec, setBusyRetrySec] = useState(0);
     const [shareToast, setShareToast] = useState('');  // 결과 공유 안내
+    const [savingPhoto, setSavingPhoto] = useState(false);  // 폰 갤러리 저장 중
 
     const fileRef = useRef<HTMLInputElement>(null);
 
@@ -118,7 +119,47 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
         if (!images?.[selected]) return;
         const caption = `AI로 본 ${selected}세의 내 모습 😮 너도 해봐!`;
         const msg = await shareResultImage(images[selected], 'agetransform', caption);
-        if (msg) { setShareToast(msg); setTimeout(() => setShareToast(''), 2500); }
+        if (msg) { setShareToast(`🔗 ${msg}`); setTimeout(() => setShareToast(''), 2500); }
+    };
+
+    // GCS 직접 fetch는 CORS로 막혀서(버킷 설정 권한 없음) 같은 출처 중계 라우트로 변환(헤어 패턴)
+    const proxyImageUrl = (url: string) => {
+        const m = url.match(/\/ai-mp-media\/(age-transform\/[^?#]+)/);
+        return m ? `/api/age-transform/image?path=${encodeURIComponent(m[1])}` : url;
+    };
+
+    // 폰 갤러리 저장: '사진 파일만' 담아 iOS=공유시트('이미지 저장'→사진앱), 그 외=다운로드(헤어 패턴 이식).
+    // ★💾 저장(차감) 완료 후에만 노출 — 생성 무료·차감=저장 시점이라 무료 우회 방지.
+    const handleSaveToDevice = async (url: string, age: string) => {
+        if (savingPhoto) return;
+        setSavingPhoto(true);
+        try {
+            const res = await fetch(proxyImageUrl(url));
+            if (!res.ok) throw new Error('fetch fail');
+            const blob = await res.blob();
+            const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
+            const file = new File([blob], `time-travel-${age}-${Date.now()}.${ext}`, { type: blob.type || 'image/png' });
+            const ua = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && (navigator as any).maxTouchPoints > 1);
+            if (isIOS && navigator.canShare?.({ files: [file] }) && navigator.share) {
+                try { await navigator.share({ files: [file] }); } catch { /* 사용자가 시트 닫음 — 폴백 불필요 */ }
+            } else {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+                setShareToast('📥 사진을 저장했어요 — 갤러리(다운로드)에서 확인하세요');
+                setTimeout(() => setShareToast(''), 3000);
+            }
+        } catch {
+            // 중계 실패 폴백: 새 탭에서 열어 길게 눌러 저장
+            window.open(url, '_blank', 'noopener');
+        } finally {
+            setSavingPhoto(false);
+        }
     };
 
     // 생성 가능 상태 폴링(헤어와 같은 나노바나나 쿼터 공유)
@@ -189,7 +230,8 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
         if (!images) return;
         setSaving(true); setError(null);
         try {
-            await ageTransformApi.save(images, preview ?? undefined);
+            // ★원본(preview data URI)은 더 이상 보내지 않는다(2026-07-20 개인정보 방침: 원본 미저장)
+            await ageTransformApi.save(images);
             setSaved(true);
         } catch (e: any) {
             if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') {
@@ -388,9 +430,18 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                 </button>
                             )}
 
-                            {/* 저장 / 취소 */}
+                            {/* 저장 / 취소 → 저장(차감) 후에는 폰 갤러리 저장 + 닫기 */}
                             {saved ? (
-                                <div className="text-center text-sm text-green-600 font-semibold py-2">✅ 저장했어요!</div>
+                                <>
+                                    <div className="text-center text-sm text-green-600 font-semibold py-2">✅ 저장했어요!</div>
+                                    {images[selected] && (
+                                        <button onClick={() => handleSaveToDevice(images[selected], selected)} disabled={savingPhoto}
+                                            className="w-full py-3 rounded-xl bg-[#9B5FA8] text-white text-sm font-semibold hover:bg-[#8a5296] disabled:opacity-40">
+                                            {savingPhoto ? '저장 중…' : '📥 갤러리에 저장'}
+                                        </button>
+                                    )}
+                                    <button onClick={onClose} className="w-full py-3 rounded-xl bg-[#F0E9DE] text-[#5C5468] text-sm font-semibold hover:bg-[#EAE2D3]">닫기</button>
+                                </>
                             ) : (
                                 <div className="flex gap-2">
                                     <button onClick={handleCancel} className="flex-1 py-3 rounded-xl bg-[#F0E9DE] text-[#5C5468] text-sm font-semibold hover:bg-[#EAE2D3]">
@@ -402,9 +453,6 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                                     </button>
                                 </div>
                             )}
-                            {saved && (
-                                <button onClick={onClose} className="w-full py-3 rounded-xl bg-[#9B5FA8] text-white text-sm font-semibold">닫기</button>
-                            )}
                         </>
                     )}
 
@@ -413,7 +461,7 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
             </div>
             {shareToast && (
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] px-4 py-2.5 rounded-xl text-sm text-white shadow-xl" style={{ background: '#2D2438' }}>
-                    🔗 {shareToast}
+                    {shareToast}
                 </div>
             )}
         </div>
