@@ -1,6 +1,6 @@
 {
-  "name": "AI 페르소나 채팅",
-  "short_name": "AI Chat",
+  "name": "AI 놀이터",
+  "short_name": "AI 놀이터",
   "description": "다중 AI 페르소나와 대화하는 채팅 서비스",
   "start_url": "/",
   "display": "standalone",
