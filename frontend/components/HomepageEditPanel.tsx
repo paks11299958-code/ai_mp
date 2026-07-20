@@ -48,6 +48,8 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
     const [busy, setBusy] = useState(false);
     const [busyStage, setBusyStage] = useState<'queued' | 'working' | null>(null);
     const [iframeKey, setIframeKey] = useState(0);
+    const [lastAppliedEditId, setLastAppliedEditId] = useState<number | null>(null);
+    const [reverting, setReverting] = useState(false);
 
     const [slots, setSlots] = useState<ImageSlot[]>([]);
     const [selectedSlot, setSelectedSlot] = useState<ImageSlot | null>(null);
@@ -83,22 +85,31 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
             try {
                 const history = await homepageApi.editHistory(request.id);
                 const inFlight = history.find(r => ['pending', 'processing', 'applying', 'reverting'].includes(r.status));
-                if (!inFlight) return;
-                setBusy(true);
-                if (inFlight.kind === 'text') {
-                    addMsg('ai', '아까 요청하신 수정이 아직 진행 중이었어요. 이어서 알려드릴게요.');
-                    pollEdit(inFlight.id, {
-                        onDone: () => { addMsg('ai', '반영했어요! 왼쪽 화면을 새로고침했어요.'); setIframeKey(k => k + 1); },
-                        onFailed: (msg) => addMsg('ai', `수정하지 못했어요: ${msg || '다시 시도해 주세요.'}`),
-                    });
-                } else {
-                    setTab('image');
-                    if (inFlight.targetFile) setSelectedSlot({ file: inFlight.targetFile, url: baseUrl + inFlight.targetFile });
-                    pollEdit(inFlight.id, {
-                        onDone: (row) => setPendingEdit(row),
-                        onFailed: (msg) => setImgError(msg || '처리에 실패했어요.'),
-                    });
+                if (inFlight) {
+                    setBusy(true);
+                    if (inFlight.kind === 'text') {
+                        addMsg('ai', '아까 요청하신 수정이 아직 진행 중이었어요. 이어서 알려드릴게요.');
+                        pollEdit(inFlight.id, {
+                            onDone: (row) => {
+                                addMsg('ai', row.errorMessage || '반영했어요! 왼쪽 화면을 새로고침했어요.');
+                                setLastAppliedEditId(row.id);
+                                setIframeKey(k => k + 1);
+                            },
+                            onFailed: (msg) => addMsg('ai', `수정하지 못했어요: ${msg || '다시 시도해 주세요.'}`),
+                        });
+                    } else {
+                        setTab('image');
+                        if (inFlight.targetFile) setSelectedSlot({ file: inFlight.targetFile, url: baseUrl + inFlight.targetFile });
+                        pollEdit(inFlight.id, {
+                            onDone: (row) => setPendingEdit(row),
+                            onFailed: (msg) => setImgError(msg || '처리에 실패했어요.'),
+                        });
+                    }
+                    return;
                 }
+                // 진행 중인 건 없지만, 가장 최근 완료된 텍스트 수정이 있으면 되돌리기 버튼 복원.
+                const lastDoneText = history.find(r => r.kind === 'text' && r.status === 'done');
+                if (lastDoneText) setLastAppliedEditId(lastDoneText.id);
             } catch { /* 이력 조회 실패는 무시 — 새 편집은 그대로 가능 */ }
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -130,8 +141,9 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
         try {
             const res = await homepageApi.createEdit(request.id, { kind: 'text', instruction });
             pollEdit(res.id, {
-                onDone: () => {
-                    addMsg('ai', '반영했어요! 왼쪽 화면을 새로고침했어요.');
+                onDone: (row) => {
+                    addMsg('ai', row.errorMessage || '반영했어요! 왼쪽 화면을 새로고침했어요.');
+                    setLastAppliedEditId(row.id);
                     setIframeKey(k => k + 1);
                 },
                 onFailed: (msg) => addMsg('ai', `수정하지 못했어요: ${msg || '다시 시도해 주세요.'}`),
@@ -139,6 +151,28 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
         } catch (e: any) {
             setBusy(false);
             if (e.code !== 'INSUFFICIENT_POINTS') addMsg('ai', e.message || '요청에 실패했어요.');
+        }
+    };
+
+    // 방금 반영한 텍스트 수정을 되돌리기 — 혹시 마음에 안 들 때 원본으로 복구.
+    const revertLast = async () => {
+        if (!lastAppliedEditId || busy) return;
+        setBusy(true); setReverting(true);
+        addMsg('user', '방금 수정을 되돌려줘');
+        try {
+            await homepageApi.revertEdit(request.id, lastAppliedEditId);
+            pollEdit(lastAppliedEditId, {
+                onDone: () => {
+                    addMsg('ai', '원래대로 되돌렸어요.');
+                    setLastAppliedEditId(null);
+                    setReverting(false);
+                    setIframeKey(k => k + 1);
+                },
+                onFailed: (msg) => { addMsg('ai', `되돌리지 못했어요: ${msg || '다시 시도해 주세요.'}`); setReverting(false); },
+            });
+        } catch (e: any) {
+            setBusy(false); setReverting(false);
+            addMsg('ai', e.message || '되돌리기에 실패했어요.');
         }
     };
 
@@ -322,13 +356,19 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                     {busy && <StageBadge />}
                                 </div>
                                 <div className="border-t border-gray-100 p-3 space-y-2 shrink-0">
+                                    {lastAppliedEditId && !busy && (
+                                        <button onClick={revertLast}
+                                                className="w-full py-2 rounded-xl border text-xs font-semibold text-gray-500 border-gray-200">
+                                            ↩️ 방금 수정 되돌리기
+                                        </button>
+                                    )}
                                     <textarea value={input} onChange={e => setInput(e.target.value)} rows={2} maxLength={500}
                                               className={`${inputCls} resize-none`} style={inputStyle}
                                               placeholder="예: 주소를 서울 강남구로 바꿔줘" />
                                     <button onClick={sendText} disabled={busy || input.trim().length < 2}
                                             className="w-full py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
                                             style={{ backgroundColor: INDIGO }}>
-                                        {busy ? (busyStage === 'queued' ? '접수됐어요…' : '반영 중…') : '적용 (100P)'}
+                                        {busy ? (busyStage === 'queued' ? '접수됐어요…' : (reverting ? '되돌리는 중…' : '반영 중…')) : '적용 (100P)'}
                                     </button>
                                 </div>
                             </div>
