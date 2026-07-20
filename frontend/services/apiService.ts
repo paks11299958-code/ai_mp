@@ -559,6 +559,17 @@ export const homepageApi = {
         get<HomepageAdminRow[]>(`/homepage/admin/requests${status ? `?status=${status}` : ''}`),
     adminSummary: () =>
         get<{ byStatus: Record<string, number>; opsHours: string }>('/homepage/admin/summary'),
+    // ✏️ 채팅 편집 — text(100P)/image(200P)/upload(100P). 202 → { id }.
+    createEdit: (requestId: number, body: { kind: 'text' | 'image' | 'upload'; instruction: string; targetFile?: string; imageBase64?: string }) =>
+        post<{ id: number; status: string; pointsCharged: number }>(`/homepage/requests/${requestId}/edits`, body),
+    getEdit: (requestId: number, editId: number) =>
+        get<HomepageEditRow>(`/homepage/requests/${requestId}/edits/${editId}`),
+    editHistory: (requestId: number) =>
+        get<HomepageEditRow[]>(`/homepage/requests/${requestId}/edits`),
+    applyEdit: (requestId: number, editId: number) =>
+        post<{ id: number; status: string }>(`/homepage/requests/${requestId}/edits/${editId}/apply`, {}),
+    revertEdit: (requestId: number, editId: number) =>
+        post<{ id: number; status: string }>(`/homepage/requests/${requestId}/edits/${editId}/revert`, {}),
 };
 
 export interface HomepageAdminRow extends HomepageRequestRow {
@@ -567,6 +578,19 @@ export interface HomepageAdminRow extends HomepageRequestRow {
     userEmail?: string | null;
     updatedAt?: string | null;
     waitingMinutes?: number | null;  // 대기·처리중 경과분(밀림 감지)
+}
+
+export interface HomepageEditRow {
+    id: number;
+    requestId: number;
+    kind: 'text' | 'image' | 'upload';
+    instruction: string;
+    targetFile?: string | null;
+    status: 'pending' | 'processing' | 'applying' | 'reverting' | 'done' | 'failed';
+    previewUrl?: string | null;   // image·upload: 확인 대기 중인 미리보기
+    errorMessage?: string | null;
+    pointsCharged: number;
+    createdAt: string;
 }
 
 // ── 네이버 지식인 자동 답변 (어드민 전용, 뼈대) ──

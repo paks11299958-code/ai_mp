@@ -1,0 +1,348 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { homepageApi, HomepageRequestRow, HomepageEditRow } from '../services/apiService';
+
+// 홈페이지 채팅 편집기 — 왼쪽 완성 시안 미리보기(iframe) + 오른쪽 채팅/사진편집 탭.
+// 텍스트 수정(100P)=claude CLI가 지시만 반영해 즉시 배포. 사진(200P/100P)=생성·업로드 후
+// Before/After 확인 → 적용해야 실제 반영(즉시배포 아님, 되돌릴 필요 없게 미리 확인시킴).
+
+interface Props {
+    request: HomepageRequestRow;
+    onClose: () => void;
+}
+
+const INDIGO = '#5C6AC4';
+const POLL_MS = 4000;
+
+interface ChatMsg {
+    id: number;
+    role: 'user' | 'ai';
+    text: string;
+}
+
+interface ImageSlot {
+    file: string;   // 'img/hero.jpg'
+    url: string;    // 절대 URL(썸네일)
+}
+
+// index.html 원본에서 img/ 상대경로 이미지 슬롯을 뽑는다(별도 메타 API 없이 배포 산출물 재사용).
+function parseImageSlots(html: string, baseUrl: string): ImageSlot[] {
+    const out: ImageSlot[] = [];
+    const seen = new Set<string>();
+    const re = /(?:src|href)=["'](img\/[a-z0-9_-]{1,40}\.(?:jpg|jpeg|png))["']/gi;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(html))) {
+        const file = m[1];
+        if (seen.has(file) || file.includes('_preview/')) continue;
+        seen.add(file);
+        out.push({ file, url: baseUrl + file });
+    }
+    return out;
+}
+
+export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
+    const [tab, setTab] = useState<'chat' | 'image'>('chat');
+    const [messages, setMessages] = useState<ChatMsg[]>([
+        { id: 0, role: 'ai', text: '수정하고 싶은 내용을 말씀해 주세요. 예: "주소를 서울 강남구 테헤란로 1길로 바꿔줘"' },
+    ]);
+    const [input, setInput] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [iframeKey, setIframeKey] = useState(0);
+
+    const [slots, setSlots] = useState<ImageSlot[]>([]);
+    const [selectedSlot, setSelectedSlot] = useState<ImageSlot | null>(null);
+    const [imgInstruction, setImgInstruction] = useState('');
+    const [uploadB64, setUploadB64] = useState<string | null>(null);
+    const [uploadPreviewUrl, setUploadPreviewUrl] = useState<string | null>(null);
+    const [pendingEdit, setPendingEdit] = useState<HomepageEditRow | null>(null);
+    const [imgError, setImgError] = useState<string | null>(null);
+
+    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const msgIdRef = useRef(1);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+    const baseUrl = request.url || '';
+
+    // 이미지 슬롯 목록 — 배포된 index.html을 fetch해서 파싱(별도 API 불필요).
+    useEffect(() => {
+        if (!baseUrl) return;
+        (async () => {
+            try {
+                const res = await fetch(baseUrl, { cache: 'no-store' });
+                const html = await res.text();
+                setSlots(parseImageSlots(html, baseUrl));
+            } catch { /* 무시 — 사진편집 탭에서 빈 목록으로 표시 */ }
+        })();
+    }, [baseUrl, iframeKey]);
+
+    const addMsg = (role: ChatMsg['role'], text: string) => {
+        setMessages(prev => [...prev, { id: msgIdRef.current++, role, text }]);
+    };
+
+    const stopPoll = () => { if (pollRef.current) clearInterval(pollRef.current); pollRef.current = null; };
+    useEffect(() => () => stopPoll(), []);
+
+    // ── 텍스트 채팅 편집 ──
+    const sendText = async () => {
+        const instruction = input.trim();
+        if (!instruction || busy) return;
+        addMsg('user', instruction);
+        setInput('');
+        setBusy(true);
+        try {
+            const res = await homepageApi.createEdit(request.id, { kind: 'text', instruction });
+            pollEdit(res.id, {
+                onDone: () => {
+                    addMsg('ai', '반영했어요! 왼쪽 화면을 새로고침했어요.');
+                    setIframeKey(k => k + 1);
+                },
+                onFailed: (msg) => addMsg('ai', `수정하지 못했어요: ${msg || '다시 시도해 주세요.'}`),
+            });
+        } catch (e: any) {
+            setBusy(false);
+            if (e.code !== 'INSUFFICIENT_POINTS') addMsg('ai', e.message || '요청에 실패했어요.');
+        }
+    };
+
+    // 공용 폴링(text/image/upload 공통) — done/failed까지.
+    const pollEdit = (editId: number, handlers: { onDone: (row: HomepageEditRow) => void; onFailed: (msg?: string | null) => void }) => {
+        stopPoll();
+        const tick = async () => {
+            try {
+                const row = await homepageApi.getEdit(request.id, editId);
+                if (row.status === 'done') {
+                    stopPoll(); setBusy(false);
+                    handlers.onDone(row);
+                } else if (row.status === 'failed') {
+                    stopPoll(); setBusy(false);
+                    handlers.onFailed(row.errorMessage);
+                }
+            } catch { /* 다음 폴링에서 재시도 */ }
+        };
+        tick();
+        pollRef.current = setInterval(tick, POLL_MS);
+    };
+
+    // ── 사진편집: AI 재생성 ──
+    const generateImage = async () => {
+        if (!selectedSlot || imgInstruction.trim().length < 2 || busy) {
+            setImgError('어떻게 바꿀지 적어 주세요.'); return;
+        }
+        setImgError(null); setBusy(true); setPendingEdit(null);
+        try {
+            const res = await homepageApi.createEdit(request.id, {
+                kind: 'image', instruction: imgInstruction.trim(), targetFile: selectedSlot.file,
+            });
+            pollEdit(res.id, {
+                onDone: (row) => setPendingEdit(row),
+                onFailed: (msg) => setImgError(msg || '이미지 생성에 실패했어요.'),
+            });
+        } catch (e: any) {
+            setBusy(false);
+            if (e.code !== 'INSUFFICIENT_POINTS') setImgError(e.message || '요청에 실패했어요.');
+        }
+    };
+
+    // ── 사진편집: 내 사진 업로드 ──
+    const onPickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (file.size > 6 * 1024 * 1024) { setImgError('사진은 6MB 이하만 올릴 수 있어요.'); return; }
+        const reader = new FileReader();
+        reader.onload = () => {
+            setUploadB64(String(reader.result));
+            setUploadPreviewUrl(URL.createObjectURL(file));
+            setImgError(null);
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const submitUpload = async () => {
+        if (!selectedSlot || !uploadB64 || busy) return;
+        setImgError(null); setBusy(true); setPendingEdit(null);
+        try {
+            const res = await homepageApi.createEdit(request.id, {
+                kind: 'upload', instruction: '', targetFile: selectedSlot.file, imageBase64: uploadB64,
+            });
+            pollEdit(res.id, {
+                onDone: (row) => setPendingEdit(row),
+                onFailed: (msg) => setImgError(msg || '업로드한 사진을 사용할 수 없어요.'),
+            });
+        } catch (e: any) {
+            setBusy(false);
+            if (e.code !== 'INSUFFICIENT_POINTS') setImgError(e.message || '요청에 실패했어요.');
+        }
+    };
+
+    // 미리보기 적용/재시도
+    const applyPreview = async () => {
+        if (!pendingEdit) return;
+        setBusy(true);
+        try {
+            await homepageApi.applyEdit(request.id, pendingEdit.id);
+            pollEdit(pendingEdit.id, {
+                onDone: () => {
+                    setPendingEdit(null); setSelectedSlot(null); setImgInstruction('');
+                    setUploadB64(null); setUploadPreviewUrl(null);
+                    setIframeKey(k => k + 1);
+                },
+                onFailed: (msg) => setImgError(msg || '적용에 실패했어요.'),
+            });
+        } catch (e: any) {
+            setBusy(false);
+            setImgError(e.message || '적용에 실패했어요.');
+        }
+    };
+    const discardPreview = () => {
+        setPendingEdit(null); setUploadB64(null); setUploadPreviewUrl(null);
+    };
+
+    const inputCls = 'w-full text-sm rounded-xl border border-gray-200 px-3 py-2.5 outline-none focus:border-indigo-400';
+    const inputStyle: React.CSSProperties = { color: '#1f2937', backgroundColor: '#ffffff' };
+
+    return (
+        <div className="fixed inset-0 z-50 bg-black/50 flex flex-col">
+            <div className="bg-white flex-1 flex flex-col overflow-hidden">
+                {/* 헤더 */}
+                <div className="border-b border-gray-100 px-4 py-3 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-2">
+                        <span className="text-lg">🏠</span>
+                        <h2 className="text-base font-bold" style={{ color: INDIGO }}>홈페이지 수정 — 박하진</h2>
+                    </div>
+                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                </div>
+
+                {/* 본문: 데스크톱 좌우 분할, 모바일 상하 스택 */}
+                <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+                    {/* 왼쪽: 미리보기 */}
+                    <div className="flex-1 md:flex-[3] min-h-[40vh] md:min-h-0 border-b md:border-b-0 md:border-r border-gray-100">
+                        {baseUrl && (
+                            <iframe key={iframeKey} src={`${baseUrl}?v=${iframeKey}`} title="홈페이지 미리보기"
+                                    className="w-full h-full" style={{ border: 'none' }} />
+                        )}
+                    </div>
+
+                    {/* 오른쪽: 채팅/사진편집 */}
+                    <div className="flex-1 md:flex-[2] flex flex-col overflow-hidden">
+                        <div className="flex border-b border-gray-100 shrink-0">
+                            <button onClick={() => setTab('chat')}
+                                    className={`flex-1 py-2.5 text-sm font-semibold ${tab === 'chat' ? '' : 'text-gray-400'}`}
+                                    style={tab === 'chat' ? { color: INDIGO, borderBottom: `2px solid ${INDIGO}` } : undefined}>
+                                💬 대화
+                            </button>
+                            <button onClick={() => setTab('image')}
+                                    className={`flex-1 py-2.5 text-sm font-semibold ${tab === 'image' ? '' : 'text-gray-400'}`}
+                                    style={tab === 'image' ? { color: INDIGO, borderBottom: `2px solid ${INDIGO}` } : undefined}>
+                                🖼️ 사진편집
+                            </button>
+                        </div>
+
+                        {tab === 'chat' && (
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                                    {messages.map(m => (
+                                        <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${m.role === 'user' ? 'text-white' : 'bg-gray-100 text-gray-700'}`}
+                                                 style={m.role === 'user' ? { backgroundColor: INDIGO } : undefined}>
+                                                {m.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {busy && <div className="text-xs text-gray-400">박하진이 반영하고 있어요…</div>}
+                                </div>
+                                <div className="border-t border-gray-100 p-3 space-y-2 shrink-0">
+                                    <textarea value={input} onChange={e => setInput(e.target.value)} rows={2} maxLength={500}
+                                              className={`${inputCls} resize-none`} style={inputStyle}
+                                              placeholder="예: 주소를 서울 강남구로 바꿔줘" />
+                                    <button onClick={sendText} disabled={busy || input.trim().length < 2}
+                                            className="w-full py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
+                                            style={{ backgroundColor: INDIGO }}>
+                                        {busy ? '적용 중…' : '적용 (100P)'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {tab === 'image' && (
+                            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                                {!pendingEdit && (
+                                    <>
+                                        <p className="text-xs text-gray-500">바꾸고 싶은 사진을 선택하세요.</p>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {slots.map(s => (
+                                                <button key={s.file} onClick={() => { setSelectedSlot(s); setImgError(null); setUploadB64(null); setUploadPreviewUrl(null); }}
+                                                        className={`rounded-lg overflow-hidden border-2 ${selectedSlot?.file === s.file ? '' : 'border-transparent'}`}
+                                                        style={selectedSlot?.file === s.file ? { borderColor: INDIGO } : undefined}>
+                                                    <img src={s.url} alt={s.file} className="w-full h-16 object-cover" />
+                                                </button>
+                                            ))}
+                                        </div>
+                                        {slots.length === 0 && <p className="text-xs text-gray-400">사진을 불러오는 중이거나 없어요.</p>}
+
+                                        {selectedSlot && (
+                                            <div className="space-y-3 pt-2 border-t border-gray-100">
+                                                <div>
+                                                    <p className="text-xs font-semibold text-gray-700 mb-1.5">✨ AI로 다시 만들기</p>
+                                                    <textarea value={imgInstruction} onChange={e => setImgInstruction(e.target.value)} rows={2} maxLength={300}
+                                                              className={`${inputCls} resize-none`} style={inputStyle}
+                                                              placeholder="예: 더 밝은 느낌으로, 디저트 사진으로" />
+                                                    <button onClick={generateImage} disabled={busy}
+                                                            className="w-full mt-1.5 py-2 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
+                                                            style={{ backgroundColor: INDIGO }}>
+                                                        {busy ? '생성 중…' : '생성 (200P)'}
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-semibold text-gray-700 mb-1.5">📷 내 사진으로 교체</p>
+                                                    <input ref={fileInputRef} type="file" accept="image/jpeg,image/png" onChange={onPickFile} className="text-xs" />
+                                                    {uploadPreviewUrl && (
+                                                        <div className="mt-1.5 space-y-1.5">
+                                                            <img src={uploadPreviewUrl} alt="업로드 미리보기" className="w-full h-24 object-cover rounded-lg" />
+                                                            <button onClick={submitUpload} disabled={busy}
+                                                                    className="w-full py-2 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
+                                                                    style={{ backgroundColor: INDIGO }}>
+                                                                {busy ? '확인 중…' : '이 사진으로 교체 (100P)'}
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                {imgError && <div className="text-xs text-red-500">{imgError}</div>}
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+
+                                {pendingEdit && (
+                                    <div className="space-y-3">
+                                        <p className="text-sm font-semibold text-gray-800">이렇게 바꿀까요?</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <p className="text-[11px] text-gray-400 mb-1">원래 사진</p>
+                                                {selectedSlot && <img src={selectedSlot.url} alt="원본" className="w-full h-28 object-cover rounded-lg" />}
+                                            </div>
+                                            <div>
+                                                <p className="text-[11px] text-gray-400 mb-1">새 사진</p>
+                                                {pendingEdit.previewUrl && <img src={pendingEdit.previewUrl} alt="새 사진" className="w-full h-28 object-cover rounded-lg" />}
+                                            </div>
+                                        </div>
+                                        {imgError && <div className="text-xs text-red-500">{imgError}</div>}
+                                        <div className="flex gap-2">
+                                            <button onClick={discardPreview} disabled={busy}
+                                                    className="flex-1 py-2.5 rounded-xl border text-sm font-semibold text-gray-500 border-gray-200 disabled:opacity-50">
+                                                다시 만들기
+                                            </button>
+                                            <button onClick={applyPreview} disabled={busy}
+                                                    className="flex-1 py-2.5 rounded-xl text-white font-semibold text-sm disabled:opacity-50"
+                                                    style={{ backgroundColor: INDIGO }}>
+                                                {busy ? '적용 중…' : '적용'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

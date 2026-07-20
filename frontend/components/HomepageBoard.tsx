@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { homepageApi, HomepageRequestRow } from '../services/apiService';
 import { buildFeatureShareLink, getMyReferralCode } from '../services/referral';
+import { HomepageEditPanel } from './HomepageEditPanel';
 
 // 홈페이지 만들기 보드 — 신청서를 채우면 AI(박하진, 웹 전문가)가 홈페이지 시안을 만들어
 // ①실제 링크(주인공) ②소스 zip(보조) 둘 다 제공. 결제 전 샘플 갤러리로 신뢰 형성.
@@ -50,6 +51,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const [shareMsg, setShareMsg] = useState<string | null>(null);
     const [lastDone, setLastDone] = useState<HomepageRequestRow | null>(null);
     const [mineList, setMineList] = useState<HomepageRequestRow[]>([]);
+    const [editTarget, setEditTarget] = useState<HomepageRequestRow | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 열 때 내 신청 이력 확인 — 진행 중이면 대기 화면으로 복귀, 완성본 있으면 인트로에 노출.
@@ -130,6 +132,10 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const inputStyle: React.CSSProperties = { color: '#1f2937', backgroundColor: '#ffffff' };
 
     const done = row?.status === 'done';
+
+    if (editTarget) {
+        return <HomepageEditPanel request={editTarget} onClose={() => setEditTarget(null)} />;
+    }
 
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -216,8 +222,8 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                                     {r.zipUrl && (
                                                         <a href={r.zipUrl} download className="text-xs underline text-gray-400 hover:text-gray-600">📦 소스 받기</a>
                                                     )}
-                                                    <button disabled title="준비 중인 기능이에요"
-                                                            className="text-xs underline text-gray-300 cursor-not-allowed ml-auto">✏️ 수정</button>
+                                                    <button onClick={() => setEditTarget(r)}
+                                                            className="text-xs font-semibold underline ml-auto" style={{ color: INDIGO }}>✏️ 수정</button>
                                                 </div>
                                             )}
                                             {r.status === 'failed' && (
