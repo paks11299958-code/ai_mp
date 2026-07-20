@@ -463,4 +463,20 @@ omd 시안(`aichat-main-mobile`)을 **통째 교체 대신 부분 채택**으로
 
 - **가입 혜택 표기 정정**: 실지급(백엔드 `SIGNUP_BONUS=1000`·`MISSION_REWARD=1000`)보다 과소 표기된 **500P 문구 5곳**을 1,000P로 정정(App.tsx 환영알럿·LearnPage·RewardAlertModal 미션 2곳·LandingPageNew ⭐담기 2곳). 회원가입 탭에 "🎁 지금 가입하면 무료 1,000P 즉시 지급" 안내 배지 신설(AuthModal).
 - **가입 배너 분기** (`AuthModal.tsx`+`services/referral.ts CHANNEL_CODES`): `?ref` 유입이 마케팅 채널 코드(YOUTUBE 등)면 "🎉 환영해요! 무료 1,000P" 배너, 실제 친구 추천코드면 기존 "친구가 초대했어요"(양방향 1,000P) 배너. 유튜브 숏츠 QR 유입에 친구초대 문구가 뜨던 오용 해소.
+
+## 2026-07-20 — 로고 리브랜딩(AI놀이터) + PWA 설치 플로팅 버튼
+
+- **로고 교체**(`MainPageNew.tsx`+`index.html`+`manifest.json`, `2d5669c`): Ploppy→AI 놀이터.
+  사장 목업(로봇+미끄럼틀 종이음각 이미지)을 logo-maker 스킬(gemini-2.5-flash-image)로 재현,
+  Artifact 3변형 제시 후 세로 락업 선택. **락업 전체(텍스트 포함)를 헤더 좁은 자리에 그대로
+  못 씀** → 헤더는 아이콘만 크롭+별도 텍스트("AI" 코랄#E8836B/"놀이터" 민트#6DBFA0), 파비콘·
+  PWA·공유이미지는 락업 계열. ★파비콘 512px 미리보기만 보고 확정했다가 실제 32px에서 뭉개짐
+  실측 → 로봇 마스코트만 단독 재생성(장식 요소 제외)해 해결. `public/brand/`에 원본 보존.
+- **PWA 설치 플로팅 버튼**(`InstallBanner.tsx`+`index.tsx`, `9e33ee4`·`15aedd9`): 상시 노출
+  버튼, 기기 자동감지(카카오·네이버 인앱→외부브라우저 유도/iOS Safari 3단계 텍스트/안드로이드
+  네이티브 프롬프트/PC 주소창 안내). ★기존 컴포넌트가 07-06부터 어디서도 안 쓰이던 죽은
+  코드였음(되살려 완성). PC 안내는 사장 피드백으로 텍스트→실제 주소창 흉내낸 CSS 일러스트
+  (설치아이콘 보라색 링+펄스 강조)로 보강, 크롬/엣지/파이어폭스 UA 분기.
+- 상세 노하우=memory/project_ainoliteo_logo_rebrand.md, memory/project_pwa_install_fab.md.
+  logo-maker 스킬(SKILL.md)에 "파비콘 32px 실측 필수" 교훈 반영 완료.
 - **이미지 합성 3종 혼잡 능동 안내** (HairStyleBoard·AgeTransformBoard·OutfitBoard): 사진을 첨부한 상태에서 서버 혼잡(imageGenBusy)이면 실행 버튼 위에 호박색 배너("약 N초 뒤 자동 해제·사진 유지·대기 중 무과금") + 버튼 비활성("⏳ 대기 중") 통일. 상태 파생 선언 렌더(`preview && busy && !running`)라 혼잡 해제 시 자동 소멸 — 기존 15초 폴링·신호등·503 무과금 로직 재사용(백엔드 무수정). ★대상은 나노바나나 공유 3종뿐 — 관상·손금·닮은꼴은 분석 모델이라 혼잡 신호 없음.
