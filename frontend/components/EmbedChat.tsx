@@ -38,7 +38,18 @@ export const EmbedChat: React.FC<{ personaKey: string }> = ({ personaKey }) => {
 
     useEffect(() => { endRef.current?.parentElement?.scrollTo({ top: 999999, behavior: 'smooth' }); }, [msgs]);
 
-    const mainUrl = `${window.location.origin}/?p=${encodeURIComponent(persona?.id || personaKey)}&utm=widget`;
+    // 무료 체험 소진 후 CTA — ?ref=코드를 붙이면 App.tsx의 arrivedViaReferral 로직이
+    // 본 사이트에서 곧장 회원가입 전체화면을 띄운다(2026-07-20 사장 지시: 3회 체험 후
+    // 알림+가입화면 전환). ?p=는 가입 후 해당 페르소나로 자연 복귀하도록 남겨둠.
+    const mainUrl = `${window.location.origin}/?p=${encodeURIComponent(persona?.id || personaKey)}&ref=AEFWTS5F&utm=widget`;
+
+    // 무료 체험(하루 3회) 소진 알림 → 확인 시 본 사이트 회원가입 화면으로 이동.
+    // 창을 새로 열면(target=_blank) iframe 안에 갇힌 위젯에서도 항상 새 탭으로 빠져나간다.
+    const notifyLimitAndRedirect = () => {
+        if (window.confirm(`오늘 무료 체험 3회를 모두 사용했어요.\n가입하면 ${persona?.name ?? ''}와 계속 대화할 수 있어요 — 가입 화면으로 이동할까요?`)) {
+            window.open(mainUrl, '_blank', 'noopener');
+        }
+    };
 
     const send = async (text: string) => {
         const t = text.trim();
@@ -69,11 +80,12 @@ export const EmbedChat: React.FC<{ personaKey: string }> = ({ personaKey }) => {
                     body: JSON.stringify({ personaId: persona.id, guestId: guestId(), messages: [...msgs, { role: 'user', text: t }] }),
                 });
                 const data = await res.json();
-                if (res.status === 429) { setLimitHit(true); setRemaining(0); return; }
+                if (res.status === 429) { setLimitHit(true); setRemaining(0); notifyLimitAndRedirect(); return; }
                 if (!res.ok) throw new Error(data.error || '오류');
                 setMsgs(m => [...m, { role: 'model', text: data.reply }]);
                 setRemaining(data.remaining);
-                if (data.remaining <= 0) setLimitHit(true);
+                // ★2026-07-20 사장 지시: 3회 소진 시 알림 후 전체화면 회원가입으로 즉시 전환.
+                if (data.remaining <= 0) { setLimitHit(true); notifyLimitAndRedirect(); }
             }
         } catch (e: any) {
             setMsgs(m => [...m, { role: 'model', text: '연결이 잠깐 불안정했어요. 다시 시도해 주세요 🙏' }]);
