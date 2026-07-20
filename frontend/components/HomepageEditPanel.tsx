@@ -303,12 +303,12 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                 onDone: () => {
                     setPendingEdit(null); setSelectedSlot(null); setImgInstruction('');
                     setUploadB64(null); setUploadPreviewUrl(null);
-                    // 적용(git 배포) 완료 직후에도 ①Vercel CDN 반영 지연(실측 최대 수십 초) +
-                    // ②브라우저가 같은 파일명(img/service.jpg 등, 쿼리 없음)을 캐시하고 있을 수
-                    // 있어(2026-07-20 실사고: "적용해도 사진이 안 바뀜") 곧바로 새로고침하면
-                    // 예전 이미지가 그대로 보일 수 있음. 4초 대기 후 새로고침 + 8초 뒤 한 번 더.
-                    setTimeout(() => setIframeKey(k => k + 1), 4000);
-                    setTimeout(() => setIframeKey(k => k + 1), 12000);
+                    // 적용(git 배포) 완료 직후에도 index.html에 캐시버스터(?v=editId)를 넣었지만
+                    // Vercel CDN 전파에 여전히 수 초~십수 초 시차가 있음(2026-07-20 실측:
+                    // 첫 요청 MISS 후 캐시된 예전 파일, 수 초 뒤 재요청하면 최신 파일). 여러 번
+                    // 나눠 재새로고침해 그 사이 어느 시점엔 반드시 최신본을 보게 함.
+                    [3000, 6000, 10000, 15000, 25000].forEach(ms =>
+                        setTimeout(() => setIframeKey(k => k + 1), ms));
                 },
                 onFailed: (msg) => setImgError(msg || '적용에 실패했어요.'),
             });
