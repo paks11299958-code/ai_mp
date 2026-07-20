@@ -395,9 +395,22 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 ## HomepageRequest (2026-07-17, 홈페이지 만들기 — raw SQL 전용, prisma schema 미반영)
 - 신청 큐(선차감+실패 자동환불): `id SERIAL PK, "userId" INT, "formJson" TEXT(신청서 JSON:
-  biz/name/tagline/detail/menu/address/hours/phone/kakao/mood), status TEXT(pending|processing|done|failed),
+  biz/name/tagline/detail/menu/address/hours/phone/kakao/mood/referenceUrl), status TEXT(pending|processing|done|failed),
   slug TEXT UNIQUE(h+hex10, 공개 URL 경로), "zipPath" TEXT(공개 zip URL), "errorMessage",
-  "pointsCharged" INT DEFAULT 3000, "createdAt"/"updatedAt"`. 인덱스 (status)·(userId).
+  "pointsCharged" INT DEFAULT 3000, "imageSlots" TEXT(JSON [{file}], 07-20 신규 — 생성 시 워커가
+  이미지 파일 목록 명시 저장, 편집화면 사진편집 탭 썸네일용), "createdAt"/"updatedAt"`.
+  인덱스 (status)·(userId).
 - 흐름: shared-api routes/aimp/homepage.ts(차감·409 동시 1건·순번/ETA) → 서버2 rag/homepage_worker.py
   (KST09~19 크론, v2 4단계 파이프라인) → sites/homepage/{slug}/ 배포. 상세=doc/features/homepage_builder.md.
 - 단가 정본=MenuLimit 'homepage' 3롤 3,000pt(사장 확정 07-17). 어드민='홈페이지 신청' 탭.
+
+## HomepageEdit (2026-07-20, 홈페이지 채팅 편집 — raw SQL 전용, prisma schema 미반영)
+- 편집 요청 큐: `id SERIAL PK, "requestId" INT(→HomepageRequest.id), "userId" INT, kind TEXT
+  ('text'|'image'|'upload'), instruction TEXT, "targetFile" TEXT(image/upload만, 'img/x.jpg'),
+  "uploadPath" TEXT(upload만, base64 원본), status TEXT(pending|processing|applying|reverting|done|failed),
+  "previewPath" TEXT(적용 시 파일 경로용, 평소엔 비어있음), "previewData" BYTEA(미확정 미리보기
+  이미지 바이트 — API가 여기서 직접 서빙, git 배포 안 탐), "pointsCharged" INT, "errorMessage" TEXT
+  (done 상태에도 claude 완료 응답 저장용으로 재사용), "createdAt"/"updatedAt"`.
+  인덱스 (status)·(requestId).
+- 흐름·아키텍처 결정 이유(배포 지연 근본 해결)=doc/features/homepage_builder.md '채팅 편집기' 섹션.
+- 단가 폴백: text=100P, image=200P, upload=100P(MenuLimit 미등록 시 코드 폴백, 정식 등록은 어드민).

@@ -51,3 +51,54 @@
 - 신청서 내용은 공개 웹페이지에 게시됨 — 개인정보처리방침 제2조 ⑥(TermsModal) + 폼 안내 문구.
 - claude CLI=구독 인증(API키 주입 금지). 워커 git add는 sites/homepage/{slug}만.
 - Phase 2(예정): "Next.js 프로젝트로 변환" — 사장 원안 프롬프트(파일 단위 출력) 사용.
+
+## 참고 사이트 URL + 시안 목록 화면 (07-20)
+- 신청서에 "참고하고 싶은 사이트 URL(선택)" 추가 — http(s) 형식 검증, 리서치 프롬프트(Gemini
+  구글서치 그라운딩)에 "톤·색감만 참고, 로고·사진·문구는 베끼지 말 것" 지시로 전달.
+- 리스트 화면(내가 만든 홈페이지) — `homepageApi.mine()` 최근 20건을 상태뱃지(대기/제작중/완성/실패)와
+  함께 표시, 완료 건은 바로가기·소스받기·수정 버튼.
+
+## 채팅 편집기 (HomepageEditPanel, 07-20)
+완성된 시안을 채팅으로 텍스트 수정하거나 사진을 AI 재생성·업로드로 교체하는 기능. 리스트 화면
+'✏️ 수정' 클릭 → 왼쪽 iframe 미리보기 + 오른쪽 대화/사진편집 탭.
+
+```
+kind='text'  (100P): claude CLI를 시안 폴더(cwd)에서 --allowedTools Edit --permission-mode
+  acceptEdits 에이전트 모드로 띄워 index.html을 직접 부분수정(전체 HTML 재출력 방식은
+  응답량이 커 3~4분 걸림 실측 → 파일 직접편집으로 수십 초로 단축). audit_html 통과 시 즉시
+  배포. history/{editId}.html 스냅샷(되돌리기용) → revert API로 복원.
+
+kind='image' (200P) / 'upload' (100P): 나노바나나 image-to-image 재생성 또는 회원 업로드
+  (Gemini 1차 안전검수: 선정성·폭력성·미성년자·개인정보) → HomepageEdit.previewData(BYTEA)에
+  이미지 바이트 저장(파일·git 미사용) → Before/After 확인 → "적용" 시에만 파일화+배포.
+```
+
+- **DB**: `HomepageEdit` 신규 raw SQL 테이블(요청id·kind·instruction·targetFile·status·
+  previewData BYTEA·pointsCharged·errorMessage). MenuLimit 폴백: text=100P, image=200P,
+  upload=100P(사장 확정) — 어드민 메뉴권한 탭에 4종 노출(기존 homepage 자체도 누락돼 있던 것 함께 해소).
+- **워커**: `rag/homepage_edit_worker.py`(신규). 크론 1분(text/image/upload 신규 생성) +
+  `homepage_edit_fast.sh`(applying/reverting 전용 초경량 루프, 10초 간격 6회/분). 두 크론
+  동시 실행 대비 `FOR UPDATE SKIP LOCKED`로 경쟁 방지.
+- **미리보기는 DB 직결 서빙**(★핵심 아키텍처 결정): 처음엔 미리보기를 정적 파일로 저장했는데
+  git→Vercel 배포 반영까지 실측 최대 40초+ 걸려 그 사이 SPA index.html이 대신 응답돼(text/html)
+  `<img>`가 깨져 보이는 실사고 발생. 재시도 로직으로 버티는 대신 근본 해결 — 미확정 미리보기는
+  `GET /requests/:id/edits/:editId/preview?sig=HMAC서명`으로 DB에서 API가 직접 서빙(배포 자체를
+  안 탐). `<img src>`가 Authorization 헤더를 못 붙이므로 requireAuth 대신 HMAC 서명 검증.
+- **적용(git 배포)은 여전히 지연 있음**: "적용" 확정 시에만 파일화+배포하므로 이 순간은 Vercel
+  CDN 반영 지연을 피할 수 없음. ①index.html의 해당 `<img src="img/x.jpg">`에 `?v={editId}`
+  캐시버스터 자동 삽입(재적용 시 값 교체, 브라우저 캐시 우회) ②"적용" 완료 시 여러 번 나눠
+  재새로고침하는 대신 편집화면 자체를 key로 통째 재마운트(부모 HomepageBoard가 `onApplied`
+  콜백으로 리마운트 트리거) — 사장이 "화면 다시 띄우니 반영됨"으로 직접 확인한 방식.
+- **사진편집 썸네일**: `HomepageRequest.imageSlots`(신규 컬럼, JSON) — 생성 시 워커가 만든 이미지
+  파일 목록을 명시 저장. 과거에는 매번 index.html을 정규식 파싱했는데 캐시버스터 붙은 경로를
+  놓쳐 "방금 바꾼 사진이 목록에서 사라짐" 버그가 남 → imageSlots 우선 사용, 없는(과거 생성분)
+  경우만 정규식 파싱 폴백.
+- **부수 버그 수정**: zip append("a") 모드가 같은 파일명 중복 엔트리를 만들던 것을 `_rebuild_zip()`
+  전체 재빌드로 교체 / 나노바나나가 PNG로 응답하는데 확장자 무조건 .jpg 고정 저장하던 버그를
+  매직바이트 판별(`_image_ext`)+적용 시 Pillow 재인코딩으로 해결.
+- **UX**: 대기(queued)/처리중(working) 단계 구분 배지+흐르는 진행바, 처리 중 창닫기 차단
+  (beforeunload 확인창)+재진입 시 진행중 요청 자동 폴링 복원, 텍스트 되돌리기 버튼, 완료 시
+  claude 응답을 채팅에 표시, 편집화면에도 실제 주소·소스 zip 링크 노출, 내사진 파일선택을
+  브라우저 기본 UI 대신 커스텀 버튼으로.
+- ★교훈: 배포/캐시 지연 문제는 재시도 시간을 늘리는 방식보다, 애초에 그 배포 경로 자체를
+  안 타는 구조(DB 직결)로 바꾸는 게 근본 해결.
