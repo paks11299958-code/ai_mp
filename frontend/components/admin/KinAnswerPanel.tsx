@@ -151,10 +151,19 @@ export const KinAnswerPanel: React.FC<{ personas: Persona[] }> = ({ personas }) 
                                     </button>
                                     {open && (
                                         <div className="px-4 pb-4 pt-1 border-t border-gray-700 bg-gray-900/40 text-sm space-y-2 text-gray-200">
+                                            {a.questionBody && (
+                                                <div>
+                                                    <div className="text-[11px] font-bold text-gray-400 mb-1">질문 내용</div>
+                                                    <p className="whitespace-pre-wrap text-xs bg-gray-900/70 rounded-lg p-3 text-gray-300">{a.questionBody}</p>
+                                                </div>
+                                            )}
                                             <a href={a.questionUrl} target="_blank" rel="noreferrer"
                                                 className="text-xs text-indigo-300 underline break-all">{a.questionUrl}</a>
                                             {a.answerDraft && (
-                                                <p className="whitespace-pre-wrap text-xs bg-gray-900 rounded-lg p-3">{a.answerDraft}</p>
+                                                <div>
+                                                    <div className="text-[11px] font-bold text-gray-400 mb-1">답변안</div>
+                                                    <p className="whitespace-pre-wrap text-xs bg-gray-900 rounded-lg p-3">{a.answerDraft}</p>
+                                                </div>
                                             )}
                                             {a.errorMessage && (
                                                 <div className="text-xs text-red-100 bg-red-950 rounded-lg px-3 py-2">❌ {a.errorMessage}</div>

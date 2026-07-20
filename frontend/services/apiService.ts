@@ -584,6 +584,7 @@ export interface KinAnswerRow {
     keyword: string;
     questionUrl: string;
     questionTitle: string | null;
+    questionBody: string | null;
     answerDraft: string | null;
     status: string;
     errorMessage: string | null;
