@@ -303,7 +303,12 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                 onDone: () => {
                     setPendingEdit(null); setSelectedSlot(null); setImgInstruction('');
                     setUploadB64(null); setUploadPreviewUrl(null);
-                    setIframeKey(k => k + 1);
+                    // 적용(git 배포) 완료 직후에도 ①Vercel CDN 반영 지연(실측 최대 수십 초) +
+                    // ②브라우저가 같은 파일명(img/service.jpg 등, 쿼리 없음)을 캐시하고 있을 수
+                    // 있어(2026-07-20 실사고: "적용해도 사진이 안 바뀜") 곧바로 새로고침하면
+                    // 예전 이미지가 그대로 보일 수 있음. 4초 대기 후 새로고침 + 8초 뒤 한 번 더.
+                    setTimeout(() => setIframeKey(k => k + 1), 4000);
+                    setTimeout(() => setIframeKey(k => k + 1), 12000);
                 },
                 onFailed: (msg) => setImgError(msg || '적용에 실패했어요.'),
             });
