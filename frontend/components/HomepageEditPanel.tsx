@@ -75,12 +75,50 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
         })();
     }, [baseUrl, iframeKey]);
 
+    // 재진입 복원 — 창을 닫아도 서버 작업은 계속 진행되므로(포인트 이미 차감), 다시 열었을 때
+    // 진행 중이던 요청을 이어서 보여줘야 함(안 그러면 "적용됐는지 안 됐는지" 알 길이 없음,
+    // 사장 지적 2026-07-20). 신규 홈페이지 생성(HomepageBoard)의 재진입 복원과 동일 패턴.
+    useEffect(() => {
+        (async () => {
+            try {
+                const history = await homepageApi.editHistory(request.id);
+                const inFlight = history.find(r => ['pending', 'processing', 'applying', 'reverting'].includes(r.status));
+                if (!inFlight) return;
+                setBusy(true);
+                if (inFlight.kind === 'text') {
+                    addMsg('ai', '아까 요청하신 수정이 아직 진행 중이었어요. 이어서 알려드릴게요.');
+                    pollEdit(inFlight.id, {
+                        onDone: () => { addMsg('ai', '반영했어요! 왼쪽 화면을 새로고침했어요.'); setIframeKey(k => k + 1); },
+                        onFailed: (msg) => addMsg('ai', `수정하지 못했어요: ${msg || '다시 시도해 주세요.'}`),
+                    });
+                } else {
+                    setTab('image');
+                    if (inFlight.targetFile) setSelectedSlot({ file: inFlight.targetFile, url: baseUrl + inFlight.targetFile });
+                    pollEdit(inFlight.id, {
+                        onDone: (row) => setPendingEdit(row),
+                        onFailed: (msg) => setImgError(msg || '처리에 실패했어요.'),
+                    });
+                }
+            } catch { /* 이력 조회 실패는 무시 — 새 편집은 그대로 가능 */ }
+        })();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     const addMsg = (role: ChatMsg['role'], text: string) => {
         setMessages(prev => [...prev, { id: msgIdRef.current++, role, text }]);
     };
 
     const stopPoll = () => { if (pollRef.current) clearInterval(pollRef.current); pollRef.current = null; };
     useEffect(() => () => stopPoll(), []);
+
+    // 탭 닫기·새로고침으로 화면 자체가 사라지는 경우 대비 — 서버 작업은 계속되지만(재진입 시
+    // 위 복원 로직이 이어줌) 그래도 실수로 놓치지 않게 브라우저 표준 확인창을 띄움.
+    useEffect(() => {
+        if (!busy) return;
+        const handler = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+        window.addEventListener('beforeunload', handler);
+        return () => window.removeEventListener('beforeunload', handler);
+    }, [busy]);
 
     // ── 텍스트 채팅 편집 ──
     const sendText = async () => {
@@ -236,7 +274,13 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                         <span className="text-lg">🏠</span>
                         <h2 className="text-base font-bold" style={{ color: INDIGO }}>홈페이지 수정 — 박하진</h2>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                    {busy ? (
+                        <span className="text-[11px] text-gray-400" title="반영이 끝나면 닫을 수 있어요">
+                            반영 중에는 닫을 수 없어요
+                        </span>
+                    ) : (
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                    )}
                 </div>
 
                 {/* 본문: 데스크톱 좌우 분할, 모바일 상하 스택 */}
