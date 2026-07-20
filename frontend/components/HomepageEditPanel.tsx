@@ -308,13 +308,21 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                         <span className="text-lg">🏠</span>
                         <h2 className="text-base font-bold" style={{ color: INDIGO }}>홈페이지 수정 — 박하진</h2>
                     </div>
-                    {busy ? (
-                        <span className="text-[11px] text-gray-400" title="반영이 끝나면 닫을 수 있어요">
-                            반영 중에는 닫을 수 없어요
-                        </span>
-                    ) : (
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
-                    )}
+                    <div className="flex items-center gap-3">
+                        {request.zipUrl && (
+                            <a href={`${request.zipUrl}?v=${iframeKey}`} download
+                               className="text-xs font-semibold underline hover:opacity-80" style={{ color: INDIGO }}>
+                                📦 소스 받기
+                            </a>
+                        )}
+                        {busy ? (
+                            <span className="text-[11px] text-gray-400" title="반영이 끝나면 닫을 수 있어요">
+                                반영 중에는 닫을 수 없어요
+                            </span>
+                        ) : (
+                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                        )}
+                    </div>
                 </div>
 
                 {/* 본문: 데스크톱 좌우 분할, 모바일 상하 스택 */}
