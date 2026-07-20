@@ -24,17 +24,15 @@ interface ImageSlot {
     url: string;    // 절대 URL(썸네일)
 }
 
-// 방금 생성된 미리보기 이미지 — 파일은 이미 만들어졌지만 Vercel 배포(CDN 반영)가
-// 지연될 수 있어(2026-07-20 실측: git 커밋 후 이미지가 실제로 뜨기까지 최대 40초+ 확인,
-// curl로 5초 간격 재현 시 9번째 시도(약 40초)에야 image/png 응답 — 여유 있게 잡아야 함),
-// 그 사이엔 404 대신 SPA index.html이 대신 응답돼 <img>가 깨진 아이콘으로 보임.
-// onError 시 고정 간격으로 재시도해 자연스럽게 뜨게 함.
+// 방금 생성된 미리보기 이미지 — DB(HomepageEdit.previewData)에서 API로 직접 서빙하므로
+// git→Vercel 배포 지연(2026-07-20 실사고: 최대 40초+ 확인)을 더 이상 타지 않음. 그래도
+// 순간 네트워크 오류 등에 대비해 짧게 몇 번만 재시도.
 const RetryImage: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className }) => {
     const [attempt, setAttempt] = useState(0);
     const [loaded, setLoaded] = useState(false);
     const [failed, setFailed] = useState(false);
-    const MAX_ATTEMPTS = 20;    // 3초 간격 최대 20회 = 최대 60초까지 재시도(실측 40초+ 여유)
-    const RETRY_MS = 3000;
+    const MAX_ATTEMPTS = 3;
+    const RETRY_MS = 1000;
 
     useEffect(() => { setAttempt(0); setLoaded(false); setFailed(false); }, [src]);
 
