@@ -262,12 +262,6 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                     {row?.etaMinutes != null && (
                                         <div className="text-xs text-indigo-500">⏱️ 예상 완성까지 약 {fmtEta(row.etaMinutes)}</div>
                                     )}
-                                    {row?.withinOpsHours === false && (
-                                        <div className="text-[11px] text-amber-600 leading-relaxed pt-0.5">
-                                            🌙 지금은 제작 시간(오전 9시~오후 7시)이 아니에요.<br />
-                                            <b>내일 오전 9시부터</b> 순서대로 만들어 드려요.
-                                        </div>
-                                    )}
                                 </div>
                             )}
 

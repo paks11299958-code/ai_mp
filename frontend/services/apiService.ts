@@ -542,11 +542,9 @@ export interface HomepageRequestRow {
     pointsCharged: number;
     formJson?: string;
     createdAt: string;
-    // 대기·처리중일 때만 서버가 얹어줌 — 순번·예상시간·운영시간 안내
+    // 대기·처리중일 때만 서버가 얹어줌 — 순번·예상시간 안내(2026-07-20부터 24시간 상시 가동)
     queuePosition?: number;    // 내 순번(1=바로 다음)
     etaMinutes?: number;       // 예상 완료까지 분
-    withinOpsHours?: boolean;  // 지금 워커 가동 시간대인가(KST 09~19)
-    opsWaitMinutes?: number;   // 운영시간 밖이면 시작까지 남은 분
 }
 export const homepageApi = {
     // 신청(비동기). 1,000pt 선차감(MenuLimit 'homepage'), 실패 시 워커가 자동환불. 202 → { id }.
@@ -560,7 +558,7 @@ export const homepageApi = {
     adminList: (status = '') =>
         get<HomepageAdminRow[]>(`/homepage/admin/requests${status ? `?status=${status}` : ''}`),
     adminSummary: () =>
-        get<{ byStatus: Record<string, number>; withinOpsHours: boolean; opsWaitMinutes: number; opsHours: string }>('/homepage/admin/summary'),
+        get<{ byStatus: Record<string, number>; opsHours: string }>('/homepage/admin/summary'),
 };
 
 export interface HomepageAdminRow extends HomepageRequestRow {

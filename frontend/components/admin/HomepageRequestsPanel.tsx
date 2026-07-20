@@ -32,7 +32,7 @@ function fmtDate(s?: string | null): string {
 export const HomepageRequestsPanel: React.FC = () => {
     const [filter, setFilter] = useState('');
     const [rows, setRows] = useState<HomepageAdminRow[]>([]);
-    const [summary, setSummary] = useState<{ byStatus: Record<string, number>; withinOpsHours: boolean; opsWaitMinutes: number; opsHours: string } | null>(null);
+    const [summary, setSummary] = useState<{ byStatus: Record<string, number>; opsHours: string } | null>(null);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState('');
     const [openId, setOpenId] = useState<number | null>(null);
@@ -64,8 +64,8 @@ export const HomepageRequestsPanel: React.FC = () => {
                             {STATUS_META[s].label} {summary.byStatus[s] || 0}
                         </span>
                     ))}
-                    <span className={`text-xs font-semibold px-3 py-1.5 rounded-full ${summary.withinOpsHours ? 'bg-green-950 text-green-200' : 'bg-gray-800 text-gray-300'}`}>
-                        {summary.withinOpsHours ? '🟢 제작 시간대 가동 중' : `🌙 제작 정지(${summary.opsHours})`}
+                    <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-green-950 text-green-200">
+                        🟢 {summary.opsHours} 가동 중
                     </span>
                 </div>
             )}
