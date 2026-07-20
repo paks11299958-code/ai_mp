@@ -236,6 +236,10 @@ const FEATURE_LABELS: Record<string, string> = {
     'club':       '모임(출첵)',
     'ebook':      '전자책 만들기',
     'marketing':  'AI 마케팅 글쓰기',
+    'homepage':   '홈페이지 만들기',
+    'homepage_edit_text':   '홈페이지 수정(텍스트)',
+    'homepage_edit_image':  '홈페이지 수정(AI 사진)',
+    'homepage_edit_upload': '홈페이지 수정(내 사진)',
 };
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
@@ -247,6 +251,10 @@ const FEATURE_COST_KRW: Record<string, number> = {
     'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
     'agetransform': 57, 'outfit': 57,  // nano-banana 이미지 합성(hair와 동일)
     'lookalike': 2, 'webtoon': 0, 'club': 0, 'ebook': 1, 'marketing': 12,
+    'homepage': 250,   // claude구독(≈0)+나노바나나 최대4장(장당50~80원 실측)
+    'homepage_edit_text': 0,      // claude 구독 1회 호출(API 과금 아님)
+    'homepage_edit_image': 70,    // 나노바나나 1장 재생성
+    'homepage_edit_upload': 5,    // Gemini 안전검수 1회(텍스트 판정)
 };
 const PT_TO_KRW = 1;   // 1pt = 1원 (2026-06-17 전환)
 
