@@ -569,6 +569,37 @@ export interface HomepageAdminRow extends HomepageRequestRow {
     waitingMinutes?: number | null;  // 대기·처리중 경과분(밀림 감지)
 }
 
+// ── 네이버 지식인 자동 답변 (어드민 전용, 뼈대) ──
+export interface KinKeywordRow {
+    id: number;
+    keyword: string;
+    active: boolean;
+    personaId: string | null;
+    personaName: string | null;
+    createdAt: string;
+}
+export interface KinAnswerRow {
+    id: number;
+    keywordId: number;
+    keyword: string;
+    questionUrl: string;
+    questionTitle: string | null;
+    answerDraft: string | null;
+    status: string;
+    errorMessage: string | null;
+    createdAt: string;
+}
+export const kinAnswerApi = {
+    keywords: () => get<KinKeywordRow[]>('/kin-answer/keywords'),
+    addKeyword: (keyword: string, personaId?: string) =>
+        post<KinKeywordRow>('/kin-answer/keywords', { keyword, personaId }),
+    updateKeyword: (id: number, patch: { active?: boolean; personaId?: string | null }) =>
+        put<{ ok: boolean }>(`/kin-answer/keywords/${id}`, patch),
+    deleteKeyword: (id: number) => del<{ ok: boolean }>(`/kin-answer/keywords/${id}`),
+    answers: (keywordId?: number) =>
+        get<KinAnswerRow[]>(`/kin-answer/answers${keywordId ? `?keywordId=${keywordId}` : ''}`),
+};
+
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {
     lifeLine: string;

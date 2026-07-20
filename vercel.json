@@ -51,6 +51,7 @@
     { "source": "/api/marketing",                 "destination": "http://34.50.27.95:3020/api/aimp/marketing" },
     { "source": "/api/marketing/:path*",          "destination": "http://34.50.27.95:3020/api/aimp/marketing/:path*" },
     { "source": "/api/homepage/:path*",           "destination": "http://34.50.27.95:3020/api/aimp/homepage/:path*" },
+    { "source": "/api/kin-answer/:path*",         "destination": "http://34.50.27.95:3020/api/aimp/kin-answer/:path*" },
     { "source": "/api/embed/:path*",              "destination": "http://34.50.27.95:3020/api/aimp/embed/:path*" },
     { "source": "/api/tarot-readings",            "destination": "http://34.50.27.95:3020/api/aimp/tarot-readings" },
     { "source": "/api/tarot-readings/:path*",     "destination": "http://34.50.27.95:3020/api/aimp/tarot-readings/:path*" },
