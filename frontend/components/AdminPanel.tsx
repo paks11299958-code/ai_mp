@@ -827,7 +827,9 @@ const BalancesCard: React.FC = () => {
                             <p className="text-xs text-gray-500">{data.openai.error}</p>
                         ) : (
                             <p className="text-lg font-bold text-white">
-                                ${data?.openai?.monthToDateUsd?.toFixed(2) ?? '-'}
+                                {/* Number()로 감싸 API가 문자열을 보내도 안전(2026-07-20 실사고: OpenAI
+                                    amount.value가 문자열이라 monthToDateUsd가 문자열로 새 .toFixed 크래시) */}
+                                ${Number.isFinite(Number(data?.openai?.monthToDateUsd)) ? Number(data?.openai?.monthToDateUsd).toFixed(2) : '-'}
                                 <span className="text-[10px] text-gray-400 font-normal ml-1">이번달 누적</span>
                             </p>
                         )}
