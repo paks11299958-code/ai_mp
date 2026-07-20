@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AttendPage } from './components/AttendPage';
 import { NewsPage } from './components/NewsPage';
+import { InstallBanner } from './components/InstallBanner';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -17,12 +18,20 @@ const path = window.location.pathname;
 const attendMatch = path.match(/^\/attend\/([^/]+)$/);
 // /news → 오늘뉴스 전용 페이지 (홈화면 바로가기 아이콘 대상)
 const isNews = /^\/news\/?$/.test(path);
+// ?embed=<personaId> → 외부사이트 iframe 위젯(EmbedChat, App.tsx 내부 분기). 위젯 안에는
+// '홈 화면에 추가' 버튼이 뜨면 안 됨(위젯 자체가 이미 최소 UI 목적) — 여기서 함께 제외.
+const isEmbed = !!new URLSearchParams(window.location.search).get('embed');
 
 const root = ReactDOM.createRoot(rootElement);
 root.render(
     <React.StrictMode>
         {attendMatch ? <AttendPage sheetUuid={attendMatch[1]} />
             : isNews ? <NewsPage />
-            : <App />}
+            : (
+                <>
+                    <App />
+                    {!isEmbed && <InstallBanner />}
+                </>
+            )}
     </React.StrictMode>
 );
