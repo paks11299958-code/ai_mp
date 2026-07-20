@@ -518,7 +518,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                                 type="password"
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
-                                placeholder={mode === 'login' ? '비밀번호' : '8자 이상 권장'}
+                                placeholder={mode === 'login' ? '비밀번호' : '6자 이상'}
                                 required
                                 className={inputClass}
                                 style={inputStyle}
