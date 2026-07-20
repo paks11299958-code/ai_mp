@@ -24,6 +24,42 @@ interface ImageSlot {
     url: string;    // 절대 URL(썸네일)
 }
 
+// 방금 생성된 미리보기 이미지 — 파일은 이미 만들어졌지만 Vercel 배포(CDN 반영)가
+// 몇 초~1분가량 지연될 수 있어(2026-07-20 실측), 그 사이엔 404 대신 SPA index.html이
+// 대신 응답돼 <img>가 깨진 아이콘으로 보임. onError 시 지수백오프로 재시도해 자연스럽게 뜨게 함.
+const RetryImage: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className }) => {
+    const [attempt, setAttempt] = useState(0);
+    const [loaded, setLoaded] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const MAX_ATTEMPTS = 8;   // 2s,3s,4s...로 늘려가며 최대 약 40초까지 재시도
+
+    useEffect(() => { setAttempt(0); setLoaded(false); setFailed(false); }, [src]);
+
+    const handleError = () => {
+        if (attempt >= MAX_ATTEMPTS) { setFailed(true); return; }
+        setTimeout(() => setAttempt(a => a + 1), 2000 + attempt * 1000);
+    };
+
+    if (failed) {
+        return (
+            <div className={`${className} flex items-center justify-center bg-gray-50 text-[11px] text-gray-400`}>
+                이미지를 불러오지 못했어요
+            </div>
+        );
+    }
+    return (
+        <div className={`${className} relative bg-gray-50 overflow-hidden`}>
+            <img key={attempt} src={`${src}${src.includes('?') ? '&' : '?'}r=${attempt}`} alt={alt}
+                 onError={handleError} onLoad={() => setLoaded(true)} className="w-full h-full object-cover" />
+            {!loaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+                    <span className="inline-block w-4 h-4 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+                </div>
+            )}
+        </div>
+    );
+};
+
 // index.html 원본에서 img/ 상대경로 이미지 슬롯을 뽑는다(별도 메타 API 없이 배포 산출물 재사용).
 function parseImageSlots(html: string, baseUrl: string): ImageSlot[] {
     const out: ImageSlot[] = [];
@@ -459,7 +495,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                                             </div>
                                             <div>
                                                 <p className="text-[11px] text-gray-400 mb-1">새 사진</p>
-                                                {pendingEdit.previewUrl && <img src={pendingEdit.previewUrl} alt="새 사진" className="w-full h-28 object-cover rounded-lg" />}
+                                                {pendingEdit.previewUrl && <RetryImage src={pendingEdit.previewUrl} alt="새 사진" className="w-full h-28 rounded-lg" />}
                                             </div>
                                         </div>
                                         {busy && <StageBadge />}
