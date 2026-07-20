@@ -541,6 +541,7 @@ export interface HomepageRequestRow {
     errorMessage?: string | null;
     pointsCharged: number;
     formJson?: string;
+    imageSlots?: { file: string }[];   // 생성 시 만든 이미지 목록(사진편집 탭 썸네일, 2026-07-20)
     createdAt: string;
     // 대기·처리중일 때만 서버가 얹어줌 — 순번·예상시간 안내(2026-07-20부터 24시간 상시 가동)
     queuePosition?: number;    // 내 순번(1=바로 다음)

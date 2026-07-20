@@ -107,9 +107,16 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
 
     const baseUrl = request.url || '';
 
-    // 이미지 슬롯 목록 — 배포된 index.html을 fetch해서 파싱(별도 API 불필요).
+    // 이미지 슬롯 목록 — 신청 생성 시 워커가 저장한 imageSlots(명시적 목록)를 우선 사용.
+    // ★예전에는 index.html을 매번 정규식으로 파싱했는데, 적용된 사진에 캐시버스터(?v=)가
+    // 붙으면 정규식이 못 잡아 "방금 바꾼 사진이 목록에서 사라짐" 버그가 났음(2026-07-20).
+    // imageSlots가 없는(과거 생성분) 경우에만 index.html 파싱으로 폴백.
     useEffect(() => {
         if (!baseUrl) return;
+        if (request.imageSlots && request.imageSlots.length > 0) {
+            setSlots(request.imageSlots.map(s => ({ file: s.file, url: `${baseUrl}${s.file}?v=${iframeKey}` })));
+            return;
+        }
         (async () => {
             try {
                 const res = await fetch(baseUrl, { cache: 'no-store' });
@@ -117,7 +124,7 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
                 setSlots(parseImageSlots(html, baseUrl));
             } catch { /* 무시 — 사진편집 탭에서 빈 목록으로 표시 */ }
         })();
-    }, [baseUrl, iframeKey]);
+    }, [baseUrl, iframeKey, request.imageSlots]);
 
     // 재진입 복원 — 창을 닫아도 서버 작업은 계속 진행되므로(포인트 이미 차감), 다시 열었을 때
     // 진행 중이던 요청을 이어서 보여줘야 함(안 그러면 "적용됐는지 안 됐는지" 알 길이 없음,
