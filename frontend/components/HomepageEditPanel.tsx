@@ -8,6 +8,10 @@ import { homepageApi, HomepageRequestRow, HomepageEditRow } from '../services/ap
 interface Props {
     request: HomepageRequestRow;
     onClose: () => void;
+    // 이미지 적용(AI재생성·내사진교체 공통) 완료 시 호출 — 부모가 이 화면을 통째로
+    // 재마운트한다. 여러 번 나눠 재새로고침하는 것보다, 화면을 새로 띄우면 그 시점엔 이미
+    // 배포·CDN 캐시가 반영돼 있어 확실하다는 걸 실사용으로 확인(2026-07-20).
+    onApplied: () => void;
 }
 
 const INDIGO = '#5C6AC4';
@@ -80,7 +84,7 @@ function parseImageSlots(html: string, baseUrl: string): ImageSlot[] {
     return out;
 }
 
-export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
+export const HomepageEditPanel: React.FC<Props> = ({ request, onClose, onApplied }) => {
     const [tab, setTab] = useState<'chat' | 'image'>('chat');
     const [messages, setMessages] = useState<ChatMsg[]>([
         { id: 0, role: 'ai', text: '수정하고 싶은 내용을 말씀해 주세요. 예: "주소를 서울 강남구 테헤란로 1길로 바꿔줘"' },
@@ -310,14 +314,11 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
             await homepageApi.applyEdit(request.id, pendingEdit.id);
             pollEdit(pendingEdit.id, {
                 onDone: () => {
-                    setPendingEdit(null); setSelectedSlot(null); setImgInstruction('');
-                    setUploadB64(null); setUploadPreviewUrl(null);
-                    // 적용(git 배포) 완료 직후에도 index.html에 캐시버스터(?v=editId)를 넣었지만
-                    // Vercel CDN 전파에 여전히 수 초~십수 초 시차가 있음(2026-07-20 실측:
-                    // 첫 요청 MISS 후 캐시된 예전 파일, 수 초 뒤 재요청하면 최신 파일). 여러 번
-                    // 나눠 재새로고침해 그 사이 어느 시점엔 반드시 최신본을 보게 함.
-                    [3000, 6000, 10000, 15000, 25000].forEach(ms =>
-                        setTimeout(() => setIframeKey(k => k + 1), ms));
+                    // 적용(git 배포) 완료 직후에도 Vercel CDN 전파에 수 초~십수 초 시차가 있어
+                    // 이 화면을 그대로 새로고침만 하면 예전 이미지가 잠깐 보일 수 있음. 여러 번
+                    // 나눠 재시도하는 대신, 화면을 통째로 새로 띄우면 그 시점엔 이미 반영이
+                    // 끝나 있어 확실하다는 걸 실사용으로 확인(2026-07-20) — 부모가 재마운트.
+                    onApplied();
                 },
                 onFailed: (msg) => setImgError(msg || '적용에 실패했어요.'),
             });

@@ -52,6 +52,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const [lastDone, setLastDone] = useState<HomepageRequestRow | null>(null);
     const [mineList, setMineList] = useState<HomepageRequestRow[]>([]);
     const [editTarget, setEditTarget] = useState<HomepageRequestRow | null>(null);
+    const [editPanelKey, setEditPanelKey] = useState(0);   // 적용 후 화면 통째로 재마운트용(아래 참조)
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 열 때 내 신청 이력 확인 — 진행 중이면 대기 화면으로 복귀, 완성본 있으면 인트로에 노출.
@@ -134,7 +135,11 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const done = row?.status === 'done';
 
     if (editTarget) {
-        return <HomepageEditPanel request={editTarget} onClose={() => setEditTarget(null)} />;
+        // key로 통째 재마운트 — 적용 직후 화면을 새로 띄우면 이미 배포·캐시가 반영된 뒤라
+        // 바로 정상으로 보인다는 걸 실사용으로 확인(2026-07-20, 재새로고침 타이밍 맞추기보다
+        // 훨씬 확실함). onApplied가 이 재마운트를 트리거.
+        return <HomepageEditPanel key={editPanelKey} request={editTarget} onClose={() => setEditTarget(null)}
+                                   onApplied={() => setEditPanelKey(k => k + 1)} />;
     }
 
     return (
