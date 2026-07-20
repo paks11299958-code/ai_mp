@@ -25,26 +25,31 @@ interface ImageSlot {
 }
 
 // 방금 생성된 미리보기 이미지 — 파일은 이미 만들어졌지만 Vercel 배포(CDN 반영)가
-// 몇 초~1분가량 지연될 수 있어(2026-07-20 실측), 그 사이엔 404 대신 SPA index.html이
-// 대신 응답돼 <img>가 깨진 아이콘으로 보임. onError 시 지수백오프로 재시도해 자연스럽게 뜨게 함.
+// 지연될 수 있어(2026-07-20 실측: git 커밋 후 이미지가 실제로 뜨기까지 최대 40초+ 확인,
+// curl로 5초 간격 재현 시 9번째 시도(약 40초)에야 image/png 응답 — 여유 있게 잡아야 함),
+// 그 사이엔 404 대신 SPA index.html이 대신 응답돼 <img>가 깨진 아이콘으로 보임.
+// onError 시 고정 간격으로 재시도해 자연스럽게 뜨게 함.
 const RetryImage: React.FC<{ src: string; alt: string; className?: string }> = ({ src, alt, className }) => {
     const [attempt, setAttempt] = useState(0);
     const [loaded, setLoaded] = useState(false);
     const [failed, setFailed] = useState(false);
-    const MAX_ATTEMPTS = 8;   // 2s,3s,4s...로 늘려가며 최대 약 40초까지 재시도
+    const MAX_ATTEMPTS = 20;    // 3초 간격 최대 20회 = 최대 60초까지 재시도(실측 40초+ 여유)
+    const RETRY_MS = 3000;
 
     useEffect(() => { setAttempt(0); setLoaded(false); setFailed(false); }, [src]);
 
     const handleError = () => {
         if (attempt >= MAX_ATTEMPTS) { setFailed(true); return; }
-        setTimeout(() => setAttempt(a => a + 1), 2000 + attempt * 1000);
+        setTimeout(() => setAttempt(a => a + 1), RETRY_MS);
     };
 
     if (failed) {
         return (
-            <div className={`${className} flex items-center justify-center bg-gray-50 text-[11px] text-gray-400`}>
-                이미지를 불러오지 못했어요
-            </div>
+            <button type="button" onClick={() => { setAttempt(0); setFailed(false); }}
+                    className={`${className} flex flex-col items-center justify-center gap-1 bg-gray-50 text-[11px] text-gray-400 hover:bg-gray-100`}>
+                <span>이미지를 불러오지 못했어요</span>
+                <span className="underline">다시 시도</span>
+            </button>
         );
     }
     return (
