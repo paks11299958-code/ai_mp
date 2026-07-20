@@ -23,9 +23,12 @@ const SAMPLES = [
 interface FormState {
     biz: string; name: string; tagline: string;
     detail: string; menu: string; address: string;
-    hours: string; phone: string; kakao: string; mood: string;
+    hours: string; phone: string; kakao: string; mood: string; referenceUrl: string;
 }
-const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu: '', address: '', hours: '', phone: '', kakao: '', mood: '' };
+const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu: '', address: '', hours: '', phone: '', kakao: '', mood: '', referenceUrl: '' };
+
+// 상태 표시(리스트 화면).
+const STATUS_LABEL: Record<string, string> = { pending: '대기 중', processing: '제작 중', done: '완성', failed: '실패' };
 
 const MOOD_CHIPS = ['따뜻한', '모던한', '고급스러운', '아기자기한', '신뢰감 있는', '활기찬'];
 
@@ -38,7 +41,7 @@ function fmtEta(min: number): string {
 }
 
 export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
-    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'result'>('intro');
+    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'result' | 'list'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [reqId, setReqId] = useState<number | null>(null);
     const [row, setRow] = useState<HomepageRequestRow | null>(null);
@@ -46,6 +49,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const [submitting, setSubmitting] = useState(false);
     const [shareMsg, setShareMsg] = useState<string | null>(null);
     const [lastDone, setLastDone] = useState<HomepageRequestRow | null>(null);
+    const [mineList, setMineList] = useState<HomepageRequestRow[]>([]);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 열 때 내 신청 이력 확인 — 진행 중이면 대기 화면으로 복귀, 완성본 있으면 인트로에 노출.
@@ -53,6 +57,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
         (async () => {
             try {
                 const mine = await homepageApi.mine();
+                setMineList(mine);
                 const busy = mine.find(r => r.status === 'pending' || r.status === 'processing');
                 if (busy) { setReqId(busy.id); setRow(busy); setStep('waiting'); return; }
                 const done = mine.find(r => r.status === 'done');
@@ -162,8 +167,8 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                             {lastDone?.url && (
                                 <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-600 flex items-center justify-between gap-2">
                                     <span>🔗 지난번에 만든 시안이 있어요</span>
-                                    <a href={lastDone.url} target="_blank" rel="noopener noreferrer"
-                                       className="shrink-0 font-semibold underline" style={{ color: INDIGO }}>보러 가기</a>
+                                    <button onClick={() => setStep('list')}
+                                            className="shrink-0 font-semibold underline" style={{ color: INDIGO }}>보러 가기</button>
                                 </div>
                             )}
                             <div className="rounded-xl bg-indigo-50 border border-indigo-100 px-3 py-2 text-xs" style={{ color: INDIGO }}>
@@ -174,6 +179,54 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                     style={{ backgroundColor: INDIGO }}>
                                 ✨ 내 홈페이지 만들기 시작
                             </button>
+                        </>
+                    )}
+
+                    {/* [list] 내가 만든 홈페이지 목록 */}
+                    {step === 'list' && (
+                        <>
+                            <button onClick={() => setStep('intro')} className="text-xs text-gray-400">← 뒤로</button>
+                            <p className="text-sm font-semibold text-gray-800">내가 만든 홈페이지</p>
+                            {mineList.length === 0 && (
+                                <p className="text-xs text-gray-400 py-6 text-center">아직 만든 시안이 없어요.</p>
+                            )}
+                            <button onClick={() => setStep('form')}
+                                    className="w-full py-2.5 rounded-xl border text-sm font-semibold"
+                                    style={{ borderColor: INDIGO, color: INDIGO }}>
+                                ✨ 새 홈페이지 만들기
+                            </button>
+                            <div className="space-y-2">
+                                {mineList.map(r => {
+                                    let bizName = '';
+                                    try { bizName = r.formJson ? (JSON.parse(r.formJson).name || '') : ''; } catch { /* 무시 */ }
+                                    return (
+                                        <div key={r.id} className="rounded-xl border border-gray-100 px-3 py-2.5 space-y-1.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-sm font-medium text-gray-800 truncate">{bizName || `홈페이지 #${r.id}`}</span>
+                                                <span className={`text-[11px] px-2 py-0.5 rounded-full shrink-0 ${r.status === 'done' ? 'text-white' : 'text-gray-500 bg-gray-100'}`}
+                                                      style={r.status === 'done' ? { backgroundColor: INDIGO } : undefined}>
+                                                    {STATUS_LABEL[r.status] || r.status}
+                                                </span>
+                                            </div>
+                                            <div className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleString('ko-KR')}</div>
+                                            {r.status === 'done' && r.url && (
+                                                <div className="flex items-center gap-3 pt-0.5">
+                                                    <a href={r.url} target="_blank" rel="noopener noreferrer"
+                                                       className="text-xs font-semibold underline" style={{ color: INDIGO }}>🔗 보러 가기</a>
+                                                    {r.zipUrl && (
+                                                        <a href={r.zipUrl} download className="text-xs underline text-gray-400 hover:text-gray-600">📦 소스 받기</a>
+                                                    )}
+                                                    <button disabled title="준비 중인 기능이에요"
+                                                            className="text-xs underline text-gray-300 cursor-not-allowed ml-auto">✏️ 수정</button>
+                                                </div>
+                                            )}
+                                            {r.status === 'failed' && (
+                                                <div className="text-[11px] text-gray-400">{r.errorMessage || '생성에 실패했어요.'}</div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </>
                     )}
 
@@ -224,6 +277,13 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+                                <div>
+                                    <input value={form.referenceUrl} onChange={set('referenceUrl')} maxLength={200} className={inputCls} style={inputStyle}
+                                           placeholder="참고하고 싶은 사이트 URL (선택)" />
+                                    <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                                        🔗 마음에 드는 사이트가 있으면 주소를 넣어주세요 — 색감·분위기만 참고하고 로고·사진·문구는 그대로 베끼지 않아요.
+                                    </p>
                                 </div>
                             </div>
                             <p className="text-[11px] text-gray-400">
