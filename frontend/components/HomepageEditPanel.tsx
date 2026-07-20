@@ -208,13 +208,21 @@ export const HomepageEditPanel: React.FC<Props> = ({ request, onClose }) => {
     const inputStyle: React.CSSProperties = { color: '#1f2937', backgroundColor: '#ffffff' };
 
     // 대기(queued)=요청 접수, 아직 워커가 안 집음(최대 1분) / 처리 중(working)=지금 반영 중.
+    // 진행률을 서버가 주지 않으므로(단일 API 호출) 좌우로 흐르는 인디케이터 바로 "멈추지
+    // 않고 움직인다"는 걸 보여줌 — 스피너만으로는 정적으로 느껴진다는 사장 피드백(2026-07-20).
     const StageBadge: React.FC = () => {
         if (!busyStage) return null;
         const label = busyStage === 'queued' ? '접수됐어요 — 곧 시작해요…' : '반영하고 있어요…';
         return (
-            <div className="flex items-center gap-1.5 text-xs text-gray-400">
-                <span className="inline-block w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
-                {label}
+            <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <span className="inline-block w-3 h-3 border-2 border-indigo-200 border-t-indigo-500 rounded-full animate-spin" />
+                    {label}
+                </div>
+                <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                    <div className="h-full w-1/3 rounded-full"
+                         style={{ backgroundColor: INDIGO, animation: 'edit-progress 1.2s ease-in-out infinite' }} />
+                </div>
             </div>
         );
     };
