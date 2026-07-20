@@ -913,6 +913,16 @@ export interface AdminUser {
     sessionCount: number;
 }
 
+export interface UserTransactionRow {
+    id: number;
+    amount: number;
+    type: string;
+    description: string | null;
+    balanceAfter: number;
+    createdAt: string;
+    personaName: string | null;
+}
+
 export interface PersonaStatRow {
     personaId: string;
     persona?: { id: string; name: string; imageUrl: string | null };
@@ -962,6 +972,9 @@ export const adminApi = {
 
     deleteUser: (userId: number) =>
         del<{ deleted: boolean; id: number; identifier: string }>(`/admin/users/${userId}`),
+
+    getUserTransactions: (userId: number) =>
+        get<UserTransactionRow[]>(`/admin/users/${userId}/transactions`),
 
     getMonitorMetrics: () =>
         get<any>('/admin/monitor/metrics'),

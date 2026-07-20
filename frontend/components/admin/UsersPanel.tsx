@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { adminApi, AdminUser } from '../../services/apiService';
+import { adminApi, AdminUser, UserTransactionRow } from '../../services/apiService';
 import { Icon } from '../Icons';
 
 // 회원 관리 탭 — 일괄/개인 포인트 지급 + 회원 목록 + 역할 변경.
@@ -23,6 +23,11 @@ export const UsersPanel: React.FC = () => {
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [deleting, setDeleting] = useState(false);
     const [deleteError, setDeleteError] = useState<string | null>(null);
+    // 포인트 사용 내역 모달 — 날짜·시간 desc(2026-07-20 사장 지시)
+    const [historyTarget, setHistoryTarget] = useState<AdminUser | null>(null);
+    const [historyRows, setHistoryRows] = useState<UserTransactionRow[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyError, setHistoryError] = useState<string | null>(null);
 
     useEffect(() => {
         setUserListLoading(true);
@@ -194,6 +199,19 @@ export const UsersPanel: React.FC = () => {
                                                         포인트 지급
                                                     </button>
                                                     <button
+                                                        onClick={() => {
+                                                            setHistoryTarget(u); setHistoryRows([]); setHistoryError(null);
+                                                            setHistoryLoading(true);
+                                                            adminApi.getUserTransactions(u.id)
+                                                                .then(setHistoryRows)
+                                                                .catch(e => setHistoryError(e?.message || '내역을 불러오지 못했습니다.'))
+                                                                .finally(() => setHistoryLoading(false));
+                                                        }}
+                                                        className="px-3 py-1 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs transition-colors"
+                                                    >
+                                                        내역보기
+                                                    </button>
+                                                    <button
                                                         onClick={() => { setDeleteTarget(u); setDeleteConfirmText(''); setDeleteError(null); }}
                                                         className="px-3 py-1 rounded-lg bg-red-900/40 hover:bg-red-800/60 text-red-300 text-xs transition-colors"
                                                     >
@@ -280,6 +298,60 @@ export const UsersPanel: React.FC = () => {
                     </div>
                 );
             })()}
+
+            {/* 포인트 사용 내역 모달 — 날짜·시간 desc(2026-07-20 사장 지시) */}
+            {historyTarget && (
+                <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60" onClick={() => setHistoryTarget(null)}>
+                    <div className="w-full max-w-lg max-h-[80vh] flex flex-col bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                        <div className="px-5 py-4 border-b border-gray-700 flex items-center justify-between">
+                            <h3 className="text-sm font-semibold text-gray-100 flex items-center gap-2">
+                                <Icon name="Clock" size={16} className="text-gray-400" />
+                                사용 내역 — <span className="text-blue-300">{historyTarget.email ?? historyTarget.phone}</span>
+                            </h3>
+                            <button onClick={() => setHistoryTarget(null)} className="text-gray-400 hover:text-white">
+                                <Icon name="X" size={16} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                            {historyLoading ? (
+                                <div className="p-8 text-center text-sm text-gray-500">불러오는 중...</div>
+                            ) : historyError ? (
+                                <div className="p-8 text-center text-sm text-red-400">{historyError}</div>
+                            ) : historyRows.length === 0 ? (
+                                <div className="p-8 text-center text-sm text-gray-500">사용 내역이 없습니다.</div>
+                            ) : (
+                                <table className="w-full text-xs">
+                                    <thead className="sticky top-0 bg-gray-900">
+                                        <tr className="border-b border-gray-700 text-gray-500 text-left">
+                                            <th className="px-4 py-2 font-medium">일시</th>
+                                            <th className="px-4 py-2 font-medium">내용</th>
+                                            <th className="px-4 py-2 font-medium text-right">증감</th>
+                                            <th className="px-4 py-2 font-medium text-right">잔액</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {historyRows.map(r => (
+                                            <tr key={r.id} className="border-b border-gray-800/60">
+                                                <td className="px-4 py-2 text-gray-400 whitespace-nowrap">
+                                                    {new Date(r.createdAt).toLocaleString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                </td>
+                                                <td className="px-4 py-2 text-gray-200">
+                                                    {r.description || r.type}
+                                                    {r.personaName && <span className="text-gray-500"> · {r.personaName}</span>}
+                                                </td>
+                                                <td className={`px-4 py-2 text-right font-medium ${r.amount >= 0 ? 'text-blue-300' : 'text-gray-300'}`}>
+                                                    {r.amount >= 0 ? '+' : ''}{r.amount.toLocaleString()}
+                                                </td>
+                                                <td className="px-4 py-2 text-right text-gray-500">{r.balanceAfter.toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
