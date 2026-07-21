@@ -5,6 +5,7 @@ interface RewardAlertModalProps {
     kind: 'welcome' | 'mission' | 'guestWelcome';
     amount: number;
     onClose: () => void;
+    username?: string;  // welcome일 때 "OO님, 가입을 축하합니다!"로 인사
 }
 
 /**
@@ -14,7 +15,7 @@ interface RewardAlertModalProps {
  * - guestWelcome: 레퍼럴 링크로 온 방문자 임시계정 자동생성 + 체험 포인트 안내
  * 글래스/크림·퍼플 톤, 모바일 우선.
  */
-export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount, onClose }) => {
+export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount, onClose, username }) => {
     const isMission = kind === 'mission';
     const isGuestWelcome = kind === 'guestWelcome';
     const isWelcome = !isMission; // welcome/guestWelcome 공용 레이아웃(미션 안내 블록만 welcome 전용으로 아래서 추가 분기)
@@ -48,7 +49,11 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                 </div>
 
                 <h2 style={{ fontSize: 19, fontWeight: 800, color: '#2D2017', margin: '0 0 6px' }}>
-                    {isGuestWelcome ? '친구 초대로 오셨네요! 🎉' : isWelcome ? '가입을 축하합니다! 🎉' : '미션 완료! 🎉'}
+                    {isGuestWelcome
+                        ? '친구 초대로 오셨네요! 🎉'
+                        : isWelcome
+                        ? `${username ? `${username}님, ` : ''}가입을 축하합니다! 🎉`
+                        : '미션 완료! 🎉'}
                 </h2>
                 <p style={{ fontSize: 13, color: '#7A6A86', margin: '0 0 16px', lineHeight: 1.6 }}>
                     {isGuestWelcome

@@ -30,6 +30,7 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess,
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
+    const [username, setUsername] = useState('');
     const [code, setCode] = useState('');
     const [resendCountdown, setResendCountdown] = useState(0);
     const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -73,12 +74,13 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess,
             const id = tab === 'phone' ? rawDigits(phone) : email;
             if (step === 'form') {
                 if (!id) throw new Error(tab === 'phone' ? '전화번호를 입력해주세요.' : '이메일을 입력해주세요.');
+                if (!username.trim()) throw new Error('닉네임을 입력해주세요.');
                 if (!password || password.length < 6) throw new Error('비밀번호는 6자 이상이어야 합니다.');
                 await authApi.sendVerify(type, id);
                 setStep('verify');
                 startResendTimer();
             } else {
-                const result = await authApi.upgradeGuest(type, id, code, password);
+                const result = await authApi.upgradeGuest(type, id, code, password, username.trim());
                 localStorage.setItem('token', result.token);
                 onSuccess(result.user, result.token);
             }
@@ -244,6 +246,21 @@ export const GuestUpgradeModal: React.FC<GuestUpgradeModalProps> = ({ onSuccess,
                                 />
                             </div>
                         )}
+
+                        <div>
+                            <label className={labelClass} style={labelStyle}>닉네임</label>
+                            <input
+                                type="text"
+                                value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                placeholder="사용할 닉네임"
+                                required
+                                className={inputClass}
+                                style={inputStyle}
+                                onFocus={inputFocusStyle}
+                                onBlur={inputBlurStyle}
+                            />
+                        </div>
 
                         <div>
                             <label className={labelClass} style={labelStyle}>비밀번호</label>

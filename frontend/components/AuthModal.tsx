@@ -117,6 +117,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     const type = registerTab === 'phone' ? 'PHONE' : 'EMAIL';
                     const id = registerTab === 'phone' ? rawDigits(phone) : email;
                     if (!id) throw new Error(registerTab === 'phone' ? '전화번호를 입력해주세요.' : '이메일을 입력해주세요.');
+                    if (!username.trim()) throw new Error('닉네임을 입력해주세요.');
                     if (!password) throw new Error('비밀번호를 입력해주세요.');
                     await authApi.sendVerify(type, id);
                     setRegisterStep('verify');
@@ -124,7 +125,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                 } else {
                     const type = registerTab === 'phone' ? 'PHONE' : 'EMAIL';
                     const id = registerTab === 'phone' ? rawDigits(phone) : email;
-                    const result = await authApi.verifyRegister(type, id, regVerifyCode, password, username || undefined);
+                    const result = await authApi.verifyRegister(type, id, regVerifyCode, password, username.trim());
                     localStorage.setItem('token', result.token);
                     clearStoredRef(); // 추천코드 1회 적용 후 제거(중복 방지)
                     onSuccess(result.user, result.token, true); // 신규 가입 → 환영 알럿
@@ -445,15 +446,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                         </div>
                     )}
 
-                    {/* 회원가입 전용: 닉네임 */}
+                    {/* 회원가입 전용: 닉네임(필수) */}
                     {mode === 'register' && (
                         <div>
-                            <label className={labelClass} style={labelStyle}>닉네임 (선택)</label>
+                            <label className={labelClass} style={labelStyle}>닉네임</label>
                             <input
                                 type="text"
                                 value={username}
                                 onChange={e => setUsername(e.target.value)}
                                 placeholder="사용할 닉네임"
+                                required
                                 className={inputClass}
                                 style={inputStyle}
                                 onFocus={inputFocusStyle}

@@ -1289,7 +1289,7 @@ const AppContent: React.FC = () => {
         return (
             <>
                 {rewardAlert && (
-                    <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
+                    <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} username={user?.username} onClose={() => setRewardAlert(null)} />
                 )}
                 <AuthProvider value={authCtxValue}>
                 <MainPageNew
