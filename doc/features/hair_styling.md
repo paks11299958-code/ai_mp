@@ -30,11 +30,12 @@
     - **★얼굴 보존 프롬프트 강화(2026-07-13, A/B 검증 후 배포)**: 합성 시 얼굴이 갸름·V라인화되던 문제 → "헤어만 변경, 눈·코·입·얼굴형·턱선·나이 원본 정확 보존, 성형·미화 금지"로 강화. **우리는 Gemini(나노바나나) API라 SD계열 ControlNet/InsightFace/Denoising Strength 개념 없음** → 프롬프트 강화가 정답. A/B(여·남) 원본 얼굴 보존 확연 개선 실증. 원가 영향 없음(이미지 정액과금).
 - `lib/gemini.ts`에 두 함수, `routes/aimp/hair.ts` 라우트
 
-### ★ AI 헤어 합성 (gemini-2.5-flash-image / nano-banana)
+### ★ AI 헤어 합성 (gemini-3.1-flash-image / Nano Banana 2)
 - 사진 + 헤어 영문 설명 → **얼굴·피부톤·배경·표정 유지 + 헤어만 교체**한 이미지 생성 → GCS `hair-tryon/`
 - ⚠️ **이 모델은 `global` 리전에서만 제공** (us-central1은 404) → `getImageAI()` 별도 클라이언트(location:'global')
 - 실측: 9.3초, 안경 쓴 곱슬 사진으로도 얼굴 동일성·안경 완벽 유지
 - 비용 ~53원/장 (텍스트 진단 ~2.7원 별도). gpt-image-1보다 얼굴 보존 우위(인상·안경 유지)
+- **2026-07-21**: 프로필사진 기능에 맞춰 합성 모델을 `gemini-2.5-flash-image`(preview로 밀림)에서 `gemini-3.1-flash-image`(정식)로 통일. 견본사진(위 DB 항목)은 구모델로 만든 기존 것 그대로 재사용 — 견본은 화면 표시 전용이라 합성 모델과 무관.
 
 ### 프론트 (HairStyleBoard.tsx)
 - 4단계 화면 + 결과(Before/After 이미지 + 진단). 모바일 우선
@@ -51,7 +52,7 @@
 ## 주의·교훈
 - **EXIF 회전 필수**: 폰 사진은 EXIF 회전정보로 화면엔 똑바로/픽셀은 누워있음 → AI 합성결과가 옆으로 90도 돌아 나옴. `createImageBitmap(file,{imageOrientation:'from-image'})`로 픽셀에 회전 적용 + canvas 1280 축소 후 전송.
 - **로딩 UX**: 10초+ 단건은 단계 로딩 오버레이(사진분석→합성→진단 타이머 순차)가 맞음. 주식분석식 비동기 큐는 "오래걸림+여러개+백그라운드"일 때만(헤어엔 과함).
-- **이미지 모델 리전**: imagen=us-central1, gemini-2.5-flash-image=global. 모델마다 제공 리전 다름.
+- **이미지 모델 리전**: imagen=us-central1, gemini-3.1-flash-image(및 구 2.5)=global. 모델마다 제공 리전 다름.
 - 포인트 차감 미적용(현재 무료). 관상처럼 menuAccess 'hair' 키 등록하면 차감 가능.
 
 ## 향후

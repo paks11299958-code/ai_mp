@@ -29,7 +29,7 @@
 - 단가: ★미정 (헤어 200pt 기준 4장이면 그 이상. 제안 300~500pt). 결정 후 MenuLimit 등록.
 
 ## 2. 기술 — 헤어 합성(generateHairTryOn) 재활용
-- 모델: `gemini-2.5-flash-image`(나노바나나, **global 리전**, getImageAI). 얼굴·정체성 유지하며 편집 → 나이변환에 적합.
+- 모델: `gemini-3.1-flash-image`(Nano Banana 2, **global 리전**, getImageAI). 얼굴·정체성 유지하며 편집 → 나이변환에 적합. (2026-07-21: 구 `gemini-2.5-flash-image`에서 통일)
 - 신규 함수 `generateAgeTransform(imageBase64, mimeType, ageLabel)`:
   - 프롬프트: "Change only the apparent age of the person to {10s/30s/50s/70s}. Keep the exact same identity, face structure, skin tone(자연스런 노화 반영), background. Photorealistic." (헤어 프롬프트 변형)
   - 429 재시도(5→10→15s)·GCS 업로드(`age-transform/{userId}/...png`) 패턴 그대로.

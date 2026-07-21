@@ -279,17 +279,18 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                 {styles.map(s => (
                                     <button key={s.id} onClick={() => setSelected(s)} style={{
                                         border: selected?.id === s.id ? `2.5px solid ${T.accent}` : `1px solid ${T.line}`,
-                                        borderRadius: 12, overflow: 'hidden', background: T.card, cursor: 'pointer', padding: '8px 4px',
+                                        borderRadius: 12, overflow: 'hidden', background: T.card, cursor: 'pointer', padding: 0,
                                         boxShadow: selected?.id === s.id ? `0 6px 16px -6px ${T.accent}66` : 'none',
-                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                                     }}>
                                         {s.imageUrl ? (
-                                            <img src={s.imageUrl} alt={s.name} width={54} height={54} loading="lazy"
-                                                 style={{ borderRadius: 8, objectFit: 'cover', display: 'block' }} />
+                                            <img src={s.imageUrl} alt={s.name} loading="lazy" decoding="async"
+                                                 style={{ width: '100%', aspectRatio: '1', objectFit: 'cover', display: 'block' }} />
                                         ) : (
-                                            <span style={{ fontSize: 32 }}>{s.emoji ?? '📸'}</span>
+                                            <div style={{ width: '100%', aspectRatio: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <span style={{ fontSize: 32 }}>{s.emoji ?? '📸'}</span>
+                                            </div>
                                         )}
-                                        <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === s.id ? T.accent : T.ink }}>{s.name}</span>
+                                        <div style={{ fontSize: 11, fontWeight: 700, color: selected?.id === s.id ? T.accent : T.inkSoft, padding: '5px 2px', textAlign: 'center' }}>{s.name}</div>
                                     </button>
                                 ))}
                             </div>
