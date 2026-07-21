@@ -1234,7 +1234,13 @@ const AppContent: React.FC = () => {
                     setActiveQuickMenu(menu.label);
                     setTimeout(() => textareaRef.current?.focus(), 0);
                 })
-                .catch(e => alert(e.message || '포인트 차감에 실패했습니다.'));
+                .catch(e => {
+                    // 포인트 부족(402)은 apiService의 insufficient-points 이벤트가 이미
+                    // setShowPointModal(true)를 호출한다(게스트면 정식전환, 정회원이면 충전 모달) —
+                    // 여기서 또 alert를 띄우면 날것의 에러코드(INSUFFICIENT_POINTS)가 그대로 노출된다.
+                    if (e.code === 'INSUFFICIENT_POINTS') return;
+                    alert(e.message || '포인트 차감에 실패했습니다.');
+                });
             return;
         }
         if (menu.resultCard) {
