@@ -731,22 +731,17 @@ const AppContent: React.FC = () => {
     const [tarotReport, setTarotReport] = useState<{ id?: string; data: TarotReportData } | null>(null);
     const tarotAutoSendRef = useRef(false);
 
-    // 풀 리딩 종료 후: 세션 메시지에서 카드별 해석(요청 마커 다음 model 응답)을 수집해 보고서 저장.
+    // 풀 리딩 종료 후: 세션 메시지에서 종합 해석(요청 마커 다음 model 응답) 1건을 찾아 보고서 저장.
+    // (2026-07-21: 카드별 개별 해석 요청을 없애 종합 1건만 존재 — TarotCardModal 참고)
     const makeTarotReport = (drawn: { card: { kr: string; en: string; no: string; sym: string }; reversed: boolean; position: string }[]) => {
         const msgs = (sessions[activePersonaId]?.messages ?? []);
-        const markers = ['[타로 리딩 1/3', '[타로 리딩 2/3', '[타로 리딩 3/3', '[타로 리딩 종합]'];
-        const positions = ['과거', '현재', '미래', '종합'];
-        const interpretations: { position: string; text: string }[] = [];
-        for (let m = 0; m < markers.length; m++) {
-            const idx = msgs.findIndex(x => x.role === 'user' && x.text.includes(markers[m]));
-            if (idx < 0) continue;
-            const reply = msgs.slice(idx + 1).find(x => x.role === 'model' && x.text && !x.isStreaming);
-            if (reply) interpretations.push({ position: positions[m], text: reply.text });
-        }
-        if (interpretations.length < 2) {
+        const idx = msgs.findIndex(x => x.role === 'user' && x.text.includes('[타로 리딩 종합]'));
+        const reply = idx >= 0 ? msgs.slice(idx + 1).find(x => x.role === 'model' && x.text && !x.isStreaming) : undefined;
+        if (!reply) {
             alert('유나의 해석이 아직 도착하지 않았어요. 답변이 끝난 뒤 다시 눌러 주세요.');
             return;
         }
+        const interpretations = [{ position: '종합', text: reply.text }];
         const cards = drawn.map(d => ({ position: d.position, kr: d.card.kr, en: d.card.en, no: d.card.no, sym: d.card.sym, reversed: d.reversed }));
         const data: TarotReportData = { question: null, cards, interpretations, createdAt: new Date().toISOString() };
         tarotApi.save({ question: null, cards, interpretations })

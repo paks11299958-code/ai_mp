@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from 'react';
 
 // 🔮 타로 카드 뽑기 모달 (유나 전용 퀵메뉴, 2026-07-06)
-// 흐름: 질문 떠올리기 → 셔플 애니메이션 → 부채꼴에서 3장(과거/현재/미래) 선택
-// 카드를 뽑을 때마다 채팅으로 자동 전송 → 유나가 지식창고 기반으로 해석(채팅 스트림).
+// 흐름: 질문 떠올리기 → 셔플 애니메이션 → 부채꼴에서 3장(과거/현재/미래) 연속 선택(대기 없음)
+// → 3장 공개 후 "종합 리딩 듣기"로 한 번만 채팅 전송 → 유나가 지식창고 기반으로 종합 해석(채팅 스트림).
 // 해석을 읽는 동안 모달은 플로팅 칩으로 최소화(상태 유지 = 컴포넌트 언마운트 금지).
-// 3장 완료 후 "종합 리딩"까지 보내면 끝.
+// (2026-07-21: 카드별 개별 해석 요청을 없애 AI 호출 4회→1회로 단순화 — 사장 지시)
 
 interface TarotCardModalProps {
     onSend: (message: string) => void;   // 채팅 자동 전송 (App이 스트림 경로로 처리)
@@ -53,7 +53,7 @@ function shuffled<T>(arr: T[]): T[] {
     return a;
 }
 
-type Stage = 'intro' | 'shuffling' | 'spread' | 'revealed' | 'finished' | 'report';
+type Stage = 'intro' | 'shuffling' | 'spread' | 'finished' | 'report';
 
 export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose, isTyping, onMakeReport, mode = 'full' }) => {
     // 뽑을 자리: 풀 리딩=과거/현재/미래 3장, 오늘의 카드=오늘 1장
@@ -63,10 +63,7 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
     // 덱은 셔플 시점에 확정(뽑는 위치 = 그 카드). 역방향은 카드별 30%.
     const [deck, setDeck] = useState<{ card: typeof MAJOR_ARCANA[number]; reversed: boolean }[]>([]);
     const [drawn, setDrawn] = useState<DrawnCard[]>([]);
-    const [justRevealed, setJustRevealed] = useState<DrawnCard | null>(null);
     const [usedIdx, setUsedIdx] = useState<Set<number>>(new Set());
-
-    const positionNow = POSITIONS[drawn.length - (justRevealed ? 1 : 0)] ?? POSITIONS[drawn.length] ?? '미래';
 
     const doShuffle = () => {
         setStage('shuffling');
@@ -74,53 +71,41 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
         setTimeout(() => setStage('spread'), 1600);
     };
 
+    // 카드 선택: 뽑을 때마다 바로 drawn에 추가하고 대기 없이 계속 뽑게 한다(대기는 3장을
+    // 다 뽑은 뒤 종합 해석 1회에만 발생 — 개별 카드 해석 요청은 없앰).
     const pick = (idx: number) => {
-        if (usedIdx.has(idx) || justRevealed || drawn.length >= positions.length) return;
+        if (usedIdx.has(idx) || drawn.length >= positions.length) return;
         const d = deck[idx];
         const dc: DrawnCard = { card: d.card, reversed: d.reversed, position: positions[drawn.length] };
         setUsedIdx(prev => new Set(prev).add(idx));
-        setDrawn(prev => [...prev, dc]);
-        setJustRevealed(dc);
-        setStage('revealed');
-    };
-
-    const askYuna = () => {
-        if (!justRevealed) return;
-        const dir = justRevealed.reversed ? '역방향' : '정방향';
+        const next = [...drawn, dc];
+        setDrawn(next);
         if (mode === 'daily') {
-            onSend(`🌙 [오늘의 카드] '${justRevealed.card.kr}(${justRevealed.card.en})' ${dir}을 뽑았어. 오늘 하루의 흐름과 조언으로 해석해줘.`);
-            onClose();   // 해석은 채팅으로 — 한 장 의식은 여기서 마무리
+            // 오늘의 카드는 원래도 1장+즉시 해석 요청 구조 — 그대로 유지.
+            const dir = dc.reversed ? '역방향' : '정방향';
+            onSend(`🌙 [오늘의 카드] '${dc.card.kr}(${dc.card.en})' ${dir}을 뽑았어. 오늘 하루의 흐름과 조언으로 해석해줘.`);
+            onClose();
             return;
         }
-        const n = drawn.length;
-        onSend(`🔮 [타로 리딩 ${n}/3 · ${justRevealed.position}] '${justRevealed.card.kr}(${justRevealed.card.en})' ${dir} 카드를 뽑았어. 이 카드를 ${justRevealed.position} 자리의 의미로 해석해줘.`);
-        setJustRevealed(null);
-        if (n >= 3) setStage('finished');
-        else setStage('spread');
-        setMinimized(true);   // 해석 읽는 동안 칩으로
+        if (next.length >= positions.length) setStage('finished');
     };
 
     const askSummary = () => {
-        const parts = drawn.map(d => `${d.position}: ${d.card.kr} ${d.reversed ? '역방향' : '정방향'}`).join(', ');
-        onSend(`🔮 [타로 리딩 종합] 세 장을 모두 뽑았어 — ${parts}. 세 카드의 흐름을 연결해서 종합 리딩과 실행 조언을 들려줘.`);
+        const parts = drawn.map(d => `${d.position}: ${d.card.kr}(${d.card.en}) ${d.reversed ? '역방향' : '정방향'}`).join(', ');
+        onSend(`🔮 [타로 리딩 종합] 과거·현재·미래 세 장을 뽑았어 — ${parts}. 각 카드가 그 자리에서 무엇을 의미하는지와, 세 카드의 흐름을 연결한 종합 리딩·실행 조언을 들려줘.`);
         // 종합 응답까지 받으면 감정서(보고서)를 만들 수 있게 칩으로 대기
         setStage('report');
         setMinimized(true);
     };
 
-    // ── 최소화 칩 (해석 읽는 동안) ─────────────────────────────
+    // ── 최소화 칩 (종합 해석 읽는 동안만 등장 — 카드 뽑기 단계는 대기 없이 진행) ──
     if (minimized) {
-        const label = stage === 'report'
-            ? '📜 리딩 보고서 만들기'
-            : stage === 'finished'
-                ? '🔮 종합 리딩 듣기'
-                : `🔮 ${drawn.length + 1}번째 카드 뽑기 (${positions[drawn.length]})`;
+        const label = stage === 'report' ? '📜 리딩 보고서 만들기' : '🔮 종합 리딩 듣기';
         return (
             <button
                 onClick={() => {
                     if (isTyping) return;
                     if (stage === 'report') { onMakeReport?.(drawn); onClose(); return; }
-                    if (stage === 'finished') { askSummary(); return; }
                     setMinimized(false);
                 }}
                 className="fixed bottom-24 right-4 z-40 px-4 py-2.5 rounded-full shadow-xl text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-fuchsia-500 border border-purple-300/40 animate-pulse"
@@ -234,39 +219,33 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
                         </div>
                     )}
 
-                    {stage === 'revealed' && justRevealed && (
-                        <div className="text-center space-y-4">
-                            <div className="mx-auto w-36 h-56 rounded-xl border-2 border-amber-300/70 flex flex-col items-center justify-between py-3 tarot-flip"
-                                 style={{ background: 'linear-gradient(160deg,#f7edd8 0%,#efe0c3 100%)',
-                                          boxShadow: '0 8px 30px rgba(255,200,90,.25)' }}>
-                                <span className="text-purple-900 text-xs font-bold tracking-widest" style={{ fontFamily: 'serif' }}>{justRevealed.card.no}</span>
-                                <span className="text-6xl" style={{ transform: justRevealed.reversed ? 'rotate(180deg)' : 'none' }}>{justRevealed.card.sym}</span>
-                                <div>
-                                    <div className="text-purple-900 font-bold text-sm">{justRevealed.card.kr}</div>
-                                    <div className="text-purple-700/70 text-[10px]" style={{ fontFamily: 'serif' }}>{justRevealed.card.en}</div>
-                                </div>
+                    {stage === 'finished' && (
+                        <div className="text-center space-y-5 w-full">
+                            <p className="text-purple-100/90 text-sm">✨ 세 장을 모두 뽑았어!</p>
+                            <div className="flex justify-center gap-3">
+                                {drawn.map((d, i) => (
+                                    <div key={i} className="flex flex-col items-center gap-2">
+                                        <div className="w-20 h-32 rounded-lg border-2 border-amber-300/70 flex flex-col items-center justify-between py-2 tarot-flip"
+                                             style={{ background: 'linear-gradient(160deg,#f7edd8 0%,#efe0c3 100%)',
+                                                      boxShadow: '0 6px 22px rgba(255,200,90,.2)', animationDelay: `${i * 0.12}s` }}>
+                                            <span className="text-purple-900 text-[9px] font-bold tracking-widest" style={{ fontFamily: 'serif' }}>{d.card.no}</span>
+                                            <span className="text-4xl" style={{ transform: d.reversed ? 'rotate(180deg)' : 'none' }}>{d.card.sym}</span>
+                                            <div className="text-center leading-tight">
+                                                <div className="text-purple-900 font-bold text-[11px]">{d.card.kr}</div>
+                                            </div>
+                                        </div>
+                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full
+                                            ${d.reversed ? 'bg-rose-500/25 text-rose-200' : 'bg-emerald-500/25 text-emerald-200'}`}>
+                                            {d.position}
+                                        </span>
+                                    </div>
+                                ))}
                             </div>
                             <style>{`
                                 @keyframes tarotFlip { 0% { transform: rotateY(90deg); opacity:.3 } 100% { transform: rotateY(0deg); opacity:1 } }
-                                .tarot-flip { animation: tarotFlip .5s ease-out; }
+                                .tarot-flip { animation: tarotFlip .5s ease-out backwards; }
                             `}</style>
-                            <div className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-bold
-                                ${justRevealed.reversed ? 'bg-rose-500/25 text-rose-200' : 'bg-emerald-500/25 text-emerald-200'}`}>
-                                {justRevealed.position} · {justRevealed.reversed ? '역방향' : '정방향'}
-                            </div>
-                            <div>
-                                <button onClick={askYuna} disabled={isTyping}
-                                    className="px-6 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-fuchsia-500 shadow-lg hover:opacity-90 disabled:opacity-50">
-                                    🔮 유나에게 해석 듣기
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {stage === 'finished' && (
-                        <div className="text-center space-y-5">
-                            <div className="text-4xl">✨</div>
-                            <p className="text-purple-100/90 text-sm">세 장을 모두 뽑았어!<br />이제 흐름을 연결해 종합 리딩을 들려줄게.</p>
+                            <p className="text-purple-100/90 text-sm">이제 흐름을 연결해 종합 리딩을 들려줄게.</p>
                             <button onClick={askSummary} disabled={isTyping}
                                 className="px-6 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-lg hover:opacity-90 disabled:opacity-50">
                                 🌟 종합 리딩 듣기
