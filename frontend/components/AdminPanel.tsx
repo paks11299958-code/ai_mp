@@ -10,6 +10,7 @@ import { UsersPanel } from './admin/UsersPanel';
 import { AiIdeasPanel } from './admin/AiIdeasPanel';
 import { MarketingAssetsPanel } from './admin/MarketingAssetsPanel';
 import { SitesPanel } from './admin/SitesPanel';
+import { SkillsPanel } from './admin/SkillsPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
 import { PersonasPanel } from './admin/PersonasPanel';
@@ -35,7 +36,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer' | 'skills'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -93,6 +94,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
                             { key: 'ai-ideas',      label: 'AI 아이디어', icon: 'Lightbulb' },
                             { key: 'agent-growth',  label: '직원 성장',   icon: 'Sparkles' },
+                            { key: 'skills',        label: '스킬',       icon: 'Zap' },
                             { key: 'sites',         label: '독립사이트', icon: 'Globe' },
                             { key: 'toss-trader',   label: '토스 자동매매', icon: 'TrendingUp' },
                         ] },
@@ -179,6 +181,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'ai-ideas' && <AiIdeasPanel />}
                 {mainView === 'agent-growth' && <AgentGrowthPanel />}
                 {mainView === 'marketing-assets' && <MarketingAssetsPanel />}
+                {mainView === 'skills' && <SkillsPanel />}
                 {mainView === 'sites' && <SitesPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}

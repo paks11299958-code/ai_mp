@@ -1117,6 +1117,9 @@ export const adminApi = {
         get<{ name: string; url: string; desc: string }[]>('/admin/sites'),
     deleteSite: (name: string) =>
         del<{ ok: boolean; id: number }>(`/admin/sites/${name}`),
+    // 스킬 카탈로그 동기화 요청(큐) — 서버2 워커가 build_catalog.py 재실행 + 배포
+    syncSkills: () =>
+        post<{ ok: boolean; id: number }>('/admin/skills/sync'),
     // 포인트 전사 일별 결산
     getPointSettlement: (days = 30) =>
         get<{
