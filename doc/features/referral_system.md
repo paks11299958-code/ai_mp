@@ -143,6 +143,19 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 - (사장 결정) 온보딩 '친구 초대 성공' 미션 보상액 / 메인 초대 배너(HeroCard 어드민 업로드=개발 0).
 - 관찰 신호: 어드민 레퍼럴 탭 방문 수치 → 방문↑·가입 전환↓이면 P3 착수 가치 확인.
 
+## 레퍼럴 링크 방문자 임시계정 자동체험 (2026-07-21 — 사장 제안)
+
+**문제**: `?ref=코드`로 들어온 비회원은 무조건 가입폼(AuthModal register)이 떠서 체험 없이 가입부터 강요당했음(`arrivedViaReferral` 분기). 처음엔 임베드 위젯(`?embed=`)의 "가입없이 3회체험" 방식을 그대로 이식하려 했으나, 그건 페르소나 1명과 격리된 미니 채팅 API(`routes/aimp/embed.ts`)라 정식 사이트의 포인트/여러 페르소나 시스템을 못 쓴다는 한계가 있어 방향 전환.
+
+**구현**: 레퍼럴 방문자에게 **임시계정**을 자동 발급해 정식 사이트를 페르소나·기능 제한 없이 자유 체험시킨다.
+- `POST /auth/guest-register`: `provider='guest'` 계정 생성+로그인+보너스포인트 1,000P 지급(`grantSignupPoints` 재사용). IP당 10분 5회 레이트리밋(임베드의 `IP_BURST` 패턴과 동일 취지).
+- 프론트(`App.tsx`): `arrivedViaReferral`이면 가입폼 대신 자동으로 `guest-register` 호출 → 성공 시 "친구 초대로 오셨네요! 체험용 1,000P 드렸어요" 환영 알럿(`RewardAlertModal` kind='guestWelcome' 추가) → 정식 사이트 바로 체험.
+- 포인트 소진 시: 기존 충전모달(`PointModal`) 대신 신규 **정식전환 모달**(`GuestUpgradeModal.tsx`)로 이메일/전화 인증(기존 `send-verify`/`pendingVerification` 재사용) 후 닉네임·비밀번호 설정 유도. `POST /auth/upgrade-guest`가 `verify-register` 패턴을 재사용하되 `create` 대신 기존 게스트 row를 `update`(대화기록·포인트 그대로 유지, `provider`만 `local`로 전환).
+
+**★레퍼럴 보상 지급 시점**: 기존 `tryGrantReferral`은 "가입 즉시"가 아니라 "친구가 기능 1회 사용 시" 지급하는 어뷰징 방지 설계(위 0번 참고)였는데, 게스트는 임시계정 상태로도 바로 기능을 쓸 수 있어 그대로면 정식전환 없이도 보상이 나갈 위험이 있었음 → `tryGrantReferral`에 `provider==='guest'`면 스킵하는 가드를 추가하고, 보상은 **`upgrade-guest`(정식전환) 성공 직후에만** 트리거하도록 변경. 즉 임시계정으로 아무리 활동해도 보상은 안 나가고, 실제로 이메일/전화 인증까지 마쳐야 초대자+본인 각 1,000P가 지급된다.
+
+파일: `shared-api/routes/aimp/auth.ts`(`guest-register`·`upgrade-guest`), `shared-api/lib/referral.ts`(`tryGrantReferral` 가드), `ai_mp/frontend/components/GuestUpgradeModal.tsx`(신규), `ai_mp/frontend/App.tsx`. 배포: shared-api `33bf1f1`, ai_mp `7a4d8d8`+`50632d3`(닉네임 필수화 후속).
+
 ## 마케팅 채널 코드 (2026-07-15 — 유튜브 숏츠 QR 연계)
 
 - **개념**: `?ref=YOUTUBE` 같은 채널 코드는 회원 추천코드가 아니라 **유입 소스 표시**. 보상 없음, 측정만.

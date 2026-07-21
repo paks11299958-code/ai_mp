@@ -1,5 +1,18 @@
 # UI 개선 이력
 
+## 어드민 화면 정리 3건 (2026-07-21)
+- **레퍼럴 방문 일별 차트 날짜 버그**: `ReferralStatsPanel.tsx`의 x축 라벨이 `String(d.day).slice(5)`로 잘못 슬라이싱돼 `07-16T00:00:00.000Z`처럼 ISO 문자열이 그대로 노출되던 버그(서버가 Date를 ISO로 직렬화 → 프론트가 앞 5글자만 자르려던 게 실패). `String(d.day).slice(0, 10)`로 `YYYY-MM-DD` 정리 + 막대 위에 방문 카운트 숫자 추가 + 14일치 라벨을 대각선 배치(`rotate(45deg)`)로 겹침 방지.
+- **회원목록 가입일 시간 추가**: `UsersPanel.tsx`에서 `toLocaleDateString('ko-KR')`(예: `2026. 7. 21.`) → `toLocaleString('sv-SE').slice(0, 16)` 트릭으로 `2026-07-21 14:30`(날짜+시간) 표시. `sv-SE` 로케일이 `YYYY-MM-DD HH:mm:ss` 포맷을 반환하는 걸 이용.
+- **회원가입 닉네임 필수화**: 기존 "닉네임(선택)"이라 미입력 시 메인페이지 인사말이 이메일 앞부분으로 대체되던 문제 — 정식가입(`AuthModal.tsx`)·게스트 정식전환(`GuestUpgradeModal.tsx`) 폼 양쪽에서 `required`+프론트 검증 추가, 백엔드(`verify-register`·`upgrade-guest`)도 `!username?.trim()`이면 400 차단. 가입 환영 알럿(`RewardAlertModal.tsx`)에 "{닉네임}님, 가입을 축하합니다!" 반영. 메인페이지 인사말(`user.username || user.email.split('@')[0]`)은 기존 코드 그대로 — 닉네임이 항상 있으니 폴백이 사실상 안 타게 됨.
+
+## 스킬 카탈로그를 어드민 전용 메뉴로 승격 (2026-07-21)
+- `sites/skills/`(Claude 스킬·MCP·플러그인 탐색기)가 다른 Hermes 생성 독립사이트들과 섞여 "독립사이트 관리"(SitesPanel)에 있던 걸, 어드민 "시스템" 그룹에 **"스킬" 전용 탭**으로 분리(`SkillsPanel.tsx` 신규)하고 **동기화 버튼**을 붙였다.
+- 기존 "독립사이트 삭제"(site-delete) 큐잉 패턴 재사용: 버튼 클릭 → `POST /admin/skills/sync`가 `DevRequest`(source='skill-sync')에 INSERT만 하고 즉시 응답 → 서버2 `dev_request_worker.py`(2분 폴링)가 신규 `rag/skill_ops.py`의 `sync_catalog()` 호출 → `~/.claude/skills/_catalog/build_catalog.py` 재실행 → 산출물을 `sites/skills/index.html`로 복사 → git commit/push → Vercel 자동 재배포. `sites/README.md`에서 skills 행을 제거해 독립사이트 목록에는 더 이상 안 뜸.
+- 카탈로그 데이터도 최신화: 누락돼 있던 `logo-maker`·`shorts-maker` 스킬을 `skills_data.json`에 추가("콘텐츠 제작" 카테고리 신설), 43→45개(drift 경고 해소).
+
+## 타로 리딩 카드 뽑기 흐름 단순화 (2026-07-21)
+상세는 [tarot.md](tarot.md) 참고. 카드 3장을 대기 없이 연속으로 뽑게 하고 AI 종합 해석은 1회만 요청하도록 변경(기존 4회) — `TarotCardModal.tsx`, `App.tsx`의 `makeTarotReport`.
+
 ## 사이트 로고 교체 — Ploppy 브랜드 (2026-07-14)
 - **'✦ AI PERSONAS' 텍스트 → Ploppy 로고**(헤더·푸터, MainPageNew.tsx): 산호+민트 두 말풍선 캐릭터 이미지 + "Ploppy" 워드마크. 홈 이동 버튼 동작은 유지.
 - **로고 파일**: `public/ploppy-logo.png`(투명 배경 캐릭터). ★**Vite publicDir=레포 루트 `public/`**(frontend/public 아님) → `<img src="/ploppy-logo.png">`. 원본·후보는 `public/brand/`에 git 보관.
