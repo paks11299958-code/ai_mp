@@ -3,28 +3,14 @@ import { outfitApi, OutfitStyle } from '../services/apiService';
 import { usePoints } from '../contexts/PointsContext';
 import { shareResultImage } from '../services/referral';
 
-// 윤채린 전통의상 체험: 내 얼굴 사진 업로드 → 나라별 전통의상 선택 → 전신 스튜디오 화보 합성.
-// 얼굴 사진만으로 전신을 생성(백엔드 스튜디오 프롬프트). 진단 텍스트 없음(합성 결과만).
+// 윤채린 프로필 사진: 내 얼굴 사진 업로드 → 배경 컨셉(실내/야외/판타지) 선택 → 상반신 프로필 사진 합성.
+// (2026-07-21: 전통의상 체험에서 완전 교체 — 나라별 화보→배경 컨셉별 프로필 사진)
+// 얼굴 사진만으로 상반신을 생성(백엔드 스튜디오 프롬프트). 진단 텍스트 없음(합성 결과만).
 interface Props { personaId?: string; onClose: () => void }
 
 const T = {
     bg: '#FBF8F3', card: '#FFFFFF', line: '#F0E9DE', ink: '#2D2438',
     inkSoft: '#5B5168', inkMute: '#9089A1', accent: '#8E6FB7', accent2: '#A98AD0',
-};
-
-// 국기: 이모지(🇰🇷)는 Windows에서 'KR' 글자로 폴백돼 깨짐 → 우리 서버의 국기 이미지(public/flags/*.svg,
-// twemoji MIT)를 <img>로 표시해 모든 OS 동일. 나라 이름(DB country)→파일 매핑. 새 나라=SVG 추가+여기 한 줄.
-const FLAG_FILE: Record<string, string> = {
-    '대한민국': 'kr', '일본': 'jp', '중국': 'cn',
-};
-const CountryFlag: React.FC<{ country: string; size?: number }> = ({ country, size = 24 }) => {
-    const code = FLAG_FILE[country];
-    if (!code) return null; // 미매핑 나라는 국기 생략(카드 나라명 텍스트로 대체)
-    return (
-        <img src={`/flags/${code}.svg`} alt={`${country} 국기`} width={size} height={Math.round(size * 0.72)}
-             loading="lazy" decoding="async"
-             style={{ borderRadius: 3, boxShadow: '0 1px 3px rgba(0,0,0,0.18)', objectFit: 'cover', display: 'block' }} />
-    );
 };
 
 export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
@@ -86,12 +72,12 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
     const handleShareResult = async () => {
         if (!resultImage) return;
-        const caption = `${resultName || '전통의상'} 입은 내 모습 어때? AI로 입어봤어 👘`;
+        const caption = `${resultName || '프로필 사진'} 컨셉으로 찍어봤어! AI로 만들었어 📸`;
         const msg = await shareResultImage(proxyImageUrl(resultImage), 'outfit', caption);
         if (msg) { setShareToast(`🔗 ${msg}`); setTimeout(() => setShareToast(''), 2500); }
     };
 
-    const LOADING_STEPS = ['사진을 분석하고 있어요', '전통의상을 입히는 중이에요', '스튜디오 화보를 만들고 있어요'];
+    const LOADING_STEPS = ['사진을 분석하고 있어요', '배경을 합성하는 중이에요', '프로필 사진을 만들고 있어요'];
 
     useEffect(() => {
         if (resultImage) return;
@@ -106,7 +92,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
     useEffect(() => {
         setStyles(null); setSelected(null);
-        outfitApi.styles(gender).then(setStyles).catch(() => setError('의상 목록을 불러오지 못했어요.'));
+        outfitApi.styles(gender).then(setStyles).catch(() => setError('컨셉 목록을 불러오지 못했어요.'));
     }, [gender]);
 
     const handleFile = async (file: File) => {
@@ -134,7 +120,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
     const handleAnalyze = async () => {
         if (!base64) { setError('먼저 내 사진을 올려주세요.'); return; }
-        if (!selected) { setError('입어볼 의상을 선택해 주세요.'); return; }
+        if (!selected) { setError('컨셉을 선택해 주세요.'); return; }
         if (!requirePoints('outfit')) return;
         setAnalyzing(true); setError(null); setLoadingStep(0);
         const t1 = setTimeout(() => setLoadingStep(1), 2500);
@@ -174,7 +160,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                         }} />
                         {selected && (
                             <div style={{ fontSize: 13, color: T.accent, fontWeight: 700, marginBottom: 14 }}>
-                                {selected.emoji ?? '👘'} {selected.name} 입는 중
+                                {selected.emoji ?? '📸'} {selected.name} 컨셉으로 만드는 중
                             </div>
                         )}
                         <div style={{ textAlign: 'left', display: 'inline-block' }}>
@@ -201,8 +187,8 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
             <div className="max-w-md mx-auto px-4 py-5">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h2 style={{ fontFamily: 'Noto Serif KR, serif', fontSize: 20, fontWeight: 700, color: T.ink }}>👘 전통의상 체험</h2>
-                        <p style={{ fontSize: 12, color: T.inkMute, marginTop: 2 }}>내 얼굴로 세계 각국 전통의상을 입어보세요</p>
+                        <h2 style={{ fontFamily: 'Noto Serif KR, serif', fontSize: 20, fontWeight: 700, color: T.ink }}>📸 프로필 사진</h2>
+                        <p style={{ fontSize: 12, color: T.inkMute, marginTop: 2 }}>내 얼굴로 다양한 컨셉의 프로필 사진을 만들어보세요</p>
                     </div>
                     <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, color: T.inkMute, cursor: 'pointer' }}>✕</button>
                 </div>
@@ -233,11 +219,11 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                     /* ── 결과 화면 ── */
                     <div>
                         <div style={{ marginBottom: 14 }}>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 8, textAlign: 'center' }}>✨ {resultName} 입은 내 모습</div>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: T.accent, marginBottom: 8, textAlign: 'center' }}>✨ {resultName} 컨셉 프로필 사진</div>
                             <div style={{ position: 'relative' }}>
-                                <img src={resultImage} alt="합성 결과" style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover', borderRadius: 16, border: `2.5px solid ${T.accent}`, display: 'block' }} />
+                                <img src={resultImage} alt="합성 결과" style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', borderRadius: 16, border: `2.5px solid ${T.accent}`, display: 'block' }} />
                                 <div style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(142,111,183,0.92)', color: '#fff', fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 999 }}>
-                                    {selected?.emoji ?? '👘'} {resultName}
+                                    {selected?.emoji ?? '📸'} {resultName}
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
@@ -253,7 +239,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             </button>
                         </div>
                         <button onClick={() => { setResultImage(null); setResultName(''); }} style={{ width: '100%', marginTop: 4, padding: '13px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`, color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer' }}>
-                            다른 의상 또 입어보기
+                            다른 컨셉 또 만들어보기
                         </button>
                     </div>
                 ) : (
@@ -283,23 +269,27 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             ))}
                         </div>
 
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>③ 입어볼 의상 선택</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>③ 배경 컨셉 선택</div>
                         {styles === null ? (
                             <div style={{ textAlign: 'center', color: T.inkMute, padding: 30, fontSize: 14 }}>불러오는 중…</div>
                         ) : styles.length === 0 ? (
-                            <div style={{ textAlign: 'center', color: T.inkMute, padding: 30, fontSize: 14 }}>등록된 의상이 없어요.</div>
+                            <div style={{ textAlign: 'center', color: T.inkMute, padding: 30, fontSize: 14 }}>등록된 컨셉이 없어요.</div>
                         ) : (
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 16 }}>
                                 {styles.map(s => (
                                     <button key={s.id} onClick={() => setSelected(s)} style={{
                                         border: selected?.id === s.id ? `2.5px solid ${T.accent}` : `1px solid ${T.line}`,
-                                        borderRadius: 12, overflow: 'hidden', background: T.card, cursor: 'pointer', padding: '16px 4px 8px',
+                                        borderRadius: 12, overflow: 'hidden', background: T.card, cursor: 'pointer', padding: '8px 4px',
                                         boxShadow: selected?.id === s.id ? `0 6px 16px -6px ${T.accent}66` : 'none',
                                         display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
                                     }}>
-                                        <CountryFlag country={s.country} size={46} />
+                                        {s.imageUrl ? (
+                                            <img src={s.imageUrl} alt={s.name} width={54} height={54} loading="lazy"
+                                                 style={{ borderRadius: 8, objectFit: 'cover', display: 'block' }} />
+                                        ) : (
+                                            <span style={{ fontSize: 32 }}>{s.emoji ?? '📸'}</span>
+                                        )}
                                         <span style={{ fontSize: 12, fontWeight: 700, color: selected?.id === s.id ? T.accent : T.ink }}>{s.name}</span>
-                                        <span style={{ fontSize: 10, color: T.inkMute }}>{s.country}</span>
                                     </button>
                                 ))}
                             </div>
@@ -327,7 +317,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             background: (analyzing || busy) ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
                             color: '#fff', fontWeight: 700, fontSize: 15, cursor: (analyzing || busy) ? 'default' : 'pointer',
                         }}>
-                            {analyzing ? '입어보는 중… (10초쯤) 💭' : busy ? '⏳ 합성 대기 중… 잠시만요' : `✨ 입어보기${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
+                            {analyzing ? '만드는 중… (10초쯤) 💭' : busy ? '⏳ 합성 대기 중… 잠시만요' : `✨ 프로필 사진 만들기${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
                         </button>
                     </div>
                 )}

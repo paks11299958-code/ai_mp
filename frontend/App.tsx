@@ -1321,7 +1321,7 @@ const AppContent: React.FC = () => {
                             if (tp) { goTo('chat'); handlePersonaClick(tp.id); setTarotModalMode('full'); }
                             return;
                         }
-                        // 닮은꼴·헤어·전통의상은 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
+                        // 닮은꼴·헤어·프로필사진은 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
                         if (featureKey === 'lookalike' || featureKey === 'hair' || featureKey === 'outfit') {
                             const fp = personas.find(p => p.name === personaName);
                             if (fp) setActivePersonaId(fp.id);
@@ -1425,7 +1425,7 @@ const AppContent: React.FC = () => {
                     </ErrorBoundary>
                 )}
                 {showOutfitBoard && (
-                    <ErrorBoundary label="전통의상 체험 화면 오류" onClose={() => setShowOutfitBoard(false)}>
+                    <ErrorBoundary label="프로필 사진 화면 오류" onClose={() => setShowOutfitBoard(false)}>
                         <OutfitBoard personaId={activePersona?.id} onClose={() => setShowOutfitBoard(false)} />
                     </ErrorBoundary>
                 )}
@@ -1836,7 +1836,7 @@ const AppContent: React.FC = () => {
                 </ErrorBoundary>
             )}
             {showOutfitBoard && (
-                <ErrorBoundary label="전통의상 체험 화면 오류" onClose={() => setShowOutfitBoard(false)}>
+                <ErrorBoundary label="프로필 사진 화면 오류" onClose={() => setShowOutfitBoard(false)}>
                     <OutfitBoard personaId={activePersona?.id} onClose={() => setShowOutfitBoard(false)} />
                 </ErrorBoundary>
             )}

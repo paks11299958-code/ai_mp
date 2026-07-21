@@ -1,49 +1,51 @@
-# 전통의상 체험 (2026-07-12)
+# 프로필 사진 (2026-07-21, 전통의상 체험에서 완전 교체)
 
-내 얼굴 사진만 올리면, 세계 각국 **왕실 전통의상**을 입은 **전신 스튜디오 화보**를 AI가 만들어준다. 헤어 합성(gemini-2.5-flash-image)과 같은 엔진·패턴을 복제.
+내 얼굴 사진만 올리면, **배경 컨셉(실내/야외/판타지)**에 맞춘 **상반신 프로필 사진**을 AI가 만들어준다. 헤어 합성과 같은 엔진·패턴을 복제하되, 이미지 모델은 `gemini-2.5-flash-image`(preview로 밀림)에서 정식 출시된 **`gemini-3.1-flash-image`(Nano Banana 2)**로 업그레이드.
+
+> 이전 버전(2026-07-12~07-21): "전통의상 체험" — 나라별(한복/기모노/치파오) 왕실 의상을 입은 전신 화보. 사장 지시로 완전 교체(병행 유지 안 함). DB 테이블(`OutfitStyle`)·라우트 경로(`/api/outfit/*`)·GCS 경로(`outfit-tryon/`)는 그대로 재사용, 데이터·프롬프트만 교체.
 
 ## 흐름
-1. 윤채린 채팅 '전통의상' 버튼 (또는 기능 둘러보기 카드)
-2. 내 얼굴 사진 업로드(정면 셀카 OK, 전신 불필요) → 성별(👸 여성/🤴 남성, **디폴트 여성**) → 나라 선택(국기 카드)
-3. "✨ 입어보기" → ~10초 → 전신 화보 결과 + 📥 갤러리 저장 + 🔍 크게 보기 + 친구에게 자랑하기
+1. 윤채린 채팅 '프로필사진' 버튼 (또는 기능 둘러보기 카드 "프로필 사진")
+2. 내 얼굴 사진 업로드(정면 셀카 OK) → 성별(👸 여성/🤴 남성, **디폴트 여성**) → 배경 컨셉 선택(실내/야외/판타지 대표 이미지 카드)
+3. "✨ 프로필 사진 만들기" → ~10초 → 상반신 프로필 사진 결과 + 📥 갤러리 저장 + 🔍 크게 보기 + 친구에게 자랑하기
 
 ## 구성
 
-### DB — OutfitStyle (남3/여3)
-`styleKey · name · country · gender · emoji · imageUrl(nullable) · promptEn · order · isVisible`. HairStyle 구조 복제(gender→성별, country 추가). raw SQL CREATE + schema.prisma 반영(generate).
+### DB — OutfitStyle (남3/여3, 컬럼 재사용)
+`styleKey · name · country(→컨셉명으로 재사용) · gender · emoji · imageUrl(컨셉 대표 이미지) · promptEn(→배경 프롬프트로 재사용) · order · isVisible`. 스키마 변경 없음 — `replace-outfit-to-profile-concepts.cjs`(1회성)로 기존 6건(한복/기모노/치파오×남녀) 삭제 후 신규 6건 삽입.
+- 실내(`indoor_male`/`indoor_female`): 카페·서재 배경
+- 야외(`outdoor_male`/`outdoor_female`): 공원·거리 배경
+- 판타지(`fantasy_male`/`fantasy_female`): 몽환적 판타지 배경
 
-**★국기 표시(2026-07-13)**: 카드에 나라 국기를 보여준다. 국기 이모지(🇰🇷)는 **Windows 크롬에서 'KR' 글자로 폴백돼 깨짐**(OS별 지역표시문자 지원 차이) → **twemoji 국기 SVG(MIT)를 `public/flags/kr·jp·cn.svg`에 저장**하고 `<img src="/flags/{code}.svg">`로 표시(외부 CDN 의존 X, 모든 OS 동일). `FLAG_FILE` 매핑(나라명→코드). 새 나라 추가 시 SVG 파일 + 매핑 한 줄. (DB emoji 컬럼은 유지하나 카드는 국기 이미지 사용)
-- 남: 한복(왕)곤룡포 · 기모노(천황) · 용포(황제)
-- 여: 한복(왕비)원삼 · 기모노(황후) · 봉의(황후)
+**컨셉 대표 이미지**: 국기 이미지(twemoji SVG) 대신 `gemini-3.1-flash-image`로 컨셉별 정사각 일러스트 3장을 새로 생성(`gen-profile-concept-thumbs.cjs`, 1회성) → GCS `profile-photo-concepts/{key}.png`에 저장 → `OutfitStyle.imageUrl`에 반영. 프론트는 `<img src={s.imageUrl}>`로 표시(국기 매핑 코드 `FLAG_FILE`/`CountryFlag`는 완전 삭제).
 
-### 백엔드 (shared-api routes/aimp/outfit.ts)
-- `GET /outfit/styles?gender=male|female` — 목록(공개)
+### 백엔드 (shared-api routes/aimp/outfit.ts, 라우트 경로 그대로 재사용)
+- `GET /outfit/styles?gender=male|female` — 컨셉 목록(공개)
 - `GET /outfit/status` — 합성 혼잡 신호등(헤어·나이변환과 공용 imageGenBusy)
-- `GET /outfit/image?path=outfit-tryon/*` — GCS CORS 우회 중계(저장·공유 blob용, 경로 화이트리스트)
+- `GET /outfit/image?path=outfit-tryon/*` — GCS CORS 우회 중계(저장·공유 blob용, 경로 화이트리스트 그대로)
 - `POST /outfit/analyze` — 인증. 합성 성공 시에만 차감(429=무과금). gender를 gemini에 전달.
 
-### ★ 합성 = gemini-2.5-flash-image (lib/gemini.ts generateOutfitTryOn)
-얼굴 사진만으로 **전신을 새로 생성**(헤어처럼 부분 교체가 아니라 전신 생성). ⚠️global 리전만(getImageAI).
-**프롬프트 구조 = 나라별 의상(DB) + 공통 연출(코드):**
-- 나라별 의상 = DB `promptEn` (왕실 완전세트를 나라마다 명시: 관모+상의+하의)
-- 공통 연출(코드) = ①왕실 완전세트(head-to-toe, no bare head/missing lower garment) ②8등신·작은 얼굴 모델 비율(small head, 8-head-tall, long slender legs) ③은은한 대칭 비네팅 배경(★split/diagonal/abrupt boundary 금지 = 반반색 오류 방지, 완전 균일 단색은 밋밋해서 회피) ④여성=발끝까지 긴 치마로 다리 완전히 덮기(맨다리 노출 합성오류 방지)
-- **★얼굴 보존 프롬프트 강화(2026-07-13, A/B 검증 후 배포)**: 전신 생성 과정에서 얼굴이 어리고 갸름한 미인형으로 변형되던 문제 → 기존 "Keep the exact same facial features and identity" 한 줄을 "얼굴은 원본 정확 복제(눈·코·입·얼굴형·턱선·나이 유지, 성형·미화 금지)"로 강화. ★헤어와 달리 **"몸·의상·배경은 새로 생성 유지"를 명시**(전신 생성 기능이라 "얼굴만 변경금지"만 넣으면 안 됨). A/B(여왕비·남왕) 원본 얼굴 보존 확연 개선 실증. 원가 영향 없음(이미지 정액과금). 헤어 동일 강화와 세트. 시간여행(age-transform)은 **의도적 미적용**(노화=얼굴 변형이 목적).
-- `gender` 파라미터(디폴트 female): 여성=`as an elegant graceful woman`+다리 덮기 규칙, 남성=`as a dignified man`.
-- 비용/속도 ~53원·9~10초(헤어와 동일 엔진).
+### ★ 합성 = gemini-3.1-flash-image (lib/gemini.ts generateProfilePhoto, 구 generateOutfitTryOn에서 리네임)
+얼굴 사진만으로 **상반신 프로필 사진을 새로 생성**(전신이 아닌 가슴~머리 구도로 프레이밍 축소). ⚠️global 리전만(getImageAI).
+**프롬프트 구조 = 배경 컨셉(DB) + 공통 연출(코드):**
+- 배경 컨셉 = DB `promptEn`(실내/야외/판타지 배경·분위기 묘사)
+- 공통 연출(코드) = ①상반신·정중앙 구도, 카메라 정면 응시(social media profile picture 톤) ②자연스러운 어깨·미소·캐주얼한 옷차림 ③얕은 피사계심도로 배경 보케 처리(인물이 초점) ④품질 부스터 문구(masterpiece, 8K, professional color grading, cinematic lighting 등 — 사장이 공유한 프롬프트 참고 자료에서 인물사진에 유효한 부분만 발췌 반영)
+- **얼굴 보존 프롬프트는 그대로 재사용**(2026-07-13 A/B 검증된 문구): "얼굴은 원본 정확 복제(눈·코·입·얼굴형·턱선·나이 유지, 성형·미화 금지)", "몸/포즈/의상/배경만 새로 생성"
+- 왕실 세트·8등신·다리노출방지 등 전통의상 전용 문구는 전부 제거(프로필 사진 컨셉과 무관).
+- `gender` 파라미터(디폴트 female): 여성=`an elegant woman`, 남성=`a confident man`.
+- 모델 단가: `gemini-2.5-flash-image` $0.039/장 → `gemini-3.1-flash-image` $0.067/장(약 1.7배, `lib/aiUsage.ts` COST_PER_1K에 신규 항목 추가). 200pt 과금 대비 원가 영향 미미. 정식(stable) 출시 모델이라 장기 안정적(구 모델은 preview 등급으로 밀림, 관련 프리뷰 모델들은 2026-06-25 서비스 종료 예정이었음 — 실사용 확인 결과 2.5-flash-image 자체는 아직 preview로 살아있음).
 
 ### 프론트 (OutfitBoard.tsx)
-HairStyleBoard 복제. 얼굴 업로드→성별 토글→나라 카드→합성→결과(저장/크게보기/자랑하기). `App.tsx` FEATURE_ACTIONS.outfit + 보드 렌더 2곳 + 윤채린 컨텍스트 분기(lookalike/hair/outfit). personaFeatures NAME_FALLBACK['윤채린']에 outfit. vercel.json `/api/outfit` 프록시. apiService outfitApi.
+헤더 "📸 프로필 사진", 배경 컨셉 카드(국기 대신 이미지), 결과 화면 비율 `4/5`(전신)→`1/1`(상반신)로 변경. `App.tsx` FEATURE_ACTIONS.outfit + 보드 렌더 2곳(ErrorBoundary label "프로필 사진 화면 오류") + 윤채린 컨텍스트 분기(lookalike/hair/outfit, key는 유지) 그대로. personaFeatures 라벨 '전통의상'→'프로필사진', icon 'Globe'→'Image'. apiService outfitApi(함수명·경로 유지).
 
-### 기능 등록 (7항목)
-FEATURES_GRID id23(icon 'outfit' 신규 SVG) + FEATURE_SYNONYMS outfit(전통의상·한복·기모노·나라의상 등) + MpnFeatureIcon outfit case + 공지 초안 id22(isVisible:false, add-outfit-announcement.cjs). 과금 200pt(헤어 동일). 카드순서=미지정 시 최신 자동노출.
+### 기능 등록 (7항목, 메뉴명만 갱신)
+FEATURES_GRID id23(name/catch/desc 갱신, icon 'outfit' SVG를 카메라 아이콘으로 교체) + FEATURE_SYNONYMS outfit(프로필사진·프사·실내·야외·판타지 등, '전통의상'은 구검색어로 유지) + MpnFeatureIcon outfit case(카메라 아이콘) + AdminPanel 메뉴권한 표시명('전통의상 체험'→'프로필 사진'). 과금 200pt 그대로 유지(변경 요청 없었음).
 
-## 주의·교훈
-- **얼굴만→전신 생성**: 몸·포즈·비율을 AI가 지어냄(체형이 실제와 다를 수 있으나 "전통의상 입은 내 얼굴" 재미 컨셉엔 무방). 그래서 8등신 모델 비율 조정이 가능.
-- **왕실은 세트로**: 관모/왕관+상의+하의+신발을 같은 스타일로 명시 안 하면 하의가 빠지거나 관모가 안 맞음.
-- **여성 복식 다리 노출**: 앞자락 예복만 강조되고 받쳐입는 치마가 생략돼 맨다리가 나오던 합성오류 → "발끝까지 긴 치마, no bare legs" 강제.
-- **배경 반반색**: "gentle shadows"가 배경을 좌우로 갈리게 함 → 대칭 비네팅만 허용+split/diagonal 금지. 단 완전 균일 단색은 밋밋.
-- **표시 전용 vs 합성**: 견본 이미지는 화면 표시용(합성은 promptEn 텍스트만)이라 견본 없이 이모지로도 시작 가능.
-- 앞으로 나라 추가 = DB promptEn(관모+상의+하의 세트 명시)만 넣으면 공통 연출은 자동 적용.
+## 주의·교훈 (이전 버전에서 이어지는 것)
+- **얼굴만→새로 생성**: 옷·포즈·배경을 AI가 지어냄 — 프로필 사진 컨셉엔 오히려 자연스러움(전신 왕실 화보와 달리 상반신이라 체형 왜곡 이슈가 적음).
+- **얼굴 보존 프롬프트는 이 기능의 핵심 자산**: 07-13 A/B 검증으로 확립된 "얼굴은 정확 복제, 몸/배경만 생성" 문구는 컨셉이 바뀌어도 그대로 재사용해야 함.
+- **참고 프롬프트 자료 적용 시 주의**: 사장이 공유한 범용 프로필사진 프롬프트 예시들은 "완전히 새로운 가상 캐릭터 생성"(real person과 다르게)이 목적이라, 그 핵심 지시("Do not resemble any real person")는 우리 기능(얼굴 보존이 핵심)과 정반대라 반영하면 안 됨 — 품질 부스터 키워드·구도 지시만 선별 차용.
+- **표시 전용 vs 합성**: 컨셉 카드 이미지(GCS `profile-photo-concepts/`)는 화면 표시용이고, 실제 합성은 `promptEn` 텍스트만 사용.
 
 ## 향후
-- 나라 확장(아오자이·사리 등), 견본 이미지, 어드민 등록기(현재 수동 raw SQL), 극단 비율/배경 톤 옵션.
+- 배경 컨셉 확장(스튜디오, 여행지 등), 어드민 등록기(현재 수동 raw SQL), 톤/조명 옵션 커스터마이징.

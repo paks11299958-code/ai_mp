@@ -232,7 +232,7 @@ const FEATURE_LABELS: Record<string, string> = {
     'mathtutor':  'AI쌤 수학(풀이·출제)',
     'hair':       '헤어Style',
     'agetransform':'시간여행(나이변환)',
-    'outfit':     '전통의상 체험',
+    'outfit':     '프로필 사진',
     'lookalike':  '연예인 매칭',
     'golf':       '골프 스윙 분석',
     'webtoon':    '웹툰 보기',

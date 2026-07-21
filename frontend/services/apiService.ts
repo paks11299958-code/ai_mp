@@ -495,7 +495,7 @@ export const hairApi = {
         post<{ analysis: HairMatchResult; resultImageUrl: string | null }>('/hair/analyze', { imageBase64, mimeType, hairStyleId, personaId, studioBg }),
 };
 
-// ── 전통의상 체험(윤채린) ── 얼굴 사진 → 나라별 전통의상 전신 화보
+// ── 프로필 사진(윤채린) ── 얼굴 사진 → 배경 컨셉별 상반신 프로필 사진 (2026-07-21: 전통의상 체험에서 교체)
 export interface OutfitStyle { id: number; styleKey: string; name: string; country: string; gender?: string; emoji?: string; imageUrl?: string | null; description?: string }
 export const outfitApi = {
     styles: (gender?: 'male' | 'female') => get<OutfitStyle[]>(`/outfit/styles${gender ? `?gender=${gender}` : ''}`),
