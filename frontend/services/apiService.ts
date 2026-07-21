@@ -113,6 +113,14 @@ export const authApi = {
     verifyRegister: (type: 'EMAIL' | 'PHONE', identifier: string, code: string, password: string, username?: string) =>
         post<{ user: User; token: string }>('/auth/verify-register', { type, identifier, code, password, username, ref: getStoredRef() }),
 
+    // 레퍼럴 링크(?ref) 방문자 자동 체험 계정 — 가입 없이 임시계정+보너스1000P로 정식 사이트 체험.
+    guestRegister: () =>
+        post<{ user: User; token: string }>('/auth/guest-register', { ref: getStoredRef() }),
+
+    // 임시(게스트) 계정 → 정식 전환(이메일/전화 인증 후). 전환 완료 시 레퍼럴 보상도 이 시점에 지급됨.
+    upgradeGuest: (type: 'EMAIL' | 'PHONE', identifier: string, code: string, password: string, username?: string) =>
+        post<{ user: User; token: string }>('/auth/upgrade-guest', { type, identifier, code, password, username }),
+
     // 내 추천 현황(코드/초대인원/적립pt)
     referral: () =>
         get<{ code: string; invitedCount: number; rewardedCount: number; earnedPoints: number }>('/auth/referral'),

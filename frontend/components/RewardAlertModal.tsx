@@ -2,7 +2,7 @@ import React from 'react';
 import { Sparkles, Users, Gift } from 'lucide-react';
 
 interface RewardAlertModalProps {
-    kind: 'welcome' | 'mission';
+    kind: 'welcome' | 'mission' | 'guestWelcome';
     amount: number;
     onClose: () => void;
 }
@@ -11,10 +11,13 @@ interface RewardAlertModalProps {
  * 온보딩 보상 알럿(공용)
  * - welcome: 가입 환영 + 가입 보너스 + 남은 미션 안내
  * - mission: 미션 달성 축하 + 적립 포인트
+ * - guestWelcome: 레퍼럴 링크로 온 방문자 임시계정 자동생성 + 체험 포인트 안내
  * 글래스/크림·퍼플 톤, 모바일 우선.
  */
 export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount, onClose }) => {
-    const isWelcome = kind === 'welcome';
+    const isMission = kind === 'mission';
+    const isGuestWelcome = kind === 'guestWelcome';
+    const isWelcome = !isMission; // welcome/guestWelcome 공용 레이아웃(미션 안내 블록만 welcome 전용으로 아래서 추가 분기)
     return (
         <div
             onClick={onClose}
@@ -45,10 +48,12 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                 </div>
 
                 <h2 style={{ fontSize: 19, fontWeight: 800, color: '#2D2017', margin: '0 0 6px' }}>
-                    {isWelcome ? '가입을 축하합니다! 🎉' : '미션 완료! 🎉'}
+                    {isGuestWelcome ? '친구 초대로 오셨네요! 🎉' : isWelcome ? '가입을 축하합니다! 🎉' : '미션 완료! 🎉'}
                 </h2>
                 <p style={{ fontSize: 13, color: '#7A6A86', margin: '0 0 16px', lineHeight: 1.6 }}>
-                    {isWelcome
+                    {isGuestWelcome
+                        ? '체험용 포인트를 드렸어요.\n마음껏 둘러보세요!'.split('\n').map((t, i) => <span key={i}>{t}<br /></span>)
+                        : isWelcome
                         ? '가입해 주셔서 감사합니다.\n환영 보너스를 드렸어요.'.split('\n').map((t, i) => <span key={i}>{t}<br /></span>)
                         : '포인트가 적립되었어요.'}
                 </p>
@@ -59,15 +64,15 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                     borderRadius: 14, padding: '14px 12px', marginBottom: isWelcome ? 14 : 18,
                 }}>
                     <p style={{ fontSize: 12, color: '#8E6FB7', fontWeight: 600, margin: '0 0 2px' }}>
-                        {isWelcome ? '가입 축하금' : '미션 보상'}
+                        {isGuestWelcome ? '체험 포인트' : isWelcome ? '가입 축하금' : '미션 보상'}
                     </p>
                     <p style={{ fontSize: 26, fontWeight: 800, color: '#8E6FB7', margin: 0 }}>
                         +{amount.toLocaleString()}P
                     </p>
                 </div>
 
-                {/* 환영일 때만 남은 미션 안내 */}
-                {isWelcome && (
+                {/* 정식 가입일 때만 남은 미션 안내(체험 계정은 아직 미션 대상 아님) */}
+                {isWelcome && !isGuestWelcome && (
                     <div style={{ textAlign: 'left', marginBottom: 18, display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <p style={{ fontSize: 12.5, color: '#2D2017', fontWeight: 700, margin: 0 }}>
                             ✨ 미션을 완료하면 더 받을 수 있어요!

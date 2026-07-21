@@ -20,6 +20,7 @@ import { getPersonaFeatureKeys, FEATURE_BY_KEY } from './personaFeatures';
 import { MessageBubble } from './components/MessageBubble';
 import { AdminPanel } from './components/AdminPanel';
 import { AuthModal } from './components/AuthModal';
+import { GuestUpgradeModal } from './components/GuestUpgradeModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPageNew } from './components/LandingPageNew';
 import { MainPageNew, FEATURES_GRID } from './components/MainPageNew';
@@ -107,8 +108,8 @@ const AppContent: React.FC = () => {
         handleAuthSuccess,
         resetAuth,
     } = useAuth();
-    // 온보딩 알럿: 가입 환영 / 미션 달성 축하 (한 모달로 공용)
-    const [rewardAlert, setRewardAlert] = useState<{ kind: 'welcome' | 'mission'; amount: number } | null>(null);
+    // 온보딩 알럿: 가입 환영 / 미션 달성 축하 / 레퍼럴 체험계정 환영 (한 모달로 공용)
+    const [rewardAlert, setRewardAlert] = useState<{ kind: 'welcome' | 'mission' | 'guestWelcome'; amount: number } | null>(null);
     const handleMissionAwarded = useCallback((amount: number) => {
         setRewardAlert({ kind: 'mission', amount });
         // 잔액 즉시 갱신
@@ -122,6 +123,18 @@ const AppContent: React.FC = () => {
         if (isNewUser) setRewardAlert({ kind: 'welcome', amount: 1000 });
         // 공유 딥링크(?p / ?f) 대기 중이면 user 변경 감지 useEffect가 해당 화면으로 진입시킨다.
     }, [handleAuthSuccess, setShowAuthModal]);
+
+    // 레퍼럴 링크(?ref) 방문자 자동 체험계정 로그인 성공 — 환영 알럿만 문구가 다름(가입 보너스 아님).
+    const handleGuestAuthSuccess = useCallback((u: User, token: string) => {
+        handleAuthSuccess(u, token);
+        setShowAuthModal(false);
+        setRewardAlert({ kind: 'guestWelcome', amount: 1000 });
+    }, [handleAuthSuccess, setShowAuthModal]);
+
+    // 게스트(레퍼럴) 자동등록 진행 상태 — 선언은 여기, useEffect는 arrivedViaReferral 선언 뒤(아래)에 둔다
+    // (arrivedViaReferral useState보다 먼저 참조하면 TDZ 에러).
+    // 'idle'→'loading'→'done'|'failed'. failed면 기존처럼 가입폼으로 폴백.
+    const [guestRegisterState, setGuestRegisterState] = useState<'idle' | 'loading' | 'done' | 'failed'>('idle');
 
     // 학습자료(/learn) 게이트에서 온 로그인 복귀 — 이메일/카카오/모달 등 모든 로그인 경로 공통.
     // 게이트가 sessionStorage에 복귀 경로를 심고 ?login=1로 보냄 → 로그인 확정 시 원래 페이지로.
@@ -152,6 +165,20 @@ const AppContent: React.FC = () => {
     // 추천(바이럴) 링크로 막 들어왔는지(?ref 캡처). true면 비회원에게 곧장 가입 안내 화면 + 환영 혜택 배너.
     // ※ pendingDeepLink 초기화보다 먼저 실행돼야 하므로(ref 제거가 선행) 이 useState를 위에 둔다.
     const [arrivedViaReferral, setArrivedViaReferral] = useState<boolean>(() => captureRefFromUrl());
+
+    // 레퍼럴 링크(?ref)로 막 들어온 비회원 → 가입폼 대신 임시계정 자동생성+로그인(2026-07-21).
+    // failed면 렌더 쪽에서 기존처럼 가입폼으로 폴백.
+    useEffect(() => {
+        if (!arrivedViaReferral || user || guestRegisterState !== 'idle') return;
+        setGuestRegisterState('loading');
+        authApi.guestRegister()
+            .then(({ user: u, token }) => {
+                handleGuestAuthSuccess(u, token);
+                setGuestRegisterState('done');
+            })
+            .catch(() => setGuestRegisterState('failed'));
+    }, [arrivedViaReferral, user, guestRegisterState, handleGuestAuthSuccess]);
+
     const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string } | { kind: 'feature'; key: string } | null>(() => {
         const params = new URLSearchParams(window.location.search);
         const p = params.get('p');
@@ -1069,9 +1096,17 @@ const AppContent: React.FC = () => {
     const FAVORITABLE_KEYS = FEATURES_GRID.map(f => f.key);
 
     if (!user) {
-        // 바이럴 링크(?ref)로 막 들어온 비회원 → 곧장 가입폼 + 환영 혜택 배너.
-        // '돌아가기'를 누르면 플래그를 끄고 둘러보기로(가입 강요만 하지 않도록 탈출구 제공).
-        if (arrivedViaReferral) {
+        // 바이럴 링크(?ref)로 막 들어온 비회원 → 임시계정 자동생성+로그인 중(2026-07-21).
+        // 위 useEffect가 guest-register를 호출하는 동안 짧게 로딩만 노출 — 성공하면 user가 채워져
+        // 이 블록을 아예 벗어나고, 실패(failed)하면 기존처럼 가입폼으로 폴백(탈출구 유지).
+        if (arrivedViaReferral && guestRegisterState !== 'failed') {
+            return (
+                <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#FBF8F3' }}>
+                    <div style={{ fontSize: 13, color: '#8A7F96' }}>체험 준비 중…</div>
+                </div>
+            );
+        }
+        if (arrivedViaReferral && guestRegisterState === 'failed') {
             return (
                 <AuthModal
                     onSuccess={handleAuthSuccessWithWelcome}
@@ -1335,8 +1370,15 @@ const AppContent: React.FC = () => {
                     <UserProfileModal user={user} onClose={() => setShowUserProfile(false)} onUserUpdate={updated => setUser(prev => prev ? { ...prev, ...updated } : prev)} onAccountDeleted={() => { setShowUserProfile(false); handleLogout(); }} onInviteClick={() => { setShowUserProfile(false); setShowInviteModal(true); }} />
                 )}
                 {showPointModal && (
-                    <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)}
-                        onInviteClick={() => { setShowPointModal(false); setShowInviteModal(true); }} />
+                    user?.provider === 'guest' ? (
+                        <GuestUpgradeModal
+                            onSuccess={(u, token) => { handleAuthSuccess(u, token); setShowPointModal(false); }}
+                            onClose={() => setShowPointModal(false)}
+                        />
+                    ) : (
+                        <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)}
+                            onInviteClick={() => { setShowPointModal(false); setShowInviteModal(true); }} />
+                    )
                 )}
                 {showStockAnalysis && (
                     <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
@@ -1833,9 +1875,16 @@ const AppContent: React.FC = () => {
             {/* 퀵메뉴 로딩 오버레이 — 명리학 감정서 컨셉(팔괘 링 + 주제별 멘트) */}
             {quickMenuLoading && <QuickMenuLoading title={activeQuickMenu ?? ''} />}
 
-            {/* 포인트 모달 */}
+            {/* 포인트 모달 — 임시(게스트) 계정이면 충전 대신 정식 전환을 유도 */}
             {showPointModal && (
-                <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)} />
+                user?.provider === 'guest' ? (
+                    <GuestUpgradeModal
+                        onSuccess={(u, token) => { handleAuthSuccess(u, token); setShowPointModal(false); }}
+                        onClose={() => setShowPointModal(false)}
+                    />
+                ) : (
+                    <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)} />
+                )
             )}
 
             {/* 포인트 대시보드 */}
