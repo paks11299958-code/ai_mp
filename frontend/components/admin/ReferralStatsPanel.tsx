@@ -60,14 +60,18 @@ export const ReferralStatsPanel: React.FC = () => {
                 {daily.length === 0 ? (
                     <p className="text-xs text-gray-500">아직 방문 기록이 없습니다.</p>
                 ) : (
-                    <div className="flex items-end gap-1 h-20">
-                        {daily.map(d => (
-                            <div key={String(d.day)} className="flex-1 flex flex-col items-center gap-1" title={`${d.day}: ${d.n}회`}>
-                                <div className="w-full bg-purple-500/60 rounded-t"
-                                     style={{ height: `${Math.max(6, (d.n / maxDaily) * 64)}px` }} />
-                                <span className="text-[9px] text-gray-500">{String(d.day).slice(5)}</span>
-                            </div>
-                        ))}
+                    <div className="flex items-end gap-1 h-24 pb-14">
+                        {daily.map(d => {
+                            const dateStr = String(d.day).slice(0, 10); // "2026-01-02"
+                            return (
+                                <div key={dateStr} className="flex-1 flex flex-col items-center gap-1 relative" title={`${dateStr}: ${d.n}회`}>
+                                    <span className="text-[10px] font-semibold text-purple-300">{d.n}</span>
+                                    <div className="w-full bg-purple-500/60 rounded-t"
+                                         style={{ height: `${Math.max(6, (d.n / maxDaily) * 64)}px` }} />
+                                    <span className="text-[9px] text-gray-500 absolute top-full mt-1 origin-top-left rotate-45 whitespace-nowrap">{dateStr}</span>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>

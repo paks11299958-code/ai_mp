@@ -171,7 +171,7 @@ export const UsersPanel: React.FC = () => {
                                             <td className="px-4 py-3 text-right text-blue-300">{u.paidPoints.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-right text-yellow-300">{u.bonusPoints.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-right text-gray-400">{u.sessionCount}</td>
-                                            <td className="px-4 py-3 text-gray-500">{new Date(u.createdAt).toLocaleDateString('ko-KR')}</td>
+                                            <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleString('sv-SE').slice(0, 16)}</td>
                                             <td className="px-4 py-3">
                                                 <select
                                                     value={u.role}
