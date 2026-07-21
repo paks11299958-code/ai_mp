@@ -3,8 +3,8 @@ import { outfitApi, OutfitStyle } from '../services/apiService';
 import { usePoints } from '../contexts/PointsContext';
 import { shareResultImage } from '../services/referral';
 
-// 윤채린 프로필 사진: 내 얼굴 사진 업로드 → 배경 컨셉(실내/야외/판타지) 선택 → 상반신 프로필 사진 합성.
-// (2026-07-21: 전통의상 체험에서 완전 교체 — 나라별 화보→배경 컨셉별 프로필 사진)
+// 윤채린 프로필 사진: 내 얼굴 사진 업로드 → 컨셉(배경형: 실내/야외/판타지, 화풍형: 지브리/픽사/민화 등) 선택 → 상반신 프로필 사진 합성.
+// (2026-07-21: 전통의상 체험에서 완전 교체 — 나라별 화보→컨셉별 프로필 사진)
 // 얼굴 사진만으로 상반신을 생성(백엔드 스튜디오 프롬프트). 진단 텍스트 없음(합성 결과만).
 interface Props { personaId?: string; onClose: () => void }
 
@@ -269,7 +269,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             ))}
                         </div>
 
-                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>③ 배경 컨셉 선택</div>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: T.ink, marginBottom: 8 }}>③ 컨셉 선택</div>
                         {styles === null ? (
                             <div style={{ textAlign: 'center', color: T.inkMute, padding: 30, fontSize: 14 }}>불러오는 중…</div>
                         ) : styles.length === 0 ? (
