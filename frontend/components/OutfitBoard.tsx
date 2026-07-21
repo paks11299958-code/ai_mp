@@ -209,7 +209,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                         <span style={{ fontSize: 12, fontWeight: 600, color: busy ? '#B5453F' : '#3C8B5E' }}>
                             {busy
                                 ? `지금 합성 요청이 많아요 — 잠시 후 자동으로 확인돼요${busyRetrySec > 0 ? ` (~${busyRetrySec}초)` : ''}`
-                                : '지금 원활해요 — 바로 입어볼 수 있어요'}
+                                : '지금 원활해요 — 바로 만들 수 있어요'}
                         </span>
                         <style>{`@keyframes outfit-blink { 50% { opacity: 0.3; } }`}</style>
                     </div>
