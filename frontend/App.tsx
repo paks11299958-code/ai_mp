@@ -37,6 +37,7 @@ import { LuxuryBoard } from './components/LuxuryBoard';
 import { InsuranceBoard } from './components/InsuranceBoard';
 import { MarketingBoard } from './components/MarketingBoard';
 import { HomepageBoard } from './components/HomepageBoard';
+import { ShortsMakerBoard } from './components/ShortsMakerBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { HairStyleBoard } from './components/HairStyleBoard';
 import { OutfitBoard } from './components/OutfitBoard';
@@ -272,6 +273,7 @@ const AppContent: React.FC = () => {
         showClubBoard, setShowClubBoard,
         showMarketingBoard, setShowMarketingBoard,
         showHomepageBoard, setShowHomepageBoard,
+        showShortsMakerBoard, setShowShortsMakerBoard,
     } = useBoardToggles();
     const [comingSoonMsg, setComingSoonMsg] = useState('');
     const [shareToast, setShareToast] = useState('');  // 공유 링크 복사/공유 완료 안내
@@ -360,6 +362,7 @@ const AppContent: React.FC = () => {
         agetransform: () => setShowAgeBoard(true),
         marketing: () => setShowMarketingBoard(true),
         homepage: () => setShowHomepageBoard(true),
+        'shorts-maker': () => setShowShortsMakerBoard(true),
         learn: () => { window.location.href = '/learn'; }, // 박하진 학습자료 — 시리즈 목록(1편·2편 선택). 얼리리턴 라우트
     };
 
@@ -1409,6 +1412,9 @@ const AppContent: React.FC = () => {
                 {showHomepageBoard && (
                     <HomepageBoard onClose={() => setShowHomepageBoard(false)} />
                 )}
+                {showShortsMakerBoard && (
+                    <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
+                )}
                 {showEbookBoard && (
                     <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
                         <EbookBoard onClose={() => setShowEbookBoard(false)} />
@@ -1605,6 +1611,9 @@ const AppContent: React.FC = () => {
             )}
             {showHomepageBoard && (
                 <HomepageBoard onClose={() => setShowHomepageBoard(false)} />
+            )}
+            {showShortsMakerBoard && (
+                <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
             )}
             {showTodayNews && (
                 <TodayNewsBoard onClose={() => setShowTodayNews(false)} />

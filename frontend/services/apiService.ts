@@ -581,6 +581,34 @@ export const homepageApi = {
         post<{ id: number; status: string }>(`/homepage/requests/${requestId}/edits/${editId}/revert`, {}),
 };
 
+// 이아린 — 숏츠 만들기(이미지 1장 → 시나리오 5개 → 선택 1개 실제 제작).
+// 2단계 과금: ①리서치+시나리오5개(shorts_maker_research) ②영상제작(shorts_maker_produce).
+export interface ShortsScenario { angle: string; title: string; hook: string; summary: string; }
+export interface UserShortsRow {
+    id: number;
+    status: 'pending' | 'processing_research' | 'scenarios_ready' | 'producing' | 'processing_produce' | 'done' | 'failed';
+    formJson: string;
+    scenarios: ShortsScenario[];
+    selectedIndex: number | null;
+    hasVideo: boolean;
+    errorMessage: string | null;
+    pointsChargedResearch: number;
+    pointsChargedVideo: number;
+    createdAt: string;
+}
+export const shortsMakerApi = {
+    // 1단계: 이미지+폼 접수(리서치+시나리오5개 생성, 선차감). 202 → { id }.
+    create: (form: Record<string, string>, imageBase64: string) =>
+        post<{ id: number; status: string; pointsCharged: number }>('/shorts-maker/requests', { ...form, imageBase64 }),
+    get: (id: number) => get<UserShortsRow>(`/shorts-maker/requests/${id}`),
+    mine: () => get<UserShortsRow[]>('/shorts-maker/requests/mine'),
+    // 2단계: 시나리오 선택→실제 영상 제작(선차감). 202 → { id }.
+    select: (id: number, scenarioIndex: number) =>
+        post<{ id: number; status: string; pointsCharged: number }>(`/shorts-maker/requests/${id}/select`, { scenarioIndex }),
+    videoUrl: (id: number) => `${BASE}/shorts-maker/requests/${id}/video`,
+    delete: (id: number) => del<{ ok: boolean }>(`/shorts-maker/requests/${id}`),
+};
+
 export interface HomepageAdminRow extends HomepageRequestRow {
     userId: number;
     userName?: string | null;
