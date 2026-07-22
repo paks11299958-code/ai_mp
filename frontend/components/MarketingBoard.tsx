@@ -77,7 +77,10 @@ export const MarketingBoard: React.FC<Props> = ({ onClose, freeTrialUsed }) => {
     const failed = row?.status === 'failed';
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        // 모바일 하단 탭바(약 64px+safe-area, MainPageNew의 .mpn-tabbar)를 이 모달이 덮어써서
+        // 시트 하단부가 탭바 밑에 가려지던 문제 — 모바일에서만 그만큼 바닥 여백을 준다.
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4
+                         pb-[calc(64px+env(safe-area-inset-bottom))] sm:pb-4">
             <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
                 {/* 헤더 */}
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">

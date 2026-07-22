@@ -53,6 +53,10 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     const [mineList, setMineList] = useState<HomepageRequestRow[]>([]);
     const [editTarget, setEditTarget] = useState<HomepageRequestRow | null>(null);
     const [editPanelKey, setEditPanelKey] = useState(0);   // 적용 후 화면 통째로 재마운트용(아래 참조)
+    // 샘플 갤러리 미리보기 — target="_blank"가 인앱 웹뷰(카카오톡 등)에서 새 탭이 아니라
+    // 현재 화면을 그대로 대체해버려 "뒤로가기=앱 이탈"처럼 보이던 문제(2026-07-22 사장 지적).
+    // 외부로 나가지 않고 앱 안 iframe 모달로 띄운다.
+    const [previewSample, setPreviewSample] = useState<{ label: string; url: string } | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     // 열 때 내 신청 이력 확인 — 진행 중이면 대기 화면으로 복귀, 완성본 있으면 인트로에 노출.
@@ -143,7 +147,22 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <>
+        {/* 샘플 미리보기 — 외부 탭으로 안 나가고 앱 안 iframe으로(인앱 웹뷰에서 target="_blank"가
+            새 탭 대신 현재 화면을 대체해 "뒤로가기=앱 이탈"처럼 보이던 문제, 2026-07-22). */}
+        {previewSample && (
+            <div className="fixed inset-0 z-[60] bg-black/70 flex flex-col">
+                <div className="flex items-center justify-between px-4 py-3 bg-white shrink-0">
+                    <span className="text-sm font-bold text-gray-800">{previewSample.label} 미리보기</span>
+                    <button onClick={() => setPreviewSample(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1">×</button>
+                </div>
+                <iframe src={previewSample.url} title={previewSample.label} className="flex-1 w-full bg-white border-0" />
+            </div>
+        )}
+        {/* 모바일 하단 탭바(약 64px+safe-area, MainPageNew의 .mpn-tabbar)를 이 모달이 덮어써서
+            시트 하단부(가격 안내 등)가 탭바 밑에 가려지던 문제 — 모바일에서만 그만큼 바닥 여백을 준다. */}
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4
+                         pb-[calc(64px+env(safe-area-inset-bottom))] sm:pb-4">
             <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
                 {/* 헤더 */}
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
@@ -166,12 +185,12 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                 <p className="text-xs font-semibold text-gray-700">👀 이런 홈페이지가 나와요 — 눌러서 구경해 보세요</p>
                                 <div className="grid grid-cols-3 gap-2">
                                     {SAMPLES.map(s => (
-                                        <a key={s.slug} href={s.url} target="_blank" rel="noopener noreferrer"
+                                        <button key={s.slug} type="button" onClick={() => setPreviewSample({ label: s.label, url: s.url })}
                                            className="rounded-xl border border-indigo-100 bg-indigo-50/50 p-2.5 text-center hover:bg-indigo-50 transition-colors">
                                             <div className="text-2xl">{s.emoji}</div>
                                             <div className="text-[11px] font-semibold text-gray-700 mt-1">{s.label}</div>
                                             <div className="text-[10px] text-gray-400">{s.mood}</div>
-                                        </a>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
@@ -381,5 +400,6 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
