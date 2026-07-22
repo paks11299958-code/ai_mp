@@ -33,6 +33,7 @@ export type FeatureKey =
     | 'lookalike'
     | 'marketing'
     | 'homepage'
+    | 'shorts-maker'
     | 'learn';
 
 export interface FeatureMeta {
@@ -65,6 +66,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'agetransform', label: '시간여행',     icon: 'Clock',      color: '#9B5FA8', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
     { key: 'lookalike',   label: '연예인 매칭',    icon: 'Users',      color: '#8E6FB7', bgColor: '#F0E8F8',                  borderColor: '#C4A9E0' },
     { key: 'marketing',   label: 'AI 마케팅 글쓰기', icon: 'PenLine',  color: '#8E6FB7', bgColor: '#F3E9F4',                  borderColor: '#D4A8DC' },
+    { key: 'shorts-maker', label: '숏츠 만들기',   icon: 'Sparkles',  color: '#D85C95', bgColor: '#FDE6F0',                  borderColor: '#F4A4C6' },
     { key: 'learn',       label: '학습자료',       icon: 'BookOpen',   color: '#FF6B9D', bgColor: 'rgba(255,107,157,0.12)',   borderColor: '#FFB3D1' },
     { key: 'homepage',    label: '홈페이지 만들기', icon: 'Globe',     color: '#5C6AC4', bgColor: 'rgba(92,106,196,0.12)',    borderColor: '#AEB4E8' },
 ];
@@ -76,7 +78,7 @@ export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
 const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '서아':   ['news'],
     '윤채원': ['stock', 'hotkeyword'],
-    '이아린': ['used', 'hotkeyword', 'marketing'],
+    '이아린': ['used', 'hotkeyword', 'marketing', 'shorts-maker'],
     '신은비': ['luxury'],
     '지우':   ['mathtutor', 'club'],
     '박하진': ['homepage', 'learn'],
