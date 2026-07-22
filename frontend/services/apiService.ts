@@ -848,6 +848,36 @@ export const announcementApi = {
         del<{ ok: boolean }>(`/announcements/${id}`),
 };
 
+// 유튜브 숏츠 승인 큐 (어드민 — 서버2 shorts-factory 브릿지)
+export interface ShortsQueueItem {
+    id: string;
+    topic: string;
+    video: string;
+    title: string;
+    description: string;
+    hashtags: string[];
+    createdAt: string;
+    decision?: 'approved' | 'rejected';
+    resolvedAt?: string;
+    youtubeVideoId?: string;
+    youtubeUrl?: string;
+}
+export const shortsApi = {
+    getQueue: () =>
+        get<{ pending: ShortsQueueItem[]; approved: ShortsQueueItem[]; rejected: ShortsQueueItem[] }>('/admin/shorts/queue'),
+
+    getTopics: () =>
+        get<{ topics: string[] }>('/admin/shorts/topics'),
+
+    generate: (topic: string) =>
+        post<{ started: boolean; topic: string }>('/admin/shorts/generate', { topic }),
+
+    resolve: (id: string, decision: 'approved' | 'rejected') =>
+        post<{ result: string }>('/admin/shorts/resolve', { id, decision }),
+
+    videoUrl: (id: string) => `${BASE}/admin/shorts/video/${id}`,
+};
+
 // 온보딩 미션 보상 결과(즐겨찾기 저장 응답에 포함)
 export interface MissionResult {
     awarded: boolean;       // 이번에 새로 지급됐는지
