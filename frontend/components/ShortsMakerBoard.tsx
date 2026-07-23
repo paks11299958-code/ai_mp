@@ -16,6 +16,11 @@ interface Props {
 
 const PINK = '#D85C95';   // 아린 팔레트
 const MAX_IMAGES = 3;     // shared-api MAX_IMAGES와 동일(사장 확정 2026-07-23)
+// 상품/제품 모드(2026-07-23): 실물 사진은 재해석(재생성) 금지 원칙이라 다양성을 사진
+// 장수로 확보한다 — 앞면·옆면·위(또는 아래) 3장을 무조건 필수로 받고, 추가로 최대 5장까지
+// 더 받아(총 8장) 재료를 늘린다. shared-api MAX_IMAGES_PRODUCT와 동일하게 유지.
+const PRODUCT_SLOTS = ['앞면', '옆면', '위 또는 아래'] as const;
+const MAX_IMAGES_PRODUCT = 8;
 
 // 실제 매일 자동 생성되는 쇼츠 완성본 2편 — 신뢰 형성용 샘플(HomepageBoard 패턴과 동일 취지).
 const SAMPLES = [
@@ -60,6 +65,7 @@ const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', re
 export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'producing' | 'result' | 'list'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
+    const [isProduct, setIsProduct] = useState(false);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [reqId, setReqId] = useState<number | null>(null);
@@ -97,8 +103,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const onPickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
         const picked = Array.from(e.target.files || []);
         if (picked.length === 0) return;
-        const room = MAX_IMAGES - imageFiles.length;
-        if (room <= 0) { setError(`이미지는 최대 ${MAX_IMAGES}장까지 올릴 수 있어요.`); return; }
+        const max = isProduct ? MAX_IMAGES_PRODUCT : MAX_IMAGES;
+        const room = max - imageFiles.length;
+        if (room <= 0) { setError(`이미지는 최대 ${max}장까지 올릴 수 있어요.`); return; }
         const toAdd = picked.slice(0, room);
         if (toAdd.some(f => f.size > 6 * 1024 * 1024)) { setError('이미지는 장당 6MB 이내로 올려주세요.'); return; }
         setImageFiles(prev => [...prev, ...toAdd]);
@@ -107,13 +114,45 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         e.target.value = '';   // 같은 파일 재선택 가능하게
     };
 
+    // 상품 모드 3필수 슬롯(앞/옆/위아래) 전용 — 특정 인덱스에 사진을 끼워 넣거나 교체한다.
+    const onPickProductSlot = (slotIdx: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        if (file.size > 6 * 1024 * 1024) { setError('이미지는 장당 6MB 이내로 올려주세요.'); return; }
+        setImageFiles(prev => {
+            const next = [...prev];
+            next[slotIdx] = file;
+            return next;
+        });
+        setImagePreviews(prev => {
+            const next = [...prev];
+            next[slotIdx] = URL.createObjectURL(file);
+            return next;
+        });
+        setError(null);
+    };
+
     const removeImage = (idx: number) => {
+        if (isProduct && idx < PRODUCT_SLOTS.length) {
+            // 필수 슬롯은 비워두면 다시 채워야 하므로 자리만 비운다(배열 shift 금지 —
+            // 슬롯 라벨과 실제 사진 순서가 어긋나지 않도록).
+            setImageFiles(prev => { const next = [...prev]; next[idx] = undefined as unknown as File; return next; });
+            setImagePreviews(prev => { const next = [...prev]; next[idx] = undefined as unknown as string; return next; });
+            return;
+        }
         setImageFiles(prev => prev.filter((_, i) => i !== idx));
         setImagePreviews(prev => prev.filter((_, i) => i !== idx));
     };
 
+    const productSlotsFilled = () => isProduct && PRODUCT_SLOTS.every((_, i) => !!imageFiles[i]);
+
     const submit = async () => {
-        if (imageFiles.length === 0) { setError('이미지를 1장 이상 올려 주세요.'); return; }
+        if (isProduct) {
+            if (!productSlotsFilled()) { setError('제품 사진은 앞면·옆면·위(또는 아래) 3장이 모두 필요해요.'); return; }
+        } else if (imageFiles.length === 0) {
+            setError('이미지를 1장 이상 올려 주세요.'); return;
+        }
         if (form.biz.trim().length < 2) { setError('업종/상품명을 입력해 주세요.'); return; }
         if (form.strengths.trim().length < 2) { setError('핵심 장점을 입력해 주세요.'); return; }
         if (form.target.trim().length < 2) { setError('타겟 고객을 입력해 주세요.'); return; }
@@ -125,9 +164,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                 reader.onerror = reject;
                 reader.readAsDataURL(f);
             });
-            const images = await Promise.all(imageFiles.map(toB64));
+            const validFiles = imageFiles.filter((f): f is File => !!f);
+            const images = await Promise.all(validFiles.map(toB64));
             const body: Record<string, string> = {};
             (Object.keys(form) as (keyof FormState)[]).forEach(k => { const v = form[k].trim(); if (v) body[k] = v; });
+            if (isProduct) body.isProduct = 'true';
             const res = await shortsMakerApi.create(body, images);
             setReqId(res.id); setRow(null); setStep('waiting');
         } catch (e: any) {
@@ -302,29 +343,93 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <p className="text-xs text-gray-500">
                                 <b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.
                             </p>
-                            <div>
-                                <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                    얼굴/제품 이미지 * <span className="font-normal text-gray-400">(최대 {MAX_IMAGES}장 — 실제 사진을 참고해 대본에 맞게 활용해요)</span>
-                                </label>
-                                {imagePreviews.length > 0 && (
-                                    <div className="flex gap-2 mb-2 flex-wrap">
-                                        {imagePreviews.map((src, i) => (
-                                            <div key={i} className="relative">
-                                                <img src={src} alt={`업로드 ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
-                                                <button onClick={() => removeImage(i)} type="button"
-                                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
-                                            </div>
-                                        ))}
+                            <label className="flex items-start gap-2 bg-pink-50/60 border border-pink-100 rounded-lg px-3 py-2 cursor-pointer">
+                                <input type="checkbox" checked={isProduct} className="mt-0.5"
+                                       onChange={e => {
+                                           setIsProduct(e.target.checked);
+                                           setImageFiles([]); setImagePreviews([]); setError(null);
+                                       }} />
+                                <span className="text-xs text-gray-700">
+                                    <b>제품·상품 사진이에요</b>
+                                    <span className="block text-gray-500 font-normal mt-0.5">실물 그대로 보여드려요 — AI가 지퍼·로고 같은 디테일을 바꾸지 않고, 빛·각도만 다르게 보여줘요.</span>
+                                </span>
+                            </label>
+
+                            {isProduct ? (
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                        제품 사진 * <span className="font-normal text-gray-400">(앞면·옆면·위/아래 3장 필수, 추가로 최대 {MAX_IMAGES_PRODUCT - PRODUCT_SLOTS.length}장 더)</span>
+                                    </label>
+                                    <p className="text-[11px] text-gray-500 mb-2">실물과 다르면 안 되니 정확히 이 각도로 찍어주세요.</p>
+                                    <div className="grid grid-cols-3 gap-2 mb-2">
+                                        {PRODUCT_SLOTS.map((label, i) => {
+                                            const inputId = `product-slot-${i}`;
+                                            return (
+                                                <div key={i} className="relative">
+                                                    {imagePreviews[i] ? (
+                                                        <div className="relative">
+                                                            <img src={imagePreviews[i]} alt={label} className="w-full aspect-square object-cover rounded-lg border border-gray-100" />
+                                                            <button onClick={() => removeImage(i)} type="button"
+                                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                        </div>
+                                                    ) : (
+                                                        <label htmlFor={inputId}
+                                                               className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-pink-200 rounded-lg cursor-pointer hover:bg-pink-50/50 transition-colors text-center px-1">
+                                                            <span className="text-gray-400 text-[11px]">📷 {label} *</span>
+                                                        </label>
+                                                    )}
+                                                    <input id={inputId} type="file" accept="image/*" className="hidden" onChange={onPickProductSlot(i)} />
+                                                </div>
+                                            );
+                                        })}
                                     </div>
-                                )}
-                                {imageFiles.length < MAX_IMAGES && (
-                                    <div onClick={() => fileRef.current?.click()}
-                                         className="border-2 border-dashed border-pink-200 rounded-xl p-4 text-center cursor-pointer hover:bg-pink-50/50 transition-colors">
-                                        <div className="text-gray-400 text-xs py-4">📷 눌러서 이미지를 올려주세요 ({imageFiles.length}/{MAX_IMAGES})</div>
-                                    </div>
-                                )}
-                                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
-                            </div>
+                                    {imagePreviews.length > PRODUCT_SLOTS.length && (
+                                        <div className="flex gap-2 mb-2 flex-wrap">
+                                            {imagePreviews.slice(PRODUCT_SLOTS.length).map((src, j) => {
+                                                const i = j + PRODUCT_SLOTS.length;
+                                                return (
+                                                    <div key={i} className="relative">
+                                                        <img src={src} alt={`추가 ${j + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                        <button onClick={() => removeImage(i)} type="button"
+                                                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    {imageFiles.length < MAX_IMAGES_PRODUCT && (
+                                        <div onClick={() => fileRef.current?.click()}
+                                             className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors">
+                                            <div className="text-gray-400 text-xs py-2">➕ 다른 각도 사진 추가(선택, {imageFiles.length}/{MAX_IMAGES_PRODUCT})</div>
+                                        </div>
+                                    )}
+                                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
+                                </div>
+                            ) : (
+                                <div>
+                                    <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                        얼굴/제품 이미지 * <span className="font-normal text-gray-400">(최대 {MAX_IMAGES}장 — 실제 사진을 참고해 대본에 맞게 활용해요)</span>
+                                    </label>
+                                    {imagePreviews.length > 0 && (
+                                        <div className="flex gap-2 mb-2 flex-wrap">
+                                            {imagePreviews.map((src, i) => (
+                                                <div key={i} className="relative">
+                                                    <img src={src} alt={`업로드 ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                    <button onClick={() => removeImage(i)} type="button"
+                                                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                    {imageFiles.length < MAX_IMAGES && (
+                                        <div onClick={() => fileRef.current?.click()}
+                                             className="border-2 border-dashed border-pink-200 rounded-xl p-4 text-center cursor-pointer hover:bg-pink-50/50 transition-colors">
+                                            <div className="text-gray-400 text-xs py-4">📷 눌러서 이미지를 올려주세요 ({imageFiles.length}/{MAX_IMAGES})</div>
+                                        </div>
+                                    )}
+                                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
+                                </div>
+                            )}
                             <input value={form.biz} onChange={set('biz')} placeholder="업종/상품명 * (예: 동네 베이커리, 수제 핸드크림)"
                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
                             <textarea value={form.strengths} onChange={set('strengths')} rows={2}
