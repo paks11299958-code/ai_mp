@@ -914,6 +914,9 @@ export const shortsApi = {
     resolve: (id: string, decision: 'approved' | 'rejected') =>
         post<{ result: string }>('/admin/shorts/resolve', { id, decision }),
 
+    delete: (id: string, section: 'approved' | 'rejected') =>
+        post<{ result: string }>('/admin/shorts/delete', { id, section }),
+
     videoUrl: (id: string) => `${BASE}/admin/shorts/video/${id}`,
 };
 

@@ -2,6 +2,30 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { shortsApi, ShortsQueueItem, ShortsStatus } from '../../services/apiService';
 import { Icon } from '../Icons';
 
+// 드롭다운에 표시할 한글 기능카드 명칭 — agent-api KNOWN_TOPICS(영문 키)와 1:1 대응.
+// 새 소재 추가 시 agent-api/routers/shorts.py의 KNOWN_TOPICS와 함께 여기도 갱신.
+const TOPIC_LABELS: Record<string, string> = {
+    hair: 'AI 헤어스타일 시뮬레이션',
+    outfit: 'AI 프로필 사진 만들기',
+    lookalike: '연예인 매칭(닮은꼴 찾기)',
+    agetransform: '시간여행(나이 변환)',
+    mathtutor: 'AI쌤(수학 문제 풀이)',
+    hotkeyword: '핫쇼핑키워드',
+    'golf-swing': '골프 스윙 분석',
+    ebook: '전자책 만들기',
+    used: '중고거래 판매글 작성',
+    luxury: '명품 진위 감정',
+    insurance: '보험 분석 컨설팅',
+    club: '모임 출석 관리',
+    news: '오늘뉴스',
+    stock: '주식 분석',
+    marketing: 'AI 마케팅 글쓰기',
+    homepage: '홈페이지 만들기',
+    learn: '학습자료',
+    webtoon: 'AI 웹툰',
+    tarot: '타로 리딩',
+};
+
 // 유튜브 쇼츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
 // shared-api /admin/shorts 브릿지를 통해 조회·수동생성·승인/반려한다.
 // 실제 대본+TTS+ffmpeg 조립은 수십 초~1분 걸려 동기 응답이 불가능하므로,
@@ -77,6 +101,19 @@ export const ShortsAdminPanel: React.FC = () => {
         }
     };
 
+    const handleDelete = async (id: string, section: 'approved' | 'rejected') => {
+        if (!window.confirm('이 쇼츠를 완전히 삭제할까요? 영상 파일이 지워지며 되돌릴 수 없습니다.')) return;
+        setResolvingId(id);
+        try {
+            await shortsApi.delete(id, section);
+            await loadQueue();
+        } catch (e: any) {
+            alert('삭제 실패: ' + e.message);
+        } finally {
+            setResolvingId(null);
+        }
+    };
+
     if (loading) return <div className="flex-1 p-6 text-sm text-gray-400">불러오는 중…</div>;
 
     const renderItem = (item: ShortsQueueItem, section: 'pending' | 'approved' | 'rejected') => (
@@ -112,6 +149,17 @@ export const ShortsAdminPanel: React.FC = () => {
                             className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-red-700 disabled:opacity-60 text-white transition-colors"
                         >
                             ❌ 반려
+                        </button>
+                    </div>
+                )}
+                {(section === 'approved' || section === 'rejected') && (
+                    <div className="flex gap-2 mt-2">
+                        <button
+                            onClick={() => handleDelete(item.id, section)}
+                            disabled={resolvingId === item.id}
+                            className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-red-700 disabled:opacity-60 text-white transition-colors"
+                        >
+                            🗑 삭제
                         </button>
                     </div>
                 )}
@@ -185,7 +233,7 @@ export const ShortsAdminPanel: React.FC = () => {
                             onChange={e => setSelectedTopic(e.target.value)}
                             className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
                         >
-                            {topics.map(t => <option key={t} value={t}>{t}</option>)}
+                            {topics.map(t => <option key={t} value={t}>{TOPIC_LABELS[t] ? `${TOPIC_LABELS[t]} (${t})` : t}</option>)}
                         </select>
                         <button
                             onClick={handleGenerate}
