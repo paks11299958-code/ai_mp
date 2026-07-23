@@ -581,7 +581,7 @@ export const homepageApi = {
         post<{ id: number; status: string }>(`/homepage/requests/${requestId}/edits/${editId}/revert`, {}),
 };
 
-// 이아린 — 숏츠 만들기(이미지 1장 → 시나리오 5개 → 선택 1개 실제 제작).
+// 이아린 — 쇼츠 만들기(이미지 1장 → 시나리오 5개 → 선택 1개 실제 제작).
 // 2단계 과금: ①리서치+시나리오5개(shorts_maker_research) ②영상제작(shorts_maker_produce).
 export interface ShortsScenario { angle: string; title: string; hook: string; summary: string; }
 export interface UserShortsRow {
@@ -879,7 +879,7 @@ export const announcementApi = {
         del<{ ok: boolean }>(`/announcements/${id}`),
 };
 
-// 유튜브 숏츠 승인 큐 (어드민 — 서버2 shorts-factory 브릿지)
+// 유튜브 쇼츠 승인 큐 (어드민 — 서버2 shorts-factory 브릿지)
 export interface ShortsQueueItem {
     id: string;
     topic: string;

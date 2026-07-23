@@ -74,7 +74,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'homepage-reqs', label: '홈페이지 신청', icon: 'BookOpen' },
                             { key: 'kin-answer',    label: '지식인 답변', icon: 'Search' },
                             { key: 'marketing-assets', label: '마케팅 자산', icon: 'Megaphone' },
-                            { key: 'shorts',        label: '숏츠 관리', icon: 'Play' },
+                            { key: 'shorts',        label: '쇼츠 관리', icon: 'Play' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
                         { id: 'members', label: '회원·포인트', icon: 'Users', tabs: [
@@ -246,8 +246,8 @@ const FEATURE_LABELS: Record<string, string> = {
     'homepage_edit_text':   '홈페이지 수정(텍스트)',
     'homepage_edit_image':  '홈페이지 수정(AI 사진)',
     'homepage_edit_upload': '홈페이지 수정(내 사진)',
-    'shorts_maker_research': '숏츠 만들기(리서치+시나리오5개)',
-    'shorts_maker_produce':  '숏츠 만들기(영상 제작)',
+    'shorts_maker_research': '쇼츠 만들기(리서치+시나리오5개)',
+    'shorts_maker_produce':  '쇼츠 만들기(영상 제작)',
 };
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);

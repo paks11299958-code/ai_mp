@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { shortsApi, ShortsQueueItem, ShortsStatus } from '../../services/apiService';
 import { Icon } from '../Icons';
 
-// 유튜브 숏츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
+// 유튜브 쇼츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
 // shared-api /admin/shorts 브릿지를 통해 조회·수동생성·승인/반려한다.
 // 실제 대본+TTS+ffmpeg 조립은 수십 초~1분 걸려 동기 응답이 불가능하므로,
 // 생성 버튼은 즉시 반환되고 텔레그램에서처럼 이후 폴링으로 pending에 뜨는 걸 확인한다.
@@ -124,10 +124,10 @@ export const ShortsAdminPanel: React.FC = () => {
             <div className="max-w-2xl mx-auto space-y-5">
                 <div className="flex items-center gap-2">
                     <Icon name="Play" size={16} className="text-yellow-400" />
-                    <h3 className="text-sm font-bold text-white">숏츠 관리</h3>
+                    <h3 className="text-sm font-bold text-white">쇼츠 관리</h3>
                 </div>
 
-                {/* 서버 상태 — 서버2 agent-api 응답성 + 워커 크론 신선도 + 회원용 숏츠 대기열 */}
+                {/* 서버 상태 — 서버2 agent-api 응답성 + 워커 크론 신선도 + 회원용 쇼츠 대기열 */}
                 <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 space-y-2">
                     <p className="text-xs font-semibold text-gray-400">서버 상태</p>
                     {statusError && (
@@ -142,7 +142,7 @@ export const ShortsAdminPanel: React.FC = () => {
                             <div className="flex items-center gap-1.5">
                                 <span>{status.userShortsWorkerLog.exists ? '🟢' : '🟡'}</span>
                                 <span className="text-gray-300">
-                                    숏츠만들기 워커
+                                    쇼츠만들기 워커
                                     {status.userShortsWorkerLog.ageSeconds != null && (
                                         <span className="text-gray-500"> ({Math.round(status.userShortsWorkerLog.ageSeconds / 60)}분 전)</span>
                                     )}
@@ -189,7 +189,7 @@ export const ShortsAdminPanel: React.FC = () => {
                 <div>
                     <p className="text-xs font-semibold text-gray-400 mb-2">✅ 승인 대기 ({pending.length})</p>
                     <div className="space-y-2">
-                        {pending.length === 0 && <p className="text-xs text-gray-600 text-center py-6">승인 대기 중인 숏츠가 없어요.</p>}
+                        {pending.length === 0 && <p className="text-xs text-gray-600 text-center py-6">승인 대기 중인 쇼츠가 없어요.</p>}
                         {pending.map(item => renderItem(item, 'pending'))}
                     </div>
                 </div>
@@ -198,7 +198,7 @@ export const ShortsAdminPanel: React.FC = () => {
                 <div>
                     <p className="text-xs font-semibold text-gray-400 mb-2">📤 승인됨/업로드 ({approved.length})</p>
                     <div className="space-y-2">
-                        {approved.length === 0 && <p className="text-xs text-gray-600 text-center py-6">아직 승인된 숏츠가 없어요.</p>}
+                        {approved.length === 0 && <p className="text-xs text-gray-600 text-center py-6">아직 승인된 쇼츠가 없어요.</p>}
                         {approved.map(item => renderItem(item, 'approved'))}
                     </div>
                 </div>

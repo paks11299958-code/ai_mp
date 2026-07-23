@@ -374,7 +374,7 @@ export const FEATURES_GRID = [
     // learn(무료 학습자료, 구 id22)은 메인 카드에서 제거(2026-07-17 사장) — '홈페이지 만들기'와 혼동 방지.
     // 진입은 박하진 채팅의 '학습자료' 버튼(FEATURE_REGISTRY+DB features)으로만.
     { id: 24, numeral: 'XXIV',latin: 'Homepage',key: 'homepage',name: '홈페이지 만들기',  tag: 'AI 시안 제작',   catch: '신청서만 쓰면 우리 가게 홈페이지 완성 🏠', category: 'create', desc: '업종·상호·소개만 적으면 웹 전문가 박하진이 홈페이지 시안을 만들어 실제 링크로 드려요. 소스코드(zip)도 함께!', icon: 'homepage',  palette: { bg: '#E9EBF9', deep: '#AEB4E8', accent: '#5C6AC4' }, personaName: '박하진',  releasedAt: '2026-07-17' },
-    { id: 25, numeral: 'XXV', latin: 'Shorts',  key: 'shorts-maker',name: '숏츠 만들기', tag: 'AI 영상 제작',   catch: '이미지 1장으로 숏츠 시나리오 5개 뚝딱 🎬', category: 'create', desc: '이미지 1장과 업종·장점만 적으면 아린이가 서로 다른 숏츠 시나리오 5개를 만들어 드려요. 마음에 드는 걸 고르면 실제 영상으로 완성!', icon: 'sparkles',  palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '이아린',  releasedAt: '2026-07-22' },
+    { id: 25, numeral: 'XXV', latin: 'Shorts',  key: 'shorts-maker',name: '쇼츠 만들기', tag: 'AI 영상 제작',   catch: '이미지 1장으로 쇼츠 시나리오 5개 뚝딱 🎬', category: 'create', desc: '이미지 1장과 업종·장점만 적으면 아린이가 서로 다른 쇼츠 시나리오 5개를 만들어 드려요. 마음에 드는 걸 고르면 실제 영상으로 완성!', icon: 'sparkles',  palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '이아린',  releasedAt: '2026-07-22' },
 ];
 
 // 기능 연관 키워드(동의어) 맵 — 이름/설명에 없는 표현으로도 찾게 함.
@@ -404,7 +404,7 @@ export const FEATURE_SYNONYMS: Record<string, string[]> = {
     agetransform:['나이변환', '노화', '늙은', '미래의나', '나이든', '늙으면', '변환', '얼굴변환', '나이', '미래모습', '시간여행', '회춘', '젊어', '동안', '어릴때', '과거모습'],
     outfit:      ['프로필사진', '프사', '프로필', '증명사진', '컨셉사진', '실사', '지브리', '픽사', '민화', '베이비', '치비', '아기', '애니메이션', '캐릭터', '인생네컷', '셀카', '사진', '전통의상'],
     homepage:    ['홈페이지', '웹사이트', '홈피', '사이트', '사이트만들기', '홈페이지만들기', '사이트제작', '랜딩페이지', '가게홈페이지', '홈페이지제작', '웹', '소상공인', '창업', '학습', '배우기', '강의'],
-    'shorts-maker': ['숏츠', '쇼츠', '유튜브', '영상제작', '영상', '동영상', '릴스', '숏폼', '마케팅영상', '숏츠만들기', '쇼츠만들기', '시나리오', '아린'],
+    'shorts-maker': ['쇼츠', '숏츠', '유튜브', '영상제작', '영상', '동영상', '릴스', '숏폼', '마케팅영상', '쇼츠만들기', '숏츠만들기', '시나리오', '아린'],
 };
 
 // 기능이 검색어와 매칭되는지 — 이름/태그/설명(부분일치) + 연관 키워드(동의어)까지.

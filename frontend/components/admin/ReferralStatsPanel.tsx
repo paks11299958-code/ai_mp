@@ -80,7 +80,7 @@ export const ReferralStatsPanel: React.FC = () => {
                 <p className="text-sm font-semibold text-white mb-2">마케팅 채널 유입 (유튜브 QR 등)</p>
                 <p className="text-xs text-gray-500 mb-2">?ref=YOUTUBE 같은 채널 링크의 방문→가입 전환. 보상 없이 측정만 하는 코드입니다.</p>
                 {channels.length === 0 ? (
-                    <p className="text-xs text-gray-500">아직 채널 유입이 없습니다. — 숏츠 QR이 나가면 여기에 잡힙니다.</p>
+                    <p className="text-xs text-gray-500">아직 채널 유입이 없습니다. — 쇼츠 QR이 나가면 여기에 잡힙니다.</p>
                 ) : (
                     <table className="w-full text-xs text-gray-300">
                         <thead>

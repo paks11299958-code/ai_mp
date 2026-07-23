@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { shortsMakerApi, UserShortsRow } from '../services/apiService';
 
-// 이아린 — 숏츠 만들기 보드. 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오
+// 이아린 — 쇼츠 만들기 보드. 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오
 // 5개를 만들어 보여주고, 회원이 고른 1개만 실제 TTS+영상으로 제작한다(homepage 만들기와
 // 동일한 비동기 큐+포인트 선차감 패턴). 2단계 과금: ①리서치+시나리오5개 ②선택 후 영상 제작.
-// 사장 확정(2026-07-22): 참고 숏츠는 URL 직접 입력(자동 검색 X — 저작권/신뢰성 리스크 회피),
+// 사장 확정(2026-07-22): 참고 쇼츠는 URL 직접 입력(자동 검색 X — 저작권/신뢰성 리스크 회피),
 // TTS/자막은 마지막 단계에서 선택 언어(한/중/일/영/베)로.
 // 사장 확정(2026-07-23): 이미지 1장→최대 3장. 실제 업로드 사진을 "참고자료"로 대본 생성에
 // 함께 첨부(Vision) — AI가 어느 세그먼트에 어느 실사진이 맞는지 판단하고, 맞는 게 없는
@@ -17,7 +17,7 @@ interface Props {
 const PINK = '#D85C95';   // 아린 팔레트
 const MAX_IMAGES = 3;     // shared-api MAX_IMAGES와 동일(사장 확정 2026-07-23)
 
-// 실제 매일 자동 생성되는 숏츠 완성본 2편 — 신뢰 형성용 샘플(HomepageBoard 패턴과 동일 취지).
+// 실제 매일 자동 생성되는 쇼츠 완성본 2편 — 신뢰 형성용 샘플(HomepageBoard 패턴과 동일 취지).
 const SAMPLES = [
     { label: '헤어스타일 체험', emoji: '💇', url: 'https://youtube.com/shorts/znnbawP26zo' },
     { label: 'AI 프로필사진', emoji: '🖼️', url: 'https://youtube.com/shorts/UFdVxKrmF8E' },
@@ -144,7 +144,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const remove = async (id: number) => {
-        if (!confirm('이 숏츠를 삭제할까요?')) return;
+        if (!confirm('이 쇼츠를 삭제할까요?')) return;
         try {
             await shortsMakerApi.delete(id);
             setMineList(prev => prev.filter(r => r.id !== id));
@@ -163,7 +163,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
 
     return (
         <>
-        {/* 샘플/완성 숏츠 미리보기 — 유튜브 임베드(아직 완성 전 자기 영상은 자체 스트리밍). */}
+        {/* 샘플/완성 쇼츠 미리보기 — 유튜브 임베드(아직 완성 전 자기 영상은 자체 스트리밍). */}
         {previewSample && (
             <div className="fixed inset-0 z-[60] bg-black/70 flex flex-col">
                 <div className="flex items-center justify-between px-4 py-3 bg-white shrink-0">
@@ -195,7 +195,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
                         <span className="text-lg">🎬</span>
-                        <h2 className="text-base font-bold" style={{ color: PINK }}>숏츠 만들기</h2>
+                        <h2 className="text-base font-bold" style={{ color: PINK }}>쇼츠 만들기</h2>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
                 </div>
@@ -205,11 +205,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {step === 'intro' && (
                         <>
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                이미지 1장이면 마케팅 담당 <b>아린</b>이 <b>숏츠 시나리오 5개</b>를 만들어 드려요.
+                                이미지 1장이면 마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.
                                 마음에 드는 걸 고르면 실제 영상으로 완성해 드립니다.
                             </p>
                             <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">👀 이런 숏츠가 나와요 — 눌러서 구경해 보세요</p>
+                                <p className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {SAMPLES.map(s => (
                                         <button key={s.label} type="button" onClick={() => setPreviewSample(s)}
@@ -222,7 +222,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             </div>
                             {mineList.length > 0 && (
                                 <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-600 flex items-center justify-between gap-2">
-                                    <span>🎞️ 내가 만든 숏츠가 있어요</span>
+                                    <span>🎞️ 내가 만든 쇼츠가 있어요</span>
                                     <button onClick={() => setStep('list')}
                                             className="shrink-0 font-semibold underline" style={{ color: PINK }}>보러 가기</button>
                                 </div>
@@ -233,23 +233,23 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <button onClick={() => setStep('form')}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
                                     style={{ backgroundColor: PINK }}>
-                                ✨ 내 숏츠 만들기 시작
+                                ✨ 내 쇼츠 만들기 시작
                             </button>
                         </>
                     )}
 
-                    {/* [list] 내가 만든 숏츠 목록 */}
+                    {/* [list] 내가 만든 쇼츠 목록 */}
                     {step === 'list' && (
                         <>
                             <button onClick={() => setStep('intro')} className="text-xs text-gray-400">← 뒤로</button>
-                            <p className="text-sm font-semibold text-gray-800">내가 만든 숏츠</p>
+                            <p className="text-sm font-semibold text-gray-800">내가 만든 쇼츠</p>
                             {mineList.length === 0 && (
-                                <p className="text-xs text-gray-400 py-6 text-center">아직 만든 숏츠가 없어요.</p>
+                                <p className="text-xs text-gray-400 py-6 text-center">아직 만든 쇼츠가 없어요.</p>
                             )}
                             <button onClick={() => setStep('form')}
                                     className="w-full py-2.5 rounded-xl border text-sm font-semibold"
                                     style={{ borderColor: PINK, color: PINK }}>
-                                ✨ 새 숏츠 만들기
+                                ✨ 새 쇼츠 만들기
                             </button>
                             <div className="space-y-2">
                                 {mineList.map(r => {
@@ -258,7 +258,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     return (
                                         <div key={r.id} className="rounded-xl border border-gray-100 px-3 py-2.5 space-y-1.5">
                                             <div className="flex items-center justify-between gap-2">
-                                                <span className="text-sm font-medium text-gray-800 truncate">{bizName || `숏츠 #${r.id}`}</span>
+                                                <span className="text-sm font-medium text-gray-800 truncate">{bizName || `쇼츠 #${r.id}`}</span>
                                                 <span className={`text-[11px] px-2 py-0.5 rounded-full shrink-0 ${r.status === 'done' ? 'text-white' : 'text-gray-500 bg-gray-100'}`}
                                                       style={r.status === 'done' ? { backgroundColor: PINK } : undefined}>
                                                     {STATUS_LABEL[r.status] || r.status}
@@ -267,7 +267,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                             <div className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleString('ko-KR')}</div>
                                             {r.status === 'done' && r.hasVideo && (
                                                 <div className="flex items-center gap-3 pt-0.5">
-                                                    <button onClick={() => setPreviewSample({ label: bizName || `숏츠 #${r.id}`, url: shortsMakerApi.videoUrl(r.id) })}
+                                                    <button onClick={() => setPreviewSample({ label: bizName || `쇼츠 #${r.id}`, url: shortsMakerApi.videoUrl(r.id) })}
                                                             className="text-xs font-semibold underline" style={{ color: PINK }}>▶️ 보기</button>
                                                     <a href={shortsMakerApi.videoUrl(r.id)} download className="text-xs underline text-gray-400 hover:text-gray-600">📦 다운로드</a>
                                                     <button onClick={() => remove(r.id)}
@@ -351,9 +351,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     ))}
                                 </div>
                             </div>
-                            <input value={form.referenceUrl1} onChange={set('referenceUrl1')} placeholder="참고 숏츠 URL 1 (선택)"
+                            <input value={form.referenceUrl1} onChange={set('referenceUrl1')} placeholder="참고 쇼츠 URL 1 (선택)"
                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                            <input value={form.referenceUrl2} onChange={set('referenceUrl2')} placeholder="참고 숏츠 URL 2 (선택)"
+                            <input value={form.referenceUrl2} onChange={set('referenceUrl2')} placeholder="참고 쇼츠 URL 2 (선택)"
                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
                             <div>
                                 <input value={form.qrUrl} onChange={set('qrUrl')} placeholder="QR로 연결할 주소 (선택, 예: 스마트스토어·카카오채널)"
@@ -375,7 +375,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
                             <p className="text-sm text-gray-700">아린이 업종을 분석하고 시나리오 5개를 준비하고 있어요...</p>
                             <p className="text-xs text-gray-400">보통 30초~1분 정도 걸려요.</p>
-                            <p className="text-xs text-gray-400">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 숏츠"에서 확인하세요.</p>
+                            <p className="text-xs text-gray-400">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 쇼츠"에서 확인하세요.</p>
                         </div>
                     )}
 
@@ -430,7 +430,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     })}
                                 </div>
                                 <p className="text-xs text-gray-400 text-center">사진을 장면마다 새로 그려서 보통 3~5분 정도 걸려요.</p>
-                                <p className="text-xs text-gray-400 text-center">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 숏츠"에서 확인하세요.</p>
+                                <p className="text-xs text-gray-400 text-center">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 쇼츠"에서 확인하세요.</p>
                             </div>
                         );
                     })()}
@@ -438,11 +438,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {/* [result-완성] */}
                     {step === 'result' && done && row && (
                         <div className="space-y-3">
-                            <p className="text-sm font-semibold text-gray-800 text-center">🎉 숏츠가 완성됐어요!</p>
+                            <p className="text-sm font-semibold text-gray-800 text-center">🎉 쇼츠가 완성됐어요!</p>
                             <video src={shortsMakerApi.videoUrl(row.id)} controls className="w-full rounded-xl bg-black" style={{ aspectRatio: '9/16', maxHeight: 480 }} />
                             <div className="flex items-center justify-center gap-4 text-xs">
                                 <a href={shortsMakerApi.videoUrl(row.id)} download className="underline font-semibold" style={{ color: PINK }}>📦 다운로드</a>
-                                <button onClick={reset} className="underline text-gray-500">다른 숏츠 만들기</button>
+                                <button onClick={reset} className="underline text-gray-500">다른 쇼츠 만들기</button>
                             </div>
                         </div>
                     )}
