@@ -44,6 +44,13 @@ const PROGRESS_STEPS: { key: 'script' | 'images' | 'tts' | 'verify'; label: stri
     { key: 'verify', label: '완성본을 마지막으로 점검하고 있어요' },
 ];
 
+// 시나리오 준비(waiting) 단계 세부 진행상황 — process_research가 기록하는 순서와 1:1 대응
+// (research→scenarios). 사장 피드백(2026-07-23): 이 단계도 스피너만 돌아서 답답함.
+const WAITING_STEPS: { key: 'research' | 'scenarios'; label: string }[] = [
+    { key: 'research', label: '업종·트렌드를 조사하고 있어요' },
+    { key: 'scenarios', label: '서로 다른 시나리오 5개를 쓰고 있어요' },
+];
+
 interface FormState {
     biz: string; strengths: string; target: string; mood: string;
     referenceUrl1: string; referenceUrl2: string; language: string; qrUrl: string;
@@ -370,14 +377,36 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     )}
 
                     {/* [waiting] 시나리오 생성 대기 */}
-                    {step === 'waiting' && (
-                        <div className="py-8 text-center space-y-3">
-                            <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
-                            <p className="text-sm text-gray-700">아린이 업종을 분석하고 시나리오 5개를 준비하고 있어요...</p>
-                            <p className="text-xs text-gray-400">보통 30초~1분 정도 걸려요.</p>
-                            <p className="text-xs text-gray-400">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 쇼츠"에서 확인하세요.</p>
-                        </div>
-                    )}
+                    {step === 'waiting' && (() => {
+                        const curIdx = WAITING_STEPS.findIndex(s => s.key === row?.progressStep);
+                        return (
+                            <div className="py-6 space-y-4">
+                                <p className="text-sm text-gray-700 text-center font-semibold">아린이 업종을 분석하고 시나리오 5개를 준비하고 있어요</p>
+                                <div className="space-y-2.5 max-w-xs mx-auto">
+                                    {WAITING_STEPS.map((s, i) => {
+                                        const isDone = curIdx >= 0 && i < curIdx;
+                                        const isCurrent = i === curIdx;
+                                        return (
+                                            <div key={s.key} className="flex items-center gap-2">
+                                                {isDone ? (
+                                                    <span className="w-4 h-4 shrink-0 flex items-center justify-center text-white text-[10px] rounded-full" style={{ backgroundColor: PINK }}>✓</span>
+                                                ) : isCurrent ? (
+                                                    <span className="w-4 h-4 shrink-0 animate-spin border-2 border-t-transparent rounded-full" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
+                                                ) : (
+                                                    <span className="w-4 h-4 shrink-0" />
+                                                )}
+                                                <span className={`text-xs ${isCurrent ? 'text-gray-800 font-semibold' : isDone ? 'text-gray-400' : 'text-gray-300'}`}>
+                                                    {s.label}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-gray-400 text-center">보통 30초~1분 정도 걸려요.</p>
+                                <p className="text-xs text-gray-400 text-center">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 쇼츠"에서 확인하세요.</p>
+                            </div>
+                        );
+                    })()}
 
                     {/* [scenarios] 시나리오 5개 중 선택 */}
                     {step === 'scenarios' && row && (
