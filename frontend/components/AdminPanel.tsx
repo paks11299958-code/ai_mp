@@ -246,6 +246,8 @@ const FEATURE_LABELS: Record<string, string> = {
     'homepage_edit_text':   '홈페이지 수정(텍스트)',
     'homepage_edit_image':  '홈페이지 수정(AI 사진)',
     'homepage_edit_upload': '홈페이지 수정(내 사진)',
+    'shorts_maker_research': '숏츠 만들기(리서치+시나리오5개)',
+    'shorts_maker_produce':  '숏츠 만들기(영상 제작)',
 };
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
@@ -261,6 +263,12 @@ const FEATURE_COST_KRW: Record<string, number> = {
     'homepage_edit_text': 0,      // claude 구독 1회 호출(API 과금 아님)
     'homepage_edit_image': 70,    // 나노바나나 1장 재생성
     'homepage_edit_upload': 5,    // Gemini 안전검수 1회(텍스트 판정)
+    'shorts_maker_research': 5,   // Gemini flash 리서치+시나리오5개(텍스트만, 저렴)
+    // 2026-07-23: Veo 3.1 fast 도입 — 세그먼트당 원가가 나노바나나(57원) vs Veo(약 1,100~1,650원)로
+    // 12~18배 차이. LLM이 매번 손동작 세그먼트를 만들진 않아(실측: 시나리오에 명시 안 하면 0개)
+    // 평균 추정치로 잡음 — Veo 미사용 시 약 350원(나노바나나 6장), 사용 시 최대 ~2,000원.
+    // 실사용 데이터 쌓이면 재산정 필요.
+    'shorts_maker_produce': 800,
 };
 const PT_TO_KRW = 1;   // 1pt = 1원 (2026-06-17 전환)
 
