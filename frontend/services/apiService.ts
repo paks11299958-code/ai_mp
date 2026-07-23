@@ -897,7 +897,7 @@ export interface ShortsStatus {
     agentApi: boolean;
     userShortsWorkerLog: { exists: boolean; ageSeconds: number | null };
     dailyShortCronLog: { exists: boolean; ageSeconds: number | null };
-    userShortsQueue: { ok: boolean; counts?: Record<string, number>; error?: string };
+    userShortsQueue: { ok: boolean; waiting?: Record<string, number>; completed?: Record<string, number>; error?: string };
 }
 export const shortsApi = {
     getStatus: () => get<ShortsStatus>('/admin/shorts/status'),

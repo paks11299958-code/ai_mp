@@ -414,3 +414,16 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   인덱스 (status)·(requestId).
 - 흐름·아키텍처 결정 이유(배포 지연 근본 해결)=doc/features/homepage_builder.md '채팅 편집기' 섹션.
 - 단가 폴백: text=100P, image=200P, upload=100P(MenuLimit 미등록 시 코드 폴백, 정식 등록은 어드민).
+
+## UserShorts (2026-07-22 신설, 쇼츠 만들기 — raw SQL 전용, prisma schema 미반영)
+- 2단계 과금 큐: `id SERIAL PK, "userId" INT, status TEXT(pending|processing_research|
+  scenarios_ready|producing|processing_produce|done|failed), "formJson" TEXT(업종/장점/타겟/톤/
+  언어/참고URL), "imagePath" TEXT(업로드 이미지, JSON 배열 최대 3장 — 2026-07-23 이전 접수분은
+  단일 base64 문자열 하위호환), "researchJson", "scenariosJson"(시나리오 5개, 각 항목에
+  `visual_style_ref` 포함), "selectedIndex" INT, "scriptJson", "videoPath", "videoData" BYTEA
+  (완성 mp4, 정적배포 지연 회피용 DB 직결 서빙), "errorMessage", "pointsChargedResearch",
+  "pointsChargedVideo", "useVeo" BOOLEAN DEFAULT false(2026-07-23 추가 — ★초기 배포 시 코드만
+  반영되고 컬럼 마이그레이션을 빠뜨려 선택 API가 500 에러 낸 사고 실측, raw SQL 테이블은
+  코드·DB 컬럼을 항상 같이 배포할 것), "progressStep" TEXT(script|images|tts|verify|research|
+  scenarios|NULL, 2026-07-23 추가), "progressDone" INT, "progressTotal" INT, "createdAt"/"updatedAt"`.
+- 흐름·워커 상세=doc/features/shorts_maker.md.

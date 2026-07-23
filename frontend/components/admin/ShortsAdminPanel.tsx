@@ -148,13 +148,26 @@ export const ShortsAdminPanel: React.FC = () => {
                                     )}
                                 </span>
                             </div>
+                            {/* 대기중/완료 분리 표시 — 예전엔 status별 건수를 한 줄에 다 나열해
+                                "done 2"가 '대기열' 라벨 아래 보이며 완료건을 대기로 오해하게 함
+                                (2026-07-23 사장 실사용 지적). */}
                             <div className="col-span-2 flex items-center gap-2 flex-wrap">
-                                <span className="text-gray-300">회원 신청 대기열:</span>
+                                <span className="text-gray-300">회원 신청 대기중:</span>
                                 {status.userShortsQueue.ok ? (
-                                    Object.entries(status.userShortsQueue.counts || {}).length === 0
+                                    Object.entries(status.userShortsQueue.waiting || {}).length === 0
                                         ? <span className="text-gray-500">없음</span>
-                                        : Object.entries(status.userShortsQueue.counts || {}).map(([k, v]) => (
+                                        : Object.entries(status.userShortsQueue.waiting || {}).map(([k, v]) => (
                                             <span key={k} className="px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">{k} {v}</span>
+                                        ))
+                                ) : <span className="text-red-400">DB 조회 실패</span>}
+                            </div>
+                            <div className="col-span-2 flex items-center gap-2 flex-wrap">
+                                <span className="text-gray-300">회원 신청 완료:</span>
+                                {status.userShortsQueue.ok ? (
+                                    Object.entries(status.userShortsQueue.completed || {}).length === 0
+                                        ? <span className="text-gray-500">없음</span>
+                                        : Object.entries(status.userShortsQueue.completed || {}).map(([k, v]) => (
+                                            <span key={k} className={`px-1.5 py-0.5 rounded text-gray-300 ${k === 'failed' ? 'bg-red-900/60' : 'bg-green-900/60'}`}>{k} {v}</span>
                                         ))
                                 ) : <span className="text-red-400">DB 조회 실패</span>}
                             </div>
