@@ -890,7 +890,15 @@ export interface ShortsQueueItem {
     youtubeVideoId?: string;
     youtubeUrl?: string;
 }
+export interface ShortsStatus {
+    agentApi: boolean;
+    userShortsWorkerLog: { exists: boolean; ageSeconds: number | null };
+    dailyShortCronLog: { exists: boolean; ageSeconds: number | null };
+    userShortsQueue: { ok: boolean; counts?: Record<string, number>; error?: string };
+}
 export const shortsApi = {
+    getStatus: () => get<ShortsStatus>('/admin/shorts/status'),
+
     getQueue: () =>
         get<{ pending: ShortsQueueItem[]; approved: ShortsQueueItem[]; rejected: ShortsQueueItem[] }>('/admin/shorts/queue'),
 

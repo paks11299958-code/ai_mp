@@ -333,6 +333,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
                             <p className="text-sm text-gray-700">아린이 업종을 분석하고 시나리오 5개를 준비하고 있어요...</p>
                             <p className="text-xs text-gray-400">보통 30초~1분 정도 걸려요.</p>
+                            <p className="text-xs text-gray-400">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 숏츠"에서 확인하세요.</p>
                         </div>
                     )}
 
@@ -363,7 +364,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                         <div className="py-8 text-center space-y-3">
                             <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
                             <p className="text-sm text-gray-700">선택하신 시나리오로 영상을 만들고 있어요...</p>
-                            <p className="text-xs text-gray-400">보통 1~2분 정도 걸려요.</p>
+                            <p className="text-xs text-gray-400">사진을 장면마다 새로 그려서 보통 3~5분 정도 걸려요.</p>
+                            <p className="text-xs text-gray-400">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 숏츠"에서 확인하세요.</p>
                         </div>
                     )}
 

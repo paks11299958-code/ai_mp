@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { shortsApi, ShortsQueueItem } from '../../services/apiService';
+import { shortsApi, ShortsQueueItem, ShortsStatus } from '../../services/apiService';
 import { Icon } from '../Icons';
 
 // 유튜브 숏츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
@@ -16,6 +16,8 @@ export const ShortsAdminPanel: React.FC = () => {
     const [generating, setGenerating] = useState(false);
     const [msg, setMsg] = useState<string | null>(null);
     const [resolvingId, setResolvingId] = useState<string | null>(null);
+    const [status, setStatus] = useState<ShortsStatus | null>(null);
+    const [statusError, setStatusError] = useState<string | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const loadQueue = useCallback(() => {
@@ -24,11 +26,19 @@ export const ShortsAdminPanel: React.FC = () => {
             .catch(() => {});
     }, []);
 
+    const loadStatus = useCallback(() => {
+        return shortsApi.getStatus()
+            .then(d => { setStatus(d); setStatusError(null); })
+            .catch(e => { setStatus(null); setStatusError(e.message || '조회 실패'); });
+    }, []);
+
     useEffect(() => {
         shortsApi.getTopics().then(d => { setTopics(d.topics); setSelectedTopic(d.topics[0] || ''); }).catch(() => {});
         loadQueue().finally(() => setLoading(false));
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }, [loadQueue]);
+        loadStatus();
+        const statusTimer = setInterval(loadStatus, 30000);   // 30초마다 서버 상태 갱신
+        return () => { if (pollRef.current) clearInterval(pollRef.current); clearInterval(statusTimer); };
+    }, [loadQueue, loadStatus]);
 
     const startPolling = () => {
         if (pollRef.current) clearInterval(pollRef.current);
@@ -115,6 +125,42 @@ export const ShortsAdminPanel: React.FC = () => {
                 <div className="flex items-center gap-2">
                     <Icon name="Play" size={16} className="text-yellow-400" />
                     <h3 className="text-sm font-bold text-white">숏츠 관리</h3>
+                </div>
+
+                {/* 서버 상태 — 서버2 agent-api 응답성 + 워커 크론 신선도 + 회원용 숏츠 대기열 */}
+                <div className="bg-gray-800/60 border border-gray-700 rounded-2xl p-4 space-y-2">
+                    <p className="text-xs font-semibold text-gray-400">서버 상태</p>
+                    {statusError && (
+                        <p className="text-xs text-red-400">🔴 서버2 응답 없음: {statusError}</p>
+                    )}
+                    {status && (
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div className="flex items-center gap-1.5">
+                                <span>{status.agentApi ? '🟢' : '🔴'}</span>
+                                <span className="text-gray-300">agent-api</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span>{status.userShortsWorkerLog.exists ? '🟢' : '🟡'}</span>
+                                <span className="text-gray-300">
+                                    숏츠만들기 워커
+                                    {status.userShortsWorkerLog.ageSeconds != null && (
+                                        <span className="text-gray-500"> ({Math.round(status.userShortsWorkerLog.ageSeconds / 60)}분 전)</span>
+                                    )}
+                                </span>
+                            </div>
+                            <div className="col-span-2 flex items-center gap-2 flex-wrap">
+                                <span className="text-gray-300">회원 신청 대기열:</span>
+                                {status.userShortsQueue.ok ? (
+                                    Object.entries(status.userShortsQueue.counts || {}).length === 0
+                                        ? <span className="text-gray-500">없음</span>
+                                        : Object.entries(status.userShortsQueue.counts || {}).map(([k, v]) => (
+                                            <span key={k} className="px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">{k} {v}</span>
+                                        ))
+                                ) : <span className="text-red-400">DB 조회 실패</span>}
+                            </div>
+                        </div>
+                    )}
+                    {!status && !statusError && <p className="text-xs text-gray-500">불러오는 중…</p>}
                 </div>
 
                 {/* 수동 생성 */}
