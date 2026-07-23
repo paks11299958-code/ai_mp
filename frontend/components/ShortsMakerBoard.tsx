@@ -35,6 +35,15 @@ const STATUS_LABEL: Record<string, string> = {
     done: '완성', failed: '실패',
 };
 
+// 영상 제작(producing) 단계 세부 진행상황 — shorts_maker_worker.py의 _set_progress가 기록하는
+// 순서와 1:1 대응(script→images→tts→verify). 사장 피드백(2026-07-23): 스피너만 돌아서 답답함.
+const PROGRESS_STEPS: { key: 'script' | 'images' | 'tts' | 'verify'; label: string }[] = [
+    { key: 'script', label: '대본을 다듬고 있어요' },
+    { key: 'images', label: '사진을 장면마다 새로 그리고 있어요' },
+    { key: 'tts', label: '목소리를 입히고 영상을 합치고 있어요' },
+    { key: 'verify', label: '완성본을 마지막으로 점검하고 있어요' },
+];
+
 interface FormState {
     biz: string; strengths: string; target: string; mood: string;
     referenceUrl1: string; referenceUrl2: string; language: string; qrUrl: string;
@@ -161,16 +170,22 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     <span className="text-sm font-bold text-gray-800">{previewSample.label}</span>
                     <button onClick={() => setPreviewSample(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none px-1">×</button>
                 </div>
-                <div className="flex-1 flex items-center justify-center bg-black">
-                    {previewSample.url.startsWith('http') && previewSample.url.includes('youtube.com') ? (
-                        <iframe
-                            src={previewSample.url.replace('youtube.com/shorts/', 'youtube.com/embed/')}
-                            title={previewSample.label} className="w-full h-full border-0"
-                            allow="autoplay; encrypted-media" allowFullScreen
-                        />
-                    ) : (
-                        <video src={previewSample.url} controls autoPlay className="max-h-full max-w-full" />
-                    )}
+                <div className="flex-1 flex items-center justify-center bg-black overflow-hidden">
+                    {/* 9:16 종횡비 고정 wrapper — 유튜브 iframe이 부모(flex-1, PC에서 뷰포트
+                        전체 높이)를 100% 채우면 16:9 기준 임베드가 세로형 영상을 레터박스/
+                        크롭해 보여주는 문제가 있었음(사장 실사용 피드백: "100%라서 잘림").
+                        h-full 기준으로 9:16 비율을 유지하며 폭이 넘치면 max-w-full로 축소. */}
+                    <div className="h-full max-h-full aspect-[9/16] max-w-full">
+                        {previewSample.url.startsWith('http') && previewSample.url.includes('youtube.com') ? (
+                            <iframe
+                                src={previewSample.url.replace('youtube.com/shorts/', 'youtube.com/embed/')}
+                                title={previewSample.label} className="w-full h-full border-0"
+                                allow="autoplay; encrypted-media" allowFullScreen
+                            />
+                        ) : (
+                            <video src={previewSample.url} controls autoPlay className="w-full h-full" />
+                        )}
+                    </div>
                 </div>
             </div>
         )}
@@ -386,15 +401,39 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                         </>
                     )}
 
-                    {/* [producing] 영상 제작 대기 */}
-                    {step === 'producing' && (
-                        <div className="py-8 text-center space-y-3">
-                            <div className="animate-spin w-8 h-8 border-2 border-t-transparent rounded-full mx-auto" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
-                            <p className="text-sm text-gray-700">선택하신 시나리오로 영상을 만들고 있어요...</p>
-                            <p className="text-xs text-gray-400">사진을 장면마다 새로 그려서 보통 3~5분 정도 걸려요.</p>
-                            <p className="text-xs text-gray-400">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 숏츠"에서 확인하세요.</p>
-                        </div>
-                    )}
+                    {/* [producing] 영상 제작 대기 — 실제 서버 진행 단계(row.progressStep)를
+                        체크리스트로 표시(사장 피드백 2026-07-23: 스피너만 돌아 답답함). */}
+                    {step === 'producing' && (() => {
+                        const curIdx = PROGRESS_STEPS.findIndex(s => s.key === row?.progressStep);
+                        return (
+                            <div className="py-6 space-y-4">
+                                <p className="text-sm text-gray-700 text-center font-semibold">선택하신 시나리오로 영상을 만들고 있어요</p>
+                                <div className="space-y-2.5 max-w-xs mx-auto">
+                                    {PROGRESS_STEPS.map((s, i) => {
+                                        const isDone = curIdx >= 0 && i < curIdx;
+                                        const isCurrent = i === curIdx;
+                                        const showCount = isCurrent && s.key === 'images' && row?.progressTotal;
+                                        return (
+                                            <div key={s.key} className="flex items-center gap-2">
+                                                {isDone ? (
+                                                    <span className="w-4 h-4 shrink-0 flex items-center justify-center text-white text-[10px] rounded-full" style={{ backgroundColor: PINK }}>✓</span>
+                                                ) : isCurrent ? (
+                                                    <span className="w-4 h-4 shrink-0 animate-spin border-2 border-t-transparent rounded-full" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
+                                                ) : (
+                                                    <span className="w-4 h-4 shrink-0" />
+                                                )}
+                                                <span className={`text-xs ${isCurrent ? 'text-gray-800 font-semibold' : isDone ? 'text-gray-400' : 'text-gray-300'}`}>
+                                                    {s.label}{showCount ? ` (${row!.progressDone}/${row!.progressTotal})` : ''}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-xs text-gray-400 text-center">사진을 장면마다 새로 그려서 보통 3~5분 정도 걸려요.</p>
+                                <p className="text-xs text-gray-400 text-center">창을 닫아도 계속 만들어지고 있어요. 나중에 "내가 만든 숏츠"에서 확인하세요.</p>
+                            </div>
+                        );
+                    })()}
 
                     {/* [result-완성] */}
                     {step === 'result' && done && row && (

@@ -595,6 +595,9 @@ export interface UserShortsRow {
     pointsChargedResearch: number;
     pointsChargedVideo: number;
     createdAt: string;
+    progressStep: 'script' | 'images' | 'tts' | 'verify' | null;
+    progressDone: number | null;
+    progressTotal: number | null;
 }
 export const shortsMakerApi = {
     // 1단계: 이미지(최대 3장)+폼 접수(리서치+시나리오5개 생성, 선차감). 202 → { id }.
