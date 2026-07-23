@@ -1,17 +1,21 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { shortsMakerApi, UserShortsRow } from '../services/apiService';
 
-// 이아린 — 숏츠 만들기 보드. 이미지 1장 + 신청서 → 서로 다른 후킹 앵글의 시나리오 5개를
-// 만들어 보여주고, 회원이 고른 1개만 실제 TTS+영상으로 제작한다(homepage 만들기와 동일한
-// 비동기 큐+포인트 선차감 패턴). 2단계 과금: ①리서치+시나리오5개 ②선택 후 영상 제작.
+// 이아린 — 숏츠 만들기 보드. 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오
+// 5개를 만들어 보여주고, 회원이 고른 1개만 실제 TTS+영상으로 제작한다(homepage 만들기와
+// 동일한 비동기 큐+포인트 선차감 패턴). 2단계 과금: ①리서치+시나리오5개 ②선택 후 영상 제작.
 // 사장 확정(2026-07-22): 참고 숏츠는 URL 직접 입력(자동 검색 X — 저작권/신뢰성 리스크 회피),
 // TTS/자막은 마지막 단계에서 선택 언어(한/중/일/영/베)로.
+// 사장 확정(2026-07-23): 이미지 1장→최대 3장. 실제 업로드 사진을 "참고자료"로 대본 생성에
+// 함께 첨부(Vision) — AI가 어느 세그먼트에 어느 실사진이 맞는지 판단하고, 맞는 게 없는
+// 세그먼트만 나노바나나로 재생성(shorts_maker_worker.build_final_script 참고).
 
 interface Props {
     onClose: () => void;
 }
 
 const PINK = '#D85C95';   // 아린 팔레트
+const MAX_IMAGES = 3;     // shared-api MAX_IMAGES와 동일(사장 확정 2026-07-23)
 
 // 실제 매일 자동 생성되는 숏츠 완성본 2편 — 신뢰 형성용 샘플(HomepageBoard 패턴과 동일 취지).
 const SAMPLES = [
@@ -40,8 +44,8 @@ const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', re
 export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'producing' | 'result' | 'list'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
-    const [imageFile, setImageFile] = useState<File | null>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [reqId, setReqId] = useState<number | null>(null);
     const [row, setRow] = useState<UserShortsRow | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -74,31 +78,41 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         setForm(f => ({ ...f, [k]: e.target.value }));
 
-    const onPickImage = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0];
-        if (!f) return;
-        if (f.size > 6 * 1024 * 1024) { setError('이미지는 6MB 이내로 올려주세요.'); return; }
-        setImageFile(f);
-        setImagePreview(URL.createObjectURL(f));
+    const onPickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const picked = Array.from(e.target.files || []);
+        if (picked.length === 0) return;
+        const room = MAX_IMAGES - imageFiles.length;
+        if (room <= 0) { setError(`이미지는 최대 ${MAX_IMAGES}장까지 올릴 수 있어요.`); return; }
+        const toAdd = picked.slice(0, room);
+        if (toAdd.some(f => f.size > 6 * 1024 * 1024)) { setError('이미지는 장당 6MB 이내로 올려주세요.'); return; }
+        setImageFiles(prev => [...prev, ...toAdd]);
+        setImagePreviews(prev => [...prev, ...toAdd.map(f => URL.createObjectURL(f))]);
         setError(null);
+        e.target.value = '';   // 같은 파일 재선택 가능하게
+    };
+
+    const removeImage = (idx: number) => {
+        setImageFiles(prev => prev.filter((_, i) => i !== idx));
+        setImagePreviews(prev => prev.filter((_, i) => i !== idx));
     };
 
     const submit = async () => {
-        if (!imageFile) { setError('이미지를 올려 주세요.'); return; }
+        if (imageFiles.length === 0) { setError('이미지를 1장 이상 올려 주세요.'); return; }
         if (form.biz.trim().length < 2) { setError('업종/상품명을 입력해 주세요.'); return; }
         if (form.strengths.trim().length < 2) { setError('핵심 장점을 입력해 주세요.'); return; }
         if (form.target.trim().length < 2) { setError('타겟 고객을 입력해 주세요.'); return; }
         setError(null); setSubmitting(true);
         try {
-            const reader = new FileReader();
-            const b64 = await new Promise<string>((resolve, reject) => {
+            const toB64 = (f: File) => new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
                 reader.onload = () => resolve(reader.result as string);
                 reader.onerror = reject;
-                reader.readAsDataURL(imageFile);
+                reader.readAsDataURL(f);
             });
+            const images = await Promise.all(imageFiles.map(toB64));
             const body: Record<string, string> = {};
             (Object.keys(form) as (keyof FormState)[]).forEach(k => { const v = form[k].trim(); if (v) body[k] = v; });
-            const res = await shortsMakerApi.create(body, b64);
+            const res = await shortsMakerApi.create(body, images);
             setReqId(res.id); setRow(null); setStep('waiting');
         } catch (e: any) {
             if (e.code !== 'INSUFFICIENT_POINTS') setError(e.message || '신청에 실패했어요.');
@@ -131,7 +145,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const reset = () => {
-        setForm(EMPTY_FORM); setImageFile(null); setImagePreview(null);
+        setForm(EMPTY_FORM); setImageFiles([]); setImagePreviews([]);
         setReqId(null); setRow(null); setError(null); setStep('intro');
         shortsMakerApi.mine().then(setMineList).catch(() => {});
     };
@@ -267,14 +281,27 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 <b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.
                             </p>
                             <div>
-                                <label className="text-xs font-semibold text-gray-700 block mb-1">얼굴/제품 이미지 *</label>
-                                <div onClick={() => fileRef.current?.click()}
-                                     className="border-2 border-dashed border-pink-200 rounded-xl p-4 text-center cursor-pointer hover:bg-pink-50/50 transition-colors">
-                                    {imagePreview
-                                        ? <img src={imagePreview} alt="미리보기" className="max-h-32 mx-auto rounded-lg object-contain" />
-                                        : <div className="text-gray-400 text-xs py-4">📷 눌러서 이미지를 올려주세요</div>}
-                                </div>
-                                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={onPickImage} />
+                                <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                    얼굴/제품 이미지 * <span className="font-normal text-gray-400">(최대 {MAX_IMAGES}장 — 실제 사진을 참고해 대본에 맞게 활용해요)</span>
+                                </label>
+                                {imagePreviews.length > 0 && (
+                                    <div className="flex gap-2 mb-2 flex-wrap">
+                                        {imagePreviews.map((src, i) => (
+                                            <div key={i} className="relative">
+                                                <img src={src} alt={`업로드 ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                <button onClick={() => removeImage(i)} type="button"
+                                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                                {imageFiles.length < MAX_IMAGES && (
+                                    <div onClick={() => fileRef.current?.click()}
+                                         className="border-2 border-dashed border-pink-200 rounded-xl p-4 text-center cursor-pointer hover:bg-pink-50/50 transition-colors">
+                                        <div className="text-gray-400 text-xs py-4">📷 눌러서 이미지를 올려주세요 ({imageFiles.length}/{MAX_IMAGES})</div>
+                                    </div>
+                                )}
+                                <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
                             </div>
                             <input value={form.biz} onChange={set('biz')} placeholder="업종/상품명 * (예: 동네 베이커리, 수제 핸드크림)"
                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />

@@ -597,9 +597,9 @@ export interface UserShortsRow {
     createdAt: string;
 }
 export const shortsMakerApi = {
-    // 1단계: 이미지+폼 접수(리서치+시나리오5개 생성, 선차감). 202 → { id }.
-    create: (form: Record<string, string>, imageBase64: string) =>
-        post<{ id: number; status: string; pointsCharged: number }>('/shorts-maker/requests', { ...form, imageBase64 }),
+    // 1단계: 이미지(최대 3장)+폼 접수(리서치+시나리오5개 생성, 선차감). 202 → { id }.
+    create: (form: Record<string, string>, imagesBase64: string[]) =>
+        post<{ id: number; status: string; pointsCharged: number }>('/shorts-maker/requests', { ...form, imagesBase64 }),
     get: (id: number) => get<UserShortsRow>(`/shorts-maker/requests/${id}`),
     mine: () => get<UserShortsRow[]>('/shorts-maker/requests/mine'),
     // 2단계: 시나리오 선택→실제 영상 제작(선차감). 202 → { id }.
