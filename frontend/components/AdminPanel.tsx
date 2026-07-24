@@ -19,6 +19,7 @@ import { HeroCardAdminPanel } from './admin/HeroCardAdminPanel';
 import { LearnShotsPanel } from './admin/LearnShotsPanel';
 import { HomepageRequestsPanel } from './admin/HomepageRequestsPanel';
 import { KinAnswerPanel } from './admin/KinAnswerPanel';
+import { DocQnaPanel } from './admin/DocQnaPanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
@@ -37,7 +38,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer' | 'skills' | 'shorts'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer' | 'skills' | 'shorts' | 'doc-qna'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -73,6 +74,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'learn-shots',   label: '학습자료 이미지', icon: 'Image' },
                             { key: 'homepage-reqs', label: '홈페이지 신청', icon: 'BookOpen' },
                             { key: 'kin-answer',    label: '지식인 답변', icon: 'Search' },
+                            { key: 'doc-qna',       label: '문서 QnA(뼈대)', icon: 'FileText' },
                             { key: 'marketing-assets', label: '마케팅 자산', icon: 'Megaphone' },
                             { key: 'shorts',        label: '쇼츠 관리', icon: 'Play' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
@@ -207,6 +209,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'learn-shots' && <LearnShotsPanel />}
                 {mainView === 'homepage-reqs' && <HomepageRequestsPanel />}
                 {mainView === 'kin-answer' && <KinAnswerPanel personas={personas} />}
+                {mainView === 'doc-qna' && <DocQnaPanel />}
                 {mainView === 'card-order' && <CardOrderPanel />}
                 {mainView === 'omd-designs' && <OmdDesignsPanel />}
                 {mainView === 'shorts' && <ShortsAdminPanel />}

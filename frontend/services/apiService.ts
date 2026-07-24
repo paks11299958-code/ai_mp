@@ -665,6 +665,38 @@ export const kinAnswerApi = {
         get<KinAnswerRow[]>(`/kin-answer/answers${keywordId ? `?keywordId=${keywordId}` : ''}`),
 };
 
+// ── 문서 QnA 뼈대(2026-07-24 사장 발안, 어드민 전용) ──
+// GCP 크레딧 "Trial credit for GenAI App Builder"(Vertex AI Search 전용) 실사용 검증용.
+// 포인트 과금·기능카드 없음 — 어드민 패널 임시 탭에서만 접근.
+export interface DocQnaDocRow {
+    id: number;
+    userId: number;
+    fileName: string;
+    gcsPath: string | null;
+    dsDocumentId: string | null;
+    status: 'pending' | 'ingesting' | 'ready' | 'failed';
+    errorMessage: string | null;
+    createdAt: string;
+}
+export interface DocQnaQuestionRow {
+    id: number;
+    docId?: number;
+    question: string;
+    answer: string | null;
+    status: 'pending' | 'answered' | 'failed';
+    errorMessage: string | null;
+    createdAt: string;
+}
+export const docQnaApi = {
+    docs: () => get<DocQnaDocRow[]>('/doc-qna/docs'),
+    upload: (fileName: string, fileBase64: string) =>
+        post<DocQnaDocRow>('/doc-qna/docs', { fileName, fileBase64 }),
+    ask: (docId: number, question: string) =>
+        post<DocQnaQuestionRow>(`/doc-qna/docs/${docId}/questions`, { question }),
+    questions: (docId: number) =>
+        get<DocQnaQuestionRow[]>(`/doc-qna/docs/${docId}/questions`),
+};
+
 // ── 손금(手相) 분석 ──
 export interface PalmReadingResult {
     lifeLine: string;
