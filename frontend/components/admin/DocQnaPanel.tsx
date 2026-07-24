@@ -142,7 +142,9 @@ export const DocQnaPanel: React.FC = () => {
                     <h3 className="text-sm font-bold text-gray-100">질문하기 (문서 id={selectedDocId})</h3>
                     <p className="text-[11px] text-gray-500">
                         "이 문서는", "이 약관에서" 같은 지시어보다, 문서 속 키워드를 직접 넣은 문장형
-                        질문이 답변이 더 잘 나와요(실측 확인, 2026-07-24). 예: "포인트 환불 수수료에
+                        질문이 답변이 더 잘 나와요. 또한 "면책 조항" 같은 법률 용어만 짧게 묻기보다,
+                        "천재지변으로 서비스가 중단되면 회사 책임은?"처럼 구체적 상황을 풀어서
+                        물어야 안정적으로 답변돼요(실측 확인, 2026-07-24). 예: "포인트 환불 수수료에
                         대해 알려줘"
                     </p>
                     <div className="flex gap-2">
