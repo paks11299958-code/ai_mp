@@ -140,10 +140,15 @@ export const DocQnaPanel: React.FC = () => {
             {selectedDocId != null && (
                 <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4 space-y-3">
                     <h3 className="text-sm font-bold text-gray-100">질문하기 (문서 id={selectedDocId})</h3>
+                    <p className="text-[11px] text-gray-500">
+                        "이 문서는", "이 약관에서" 같은 지시어보다, 문서 속 키워드를 직접 넣은 문장형
+                        질문이 답변이 더 잘 나와요(실측 확인, 2026-07-24). 예: "포인트 환불 수수료에
+                        대해 알려줘"
+                    </p>
                     <div className="flex gap-2">
                         <input value={newQuestion} onChange={e => setNewQuestion(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleAsk()}
-                            placeholder="이 문서에 대해 질문해보세요"
+                            placeholder="예: 포인트 환불 수수료에 대해 알려줘"
                             className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100" />
                         <button onClick={handleAsk} className="text-sm font-bold px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">질문</button>
                     </div>
