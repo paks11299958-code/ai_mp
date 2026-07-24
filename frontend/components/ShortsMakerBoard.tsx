@@ -463,16 +463,20 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     ))}
                                 </div>
                             </div>
-                            <input value={form.referenceUrl1} onChange={set('referenceUrl1')} placeholder="참고 쇼츠 URL 1 (선택)"
-                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                            <input value={form.referenceUrl2} onChange={set('referenceUrl2')} placeholder="참고 쇼츠 URL 2 (선택)"
-                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                            <div>
+                            <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-gray-700">참고하고 싶은 쇼츠(선택)</p>
+                                <input value={form.referenceUrl1} onChange={set('referenceUrl1')} placeholder="참고 쇼츠 URL 1"
+                                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                                <input value={form.referenceUrl2} onChange={set('referenceUrl2')} placeholder="참고 쇼츠 URL 2"
+                                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                            </div>
+                            <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-gray-700">QR로 연결할 주소(선택)</p>
                                 <input value={form.qrUrl} onChange={set('qrUrl')} placeholder="예: smartstore.naver.com/내상점"
                                        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                                <p className="text-[11px] text-gray-400 mt-1">
-                                    QR로 연결할 주소(선택) — <b>https:// 는 안 넣어도 돼요</b>, 영상 마지막
-                                    2~3초에 QR코드로 보여드려요. 비워두면 QR 없이 완성돼요.
+                                <p className="text-[11px] text-gray-400">
+                                    <b>https:// 는 안 넣어도 돼요</b> — 영상 마지막 2~3초에 QR코드로
+                                    보여드려요. 비워두면 QR 없이 완성돼요.
                                 </p>
                             </div>
                             {error && <p className="text-xs text-red-500">{error}</p>}
