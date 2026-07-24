@@ -1,8 +1,9 @@
 # 쇼츠 만들기 (이아린)
 
 > 구현: 2026-07-22 신설, 2026-07-23 파이프라인 대개선(비주얼 다양성·완성본 검증·진행상황 표시)
-> 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오 5개 → 회원이 고른 1개만 실제
-> TTS+영상으로 제작. 2단계 과금(리서치+시나리오 5개 / 선택 후 영상 제작).
+> + 2026-07-23 2차 상품(실물) 모드 신설(재해석 금지)
+> 이미지(최대 3장, 상품모드는 최대 8장) + 신청서 → 서로 다른 후킹 앵글의 시나리오 5개 →
+> 회원이 고른 1개만 실제 TTS+영상으로 제작. 2단계 과금(리서치+시나리오 5개 / 선택 후 영상 제작).
 
 ## 컨셉
 - 페르소나 **이아린**(마케팅) 기능. homepage 만들기와 동일한 비동기 큐+포인트 선차감 패턴.
@@ -15,13 +16,20 @@
   - `run_research`: 업종 후킹 전략 + **인기 숏폼의 구도·색감·자막 스타일** 리서치(구글서치
     그라운딩), 언어별 문화 뉘앙스 반영.
   - `generate_scenarios`: 리서치 결과를 `visual_style_ref`로 시나리오에 실어 DB 저장.
-  - `build_script_draft`: **강제 다양화 규칙** — 오프닝 콜라주(사진 3장일 때만) → 원본
-    신뢰샷 → 재해석 샷 A/B(카메라 앵글 자체를 바꿈) → **무인물 AI 시각요소 인서트 필수
-    1컷**(코드 화면·그래프·다이어그램, 손 왜곡 리스크 없음). Veo 사용 시(`use_veo=True`)엔
-    "행동 시작 지점에만 영상, 최대 2개" 규칙으로 분기.
+  - `build_script_draft`: **3중 분기**(2026-07-23 2차 개편) — `is_product = bool(form.get
+    ('isProduct'))`가 최우선. ①**상품/제품 모드**: 재생성(재해석) 절대 금지 — 모든 세그먼트가
+    업로드 원본 중 하나를 `image_index`로만 참조(`scene_prompt`/`veo_prompt`는 항상 null),
+    사진 여러 장이면 순환 배정하고 오프닝은 콜라주(배열) 허용. `use_veo`도 상품모드면 코드
+    레벨로 강제 OFF(재해석 위험 원천 차단). ②**사람 사진 재해석**(비상품, Veo 미사용): 오프닝
+    콜라주(사진 3장일 때만) → 원본 신뢰샷 → 재해석 샷 A/B(카메라 앵글 자체를 바꿈) →
+    **무인물 AI 시각요소 인서트 필수 1컷**(코드 화면·그래프·다이어그램, 손 왜곡 리스크 없음).
+    ③**Veo 사용**(`use_veo=True`, 비상품): "행동 시작 지점에만 영상, 최대 2개" 규칙.
   - `render_scene_images`: 세그먼트별 이미지 생성(나노바나나)+검수(`_verify_scene_image`,
     "장면 목적 일치"까지 함께 판정)+콜라주(`image_index` 배열) 지원. `on_progress` 콜백으로
-    세그먼트 완료마다 진행률 기록.
+    세그먼트 완료마다 진행률 기록. **상품모드 코드 레벨 안전망**(2026-07-23 2차) — 함수
+    시작부에서 `isProduct`이면 LLM이 실수로 채운 `scene_prompt`/`veo_prompt`를 전부 무시하고
+    라운드로빈으로 원본 인덱스를 강제 재배정, `used_indices` 중복 체크도 상품모드는 예외
+    처리(사진 수보다 세그먼트가 많아도 원본 반복재사용 허용 — 재생성으로 새는 것보다 안전).
   - `_verify_final_video`(신규): 완성 mp4를 세그먼트 경계마다 프레임 샘플링해 Gemini Vision
     으로 "①인접 장면이 사실상 같은 사진 재탕인지 ②전체에 AI 시각요소가 하나도 없는지
     ③인물 팔다리가 생략/왜곡됐는지" 판정. NG면 해당 세그먼트만 재생성 후 재조립(최대 2회
@@ -32,15 +40,24 @@
 - **`shared-api/routes/aimp/shorts-maker.ts`**: `POST /requests`(1단계 과금)·
   `GET /requests/:id`(진행상황 포함)·`GET /requests/mine`·`POST /requests/:id/select`
   (2단계 과금, Veo 옵션 시 추가과금)·`GET /requests/:id/video`·`DELETE /requests/:id`.
+  상품모드 검증(2026-07-23 2차): `isProduct==='true'`면 이미지 최소 3장(미달 시 400
+  "제품 사진은 앞·옆·위(아래) 3장이 필요해요")/최대 8장, 용량 상한도 20MB로 상향
+  (`MAX_IMAGE_B64_LEN_PRODUCT`). `isProduct`는 `validateForm`에서 파싱해 `formJson`에
+  그대로 저장 — 워커가 `form.get('isProduct')`로 참조.
 - **DB**: `UserShorts`(raw SQL, Prisma 미관리) — `progressStep`/`progressDone`/`progressTotal`
   (2026-07-23 추가), `useVeo`(2026-07-23 추가, 초기 배포 시 마이그레이션 누락으로 선택 API
-  500 에러 실측 — 반드시 함께 마이그레이션할 것).
+  500 에러 실측 — 반드시 함께 마이그레이션할 것). `isProduct`는 별도 컬럼이 아니라
+  `formJson`(JSON 텍스트) 안에 문자열 `"true"`로 포함됨.
 
 ## 프론트 (`ShortsMakerBoard.tsx`)
 - `waiting`/`producing` 두 단계 모두 **체크리스트 UI**(지난 단계 ✓, 현재 단계 스피너+진행률,
   이후 단계 회색 텍스트) — `row.progressStep`을 5초 폴링으로 반영.
 - 완성 숏츠 미리보기(유튜브 샘플)는 `aspect-[9/16]` wrapper로 종횡비 고정 — PC에서 iframe이
   `w-full h-full`로 뷰포트를 채우며 세로형 영상이 레터박스/잘림 나던 문제 수정(2026-07-23).
+- **상품/제품 모드 UI**(2026-07-23 2차): 체크박스 "제품·상품 사진이에요"(안내: "AI가 지퍼·
+  로고 같은 디테일을 바꾸지 않고, 빛·각도만 다르게 보여줘요") — 체크 시 자유 업로드 박스
+  대신 **앞면/옆면/위 또는 아래 3개 고정 슬롯**(각 슬롯 채워질 때까지 제출 차단)+추가 5장
+  선택 업로드(최대 8장). 체크 해제 시 기존처럼 자유 업로드 최대 3장.
 
 ## 조립 엔진 (`shorts-factory/make_short.py`)
 - 세그먼트별 TTS+PIL 프레임(1080x1920, Pretendard)+ffmpeg(zoompan 슬로우줌+팬, Ken Burns)
@@ -50,7 +67,27 @@
   리샘플링. ⚠️정적 테스트로는 개선 효과를 확실히 재현하지 못함(사장 확인 후 "그냥 둬"로
   보류) — 추가 개선은 하지 않기로 확정.
 
+## 어드민 (`ShortsAdminPanel.tsx`, 서버2 agent-api 브릿지)
+- 수동 생성 드롭다운: `TOPIC_LABELS` 맵으로 hair/outfit(구식 arin_script.TOPICS)+17개 신규
+  (shorts_maker_worker.ADMIN_TOPICS) 총 19종 전부 한글 기능명 표시(2026-07-23 2차,
+  "hair(한글기능명칭) 붙여줘" 지적).
+- 반려됨/승인됨 항목 삭제(2026-07-23 2차 신설): `rag/shorts_queue.py`의 `delete(task_id,
+  section)`(영상 파일+메타 JSON 제거, pending은 대상 아님)→`agent-api POST /shorts/delete`→
+  `shared-api POST /admin/shorts/delete` 프록시→어드민 🗑삭제 버튼(확인창). 그 전까진 반려된
+  쇼츠가 쌓여도 지울 방법이 없었음.
+- 회원 신청 대기열은 waiting(대기/진행 중)/completed(완료·실패) 두 그룹으로 분리 표시
+  (`_DONE_STATUSES`, 2026-07-23 1차 — 예전엔 status별 건수를 한 줄에 나열해 "done 2"가
+  '대기열' 라벨 아래 보이며 완료건을 대기로 오해하게 함).
+
 ## 교훈
+- ★**상품(실물) 사진에 사람 사진용 "재해석" 로직을 그대로 적용하면 허위광고가 됨**
+  (2026-07-23 2차, 가장 중요): "명품 디올 카드지갑" 완성 영상에서 원본에 없는 지퍼가
+  나노바나나 재생성 이미지에 나타난 걸 사장이 직접 발견. `_regenerate_scene`은 "얼굴
+  정체성만 보존, 배경·구도는 자유 재해석"이 전제인데, 이 전제가 실물 상품(지퍼·로고·재봉선
+  같은 디테일이 실제와 달라지면 안 됨)엔 정반대로 작동함. 재발 방지는 **프롬프트 지시
+  하나만으론 부족** — LLM이 규칙을 어길 가능성까지 감안해 코드 레벨 안전망(강제
+  image_index 재배정)을 반드시 이중으로 걸어야 함. 검증은 "지시했다"가 아니라 실제 생성
+  결과의 SHA-256 해시를 원본과 비교하는 수준까지 실측할 것.
 - ★**"실사진 최우선 재사용"이 다양성의 적**: 원본 사진이 1~3장뿐인 소재(모임·행사 등)는
   "사진이 있으면 우선 재사용" 원칙이 결과를 다 비슷하게 만듦. "AI로 인생 프로필 완성"이
   성공했던 건 6가지 확실히 다른 화풍으로 "재해석"하는 축이 있었기 때문 — 사진합성 소재는
@@ -67,5 +104,9 @@
   멈춘 사고 실측 — 워커 코드 수정은 짧게 끊어 커밋하거나, 수정 중임을 인지하고 완료 직후
   즉시 로그로 재개 확인할 것.
 
-배포: rag(서버2 직접, `f10a000`+`5d0d2c6` 등 push만으로 크론 반영), shared-api(서버1 git
-pull+pm2 reload, `cb89e5e`), ai_mp(master push, Vercel — Promote to Production 필요).
+배포(1차): rag(서버2 직접, `f10a000`+`5d0d2c6` 등 push만으로 크론 반영), shared-api(서버1
+git pull+pm2 reload, `cb89e5e`), ai_mp(master push, Vercel — Promote to Production 필요).
+배포(2차, 2026-07-23 상품모드+어드민 정리): rag(서버2 직접, 크론 자동반영)·agent-api(서버2
+uvicorn kill+재시작, git 저장소 아님)·shared-api(`570ccc9`+`cce1947`, 서버1 git pull+
+`npx pm2 restart shared-api --update-env`)·ai_mp(`02fab3a`+`a01f50b`, master push, Vercel
+— Promote to Production 필요).
