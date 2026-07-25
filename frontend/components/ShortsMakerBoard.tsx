@@ -329,12 +329,14 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                           }))
                                     ).map(card => (
                                         <button key={card.key} type="button" onClick={card.onClick}
-                                           className="rounded-xl border border-pink-100 bg-pink-50/50 p-3 text-center hover:bg-pink-50 transition-colors overflow-hidden">
+                                           className="rounded-xl border border-pink-100 bg-pink-50/50 p-2 text-center hover:bg-pink-50 transition-colors overflow-hidden">
                                             {card.thumbnailUrl ? (
+                                                // 쇼츠 원본이 세로(9:16)라 썸네일도 그 비율 그대로 — object-cover를
+                                                // 고정 높이(h-16)에 억지로 채우면 인물이 위아래로 잘려 보이던 문제 수정.
                                                 <img src={card.thumbnailUrl} alt={card.label}
-                                                     className="w-full h-16 object-cover rounded-lg mb-1" />
+                                                     className="w-full aspect-[9/16] object-cover rounded-lg mb-1" />
                                             ) : (
-                                                <div className="text-2xl">{card.emoji}</div>
+                                                <div className="text-2xl py-4">{card.emoji}</div>
                                             )}
                                             <div className="text-[11px] font-semibold text-gray-700 mt-1 truncate">{card.label}</div>
                                         </button>
