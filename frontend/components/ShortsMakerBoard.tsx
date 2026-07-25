@@ -296,7 +296,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     <div className="flex items-center gap-2">
                         {(step === 'list' || step === 'form') && (
                             <button onClick={() => setStep('intro')} aria-label="뒤로"
-                                    className="shrink-0 -ml-1 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 flex items-center justify-center text-sm">←</button>
+                                    style={{ backgroundColor: '#FCE7F0', color: PINK }}
+                                    className="shrink-0 -ml-1 w-7 h-7 rounded-full hover:brightness-95 flex items-center justify-center text-sm">←</button>
                         )}
                         <span className="text-lg">🎬</span>
                         <h2 className="text-base font-bold" style={{ color: PINK }}>쇼츠 만들기</h2>
