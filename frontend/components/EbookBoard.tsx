@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus } from 'lucide-react';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus, Download } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
 import { HelpButton } from './HelpButton';
 
@@ -63,6 +63,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [savingTitle, setSavingTitle] = useState(false);
     // 탭5 초안: 표지·문서(본문은 야간 배치에서 생성 — 즉시생성 제거). PDF 제거됨(docx만).
     const [coverMaking, setCoverMaking] = useState(false);
+    const [coverSaving, setCoverSaving] = useState(false);
+    const [coverSaveToast, setCoverSaveToast] = useState('');
     const [docxMaking, setDocxMaking] = useState(false);
     const [docxUrl, setDocxUrl] = useState<string | null>(null); // 생성된 docx URL. selected.docxUrl로 초기화돼 재방문 시 다운로드 버튼 유지.
     // 이미지 프롬프트 뽑기
@@ -185,6 +187,44 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setDocxUrl(null);
         } catch (e: any) { setError(e?.message || '표지 제거 실패'); }
         finally { setCoverMaking(false); }
+    };
+
+    // GCS 직접 fetch는 CORS로 막혀서(버킷 설정 권한 없음) 같은 출처 중계 라우트로 변환(hair.ts와 동일 패턴)
+    const proxyCoverUrl = (url: string) => {
+        const m = url.match(/\/ai-mp-media\/(ebook\/[^?#]+)/);
+        return m ? `/api/ebook/cover-image?path=${encodeURIComponent(m[1])}` : url;
+    };
+
+    // 저장: 업로드한 표지 이미지를 내 기기(갤러리)로. iOS=공유시트('이미지 저장'→사진앱), 그 외=다운로드(HairStyleBoard와 동일 패턴).
+    const handleSaveCover = async () => {
+        if (!selected?.coverUrl || coverSaving) return;
+        setCoverSaving(true);
+        try {
+            const res = await fetch(proxyCoverUrl(selected.coverUrl));
+            if (!res.ok) throw new Error('fetch fail');
+            const blob = await res.blob();
+            const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
+            const file = new File([blob], `ebook-cover-${Date.now()}.${ext}`, { type: blob.type || 'image/png' });
+            const ua = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && (navigator as any).maxTouchPoints > 1);
+            if (isIOS && navigator.canShare?.({ files: [file] }) && navigator.share) {
+                try { await navigator.share({ files: [file] }); } catch { /* 사용자가 시트 닫음 — 폴백 불필요 */ }
+            } else {
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+                setCoverSaveToast('표지를 저장했어요 — 갤러리(다운로드)에서 확인하세요 📥');
+                setTimeout(() => setCoverSaveToast(''), 3000);
+            }
+        } catch {
+            window.open(selected.coverUrl, '_blank', 'noopener');
+        } finally {
+            setCoverSaving(false);
+        }
     };
 
     // 탭3: 구글 독스용 .docx 생성(북크크 양식). 서버가 docxUrl도 저장 → 재방문 시 다운로드 버튼 유지.
@@ -594,6 +634,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 {selected.coverUrl && (
                                                     <>
                                                         <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                        <button onClick={handleSaveCover} disabled={coverSaving}
+                                                            className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: T.accent, background: T.accentSoft }}>
+                                                            {coverSaving ? <Loader size={12} className="animate-spin" /> : <Download size={12} />} {coverSaving ? '저장 중…' : '저장'}
+                                                        </button>
                                                         <button onClick={removeCover} disabled={coverMaking}
                                                             className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: '#C62828', background: '#FDECEC' }}>
                                                             <Trash2 size={12} /> 제거
@@ -601,6 +645,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     </>
                                                 )}
                                             </div>
+                                            {coverSaveToast && (
+                                                <p className="text-[11px] mt-2" style={{ color: T.accent }}>{coverSaveToast}</p>
+                                            )}
                                         </div>
 
                                         {/* 3단계: 문서 만들기 (구글 독스용 .docx) */}
