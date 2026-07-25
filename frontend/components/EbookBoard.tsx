@@ -414,10 +414,15 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setSelected(project);
             setShowForm(false); setActiveTab(1); setEditing(false);
             // 그림 자리 상태 복원(재방문 시 유지) — 완료분은 미리보기, 진행 중(queued)이면 폴링 자동 재개.
+            // ★버그 수정(2026-07-25 사장 발견): imgPrompts를 복원 안 해서 재방문 시 "AI 이미지
+            // 일괄 생성" 버튼(N/M 표시가 들어있는 그 버튼) 자체가 사라지고 진행바만 남는 문제 —
+            // imageSlotsJson에 caption/chapterNo/prompt가 이미 다 있으니 여기서 imgPrompts로 변환해 복원.
             setImgGenFailed(new Set());
             if (project.imageSlotsJson) {
                 try {
                     const slots: EbookImageSlot[] = JSON.parse(project.imageSlotsJson);
+                    const chapterTitleOf = (no: number) => project.chapters?.find(c => c.no === no)?.title || `${no}장`;
+                    setImgPrompts(slots.map((s, i) => ({ no: i + 1, chapterTitle: chapterTitleOf(s.chapterNo), caption: s.caption, prompt: s.prompt })));
                     setImgGenResults(Object.fromEntries(slots.filter(s => s.status === 'done' && s.imageUrl).map(s => [s.caption, s.imageUrl as string])));
                     setImgGenFailed(new Set(slots.filter(s => s.status === 'failed').map(s => s.caption)));
                     const queuedCount = slots.filter(s => s.status === 'queued').length;
@@ -427,7 +432,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                         pollImageQueue(project.id, slots.length);
                     }
                 } catch { setImgGenResults({}); }
-            } else setImgGenResults({});
+            } else { setImgGenResults({}); setImgPrompts(null); }
         } catch {}
     };
 
