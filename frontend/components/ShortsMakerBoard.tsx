@@ -304,11 +304,14 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {/* [intro] */}
                     {step === 'intro' && (
                         <>
-                            <p className="text-sm text-gray-600 leading-relaxed">
-                                마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.
-                                커뮤니티·제품은 사진으로, 지식·웰니스·밈은 사진 없이 주제만 입력해도 돼요.
-                                마음에 드는 걸 고르면 실제 영상으로 완성해 드립니다.
-                            </p>
+                            <div className="text-sm text-gray-600 leading-relaxed space-y-1">
+                                <p>마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.</p>
+                                <ul className="list-disc list-inside text-[13px] text-gray-500 space-y-0.5">
+                                    <li><b>커뮤니티·제품</b> — 사진을 올려주세요</li>
+                                    <li><b>지식·웰니스·밈</b> — 사진 없이 주제만 입력해도 돼요</li>
+                                </ul>
+                                <p className="text-[13px]">마음에 드는 시나리오를 고르면 실제 영상으로 완성해 드려요.</p>
+                            </div>
                             <div className="space-y-1.5">
                                 <p className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</p>
                                 <div className="grid grid-cols-2 gap-2">
@@ -441,164 +444,193 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             </div>
 
-                            <p className="text-xs text-gray-500">
-                                {noImage ? (
-                                    <><b>다루고 싶은 주제</b>만 적어주시면 AI가 사진부터 대본까지 전부 새로 만들어요. 사실과 다른 정보는 신중하게 확인 후 전달해요.</>
-                                ) : (
-                                    <><b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.</>
-                                )}
-                            </p>
-                            {/* ★콘텐츠 책임 고지(2026-07-25 사장 지시) — 특정 개인/기업 비방(밈)·오정보(지식
-                                큐레이션) 리스크가 있는 카테고리는 신청 시점에 책임 소재를 명확히 안내한다.
-                                법적 효력은 TermsModal.tsx 제7조가 담당, 이 문구는 사용자 인지 목적. */}
-                            <p className="text-[11px] text-gray-400 leading-relaxed">
-                                ⚠️ {category === 'meme'
-                                    ? '특정 인물·회사·단체가 특정되지 않게, 보편적인 상황으로 입력해 주세요.'
-                                    : category === 'insight'
-                                    ? '입력하신 주제와 내용에 대한 사실관계 확인 책임은 신청자에게 있어요.'
-                                    : '입력하신 내용에 대한 책임은 신청자 본인에게 있어요.'} 타인의 권리를 침해하는 내용은 삼가주세요.
-                            </p>
+                            {/* 섹션: 사진 + 핵심 정보(카테고리에 따라 이미지 업로드 또는 주제 입력) */}
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
+                                <p className="text-xs font-bold text-gray-800">📋 핵심 정보</p>
+                                <p className="text-xs text-gray-500 -mt-2">
+                                    {noImage ? (
+                                        <><b>다루고 싶은 주제</b>만 적어주시면 AI가 사진부터 대본까지 전부 새로 만들어요. 사실과 다른 정보는 신중하게 확인 후 전달해요.</>
+                                    ) : (
+                                        <><b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.</>
+                                    )}
+                                </p>
+                                {/* ★콘텐츠 책임 고지(2026-07-25 사장 지시) — 특정 개인/기업 비방(밈)·오정보(지식
+                                    큐레이션) 리스크가 있는 카테고리는 신청 시점에 책임 소재를 명확히 안내한다.
+                                    법적 효력은 TermsModal.tsx 제7조가 담당, 이 문구는 사용자 인지 목적. */}
+                                <p className="text-[11px] text-gray-400 leading-relaxed -mt-1.5">
+                                    ⚠️ {category === 'meme'
+                                        ? '특정 인물·회사·단체가 특정되지 않게, 보편적인 상황으로 입력해 주세요.'
+                                        : category === 'insight'
+                                        ? '입력하신 주제와 내용에 대한 사실관계 확인 책임은 신청자에게 있어요.'
+                                        : '입력하신 내용에 대한 책임은 신청자 본인에게 있어요.'} 타인의 권리를 침해하는 내용은 삼가주세요.
+                                </p>
 
-                            {noImage ? (
-                                <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-3 py-2.5 text-xs text-gray-600">
-                                    📷 이 카테고리는 사진이 필요 없어요 — 아래 주제만 입력하면 AI가 이미지까지 전부 새로 만들어요.
-                                </div>
-                            ) : isProduct ? (
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                        제품 사진 * <span className="font-normal text-gray-400">(앞면·옆면·위/아래 3장 필수, 추가로 최대 {MAX_IMAGES_PRODUCT - PRODUCT_SLOTS.length}장 더)</span>
-                                    </label>
-                                    <p className="text-[11px] text-gray-500 mb-2">실물과 다르면 안 되니 정확히 이 각도로 찍어주세요.</p>
-                                    <div className="grid grid-cols-3 gap-2 mb-2">
-                                        {PRODUCT_SLOTS.map((label, i) => {
-                                            const inputId = `product-slot-${i}`;
-                                            return (
-                                                <div key={i} className="relative">
-                                                    {imagePreviews[i] ? (
-                                                        <div className="relative">
-                                                            <img src={imagePreviews[i]} alt={label} className="w-full aspect-square object-cover rounded-lg border border-gray-100" />
-                                                            <button onClick={() => removeImage(i)} type="button"
-                                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
-                                                        </div>
-                                                    ) : (
-                                                        <label htmlFor={inputId}
-                                                               className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-pink-200 rounded-lg cursor-pointer hover:bg-pink-50/50 transition-colors text-center px-1">
-                                                            <span className="text-gray-400 text-[11px]">📷 {label} *</span>
-                                                        </label>
-                                                    )}
-                                                    <input id={inputId} type="file" accept="image/*" className="hidden" onChange={onPickProductSlot(i)} />
-                                                </div>
-                                            );
-                                        })}
+                                {noImage ? (
+                                    <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-3 py-2.5 text-xs text-gray-600">
+                                        📷 이 카테고리는 사진이 필요 없어요 — 아래 주제만 입력하면 AI가 이미지까지 전부 새로 만들어요.
                                     </div>
-                                    {imagePreviews.length > PRODUCT_SLOTS.length && (
-                                        <div className="flex gap-2 mb-2 flex-wrap">
-                                            {imagePreviews.slice(PRODUCT_SLOTS.length).map((src, j) => {
-                                                const i = j + PRODUCT_SLOTS.length;
+                                ) : isProduct ? (
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                            제품 사진 * <span className="font-normal text-gray-400">(앞면·옆면·위/아래 3장 필수, 추가로 최대 {MAX_IMAGES_PRODUCT - PRODUCT_SLOTS.length}장 더)</span>
+                                        </label>
+                                        <p className="text-[11px] text-gray-500 mb-2">실물과 다르면 안 되니 정확히 이 각도로 찍어주세요.</p>
+                                        <div className="grid grid-cols-3 gap-2 mb-2">
+                                            {PRODUCT_SLOTS.map((label, i) => {
+                                                const inputId = `product-slot-${i}`;
                                                 return (
                                                     <div key={i} className="relative">
-                                                        <img src={src} alt={`추가 ${j + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
-                                                        <button onClick={() => removeImage(i)} type="button"
-                                                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                        {imagePreviews[i] ? (
+                                                            <div className="relative">
+                                                                <img src={imagePreviews[i]} alt={label} className="w-full aspect-square object-cover rounded-lg border border-gray-100" />
+                                                                <button onClick={() => removeImage(i)} type="button"
+                                                                        className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                            </div>
+                                                        ) : (
+                                                            <label htmlFor={inputId}
+                                                                   className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-pink-200 rounded-lg cursor-pointer hover:bg-pink-50/50 transition-colors text-center px-1">
+                                                                <span className="text-gray-400 text-[11px]">📷 {label} *</span>
+                                                            </label>
+                                                        )}
+                                                        <input id={inputId} type="file" accept="image/*" className="hidden" onChange={onPickProductSlot(i)} />
                                                     </div>
                                                 );
                                             })}
                                         </div>
-                                    )}
-                                    {imageFiles.length < MAX_IMAGES_PRODUCT && (
-                                        <div onClick={() => fileRef.current?.click()}
-                                             className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors">
-                                            <div className="text-gray-400 text-xs py-2">➕ 다른 각도 사진 추가(선택, {imageFiles.length}/{MAX_IMAGES_PRODUCT})</div>
+                                        {imagePreviews.length > PRODUCT_SLOTS.length && (
+                                            <div className="flex gap-2 mb-2 flex-wrap">
+                                                {imagePreviews.slice(PRODUCT_SLOTS.length).map((src, j) => {
+                                                    const i = j + PRODUCT_SLOTS.length;
+                                                    return (
+                                                        <div key={i} className="relative">
+                                                            <img src={src} alt={`추가 ${j + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                            <button onClick={() => removeImage(i)} type="button"
+                                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {imageFiles.length < MAX_IMAGES_PRODUCT && (
+                                            <div onClick={() => fileRef.current?.click()}
+                                                 className="border-2 border-dashed border-gray-200 rounded-xl p-3 text-center cursor-pointer hover:bg-gray-50 transition-colors bg-white">
+                                                <div className="text-gray-400 text-xs py-2">➕ 다른 각도 사진 추가(선택, {imageFiles.length}/{MAX_IMAGES_PRODUCT})</div>
+                                            </div>
+                                        )}
+                                        <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                            얼굴/제품 이미지 * <span className="font-normal text-gray-400">(최대 {MAX_IMAGES}장 — 실제 사진을 참고해 대본에 맞게 활용해요)</span>
+                                        </label>
+                                        {imagePreviews.length > 0 && (
+                                            <div className="flex gap-2 mb-2 flex-wrap">
+                                                {imagePreviews.map((src, i) => (
+                                                    <div key={i} className="relative">
+                                                        <img src={src} alt={`업로드 ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                        <button onClick={() => removeImage(i)} type="button"
+                                                                className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {imageFiles.length < MAX_IMAGES && (
+                                            <div onClick={() => fileRef.current?.click()}
+                                                 className="border-2 border-dashed border-pink-200 rounded-xl p-4 text-center cursor-pointer hover:bg-pink-50/50 transition-colors bg-white">
+                                                <div className="text-gray-400 text-xs py-4">📷 눌러서 이미지를 올려주세요 ({imageFiles.length}/{MAX_IMAGES})</div>
+                                            </div>
+                                        )}
+                                        <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
+                                    </div>
+                                )}
+                                {noImage ? (
+                                    <div className="space-y-1.5">
+                                        <p className="text-xs font-semibold text-gray-700">
+                                            {category === 'insight' ? '다루고 싶은 주제/키워드' : category === 'wellness' ? '다루고 싶은 건강·생활 팁 주제' : '다루고 싶은 공감 상황'} *
+                                        </p>
+                                        <textarea value={form.topic} onChange={set('topic')} rows={2}
+                                                  placeholder={
+                                                      category === 'insight' ? '예: 요즘 금리 인하가 내 월급에 미치는 영향'
+                                                      : category === 'wellness' ? '예: 저속노화 식단, 아침 루틴'
+                                                      : '예: 퇴근 5분 전 상사가 급한 일을 시킬 때'
+                                                  }
+                                                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y bg-white" />
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="space-y-1.5">
+                                            <p className="text-xs font-semibold text-gray-700">업종/상품명 *</p>
+                                            <input value={form.biz} onChange={set('biz')} placeholder="예: 동네 베이커리, 수제 핸드크림"
+                                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
                                         </div>
-                                    )}
-                                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
-                                </div>
-                            ) : (
-                                <div>
-                                    <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                        얼굴/제품 이미지 * <span className="font-normal text-gray-400">(최대 {MAX_IMAGES}장 — 실제 사진을 참고해 대본에 맞게 활용해요)</span>
-                                    </label>
-                                    {imagePreviews.length > 0 && (
-                                        <div className="flex gap-2 mb-2 flex-wrap">
-                                            {imagePreviews.map((src, i) => (
-                                                <div key={i} className="relative">
-                                                    <img src={src} alt={`업로드 ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
-                                                    <button onClick={() => removeImage(i)} type="button"
-                                                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
-                                                </div>
-                                            ))}
+                                        <div className="space-y-1.5">
+                                            <p className="text-xs font-semibold text-gray-700">핵심 장점 *</p>
+                                            <textarea value={form.strengths} onChange={set('strengths')} rows={2}
+                                                      placeholder="예: 매일 새벽 직접 굽는 빵, 무방부제, 당일배송"
+                                                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y bg-white" />
                                         </div>
-                                    )}
-                                    {imageFiles.length < MAX_IMAGES && (
-                                        <div onClick={() => fileRef.current?.click()}
-                                             className="border-2 border-dashed border-pink-200 rounded-xl p-4 text-center cursor-pointer hover:bg-pink-50/50 transition-colors">
-                                            <div className="text-gray-400 text-xs py-4">📷 눌러서 이미지를 올려주세요 ({imageFiles.length}/{MAX_IMAGES})</div>
+                                        <div className="space-y-1.5">
+                                            <p className="text-xs font-semibold text-gray-700">타겟 고객 *</p>
+                                            <input value={form.target} onChange={set('target')} placeholder="예: 30대 자취 직장인"
+                                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
                                         </div>
-                                    )}
-                                    <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
+                                    </>
+                                )}
+                            </div>
+
+                            {/* 섹션: 분위기·언어 */}
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
+                                <p className="text-xs font-bold text-gray-800">🎨 분위기·언어</p>
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-700">원하는 톤/무드</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {MOOD_CHIPS.map(m => (
+                                            <button key={m} type="button"
+                                                    onClick={() => setForm(f => ({ ...f, mood: f.mood === m ? '' : m }))}
+                                                    className="text-xs px-2.5 py-1 rounded-full border transition-colors bg-white"
+                                                    style={form.mood === m ? { backgroundColor: PINK, color: '#fff', borderColor: PINK } : { borderColor: '#e5e7eb', color: '#6b7280' }}>
+                                                {m}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
-                            )}
-                            {noImage ? (
-                                <textarea value={form.topic} onChange={set('topic')} rows={2}
-                                          placeholder={
-                                              category === 'insight' ? '다루고 싶은 주제/키워드 * (예: 요즘 금리 인하가 내 월급에 미치는 영향)'
-                                              : category === 'wellness' ? '다루고 싶은 건강·생활 팁 주제 * (예: 저속노화 식단, 아침 루틴)'
-                                              : '다루고 싶은 공감 상황 * (예: 퇴근 5분 전 상사가 급한 일을 시킬 때)'
-                                          }
-                                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y" />
-                            ) : (
-                                <>
-                                    <input value={form.biz} onChange={set('biz')} placeholder="업종/상품명 * (예: 동네 베이커리, 수제 핸드크림)"
-                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                                    <textarea value={form.strengths} onChange={set('strengths')} rows={2}
-                                              placeholder="핵심 장점 * (예: 매일 새벽 직접 굽는 빵, 무방부제, 당일배송)"
-                                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y" />
-                                    <input value={form.target} onChange={set('target')} placeholder="타겟 고객 * (예: 30대 자취 직장인)"
-                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                                </>
-                            )}
-                            <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">원하는 톤/무드</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {MOOD_CHIPS.map(m => (
-                                        <button key={m} type="button"
-                                                onClick={() => setForm(f => ({ ...f, mood: f.mood === m ? '' : m }))}
-                                                className="text-xs px-2.5 py-1 rounded-full border transition-colors"
-                                                style={form.mood === m ? { backgroundColor: PINK, color: '#fff', borderColor: PINK } : { borderColor: '#e5e7eb', color: '#6b7280' }}>
-                                            {m}
-                                        </button>
-                                    ))}
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-700">내레이션·자막 언어</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {LANGUAGES.map(l => (
+                                            <button key={l.code} type="button"
+                                                    onClick={() => setForm(f => ({ ...f, language: l.code }))}
+                                                    className="text-xs px-2.5 py-1 rounded-full border transition-colors bg-white"
+                                                    style={form.language === l.code ? { backgroundColor: PINK, color: '#fff', borderColor: PINK } : { borderColor: '#e5e7eb', color: '#6b7280' }}>
+                                                {l.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">내레이션·자막 언어</p>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {LANGUAGES.map(l => (
-                                        <button key={l.code} type="button"
-                                                onClick={() => setForm(f => ({ ...f, language: l.code }))}
-                                                className="text-xs px-2.5 py-1 rounded-full border transition-colors"
-                                                style={form.language === l.code ? { backgroundColor: PINK, color: '#fff', borderColor: PINK } : { borderColor: '#e5e7eb', color: '#6b7280' }}>
-                                            {l.label}
-                                        </button>
-                                    ))}
+
+                            {/* 섹션: 참고 자료(선택) */}
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
+                                <p className="text-xs font-bold text-gray-800">🔗 참고 자료(선택)</p>
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-700">참고하고 싶은 쇼츠</p>
+                                    <input value={form.referenceUrl1} onChange={set('referenceUrl1')} placeholder="참고 쇼츠 URL 1"
+                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
+                                    <input value={form.referenceUrl2} onChange={set('referenceUrl2')} placeholder="참고 쇼츠 URL 2"
+                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-700">QR로 연결할 주소</p>
+                                    <input value={form.qrUrl} onChange={set('qrUrl')} placeholder="예: smartstore.naver.com/내상점"
+                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
+                                    <p className="text-[11px] text-gray-400">
+                                        <b>https:// 는 안 넣어도 돼요</b> — 영상 마지막 2~3초에 QR코드로
+                                        보여드려요. 비워두면 QR 없이 완성돼요.
+                                    </p>
                                 </div>
                             </div>
-                            <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">참고하고 싶은 쇼츠(선택)</p>
-                                <input value={form.referenceUrl1} onChange={set('referenceUrl1')} placeholder="참고 쇼츠 URL 1"
-                                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                                <input value={form.referenceUrl2} onChange={set('referenceUrl2')} placeholder="참고 쇼츠 URL 2"
-                                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                            </div>
-                            <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">QR로 연결할 주소(선택)</p>
-                                <input value={form.qrUrl} onChange={set('qrUrl')} placeholder="예: smartstore.naver.com/내상점"
-                                       className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                                <p className="text-[11px] text-gray-400">
-                                    <b>https:// 는 안 넣어도 돼요</b> — 영상 마지막 2~3초에 QR코드로
-                                    보여드려요. 비워두면 QR 없이 완성돼요.
-                                </p>
-                            </div>
+
                             {error && <p className="text-xs text-red-500">{error}</p>}
                             <button onClick={submit} disabled={submitting}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
