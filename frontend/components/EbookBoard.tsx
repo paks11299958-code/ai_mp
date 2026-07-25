@@ -65,6 +65,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [savingTitle, setSavingTitle] = useState(false);
     // 탭5 초안: 표지·문서(본문은 야간 배치에서 생성 — 즉시생성 제거). PDF 제거됨(docx만).
     const [coverMaking, setCoverMaking] = useState(false);
+    // AI 표지 후보 2안(제미나이·GPT). 고르면 비우고 selected.coverUrl로 확정.
+    const [coverCandidates, setCoverCandidates] = useState<{ engine: 'gemini' | 'gpt'; url: string }[]>([]);
     const [coverSaving, setCoverSaving] = useState(false);
     const [coverSaveToast, setCoverSaveToast] = useState('');
     const [docxMaking, setDocxMaking] = useState(false);
@@ -187,14 +189,14 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) { setError(e?.message || '표지 업로드 실패'); }
         finally { setCoverMaking(false); }
     };
-    // AI로 표지 생성(제목+목차 참고, 장당 200P) — 견적 확인 모달 거친 뒤 실행.
+    // AI로 표지 생성(제목+목차 참고) — 견적 확인 모달 거친 뒤 실행.
+    // 제미나이·GPT 두 화풍의 후보를 받아 고르게 한다(고르기 전엔 coverUrl 확정 안 함).
     const runGenerateAICover = async () => {
         if (!selected) return;
-        setCoverMaking(true); setError(null);
+        setCoverMaking(true); setError(null); setCoverCandidates([]);
         try {
             const res = await ebookApi.generateCover(selected.id);
-            setSelected(prev => prev ? { ...prev, coverUrl: res.coverUrl } : prev);
-            setDocxUrl(null);
+            setCoverCandidates(res.candidates);
         } catch (e: any) { setError(e?.message || 'AI 표지 생성 실패'); }
         finally { setCoverMaking(false); }
     };
@@ -205,10 +207,22 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             const est = await ebookApi.coverCost(selected.id);
             setPointConfirm({
                 title: 'AI 표지 생성 포인트 차감',
-                lines: [`제목·목차를 참고해 표지를 만들어요.`, `${est.cost.toLocaleString()}P가 차감됩니다.`],
+                lines: [`제목·목차를 참고해 서로 다른 화풍의 표지 2장을 만들어요.`, `마음에 드는 쪽을 고르시면 됩니다.`, `${est.cost.toLocaleString()}P가 차감됩니다.`],
                 onConfirm: runGenerateAICover,
             });
         } catch (e: any) { setError(e?.message || '견적 계산 실패'); }
+    };
+    // 후보 중 하나를 표지로 확정
+    const pickCoverCandidate = async (url: string) => {
+        if (!selected || coverMaking) return;
+        setCoverMaking(true); setError(null);
+        try {
+            await ebookApi.saveCoverUrl(selected.id, url);
+            setSelected(prev => prev ? { ...prev, coverUrl: url } : prev);
+            setCoverCandidates([]);
+            setDocxUrl(null); // 표지 바뀌면 이전 문서 무효
+        } catch (e: any) { setError(e?.message || '표지 저장 실패'); }
+        finally { setCoverMaking(false); }
     };
     const removeCover = async () => {
         if (!selected || coverMaking) return;
@@ -771,7 +785,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>2</span>
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지를 올리거나, <b style={{ color: T.accent }}>AI가 제목·목차를 참고해 표지를 만들어</b> 드려요(장당 200P). 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지를 올리거나, <b style={{ color: T.accent }}>AI가 제목·목차를 참고해 서로 다른 화풍의 표지 2장을 만들어</b> 드려요(마음에 드는 쪽 선택). 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
                                             <div className="flex items-start gap-3 flex-wrap">
                                                 <label className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl cursor-pointer" style={{ padding: '8px 16px', color: '#fff', background: T.accent, opacity: coverMaking ? 0.4 : 1 }}>
                                                     {coverMaking ? <><Loader size={14} className="animate-spin" /> 처리 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
@@ -796,6 +810,24 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     </>
                                                 )}
                                             </div>
+                                            {/* AI 표지 후보 2안 — 고르면 확정되고 목록은 사라진다 */}
+                                            {coverCandidates.length > 0 && (
+                                                <div className="mt-3 rounded-xl p-3" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                    <p className="text-[11px] font-bold mb-2" style={{ color: T.ink }}>마음에 드는 표지를 고르세요</p>
+                                                    <div className="flex gap-3 flex-wrap">
+                                                        {coverCandidates.map(c => (
+                                                            <div key={c.url} className="flex flex-col items-center gap-1.5">
+                                                                <img src={c.url} alt={`표지 후보 (${c.engine})`} className="rounded-lg" style={{ width: 120, height: 160, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                                <button onClick={() => pickCoverCandidate(c.url)} disabled={coverMaking}
+                                                                    className="text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 14px', color: '#fff', background: T.accent }}>
+                                                                    이걸로 할래요
+                                                                </button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>둘 다 마음에 안 들면 다시 만들 수 있어요(포인트가 다시 차감됩니다).</p>
+                                                </div>
+                                            )}
                                             {coverSaveToast && (
                                                 <p className="text-[11px] mt-2" style={{ color: T.accent }}>{coverSaveToast}</p>
                                             )}
