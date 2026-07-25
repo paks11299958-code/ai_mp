@@ -651,6 +651,8 @@ export const sampleVaultApi = {
     remove: (id: number) => del<{ ok: boolean }>(`/sample-vault/${id}`),
     copyFromUserShorts: (userShortsId: number) =>
         post<{ id: number }>(`/sample-vault/from-user-shorts/${userShortsId}`, {}),
+    copyFromQueue: (taskId: string) =>
+        post<{ id: number }>(`/sample-vault/from-queue/${taskId}`, {}),
     videoUrl: (id: number) => `${BASE}/sample-vault/${id}/video`,
     thumbnailUrl: (id: number) => `${BASE}/sample-vault/${id}/thumbnail`,
 };

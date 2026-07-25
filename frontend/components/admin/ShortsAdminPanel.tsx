@@ -69,6 +69,9 @@ export const ShortsAdminPanel: React.FC = () => {
     const [memberVideoId, setMemberVideoId] = useState<number | null>(null);
     // 샘플 영상 보관함 복사(2026-07-25) — 복사 중/완료 상태를 id별로 추적
     const [vaultCopyState, setVaultCopyState] = useState<Record<number, 'copying' | 'done'>>({});
+    // "쇼츠 관리" 승인 큐(agent-api 파일 기반, id: string)용 — UserShorts(id: number)와
+    // 타입이 달라 별도 state로 분리.
+    const [queueVaultCopyState, setQueueVaultCopyState] = useState<Record<string, 'copying' | 'done'>>({});
 
     const loadQueue = useCallback(() => {
         return shortsApi.getQueue()
@@ -96,6 +99,21 @@ export const ShortsAdminPanel: React.FC = () => {
             setVaultCopyState(prev => {
                 const next = { ...prev };
                 delete next[userShortsId];
+                return next;
+            });
+        }
+    };
+
+    const copyQueueToVault = async (taskId: string) => {
+        setQueueVaultCopyState(prev => ({ ...prev, [taskId]: 'copying' }));
+        try {
+            await sampleVaultApi.copyFromQueue(taskId);
+            setQueueVaultCopyState(prev => ({ ...prev, [taskId]: 'done' }));
+        } catch (e: any) {
+            alert('보관함 복사 실패: ' + e.message);
+            setQueueVaultCopyState(prev => {
+                const next = { ...prev };
+                delete next[taskId];
                 return next;
             });
         }
@@ -207,6 +225,17 @@ export const ShortsAdminPanel: React.FC = () => {
                         >
                             🗑 삭제
                         </button>
+                        {section === 'approved' && (
+                            <button
+                                onClick={() => copyQueueToVault(item.id)}
+                                disabled={!!queueVaultCopyState[item.id]}
+                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 disabled:opacity-60 transition-colors"
+                            >
+                                {queueVaultCopyState[item.id] === 'done' ? '✅ 보관됨'
+                                    : queueVaultCopyState[item.id] === 'copying' ? '복사 중...'
+                                    : '📦 보관함에 복사'}
+                            </button>
+                        )}
                     </div>
                 )}
             </div>

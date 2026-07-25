@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { shortsMakerApi, UserShortsRow } from '../services/apiService';
+import { shortsMakerApi, UserShortsRow, sampleVaultApi, SampleVaultRow } from '../services/apiService';
 
 // 이아린 — 쇼츠 만들기 보드. 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오
 // 5개를 만들어 보여주고, 회원이 고른 1개만 실제 TTS+영상으로 제작한다(homepage 만들기와
@@ -112,11 +112,15 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [submitting, setSubmitting] = useState(false);
     const [mineList, setMineList] = useState<UserShortsRow[]>([]);
     const [previewSample, setPreviewSample] = useState<{ label: string; url: string } | null>(null);
+    // 인트로 샘플(2026-07-25) — 샘플 영상 보관함(SampleVault)의 실제 완성본을 보여준다.
+    // 아직 로딩 전/실패 시엔 아래 SAMPLES(고정 2개)로 폴백해 화면이 비지 않게 한다.
+    const [vaultSamples, setVaultSamples] = useState<SampleVaultRow[]>([]);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         shortsMakerApi.mine().then(setMineList).catch(() => {});
+        sampleVaultApi.list().then(setVaultSamples).catch(() => {});
     }, []);
 
     // 폴링: pending(시나리오 대기)이면 scenarios_ready까지, producing이면 done/failed까지.
@@ -295,17 +299,35 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {step === 'intro' && (
                         <>
                             <p className="text-sm text-gray-600 leading-relaxed">
-                                이미지 1장이면 마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.
+                                마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.
+                                커뮤니티·제품은 사진으로, 지식·웰니스·밈은 사진 없이 주제만 입력해도 돼요.
                                 마음에 드는 걸 고르면 실제 영상으로 완성해 드립니다.
                             </p>
                             <div className="space-y-1.5">
                                 <p className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    {SAMPLES.map(s => (
-                                        <button key={s.label} type="button" onClick={() => setPreviewSample(s)}
-                                           className="rounded-xl border border-pink-100 bg-pink-50/50 p-3 text-center hover:bg-pink-50 transition-colors">
-                                            <div className="text-2xl">{s.emoji}</div>
-                                            <div className="text-[11px] font-semibold text-gray-700 mt-1">{s.label}</div>
+                                    {(vaultSamples.length > 0
+                                        ? vaultSamples.slice(0, 6).map(row => ({
+                                            key: `vault-${row.id}`,
+                                            label: row.title,
+                                            emoji: CATEGORIES.find(c => c.code === row.category)?.emoji || '🎬',
+                                            thumbnailUrl: row.hasThumbnail ? sampleVaultApi.thumbnailUrl(row.id) : null,
+                                            onClick: () => setPreviewSample({ label: row.title, url: sampleVaultApi.videoUrl(row.id) }),
+                                          }))
+                                        : SAMPLES.map(s => ({
+                                            key: s.label, label: s.label, emoji: s.emoji, thumbnailUrl: null,
+                                            onClick: () => setPreviewSample(s),
+                                          }))
+                                    ).map(card => (
+                                        <button key={card.key} type="button" onClick={card.onClick}
+                                           className="rounded-xl border border-pink-100 bg-pink-50/50 p-3 text-center hover:bg-pink-50 transition-colors overflow-hidden">
+                                            {card.thumbnailUrl ? (
+                                                <img src={card.thumbnailUrl} alt={card.label}
+                                                     className="w-full h-16 object-cover rounded-lg mb-1" />
+                                            ) : (
+                                                <div className="text-2xl">{card.emoji}</div>
+                                            )}
+                                            <div className="text-[11px] font-semibold text-gray-700 mt-1 truncate">{card.label}</div>
                                         </button>
                                     ))}
                                 </div>
