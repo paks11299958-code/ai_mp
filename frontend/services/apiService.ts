@@ -619,6 +619,7 @@ export interface UserShortsAdminRow {
     userId: number;
     status: string;
     biz: string;
+    language: string;
     errorMessage: string | null;
     hasVideo: boolean;
     createdAt: string;

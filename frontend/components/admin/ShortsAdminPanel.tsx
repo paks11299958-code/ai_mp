@@ -34,6 +34,12 @@ const STATUS_LABEL: Record<string, string> = {
     done: '완성', failed: '실패',
 };
 
+// 언어 코드 라벨 — ShortsMakerBoard.tsx의 LANGUAGES와 동일 매핑(다국어 폰트 검수용,
+// 2026-07-25 사장 지시로 나라별 완성본을 이 패널에서 구분해 볼 수 있어야 함).
+const LANGUAGE_LABEL: Record<string, string> = {
+    ko: '한국어', zh: '중국어', ja: '일본어', en: '영어', vi: '베트남어',
+};
+
 // 유튜브 쇼츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
 // shared-api /admin/shorts 브릿지를 통해 조회·수동생성·승인/반려한다.
 // 실제 대본+TTS+ffmpeg 조립은 수십 초~1분 걸려 동기 응답이 불가능하므로,
@@ -312,6 +318,9 @@ export const ShortsAdminPanel: React.FC = () => {
                                             isFailed ? 'bg-red-900/60 text-red-200' : isDone ? 'bg-green-900/60 text-green-200' : 'bg-gray-700 text-gray-300'
                                         }`}>{label}</span>
                                         <span className="text-sm text-white font-medium truncate">{row.biz || '(업종 미입력)'}</span>
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-900/60 text-blue-200">
+                                            {LANGUAGE_LABEL[row.language] || row.language}
+                                        </span>
                                         <span className="text-[10px] text-gray-500 ml-auto">id={row.id} · userId={row.userId}</span>
                                     </div>
                                     <p className="text-[10px] text-gray-600 mb-1">{new Date(row.createdAt).toLocaleString('ko-KR')}</p>
