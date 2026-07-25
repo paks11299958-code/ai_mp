@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { shortsApi, ShortsQueueItem, ShortsStatus } from '../../services/apiService';
+import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShortsAdminRow } from '../../services/apiService';
 import { Icon } from '../Icons';
 
 // 드롭다운에 표시할 한글 기능카드 명칭 — agent-api KNOWN_TOPICS(영문 키)와 1:1 대응.
@@ -26,6 +26,14 @@ const TOPIC_LABELS: Record<string, string> = {
     tarot: '타로 리딩',
 };
 
+// 회원용 UserShorts 상태 라벨 — ShortsMakerBoard.tsx의 STATUS_LABEL과 동일 매핑(중복 정의,
+// 두 파일이 다른 목적이라 공유 모듈로 안 뺌).
+const STATUS_LABEL: Record<string, string> = {
+    pending: '시나리오 준비 중', processing_research: '시나리오 준비 중',
+    scenarios_ready: '선택 대기', producing: '영상 제작 중', processing_produce: '영상 제작 중',
+    done: '완성', failed: '실패',
+};
+
 // 유튜브 쇼츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
 // shared-api /admin/shorts 브릿지를 통해 조회·수동생성·승인/반려한다.
 // 실제 대본+TTS+ffmpeg 조립은 수십 초~1분 걸려 동기 응답이 불가능하므로,
@@ -43,6 +51,9 @@ export const ShortsAdminPanel: React.FC = () => {
     const [status, setStatus] = useState<ShortsStatus | null>(null);
     const [statusError, setStatusError] = useState<string | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // ★품질 검수용 임시 상태(안정화되면 제거) — 회원 쇼츠 목록+완성영상
+    const [memberRows, setMemberRows] = useState<UserShortsAdminRow[]>([]);
+    const [memberVideoId, setMemberVideoId] = useState<number | null>(null);
 
     const loadQueue = useCallback(() => {
         return shortsApi.getQueue()
@@ -56,13 +67,18 @@ export const ShortsAdminPanel: React.FC = () => {
             .catch(e => { setStatus(null); setStatusError(e.message || '조회 실패'); });
     }, []);
 
+    const loadMemberRows = useCallback(() => {
+        return shortsMakerAdminApi.list().then(setMemberRows).catch(() => {});
+    }, []);
+
     useEffect(() => {
         shortsApi.getTopics().then(d => { setTopics(d.topics); setSelectedTopic(d.topics[0] || ''); }).catch(() => {});
         loadQueue().finally(() => setLoading(false));
         loadStatus();
+        loadMemberRows();
         const statusTimer = setInterval(loadStatus, 30000);   // 30초마다 서버 상태 갱신
         return () => { if (pollRef.current) clearInterval(pollRef.current); clearInterval(statusTimer); };
-    }, [loadQueue, loadStatus]);
+    }, [loadQueue, loadStatus, loadMemberRows]);
 
     const startPolling = () => {
         if (pollRef.current) clearInterval(pollRef.current);
@@ -273,6 +289,56 @@ export const ShortsAdminPanel: React.FC = () => {
                         </div>
                     </div>
                 )}
+
+                {/* ★품질 검수용 임시 섹션(2026-07-25 사장 지시) — 회원용 쇼츠 만들기가
+                    안정화될 때까지만 완성 영상을 어드민이 직접 볼 수 있게 함. 회원 얼굴 등이
+                    담긴 완성물이라 안정화 후엔 이 섹션+관련 API 통째로 제거할 것. */}
+                <div>
+                    <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs font-semibold text-gray-400">👤 회원 쇼츠 만들기(검수용, 임시)</p>
+                        <button onClick={loadMemberRows} className="text-[10px] text-gray-500 hover:text-gray-300">🔄 새로고침</button>
+                    </div>
+                    <div className="space-y-2">
+                        {memberRows.length === 0 && <p className="text-xs text-gray-600 text-center py-6">회원 신청 내역이 없어요.</p>}
+                        {memberRows.map(row => {
+                            const label = STATUS_LABEL[row.status] || row.status;
+                            const isDone = row.status === 'done';
+                            const isFailed = row.status === 'failed';
+                            const open = memberVideoId === row.id;
+                            return (
+                                <div key={row.id} className="bg-gray-800/60 border border-gray-700 rounded-xl p-3">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                                            isFailed ? 'bg-red-900/60 text-red-200' : isDone ? 'bg-green-900/60 text-green-200' : 'bg-gray-700 text-gray-300'
+                                        }`}>{label}</span>
+                                        <span className="text-sm text-white font-medium truncate">{row.biz || '(업종 미입력)'}</span>
+                                        <span className="text-[10px] text-gray-500 ml-auto">id={row.id} · userId={row.userId}</span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-600 mb-1">{new Date(row.createdAt).toLocaleString('ko-KR')}</p>
+                                    {row.errorMessage && (
+                                        <p className="text-[11px] text-red-300 bg-red-950/40 rounded px-2 py-1 mt-1">❌ {row.errorMessage}</p>
+                                    )}
+                                    {row.hasVideo && (
+                                        <button
+                                            onClick={() => setMemberVideoId(open ? null : row.id)}
+                                            className="text-xs font-medium px-3 py-1.5 mt-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition-colors"
+                                        >
+                                            {open ? '영상 닫기' : '▶ 완성 영상 보기'}
+                                        </button>
+                                    )}
+                                    {open && row.hasVideo && (
+                                        <video
+                                            src={shortsMakerAdminApi.videoUrl(row.id)}
+                                            controls
+                                            preload="metadata"
+                                            className="w-32 h-56 object-cover rounded-lg bg-black mt-2"
+                                        />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     );

@@ -427,3 +427,12 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   코드·DB 컬럼을 항상 같이 배포할 것), "progressStep" TEXT(script|images|tts|verify|research|
   scenarios|NULL, 2026-07-23 추가), "progressDone" INT, "progressTotal" INT, "createdAt"/"updatedAt"`.
 - 흐름·워커 상세=doc/features/shorts_maker.md.
+
+## DocQnaDoc / DocQnaQuestion (2026-07-24 신설, 문서 QnA 뼈대 — raw SQL 전용, prisma schema 미반영)
+- `DocQnaDoc`: `id SERIAL PK, "userId" INT, "fileName" TEXT, "gcsPath" TEXT(ai-mp-media
+  버킷 doc-qna/ 경로), "dsDocumentId" TEXT(discoveryengine 인제스트 후 채움), status TEXT
+  (pending|ingesting|ready|failed), "errorMessage" TEXT, "createdAt"/"updatedAt"`.
+- `DocQnaQuestion`: `id SERIAL PK, "docId" INT(→DocQnaDoc.id, ON DELETE CASCADE), question
+  TEXT, answer TEXT, status TEXT(pending|answered|failed), "errorMessage" TEXT, "createdAt"`.
+- 뼈대 단계(어드민 전용, 포인트 과금 없음) — GCP 크레딧 "Trial credit for GenAI App
+  Builder"(Vertex AI Search 전용) 실사용 검증 목적. 상세=doc/features/doc_qna.md.

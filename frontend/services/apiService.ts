@@ -612,6 +612,22 @@ export const shortsMakerApi = {
     delete: (id: number) => del<{ ok: boolean }>(`/shorts-maker/requests/${id}`),
 };
 
+// ★품질 검수용 임시 기능(2026-07-25 사장 지시) — 회원용 쇼츠 만들기 기능 안정화 전까지만
+// 어드민이 완성 영상을 직접 확인할 수 있게 함. 안정화되면 이 인터페이스+API 통째로 제거할 것.
+export interface UserShortsAdminRow {
+    id: number;
+    userId: number;
+    status: string;
+    biz: string;
+    errorMessage: string | null;
+    hasVideo: boolean;
+    createdAt: string;
+}
+export const shortsMakerAdminApi = {
+    list: () => get<UserShortsAdminRow[]>('/shorts-maker/admin/requests'),
+    videoUrl: (id: number) => `${BASE}/shorts-maker/admin/requests/${id}/video`,
+};
+
 export interface HomepageAdminRow extends HomepageRequestRow {
     userId: number;
     userName?: string | null;

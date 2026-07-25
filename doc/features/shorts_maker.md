@@ -110,3 +110,32 @@ git pull+pm2 reload, `cb89e5e`), ai_mp(master push, Vercel — Promote to Produc
 uvicorn kill+재시작, git 저장소 아님)·shared-api(`570ccc9`+`cce1947`, 서버1 git pull+
 `npx pm2 restart shared-api --update-env`)·ai_mp(`02fab3a`+`a01f50b`, master push, Vercel
 — Promote to Production 필요).
+
+## 2026-07-24 추가 수정 3건
+
+- ★**자동 소재순환 크론(`daily_short.py`) 비활성화**: 07-23에 "17개 신규 소재는 어드민이
+  드롭다운에서 직접 골라 수동 생성"으로 합의했으나, 정작 매일 KST09:20 자동 실행되던
+  기존 hair/outfit 순환 크론 자체를 끄는 걸 빠뜨림 — 다음날 아침 "시간여행 등은 수동으로
+  만들기로 했는데 왜 hair가 자동으로 왔냐" 지적으로 발견. crontab에서 `daily_short.py`
+  라인을 주석 처리해 비활성화(회원용 `shorts_maker_worker.py` 1분 폴링은 그대로 유지 —
+  이건 회원이 실제 신청했을 때만 동작하는 별개 워커). ★교훈: "수동 방식으로 바꾼다"는
+  합의는 신규 코드 추가만이 아니라 **기존 자동화를 끄는 작업까지 포함**해야 완결됨.
+- ★**어드민 17개 소재(`ADMIN_TOPICS`) 완성 영상에 QR 딥링크 전부 누락**: hair/outfit
+  (`arin_script.TOPICS`)은 애초에 소재별 `cta_url`(`?f=hair&ref=youtube`)이 있어 마지막
+  컷에 QR이 자동으로 들어갔는데, 나중에 추가된 17개 신규 소재(`ADMIN_TOPICS`, 07-23
+  신설)는 이 필드 자체가 설계에서 누락됨 — "시간여행" 완성 영상에 QR이 하나도 없다고
+  사장이 직접 확인·지적. `shorts_maker_worker.py`에 `ADMIN_TOPIC_CTA_URL` 딕셔너리
+  (`{key: f"https://aichat.dbzone.kr/?f={key}&ref=youtube" for key in ADMIN_TOPICS}`)
+  신설, `run_admin_topic`이 `form.setdefault("qrUrl", ADMIN_TOPIC_CTA_URL[topic_key])`
+  로 채우도록 수정. "시간여행"을 실제로 재생성해 완성 영상 끝부분을 ffmpeg 프레임
+  추출로 육안 검증 완료(QR 코드+"AI 놀이터" 배지 정상 렌더링 확인).
+- **QR 주소 입력란 UX 개선(2단계)**: ①"https:// 를 안 넣어도 되게 해달라" 요청 —
+  서버측 `normalizeUrl`(shared-api/shorts-maker.ts)이 이미 `https://` 자동 보정 중이었음을
+  확인, 프론트(`ShortsMakerBoard.tsx`) placeholder를 실제 도메인 예시(`smartstore.naver.com/
+  내상점`)로 바꾸고 "https:// 는 안 넣어도 돼요" 안내문구 추가. ②"참고 쇼츠 URL과 QR
+  주소가 안 헷갈리게 구분해달라" 요청 — 두 입력 블록에 각각 소제목("참고하고 싶은
+  쇼츠(선택)", "QR로 연결할 주소(선택)") 추가.
+
+배포(3차, 2026-07-24): rag(서버2 직접, crontab 수정+`shorts_maker_worker.py` 수정, 크론
+자동반영)·ai_mp(`88e99a4`+`0f2a8e6`+`7857b68` 등, master push, Vercel — Promote to
+Production 필요).
