@@ -782,7 +782,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 )}
                                                 <button onClick={makeDocx} disabled={!canPdf || docxMaking}
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: docxUrl ? T.accent : '#fff', background: docxUrl ? T.accentSoft : T.accent, border: docxUrl ? `1px solid ${T.accentBorder}` : 'none' }}>
-                                                    {docxMaking ? <><Loader size={14} className="animate-spin" /> 문서 만드는 중…</> : <><FileText size={14} /> {docxUrl ? '문서 다시 만들기' : '구글 문서(.docx) 만들기'}</>}
+                                                    {(() => {
+                                                        const hasImages = Object.keys(imgGenResults).length > 0;
+                                                        if (docxMaking) return <><Loader size={14} className="animate-spin" /> 문서 만드는 중…</>;
+                                                        const label = docxUrl ? '문서 다시 만들기' : '구글 문서(.docx) 만들기';
+                                                        // 완성된 그림이 있으면 라벨에 명시(사장 요청 — 클릭 전에 이미지 포함 여부를 알 수 있게)
+                                                        return <><FileText size={14} /> {hasImages ? `🖼️ 이미지 포함 ${label}` : label}</>;
+                                                    })()}
                                                 </button>
                                                 {/* 문서를 받았으면 북크크 출판 사이트로 바로 이동 */}
                                                 {docxUrl && !docxMaking && (
