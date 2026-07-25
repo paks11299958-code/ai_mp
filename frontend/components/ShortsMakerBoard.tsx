@@ -415,6 +415,16 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     <><b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.</>
                                 )}
                             </p>
+                            {/* ★콘텐츠 책임 고지(2026-07-25 사장 지시) — 특정 개인/기업 비방(밈)·오정보(지식
+                                큐레이션) 리스크가 있는 카테고리는 신청 시점에 책임 소재를 명확히 안내한다.
+                                법적 효력은 TermsModal.tsx 제7조가 담당, 이 문구는 사용자 인지 목적. */}
+                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                ⚠️ {category === 'meme'
+                                    ? '특정 인물·회사·단체가 특정되지 않게, 보편적인 상황으로 입력해 주세요.'
+                                    : category === 'insight'
+                                    ? '입력하신 주제와 내용에 대한 사실관계 확인 책임은 신청자에게 있어요.'
+                                    : '입력하신 내용에 대한 책임은 신청자 본인에게 있어요.'} 타인의 권리를 침해하는 내용은 삼가주세요.
+                            </p>
 
                             {noImage ? (
                                 <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-3 py-2.5 text-xs text-gray-600">
