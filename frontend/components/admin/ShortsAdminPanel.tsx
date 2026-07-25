@@ -40,6 +40,13 @@ const LANGUAGE_LABEL: Record<string, string> = {
     ko: '한국어', zh: '중국어', ja: '일본어', en: '영어', vi: '베트남어',
 };
 
+// 카테고리 라벨 — ShortsMakerBoard.tsx의 CATEGORIES와 동일 매핑(카테고리 5종 도입,
+// 2026-07-25 사장 지시).
+const CATEGORY_LABEL: Record<string, string> = {
+    community: '커뮤니티', product: '제품·상품', insight: '지식·인사이트',
+    wellness: '웰니스', meme: '밈·POV',
+};
+
 // 유튜브 쇼츠 승인 큐 관리 — 서버2 shorts-factory(Python) 파이프라인을
 // shared-api /admin/shorts 브릿지를 통해 조회·수동생성·승인/반려한다.
 // 실제 대본+TTS+ffmpeg 조립은 수십 초~1분 걸려 동기 응답이 불가능하므로,
@@ -317,9 +324,12 @@ export const ShortsAdminPanel: React.FC = () => {
                                         <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
                                             isFailed ? 'bg-red-900/60 text-red-200' : isDone ? 'bg-green-900/60 text-green-200' : 'bg-gray-700 text-gray-300'
                                         }`}>{label}</span>
-                                        <span className="text-sm text-white font-medium truncate">{row.biz || '(업종 미입력)'}</span>
+                                        <span className="text-sm text-white font-medium truncate">{row.biz || row.topic || '(업종/주제 미입력)'}</span>
                                         <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-blue-900/60 text-blue-200">
                                             {LANGUAGE_LABEL[row.language] || row.language}
+                                        </span>
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-purple-900/60 text-purple-200">
+                                            {CATEGORY_LABEL[row.category] || row.category}
                                         </span>
                                         <span className="text-[10px] text-gray-500 ml-auto">id={row.id} · userId={row.userId}</span>
                                     </div>

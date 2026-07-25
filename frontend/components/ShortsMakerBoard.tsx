@@ -22,6 +22,39 @@ const MAX_IMAGES = 3;     // shared-api MAX_IMAGES와 동일(사장 확정 2026-
 const PRODUCT_SLOTS = ['앞면', '옆면', '위 또는 아래'] as const;
 const MAX_IMAGES_PRODUCT = 8;
 
+// 카테고리 5종(2026-07-25 사장 지시) — 커뮤니티·제품은 기존처럼 사진 기반, 나머지 3개는
+// 사진 업로드 없이 주제만 입력하면 AI가 이미지까지 전부 완전 생성한다(shorts_maker_worker.py의
+// "사진 없음" 분기 재사용 — 이미 어드민 수동생성 17개 소재로 검증된 경로).
+type Category = 'community' | 'product' | 'insight' | 'wellness' | 'meme';
+const CATEGORIES: {
+    code: Category; emoji: string; label: string;
+    desc: string;       // 한 줄 설명 — 무엇을 만드는지
+    inputHint: string;  // 사진 필요/불필요 + 무엇을 입력하는지
+    example: string;    // 실제 소재 예시 — 감을 못 잡는 회원을 위한 안전망
+}[] = [
+    { code: 'community', emoji: '📸', label: '커뮤니티·동호회',
+      desc: '모임·동호회 활동을 자랑하는 홍보 쇼츠예요.',
+      inputHint: '📷 사진 필요 (활동 사진 1~3장)',
+      example: '예: 주말 등산 모임, 볼링 동호회 신입 모집' },
+    { code: 'product', emoji: '📦', label: '제품·상품',
+      desc: '실물 그대로, 왜곡 없이 보여주는 판매·홍보 쇼츠예요.',
+      inputHint: '📷 사진 필요 (제품 사진 3~8장, 앞·옆·위 필수)',
+      example: '예: 수제 핸드크림, 동네 베이커리 신메뉴' },
+    { code: 'insight', emoji: '🧠', label: '지식·인사이트 큐레이션',
+      desc: '"1분 만에 똑똑해지는" 경제·시사·역사·과학·트렌드 요약 쇼츠예요.',
+      inputHint: '✍️ 사진 불필요 (다루고 싶은 주제만 입력하면 AI가 전부 완성)',
+      example: '예: 이번 주 꼭 알아야 할 경제 뉴스, 몰랐던 일상 속 진실 TOP3' },
+    { code: 'wellness', emoji: '🌿', label: '저속노화&웰니스',
+      desc: '식습관·운동·수면 등 오늘부터 바로 따라 할 수 있는 건강 팁 쇼츠예요.',
+      inputHint: '✍️ 사진 불필요 (다루고 싶은 건강 팁 주제만 입력)',
+      example: '예: 혈당 안 튀는 먹방 순서, 3분 거북목 스트레칭' },
+    { code: 'meme', emoji: '🎭', label: '공감형 밈&POV',
+      desc: '직장인·일상 공감 에피소드를 재밌게 풀어내는 상황극 쇼츠예요.',
+      inputHint: '✍️ 사진 불필요 (다루고 싶은 공감 상황만 입력)',
+      example: '예: 재택근무할 때 흔한 착각, 퇴근 5분 전 상사의 급한 부탁' },
+];
+const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme'];
+
 // 실제 매일 자동 생성되는 쇼츠 완성본 2편 — 신뢰 형성용 샘플(HomepageBoard 패턴과 동일 취지).
 const SAMPLES = [
     { label: '헤어스타일 체험', emoji: '💇', url: 'https://youtube.com/shorts/znnbawP26zo' },
@@ -59,13 +92,18 @@ const WAITING_STEPS: { key: 'research' | 'scenarios'; label: string }[] = [
 interface FormState {
     biz: string; strengths: string; target: string; mood: string;
     referenceUrl1: string; referenceUrl2: string; language: string; qrUrl: string;
+    topic: string;   // 사진 없는 카테고리(insight/wellness/meme) 전용 — 다루고 싶은 주제/키워드
 }
-const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '' };
+const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '', topic: '' };
 
 export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'producing' | 'result' | 'list'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
-    const [isProduct, setIsProduct] = useState(false);
+    const [category, setCategory] = useState<Category>('community');
+    // isProduct/noImage는 category의 파생값 — 기존 isProduct 참조 코드(검증·업로드 로직)를
+    // 그대로 두고 값만 category에서 계산해 변경 범위를 최소화한다.
+    const isProduct = category === 'product';
+    const noImage = NO_IMAGE_CATEGORIES.includes(category);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [reqId, setReqId] = useState<number | null>(null);
@@ -148,14 +186,18 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const productSlotsFilled = () => isProduct && PRODUCT_SLOTS.every((_, i) => !!imageFiles[i]);
 
     const submit = async () => {
-        if (isProduct) {
+        if (noImage) {
+            if (form.topic.trim().length < 2) { setError('다루고 싶은 주제를 입력해 주세요.'); return; }
+        } else if (isProduct) {
             if (!productSlotsFilled()) { setError('제품 사진은 앞면·옆면·위(또는 아래) 3장이 모두 필요해요.'); return; }
         } else if (imageFiles.length === 0) {
             setError('이미지를 1장 이상 올려 주세요.'); return;
         }
-        if (form.biz.trim().length < 2) { setError('업종/상품명을 입력해 주세요.'); return; }
-        if (form.strengths.trim().length < 2) { setError('핵심 장점을 입력해 주세요.'); return; }
-        if (form.target.trim().length < 2) { setError('타겟 고객을 입력해 주세요.'); return; }
+        if (!noImage) {
+            if (form.biz.trim().length < 2) { setError('업종/상품명을 입력해 주세요.'); return; }
+            if (form.strengths.trim().length < 2) { setError('핵심 장점을 입력해 주세요.'); return; }
+            if (form.target.trim().length < 2) { setError('타겟 고객을 입력해 주세요.'); return; }
+        }
         setError(null); setSubmitting(true);
         try {
             const toB64 = (f: File) => new Promise<string>((resolve, reject) => {
@@ -164,9 +206,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                 reader.onerror = reject;
                 reader.readAsDataURL(f);
             });
-            const validFiles = imageFiles.filter((f): f is File => !!f);
+            const validFiles = noImage ? [] : imageFiles.filter((f): f is File => !!f);
             const images = await Promise.all(validFiles.map(toB64));
-            const body: Record<string, string> = {};
+            const body: Record<string, string> = { category };
             (Object.keys(form) as (keyof FormState)[]).forEach(k => { const v = form[k].trim(); if (v) body[k] = v; });
             if (isProduct) body.isProduct = 'true';
             const res = await shortsMakerApi.create(body, images);
@@ -202,7 +244,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const reset = () => {
-        setForm(EMPTY_FORM); setImageFiles([]); setImagePreviews([]);
+        setForm(EMPTY_FORM); setCategory('community'); setImageFiles([]); setImagePreviews([]);
         setReqId(null); setRow(null); setError(null); setStep('intro');
         shortsMakerApi.mine().then(setMineList).catch(() => {});
     };
@@ -340,22 +382,45 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {step === 'form' && (
                         <>
                             <button onClick={() => setStep('intro')} className="text-xs text-gray-400">← 뒤로</button>
-                            <p className="text-xs text-gray-500">
-                                <b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.
-                            </p>
-                            <label className="flex items-start gap-2 bg-pink-50/60 border border-pink-100 rounded-lg px-3 py-2 cursor-pointer">
-                                <input type="checkbox" checked={isProduct} className="mt-0.5"
-                                       onChange={e => {
-                                           setIsProduct(e.target.checked);
-                                           setImageFiles([]); setImagePreviews([]); setError(null);
-                                       }} />
-                                <span className="text-xs text-gray-700">
-                                    <b>제품·상품 사진이에요</b>
-                                    <span className="block text-gray-500 font-normal mt-0.5">실물 그대로 보여드려요 — AI가 지퍼·로고 같은 디테일을 바꾸지 않고, 빛·각도만 다르게 보여줘요.</span>
-                                </span>
-                            </label>
 
-                            {isProduct ? (
+                            <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-gray-700">어떤 쇼츠를 만들까요? *</p>
+                                <div className="grid grid-cols-1 gap-1.5">
+                                    {CATEGORIES.map(c => (
+                                        <button key={c.code} type="button"
+                                                onClick={() => {
+                                                    setCategory(c.code);
+                                                    setImageFiles([]); setImagePreviews([]); setError(null);
+                                                }}
+                                                className="flex items-start gap-2.5 text-left rounded-xl px-3 py-2.5 border transition-colors"
+                                                style={category === c.code
+                                                    ? { backgroundColor: '#FDE6F0', borderColor: PINK }
+                                                    : { borderColor: '#e5e7eb' }}>
+                                            <span className="text-xl shrink-0 mt-0.5">{c.emoji}</span>
+                                            <span className="flex-1 min-w-0">
+                                                <span className="block text-sm font-semibold text-gray-800">{c.label}</span>
+                                                <span className="block text-[11px] text-gray-500 mt-0.5">{c.desc}</span>
+                                                <span className="block text-[11px] text-pink-600 font-medium mt-1">{c.inputHint}</span>
+                                                <span className="block text-[10px] text-gray-400 mt-0.5">{c.example}</span>
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <p className="text-xs text-gray-500">
+                                {noImage ? (
+                                    <><b>다루고 싶은 주제</b>만 적어주시면 AI가 사진부터 대본까지 전부 새로 만들어요. 사실과 다른 정보는 신중하게 확인 후 전달해요.</>
+                                ) : (
+                                    <><b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.</>
+                                )}
+                            </p>
+
+                            {noImage ? (
+                                <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-3 py-2.5 text-xs text-gray-600">
+                                    📷 이 카테고리는 사진이 필요 없어요 — 아래 주제만 입력하면 AI가 이미지까지 전부 새로 만들어요.
+                                </div>
+                            ) : isProduct ? (
                                 <div>
                                     <label className="text-xs font-semibold text-gray-700 block mb-1">
                                         제품 사진 * <span className="font-normal text-gray-400">(앞면·옆면·위/아래 3장 필수, 추가로 최대 {MAX_IMAGES_PRODUCT - PRODUCT_SLOTS.length}장 더)</span>
@@ -430,13 +495,25 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
                                 </div>
                             )}
-                            <input value={form.biz} onChange={set('biz')} placeholder="업종/상품명 * (예: 동네 베이커리, 수제 핸드크림)"
-                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
-                            <textarea value={form.strengths} onChange={set('strengths')} rows={2}
-                                      placeholder="핵심 장점 * (예: 매일 새벽 직접 굽는 빵, 무방부제, 당일배송)"
-                                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y" />
-                            <input value={form.target} onChange={set('target')} placeholder="타겟 고객 * (예: 30대 자취 직장인)"
-                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                            {noImage ? (
+                                <textarea value={form.topic} onChange={set('topic')} rows={2}
+                                          placeholder={
+                                              category === 'insight' ? '다루고 싶은 주제/키워드 * (예: 요즘 금리 인하가 내 월급에 미치는 영향)'
+                                              : category === 'wellness' ? '다루고 싶은 건강·생활 팁 주제 * (예: 저속노화 식단, 아침 루틴)'
+                                              : '다루고 싶은 공감 상황 * (예: 퇴근 5분 전 상사가 급한 일을 시킬 때)'
+                                          }
+                                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y" />
+                            ) : (
+                                <>
+                                    <input value={form.biz} onChange={set('biz')} placeholder="업종/상품명 * (예: 동네 베이커리, 수제 핸드크림)"
+                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                                    <textarea value={form.strengths} onChange={set('strengths')} rows={2}
+                                              placeholder="핵심 장점 * (예: 매일 새벽 직접 굽는 빵, 무방부제, 당일배송)"
+                                              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y" />
+                                    <input value={form.target} onChange={set('target')} placeholder="타겟 고객 * (예: 30대 자취 직장인)"
+                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                                </>
+                            )}
                             <div className="space-y-1.5">
                                 <p className="text-xs font-semibold text-gray-700">원하는 톤/무드</p>
                                 <div className="flex flex-wrap gap-1.5">

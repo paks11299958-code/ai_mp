@@ -620,6 +620,8 @@ export interface UserShortsAdminRow {
     status: string;
     biz: string;
     language: string;
+    category: string;
+    topic: string;
     errorMessage: string | null;
     hasVideo: boolean;
     createdAt: string;
