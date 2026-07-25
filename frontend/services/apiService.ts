@@ -801,12 +801,14 @@ export interface EbookTocChapter {
     finalProvider?: EbookProvider;
     collect?: boolean;  // 자료수집 체크(없으면 true로 간주)
 }
+export interface EbookImageSlot { caption: string; chapterNo: number; prompt: string; imageUrl: string }
 export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
     coverUrl?: string | null; // 표지 이미지 URL(사용자 업로드)
     docxUrl?: string | null; // 생성된 .docx URL(재방문 시 바로 다운로드, 본문/표지/판형 변경 시 null)
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     pageSize?: string | null; // 책 판형: sinkuk(신국판) | a5 | gukbae
+    imageSlotsJson?: string | null; // 그림 자리 AI생성 이미지 JSON(원본 그대로, 파싱은 프론트에서)
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
 export const ebookApi = {
@@ -830,6 +832,9 @@ export const ebookApi = {
     // 이미지 프롬프트 뽑기 — 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 생성
     imagePrompts: (id: number) =>
         post<{ prompts: { no: number; chapterNo: number; chapterTitle: string; caption: string; prompt: string }[]; message?: string }>(`/ebook/${id}/image-prompts`, {}),
+    // 그림 자리 1개 AI 이미지 생성(무료). caption을 키로 저장 — 프론트가 자리 개수만큼 순차 호출해 진행률 표시.
+    generateImage: (id: number, caption: string, chapterNo: number, prompt: string) =>
+        post<{ caption: string; imageUrl: string }>(`/ebook/${id}/generate-image`, { caption, chapterNo, prompt }),
     // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
     coverUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus, Download } from 'lucide-react';
-import { ebookApi, EbookProject, EbookTocChapter } from '../services/apiService';
+import { ebookApi, EbookProject, EbookTocChapter, EbookImageSlot } from '../services/apiService';
 import { HelpButton } from './HelpButton';
 
 // 퍼플/크림 톤 (앱 통일 — project_premium_ui_theme)
@@ -71,6 +71,11 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [imgPromptLoading, setImgPromptLoading] = useState(false);
     const [imgPrompts, setImgPrompts] = useState<{ no: number; chapterTitle: string; caption: string; prompt: string }[] | null>(null);
     const [copiedNo, setCopiedNo] = useState<number | null>(null);
+    // 그림 이미지 일괄 생성: 자리마다 개별 API를 순차 호출해 진행률(N/M) 표시
+    const [imgGenBusy, setImgGenBusy] = useState(false);
+    const [imgGenProgress, setImgGenProgress] = useState({ done: 0, total: 0 });
+    const [imgGenResults, setImgGenResults] = useState<Record<string, string>>({}); // caption → imageUrl
+    const [imgGenError, setImgGenError] = useState<string | null>(null);
     // 탭4 예약 슬롯 현황
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
@@ -255,6 +260,31 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         try { await navigator.clipboard.writeText(text); setCopiedNo(no); setTimeout(() => setCopiedNo(null), 1500); } catch { /* 무시 */ }
     };
 
+    // 그림 이미지 일괄 생성: imgPrompts 자리마다 개별 API를 순차 호출(진행률 N/M 실시간 표시).
+    // 이미 생성된(imgGenResults에 있는) 자리는 건너뛰고 나머지만 생성 — 실패분만 재시도할 때 중복생성 방지.
+    const generateAllImages = async () => {
+        if (!selected || !imgPrompts || imgPrompts.length === 0 || imgGenBusy) return;
+        setImgGenBusy(true); setImgGenError(null);
+        const targets = imgPrompts.filter(ip => !imgGenResults[ip.caption] && ip.prompt);
+        setImgGenProgress({ done: 0, total: targets.length });
+        try {
+            for (let i = 0; i < targets.length; i++) {
+                const ip = targets[i];
+                try {
+                    const res = await ebookApi.generateImage(selected.id, ip.caption, ip.chapterNo, ip.prompt);
+                    setImgGenResults(prev => ({ ...prev, [ip.caption]: res.imageUrl }));
+                } catch (e: any) {
+                    setImgGenError(`"${ip.caption}" 생성 실패: ${e?.message || '알 수 없는 오류'} (다시 눌러 이어서 생성할 수 있어요)`);
+                    break; // 하나 실패하면 중단(쿼터 문제일 수 있어 연쇄실패 방지) — 이미 된 자리는 유지, 재시도 시 이어서
+                }
+                setImgGenProgress({ done: i + 1, total: targets.length });
+            }
+            setDocxUrl(null); // 이미지가 바뀌었으니 기존 문서 무효
+        } finally {
+            setImgGenBusy(false);
+        }
+    };
+
     // 탭4: 예약 시각 저장 (품절이면 409 → 안내 + 슬롯 새로고침)
     const saveSchedule = async (hour: number | null) => {
         if (!selected || savingSchedule) return;
@@ -324,7 +354,18 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
     const openProject = async (id: number) => {
         setError(null); // 화면 전환 시 이전 에러 제거
-        try { setSelected(await ebookApi.get(id)); setShowForm(false); setActiveTab(1); setEditing(false); } catch {}
+        try {
+            const project = await ebookApi.get(id);
+            setSelected(project);
+            setShowForm(false); setActiveTab(1); setEditing(false);
+            // 이미 생성된 그림 자리 이미지가 있으면 caption→url 맵으로 복원(재방문 시 유지)
+            if (project.imageSlotsJson) {
+                try {
+                    const slots: EbookImageSlot[] = JSON.parse(project.imageSlotsJson);
+                    setImgGenResults(Object.fromEntries(slots.map(s => [s.caption, s.imageUrl])));
+                } catch { setImgGenResults({}); }
+            } else setImgGenResults({});
+        } catch {}
     };
 
     const handleDelete = async (id: number, e: React.MouseEvent) => {
@@ -692,16 +733,34 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>그림 이미지 프롬프트 뽑기</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                본문의 <b>[그림: 설명]</b> 자리마다 ChatGPT(DALL·E)용 영문 프롬프트를 만들어 드려요. 복사해서 ChatGPT에 붙여넣어 그림을 만든 뒤, 글 수정에서 그 자리에 넣으면 됩니다.
+                                                본문의 <b>[그림: 설명]</b> 자리마다 ChatGPT(DALL·E)용 영문 프롬프트를 만들어 드려요. 복사해서 ChatGPT에 붙여넣어 그림을 만든 뒤, 글 수정에서 그 자리에 넣으면 됩니다. 또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.
                                             </p>
-                                            <button onClick={makeImagePrompts} disabled={!canPdf || imgPromptLoading}
-                                                className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
-                                                {imgPromptLoading ? <><Loader size={14} className="animate-spin" /> 프롬프트 만드는 중…</> : <><ImagePlus size={14} /> 이미지 프롬프트 뽑기</>}
-                                            </button>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <button onClick={makeImagePrompts} disabled={!canPdf || imgPromptLoading}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                                                    {imgPromptLoading ? <><Loader size={14} className="animate-spin" /> 프롬프트 만드는 중…</> : <><ImagePlus size={14} /> 이미지 프롬프트 뽑기</>}
+                                                </button>
+                                                {imgPrompts && imgPrompts.length > 0 && (
+                                                    <button onClick={generateAllImages} disabled={imgGenBusy}
+                                                        className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
+                                                        {imgGenBusy
+                                                            ? <><Loader size={14} className="animate-spin" /> 이미지 생성 중… {imgGenProgress.done}/{imgGenProgress.total}</>
+                                                            : <><ImagePlus size={14} /> {Object.keys(imgGenResults).length > 0 ? '나머지 이미지 이어서 생성' : 'AI 이미지 일괄 생성'}</>}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {imgGenError && <p className="text-[11px] mt-2" style={{ color: '#C0392B' }}>{imgGenError}</p>}
+                                            {imgGenBusy && imgGenProgress.total > 0 && (
+                                                <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: T.accentSoft }}>
+                                                    <div className="h-full rounded-full transition-all" style={{ width: `${(imgGenProgress.done / imgGenProgress.total) * 100}%`, background: T.accent }} />
+                                                </div>
+                                            )}
 
                                             {imgPrompts && imgPrompts.length > 0 && (
                                                 <div className="mt-3 flex flex-col gap-2">
-                                                    {imgPrompts.map(ip => (
+                                                    {imgPrompts.map(ip => {
+                                                        const genUrl = imgGenResults[ip.caption];
+                                                        return (
                                                         <div key={ip.no} className="rounded-xl p-3" style={{ background: '#fff', border: `1px solid ${T.border}` }}>
                                                             <div className="flex items-center justify-between gap-2 mb-1">
                                                                 <span className="text-[11px] font-bold" style={{ color: T.accent }}>그림 {ip.no} · {ip.chapterTitle}</span>
@@ -710,9 +769,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                 </button>
                                                             </div>
                                                             <p className="text-[11px] mb-1" style={{ color: T.inkMute }}>📍 {ip.caption}</p>
-                                                            <p className="text-xs" style={{ color: T.ink, lineHeight: 1.6 }}>{ip.prompt}</p>
+                                                            <p className="text-xs mb-2" style={{ color: T.ink, lineHeight: 1.6 }}>{ip.prompt}</p>
+                                                            {genUrl && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <img src={genUrl} alt={ip.caption} className="rounded-lg" style={{ width: 100, height: 75, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                                    <span className="text-[11px] font-bold" style={{ color: '#5BA36A' }}>✓ 생성됨 — 문서 만들기 시 자동으로 들어가요</span>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>
