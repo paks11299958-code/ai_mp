@@ -50,6 +50,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [creating, setCreating] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(false); // 초기엔 목록 화면(주식분석 패턴). 새 전자책 클릭 시 폼
+    // 포인트 차감 확인 모달(docx 만들기/그림 이미지 일괄생성 공용) — brower confirm() 대신 디자인 모달로.
+    const [pointConfirm, setPointConfirm] = useState<{ title: string; lines: string[]; onConfirm: () => void } | null>(null);
     // 진행 탭: 1제목 2목차 3수정 4자료(배치) 5초안PDF 6완성본 (1~6 순서 진행)
     const [activeTab, setActiveTab] = useState<EbookTab>(1);
     // 목차 편집 모드 (탭3)
@@ -235,17 +237,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     // 탭3: 구글 독스용 .docx 생성(북크크 양식). 서버가 docxUrl도 저장 → 재방문 시 다운로드 버튼 유지.
-    // 최초 1회만 글자수 비례 차감(1,000자당 단가) — 클릭 전 견적을 확인창으로 보여준 뒤 진행.
-    const makeDocx = async () => {
-        if (!selected || docxMaking) return;
-        setError(null);
-        try {
-            const est = await ebookApi.docxEstimate(selected.id);
-            if (!est.alreadyCharged) {
-                const ok = confirm(`본문 총 ${est.totalChars.toLocaleString()}자 → ${est.cost.toLocaleString()}P가 차감됩니다.\n계속할까요?`);
-                if (!ok) return;
-            }
-        } catch (e: any) { setError(e?.message || '견적 계산 실패'); return; }
+    // 문서 생성 실행(확인 모달에서 '확인' 누른 뒤 호출)
+    const runMakeDocx = async () => {
+        if (!selected) return;
         setDocxMaking(true);
         try {
             const res = await ebookApi.generateDocx(selected.id);
@@ -253,6 +247,21 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             setSelected(prev => prev ? { ...prev, docxUrl: res.url, charged: true } : prev);
         } catch (e: any) { setError(e?.message || '문서 생성 실패'); }
         finally { setDocxMaking(false); }
+    };
+
+    // 최초 1회만 글자수 비례 차감(1,000자당 단가) — 클릭 전 견적을 확인 모달로 보여준 뒤 진행.
+    const makeDocx = async () => {
+        if (!selected || docxMaking) return;
+        setError(null);
+        try {
+            const est = await ebookApi.docxEstimate(selected.id);
+            if (est.alreadyCharged) { runMakeDocx(); return; }
+            setPointConfirm({
+                title: '문서 만들기 포인트 차감',
+                lines: [`본문 총 ${est.totalChars.toLocaleString()}자`, `→ ${est.cost.toLocaleString()}P가 차감됩니다.`],
+                onConfirm: runMakeDocx,
+            });
+        } catch (e: any) { setError(e?.message || '견적 계산 실패'); }
     };
 
     // 이미지 프롬프트 뽑기: 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 생성
@@ -309,14 +318,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 백그라운드 타이머(15초 간격 1개씩, 다른 이미지 기능과 쿼터 신호등 공유)가 처리.
     // ★사장 지적(2026-07-25) 반영: 예전엔 프론트가 순차 동기 호출을 해서 쿼터 걸리면 남은
     // 자리 전부 시도조차 못 하고 멈췄음 — 지금은 등록만 하고 폴링으로 진행률만 본다.
-    const startImageGeneration = async (targets: { caption: string; chapterNo: number; prompt: string }[]) => {
-        if (!selected || targets.length === 0) return;
-        try {
-            const est = await ebookApi.imageCost(selected.id, targets.length);
-            const ok = confirm(`그림 ${est.count}개 × ${est.perImageCost.toLocaleString()}P = 총 ${est.cost.toLocaleString()}P가 차감됩니다.\n생성은 서버가 여유 있게 순서대로 진행해요(자리당 약 15초~). 계속할까요?`);
-            if (!ok) return;
-        } catch (e: any) { setImgGenError(e?.message || '견적 계산 실패'); return; }
-
+    const runQueueImages = async (targets: { caption: string; chapterNo: number; prompt: string }[]) => {
+        if (!selected) return;
         setImgGenError(null);
         try {
             await ebookApi.queueImages(selected.id, targets);
@@ -327,6 +330,18 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) {
             setImgGenError(e?.message || '이미지 생성 등록에 실패했어요.');
         }
+    };
+
+    const startImageGeneration = async (targets: { caption: string; chapterNo: number; prompt: string }[]) => {
+        if (!selected || targets.length === 0) return;
+        try {
+            const est = await ebookApi.imageCost(selected.id, targets.length);
+            setPointConfirm({
+                title: '그림 이미지 생성 포인트 차감',
+                lines: [`그림 ${est.count}개 × ${est.perImageCost.toLocaleString()}P`, `= 총 ${est.cost.toLocaleString()}P가 차감됩니다.`, '서버가 여유 있게 순서대로 진행해요(자리당 약 15초~).'],
+                onConfirm: () => runQueueImages(targets),
+            });
+        } catch (e: any) { setImgGenError(e?.message || '견적 계산 실패'); }
     };
 
     const generateAllImages = () => {
@@ -823,8 +838,11 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             {!selected.charged && (
                                                 <p className="text-[11px] mb-2 font-semibold" style={{ color: '#C0392B' }}>⚠️ 먼저 위에서 <b>구글 문서(.docx) 만들기</b>를 완료해야 그림 기능을 사용할 수 있어요.</p>
                                             )}
+                                            {Object.keys(imgGenResults).length > 0 && (
+                                                <p className="text-[11px] mb-2" style={{ color: T.inkMute }}>ℹ️ 이미 만들어진 그림이 있어 프롬프트를 다시 뽑을 수 없어요(중복 과금 방지). 그림을 더 넣으려면 본문에 <b>[그림: 설명]</b> 자리를 추가한 뒤 다시 시도하세요.</p>
+                                            )}
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <button onClick={makeImagePrompts} disabled={!canPdf || !selected.charged || imgPromptLoading}
+                                                <button onClick={makeImagePrompts} disabled={!canPdf || !selected.charged || imgPromptLoading || Object.keys(imgGenResults).length > 0}
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
                                                     {imgPromptLoading ? <><Loader size={14} className="animate-spin" /> 프롬프트 만드는 중…</> : <><ImagePlus size={14} /> 이미지 프롬프트 뽑기</>}
                                                 </button>
@@ -1086,6 +1104,35 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                     </div>
                 </div>
             </div>
+
+            {/* 포인트 차감 확인 모달(docx 만들기·그림 이미지 생성 공용) — brower confirm() 대신 디자인 모달로(사장 요청). */}
+            {pointConfirm && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" style={{ background: 'rgba(20,12,30,0.5)' }}>
+                    <div className="w-full max-w-sm rounded-2xl p-5 shadow-2xl" style={{ background: T.card }}>
+                        <div className="flex items-center gap-2 mb-3">
+                            <span className="inline-flex items-center justify-center rounded-full w-8 h-8" style={{ background: T.accentSoft }}>
+                                <ImagePlus size={16} style={{ color: T.accent }} />
+                            </span>
+                            <p className="text-sm font-bold" style={{ color: T.ink }}>{pointConfirm.title}</p>
+                        </div>
+                        <div className="rounded-xl p-3 mb-4 space-y-1" style={{ background: T.surface, border: `1px solid ${T.border}` }}>
+                            {pointConfirm.lines.map((line, i) => (
+                                <p key={i} className="text-sm" style={{ color: i === pointConfirm.lines.length - 1 && line.includes('P') ? T.accent : T.inkSoft, fontWeight: line.includes('총') || line.includes('차감') ? 700 : 400 }}>{line}</p>
+                            ))}
+                        </div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setPointConfirm(null)}
+                                className="flex-1 py-2.5 rounded-xl text-sm font-semibold" style={{ color: T.inkMute, background: T.surface, border: `1px solid ${T.border}` }}>
+                                취소
+                            </button>
+                            <button onClick={() => { const fn = pointConfirm.onConfirm; setPointConfirm(null); fn(); }}
+                                className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white" style={{ background: T.accent }}>
+                                확인
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
