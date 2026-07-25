@@ -812,6 +812,7 @@ export interface EbookProject {
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     pageSize?: string | null; // 책 판형: sinkuk(신국판) | a5 | gukbae
     imageSlotsJson?: string | null; // 그림 자리 AI생성 이미지 JSON(원본 그대로, 파싱은 프론트에서)
+    coverCandidatesJson?: string | null; // AI 표지 후보 2안 JSON [{engine,url}] — 창을 닫았다 와도 고를 수 있게 서버가 저장
     charged?: boolean; // 문서(.docx) 완성 차감 여부 — true라야 그림 프롬프트·이미지 생성 기능 사용 가능
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }

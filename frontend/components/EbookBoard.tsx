@@ -485,6 +485,10 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                     }
                 } catch { setImgGenResults({}); }
             } else { setImgGenResults({}); setImgPrompts(null); }
+            // AI 표지 후보 복원 — 생성에 1~2분 걸려 그 사이 창을 닫아도 고를 수 있게(서버가 DB에 저장).
+            try {
+                setCoverCandidates(project.coverCandidatesJson ? JSON.parse(project.coverCandidatesJson) : []);
+            } catch { setCoverCandidates([]); }
         } catch {}
     };
 
