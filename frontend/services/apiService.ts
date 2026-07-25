@@ -849,12 +849,16 @@ export const ebookApi = {
     // docx 만들기 전 예상 차감액(글자수 기준) 견적
     docxEstimate: (id: number) =>
         get<{ totalChars: number; units: number; cost: number; alreadyCharged: boolean }>(`/ebook/${id}/docx-estimate`),
-    // AI 표지 생성 — 제목+목차 참고. 견적/실행 2단계.
-    // 제미나이·GPT 두 엔진으로 후보 2안을 만들어 돌려주고, 고른 쪽을 saveCoverUrl로 확정한다.
+    // AI 표지 생성 — 제목+목차 참고. 견적 → 등록(큐) → 폴링 3단계.
+    // GPT high가 ~95초 걸려 동기 응답은 Vercel 프록시 타임아웃(502)에 걸린다(2026-07-25 실사용
+    // 재현) — 그림 자리 생성과 같은 방식으로 등록만 즉시 응답(202)하고 백그라운드 큐가 처리,
+    // 프론트는 coverQueueStatus로 폴링한다. 고른 쪽을 saveCoverUrl로 확정한다.
     coverCost: (id: number) =>
         get<{ cost: number }>(`/ebook/${id}/cover-cost`),
     generateCover: (id: number) =>
-        post<{ candidates: { engine: 'gemini' | 'gpt'; url: string }[]; cost: number }>(`/ebook/${id}/generate-cover`, {}),
+        post<{ queued: true; cost: number }>(`/ebook/${id}/generate-cover`, {}),
+    coverQueueStatus: (id: number) =>
+        get<{ counts: { queued: number; done: number; failed: number }; candidates: { engine: 'gemini' | 'gpt'; url: string }[] }>(`/ebook/${id}/cover-queue-status`),
     // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
     coverUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),

@@ -82,6 +82,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [imgGenFailed, setImgGenFailed] = useState<Set<string>>(new Set()); // caption(실패·환불됨, 재시도 가능)
     const [imgGenError, setImgGenError] = useState<string | null>(null);
     const imgGenPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const coverPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     // 탭4 예약 슬롯 현황
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
@@ -189,16 +190,34 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) { setError(e?.message || '표지 업로드 실패'); }
         finally { setCoverMaking(false); }
     };
-    // AI로 표지 생성(제목+목차 참고) — 견적 확인 모달 거친 뒤 실행.
-    // 제미나이·GPT 두 화풍의 후보를 받아 고르게 한다(고르기 전엔 coverUrl 확정 안 함).
+    // 표지 큐 폴링 — GPT high가 ~95초 걸려 동기 응답은 Vercel 타임아웃(502)에 걸리므로
+    // 그림 자리와 같은 방식으로 등록만 하고 여기서 진행 상황을 5초마다 확인한다.
+    const pollCoverQueue = useCallback((projectId: number) => {
+        if (coverPollRef.current) clearInterval(coverPollRef.current);
+        coverPollRef.current = setInterval(async () => {
+            try {
+                const st = await ebookApi.coverQueueStatus(projectId);
+                setCoverCandidates(st.candidates);
+                if (st.counts.queued === 0) {
+                    if (coverPollRef.current) clearInterval(coverPollRef.current);
+                    coverPollRef.current = null;
+                    setCoverMaking(false);
+                    if (st.candidates.length === 0) setError('표지 생성에 실패했어요. 포인트는 환불됐어요.');
+                }
+            } catch { /* 일시적 네트워크 오류 — 다음 폴링에서 재시도 */ }
+        }, 5000);
+    }, []);
+    useEffect(() => () => { if (coverPollRef.current) clearInterval(coverPollRef.current); }, []);
+
+    // AI로 표지 생성(제목+목차 참고) — 견적 확인 모달 거친 뒤 실행. 등록만 즉시 응답받고
+    // 실제 생성은 서버 백그라운드 큐가 처리 — 창을 닫아도 서버는 계속 진행한다.
     const runGenerateAICover = async () => {
         if (!selected) return;
         setCoverMaking(true); setError(null); setCoverCandidates([]);
         try {
-            const res = await ebookApi.generateCover(selected.id);
-            setCoverCandidates(res.candidates);
-        } catch (e: any) { setError(e?.message || 'AI 표지 생성 실패'); }
-        finally { setCoverMaking(false); }
+            await ebookApi.generateCover(selected.id);
+            pollCoverQueue(selected.id);
+        } catch (e: any) { setError(e?.message || 'AI 표지 생성 실패'); setCoverMaking(false); }
     };
     const generateAICover = async () => {
         if (!selected || coverMaking) return;
@@ -485,9 +504,14 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                     }
                 } catch { setImgGenResults({}); }
             } else { setImgGenResults({}); setImgPrompts(null); }
-            // AI 표지 후보 복원 — 생성에 1~2분 걸려 그 사이 창을 닫아도 고를 수 있게(서버가 DB에 저장).
+            // AI 표지 후보 복원 — coverCandidatesJson은 큐 슬롯 배열([{engine,status,url?}])로
+            // 저장된다. 완료분만 골라 보여주고, 아직 queued가 남아 있으면(창을 닫았다 돌아온
+            // 경우) 폴링을 재개해 마저 받는다.
             try {
-                setCoverCandidates(project.coverCandidatesJson ? JSON.parse(project.coverCandidatesJson) : []);
+                const slots: { engine: 'gemini' | 'gpt'; status: string; url?: string }[] = project.coverCandidatesJson ? JSON.parse(project.coverCandidatesJson) : [];
+                setCoverCandidates(slots.filter(s => s.status === 'done' && s.url).map(s => ({ engine: s.engine, url: s.url as string })));
+                if (slots.some(s => s.status === 'queued')) { setCoverMaking(true); pollCoverQueue(project.id); }
+                else setCoverMaking(false);
             } catch { setCoverCandidates([]); }
         } catch {}
     };
@@ -814,22 +838,34 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     </>
                                                 )}
                                             </div>
-                                            {/* AI 표지 후보 2안 — 고르면 확정되고 목록은 사라진다 */}
-                                            {coverCandidates.length > 0 && (
+                                            {/* AI 표지 진행/후보 — 만드는 중엔 완료된 것부터 뜨고(5초 폴링), 2장 다 나오면
+                                                고를 수 있다. 창을 닫아도 서버가 계속 만들고, 다시 열면 이어서 보인다. */}
+                                            {(coverMaking || coverCandidates.length > 0) && (
                                                 <div className="mt-3 rounded-xl p-3" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                    <p className="text-[11px] font-bold mb-2" style={{ color: T.ink }}>마음에 드는 표지를 고르세요</p>
+                                                    <p className="text-[11px] font-bold mb-2" style={{ color: T.ink }}>
+                                                        {coverMaking
+                                                            ? `표지를 만들고 있어요(${coverCandidates.length}/2) — 최대 2분 정도 걸려요. 창을 닫아도 계속 만들어져요.`
+                                                            : '마음에 드는 표지를 고르세요'}
+                                                    </p>
                                                     <div className="flex gap-3 flex-wrap">
                                                         {coverCandidates.map(c => (
                                                             <div key={c.url} className="flex flex-col items-center gap-1.5">
                                                                 <img src={c.url} alt={`표지 후보 (${c.engine})`} className="rounded-lg" style={{ width: 120, height: 160, objectFit: 'cover', border: `1px solid ${T.border}` }} />
-                                                                <button onClick={() => pickCoverCandidate(c.url)} disabled={coverMaking}
-                                                                    className="text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 14px', color: '#fff', background: T.accent }}>
-                                                                    이걸로 할래요
-                                                                </button>
+                                                                {!coverMaking && (
+                                                                    <button onClick={() => pickCoverCandidate(c.url)} disabled={coverMaking}
+                                                                        className="text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 14px', color: '#fff', background: T.accent }}>
+                                                                        이걸로 할래요
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         ))}
+                                                        {coverMaking && coverCandidates.length < 2 && (
+                                                            <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg" style={{ width: 120, height: 160, border: `1px dashed ${T.border}` }}>
+                                                                <Loader size={18} className="animate-spin" style={{ color: T.accent }} />
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>둘 다 마음에 안 들면 다시 만들 수 있어요(포인트가 다시 차감됩니다).</p>
+                                                    {!coverMaking && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>둘 다 마음에 안 들면 다시 만들 수 있어요(포인트가 다시 차감됩니다).</p>}
                                                 </div>
                                             )}
                                             {coverSaveToast && (
