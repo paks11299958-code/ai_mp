@@ -187,6 +187,29 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) { setError(e?.message || '표지 업로드 실패'); }
         finally { setCoverMaking(false); }
     };
+    // AI로 표지 생성(제목+목차 참고, 장당 200P) — 견적 확인 모달 거친 뒤 실행.
+    const runGenerateAICover = async () => {
+        if (!selected) return;
+        setCoverMaking(true); setError(null);
+        try {
+            const res = await ebookApi.generateCover(selected.id);
+            setSelected(prev => prev ? { ...prev, coverUrl: res.coverUrl } : prev);
+            setDocxUrl(null);
+        } catch (e: any) { setError(e?.message || 'AI 표지 생성 실패'); }
+        finally { setCoverMaking(false); }
+    };
+    const generateAICover = async () => {
+        if (!selected || coverMaking) return;
+        setError(null);
+        try {
+            const est = await ebookApi.coverCost(selected.id);
+            setPointConfirm({
+                title: 'AI 표지 생성 포인트 차감',
+                lines: [`제목·목차를 참고해 표지를 만들어요.`, `${est.cost.toLocaleString()}P가 차감됩니다.`],
+                onConfirm: runGenerateAICover,
+            });
+        } catch (e: any) { setError(e?.message || '견적 계산 실패'); }
+    };
     const removeCover = async () => {
         if (!selected || coverMaking) return;
         setCoverMaking(true); setError(null);
@@ -746,15 +769,19 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>2</span>
-                                                <p className="text-sm font-bold" style={{ color: T.ink }}>표지 올리기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
+                                                <p className="text-sm font-bold" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지 이미지를 올려주세요. 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
+                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지를 올리거나, <b style={{ color: T.accent }}>AI가 제목·목차를 참고해 표지를 만들어</b> 드려요(장당 200P). 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
                                             <div className="flex items-start gap-3 flex-wrap">
                                                 <label className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl cursor-pointer" style={{ padding: '8px 16px', color: '#fff', background: T.accent, opacity: coverMaking ? 0.4 : 1 }}>
-                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 올리는 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
+                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 처리 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
                                                     <input type="file" accept="image/*" disabled={coverMaking} className="hidden"
                                                         onChange={e => { const f = e.target.files?.[0]; if (f) uploadCover(f); e.currentTarget.value = ''; }} />
                                                 </label>
+                                                <button onClick={generateAICover} disabled={coverMaking}
+                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 만드는 중…</> : <>✨ AI로 표지 만들기</>}
+                                                </button>
                                                 {selected.coverUrl && (
                                                     <>
                                                         <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />

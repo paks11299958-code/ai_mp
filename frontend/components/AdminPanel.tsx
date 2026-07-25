@@ -249,6 +249,7 @@ const FEATURE_LABELS: Record<string, string> = {
     'ebook_docx_per1k': '전자책 문서 만들기(1,000자당)',
     'ebook_image_prompt': '전자책 그림 프롬프트 뽑기(일괄)',
     'ebook_image': '전자책 그림 이미지 생성(장당)',
+    'ebook_cover': '전자책 AI 표지 생성(장당)',
     'marketing':  'AI 마케팅 글쓰기',
     'homepage':   '홈페이지 만들기',
     'homepage_edit_text':   '홈페이지 수정(텍스트)',
@@ -270,6 +271,7 @@ const FEATURE_COST_KRW: Record<string, number> = {
     'ebook_docx_per1k': 1,       // Gemini/Claude 텍스트 조립(1,000자당, 저렴)
     'ebook_image_prompt': 3,     // Claude sonnet 텍스트 호출 1회(자리 수 무관)
     'ebook_image': 92,           // 나노바나나 이미지 생성 1장(hair와 동일 모델·단가)
+    'ebook_cover': 92,           // 나노바나나 이미지 생성 1장(그림 자리와 동일 모델·단가)
     'homepage': 250,   // claude구독(≈0)+나노바나나 최대4장(장당50~80원 실측)
     'homepage_edit_text': 0,      // claude 구독 1회 호출(API 과금 아님)
     'homepage_edit_image': 70,    // 나노바나나 1장 재생성

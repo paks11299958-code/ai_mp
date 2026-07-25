@@ -848,6 +848,11 @@ export const ebookApi = {
     // docx 만들기 전 예상 차감액(글자수 기준) 견적
     docxEstimate: (id: number) =>
         get<{ totalChars: number; units: number; cost: number; alreadyCharged: boolean }>(`/ebook/${id}/docx-estimate`),
+    // AI 표지 생성(장당 200P) — 제목+목차 참고. 견적/실행 2단계.
+    coverCost: (id: number) =>
+        get<{ cost: number }>(`/ebook/${id}/cover-cost`),
+    generateCover: (id: number) =>
+        post<{ coverUrl: string; cost: number }>(`/ebook/${id}/generate-cover`, {}),
     // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
     coverUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),
