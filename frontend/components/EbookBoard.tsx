@@ -267,8 +267,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         finally { setImgPromptLoading(false); }
     };
 
+    // ChatGPT에 붙여넣었을 때 곧바로 이미지 생성 모드로 반응하도록 실행 지시 문구를 앞에 붙임.
+    // 순수 설명문만 복사하면 ChatGPT가 텍스트로만 답하고 그림을 안 만들던 문제(2026-07-25 사장 지적) 해결.
     const copyPrompt = async (no: number, text: string) => {
-        try { await navigator.clipboard.writeText(text); setCopiedNo(no); setTimeout(() => setCopiedNo(null), 1500); } catch { /* 무시 */ }
+        try {
+            await navigator.clipboard.writeText(`다음 내용으로 이미지를 만들어줘:\n\n${text}`);
+            setCopiedNo(no); setTimeout(() => setCopiedNo(null), 1500);
+        } catch { /* 무시 */ }
     };
 
     // 폴링: 큐 처리 상태를 5초 간격으로 조회 — done+failed가 total에 도달하면 자동 중단.
@@ -791,7 +796,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>그림 이미지 프롬프트 뽑기</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                본문의 <b>[그림: 설명]</b> 자리마다 ChatGPT(DALL·E)용 영문 프롬프트를 만들어 드려요(일괄 500P). 복사해서 ChatGPT에 붙여넣어 그림을 만든 뒤, 글 수정에서 그 자리에 넣으면 됩니다. 또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>(장당 200P)으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.
+                                                본문의 <b>[그림: 설명]</b> 자리마다 책 내용에 맞는 한글 프롬프트를 만들어 드려요(일괄 500P). <b>복사</b> 버튼을 누르면 ChatGPT에 그대로 붙여넣기만 해도 이미지가 만들어지는 문구가 함께 복사돼요. 또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>(장당 200P)으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.
                                             </p>
                                             {!selected.charged && (
                                                 <p className="text-[11px] mb-2 font-semibold" style={{ color: '#C0392B' }}>⚠️ 먼저 위에서 <b>구글 문서(.docx) 만들기</b>를 완료해야 그림 기능을 사용할 수 있어요.</p>
