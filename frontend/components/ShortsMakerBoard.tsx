@@ -294,6 +294,10 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
             <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
+                        {(step === 'list' || step === 'form') && (
+                            <button onClick={() => setStep('intro')}
+                                    className="text-gray-400 hover:text-gray-600 text-sm shrink-0 pr-1 -ml-1">← 뒤로</button>
+                        )}
                         <span className="text-lg">🎬</span>
                         <h2 className="text-base font-bold" style={{ color: PINK }}>쇼츠 만들기</h2>
                     </div>
@@ -364,7 +368,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {/* [list] 내가 만든 쇼츠 목록 */}
                     {step === 'list' && (
                         <>
-                            <button onClick={() => setStep('intro')} className="text-xs text-gray-400">← 뒤로</button>
                             <p className="text-sm font-semibold text-gray-800">내가 만든 쇼츠</p>
                             {mineList.length === 0 && (
                                 <p className="text-xs text-gray-400 py-6 text-center">아직 만든 쇼츠가 없어요.</p>
@@ -414,8 +417,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {/* [form] 신청서 */}
                     {step === 'form' && (
                         <>
-                            <button onClick={() => setStep('intro')} className="text-xs text-gray-400">← 뒤로</button>
-
                             <div className="space-y-1.5">
                                 <p className="text-xs font-semibold text-gray-700">어떤 쇼츠를 만들까요? *</p>
                                 <div className="grid grid-cols-1 gap-1.5">
