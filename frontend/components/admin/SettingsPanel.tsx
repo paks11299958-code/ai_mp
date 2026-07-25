@@ -13,13 +13,28 @@ export const SettingsPanel: React.FC<{ onGoPersonas: () => void }> = ({ onGoPers
     const [isSavingHeroImage, setIsSavingHeroImage] = useState(false);
     const [isSavingGlobal, setIsSavingGlobal] = useState(false);
     const [showSavedModal, setShowSavedModal] = useState(false);
+    const [ebookTocProvider, setEbookTocProvider] = useState<'gemini' | 'gpt'>('gemini');
+    const [isSavingTocProvider, setIsSavingTocProvider] = useState(false);
 
     useEffect(() => {
         settingsApi.get().then(s => {
             setCommonInstruction(s.commonInstruction || '');
             setHeroImagePreview(s.heroImageUrl || '');
+            setEbookTocProvider(s.ebook_toc_provider === 'gpt' ? 'gpt' : 'gemini');
         }).catch(() => {});
     }, []);
+
+    const handleTocProviderChange = async (provider: 'gemini' | 'gpt') => {
+        setIsSavingTocProvider(true);
+        try {
+            await settingsApi.update({ ebook_toc_provider: provider });
+            setEbookTocProvider(provider);
+        } catch (e: any) {
+            alert('저장 실패: ' + e.message);
+        } finally {
+            setIsSavingTocProvider(false);
+        }
+    };
 
     const handleSaveGlobal = async () => {
         setIsSavingGlobal(true);
@@ -131,6 +146,28 @@ export const SettingsPanel: React.FC<{ onGoPersonas: () => void }> = ({ onGoPers
                             </label>
                         </div>
                         <p className="text-xs text-gray-600">권장: 가로형 이미지 (예: 페르소나 카드 합성 이미지)</p>
+                    </div>
+
+                    {/* 전자책 목차 생성 엔진 */}
+                    <div className="pt-4 border-t border-gray-700/50 space-y-3">
+                        <div className="flex items-center gap-2">
+                            <Icon name="BookOpen" size={16} className="text-emerald-400" />
+                            <h3 className="text-sm font-bold text-white">전자책 목차 생성 엔진</h3>
+                            <span className="text-xs text-gray-500">— 어느 AI가 목차를 만들지</span>
+                        </div>
+                        <div className="flex gap-2">
+                            {(['gemini', 'gpt'] as const).map(p => (
+                                <button key={p} onClick={() => handleTocProviderChange(p)} disabled={isSavingTocProvider}
+                                    className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-colors disabled:opacity-50 ${
+                                        ebookTocProvider === p
+                                            ? 'bg-emerald-600 border-emerald-500 text-white'
+                                            : 'bg-gray-800 border-gray-700 text-gray-400 hover:border-gray-500'
+                                    }`}>
+                                    {p === 'gemini' ? 'Gemini (기본)' : 'ChatGPT (GPT-4o)'}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-600">클릭 즉시 저장되고 다음 목차 생성부터 바로 적용돼요.</p>
                     </div>
                 </div>
             </div>
