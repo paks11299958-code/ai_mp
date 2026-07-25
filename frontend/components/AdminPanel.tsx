@@ -246,7 +246,9 @@ const FEATURE_LABELS: Record<string, string> = {
     'golf':       '골프 스윙 분석',
     'webtoon':    '웹툰 보기',
     'club':       '모임(출첵)',
-    'ebook':      '전자책 만들기',
+    'ebook_docx_per1k': '전자책 문서 만들기(1,000자당)',
+    'ebook_image_prompt': '전자책 그림 프롬프트 뽑기(일괄)',
+    'ebook_image': '전자책 그림 이미지 생성(장당)',
     'marketing':  'AI 마케팅 글쓰기',
     'homepage':   '홈페이지 만들기',
     'homepage_edit_text':   '홈페이지 수정(텍스트)',
@@ -264,7 +266,10 @@ const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
     'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
     'agetransform': 57, 'outfit': 57,  // nano-banana 이미지 합성(hair와 동일)
-    'lookalike': 2, 'webtoon': 0, 'club': 0, 'ebook': 1, 'marketing': 12,
+    'lookalike': 2, 'webtoon': 0, 'club': 0, 'marketing': 12,
+    'ebook_docx_per1k': 1,       // Gemini/Claude 텍스트 조립(1,000자당, 저렴)
+    'ebook_image_prompt': 3,     // Claude sonnet 텍스트 호출 1회(자리 수 무관)
+    'ebook_image': 57,           // 나노바나나 이미지 생성 1장(hair와 동일 모델)
     'homepage': 250,   // claude구독(≈0)+나노바나나 최대4장(장당50~80원 실측)
     'homepage_edit_text': 0,      // claude 구독 1회 호출(API 과금 아님)
     'homepage_edit_image': 70,    // 나노바나나 1장 재생성

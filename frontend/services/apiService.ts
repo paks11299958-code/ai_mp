@@ -809,6 +809,7 @@ export interface EbookProject {
     scheduledHour?: number | null; // 탭4 자료 일괄수집 예약 시각(KST 1~5)
     pageSize?: string | null; // 책 판형: sinkuk(신국판) | a5 | gukbae
     imageSlotsJson?: string | null; // 그림 자리 AI생성 이미지 JSON(원본 그대로, 파싱은 프론트에서)
+    charged?: boolean; // 문서(.docx) 완성 차감 여부 — true라야 그림 프롬프트·이미지 생성 기능 사용 가능
     createdAt: string; updatedAt: string; chapters?: EbookTocChapter[];
 }
 export const ebookApi = {
@@ -829,12 +830,18 @@ export const ebookApi = {
     // 최종본 직접 수정 저장(편집기에서 사용 — 유지)
     saveContentMd: (id: number, no: number, contentMd: string) =>
         put<{ no: number; contentMd: string }>(`/ebook/${id}/chapters/${no}/content-md`, { contentMd }),
-    // 이미지 프롬프트 뽑기 — 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 생성
+    // 이미지 프롬프트 뽑기 — 본문 [그림:설명] 자리별 ChatGPT용 프롬프트 생성(일괄 과금, 문서완성 후에만 가능)
     imagePrompts: (id: number) =>
-        post<{ prompts: { no: number; chapterNo: number; chapterTitle: string; caption: string; prompt: string }[]; message?: string }>(`/ebook/${id}/image-prompts`, {}),
-    // 그림 자리 1개 AI 이미지 생성(무료). caption을 키로 저장 — 프론트가 자리 개수만큼 순차 호출해 진행률 표시.
+        post<{ prompts: { no: number; chapterNo: number; chapterTitle: string; caption: string; prompt: string }[]; message?: string; cost?: number }>(`/ebook/${id}/image-prompts`, {}),
+    // 그림 이미지 N개 생성 시 예상 차감액(장당 단가 × N) 견적
+    imageCost: (id: number, count: number) =>
+        get<{ perImageCost: number; count: number; cost: number }>(`/ebook/${id}/image-cost?count=${count}`),
+    // 그림 자리 1개 AI 이미지 생성(장당 과금). caption을 키로 저장 — 프론트가 자리 개수만큼 순차 호출해 진행률 표시.
     generateImage: (id: number, caption: string, chapterNo: number, prompt: string) =>
-        post<{ caption: string; imageUrl: string }>(`/ebook/${id}/generate-image`, { caption, chapterNo, prompt }),
+        post<{ caption: string; imageUrl: string; cost?: number }>(`/ebook/${id}/generate-image`, { caption, chapterNo, prompt }),
+    // docx 만들기 전 예상 차감액(글자수 기준) 견적
+    docxEstimate: (id: number) =>
+        get<{ totalChars: number; units: number; cost: number; alreadyCharged: boolean }>(`/ebook/${id}/docx-estimate`),
     // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
     coverUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),

@@ -233,13 +233,22 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     // 탭3: 구글 독스용 .docx 생성(북크크 양식). 서버가 docxUrl도 저장 → 재방문 시 다운로드 버튼 유지.
+    // 최초 1회만 글자수 비례 차감(1,000자당 단가) — 클릭 전 견적을 확인창으로 보여준 뒤 진행.
     const makeDocx = async () => {
         if (!selected || docxMaking) return;
-        setDocxMaking(true); setError(null);
+        setError(null);
+        try {
+            const est = await ebookApi.docxEstimate(selected.id);
+            if (!est.alreadyCharged) {
+                const ok = confirm(`본문 총 ${est.totalChars.toLocaleString()}자 → ${est.cost.toLocaleString()}P가 차감됩니다.\n계속할까요?`);
+                if (!ok) return;
+            }
+        } catch (e: any) { setError(e?.message || '견적 계산 실패'); return; }
+        setDocxMaking(true);
         try {
             const res = await ebookApi.generateDocx(selected.id);
             setDocxUrl(res.url);
-            setSelected(prev => prev ? { ...prev, docxUrl: res.url } : prev);
+            setSelected(prev => prev ? { ...prev, docxUrl: res.url, charged: true } : prev);
         } catch (e: any) { setError(e?.message || '문서 생성 실패'); }
         finally { setDocxMaking(false); }
     };
@@ -262,10 +271,18 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
     // 그림 이미지 일괄 생성: imgPrompts 자리마다 개별 API를 순차 호출(진행률 N/M 실시간 표시).
     // 이미 생성된(imgGenResults에 있는) 자리는 건너뛰고 나머지만 생성 — 실패분만 재시도할 때 중복생성 방지.
+    // 시작 전 "장당 단가 × 자리수 = 총액" 확인창을 거친다(장당 과금이라 실행 전 반드시 고지).
     const generateAllImages = async () => {
         if (!selected || !imgPrompts || imgPrompts.length === 0 || imgGenBusy) return;
-        setImgGenBusy(true); setImgGenError(null);
         const targets = imgPrompts.filter(ip => !imgGenResults[ip.caption] && ip.prompt);
+        if (targets.length === 0) return;
+        try {
+            const est = await ebookApi.imageCost(selected.id, targets.length);
+            const ok = confirm(`그림 ${est.count}개 × ${est.perImageCost.toLocaleString()}P = 총 ${est.cost.toLocaleString()}P가 차감됩니다.\n계속할까요?`);
+            if (!ok) return;
+        } catch (e: any) { setImgGenError(e?.message || '견적 계산 실패'); return; }
+
+        setImgGenBusy(true); setImgGenError(null);
         setImgGenProgress({ done: 0, total: targets.length });
         try {
             for (let i = 0; i < targets.length; i++) {
@@ -733,10 +750,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>그림 이미지 프롬프트 뽑기</p>
                                             </div>
                                             <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                본문의 <b>[그림: 설명]</b> 자리마다 ChatGPT(DALL·E)용 영문 프롬프트를 만들어 드려요. 복사해서 ChatGPT에 붙여넣어 그림을 만든 뒤, 글 수정에서 그 자리에 넣으면 됩니다. 또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.
+                                                본문의 <b>[그림: 설명]</b> 자리마다 ChatGPT(DALL·E)용 영문 프롬프트를 만들어 드려요(일괄 500P). 복사해서 ChatGPT에 붙여넣어 그림을 만든 뒤, 글 수정에서 그 자리에 넣으면 됩니다. 또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>(장당 200P)으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.
                                             </p>
+                                            {!selected.charged && (
+                                                <p className="text-[11px] mb-2 font-semibold" style={{ color: '#C0392B' }}>⚠️ 먼저 위에서 <b>구글 문서(.docx) 만들기</b>를 완료해야 그림 기능을 사용할 수 있어요.</p>
+                                            )}
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                <button onClick={makeImagePrompts} disabled={!canPdf || imgPromptLoading}
+                                                <button onClick={makeImagePrompts} disabled={!canPdf || !selected.charged || imgPromptLoading}
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
                                                     {imgPromptLoading ? <><Loader size={14} className="animate-spin" /> 프롬프트 만드는 중…</> : <><ImagePlus size={14} /> 이미지 프롬프트 뽑기</>}
                                                 </button>

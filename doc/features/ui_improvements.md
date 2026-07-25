@@ -1,5 +1,22 @@
 # UI 개선 이력
 
+## 뒤로가기 버튼 헤더 통일 + 중고 판매 화면 라이트 테마 전환 (2026-07-25)
+- **뒤로가기 버튼을 헤더 내 원형 아이콘 버튼으로 통일**: 콘텐츠 영역 안에 별도 줄로 떠
+  있던 `← 뒤로` 텍스트 버튼(list/form 스텝에서 `setStep('intro')`)을 제거하고, sticky
+  헤더의 타이틀 왼쪽에 `w-7 h-7 rounded-full` 원형 아이콘 버튼으로 이동. 각 화면 팔레트에
+  맞춰 배경/글자색만 다르게(연한 배경 + 진한 글자색 조합):
+  - `ShortsMakerBoard.tsx`(이아린): 배경 `#FCE7F0` / 글자 `PINK`(`#D85C95`)
+  - `HomepageBoard.tsx`(박하진): 배경 `#E4E6F9` / 글자 `INDIGO`(`#5C6AC4`)
+  - `UsedItemBoard.tsx`(이아린, 모바일 전용): 배경 `#FFE8D5` / 글자 `#C2410C`
+  - 다른 구조(폼 액션 버튼 페어인 `GolfReserveDialog.tsx`, 이미 별도 pill 디자인이 있는
+    `UsedItemBoard.tsx`의 "목록으로")는 통일 대상에서 제외 — 구조/용도가 달라 억지로
+    맞추면 레이아웃이 어색해짐.
+- **`UsedItemBoard.tsx`(중고 판매) 다크→라이트 테마 전환**: 진한 네이비/slate 배경 +
+  회색 텍스트 조합이 다른 기능(쇼츠 만들기 핑크, 홈페이지 만들기 인디고)에 비해 칙칙하다는
+  지적 → 흰 배경 + 연한 회색 라인 기조로 전면 교체(`slate-900/800/700` 계열 전부 제거).
+  오렌지 포인트 컬러(`orange-500/600`)는 유지하되 밝은 배경에 맞게 채도만 조정. 상태
+  배지 색(`STATUS_CONFIG`의 green/yellow/blue/red-400)은 밝은 배경에서도 무난해 그대로 둠.
+
 ## 어드민 화면 정리 3건 (2026-07-21)
 - **레퍼럴 방문 일별 차트 날짜 버그**: `ReferralStatsPanel.tsx`의 x축 라벨이 `String(d.day).slice(5)`로 잘못 슬라이싱돼 `07-16T00:00:00.000Z`처럼 ISO 문자열이 그대로 노출되던 버그(서버가 Date를 ISO로 직렬화 → 프론트가 앞 5글자만 자르려던 게 실패). `String(d.day).slice(0, 10)`로 `YYYY-MM-DD` 정리 + 막대 위에 방문 카운트 숫자 추가 + 14일치 라벨을 대각선 배치(`rotate(45deg)`)로 겹침 방지.
 - **회원목록 가입일 시간 추가**: `UsersPanel.tsx`에서 `toLocaleDateString('ko-KR')`(예: `2026. 7. 21.`) → `toLocaleString('sv-SE').slice(0, 16)` 트릭으로 `2026-07-21 14:30`(날짜+시간) 표시. `sv-SE` 로케일이 `YYYY-MM-DD HH:mm:ss` 포맷을 반환하는 걸 이용.
