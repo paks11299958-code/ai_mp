@@ -822,14 +822,23 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
                                                     {imgPromptLoading ? <><Loader size={14} className="animate-spin" /> 프롬프트 만드는 중…</> : <><ImagePlus size={14} /> 이미지 프롬프트 뽑기</>}
                                                 </button>
-                                                {imgPrompts && imgPrompts.length > 0 && (
-                                                    <button onClick={generateAllImages} disabled={imgGenBusy}
-                                                        className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
-                                                        {imgGenBusy
-                                                            ? <><Loader size={14} className="animate-spin" /> 순서대로 생성 중… {imgGenProgress.done}/{imgGenProgress.total}</>
-                                                            : <><ImagePlus size={14} /> {Object.keys(imgGenResults).length > 0 ? '나머지 이미지 이어서 생성' : 'AI 이미지 일괄 생성'}</>}
-                                                    </button>
-                                                )}
+                                                {imgPrompts && imgPrompts.length > 0 && (() => {
+                                                    // "만들 게 남아있는지" 계산 — 전부 done이면 눌러도 아무 일 없는 버튼이
+                                                    // 계속 활성 상태로 보이던 문제(2026-07-25 사장 지적) 수정: 남은 게
+                                                    // 없으면 완료 배지로 바꾸고 비활성화.
+                                                    const remaining = imgPrompts.filter(ip => !imgGenResults[ip.caption] && ip.prompt).length;
+                                                    const allDone = remaining === 0 && !imgGenBusy;
+                                                    return (
+                                                        <button onClick={generateAllImages} disabled={imgGenBusy || allDone}
+                                                            className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: allDone ? '#9089A1' : '#5BA36A' }}>
+                                                            {imgGenBusy
+                                                                ? <><Loader size={14} className="animate-spin" /> 순서대로 생성 중… {imgGenProgress.done}/{imgGenProgress.total}</>
+                                                                : allDone
+                                                                    ? <><Check size={14} /> 모든 그림 생성 완료</>
+                                                                    : <><ImagePlus size={14} /> {Object.keys(imgGenResults).length > 0 ? '나머지 이미지 이어서 생성' : 'AI 이미지 일괄 생성'}</>}
+                                                        </button>
+                                                    );
+                                                })()}
                                             </div>
                                             {imgGenError && <p className="text-[11px] mt-2" style={{ color: '#C0392B' }}>{imgGenError}</p>}
                                             {imgGenBusy && (
