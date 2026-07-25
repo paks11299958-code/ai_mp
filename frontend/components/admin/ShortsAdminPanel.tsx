@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShortsAdminRow } from '../../services/apiService';
+import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShortsAdminRow, sampleVaultApi } from '../../services/apiService';
 import { Icon } from '../Icons';
 
 // 드롭다운에 표시할 한글 기능카드 명칭 — agent-api KNOWN_TOPICS(영문 키)와 1:1 대응.
@@ -67,6 +67,8 @@ export const ShortsAdminPanel: React.FC = () => {
     // ★품질 검수용 임시 상태(안정화되면 제거) — 회원 쇼츠 목록+완성영상
     const [memberRows, setMemberRows] = useState<UserShortsAdminRow[]>([]);
     const [memberVideoId, setMemberVideoId] = useState<number | null>(null);
+    // 샘플 영상 보관함 복사(2026-07-25) — 복사 중/완료 상태를 id별로 추적
+    const [vaultCopyState, setVaultCopyState] = useState<Record<number, 'copying' | 'done'>>({});
 
     const loadQueue = useCallback(() => {
         return shortsApi.getQueue()
@@ -83,6 +85,21 @@ export const ShortsAdminPanel: React.FC = () => {
     const loadMemberRows = useCallback(() => {
         return shortsMakerAdminApi.list().then(setMemberRows).catch(() => {});
     }, []);
+
+    const copyToVault = async (userShortsId: number) => {
+        setVaultCopyState(prev => ({ ...prev, [userShortsId]: 'copying' }));
+        try {
+            await sampleVaultApi.copyFromUserShorts(userShortsId);
+            setVaultCopyState(prev => ({ ...prev, [userShortsId]: 'done' }));
+        } catch (e: any) {
+            alert('보관함 복사 실패: ' + e.message);
+            setVaultCopyState(prev => {
+                const next = { ...prev };
+                delete next[userShortsId];
+                return next;
+            });
+        }
+    };
 
     useEffect(() => {
         shortsApi.getTopics().then(d => { setTopics(d.topics); setSelectedTopic(d.topics[0] || ''); }).catch(() => {});
@@ -338,12 +355,23 @@ export const ShortsAdminPanel: React.FC = () => {
                                         <p className="text-[11px] text-red-300 bg-red-950/40 rounded px-2 py-1 mt-1">❌ {row.errorMessage}</p>
                                     )}
                                     {row.hasVideo && (
-                                        <button
-                                            onClick={() => setMemberVideoId(open ? null : row.id)}
-                                            className="text-xs font-medium px-3 py-1.5 mt-2 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition-colors"
-                                        >
-                                            {open ? '영상 닫기' : '▶ 완성 영상 보기'}
-                                        </button>
+                                        <div className="flex gap-1.5 mt-2">
+                                            <button
+                                                onClick={() => setMemberVideoId(open ? null : row.id)}
+                                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-indigo-700 hover:bg-indigo-600 text-white transition-colors"
+                                            >
+                                                {open ? '영상 닫기' : '▶ 완성 영상 보기'}
+                                            </button>
+                                            <button
+                                                onClick={() => copyToVault(row.id)}
+                                                disabled={!!vaultCopyState[row.id]}
+                                                className="text-xs font-medium px-3 py-1.5 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 transition-colors disabled:opacity-60"
+                                            >
+                                                {vaultCopyState[row.id] === 'done' ? '✅ 보관됨'
+                                                    : vaultCopyState[row.id] === 'copying' ? '복사 중...'
+                                                    : '📦 보관함에 복사'}
+                                            </button>
+                                        </div>
                                     )}
                                     {open && row.hasVideo && (
                                         <video

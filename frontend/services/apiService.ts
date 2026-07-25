@@ -631,6 +631,30 @@ export const shortsMakerAdminApi = {
     videoUrl: (id: number) => `${BASE}/shorts-maker/admin/requests/${id}/video`,
 };
 
+// 샘플 영상 보관함(2026-07-25 사장 발안, 어드민 전용) — 잘 나온 완성본을 UserShorts에서
+// 복사해 독립적으로 영구 보관. 위 shortsMakerAdminApi(임시 검수용)와 달리 안정화 후에도
+// 그대로 남는 정식 기능.
+export interface SampleVaultRow {
+    id: number;
+    title: string;
+    description: string | null;
+    category: string;
+    language: string;
+    hasThumbnail: boolean;
+    sourceUserShortsId: number | null;
+    createdAt: string;
+}
+export const sampleVaultApi = {
+    list: () => get<SampleVaultRow[]>('/sample-vault'),
+    update: (id: number, patch: { title?: string; description?: string }) =>
+        put<{ ok: boolean }>(`/sample-vault/${id}`, patch),
+    remove: (id: number) => del<{ ok: boolean }>(`/sample-vault/${id}`),
+    copyFromUserShorts: (userShortsId: number) =>
+        post<{ id: number }>(`/sample-vault/from-user-shorts/${userShortsId}`, {}),
+    videoUrl: (id: number) => `${BASE}/sample-vault/${id}/video`,
+    thumbnailUrl: (id: number) => `${BASE}/sample-vault/${id}/thumbnail`,
+};
+
 export interface HomepageAdminRow extends HomepageRequestRow {
     userId: number;
     userName?: string | null;
