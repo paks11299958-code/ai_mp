@@ -186,3 +186,100 @@ shorts-factory(서버2 직접, git 저장소 아님, `make_short.py` 수정+`Not
 `build_script_draft`에서 만든 `script["isProduct"]`를 통해 `make_short.py`(별도 파일이라
 `form`을 직접 못 봄)에 이 정보를 전달. 실제 재현 테스트로 콜라주·단일카드 양쪽에서
 "은비" 글자가 여백과 함께 완전히 보존됨을 확인, 텔레그램으로 완성본 재확인 완료.
+
+## 2026-07-25 다국어 폰트 커버리지 전수 테스트(중국어/영어/베트남어)
+
+일본어 한자 깨짐(위 항목) 수정 후 "다른 지원 언어도 검사해봐" 지시로 진행.
+
+- ★**중국어도 Pretendard 한자 미지원**: 일본어와 동일한 tofu(흰 사각형) 깨짐을 실측
+  확인. **Noto Sans SC**(Google, OFL 라이선스, `shorts-factory/assets/
+  NotoSansSC-Regular.ttf`, 간체 — 프론트 언어 선택지가 '중국어' 단일 옵션이라 번체
+  대신 더 널리 쓰이는 간체로 통일) 설치, `_font_for`에 `{"ja": FONT_JP, "zh": FONT_ZH}`
+  딕셔너리 조회 방식으로 확장.
+- **영어·베트남어는 문제없음**: 영어는 기본 라틴 알파벳이라 당연히 정상. 베트남어는
+  성조 기호(ệ, ữ, ằ 등 라틴 확장 문자)가 있어 우려했으나 Pretendard가 이미 지원해
+  정상 렌더링 확인 — 별도 폰트 불필요.
+- ★**중국어·일본어 자막 줄바꿈이 아예 작동 안 하는 버그 추가 발견**: `_wrap` 함수가
+  `text.split()`(공백 기준)으로 줄바꿈하는데, 중국어·일본어는 띄어쓰기가 없어 문장
+  전체가 한 "단어"로 인식돼 줄바꿈이 전혀 안 되고 내레이션 자막이 화면 밖으로 넘침
+  (짧은 caption은 우연히 화면에 담겼지만 긴 text는 실측으로 넘침 확인). `_wrap`에
+  `language` 파라미터 추가 — zh/ja는 글자 단위 줄바꿈, 나머지는 기존 공백 기준 유지.
+  5곳의 호출부(`render_frame`/`render_overlay`의 cta/caption/subtitle) 전부 `language`
+  전달하도록 수정.
+- 중국어/영어/베트남어 각각 실제 신청 조건(id=18 "AI 은비" 복제)으로 완성 쇼츠를
+  워커 파이프라인으로 만들어 텔레그램 전송 검증 완료. 어드민 패널에 언어 뱃지
+  (`LANGUAGE_LABEL`)도 함께 추가해 나라별 완성본을 구분해 볼 수 있게 함.
+
+## 2026-07-25 카테고리 5종 도입(사장 발안)
+
+"쇼츠 만들기"를 처음부터 5개 카테고리로 나누고 싶다는 사장 요청. 기존 "일반/상품"
+2분류(`isProduct` 이진 분기)를 유지한 채, 사진 없이 주제만 입력하는 3개 카테고리를
+새로 얹는 방식으로 설계(최소 변경 원칙).
+
+```
+category    한글 라벨              사진        isProduct 파생
+community   커뮤니티·동호회         1~3장 필수   false (기존 "일반" 모드)
+product     제품·상품              3~8장 필수   true  (기존 상품 모드 그대로)
+insight     지식·인사이트 큐레이션   없음        false (신규)
+wellness    저속노화&웰니스         없음        false (신규)
+meme        공감형 밈&POV          없음        false (신규)
+```
+
+- **프론트(`ShortsMakerBoard.tsx`)**: 기존 체크박스 하나를 5개 카드 선택 UI로 교체
+  (사장 지시: "사용자들이 사용하기 쉽게, 설명도 잘 달아놓고") — 각 카드에 이모지+
+  한줄설명+입력방식(사진 필요/불필요)+실제 소재 예시까지 표시. 카테고리 선택 시
+  안내문·이미지 섹션·입력 필드(biz/strengths/target 3칸 ↔ topic 1칸)가 실시간 전환.
+  `isProduct: boolean` 자체 state를 `category` 파생 상수로 전환해 기존 이미지 검증
+  로직(`onPickImages`/`productSlotsFilled`/`submit`)은 변경 없이 재사용.
+- **백엔드(`shorts-maker.ts`)**: `validateForm`에 카테고리별 필수 필드 분기(사진기반은
+  biz/strengths/target 필수, 사진없음은 topic만 필수) + `POST /requests` 이미지 검증을
+  category 3그룹으로 재구성(사진없음 카테고리는 실수로 첨부돼도 `images.length = 0`
+  으로 무시). `category` 미지정 시 `'community'` 기본값이라 구버전 요청도 하위호환.
+- **워커(`shorts_maker_worker.py`)**: `build_script_draft`에 `CATEGORY_TONE` 딕셔너리
+  신설 — insight(뉴스 브리핑체+사실관계 신중 표현), wellness(실천 팁체+효능 과장 금지),
+  meme(1인칭 POV 구어체+특정 대상 비방 금지) 톤을 "사진 없음" 프롬프트 분기 앞에 삽입.
+  기존 어드민 전용 `run_admin_topic`+`ADMIN_TOPICS`(17개 소재, `raw_list=[]`로 이미
+  운영 중이던 경로)와 프롬프트 구조를 공유 — `category` 기본값 `'community'`로 기존
+  17개 소재는 회귀 없음.
+- **콘텐츠 책임 고지**(사장 제안): 신청서 폼에 카테고리별 경고 문구 추가(밈="특정
+  인물·회사·단체가 특정되지 않게", 지식="사실관계 확인 책임은 신청자에게"). 이용약관
+  (`TermsModal.tsx`)에 **제7조(이용자가 입력한 콘텐츠에 대한 책임)** 신설 — 명예훼손·
+  허위사실·저작권침해·과장광고 금지 및 이용자 본인 책임 명시(기존 면책·분쟁해결
+  조항은 8·9조로 순연).
+- **어드민(`ShortsAdminPanel.tsx`)**: `CATEGORY_LABEL` 뱃지 추가(language 뱃지와 동일
+  패턴, `purple` 계열로 구분).
+
+### 실사용 검증 중 발견한 버그 3건
+
+- ★**리서치·시나리오가 신규 `topic` 필드를 무시하던 버그**: `run_research`/
+  `generate_scenarios`가 `form.get('biz'/'target')`만 참조하도록 설계돼 있어, 사진없는
+  카테고리(topic만 입력)로 실제 신청했더니 완전히 엉뚱한 소재(입력="기준금리 인하가
+  월급에 미치는 영향" → 결과="시간 관리 팁")로 리서치·시나리오가 생성되는 버그를
+  실사용 중 발견. 두 함수에 `category in (insight/wellness/meme)` 분기를 추가해
+  `topic` 기반 쿼리·프롬프트로 전환해 해결(재현 테스트로 topic과 일치하는 시나리오
+  생성 확인).
+- ★**API 무한대기(hang) 실사고**: 지식/웰니스/밈 3개 카테고리를 동시에 처리하며
+  로그에서 `429 RESOURCE_EXHAUSTED`(Vertex AI 쿼터 초과)를 확인 — 사진없는 카테고리는
+  세그먼트마다 이미지를 전량 새로 생성해야 해서 나노바나나 API 호출이 급증, 쿼터
+  소진으로 API 응답이 극도로 느려지거나 멈춤. **근본 원인**: `shorts_maker_worker.py`의
+  Gemini API 호출 6곳(`generate_content`/`generate_videos`) 전부 타임아웃 설정이
+  없어서, API가 응답을 안 주면 프로세스가 20분 넘게 무한정 멈춤 — 유일한 안전장치
+  `_reset_stale`(30분)은 DB 상태만 되돌릴 뿐 실제 멈춘 프로세스는 서버에 계속 남음.
+  `config.py`(`get_gemini`)와 `homepage_worker.py`(`_image_client`, 나노바나나용)의
+  클라이언트 생성 시 `http_options=types.HttpOptions(timeout=180_000)`(3분) 추가 —
+  정상 API 호출(수 초~수십 초)엔 전혀 영향 없음을 실측 확인. shorts_maker뿐 아니라
+  서버2에서 Gemini를 쓰는 모든 워커에 적용되는 근본 안전장치.
+- ★**과금 안내 문구가 실제 DB 등록값과 다름**: 화면(intro 배지·신청 버튼·시나리오
+  선택 화면)에 "300P/1,500P"로 표시돼 있었으나, `MenuLimit` DB 실제 등록값은
+  "100P/3,000P"(사장이 화면 보고 직접 발견). 코드의 fallback 상수(`RESEARCH_
+  FALLBACK_COST`/`PRODUCE_FALLBACK_COST`)도 300/1500으로 DB값과 다르게 하드코딩돼
+  있어 함께 정정. 화면 문구 3곳+fallback 상수 모두 실제 등록값(100P/3,000P)으로 수정.
+- 3개 카테고리(지식·웰니스·밈) 완성본을 실제 워커 파이프라인으로 만들어 텔레그램
+  전송+어드민 보관 검증 완료. 소재와 생성된 시나리오가 정확히 일치함을 확인
+  (기준금리 인하/식사순서·혈당/재택근무 착각).
+
+배포(5차, 2026-07-25): rag(`ca12775`, 서버2 직접 push, 크론 자동반영)·shorts-factory
+(서버2 직접, git 저장소 아님, `make_short.py`+`NotoSansSC-Regular.ttf` 신규, 즉시반영)·
+shared-api(`9124222`+`12474f9`, 서버1 git pull+`npx pm2 restart shared-api`)·ai_mp
+(`f97697f`+`3be5771`+`7a63f67`+`5dc61e5`, master push, Vercel — Promote to Production
+필요).
