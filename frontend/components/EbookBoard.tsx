@@ -760,9 +760,12 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>3</span>
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>문서 만들기</p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                북크크 양식으로 문서를 만들어요. <b style={{ color: T.accent }}>구글 문서(.docx)</b>로 받아 구글 독스에서 열면 글·표·그림을 자유롭게 편집하고, <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 그대로 출판할 수 있어요. · 저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#5BA36A' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b>
-                                            </p>
+                                            <ul className="text-[11px] mb-3 space-y-1 list-disc list-inside" style={{ color: T.inkSoft }}>
+                                                <li>북크크 양식으로 <b style={{ color: T.accent }}>구글 문서(.docx)</b>를 만들어요.</li>
+                                                <li>구글 독스에서 열면 글·표·그림을 자유롭게 편집할 수 있어요.</li>
+                                                <li>마무리한 문서는 <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 그대로 출판하세요.</li>
+                                                <li>저자명: <b style={{ color: T.accent }}>{selected.author || '미설정'}</b> · 표지: <b style={{ color: selected.coverUrl ? '#5BA36A' : T.inkMute }}>{selected.coverUrl ? '있음(첫 페이지)' : '없음'}</b></li>
+                                            </ul>
 
                                             <div className="flex gap-2 flex-wrap">
                                                 {/* 만든 문서가 있으면 다운로드 버튼 먼저 노출(재방문 시 유지). 내용 바꾸면 서버가 무효화 → 다시 만들기. */}
@@ -785,7 +788,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 )}
                                             </div>
 
-                                            {docxUrl && <p className="text-[11px] mt-2" style={{ color: T.inkSoft }}>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집됩니다. 마무리한 문서는 <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 바로 출판하세요. 내용을 바꾸면 <b style={{ color: T.accent }}>다시 만들기</b>로 새로 받으세요.</p>}
+                                            {docxUrl && (
+                                                <ul className="text-[11px] mt-2 space-y-1 list-disc list-inside" style={{ color: T.inkSoft }}>
+                                                    <li>📎 받은 .docx를 구글 드라이브에 올리고 우클릭 → <b>연결 앱 → Google 문서</b>로 열면 편집돼요.</li>
+                                                    <li>마무리한 문서는 <b style={{ color: T.accent }}>북크크(bookk.co.kr)</b>에 올려 바로 출판하세요.</li>
+                                                    <li>내용을 바꾸면 <b style={{ color: T.accent }}>다시 만들기</b>로 새로 받으세요.</li>
+                                                </ul>
+                                            )}
                                             {!canPdf && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>본문을 먼저 만들어 주세요.</p>}
                                         </div>
 
@@ -795,9 +804,11 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <ImagePlus size={15} style={{ color: T.accent }} />
                                                 <p className="text-sm font-bold" style={{ color: T.ink }}>그림 이미지 프롬프트 뽑기</p>
                                             </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>
-                                                본문의 <b>[그림: 설명]</b> 자리마다 책 내용에 맞는 한글 프롬프트를 만들어 드려요(일괄 500P). <b>복사</b> 버튼을 누르면 ChatGPT에 그대로 붙여넣기만 해도 이미지가 만들어지는 문구가 함께 복사돼요. 또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>(장당 200P)으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.
-                                            </p>
+                                            <ul className="text-[11px] mb-3 space-y-1 list-disc list-inside" style={{ color: T.inkSoft }}>
+                                                <li>본문의 <b>[그림: 설명]</b> 자리마다 책 내용에 맞는 한글 프롬프트를 만들어 드려요(일괄 500P).</li>
+                                                <li><b>복사</b> 버튼을 누르면 ChatGPT에 그대로 붙여넣기만 해도 이미지가 만들어지는 문구가 함께 복사돼요.</li>
+                                                <li>또는 <b style={{ color: T.accent }}>AI 이미지 일괄 생성</b>(장당 200P)으로 바로 만들어 문서에 자동으로 넣을 수도 있어요.</li>
+                                            </ul>
                                             {!selected.charged && (
                                                 <p className="text-[11px] mb-2 font-semibold" style={{ color: '#C0392B' }}>⚠️ 먼저 위에서 <b>구글 문서(.docx) 만들기</b>를 완료해야 그림 기능을 사용할 수 있어요.</p>
                                             )}
