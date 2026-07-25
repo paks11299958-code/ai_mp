@@ -264,12 +264,12 @@ const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 // (Gemini Flash·Claude구독 기준, 합성은 nano-banana 이미지 비용)
 const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
-    'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 57,
-    'agetransform': 57, 'outfit': 57,  // nano-banana 이미지 합성(hair와 동일)
+    'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 92,
+    'agetransform': 92, 'outfit': 92,  // nano-banana(gemini-3.1-flash-image) 1K 이미지 실측단가($0.067×환율, 2026-07-25 공식 가격표 확인)
     'lookalike': 2, 'webtoon': 0, 'club': 0, 'marketing': 12,
     'ebook_docx_per1k': 1,       // Gemini/Claude 텍스트 조립(1,000자당, 저렴)
     'ebook_image_prompt': 3,     // Claude sonnet 텍스트 호출 1회(자리 수 무관)
-    'ebook_image': 57,           // 나노바나나 이미지 생성 1장(hair와 동일 모델)
+    'ebook_image': 92,           // 나노바나나 이미지 생성 1장(hair와 동일 모델·단가)
     'homepage': 250,   // claude구독(≈0)+나노바나나 최대4장(장당50~80원 실측)
     'homepage_edit_text': 0,      // claude 구독 1회 호출(API 과금 아님)
     'homepage_edit_image': 70,    // 나노바나나 1장 재생성
