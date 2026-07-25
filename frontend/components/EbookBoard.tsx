@@ -271,7 +271,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 순수 설명문만 복사하면 ChatGPT가 텍스트로만 답하고 그림을 안 만들던 문제(2026-07-25 사장 지적) 해결.
     const copyPrompt = async (no: number, text: string) => {
         try {
-            await navigator.clipboard.writeText(`다음 내용으로 이미지를 만들어줘:\n\n${text}`);
+            await navigator.clipboard.writeText(`아래 내용으로 이미지를 만들어줘:\n\n${text}`);
             setCopiedNo(no); setTimeout(() => setCopiedNo(null), 1500);
         } catch { /* 무시 */ }
     };
