@@ -167,6 +167,11 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                 {/* 헤더 */}
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
+                        {step === 'list' && (
+                            <button onClick={() => setStep('intro')} aria-label="뒤로"
+                                    style={{ backgroundColor: '#E4E6F9', color: INDIGO }}
+                                    className="shrink-0 -ml-1 w-7 h-7 rounded-full hover:brightness-95 flex items-center justify-center text-sm">←</button>
+                        )}
                         <span className="text-lg">🏠</span>
                         <h2 className="text-base font-bold" style={{ color: INDIGO }}>홈페이지 만들기</h2>
                     </div>
@@ -215,7 +220,6 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                     {/* [list] 내가 만든 홈페이지 목록 */}
                     {step === 'list' && (
                         <>
-                            <button onClick={() => setStep('intro')} className="text-xs text-gray-400">← 뒤로</button>
                             <p className="text-sm font-semibold text-gray-800">내가 만든 홈페이지</p>
                             {mineList.length === 0 && (
                                 <p className="text-xs text-gray-400 py-6 text-center">아직 만든 시안이 없어요.</p>
