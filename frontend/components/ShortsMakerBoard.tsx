@@ -318,7 +318,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
                             <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
-                                💎 시나리오 5개 300P → 마음에 드는 것 선택 시 영상 제작 1,500P. 실패하면 자동 환불돼요.
+                                💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 3,000P. 실패하면 자동 환불돼요.
                             </div>
                             <button onClick={() => setStep('form')}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
@@ -570,7 +570,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <button onClick={submit} disabled={submitting}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
                                     style={{ backgroundColor: PINK }}>
-                                {submitting ? '신청 중...' : '💎 300P — 시나리오 5개 받기'}
+                                {submitting ? '신청 중...' : '💎 100P — 시나리오 5개 받기'}
                             </button>
                         </>
                     )}
@@ -625,7 +625,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 ))}
                             </div>
                             {error && <p className="text-xs text-red-500">{error}</p>}
-                            <p className="text-[11px] text-gray-400 text-center">선택 시 영상 제작 1,500P가 추가로 차감돼요.</p>
+                            <p className="text-[11px] text-gray-400 text-center">선택 시 영상 제작 3,000P가 추가로 차감돼요.</p>
                         </>
                     )}
 
