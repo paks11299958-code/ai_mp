@@ -801,7 +801,10 @@ export interface EbookTocChapter {
     finalProvider?: EbookProvider;
     collect?: boolean;  // 자료수집 체크(없으면 true로 간주)
 }
-export interface EbookImageSlot { caption: string; chapterNo: number; prompt: string; imageUrl: string }
+export interface EbookImageSlot {
+    caption: string; chapterNo: number; prompt: string;
+    imageUrl?: string; status: 'queued' | 'done' | 'failed'; retryCount?: number;
+}
 export interface EbookProject {
     id: number; topic: string; title: string | null; author?: string | null; status: string;
     coverUrl?: string | null; // 표지 이미지 URL(사용자 업로드)
@@ -836,9 +839,12 @@ export const ebookApi = {
     // 그림 이미지 N개 생성 시 예상 차감액(장당 단가 × N) 견적
     imageCost: (id: number, count: number) =>
         get<{ perImageCost: number; count: number; cost: number }>(`/ebook/${id}/image-cost?count=${count}`),
-    // 그림 자리 1개 AI 이미지 생성(장당 과금). caption을 키로 저장 — 프론트가 자리 개수만큼 순차 호출해 진행률 표시.
-    generateImage: (id: number, caption: string, chapterNo: number, prompt: string) =>
-        post<{ caption: string; imageUrl: string; cost?: number }>(`/ebook/${id}/generate-image`, { caption, chapterNo, prompt }),
+    // 그림 이미지 여러 개를 한 번에 큐 등록(장당 과금, 전체 선차감). 실제 생성은 서버 백그라운드 타이머가 처리.
+    queueImages: (id: number, items: { caption: string; chapterNo: number; prompt: string }[]) =>
+        post<{ queued: number; cost: number }>(`/ebook/${id}/generate-images-queue`, { items }),
+    // 큐 진행 상태 폴링 — 상태별 개수 + 완료된 자리의 imageUrl
+    imageQueueStatus: (id: number) =>
+        get<{ counts: { queued: number; done: number; failed: number }; slots: Record<string, { status: string; imageUrl?: string }> }>(`/ebook/${id}/image-queue-status`),
     // docx 만들기 전 예상 차감액(글자수 기준) 견적
     docxEstimate: (id: number) =>
         get<{ totalChars: number; units: number; cost: number; alreadyCharged: boolean }>(`/ebook/${id}/docx-estimate`),

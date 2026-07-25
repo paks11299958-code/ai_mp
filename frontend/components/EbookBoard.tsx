@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus, Download } from 'lucide-react';
@@ -71,11 +71,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [imgPromptLoading, setImgPromptLoading] = useState(false);
     const [imgPrompts, setImgPrompts] = useState<{ no: number; chapterTitle: string; caption: string; prompt: string }[] | null>(null);
     const [copiedNo, setCopiedNo] = useState<number | null>(null);
-    // 그림 이미지 일괄 생성: 자리마다 개별 API를 순차 호출해 진행률(N/M) 표시
-    const [imgGenBusy, setImgGenBusy] = useState(false);
+    // 그림 이미지 일괄 생성: 큐 등록 후 서버 백그라운드 타이머가 처리, 프론트는 폴링으로 진행률만 표시.
+    const [imgGenBusy, setImgGenBusy] = useState(false); // 큐 처리 중(폴링 진행 중)
     const [imgGenProgress, setImgGenProgress] = useState({ done: 0, total: 0 });
-    const [imgGenResults, setImgGenResults] = useState<Record<string, string>>({}); // caption → imageUrl
+    const [imgGenResults, setImgGenResults] = useState<Record<string, string>>({}); // caption → imageUrl(완료분)
+    const [imgGenFailed, setImgGenFailed] = useState<Set<string>>(new Set()); // caption(실패·환불됨, 재시도 가능)
     const [imgGenError, setImgGenError] = useState<string | null>(null);
+    const imgGenPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     // 탭4 예약 슬롯 현황
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [slots, setSlots] = useState<import('../services/apiService').EbookSlot[]>([]);
@@ -269,37 +271,68 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         try { await navigator.clipboard.writeText(text); setCopiedNo(no); setTimeout(() => setCopiedNo(null), 1500); } catch { /* 무시 */ }
     };
 
-    // 그림 이미지 일괄 생성: imgPrompts 자리마다 개별 API를 순차 호출(진행률 N/M 실시간 표시).
-    // 이미 생성된(imgGenResults에 있는) 자리는 건너뛰고 나머지만 생성 — 실패분만 재시도할 때 중복생성 방지.
-    // 시작 전 "장당 단가 × 자리수 = 총액" 확인창을 거친다(장당 과금이라 실행 전 반드시 고지).
-    const generateAllImages = async () => {
-        if (!selected || !imgPrompts || imgPrompts.length === 0 || imgGenBusy) return;
-        const targets = imgPrompts.filter(ip => !imgGenResults[ip.caption] && ip.prompt);
-        if (targets.length === 0) return;
+    // 폴링: 큐 처리 상태를 5초 간격으로 조회 — done+failed가 total에 도달하면 자동 중단.
+    // 창을 닫아도 서버(shared-api 백그라운드 타이머)는 계속 처리하고, 재방문 시 이 폴링이 이어받는다.
+    const pollImageQueue = useCallback((projectId: number, total: number) => {
+        if (imgGenPollRef.current) clearInterval(imgGenPollRef.current);
+        imgGenPollRef.current = setInterval(async () => {
+            try {
+                const st = await ebookApi.imageQueueStatus(projectId);
+                const doneUrls: Record<string, string> = {};
+                const failedSet = new Set<string>();
+                for (const [caption, s] of Object.entries(st.slots)) {
+                    if (s.status === 'done' && s.imageUrl) doneUrls[caption] = s.imageUrl;
+                    if (s.status === 'failed') failedSet.add(caption);
+                }
+                setImgGenResults(prev => ({ ...prev, ...doneUrls }));
+                setImgGenFailed(failedSet);
+                setImgGenProgress({ done: st.counts.done + st.counts.failed, total });
+                if (st.counts.queued === 0) {
+                    if (imgGenPollRef.current) clearInterval(imgGenPollRef.current);
+                    imgGenPollRef.current = null;
+                    setImgGenBusy(false);
+                    setDocxUrl(null); // 이미지가 바뀌었으니 기존 문서 무효
+                    if (failedSet.size > 0) setImgGenError(`${failedSet.size}개는 생성에 실패해 포인트가 환불됐어요. 재시도 버튼으로 다시 만들 수 있어요.`);
+                }
+            } catch { /* 일시적 네트워크 오류 — 다음 폴링에서 재시도 */ }
+        }, 5000);
+    }, []);
+
+    useEffect(() => () => { if (imgGenPollRef.current) clearInterval(imgGenPollRef.current); }, []);
+
+    // 그림 이미지 일괄 생성: 자리들을 서버 큐에 한 번에 등록(전체 선차감) → 실제 생성은 서버
+    // 백그라운드 타이머(15초 간격 1개씩, 다른 이미지 기능과 쿼터 신호등 공유)가 처리.
+    // ★사장 지적(2026-07-25) 반영: 예전엔 프론트가 순차 동기 호출을 해서 쿼터 걸리면 남은
+    // 자리 전부 시도조차 못 하고 멈췄음 — 지금은 등록만 하고 폴링으로 진행률만 본다.
+    const startImageGeneration = async (targets: { caption: string; chapterNo: number; prompt: string }[]) => {
+        if (!selected || targets.length === 0) return;
         try {
             const est = await ebookApi.imageCost(selected.id, targets.length);
-            const ok = confirm(`그림 ${est.count}개 × ${est.perImageCost.toLocaleString()}P = 총 ${est.cost.toLocaleString()}P가 차감됩니다.\n계속할까요?`);
+            const ok = confirm(`그림 ${est.count}개 × ${est.perImageCost.toLocaleString()}P = 총 ${est.cost.toLocaleString()}P가 차감됩니다.\n생성은 서버가 여유 있게 순서대로 진행해요(자리당 약 15초~). 계속할까요?`);
             if (!ok) return;
         } catch (e: any) { setImgGenError(e?.message || '견적 계산 실패'); return; }
 
-        setImgGenBusy(true); setImgGenError(null);
-        setImgGenProgress({ done: 0, total: targets.length });
+        setImgGenError(null);
         try {
-            for (let i = 0; i < targets.length; i++) {
-                const ip = targets[i];
-                try {
-                    const res = await ebookApi.generateImage(selected.id, ip.caption, ip.chapterNo, ip.prompt);
-                    setImgGenResults(prev => ({ ...prev, [ip.caption]: res.imageUrl }));
-                } catch (e: any) {
-                    setImgGenError(`"${ip.caption}" 생성 실패: ${e?.message || '알 수 없는 오류'} (다시 눌러 이어서 생성할 수 있어요)`);
-                    break; // 하나 실패하면 중단(쿼터 문제일 수 있어 연쇄실패 방지) — 이미 된 자리는 유지, 재시도 시 이어서
-                }
-                setImgGenProgress({ done: i + 1, total: targets.length });
-            }
-            setDocxUrl(null); // 이미지가 바뀌었으니 기존 문서 무효
-        } finally {
-            setImgGenBusy(false);
+            await ebookApi.queueImages(selected.id, targets);
+            setImgGenBusy(true);
+            setImgGenProgress({ done: 0, total: targets.length });
+            setImgGenFailed(prev => { const next = new Set(prev); targets.forEach(t => next.delete(t.caption)); return next; });
+            pollImageQueue(selected.id, targets.length);
+        } catch (e: any) {
+            setImgGenError(e?.message || '이미지 생성 등록에 실패했어요.');
         }
+    };
+
+    const generateAllImages = () => {
+        if (!imgPrompts || imgPrompts.length === 0 || imgGenBusy) return;
+        const targets = imgPrompts.filter(ip => !imgGenResults[ip.caption] && ip.prompt);
+        startImageGeneration(targets);
+    };
+
+    const retryFailedImage = (ip: { caption: string; chapterNo: number; prompt: string }) => {
+        if (imgGenBusy) return;
+        startImageGeneration([ip]);
     };
 
     // 탭4: 예약 시각 저장 (품절이면 409 → 안내 + 슬롯 새로고침)
@@ -375,11 +408,19 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             const project = await ebookApi.get(id);
             setSelected(project);
             setShowForm(false); setActiveTab(1); setEditing(false);
-            // 이미 생성된 그림 자리 이미지가 있으면 caption→url 맵으로 복원(재방문 시 유지)
+            // 그림 자리 상태 복원(재방문 시 유지) — 완료분은 미리보기, 진행 중(queued)이면 폴링 자동 재개.
+            setImgGenFailed(new Set());
             if (project.imageSlotsJson) {
                 try {
                     const slots: EbookImageSlot[] = JSON.parse(project.imageSlotsJson);
-                    setImgGenResults(Object.fromEntries(slots.map(s => [s.caption, s.imageUrl])));
+                    setImgGenResults(Object.fromEntries(slots.filter(s => s.status === 'done' && s.imageUrl).map(s => [s.caption, s.imageUrl as string])));
+                    setImgGenFailed(new Set(slots.filter(s => s.status === 'failed').map(s => s.caption)));
+                    const queuedCount = slots.filter(s => s.status === 'queued').length;
+                    if (queuedCount > 0) {
+                        setImgGenBusy(true);
+                        setImgGenProgress({ done: slots.length - queuedCount, total: slots.length });
+                        pollImageQueue(project.id, slots.length);
+                    }
                 } catch { setImgGenResults({}); }
             } else setImgGenResults({});
         } catch {}
@@ -764,14 +805,17 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     <button onClick={generateAllImages} disabled={imgGenBusy}
                                                         className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: '#5BA36A' }}>
                                                         {imgGenBusy
-                                                            ? <><Loader size={14} className="animate-spin" /> 이미지 생성 중… {imgGenProgress.done}/{imgGenProgress.total}</>
+                                                            ? <><Loader size={14} className="animate-spin" /> 순서대로 생성 중… {imgGenProgress.done}/{imgGenProgress.total}</>
                                                             : <><ImagePlus size={14} /> {Object.keys(imgGenResults).length > 0 ? '나머지 이미지 이어서 생성' : 'AI 이미지 일괄 생성'}</>}
                                                     </button>
                                                 )}
                                             </div>
                                             {imgGenError && <p className="text-[11px] mt-2" style={{ color: '#C0392B' }}>{imgGenError}</p>}
+                                            {imgGenBusy && (
+                                                <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>⏳ 창을 닫아도 계속 만들어져요 — 다시 열면 진행 상황이 그대로 보여요.</p>
+                                            )}
                                             {imgGenBusy && imgGenProgress.total > 0 && (
-                                                <div className="mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: T.accentSoft }}>
+                                                <div className="mt-1 h-1.5 rounded-full overflow-hidden" style={{ background: T.accentSoft }}>
                                                     <div className="h-full rounded-full transition-all" style={{ width: `${(imgGenProgress.done / imgGenProgress.total) * 100}%`, background: T.accent }} />
                                                 </div>
                                             )}
@@ -780,6 +824,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 <div className="mt-3 flex flex-col gap-2">
                                                     {imgPrompts.map(ip => {
                                                         const genUrl = imgGenResults[ip.caption];
+                                                        const failed = imgGenFailed.has(ip.caption);
                                                         return (
                                                         <div key={ip.no} className="rounded-xl p-3" style={{ background: '#fff', border: `1px solid ${T.border}` }}>
                                                             <div className="flex items-center justify-between gap-2 mb-1">
@@ -794,6 +839,15 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                                 <div className="flex items-center gap-2">
                                                                     <img src={genUrl} alt={ip.caption} className="rounded-lg" style={{ width: 100, height: 75, objectFit: 'cover', border: `1px solid ${T.border}` }} />
                                                                     <span className="text-[11px] font-bold" style={{ color: '#5BA36A' }}>✓ 생성됨 — 문서 만들기 시 자동으로 들어가요</span>
+                                                                </div>
+                                                            )}
+                                                            {failed && !genUrl && (
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-[11px] font-bold" style={{ color: '#C0392B' }}>❌ 생성 실패(포인트 환불됨)</span>
+                                                                    <button onClick={() => retryFailedImage(ip)} disabled={imgGenBusy}
+                                                                        className="text-[11px] font-bold rounded-lg disabled:opacity-40" style={{ padding: '4px 10px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                                                        다시 시도
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>
