@@ -61,6 +61,9 @@ export const ShortsAdminPanel: React.FC = () => {
     const [generating, setGenerating] = useState(false);
     const [msg, setMsg] = useState<string | null>(null);
     const [resolvingId, setResolvingId] = useState<string | null>(null);
+    // 승인 큐 카드의 제목/설명 전체 펼쳐보기(2026-07-25 사장 지시 — 지금 잘려 보이는
+    // title/description을 필요할 때 전체 텍스트로 볼 수 있게).
+    const [expandedTextId, setExpandedTextId] = useState<string | null>(null);
     const [status, setStatus] = useState<ShortsStatus | null>(null);
     const [statusError, setStatusError] = useState<string | null>(null);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -195,8 +198,21 @@ export const ShortsAdminPanel: React.FC = () => {
                         <a href={item.youtubeUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-400 hover:underline">유튜브에서 보기 ↗</a>
                     )}
                 </div>
-                <p className="text-sm text-white font-medium truncate">{item.title}</p>
-                <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-2">{item.description}</p>
+                {(() => {
+                    const expanded = expandedTextId === item.id;
+                    return (
+                        <>
+                            <p className={`text-sm text-white font-medium ${expanded ? '' : 'truncate'}`}>{item.title}</p>
+                            <p className={`text-[11px] text-gray-400 mt-0.5 ${expanded ? 'whitespace-pre-wrap' : 'line-clamp-2'}`}>{item.description}</p>
+                            <button
+                                onClick={() => setExpandedTextId(expanded ? null : item.id)}
+                                className="text-[10px] text-gray-500 hover:text-gray-300 underline mt-0.5"
+                            >
+                                {expanded ? '접기 ▲' : '전체 글 보기 ▼'}
+                            </button>
+                        </>
+                    );
+                })()}
                 <p className="text-[10px] text-gray-600 mt-1">{new Date(item.createdAt).toLocaleString('ko-KR')}</p>
                 {section === 'pending' && (
                     <div className="flex gap-2 mt-2">

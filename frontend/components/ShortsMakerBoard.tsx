@@ -31,6 +31,9 @@ const CATEGORIES: {
     desc: string;       // 한 줄 설명 — 무엇을 만드는지
     inputHint: string;  // 사진 필요/불필요 + 무엇을 입력하는지
     example: string;    // 실제 소재 예시 — 감을 못 잡는 회원을 위한 안전망
+    scriptSample?: string;  // 사진 없는 카테고리 전용(2026-07-25) — 실제 완성본에서 발췌한
+                            // 대본(내레이션) 샘플. "글로 만드는" 카테고리는 결과물이 눈에
+                            // 안 보여 감이 안 온다는 사장 지적으로 추가.
 }[] = [
     { code: 'community', emoji: '📸', label: '커뮤니티·동호회',
       desc: '모임·동호회 활동을 자랑하는 홍보 쇼츠예요.',
@@ -43,15 +46,18 @@ const CATEGORIES: {
     { code: 'insight', emoji: '🧠', label: '지식·인사이트 큐레이션',
       desc: '"1분 만에 똑똑해지는" 경제·시사·역사·과학·트렌드 요약 쇼츠예요.',
       inputHint: '✍️ 사진 불필요 (다루고 싶은 주제만 입력하면 AI가 전부 완성)',
-      example: '예: 이번 주 꼭 알아야 할 경제 뉴스, 몰랐던 일상 속 진실 TOP3' },
+      example: '예: 이번 주 꼭 알아야 할 경제 뉴스, 몰랐던 일상 속 진실 TOP3',
+      scriptSample: '"이번 주 기준금리 인하 소식, 내 월급과 대출 이자에 어떤 영향을 줄까요? 기준금리가 인하되면 변동금리 대출을 가진 가계의 이자 부담이 직접..."' },
     { code: 'wellness', emoji: '🌿', label: '저속노화&웰니스',
       desc: '식습관·운동·수면 등 오늘부터 바로 따라 할 수 있는 건강 팁 쇼츠예요.',
       inputHint: '✍️ 사진 불필요 (다루고 싶은 건강 팁 주제만 입력)',
-      example: '예: 혈당 안 튀는 먹방 순서, 3분 거북목 스트레칭' },
+      example: '예: 혈당 안 튀는 먹방 순서, 3분 거북목 스트레칭',
+      scriptSample: '"식사 후 늘 졸음이 쏟아지고 몸이 무거우신가요? 원인은 식사 후 급격히 오르내리는 혈당 스파이크 때문! 간단한 식사 순서만 바꿔도 혈당을 안정시키고..."' },
     { code: 'meme', emoji: '🎭', label: '공감형 밈&POV',
       desc: '직장인·일상 공감 에피소드를 재밌게 풀어내는 상황극 쇼츠예요.',
       inputHint: '✍️ 사진 불필요 (다루고 싶은 공감 상황만 입력)',
-      example: '예: 재택근무할 때 흔한 착각, 퇴근 5분 전 상사의 급한 부탁' },
+      example: '예: 재택근무할 때 흔한 착각, 퇴근 5분 전 상사의 급한 부탁',
+      scriptSample: '"다들 재택근무하면 여유로울 줄 알았지? 하지만 현실은 우리가 생각한 것과 완전 다르다는거... 출퇴근 시간 아껴서 자기계발은 무슨! 그냥 일하는 시간이 두 배로..."' },
 ];
 const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme'];
 
@@ -340,7 +346,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
                             <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
-                                💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 3,000P. 실패하면 자동 환불돼요.
+                                💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 2,000P. 실패하면 자동 환불돼요.
                             </div>
                             <button onClick={() => setStep('form')}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
@@ -424,6 +430,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 <span className="block text-[11px] text-gray-500 mt-0.5">{c.desc}</span>
                                                 <span className="block text-[11px] text-pink-600 font-medium mt-1">{c.inputHint}</span>
                                                 <span className="block text-[10px] text-gray-400 mt-0.5">{c.example}</span>
+                                                {c.scriptSample && (
+                                                    <span className="block text-[10px] text-gray-500 italic mt-1 bg-gray-50 rounded-lg px-2 py-1">
+                                                        📝 완성 대본 예시: {c.scriptSample}
+                                                    </span>
+                                                )}
                                             </span>
                                         </button>
                                     ))}
@@ -647,7 +658,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 ))}
                             </div>
                             {error && <p className="text-xs text-red-500">{error}</p>}
-                            <p className="text-[11px] text-gray-400 text-center">선택 시 영상 제작 3,000P가 추가로 차감돼요.</p>
+                            <p className="text-[11px] text-gray-400 text-center">선택 시 영상 제작 2,000P가 추가로 차감돼요.</p>
                         </>
                     )}
 
