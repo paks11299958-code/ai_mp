@@ -139,3 +139,32 @@ uvicorn kill+재시작, git 저장소 아님)·shared-api(`570ccc9`+`cce1947`, �
 배포(3차, 2026-07-24): rag(서버2 직접, crontab 수정+`shorts_maker_worker.py` 수정, 크론
 자동반영)·ai_mp(`88e99a4`+`0f2a8e6`+`7857b68` 등, master push, Vercel — Promote to
 Production 필요).
+
+## 2026-07-25 실사고 2건 — 상품모드 안전망 재발 + 일본어 한자 깨짐
+
+사장이 어드민에 새로 추가한 "회원 쇼츠 검수(임시)" 기능으로 완성본을 직접 보다가 발견.
+신청서: 업종 "AI 은비", `isProduct: true`, `language: ja`, 사진 3장(그중 1장에 모래사장에
+나뭇가지로 쓴 "은비" 한글 글자 포함).
+
+- ★**상품모드 재생성 금지 안전망이 "검증 NG 재시도" 경로에서 우회됨(재발)**: 07-23에
+  만든 안전망(`render_scene_images` 최초 호출 시 `scene_prompt` 강제 제거)은 최초 생성
+  경로만 막았을 뿐, `process_produce`/`run_admin_topic`의 **완성본 검증 NG → 재시도**
+  로직(`draft_segs` 백업에서 `scene_prompt` 복원)에는 `isProduct` 체크가 아예 없어서,
+  검증에서 우연히 NG가 나면 이 경로로 원본에 없는 디테일이 생기는 재생성이 실제로
+  발생함(모래 글자가 재생성 이미지에서 사라짐). 두 재시도 루프(`process_produce`,
+  `run_admin_topic`) 중 회원용(`process_produce`)에 `is_product` 체크 추가해 상품모드면
+  재시도 시에도 `scene_prompt`를 절대 복원하지 않고 `image_index` 순환 배정만 하도록
+  수정. 실제 사고 재현 조건(원본 3장+검증NG+재시도)으로 재검증해 원본과 해시 완전
+  일치 확인. 교훈 상세는 agent-wiki `dev/doc/patterns.md` 07-25.
+- ★**일본어 자막 한자 전부 깨짐**: 자막 폰트 Pretendard가 CJK 한자 글리프 미지원 —
+  히라가나·가타카나는 정상, 한자만 흰 사각형(tofu)으로 렌더링됨. **Noto Sans JP**
+  (Google, OFL 라이선스, `shorts-factory/assets/NotoSansJP-Regular.ttf`)를 도입, 언어별
+  폰트 선택 헬퍼 `_font_for(language, size, bold)`를 `make_short.py`에 신설 — 일본어만
+  이 폰트(가변폰트, `set_variation_by_name`으로 굵기 선택), 나머지 언어는 기존
+  Pretendard 유지. `render_frame`/`render_overlay`가 `language` 파라미터를 받아 캡션·
+  내레이션 자막·CTA·배지 전체에 적용.
+
+배포(4차, 2026-07-25): rag(서버2 직접, `shorts_maker_worker.py` 재시도 로직 수정)·
+shorts-factory(서버2 직접, git 저장소 아님, `make_short.py` 수정+`NotoSansJP-Regular.ttf`
+신규 배치) — 둘 다 다음 실행부터 즉시 반영(별도 재시작 불필요, 크론이 매 실행마다
+새 프로세스 기동).
