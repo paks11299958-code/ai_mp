@@ -61,10 +61,18 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [editChapters, setEditChapters] = useState<EbookTocChapter[]>([]);
     const [savingToc, setSavingToc] = useState(false);
     const [regenToc, setRegenToc] = useState(false);
-    // 탭1 제목·저자 편집 (목차는 보존, 제목/저자만 저장)
-    const [titleDraft, setTitleDraft] = useState('');
+    // 탭1: 책 주제(topic, 사용자가 직접 고치는 입력칸) + 저자 편집.
+    // ★2026-07-26 사장 지시로 역할 재편: 예전엔 이 입력칸이 title을 담았으나, 지금은
+    // "책 주제"로 이름을 바꾸고 topic을 담는다 — 목차·표지는 title을 참고하고, title은
+    // AI가 만들거나(최초 생성 시) 표지 선택 시 사용자가 확인 후 확정한다(titleEditDraft).
+    const [titleDraft, setTitleDraft] = useState(''); // topic 편집용(이름은 유지, 담는 값만 변경)
     const [authorDraft, setAuthorDraft] = useState('');
     const [savingTitle, setSavingTitle] = useState(false);
+    // "책 제목"(title) 표시·수정 영역 — 평소엔 읽기전용 표시, 표지를 고르면 추출된 카피로
+    // draft가 채워지고 사용자가 확인·수정한 뒤 저장해야 확정된다("틀릴 염려가 없게").
+    const [titleEditDraft, setTitleEditDraft] = useState('');
+    const [editingBookTitle, setEditingBookTitle] = useState(false);
+    const [savingBookTitle, setSavingBookTitle] = useState(false);
     // 탭5 초안: 표지·문서(본문은 야간 배치에서 생성 — 즉시생성 제거). PDF 제거됨(docx만).
     const [coverMaking, setCoverMaking] = useState(false);
     // AI 표지 후보 2안(제미나이·GPT). 고르면 비우고 selected.coverUrl로 확정.
@@ -148,7 +156,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         if (!clean.length) { setError('챕터가 최소 1개는 있어야 해요.'); return; }
         setSavingToc(true); setError(null);
         try {
-            const updated = await ebookApi.updateToc(selected.id, titleDraft.trim() || selected.topic, clean, authorDraft.trim() || null);
+            // 목차(챕터) 편집은 책 제목을 건드리지 않는다 — title은 현재 값 그대로 넘긴다.
+            const updated = await ebookApi.updateToc(selected.id, selected.title || selected.topic, clean, authorDraft.trim() || null);
             setSelected(updated);
             setEditing(false);
             loadList();
@@ -188,18 +197,33 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         catch (e: any) { setError(e?.message || '판형 저장 실패'); }
     };
 
-    // 탭1: 제목·저자 저장 (chapters는 그대로 보내 보존)
+    // 탭1: 주제·저자 저장 (chapters·title은 그대로 보내 보존 — 이 칸은 이제 topic 전용)
     const saveTitle = async () => {
         if (!selected || savingTitle) return;
         const t = titleDraft.trim();
-        if (!t) { setError('제목을 입력해 주세요.'); return; }
+        if (!t) { setError('주제를 입력해 주세요.'); return; }
         setSavingTitle(true); setError(null);
         try {
-            const updated = await ebookApi.updateToc(selected.id, t, selected.chapters ?? [], authorDraft.trim() || null);
+            const updated = await ebookApi.updateToc(selected.id, selected.title || t, selected.chapters ?? [], authorDraft.trim() || null, t);
             setSelected(updated);
             loadList();
         } catch (e: any) { setError(e?.message || '저장 실패'); }
         finally { setSavingTitle(false); }
+    };
+
+    // "책 제목" 확인·수정 저장 — 표지 선택으로 채워진 draft, 또는 사용자가 직접 고친 값을 확정.
+    const saveBookTitle = async () => {
+        if (!selected || savingBookTitle) return;
+        const t = titleEditDraft.trim();
+        if (!t) { setError('책 제목을 입력해 주세요.'); return; }
+        setSavingBookTitle(true); setError(null);
+        try {
+            const updated = await ebookApi.updateToc(selected.id, t, selected.chapters ?? [], authorDraft.trim() || null);
+            setSelected(updated);
+            setEditingBookTitle(false);
+            loadList();
+        } catch (e: any) { setError(e?.message || '제목 저장 실패'); }
+        finally { setSavingBookTitle(false); }
     };
 
     // ※ 즉시 본문 일괄생성/다시쓰기 제거 — 본문은 야간 예약 배치에서만 생성한다.
@@ -259,14 +283,21 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         } catch (e: any) { setError(e?.message || '견적 계산 실패'); }
     };
     // 후보 중 하나를 표지로 확정
+    // AI 표지 후보를 고르면 이미지 속 카피를 비전으로 읽어와 "책 제목" draft를 채운다.
+    // ★자동 확정하지 않는다(사장 지시: "추출하고 제목 수정모드를 두면... 사용자가 확인후
+    // 수정할수 있게, 그럼 틀릴 염려가 없자나") — 편집 모드를 열어 사용자가 직접 저장해야 확정.
     const pickCoverCandidate = async (url: string) => {
         if (!selected || coverMaking) return;
         setCoverMaking(true); setError(null);
         try {
-            await ebookApi.saveCoverUrl(selected.id, url);
+            const res = await ebookApi.saveCoverUrl(selected.id, url, true);
             setSelected(prev => prev ? { ...prev, coverUrl: url } : prev);
             setCoverCandidates([]);
             setDocxUrl(null); // 표지 바뀌면 이전 문서 무효
+            if (res.extractedTitle) {
+                setTitleEditDraft(res.extractedTitle);
+                setEditingBookTitle(true);
+            }
         } catch (e: any) { setError(e?.message || '표지 저장 실패'); }
         finally { setCoverMaking(false); }
     };
@@ -485,9 +516,11 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // 자료 수집 탭(4) 열릴 때 시간대 예약 현황(품절) 로드
     useEffect(() => { if (selected && activeTab === 4) loadSlots(); }, [selected?.id, activeTab, loadSlots]);
 
-    // 선택된 전자책이 바뀌면 제목 입력값 + 저장된 문서 URL 동기화(재방문 시 다운로드 버튼 유지)
+    // 선택된 전자책이 바뀌면 주제·제목 입력값 + 저장된 문서 URL 동기화(재방문 시 다운로드 버튼 유지)
     useEffect(() => {
-        setTitleDraft(selected?.title || selected?.topic || '');
+        setTitleDraft(selected?.topic || '');
+        setTitleEditDraft(selected?.title || selected?.topic || '');
+        setEditingBookTitle(false);
         setAuthorDraft(selected?.author || '');
         setDocxUrl(selected?.docxUrl || null);
     }, [selected?.id]);
@@ -980,12 +1013,15 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
                                 {/* ── 탭1: 책 정보 (제목·저자) + 목차(보기/수정) ── */}
                                 {activeTab === 1 && <>
-                                {/* 제목·저자 카드 */}
+                                {/* 주제·제목 카드 — 2026-07-26 사장 지시로 역할 분리:
+                                    "책 주제"는 사용자가 직접 고치는 입력칸(목차·표지가 이걸 참고하진 않음, 최초 생성 재료).
+                                    "책 제목"은 읽기전용 표시 + 수정모드 — 목차·표지 생성이 실제로 참고하는 확정값이며,
+                                    AI 표지를 고르면 그 안의 카피가 draft로 채워져 사용자 확인 후에만 저장된다. */}
                                 <div className="rounded-2xl p-5 mb-4" style={{ background: 'linear-gradient(135deg, #ffffff, #f7f3fb)', border: `1px solid ${T.accentBorder}`, boxShadow: '0 4px 16px -8px rgba(142,111,183,0.4)' }}>
-                                    <p className="text-[10px] tracking-widest mb-2" style={{ color: T.accent }}>책 제목</p>
+                                    <p className="text-[10px] tracking-widest mb-2" style={{ color: T.accent }}>책 주제</p>
                                     <div className="flex flex-col gap-2">
-                                        <input value={titleDraft} onChange={e => setTitleDraft(e.target.value)} placeholder="책 제목"
-                                            className="w-full text-xl font-bold rounded-lg px-3 py-2" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
+                                        <input value={titleDraft} onChange={e => setTitleDraft(e.target.value)} placeholder="책 주제(예: 클로드 코드로 초보자용 홈페이지 만들기)"
+                                            className="w-full text-sm rounded-lg px-3 py-2" style={{ color: T.ink, border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
                                         <div className="flex items-center gap-2">
                                             <span className="text-[11px] shrink-0" style={{ color: T.inkSoft }}>저자명</span>
                                             {/* min-w-0: flex 자식이 줄어들 수 있게(없으면 input이 버튼을 화면 밖으로 밀어냄, 모바일 잘림) */}
@@ -995,7 +1031,38 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                 {savingTitle ? <Loader size={13} className="animate-spin" /> : <Save size={13} />} 저장
                                             </button>
                                         </div>
-                                        <p className="text-[11px]" style={{ color: T.inkMute }}>주제: {selected.topic}</p>
+
+                                        {/* 책 제목 — 목차·표지가 실제로 참고하는 값. 평소엔 표시만, 표지를 고르면
+                                            자동으로 수정모드가 열려 draft를 확인·수정한 뒤 저장해야 확정된다. */}
+                                        <div className="mt-2 pt-3" style={{ borderTop: `1px solid ${T.border}` }}>
+                                            <p className="text-[10px] tracking-widest mb-2" style={{ color: T.accent }}>책 제목</p>
+                                            {editingBookTitle ? (
+                                                <div className="flex flex-col gap-1.5">
+                                                    <input value={titleEditDraft} onChange={e => setTitleEditDraft(e.target.value)} placeholder="책 제목"
+                                                        autoFocus
+                                                        className="w-full text-xl font-bold rounded-lg px-3 py-2" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
+                                                    <p className="text-[11px]" style={{ color: T.inkMute }}>표지에서 읽어온 제목이에요. 확인하고 필요하면 고친 뒤 저장하세요.</p>
+                                                    <div className="flex gap-1.5">
+                                                        <button onClick={saveBookTitle} disabled={savingBookTitle || !titleEditDraft.trim()}
+                                                            className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-50" style={{ padding: '8px 12px', color: '#fff', background: T.accent }}>
+                                                            {savingBookTitle ? <Loader size={13} className="animate-spin" /> : <Save size={13} />} 제목 저장
+                                                        </button>
+                                                        <button onClick={() => { setEditingBookTitle(false); setTitleEditDraft(selected.title || selected.topic || ''); }}
+                                                            className="text-xs font-bold rounded-lg" style={{ padding: '8px 12px', color: T.inkMute, border: `1px solid ${T.border}` }}>
+                                                            취소
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <p className="text-xl font-bold" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{selected.title || selected.topic}</p>
+                                                    <button onClick={() => { setTitleEditDraft(selected.title || selected.topic || ''); setEditingBookTitle(true); }}
+                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-lg" style={{ padding: '5px 10px', color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}>
+                                                        <Pencil size={11} /> 수정
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
 
                                         {/* 책 판형 선택 (문서 크기 결정) */}
                                         <div className="mt-1">

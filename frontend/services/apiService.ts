@@ -823,8 +823,8 @@ export const ebookApi = {
         get<EbookProject[]>('/ebook'),
     get: (id: number) =>
         get<EbookProject>(`/ebook/${id}`),
-    updateToc: (id: number, title: string, chapters: EbookTocChapter[], author?: string | null) =>
-        put<EbookProject>(`/ebook/${id}/toc`, { title, chapters, ...(author !== undefined ? { author } : {}) }),
+    updateToc: (id: number, title: string, chapters: EbookTocChapter[], author?: string | null, topic?: string) =>
+        put<EbookProject>(`/ebook/${id}/toc`, { title, chapters, ...(author !== undefined ? { author } : {}), ...(topic !== undefined ? { topic } : {}) }),
     // 현재(수정된) 제목을 보고 목차를 다시 생성 — 제목은 그대로 두고 chapters만 새로 받는다.
     regenerateToc: (id: number) =>
         post<EbookProject>(`/ebook/${id}/regenerate-toc`, {}),
@@ -865,8 +865,10 @@ export const ebookApi = {
     // 탭3: 표지 이미지 업로드 — signed-url 발급 → GCS PUT → coverUrl 저장
     coverUploadUrl: (id: number, mimeType: string) =>
         post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType }),
-    saveCoverUrl: (id: number, coverUrl: string | null) =>
-        put<{ coverUrl: string | null }>(`/ebook/${id}/cover`, { coverUrl }),
+    // extractTitle=true면 AI 표지 후보 선택 시 — 이미지 속 카피를 비전으로 읽어 extractedTitle로
+    // 함께 받는다. title을 자동으로 덮어쓰지 않으며, 프론트가 draft로만 채워 사용자 확인을 거친다.
+    saveCoverUrl: (id: number, coverUrl: string | null, extractTitle?: boolean) =>
+        put<{ coverUrl: string | null; extractedTitle?: string | null }>(`/ebook/${id}/cover`, { coverUrl, ...(extractTitle ? { extractTitle: true } : {}) }),
     // 표지 파일을 직접 올리고 coverUrl까지 저장하는 통합 헬퍼
     uploadCover: async (id: number, file: File): Promise<string> => {
         const { signedUrl, publicUrl } = await post<{ signedUrl: string; publicUrl: string }>(`/ebook/${id}/cover-url`, { mimeType: file.type });
