@@ -51,7 +51,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [error, setError] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(false); // 초기엔 목록 화면(주식분석 패턴). 새 전자책 클릭 시 폼
     // 포인트 차감 확인 모달(docx 만들기/그림 이미지 일괄생성 공용) — brower confirm() 대신 디자인 모달로.
-    const [pointConfirm, setPointConfirm] = useState<{ title: string; lines: string[]; onConfirm: () => void } | null>(null);
+    // 브라우저 기본 confirm() 대신 쓰는 공용 확인 모달. icon 생략 시 기존처럼 ImagePlus(포인트 차감용 기본값).
+    const [pointConfirm, setPointConfirm] = useState<{ title: string; lines: string[]; onConfirm: () => void; icon?: React.ReactNode } | null>(null);
     // 진행 탭: 1제목 2목차 3수정 4자료(배치) 5초안PDF 6완성본 (1~6 순서 진행)
     const [activeTab, setActiveTab] = useState<EbookTab>(1);
     // 목차 편집 모드 (탭3)
@@ -157,9 +158,8 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
 
     // 현재(수정된) 제목을 보고 목차를 새로 생성 — 제목을 먼저 고친 뒤 그 제목에 맞는
     // 목차를 다시 뽑고 싶을 때 사용. 제목은 그대로 두고 chapters만 교체된다.
-    const regenerateToc = async () => {
+    const runRegenerateToc = async () => {
         if (!selected || regenToc) return;
-        if (!confirm('현재 제목을 보고 목차를 새로 만들까요? 지금 목차는 사라져요.')) return;
         setRegenToc(true); setError(null);
         try {
             const updated = await ebookApi.regenerateToc(selected.id);
@@ -168,6 +168,16 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             loadList();
         } catch (e: any) { setError(e.message || '목차 재생성 실패'); }
         finally { setRegenToc(false); }
+    };
+    // 브라우저 기본 confirm() 대신 디자인 모달(pointConfirm 재사용 — 포인트 차감 없어도 확인용으로 씀)로.
+    const regenerateToc = () => {
+        if (!selected || regenToc) return;
+        setPointConfirm({
+            title: '목차 다시 만들기',
+            lines: ['현재 제목을 보고 목차를 새로 만들까요?', '지금 목차는 사라져요.'],
+            onConfirm: runRegenerateToc,
+            icon: <RefreshCw size={16} style={{ color: T.accent }} />,
+        });
     };
 
     // 탭1: 책 판형 저장(신국판/A5/국배판)
@@ -1085,7 +1095,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                           </div>
                                         : <div className="flex gap-1.5 shrink-0">
                                             <button onClick={startEdit} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}><Pencil size={12} /> 목차 수정</button>
-                                            <button onClick={regenerateToc} disabled={regenToc} title="현재 제목을 보고 목차를 새로 만들어요" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: T.inkSoft, border: `1px solid ${T.border}` }}>
+                                            <button onClick={regenerateToc} disabled={regenToc} title="현재 제목을 보고 목차를 새로 만들어요" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}>
                                                 {regenToc ? <Loader size={12} className="animate-spin" /> : <RefreshCw size={12} />} 목차 다시 만들기
                                             </button>
                                           </div>}
@@ -1235,7 +1245,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                     <div className="w-full max-w-sm rounded-2xl p-5 shadow-2xl" style={{ background: T.card }}>
                         <div className="flex items-center gap-2 mb-3">
                             <span className="inline-flex items-center justify-center rounded-full w-8 h-8" style={{ background: T.accentSoft }}>
-                                <ImagePlus size={16} style={{ color: T.accent }} />
+                                {pointConfirm.icon ?? <ImagePlus size={16} style={{ color: T.accent }} />}
                             </span>
                             <p className="text-sm font-bold" style={{ color: T.ink }}>{pointConfirm.title}</p>
                         </div>
