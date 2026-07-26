@@ -40,3 +40,4 @@ Hermes가 자동으로:
 | email-fix | /sites/email-fix/ | AI 영어 이메일/메시지 교정 랜딩(시안 v1, 2026-06-15). 교정 기능 연동은 추후 |
 | review-solver | /sites/review-solver/ | AI 쇼핑 리뷰 요약 '리뷰 해결사' 랜딩(시안 v1, 2026-06-15). 베타 신청 폼만 동작, 실제 분석은 추후 |
 | dragon-image | /sites/dragon-image/ | gpt-image-2로 생성한 여의주 든 청룡 이미지 다운로드 페이지(2026-07-26) |
+| dragon-image-red-pearl | /sites/dragon-image-red-pearl/ | dragon-image의 images.edit(원본 보존) 버전 — 여의주를 빨간색으로 교체. 기존 URL 캐시와 헷갈리지 않게 별도 경로로 분리(2026-07-26) |
