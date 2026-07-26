@@ -69,6 +69,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     // AI 표지 후보 2안(제미나이·GPT). 고르면 비우고 selected.coverUrl로 확정.
     const [coverCandidates, setCoverCandidates] = useState<{ engine: 'gemini' | 'gpt'; url: string }[]>([]);
     const [coverSaving, setCoverSaving] = useState(false);
+    const [zoomImage, setZoomImage] = useState<string | null>(null); // 표지 이미지 확대보기(라이트박스)
     const [coverSaveToast, setCoverSaveToast] = useState('');
     const [docxMaking, setDocxMaking] = useState(false);
     const [docxUrl, setDocxUrl] = useState<string | null>(null); // 생성된 docx URL. selected.docxUrl로 초기화돼 재방문 시 다운로드 버튼 유지.
@@ -276,12 +277,13 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         return m ? `/api/ebook/cover-image?path=${encodeURIComponent(m[1])}` : url;
     };
 
-    // 저장: 업로드한 표지 이미지를 내 기기(갤러리)로. iOS=공유시트('이미지 저장'→사진앱), 그 외=다운로드(HairStyleBoard와 동일 패턴).
-    const handleSaveCover = async () => {
-        if (!selected?.coverUrl || coverSaving) return;
+    // 저장: 표지 이미지를 내 기기(갤러리)로. iOS=공유시트('이미지 저장'→사진앱), 그 외=다운로드(HairStyleBoard와 동일 패턴).
+    // ★확정 표지뿐 아니라 후보 이미지(선택 전)도 저장할 수 있게 URL을 인자로 받는 범용 형태로 일반화.
+    const saveCoverImage = async (url: string) => {
+        if (coverSaving) return;
         setCoverSaving(true);
         try {
-            const res = await fetch(proxyCoverUrl(selected.coverUrl));
+            const res = await fetch(proxyCoverUrl(url));
             if (!res.ok) throw new Error('fetch fail');
             const blob = await res.blob();
             const ext = (blob.type.split('/')[1] || 'png').replace('jpeg', 'jpg');
@@ -302,11 +304,12 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                 setTimeout(() => setCoverSaveToast(''), 3000);
             }
         } catch {
-            window.open(selected.coverUrl, '_blank', 'noopener');
+            window.open(url, '_blank', 'noopener');
         } finally {
             setCoverSaving(false);
         }
     };
+    const handleSaveCover = () => { if (selected?.coverUrl) saveCoverImage(selected.coverUrl); };
 
     // 탭3: 구글 독스용 .docx 생성(북크크 양식). 서버가 docxUrl도 저장 → 재방문 시 다운로드 버튼 유지.
     // 문서 생성 실행(확인 모달에서 '확인' 누른 뒤 호출)
@@ -1025,7 +1028,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                         </button>
                                         {selected.coverUrl && (
                                             <>
-                                                <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                <img src={selected.coverUrl} alt="표지 미리보기" onClick={() => setZoomImage(selected.coverUrl!)} className="rounded-lg cursor-zoom-in" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
                                                 <button onClick={handleSaveCover} disabled={coverSaving}
                                                     className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: T.accent, background: T.accentSoft }}>
                                                     {coverSaving ? <Loader size={12} className="animate-spin" /> : <Download size={12} />} {coverSaving ? '저장 중…' : '저장'}
@@ -1049,7 +1052,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             <div className="flex gap-3 flex-wrap">
                                                 {coverCandidates.map(c => (
                                                     <div key={c.url} className="flex flex-col items-center gap-1.5">
-                                                        <img src={c.url} alt={`표지 후보 (${c.engine})`} className="rounded-lg" style={{ width: 120, height: 160, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                        <img src={c.url} alt={`표지 후보 (${c.engine})`} onClick={() => setZoomImage(c.url)} className="rounded-lg cursor-zoom-in" style={{ width: 120, height: 160, objectFit: 'cover', border: `1px solid ${T.border}` }} />
                                                         {!coverMaking && (
                                                             <button onClick={() => pickCoverCandidate(c.url)} disabled={coverMaking}
                                                                 className="text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 14px', color: '#fff', background: T.accent }}>
@@ -1251,6 +1254,22 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 확인
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* 표지 이미지 확대보기(라이트박스) + 저장. 확정 표지·후보 이미지 클릭 시 공통 사용. */}
+            {zoomImage && (
+                <div className="fixed inset-0 z-[95] flex items-center justify-center p-4" style={{ background: 'rgba(20,12,30,0.85)' }} onClick={() => setZoomImage(null)}>
+                    <button onClick={() => setZoomImage(null)} className="absolute top-4 right-4 rounded-full p-2" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}>
+                        <X size={20} />
+                    </button>
+                    <div className="flex flex-col items-center gap-3" onClick={e => e.stopPropagation()}>
+                        <img src={zoomImage} alt="표지 확대보기" className="rounded-lg" style={{ maxWidth: '90vw', maxHeight: '75vh', objectFit: 'contain' }} />
+                        <button onClick={() => saveCoverImage(zoomImage)} disabled={coverSaving}
+                            className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: '#fff', background: T.accent }}>
+                            {coverSaving ? <Loader size={14} className="animate-spin" /> : <Download size={14} />} {coverSaving ? '저장 중…' : '이미지 저장'}
+                        </button>
                     </div>
                 </div>
             )}
