@@ -523,6 +523,19 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
         setEditingBookTitle(false);
         setAuthorDraft(selected?.author || '');
         setDocxUrl(selected?.docxUrl || null);
+        // ★표지 후보가 프로젝트 전환 후에도 화면에 남아있던 버그 수정(2026-07-26 사장 발견:
+        // "책 지우고 주제 새로 만들어서 다음 탭으로 갔더니 아까 만든 표지가 나오네"). DB 오염은
+        // 아니고(확인 결과 DB엔 없음) React state 초기화 누락 — handleCreate가 setSelected만
+        // 하고 coverCandidates 등은 안 비웠음. openProject는 DB에서 다시 채우므로 문제없지만,
+        // 새로 만들거나 폴링 없이 넘어가는 경로가 있어 selected.id가 바뀔 때마다 여기서
+        // 무조건 초기화한다 — 열려있던 프로젝트에서 필요한 상태는 openProject가 다시 채운다.
+        setCoverCandidates([]);
+        setCoverMaking(false);
+        setImgPrompts(null);
+        setImgGenResults({});
+        setImgGenFailed(new Set());
+        setImgGenBusy(false);
+        setImgGenProgress({ done: 0, total: 0 });
     }, [selected?.id]);
 
     const handleCreate = async () => {
