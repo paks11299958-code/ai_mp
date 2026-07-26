@@ -41,3 +41,4 @@ Hermes가 자동으로:
 | review-solver | /sites/review-solver/ | AI 쇼핑 리뷰 요약 '리뷰 해결사' 랜딩(시안 v1, 2026-06-15). 베타 신청 폼만 동작, 실제 분석은 추후 |
 | dragon-image | /sites/dragon-image/ | gpt-image-2로 생성한 여의주 든 청룡 이미지 다운로드 페이지(2026-07-26) |
 | dragon-image-red-pearl | /sites/dragon-image-red-pearl/ | dragon-image의 images.edit(원본 보존) 버전 — 여의주를 빨간색으로 교체. 기존 URL 캐시와 헷갈리지 않게 별도 경로로 분리(2026-07-26) |
+| dragon-image-mouth-pearl | /sites/dragon-image-mouth-pearl/ | dragon-image의 images.edit 버전 — 입에 빨간 여의주를 문 모습(2026-07-26) |
