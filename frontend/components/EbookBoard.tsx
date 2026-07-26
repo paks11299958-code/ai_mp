@@ -1106,7 +1106,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 <div className="rounded-2xl p-4 mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
                                     <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
                                     <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지를 올리거나, <b style={{ color: T.accent }}>AI가 제목·목차를 참고해 서로 다른 화풍의 표지 2장을 만들어</b> 드려요(마음에 드는 쪽 선택). 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
-                                    <div className="flex items-start gap-3 flex-wrap">
+                                    {/* 버튼 줄과 미리보기 줄을 분리 — 한 줄에 다 붙어있으면 정렬선이 안 맞아
+                                        어지러워 보임(2026-07-26 사장 지적). 미리보기는 아래로, 크게. */}
+                                    <div className="flex items-center gap-2 flex-wrap">
                                         <label className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl cursor-pointer" style={{ padding: '8px 16px', color: '#fff', background: T.accent, opacity: coverMaking ? 0.4 : 1 }}>
                                             {coverMaking ? <><Loader size={14} className="animate-spin" /> 처리 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
                                             <input type="file" accept="image/*" disabled={coverMaking} className="hidden"
@@ -1116,20 +1118,25 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
                                             {coverMaking ? <><Loader size={14} className="animate-spin" /> 만드는 중…</> : <>✨ AI로 표지 만들기</>}
                                         </button>
-                                        {selected.coverUrl && (
-                                            <>
-                                                <img src={selected.coverUrl} alt="표지 미리보기" onClick={() => setZoomImage(selected.coverUrl!)} className="rounded-lg cursor-zoom-in" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
-                                                <button onClick={handleSaveCover} disabled={coverSaving}
-                                                    className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: T.accent, background: T.accentSoft }}>
-                                                    {coverSaving ? <Loader size={12} className="animate-spin" /> : <Download size={12} />} {coverSaving ? '저장 중…' : '저장'}
-                                                </button>
-                                                <button onClick={removeCover} disabled={coverMaking}
-                                                    className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: '#C62828', background: '#FDECEC' }}>
-                                                    <Trash2 size={12} /> 제거
-                                                </button>
-                                            </>
-                                        )}
                                     </div>
+                                    {selected.coverUrl && (
+                                        <div className="flex items-start gap-3 mt-3 pt-3" style={{ borderTop: `1px solid ${T.border}` }}>
+                                            <img src={selected.coverUrl} alt="표지 미리보기" onClick={() => setZoomImage(selected.coverUrl!)} className="rounded-lg cursor-zoom-in shrink-0" style={{ width: 110, height: 147, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                            <div className="flex flex-col gap-1.5 pt-1">
+                                                <p className="text-[11px]" style={{ color: T.inkMute }}>현재 표지예요. 클릭하면 크게 볼 수 있어요.</p>
+                                                <div className="flex gap-1.5">
+                                                    <button onClick={handleSaveCover} disabled={coverSaving}
+                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 10px', color: T.accent, background: T.accentSoft }}>
+                                                        {coverSaving ? <Loader size={12} className="animate-spin" /> : <Download size={12} />} {coverSaving ? '저장 중…' : '저장'}
+                                                    </button>
+                                                    <button onClick={removeCover} disabled={coverMaking}
+                                                        className="inline-flex items-center gap-1 text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 10px', color: '#C62828', background: '#FDECEC' }}>
+                                                        <Trash2 size={12} /> 제거
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                     {/* AI 표지 진행/후보 — 만드는 중엔 완료된 것부터 뜨고(5초 폴링), 2장 다 나오면
                                         고를 수 있다. 창을 닫아도 서버가 계속 만들고, 다시 열면 이어서 보인다. */}
                                     {(coverMaking || coverCandidates.length > 0) && (
