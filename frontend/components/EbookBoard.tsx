@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus, Download } from 'lucide-react';
+import { X, BookOpen, Loader, Trash2, Plus, ChevronLeft, ChevronUp, ChevronDown, Save, Pencil, Search, Check, ExternalLink, AlertCircle, FileText, ImagePlus, Download, RefreshCw } from 'lucide-react';
 import { ebookApi, EbookProject, EbookTocChapter, EbookImageSlot } from '../services/apiService';
 import { HelpButton } from './HelpButton';
 
@@ -59,6 +59,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
     const [editTitle, setEditTitle] = useState('');
     const [editChapters, setEditChapters] = useState<EbookTocChapter[]>([]);
     const [savingToc, setSavingToc] = useState(false);
+    const [regenToc, setRegenToc] = useState(false);
     // 탭1 제목·저자 편집 (목차는 보존, 제목/저자만 저장)
     const [titleDraft, setTitleDraft] = useState('');
     const [authorDraft, setAuthorDraft] = useState('');
@@ -151,6 +152,21 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
             loadList();
         } catch (e: any) { setError(e.message || '목차 저장 실패'); }
         finally { setSavingToc(false); }
+    };
+
+    // 현재(수정된) 제목을 보고 목차를 새로 생성 — 제목을 먼저 고친 뒤 그 제목에 맞는
+    // 목차를 다시 뽑고 싶을 때 사용. 제목은 그대로 두고 chapters만 교체된다.
+    const regenerateToc = async () => {
+        if (!selected || regenToc) return;
+        if (!confirm('현재 제목을 보고 목차를 새로 만들까요? 지금 목차는 사라져요.')) return;
+        setRegenToc(true); setError(null);
+        try {
+            const updated = await ebookApi.regenerateToc(selected.id);
+            setSelected(updated);
+            setDocxUrl(null); // 목차가 바뀌었으니 기존 문서 무효
+            loadList();
+        } catch (e: any) { setError(e.message || '목차 재생성 실패'); }
+        finally { setRegenToc(false); }
     };
 
     // 탭1: 책 판형 저장(신국판/A5/국배판)
@@ -1063,7 +1079,12 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             <button onClick={saveToc} disabled={savingToc} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: '#fff', background: T.accent }}>{savingToc ? <Loader size={12} className="animate-spin" /> : <Save size={12} />} 목차 저장</button>
                                             <button onClick={() => cancelEdit()} className="text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.inkMute, border: `1px solid ${T.border}` }}>취소</button>
                                           </div>
-                                        : <button onClick={startEdit} className="shrink-0 flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}><Pencil size={12} /> 목차 수정</button>}
+                                        : <div className="flex gap-1.5 shrink-0">
+                                            <button onClick={startEdit} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg" style={{ color: T.accent, border: `1px solid ${T.accentBorder}`, background: T.accentSoft }}><Pencil size={12} /> 목차 수정</button>
+                                            <button onClick={regenerateToc} disabled={regenToc} title="현재 제목을 보고 목차를 새로 만들어요" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg disabled:opacity-50" style={{ color: T.inkSoft, border: `1px solid ${T.border}` }}>
+                                                {regenToc ? <Loader size={12} className="animate-spin" /> : <RefreshCw size={12} />} 목차 다시 만들기
+                                            </button>
+                                          </div>}
                                 </div>
 
                                 {/* 목차 보기 (단순 챕터 리스트) */}

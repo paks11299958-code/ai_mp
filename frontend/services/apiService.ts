@@ -825,6 +825,9 @@ export const ebookApi = {
         get<EbookProject>(`/ebook/${id}`),
     updateToc: (id: number, title: string, chapters: EbookTocChapter[], author?: string | null) =>
         put<EbookProject>(`/ebook/${id}/toc`, { title, chapters, ...(author !== undefined ? { author } : {}) }),
+    // 현재(수정된) 제목을 보고 목차를 다시 생성 — 제목은 그대로 두고 chapters만 새로 받는다.
+    regenerateToc: (id: number) =>
+        post<EbookProject>(`/ebook/${id}/regenerate-toc`, {}),
     remove: (id: number) =>
         del<{ deleted: boolean }>(`/ebook/${id}`),
     collectSources: (id: number, no: number) =>
