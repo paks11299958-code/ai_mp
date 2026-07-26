@@ -823,73 +823,9 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                             </p>
                                         </div>
 
-                                        {/* 2단계: 표지 올리기 (사용자 업로드) */}
-                                        <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: T.accent, color: '#fff' }}>2</span>
-                                                <p className="text-sm font-bold" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
-                                            </div>
-                                            <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지를 올리거나, <b style={{ color: T.accent }}>AI가 제목·목차를 참고해 서로 다른 화풍의 표지 2장을 만들어</b> 드려요(마음에 드는 쪽 선택). 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
-                                            <div className="flex items-start gap-3 flex-wrap">
-                                                <label className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl cursor-pointer" style={{ padding: '8px 16px', color: '#fff', background: T.accent, opacity: coverMaking ? 0.4 : 1 }}>
-                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 처리 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
-                                                    <input type="file" accept="image/*" disabled={coverMaking} className="hidden"
-                                                        onChange={e => { const f = e.target.files?.[0]; if (f) uploadCover(f); e.currentTarget.value = ''; }} />
-                                                </label>
-                                                <button onClick={generateAICover} disabled={coverMaking}
-                                                    className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                    {coverMaking ? <><Loader size={14} className="animate-spin" /> 만드는 중…</> : <>✨ AI로 표지 만들기</>}
-                                                </button>
-                                                {selected.coverUrl && (
-                                                    <>
-                                                        <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
-                                                        <button onClick={handleSaveCover} disabled={coverSaving}
-                                                            className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: T.accent, background: T.accentSoft }}>
-                                                            {coverSaving ? <Loader size={12} className="animate-spin" /> : <Download size={12} />} {coverSaving ? '저장 중…' : '저장'}
-                                                        </button>
-                                                        <button onClick={removeCover} disabled={coverMaking}
-                                                            className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: '#C62828', background: '#FDECEC' }}>
-                                                            <Trash2 size={12} /> 제거
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                            {/* AI 표지 진행/후보 — 만드는 중엔 완료된 것부터 뜨고(5초 폴링), 2장 다 나오면
-                                                고를 수 있다. 창을 닫아도 서버가 계속 만들고, 다시 열면 이어서 보인다. */}
-                                            {(coverMaking || coverCandidates.length > 0) && (
-                                                <div className="mt-3 rounded-xl p-3" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
-                                                    <p className="text-[11px] font-bold mb-2" style={{ color: T.ink }}>
-                                                        {coverMaking
-                                                            ? `표지를 만들고 있어요(${coverCandidates.length}/2) — 최대 2분 정도 걸려요. 창을 닫아도 계속 만들어져요.`
-                                                            : '마음에 드는 표지를 고르세요'}
-                                                    </p>
-                                                    <div className="flex gap-3 flex-wrap">
-                                                        {coverCandidates.map(c => (
-                                                            <div key={c.url} className="flex flex-col items-center gap-1.5">
-                                                                <img src={c.url} alt={`표지 후보 (${c.engine})`} className="rounded-lg" style={{ width: 120, height: 160, objectFit: 'cover', border: `1px solid ${T.border}` }} />
-                                                                {!coverMaking && (
-                                                                    <button onClick={() => pickCoverCandidate(c.url)} disabled={coverMaking}
-                                                                        className="text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 14px', color: '#fff', background: T.accent }}>
-                                                                        이걸로 할래요
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                        ))}
-                                                        {coverMaking && coverCandidates.length < 2 && (
-                                                            <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg" style={{ width: 120, height: 160, border: `1px dashed ${T.border}` }}>
-                                                                <Loader size={18} className="animate-spin" style={{ color: T.accent }} />
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    {!coverMaking && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>둘 다 마음에 안 들면 다시 만들 수 있어요(포인트가 다시 차감됩니다).</p>}
-                                                </div>
-                                            )}
-                                            {coverSaveToast && (
-                                                <p className="text-[11px] mt-2" style={{ color: T.accent }}>{coverSaveToast}</p>
-                                            )}
-                                        </div>
-
-                                        {/* 3단계: 문서 만들기 (구글 독스용 .docx) */}
+                                        {/* 3단계: 문서 만들기 (구글 독스용 .docx) — 표지는 탭1(제목·목차)로 이동(2026-07-26,
+                                            사장 지시: "표지를 먼저 만들어야 나중에 책 표지가 틀려지지 않는다" — 표지 이미지
+                                            속 제목을 그대로 책 제목으로 확정하는 흐름과 맞추기 위해 제목 입력 바로 아래로 배치) */}
                                         <div className="rounded-2xl p-4" style={{ background: T.card, border: `1px solid ${canPdf ? T.accentBorder : T.border}`, opacity: canPdf ? 1 : 0.6 }}>
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="inline-flex items-center justify-center rounded-full text-[11px] font-bold" style={{ width: 18, height: 18, background: canPdf ? T.accent : T.inkMute, color: '#fff' }}>3</span>
@@ -1033,7 +969,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                 {activeTab === 1 && <>
                                 {/* 제목·저자 카드 */}
                                 <div className="rounded-2xl p-5 mb-4" style={{ background: 'linear-gradient(135deg, #ffffff, #f7f3fb)', border: `1px solid ${T.accentBorder}`, boxShadow: '0 4px 16px -8px rgba(142,111,183,0.4)' }}>
-                                    <p className="text-[10px] tracking-widest mb-2" style={{ color: T.accent }}>책 정보</p>
+                                    <p className="text-[10px] tracking-widest mb-2" style={{ color: T.accent }}>책 제목</p>
                                     <div className="flex flex-col gap-2">
                                         <input value={titleDraft} onChange={e => setTitleDraft(e.target.value)} placeholder="책 제목"
                                             className="w-full text-xl font-bold rounded-lg px-3 py-2" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif', border: `1px solid ${T.accentBorder}`, background: '#fff' }} />
@@ -1070,6 +1006,71 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                     </div>
                                 </div>
                                 {error && <p className="text-xs text-red-500 mb-2">{error}</p>}
+
+                                {/* 표지 만들기 — 탭5(초안 만들기)에서 이동(2026-07-26, 사장 지시). 표지를 먼저
+                                    만들고 그 안의 제목을 확정한 뒤 목차를 만드는 흐름과 맞추기 위해 제목 카드
+                                    바로 아래·목차 위로 배치. */}
+                                <div className="rounded-2xl p-4 mb-4" style={{ background: T.card, border: `1px solid ${T.border}` }}>
+                                    <p className="text-sm font-bold mb-1" style={{ color: T.ink }}>표지 만들기 <span className="text-[11px] font-normal" style={{ color: T.inkMute }}>(선택)</span></p>
+                                    <p className="text-[11px] mb-3" style={{ color: T.inkSoft }}>직접 만든 표지를 올리거나, <b style={{ color: T.accent }}>AI가 제목·목차를 참고해 서로 다른 화풍의 표지 2장을 만들어</b> 드려요(마음에 드는 쪽 선택). 올린 표지는 문서(.docx) 첫 페이지에 꽉 차게 들어가요. <span style={{ color: T.inkMute }}>세로형(예: 1024×1536) 권장 · JPG/PNG · 최대 15MB</span></p>
+                                    <div className="flex items-start gap-3 flex-wrap">
+                                        <label className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl cursor-pointer" style={{ padding: '8px 16px', color: '#fff', background: T.accent, opacity: coverMaking ? 0.4 : 1 }}>
+                                            {coverMaking ? <><Loader size={14} className="animate-spin" /> 처리 중…</> : <><ImagePlus size={14} /> {selected.coverUrl ? '표지 바꾸기' : '표지 이미지 올리기'}</>}
+                                            <input type="file" accept="image/*" disabled={coverMaking} className="hidden"
+                                                onChange={e => { const f = e.target.files?.[0]; if (f) uploadCover(f); e.currentTarget.value = ''; }} />
+                                        </label>
+                                        <button onClick={generateAICover} disabled={coverMaking}
+                                            className="inline-flex items-center gap-1.5 text-sm font-bold rounded-xl disabled:opacity-40" style={{ padding: '8px 16px', color: T.accent, background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                            {coverMaking ? <><Loader size={14} className="animate-spin" /> 만드는 중…</> : <>✨ AI로 표지 만들기</>}
+                                        </button>
+                                        {selected.coverUrl && (
+                                            <>
+                                                <img src={selected.coverUrl} alt="표지 미리보기" className="rounded-lg" style={{ width: 90, height: 120, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                <button onClick={handleSaveCover} disabled={coverSaving}
+                                                    className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: T.accent, background: T.accentSoft }}>
+                                                    {coverSaving ? <Loader size={12} className="animate-spin" /> : <Download size={12} />} {coverSaving ? '저장 중…' : '저장'}
+                                                </button>
+                                                <button onClick={removeCover} disabled={coverMaking}
+                                                    className="inline-flex items-center gap-1 text-xs font-bold rounded-lg self-start disabled:opacity-40" style={{ padding: '6px 10px', color: '#C62828', background: '#FDECEC' }}>
+                                                    <Trash2 size={12} /> 제거
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    {/* AI 표지 진행/후보 — 만드는 중엔 완료된 것부터 뜨고(5초 폴링), 2장 다 나오면
+                                        고를 수 있다. 창을 닫아도 서버가 계속 만들고, 다시 열면 이어서 보인다. */}
+                                    {(coverMaking || coverCandidates.length > 0) && (
+                                        <div className="mt-3 rounded-xl p-3" style={{ background: T.accentSoft, border: `1px solid ${T.accentBorder}` }}>
+                                            <p className="text-[11px] font-bold mb-2" style={{ color: T.ink }}>
+                                                {coverMaking
+                                                    ? `표지를 만들고 있어요(${coverCandidates.length}/2) — 최대 2분 정도 걸려요. 창을 닫아도 계속 만들어져요.`
+                                                    : '마음에 드는 표지를 고르세요'}
+                                            </p>
+                                            <div className="flex gap-3 flex-wrap">
+                                                {coverCandidates.map(c => (
+                                                    <div key={c.url} className="flex flex-col items-center gap-1.5">
+                                                        <img src={c.url} alt={`표지 후보 (${c.engine})`} className="rounded-lg" style={{ width: 120, height: 160, objectFit: 'cover', border: `1px solid ${T.border}` }} />
+                                                        {!coverMaking && (
+                                                            <button onClick={() => pickCoverCandidate(c.url)} disabled={coverMaking}
+                                                                className="text-xs font-bold rounded-lg disabled:opacity-40" style={{ padding: '6px 14px', color: '#fff', background: T.accent }}>
+                                                                이걸로 할래요
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                {coverMaking && coverCandidates.length < 2 && (
+                                                    <div className="flex flex-col items-center justify-center gap-1.5 rounded-lg" style={{ width: 120, height: 160, border: `1px dashed ${T.border}` }}>
+                                                        <Loader size={18} className="animate-spin" style={{ color: T.accent }} />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {!coverMaking && <p className="text-[11px] mt-2" style={{ color: T.inkMute }}>둘 다 마음에 안 들면 다시 만들 수 있어요(포인트가 다시 차감됩니다).</p>}
+                                        </div>
+                                    )}
+                                    {coverSaveToast && (
+                                        <p className="text-[11px] mt-2" style={{ color: T.accent }}>{coverSaveToast}</p>
+                                    )}
+                                </div>
 
                                 {/* 목차 헤더 + 보기/수정 토글 */}
                                 <div className="flex items-center justify-between mb-2">
