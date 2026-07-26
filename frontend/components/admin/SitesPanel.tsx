@@ -25,8 +25,10 @@ export const SitesPanel: React.FC = () => {
         if (!window.confirm(`'${name}' 사이트를 삭제할까요?\n\n폴더·목록이 제거되고 Vercel에서 내려갑니다. (되돌릴 수 없음)`)) return;
         setBusy(name); setMsg('');
         try {
-            await adminApi.deleteSite(name);
-            setMsg(`🗑 '${name}' 삭제를 요청했어요. 1~2분 후 목록을 새로고침하면 사라집니다.`);
+            const r = await adminApi.deleteSite(name);
+            setMsg(r.immediate
+                ? `🗑 '${name}' 즉시 삭제 완료 — Vercel 재배포(1~2분) 후 사이트가 내려갑니다.`
+                : `🗑 '${name}' 삭제를 큐에 등록했어요(서버2 응답 없음 — 워커가 순차 처리).`);
             setSites(prev => prev?.filter(s => s.name !== name) ?? null);   // 낙관적 제거
         } catch {
             setMsg(`❌ '${name}' 삭제 요청 실패. 다시 시도해 주세요.`);
