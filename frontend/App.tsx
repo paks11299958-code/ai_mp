@@ -90,6 +90,13 @@ function quickMenuErrorMessage(e: any): string {
     return '분석에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 }
 
+/** 한글 받침에 따라 '과'/'와' — "도결 선생과 시작하기" / "유나와 시작하기". */
+const _josaGwaWa = (word: string): string => {
+    const ch = word?.trim().slice(-1) ?? '';
+    if (ch < '가' || ch > '힣') return '와';
+    return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '과' : '와';
+};
+
 const AppContent: React.FC = () => {
     const {
         paidPoints: userPaidPoints,
@@ -388,6 +395,8 @@ const AppContent: React.FC = () => {
         features?: { key: string; name: string; icon: string; accent: string; bg: string }[];
         /** 명부(생년월일)를 쓰면 더 정확해지는 페르소나인지 — 안내 한 줄 노출 */
         usesBirthInfo?: boolean;
+        /** 페르소나 대표 이미지 — 얼굴이 보여야 감정 연결이 된다(2026-07-28 사장 지시) */
+        imageUrl?: string;
     } | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
@@ -561,6 +570,7 @@ const AppContent: React.FC = () => {
                     desc: target.introText || target.description || '무엇이든 편하게 말씀해 보세요.',
                     features: feats.length ? feats : undefined,
                     usesBirthInfo: usesBirth,
+                    imageUrl: target.imageUrl || undefined,
                 });
             } else {
                 handleGuestPersonaClick(target.id); // 가입 강요 X → 인트로(소개) 노출
@@ -2022,76 +2032,109 @@ const AppContent: React.FC = () => {
                 친구 링크를 타고 처음 온 사람은 채팅창만 보고 "뭘 하라는 거지?" 하고 나간다. */}
             {deepLinkGuide && (
                 <div className="fixed inset-0 z-[85] flex items-center justify-center p-4"
-                     style={{ background: 'rgba(20,12,30,0.55)', backdropFilter: 'blur(3px)' }}
+                     style={{ background: 'rgba(20,12,30,0.5)', backdropFilter: 'blur(6px)' }}
                      onClick={() => setDeepLinkGuide(null)}>
-                    <div onClick={e => e.stopPropagation()} className="w-full max-w-xs rounded-2xl overflow-hidden text-center"
-                         style={{ background: '#FFFCF8', boxShadow: '0 24px 64px -12px rgba(80,50,110,0.4)' }}>
-                        <div className="px-6 pt-6 pb-5">
-                            {/* 이름은 카드 밖 제목으로 — 두 섹션(소개/기능)의 공통 머리글 */}
-                            <h3 className="text-[17px] font-extrabold mb-3" style={{ color: '#2D2017' }}>
-                                {deepLinkGuide.title}
-                            </h3>
+                    {/* ── 안내 모달(2026-07-28 사장 디자인 지시로 전면 개편) ──────────────
+                        · 얼굴을 크게: AI 동반자 서비스인데 사람이 안 보이면 감정 연결이 안 된다
+                        · 카드 분리 → 하나의 흐름: 소개/기능을 각각 박스로 두니 답답했다
+                        · 배경 연보라 + 상단 blur circle + 글래스 카드 + 소프트 그라데이션 */}
+                    <div onClick={e => e.stopPropagation()}
+                         className="relative w-full max-w-[320px] rounded-[26px] overflow-hidden"
+                         style={{
+                             background: '#FCFAFF',
+                             boxShadow: '0 30px 70px -20px rgba(80,50,110,0.45)',
+                             maxHeight: 'calc(100dvh - 32px)',
+                         }}>
+                        {/* 상단 blur circle — 요즘 앱 특유의 부드러운 광원 */}
+                        <div aria-hidden className="pointer-events-none absolute"
+                             style={{
+                                 top: -70, left: '50%', transform: 'translateX(-50%)',
+                                 width: 240, height: 240, borderRadius: '50%',
+                                 background: 'radial-gradient(circle, rgba(139,92,246,0.35) 0%, rgba(236,72,153,0.18) 55%, transparent 72%)',
+                                 filter: 'blur(26px)',
+                             }} />
 
-                            {/* ① 소개 — 기능 카드와 같은 무게의 카드로 감싼다(2026-07-28 사장 지시).
-                                예전엔 소개가 맨 바닥에 놓이고 기능만 카드라 두 블록의 무게가 안 맞았다.
-                                동일한 배경·라운드로 묶으니 "소개 / 기능" 두 덩어리로 단정하게 읽힌다. */}
-                            <div className="rounded-xl px-3 py-3 text-left" style={{ background: 'rgba(142,111,183,0.07)' }}>
-                                <p className="text-[11px] font-bold mb-1.5" style={{ color: '#8E6FB7' }}>소개</p>
-                                {/* whiteSpace: pre-line — 어드민에서 줄바꿈을 넣어 두 줄로 쓴 소개문이
-                                    많은데(14명 중 9명) HTML은 줄바꿈을 공백으로 처리해 한 줄로 붙었다. */}
-                                <p className="text-[12.5px] leading-relaxed"
+                        <div className="relative overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 32px)' }}>
+                            <div className="px-6 pt-7 pb-6 text-center">
+                                {/* ① 얼굴 */}
+                                {deepLinkGuide.imageUrl && (
+                                    <div className="mx-auto mb-3.5 rounded-full overflow-hidden"
+                                         style={{
+                                             width: 96, height: 96,
+                                             border: '3px solid rgba(255,255,255,0.9)',
+                                             boxShadow: '0 12px 28px -8px rgba(139,92,246,0.45)',
+                                         }}>
+                                        <img src={deepLinkGuide.imageUrl} alt={deepLinkGuide.title}
+                                             className="w-full h-full object-cover" />
+                                    </div>
+                                )}
+
+                                <h3 className="text-[19px] font-extrabold tracking-tight" style={{ color: '#2D2017' }}>
+                                    {deepLinkGuide.title}
+                                </h3>
+
+                                {/* ② 소개 — 박스 없이 흐름으로 */}
+                                <p className="mt-2.5 text-[13px] leading-[1.65]"
                                    style={{ color: '#6B5F78', whiteSpace: 'pre-line' }}>
                                     {deepLinkGuide.desc}
                                 </p>
-                            </div>
-                            {/* ② 기능 — ①과 같은 카드 형태로 나란히(구분선 대신 카드 분리) */}
-                            {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
-                                <div className="mt-2.5 rounded-xl px-3 py-3 text-left"
-                                     style={{ background: 'rgba(142,111,183,0.07)' }}>
-                                    <p className="text-[11px] font-bold mb-2.5" style={{ color: '#8E6FB7' }}>
-                                        기능 <span className="font-normal text-[#A99BB5]">· 눌러서 바로 시작</span>
-                                    </p>
-                                    {/* 텍스트 칩 → 아이콘 카드. 누르면 그 기능이 바로 실행된다
-                                        (기존엔 안내용 텍스트라 눌러도 아무 일도 없었음, 사장 지적). */}
-                                    {/* 기능이 1~2개인 페르소나(대부분)는 3열 그리드면 왼쪽에 치우쳐 어색하다
-                                        → 개수에 맞춰 열 수를 정한다(사장 지적: 은비=명품감정 1개). */}
-                                    <div
-                                        className="grid gap-1.5"
-                                        style={{ gridTemplateColumns: `repeat(${Math.min(deepLinkGuide.features.length, 3)}, minmax(0, 1fr))` }}
-                                    >
-                                        {deepLinkGuide.features.map(f => (
-                                            <button
-                                                key={f.key}
-                                                onClick={() => {
-                                                    setDeepLinkGuide(null);
-                                                    const qm = FEATURE_QUICK_MENU_LABEL[f.key];
-                                                    if (qm) setPendingQuickMenuLabel(qm);
-                                                    else FEATURE_ACTIONS[f.key]?.();
-                                                }}
-                                                className="flex flex-col items-center gap-1 px-1 py-2 rounded-xl transition-transform active:scale-95"
-                                                style={{ background: '#fff', border: `1px solid ${f.accent}33` }}
-                                            >
-                                                <MpnFeatureIcon kind={f.icon} size={26} color={f.accent} bg={f.bg} />
-                                                <span className="text-[11px] font-semibold leading-tight text-center" style={{ color: '#5B3F82' }}>
-                                                    {f.name}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                    {deepLinkGuide.usesBirthInfo && (
-                                        <p className="mt-2.5 text-[11.5px] leading-relaxed" style={{ color: '#9A8FA6' }}>
-                                            🏮 <b style={{ color: '#8E6FB7' }}>명부</b>(이름·생년월일)를 적어두시면 더 정확하게 풀어드려요.
+
+                                {/* ③ 기능 — 글래스 카드 */}
+                                {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
+                                    <div className="mt-5">
+                                        <p className="text-[10.5px] font-bold tracking-wide mb-2.5 text-left"
+                                           style={{ color: '#A99BB5' }}>
+                                            눌러서 바로 시작
                                         </p>
-                                    )}
-                                </div>
-                            )}
-                            <button
-                                onClick={() => setDeepLinkGuide(null)}
-                                className="mt-5 w-full py-3 rounded-full text-[14px] font-bold text-white"
-                                style={{ background: 'linear-gradient(135deg, #8E6FB7, #E48BB0)', border: 'none' }}
-                            >
-                                시작하기
-                            </button>
+                                        <div className="grid gap-2"
+                                             style={{ gridTemplateColumns: `repeat(${Math.min(deepLinkGuide.features.length, 3)}, minmax(0, 1fr))` }}>
+                                            {deepLinkGuide.features.map(f => (
+                                                <button
+                                                    key={f.key}
+                                                    onClick={() => {
+                                                        setDeepLinkGuide(null);
+                                                        const qm = FEATURE_QUICK_MENU_LABEL[f.key];
+                                                        if (qm) setPendingQuickMenuLabel(qm);
+                                                        else FEATURE_ACTIONS[f.key]?.();
+                                                    }}
+                                                    className="flex flex-col items-center gap-1.5 px-1.5 py-3 rounded-2xl transition-all active:scale-95"
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.72)',
+                                                        border: '1px solid rgba(255,255,255,0.9)',
+                                                        boxShadow: '0 6px 18px -8px rgba(80,50,110,0.28)',
+                                                        backdropFilter: 'blur(8px)',
+                                                    }}
+                                                >
+                                                    <MpnFeatureIcon kind={f.icon} size={26} color={f.accent} bg={f.bg} />
+                                                    <span className="text-[11px] font-semibold leading-tight text-center"
+                                                          style={{ color: '#5B3F82' }}>
+                                                        {f.name}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {deepLinkGuide.usesBirthInfo && (
+                                    <p className="mt-3.5 text-[11.5px] leading-relaxed text-left" style={{ color: '#A99BB5' }}>
+                                        🏮 <b style={{ color: '#8E6FB7' }}>명부</b>(이름·생년월일)를 적어두시면 더 정확하게 풀어드려요.
+                                    </p>
+                                )}
+
+                                {/* ④ CTA — 소프트 그라데이션 */}
+                                <button
+                                    onClick={() => setDeepLinkGuide(null)}
+                                    className="mt-5 w-full py-3.5 rounded-full text-[14.5px] font-bold text-white transition-transform active:scale-[0.98]"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
+                                        border: 'none',
+                                        boxShadow: '0 10px 24px -10px rgba(139,92,246,0.75)',
+                                    }}
+                                >
+                                    {deepLinkGuide.title}{_josaGwaWa(deepLinkGuide.title)} 시작하기
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
