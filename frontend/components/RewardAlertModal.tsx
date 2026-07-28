@@ -80,17 +80,10 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                     </p>
                 </div>
 
-                {/* 체험 계정 안내 — 지금 상태와 앞으로 무엇이 필요한지 미리 알린다.
-                    이게 없으면 포인트를 다 썼을 때 뜨는 정식전환 모달이 뜬금없이 느껴진다. */}
-                {isGuestWelcome && (
-                    <p style={{
-                        fontSize: 12, color: '#7A6A86', lineHeight: 1.6, margin: '0 0 16px',
-                        background: 'rgba(0,0,0,0.03)', borderRadius: 10, padding: '10px 12px',
-                    }}>
-                        체험 포인트를 다 쓰면 <b style={{ color: '#8E6FB7' }}>이메일·전화 인증</b>으로
-                        정식 회원이 될 수 있어요. 지금까지의 대화와 포인트는 그대로 유지돼요.
-                    </p>
-                )}
+                {/* ★"포인트를 다 쓰면 가입" 안내는 뺐다(2026-07-28 사장 지적): 지금 막 들어온
+                    사람에게 전환 조건을 먼저 알려주면 "나중에 떨어지면 그때 하지"가 되어 오히려
+                    미루게 만든다. 체험 계정이라는 사실은 제목·본문에서 이미 전달되고, 정식 전환
+                    안내는 실제로 포인트가 부족해진 시점의 GuestUpgradeModal이 담당한다. */}
 
                 {/* 정식 가입일 때만 남은 미션 안내(체험 계정은 아직 미션 대상 아님) */}
                 {isWelcome && !isGuestWelcome && (

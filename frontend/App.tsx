@@ -2037,7 +2037,12 @@ const AppContent: React.FC = () => {
                                     </p>
                                     {/* 텍스트 칩 → 아이콘 카드. 누르면 그 기능이 바로 실행된다
                                         (기존엔 안내용 텍스트라 눌러도 아무 일도 없었음, 사장 지적). */}
-                                    <div className="grid grid-cols-3 gap-1.5">
+                                    {/* 기능이 1~2개인 페르소나(대부분)는 3열 그리드면 왼쪽에 치우쳐 어색하다
+                                        → 개수에 맞춰 열 수를 정한다(사장 지적: 은비=명품감정 1개). */}
+                                    <div
+                                        className="grid gap-1.5"
+                                        style={{ gridTemplateColumns: `repeat(${Math.min(deepLinkGuide.features.length, 3)}, minmax(0, 1fr))` }}
+                                    >
                                         {deepLinkGuide.features.map(f => (
                                             <button
                                                 key={f.key}
