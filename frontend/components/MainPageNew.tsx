@@ -605,7 +605,7 @@ const BottomTabBar: React.FC<{
 
 // Feature 아이콘 SVG (MainPageNew용)
 // ─────────────────────────────────────────────
-const MpnFeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg?: string }> = ({ kind, size = 64, color = '#8E6FB7', bg = '#F5E6F7' }) => {
+export const MpnFeatureIcon: React.FC<{ kind: string; size?: number; color?: string; bg?: string }> = ({ kind, size = 64, color = '#8E6FB7', bg = '#F5E6F7' }) => {
     const c = color, a = bg;
     switch (kind) {
         case 'chat':      return <svg width={size} height={size} viewBox="0 0 96 96" fill="none"><path d="M18 22 Q18 16 24 16 L72 16 Q78 16 78 22 L78 58 Q78 64 72 64 L54 64 L44 78 L34 64 L24 64 Q18 64 18 58 Z" fill={c} opacity="0.9"/><circle cx="36" cy="40" r="4" fill={a}/><circle cx="48" cy="40" r="4" fill={a}/><circle cx="60" cy="40" r="4" fill={a}/></svg>;

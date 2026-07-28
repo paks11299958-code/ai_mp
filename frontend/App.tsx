@@ -23,7 +23,7 @@ import { AuthModal } from './components/AuthModal';
 import { GuestUpgradeModal } from './components/GuestUpgradeModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPageNew } from './components/LandingPageNew';
-import { MainPageNew, FEATURES_GRID } from './components/MainPageNew';
+import { MainPageNew, FEATURES_GRID, MpnFeatureIcon } from './components/MainPageNew';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
@@ -381,7 +381,14 @@ const AppContent: React.FC = () => {
     // 무엇을 하는 화면이고 어떻게 쓰는지 한 번 알려준 뒤 닫는다.
     // features: 페르소나 링크(?p=)로 들어온 경우 "이 페르소나가 뭘 해주는지" 목록으로 보여준다.
     // 채팅창만 열리면 무엇을 할 수 있는지 알 수 없어 그대로 나간다(2026-07-28 사장 지시).
-    const [deepLinkGuide, setDeepLinkGuide] = useState<{ title: string; desc: string; features?: string[] } | null>(null);
+    const [deepLinkGuide, setDeepLinkGuide] = useState<{
+        title: string;
+        desc: string;
+        /** 페르소나 링크(?p=)로 왔을 때 — 누르면 그 기능이 바로 실행되는 카드 목록 */
+        features?: { key: string; name: string; icon: string; accent: string; bg: string }[];
+        /** 명부(생년월일)를 쓰면 더 정확해지는 페르소나인지 — 안내 한 줄 노출 */
+        usesBirthInfo?: boolean;
+    } | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
     // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
@@ -540,11 +547,18 @@ const AppContent: React.FC = () => {
                 handlePersonaClick(target.id, { skipIntro: true });
                 // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 친구 링크로 온 사람은 채팅창만
                 // 보고는 뭘 물어봐야 할지 모른다. 설명 + 기능 목록을 모달로 보여준다.
-                const feats = FEATURES_GRID.filter(f => f.personaName === target.name).map(f => f.name);
+                const feats = FEATURES_GRID
+                    .filter(f => f.personaName === target.name)
+                    .map(f => ({ key: f.key, name: f.name, icon: f.icon, accent: f.palette.accent, bg: f.palette.bg }));
+                // 명부(생년월일)를 쓰는 페르소나면 "적으면 더 정확하다"고 미리 알린다 —
+                // 나중에 명부 모달이 떴을 때 뜬금없지 않게(2026-07-28 사장 지시).
+                let usesBirth = false;
+                try { usesBirth = !!(target.quickMenuJson && JSON.parse(target.quickMenuJson).useBirthInfo); } catch {}
                 setDeepLinkGuide({
                     title: target.name,
                     desc: target.description || '무엇이든 편하게 말씀해 보세요.',
                     features: feats.length ? feats : undefined,
+                    usesBirthInfo: usesBirth,
                 });
             } else {
                 handleGuestPersonaClick(target.id); // 가입 강요 X → 인트로(소개) 노출
@@ -2018,18 +2032,36 @@ const AppContent: React.FC = () => {
                             {/* 페르소나 링크로 온 경우 — 이 사람이 무엇을 해주는지 목록으로 */}
                             {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
                                 <div className="mt-4 rounded-xl px-3 py-3 text-left" style={{ background: 'rgba(142,111,183,0.07)' }}>
-                                    <p className="text-[11px] font-bold mb-2" style={{ color: '#8E6FB7' }}>이런 걸 도와드려요</p>
-                                    <div className="flex flex-wrap gap-1.5">
+                                    <p className="text-[11px] font-bold mb-2.5" style={{ color: '#8E6FB7' }}>
+                                        바로 해보기 <span className="font-normal text-[#A99BB5]">· 눌러서 시작</span>
+                                    </p>
+                                    {/* 텍스트 칩 → 아이콘 카드. 누르면 그 기능이 바로 실행된다
+                                        (기존엔 안내용 텍스트라 눌러도 아무 일도 없었음, 사장 지적). */}
+                                    <div className="grid grid-cols-3 gap-1.5">
                                         {deepLinkGuide.features.map(f => (
-                                            <span key={f} className="text-[12px] px-2 py-1 rounded-lg"
-                                                  style={{ background: '#fff', color: '#5B3F82', border: '1px solid rgba(142,111,183,0.25)' }}>
-                                                {f}
-                                            </span>
+                                            <button
+                                                key={f.key}
+                                                onClick={() => {
+                                                    setDeepLinkGuide(null);
+                                                    const qm = FEATURE_QUICK_MENU_LABEL[f.key];
+                                                    if (qm) setPendingQuickMenuLabel(qm);
+                                                    else FEATURE_ACTIONS[f.key]?.();
+                                                }}
+                                                className="flex flex-col items-center gap-1 px-1 py-2 rounded-xl transition-transform active:scale-95"
+                                                style={{ background: '#fff', border: `1px solid ${f.accent}33` }}
+                                            >
+                                                <MpnFeatureIcon kind={f.icon} size={26} color={f.accent} bg={f.bg} />
+                                                <span className="text-[11px] font-semibold leading-tight text-center" style={{ color: '#5B3F82' }}>
+                                                    {f.name}
+                                                </span>
+                                            </button>
                                         ))}
                                     </div>
-                                    <p className="mt-2.5 text-[11.5px] leading-relaxed" style={{ color: '#9A8FA6' }}>
-                                        위 메뉴를 누르거나, 궁금한 것을 채팅으로 물어보세요.
-                                    </p>
+                                    {deepLinkGuide.usesBirthInfo && (
+                                        <p className="mt-2.5 text-[11.5px] leading-relaxed" style={{ color: '#9A8FA6' }}>
+                                            🏮 <b style={{ color: '#8E6FB7' }}>명부</b>(이름·생년월일)를 적어두시면 더 정확하게 풀어드려요.
+                                        </p>
+                                    )}
                                 </div>
                             )}
                             <button
