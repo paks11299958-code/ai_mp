@@ -346,6 +346,18 @@ const AppContent: React.FC = () => {
     // 전용 보드가 없고 페르소나 채팅의 퀵메뉴(quickMenuJson)로 실행되는 기능들.
     // 공유 딥링크(?f=dream 등)로 오면 채팅만 열리고 "그래서 뭘 하라는 거지?"가 되므로,
     // 도착 후 해당 퀵메뉴를 자동으로 눌러준다(2026-07-28). 값 = quickMenuJson의 label과 정확히 일치.
+    // 공유 링크로 도착했을 때 띄울 사용법 안내(기능별). 없으면 안내 없이 조용히 진행.
+    const FEATURE_DEEPLINK_GUIDE: Record<string, { title: string; desc: string }> = {
+        dream: { title: '🌙 꿈해몽', desc: '어젯밤 꾸신 꿈을 아래 입력창에 적어주시면 도결 선생이 그 뜻을 풀어드려요.' },
+        gwansang: { title: '🔮 관상학', desc: '얼굴 사진을 올리시면 도결 선생이 관상과 성격·운세를 풀어드려요.' },
+        palm: { title: '🖐 손금 보기', desc: '손바닥 사진을 올리시면 도결 선생이 생명선·감정선·재물운을 읽어드려요.' },
+        siwoon: { title: '📅 시운의 흐름', desc: '오늘·이달·올해 중 보고 싶은 흐름을 고르시면 도결 선생이 풀어드려요.' },
+        wealth: { title: '💰 성취와 재물', desc: '재물 흐름과 사업운 중 궁금한 쪽을 고르시면 도결 선생이 짚어드려요.' },
+        yeonn: { title: '❤️ 인연의 결', desc: '연애운과 궁합 중 보고 싶은 것을 고르시면 도결 선생이 읽어드려요.' },
+        rebirth: { title: '🕉️ 전생 이야기', desc: '도결 선생이 당신의 전생과 그것이 남긴 기질을 이야기처럼 들려드려요.' },
+        friendship: { title: '🤝 우정 궁합', desc: '나와 친구, 또는 친구 둘 사이의 우정을 도결 선생이 헤아려드려요.' },
+    };
+
     const FEATURE_QUICK_MENU_LABEL: Record<string, string> = {
         dream: '🌙 해몽',
         gwansang: '🔮 관상',
@@ -358,6 +370,10 @@ const AppContent: React.FC = () => {
     };
     // 딥링크로 도착해 아직 실행되지 않은 퀵메뉴 라벨(페르소나 채팅 진입 후 처리).
     const [pendingQuickMenuLabel, setPendingQuickMenuLabel] = useState<string | null>(null);
+    // 공유 링크로 들어와 퀵메뉴가 자동 실행됐을 때 띄우는 안내(2026-07-28 사장 지시).
+    // 처음 온 사람은 입력창 placeholder만으론 "여기에 뭘 쓰라는 건지" 모른다 —
+    // 무엇을 하는 화면이고 어떻게 쓰는지 한 번 알려준 뒤 닫는다.
+    const [deepLinkGuide, setDeepLinkGuide] = useState<{ title: string; desc: string } | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
     // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
@@ -531,7 +547,12 @@ const AppContent: React.FC = () => {
                         // 전용 보드가 없는 기능(꿈해몽·관상·운세 등)은 채팅만 열면 뭘 하라는 건지 알 수 없다.
                         // 해당 퀵메뉴를 예약해 두면 아래 useEffect가 채팅 진입 후 자동 실행한다.
                         const qm = FEATURE_QUICK_MENU_LABEL[key];
-                        if (qm) setPendingQuickMenuLabel(qm);
+                        if (qm) {
+                            setPendingQuickMenuLabel(qm);
+                            // 처음 온 사람은 입력창 placeholder만으론 뭘 하라는 건지 모른다 → 사용법 안내.
+                            const g = FEATURE_DEEPLINK_GUIDE[key];
+                            if (g) setDeepLinkGuide(g);
+                        }
                     }
                 }
             }
@@ -1938,6 +1959,31 @@ const AppContent: React.FC = () => {
             )}
 
             {/* 퀵메뉴 로딩 오버레이 — 명리학 감정서 컨셉(팔괘 링 + 주제별 멘트) */}
+            {/* 공유 링크로 들어와 기능이 자동 실행됐을 때의 사용법 안내(2026-07-28).
+                친구 링크를 타고 처음 온 사람은 채팅창만 보고 "뭘 하라는 거지?" 하고 나간다. */}
+            {deepLinkGuide && (
+                <div className="fixed inset-0 z-[85] flex items-center justify-center p-4"
+                     style={{ background: 'rgba(20,12,30,0.55)', backdropFilter: 'blur(3px)' }}
+                     onClick={() => setDeepLinkGuide(null)}>
+                    <div onClick={e => e.stopPropagation()} className="w-full max-w-xs rounded-2xl overflow-hidden text-center"
+                         style={{ background: '#FFFCF8', boxShadow: '0 24px 64px -12px rgba(80,50,110,0.4)' }}>
+                        <div className="px-6 pt-6 pb-5">
+                            <h3 className="text-[17px] font-extrabold" style={{ color: '#2D2017' }}>{deepLinkGuide.title}</h3>
+                            <p className="mt-2.5 text-[13px] leading-relaxed" style={{ color: '#6B5F78' }}>
+                                {deepLinkGuide.desc}
+                            </p>
+                            <button
+                                onClick={() => setDeepLinkGuide(null)}
+                                className="mt-5 w-full py-3 rounded-full text-[14px] font-bold text-white"
+                                style={{ background: 'linear-gradient(135deg, #8E6FB7, #E48BB0)', border: 'none' }}
+                            >
+                                시작하기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {quickMenuLoading && <QuickMenuLoading title={activeQuickMenu ?? ''} />}
 
             {/* 포인트 모달 — 임시(게스트) 계정이면 충전 대신 정식 전환을 유도 */}
