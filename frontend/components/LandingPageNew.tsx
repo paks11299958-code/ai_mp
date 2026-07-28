@@ -510,7 +510,7 @@ const PersonaTarotCard: React.FC<{
                     zIndex: 4,
                     animation: 'lp-fade-up 0.25s ease',
                 }}>
-                    "{persona.description.slice(0, 50)}{persona.description.length > 50 ? '…' : ''}"
+                    "{persona.description?.slice(0, 50)}{(persona.description?.length ?? 0) > 50 ? '…' : ''}"
                 </div>
             )}
         </div>
@@ -987,11 +987,11 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                         fontSize: 13, color: T.inkSoft, fontWeight: 500,
                                         background: 'none', border: 'none', cursor: 'pointer', padding: '4px 6px',
                                     }}>
-                                        {user.username || user.email.split('@')[0]}님 ✦
+                                        {user.username || user.email?.split('@')[0] || '회원'}님 ✦
                                     </button>
                                 ) : (
                                     <span style={{ fontSize: 13, color: T.inkSoft, fontWeight: 500 }}>
-                                        {user.username || user.email.split('@')[0]}님 ✦
+                                        {user.username || user.email?.split('@')[0] || '회원'}님 ✦
                                     </span>
                                 )}
                                 <button onClick={onProfileClick} style={{
@@ -1080,7 +1080,7 @@ export const LandingPageNew: React.FC<LandingPageNewProps> = ({
                                 }}>
                                     <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 2 }}>로그인됨</div>
                                     <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
-                                        {user.username || user.email.split('@')[0]}님 ✦
+                                        {user.username || user.email?.split('@')[0] || '회원'}님 ✦
                                     </div>
                                 </div>
                                 <button onClick={() => { setMobileMenuOpen(false); (onGoToChat ?? onStart)(); }} style={{

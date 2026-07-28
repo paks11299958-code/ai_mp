@@ -10,8 +10,9 @@
     "local": "concurrently \"node local-api.cjs\" \"npm run frontend\"",
     "api": "node local-api.cjs",
     "frontend": "npm run dev --prefix frontend",
-    "check": "node scripts/check-hook-order.cjs",
-    "predeploy": "node scripts/check-hook-order.cjs && npm run build --prefix frontend"
+    "check": "node scripts/check-react-safety.cjs",
+    "smoke": "node scripts/smoke-test.cjs",
+    "predeploy": "node scripts/check-react-safety.cjs && npm run build --prefix frontend"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

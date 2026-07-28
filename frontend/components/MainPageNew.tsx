@@ -301,7 +301,7 @@ const ChatStage: React.FC<{
                         fontFamily: "'Cormorant Garamond', serif",
                         fontSize: 22, color: T.goldSoft, lineHeight: 1,
                     }}>❝</span>
-                    {persona.description.slice(0, 80)}{persona.description.length > 80 ? '…' : ''}
+                    {persona.description?.slice(0, 80)}{(persona.description?.length ?? 0) > 80 ? '…' : ''}
                 </blockquote>
             )}
 
@@ -1143,7 +1143,7 @@ const PersonaSelectPanel: React.FC<{
                             <div style={{ padding: '8px 20px 14px', borderBottom: `1px solid ${T.lineSoft}`, marginBottom: 4 }}>
                                 <div style={{ fontSize: 11, color: T.inkMute, marginBottom: 2 }}>로그인됨</div>
                                 <div style={{ fontSize: 14, fontWeight: 600, color: T.ink }}>
-                                    {user.username || user.email.split('@')[0]}님 ✦
+                                    {user.username || user.email?.split('@')[0] || '회원'}님 ✦
                                 </div>
                             </div>
                         )}
