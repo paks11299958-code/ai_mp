@@ -1,15 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { authApi } from '../services/apiService';
-import { buildReferralLink } from '../services/referral';
+import { buildInviteLink, buildInviteMessage, InviteTarget } from '../services/referral';
+import { FEATURES_GRID } from './MainPageNew';
 import { Icon } from './Icons';
 
 interface InviteFriendModalProps {
     onClose: () => void;
+    /** 초대 모달을 연 시점에 보고 있던 페르소나 — 목적지 기본값으로 쓴다(대부분 그냥 복사만 하면 됨). */
+    currentPersonaName?: string;
 }
 
 // 전용 '친구 초대' 화면(모달). 내 추천링크 + 복사/공유 + 현황(초대 인원·적립 pt).
 // 보상 정책: 친구가 가입 후 기능을 1회 사용하면 양쪽 각 1000pt.
-export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose }) => {
+export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, currentPersonaName }) => {
     const [stats, setStats] = useState<{ code: string; invitedCount: number; rewardedCount: number; earnedPoints: number } | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -22,20 +25,44 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose })
             .finally(() => setLoading(false));
     }, []);
 
-    const link = stats ? buildReferralLink(stats.code) : '';
+    // 고를 수 있는 목적지 목록. 기능이 곧 페르소나인 경우가 많아(13명 중 9명이 기능 1개)
+    // 페르소나/기능을 2단계로 나누지 않고 한 목록에서 고르게 한다 — 대신 기능은 담당
+    // 페르소나명을 함께 보여줘 누구에게 가는지 알 수 있게 한다.
+    // 지금 보고 있던 페르소나의 기능을 맨 위로 올린다 — 스크롤 없이 바로 보이게(선택 확인 가능).
+    const targets = useMemo<InviteTarget[]>(() => {
+        const feats = FEATURES_GRID.map(f => ({
+            kind: 'feature' as const, key: f.key, label: f.name, personaName: f.personaName,
+        }));
+        const mine = currentPersonaName ? feats.filter(f => f.personaName === currentPersonaName) : [];
+        const rest = feats.filter(f => !mine.includes(f));
+        return [...mine, { kind: 'home' as const }, ...rest];
+    }, [currentPersonaName]);
+
+    // 기본값: 지금 보고 있던 페르소나의 기능(있으면). 은비 채팅에서 열면 '명품 감정'이 미리 선택된다.
+    const [selected, setSelected] = useState<InviteTarget>(() => {
+        if (currentPersonaName) {
+            const f = FEATURES_GRID.find(x => x.personaName === currentPersonaName);
+            if (f) return { kind: 'feature', key: f.key, label: f.name, personaName: f.personaName };
+        }
+        return { kind: 'home' };
+    });
+
+    const link = stats ? buildInviteLink(stats.code, selected) : '';
 
     const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2200); };
 
     const handleShare = async () => {
         if (!link) return;
-        const text = '나랑 같이 AI로 미래 얼굴·헤어·관상 해보자! 가입하고 둘 다 1000P 받기 🎁';
+        // 문구도 목적지에 맞춰 바뀐다 — 링크만 바뀌고 문구가 고정이면 클릭 동기가 안 생긴다.
+        const { title, text } = buildInviteMessage(selected);
         try {
-            if (navigator.share) { await navigator.share({ title: 'AI 페르소나 채팅 초대', text, url: link }); return; }
+            if (navigator.share) { await navigator.share({ title, text, url: link }); return; }
         } catch { return; }
-        try { await navigator.clipboard.writeText(link); showToast('초대 링크가 복사되었습니다'); }
+        try { await navigator.clipboard.writeText(`${text}\n${link}`); showToast('초대 링크가 복사되었습니다'); }
         catch { showToast(link); }
     };
 
+    // 링크만 복사(입력칸 옆 '복사'). 문구까지 함께 보내는 건 아래 '공유하기'가 담당.
     const handleCopy = async () => {
         if (!link) return;
         try { await navigator.clipboard.writeText(link); showToast('링크가 복사되었습니다'); }
@@ -62,8 +89,45 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose })
                     {error && <div className="text-center text-sm text-[#C0505A] py-6">{error}</div>}
                     {stats && (
                         <>
-                            {/* 내 추천 링크 */}
-                            <label className="text-[11px] font-semibold text-[#8A7E96]">내 초대 링크</label>
+                            {/* 목적지 선택 — 링크가 어디로 도착할지 정한다 */}
+                            <label className="text-[11px] font-semibold text-[#8A7E96]">무엇을 소개할까요?</label>
+                            <div className="mt-1.5 mb-4 max-h-[168px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
+                                {targets.map(t => {
+                                    const key = t.kind === 'feature' ? `f:${t.key}` : t.kind;
+                                    const isSel = t.kind === 'feature'
+                                        ? selected.kind === 'feature' && selected.key === t.key
+                                        : selected.kind === t.kind;
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => setSelected(t)}
+                                            className="w-full flex items-center gap-2 px-3 py-2.5 text-left transition-colors"
+                                            style={{ background: isSel ? '#F0E7F8' : 'transparent' }}
+                                        >
+                                            <span className="shrink-0 w-4 h-4 rounded-full border flex items-center justify-center"
+                                                  style={{ borderColor: isSel ? '#8E6FB7' : '#C9BCD6', background: isSel ? '#8E6FB7' : '#fff' }}>
+                                                {isSel && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                            </span>
+                                            <span className="flex-1 min-w-0">
+                                                <span className="block text-[13px] font-semibold truncate" style={{ color: isSel ? '#5B3F82' : '#3E3548' }}>
+                                                    {t.kind === 'home' ? 'AI 놀이터 전체' : t.label}
+                                                </span>
+                                                {t.kind === 'feature' && t.personaName && (
+                                                    <span className="block text-[11px] text-[#9A8FA6] truncate">{t.personaName}</span>
+                                                )}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* 내 추천 링크 — 어디로 도착하는 링크인지 함께 보여준다 */}
+                            <label className="text-[11px] font-semibold text-[#8A7E96]">
+                                내 초대 링크
+                                <span className="ml-1 font-normal text-[#A99BB5]">
+                                    · {selected.kind === 'home' ? '메인 화면으로 도착' : `${selected.kind === 'feature' ? selected.label : selected.name} 화면으로 바로 도착`}
+                                </span>
+                            </label>
                             <div className="mt-1.5 flex items-center gap-2 px-3 py-2.5 rounded-xl border" style={{ background: '#F7F2FA', borderColor: '#E2D5EC' }}>
                                 <span className="flex-1 text-[12px] text-[#5C5468] truncate">{link}</span>
                                 <button onClick={handleCopy} className="shrink-0 px-2.5 py-1 rounded-lg text-[12px] font-semibold text-white" style={{ background: '#8E6FB7' }}>복사</button>

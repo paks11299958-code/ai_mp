@@ -88,6 +88,45 @@ export function buildFeatureShareLink(featureKey: string): string {
     return `${window.location.origin}/?f=${encodeURIComponent(featureKey)}${refQs}`;
 }
 
+// ── 친구 초대 링크: 목적지 선택 ────────────────────────────────────────────────
+// 기존 초대 링크는 `?ref=코드`뿐이라 받는 사람이 **아무 맥락 없이 메인**에 떨어졌다
+// (2026-07-28 사장 지적). 뿌니(최다 초대자)가 데려온 게스트 10명 중 8명이 1P도 안 쓴 것과
+// 무관하지 않다 — 뭘 보라고 온 건지 알 수 없으니까.
+// 이제 초대자가 "무엇을 소개할지" 고르면 그 목적지로 바로 도착하고, 공유 문구도 함께 바뀐다.
+export type InviteTarget =
+    | { kind: 'home' }                                  // 서비스 전체(기존 동작)
+    | { kind: 'feature'; key: string; label: string; personaName?: string }
+    | { kind: 'persona'; id: string; name: string };
+
+/** 선택한 목적지 + 내 추천코드로 초대 링크를 만든다. */
+export function buildInviteLink(code: string, target: InviteTarget): string {
+    const origin = window.location.origin;
+    const ref = `ref=${encodeURIComponent(code)}`;
+    if (target.kind === 'feature') return `${origin}/?f=${encodeURIComponent(target.key)}&${ref}`;
+    if (target.kind === 'persona') return `${origin}/?p=${encodeURIComponent(target.id)}&${ref}`;
+    return `${origin}/?${ref}`;
+}
+
+/** 목적지에 맞는 공유 문구(제목/본문). 링크만 바뀌고 문구가 고정이면 클릭 동기가 안 생긴다. */
+export function buildInviteMessage(target: InviteTarget): { title: string; text: string } {
+    if (target.kind === 'feature') {
+        return {
+            title: `${target.label} · AI 놀이터`,
+            text: `${target.label}${target.personaName ? ` (${target.personaName})` : ''} 같이 해보자! 가입하면 둘 다 1000P 🎁`,
+        };
+    }
+    if (target.kind === 'persona') {
+        return {
+            title: `${target.name}와 대화하기 · AI 놀이터`,
+            text: `${target.name}와 이야기해 보자! 가입하면 둘 다 1000P 🎁`,
+        };
+    }
+    return {
+        title: 'AI 놀이터 초대',
+        text: '나랑 같이 AI로 미래 얼굴·헤어·관상 해보자! 가입하고 둘 다 1000P 받기 🎁',
+    };
+}
+
 /**
  * 결과 이미지 + 딥링크를 함께 공유(순간 진입점의 핵심).
  * 모바일: navigator.share로 이미지 파일까지 첨부(결과물이 곧 광고) → 미지원/실패 시 링크만.

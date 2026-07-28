@@ -50,14 +50,18 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
 
                 <h2 style={{ fontSize: 19, fontWeight: 800, color: '#2D2017', margin: '0 0 6px' }}>
                     {isGuestWelcome
-                        ? '친구 초대로 오셨네요! 🎉'
+                        ? '체험 회원으로 시작해요! 🎉'
                         : isWelcome
                         ? `${username ? `${username}님, ` : ''}가입을 축하합니다! 🎉`
                         : '미션 완료! 🎉'}
                 </h2>
                 <p style={{ fontSize: 13, color: '#7A6A86', margin: '0 0 16px', lineHeight: 1.6 }}>
                     {isGuestWelcome
-                        ? '체험용 포인트를 드렸어요.\n마음껏 둘러보세요!'.split('\n').map((t, i) => <span key={i}>{t}<br /></span>)
+                        // ★자기 상태를 반드시 알려준다(2026-07-28 사장 지적) — 기존 문구는 "체험용
+                        // 포인트를 드렸어요"뿐이라, 가입 없이 체험 계정으로 로그인됐다는 사실을
+                        // 사용자가 알 수 없었다. 나중에 포인트 소진 시 뜨는 정식전환 모달도 뜬금없어진다.
+                        ? '가입 없이 바로 쓰는 체험 계정으로 로그인했어요.\n첫 기능 1회는 무료로 써보실 수 있어요!'
+                            .split('\n').map((t, i) => <span key={i}>{t}<br /></span>)
                         : isWelcome
                         ? '가입해 주셔서 감사합니다.\n환영 보너스를 드렸어요.'.split('\n').map((t, i) => <span key={i}>{t}<br /></span>)
                         : '포인트가 적립되었어요.'}
@@ -75,6 +79,18 @@ export const RewardAlertModal: React.FC<RewardAlertModalProps> = ({ kind, amount
                         +{amount.toLocaleString()}P
                     </p>
                 </div>
+
+                {/* 체험 계정 안내 — 지금 상태와 앞으로 무엇이 필요한지 미리 알린다.
+                    이게 없으면 포인트를 다 썼을 때 뜨는 정식전환 모달이 뜬금없이 느껴진다. */}
+                {isGuestWelcome && (
+                    <p style={{
+                        fontSize: 12, color: '#7A6A86', lineHeight: 1.6, margin: '0 0 16px',
+                        background: 'rgba(0,0,0,0.03)', borderRadius: 10, padding: '10px 12px',
+                    }}>
+                        체험 포인트를 다 쓰면 <b style={{ color: '#8E6FB7' }}>이메일·전화 인증</b>으로
+                        정식 회원이 될 수 있어요. 지금까지의 대화와 포인트는 그대로 유지돼요.
+                    </p>
+                )}
 
                 {/* 정식 가입일 때만 남은 미션 안내(체험 계정은 아직 미션 대상 아님) */}
                 {isWelcome && !isGuestWelcome && (

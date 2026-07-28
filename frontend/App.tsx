@@ -2719,7 +2719,7 @@ const AppContent: React.FC = () => {
                     </div>
                 </div>
             )}
-            {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} />}
+            {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} currentPersonaName={activePersona?.name} />}
         </div>
         </>
     );
