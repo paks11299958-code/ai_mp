@@ -18,6 +18,13 @@ const GCS_PREFIX  = `https://storage.googleapis.com/${BUCKET_NAME}/`;
 const DB_URL      = process.env.DATABASE_URL || 'postgresql://aichat_user:aichat_9958@localhost:5432/aichat';
 const isDryRun    = !process.argv.includes('--delete');
 
+// ★나이 가드(2026-07-28, 크론 자동화하면서 신설): 이 스크립트는 "DB 어느 컬럼에도 URL이
+// 없으면 고아"로 판정한다. 그런데 업로드 직후 DB INSERT 전인 파일(생성 중인 전자책 이미지,
+// 처리 대기 중인 홈페이지 자산 등)도 그 순간엔 고아로 보인다 — 수동 실행 땐 사람이 목록을
+// 보고 판단했지만 크론은 그냥 지운다. 그래서 MIN_AGE_HOURS보다 젊은 파일은 대상에서 뺀다.
+// (purge-face-photos.cjs가 '7일 경과' 가드를 두는 것과 같은 취지.)
+const MIN_AGE_HOURS = Number(process.env.GCS_CLEANUP_MIN_AGE_HOURS || 48);
+
 function extractGcsPath(url) {
     if (!url || typeof url !== 'string') return null;
     if (url.startsWith(GCS_PREFIX)) return url.slice(GCS_PREFIX.length);
@@ -117,11 +124,17 @@ async function main() {
         const [files] = await storage.bucket(BUCKET_NAME).getFiles();
         console.log(`   → 버킷 전체 파일: ${files.length}개\n`);
 
-        const orphans   = files.filter(f => !usedPaths.has(f.name));
+        const cutoff = Date.now() - MIN_AGE_HOURS * 3600 * 1000;
+        const allOrphans = files.filter(f => !usedPaths.has(f.name));
+        // 방금 올라와 아직 DB에 안 붙은 파일은 제외(생성 중인 작업물 보호)
+        const tooYoung = allOrphans.filter(f => new Date(f.metadata.timeCreated).getTime() > cutoff);
+        const orphans  = allOrphans.filter(f => new Date(f.metadata.timeCreated).getTime() <= cutoff);
         const totalBytes = orphans.reduce((sum, f) => sum + parseInt(f.metadata.size || 0), 0);
         const totalMB   = (totalBytes / 1024 / 1024).toFixed(2);
 
-        console.log(`3. 고아 파일: ${orphans.length}개 (${totalMB} MB)\n`);
+        console.log(`3. 고아 파일: ${orphans.length}개 (${totalMB} MB)`);
+        if (tooYoung.length) console.log(`   ※ 최근 ${MIN_AGE_HOURS}시간 내 생성 ${tooYoung.length}개는 보호(생성 중일 수 있음)`);
+        console.log('');
 
         if (orphans.length === 0) {
             console.log('정리할 고아 파일이 없습니다. 깨끗합니다 ✅');
