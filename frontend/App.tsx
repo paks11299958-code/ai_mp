@@ -196,6 +196,12 @@ const AppContent: React.FC = () => {
         return null;
     });
 
+    // 이번 진입이 공유 딥링크였는지(pendingDeepLink는 처리 후 null이 되므로 별도 보존).
+    // 도결 선생처럼 useBirthInfo인 페르소나는 채팅 진입만으로 명부(생년월일) 모달이 자동으로
+    // 뜨는데, 친구 링크로 "꿈해몽 해봐"를 보고 온 사람에게 이름·생년월일부터 물으면 목적지에
+    // 닿기 전에 이탈한다 → 딥링크 진입이면 자동 노출을 막는다(2026-07-28 사장 지시).
+    const arrivedViaDeepLinkRef = useRef<boolean>(!!pendingDeepLink);
+
     // 🔮 타로 보고서 공개 공유(?tr=shareId) — 비로그인도 열람 가능(바이럴 유입).
     const [publicTarotShareId] = useState<string | null>(() => {
         const params = new URLSearchParams(window.location.search);
@@ -322,7 +328,7 @@ const AppContent: React.FC = () => {
         palmReadingResult, setPalmReadingResult,
         subMenuConfig, setSubMenuConfig,
         birthModalSkippedRef,
-    } = useQuickMenu(user, activePersonaId, personas);
+    } = useQuickMenu(user, activePersonaId, personas, arrivedViaDeepLinkRef.current);
     const subMenuResultCardRef = useRef(false);
     const [isGreeting, setIsGreeting] = useState(false);
     const [chatBgSelected, setChatBgSelected] = useState<string | null>(null);

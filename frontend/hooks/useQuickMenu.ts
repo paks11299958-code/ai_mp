@@ -24,7 +24,14 @@ import { Persona, User } from '../types';
  *
  * effect 의존성(user/activePersonaId/personas)은 인자로 주입받아 원본 deps를 그대로 보존.
  */
-export function useQuickMenu(user: User | null, activePersonaId: string, personas: Persona[]) {
+/**
+ * @param suppressAutoBirthModal 공유 딥링크(?f=·?p=)로 도착했을 때 true.
+ *   도결 선생처럼 useBirthInfo인 페르소나는 채팅 진입만으로 명부(생년월일) 모달이 자동으로
+ *   뜨는데, 친구 링크를 타고 "꿈해몽 해봐"를 보고 온 사람에게 이름·생년월일부터 물으면
+ *   목적지에 닿기 전에 이탈한다. 해몽처럼 명부가 필요 없는 기능도 있으므로, 딥링크 진입
+ *   시엔 자동 노출을 막고 정말 필요한 메뉴(운세·재물 등 resultCard)에서만 뜨게 한다.
+ */
+export function useQuickMenu(user: User | null, activePersonaId: string, personas: Persona[], suppressAutoBirthModal = false) {
     const [birthInfo, setBirthInfo] = useState<BirthInfo | null>(null);
     const [showBirthModal, setShowBirthModal] = useState(false);
     const [pendingQuickMenu, setPendingQuickMenu] = useState<{ label: string; prompt: string; resultCard?: boolean } | null>(null);
@@ -58,6 +65,7 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
 
     // 채팅 진입 시 birth info 없으면 자동 모달
     useEffect(() => {
+        if (suppressAutoBirthModal) return; // 딥링크 진입 — 목적지 먼저, 명부는 필요할 때만
         if (!activePersonaId || !isBirthInfoLoaded || birthInfo) return;
         if (birthModalSkippedRef.current.has(activePersonaId)) return;
         const persona = personas.find(p => p.id === activePersonaId);
@@ -66,7 +74,7 @@ export function useQuickMenu(user: User | null, activePersonaId: string, persona
             const config = JSON.parse(persona.quickMenuJson);
             if (config.useBirthInfo) setShowBirthModal(true);
         } catch {}
-    }, [activePersonaId, isBirthInfoLoaded, birthInfo, personas]);
+    }, [activePersonaId, isBirthInfoLoaded, birthInfo, personas, suppressAutoBirthModal]);
 
     return {
         birthInfo, setBirthInfo,
