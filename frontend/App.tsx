@@ -1549,7 +1549,7 @@ const AppContent: React.FC = () => {
                         {shareToast}
                     </div>
                 )}
-                {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} />}
+                {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} personas={visiblePersonas.map(p => ({ id: p.id, name: p.name }))} />}
             </>
         );
     }
@@ -2719,7 +2719,7 @@ const AppContent: React.FC = () => {
                     </div>
                 </div>
             )}
-            {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} currentPersonaName={activePersona?.name} />}
+            {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} currentPersonaName={activePersona?.name} personas={visiblePersonas.map(p => ({ id: p.id, name: p.name }))} />}
         </div>
         </>
     );
