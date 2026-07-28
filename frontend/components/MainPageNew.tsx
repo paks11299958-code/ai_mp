@@ -1558,11 +1558,11 @@ const PersonaSelectPanel: React.FC<{
                 }}>
                     <div style={{ flex: '1 1 200px', minWidth: 0 }}>
                         <div style={{ fontSize: 'clamp(15px, 4.4vw, 18px)', fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', marginBottom: 4, wordBreak: 'keep-all' }}>
-                            {isGuest ? '🎁 첫 번째 기능은 포인트 없이 무료예요' : '💎 충전하고 최대 20% 보너스'}
+                            {isGuest ? `🎁 체험 포인트 ${totalPoints.toLocaleString()}P를 드렸어요` : '💎 충전하고 최대 20% 보너스'}
                         </div>
                         <div style={{ fontSize: 12.5, color: T.inkSoft, wordBreak: 'keep-all' }}>
                             {isGuest
-                                ? `가입 없이 지금 바로 써보세요. 체험 포인트 ${totalPoints.toLocaleString()}P도 함께 드렸어요.`
+                                ? '가입 없이 지금 바로 써보세요. 마음에 들면 인증하고 정식 회원이 되실 수 있어요.'
                                 : '5만원 충전 시 60,000P · 1만원 충전 시 11,000P — 모든 기능을 더 넉넉하게.'}
                         </div>
                     </div>
