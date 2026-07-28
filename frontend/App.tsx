@@ -1405,7 +1405,21 @@ const AppContent: React.FC = () => {
     const handleQuickMenuSelect = (menu: QuickMenuItem, useBirthInfo: boolean) => {
         if (menu.subMenu) {
             subMenuResultCardRef.current = menu.resultCard ?? false;
-            setSubMenuConfig(menu.subMenu);
+            // 모달이 기능카드 palette를 그대로 쓰게 넘긴다 — 카드→채팅→모달 색을
+            // 한 줄기로 잇기 위함(2026-07-29). 못 찾으면 모달이 기본 보라로 폴백.
+            // ★한 페르소나가 기능을 여러 개 담당할 수 있다(도결선생=운세·재물·인연…).
+            //   그래서 페르소나가 아니라 **누른 메뉴 라벨**로 기능을 먼저 찾는다.
+            //   (페르소나로만 찾으면 '재물'을 눌러도 늘 첫 기능인 운세 색이 나온다.)
+            const menuWord = menu.label.replace(/^\P{L}*/u, '').trim();
+            const mine = FEATURES_GRID.filter(f => f.personaName === activePersona?.name);
+            const feat = (menuWord && mine.find(f => f.name.includes(menuWord) || f.tag.includes(menuWord)))
+                || mine[0];
+            setSubMenuConfig({
+                ...menu.subMenu,
+                personaName: activePersona?.name,
+                accent: feat?.palette.accent,
+                bg: feat?.palette.bg,
+            });
             return;
         }
         if (menu.faceModal) { setShowFaceModal(true); return; }
