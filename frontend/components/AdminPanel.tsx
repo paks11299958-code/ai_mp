@@ -25,6 +25,7 @@ import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
+import { MarketingDailyPanel } from './admin/MarketingDailyPanel';
 import { BizReportPanel } from './admin/BizReportPanel';
 import { ShortsAdminPanel } from './admin/ShortsAdminPanel';
 import { SampleVaultPanel } from './admin/SampleVaultPanel';
@@ -87,6 +88,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'points',        label: '포인트 통계', icon: 'Coins' },
                             { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
                             { key: 'referral',      label: '레퍼럴',      icon: 'Users' },
+                            { key: 'marketing-daily', label: '📊 일별 마케팅', icon: 'BarChart2' },
                         ] },
                         { id: 'ops', label: '운영', icon: 'Wrench', tabs: [
                             { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
@@ -191,6 +193,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'sites' && <SitesPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}
+                {mainView === 'marketing-daily' && <MarketingDailyPanel />}
                 {mainView === 'biz' && <BizReportPanel />}
 
                 {/* 골프장 관리 패널 */}

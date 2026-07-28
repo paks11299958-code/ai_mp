@@ -1244,6 +1244,17 @@ export const adminApi = {
             top: { code: string; invited: number; rewarded: number; owner_name: string | null }[];
             dailyVisits: { day: string; n: number }[];
         }>('/admin/referral-stats'),
+    // 📊 일자별 마케팅 통계 (2026-07-28) — 유입(채널별)→사용→전환을 하루 한 줄로
+    marketingDaily: (days = 14) =>
+        get<{
+            days: number;
+            rows: {
+                day: string; visits: number; signups: number; guests: number; members: number;
+                referred: number; channels: Record<string, number>; usedUsers: number;
+                uses: number; spent: number; features: { name: string; n: number }[];
+                fromArchive: boolean;
+            }[];
+        }>(`/admin/marketing-daily?days=${days}`),
     // 📊 헤르메스 일일 경영 리포트 (2026-07-11)
     bizDailyReports: (days = 30) =>
         get<{ reports: { reportDate: string; revenueKrw: number; chargeCount: number; aiCostUsd: number; newUsers: number; dau: number; chatCount: number; pointSpent: number; topFeatures: { name: string; count: number }[]; errorCount: number; tossPnlKrw: number | null; reportMd: string | null }[] }>(`/biz/daily-reports?days=${days}`),
