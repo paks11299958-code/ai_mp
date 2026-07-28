@@ -120,6 +120,15 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                     {/* 대사 */}
                     <div className="px-6 pt-4 pb-2">
                         <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(251,191,36,0.7)' }}>{DIALOGS[step]}</p>
+                        {/* 왜 묻는지 먼저 알려준다(2026-07-28) — 공유 링크로 처음 온 사람에게 이유 없이
+                            이름·생년월일을 요구하면 개인정보 요구로 느껴져 그 자리에서 이탈한다.
+                            첫 화면에만 노출(이후 단계는 맥락이 이미 잡혀 있음). */}
+                        {step === 'name' && (
+                            <p className="mt-2 text-[12px] leading-relaxed" style={{ color: 'rgba(251,191,36,0.45)' }}>
+                                사주로 흐름을 읽으려면 태어난 정보가 필요하다네.<br />
+                                한 번만 적어두면 다음부터는 묻지 않겠네.
+                            </p>
+                        )}
                     </div>
 
                     {/* 콘텐츠 */}
