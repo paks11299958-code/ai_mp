@@ -2041,7 +2041,11 @@ const AppContent: React.FC = () => {
                                 </p>
                             )}
                             <h3 className="text-[17px] font-extrabold" style={{ color: '#2D2017' }}>{deepLinkGuide.title}</h3>
-                            <p className="mt-2 text-[13px] leading-relaxed" style={{ color: '#6B5F78' }}>
+                            {/* whiteSpace: pre-line — 어드민에서 줄바꿈을 넣어 두 줄로 쓴 소개문이
+                                많은데(14명 중 9명) HTML은 줄바꿈을 공백으로 처리해 한 줄로 붙었다.
+                                의도한 줄 나눔을 살린다(2026-07-28). */}
+                            <p className="mt-2 text-[13px] leading-relaxed"
+                               style={{ color: '#6B5F78', whiteSpace: 'pre-line' }}>
                                 {deepLinkGuide.desc}
                             </p>
                             {/* ② 무엇을 해주는가 — 기능 소개(구분선으로 ①과 분리, 사장 지적) */}
