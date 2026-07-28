@@ -50,16 +50,23 @@ if (process.env.TOKENS) {
 
         if (sc.token) await page.addInitScript(t => localStorage.setItem('token', t), sc.token);
 
+        // 배포 직후엔 엣지 캐시 전파 중이라 빈 화면이 잡힐 수 있다(2026-07-28 실제 오탐 1회).
+        // 진짜 백지는 몇 번을 해도 백지이므로, 성공할 때까지 최대 3회 재시도한다.
         let info = { rootChildren: -1, bodyLen: 0 };
-        try {
-            await page.goto(BASE, { waitUntil: 'networkidle', timeout: 60000 });
-            await page.waitForTimeout(3500);
-            info = await page.evaluate(() => ({
-                rootChildren: document.getElementById('root')?.children.length ?? -1,
-                bodyLen: document.body.innerText.trim().length,
-            }));
-        } catch (e) {
-            pageErrors.push('NAVIGATION: ' + String(e.message).slice(0, 150));
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            pageErrors.length = 0;
+            try {
+                await page.goto(BASE, { waitUntil: 'networkidle', timeout: 60000 });
+                await page.waitForTimeout(3500);
+                info = await page.evaluate(() => ({
+                    rootChildren: document.getElementById('root')?.children.length ?? -1,
+                    bodyLen: document.body.innerText.trim().length,
+                }));
+            } catch (e) {
+                pageErrors.push('NAVIGATION: ' + String(e.message).slice(0, 150));
+            }
+            if (info.rootChildren > 0 && info.bodyLen >= MIN_BODY_LEN) break;
+            if (attempt < 3) { console.log(`   (${sc.label}: ${attempt}차 빈 화면 → 재시도)`); await page.waitForTimeout(5000); }
         }
 
         // React #310 등 렌더 자체가 죽은 경우를 확실히 잡는다
