@@ -10,6 +10,9 @@
       "maxDuration": 30
     }
   },
+  "redirects": [
+    { "source": "/k/:feature", "destination": "/?f=:feature&ref=KIN", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
 
