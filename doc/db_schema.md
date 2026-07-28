@@ -436,3 +436,18 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   TEXT, answer TEXT, status TEXT(pending|answered|failed), "errorMessage" TEXT, "createdAt"`.
 - 뼈대 단계(어드민 전용, 포인트 과금 없음) — GCP 크레딧 "Trial credit for GenAI App
   Builder"(Vertex AI Search 전용) 실사용 검증 목적. 상세=doc/features/doc_qna.md.
+
+## GuestCohortStat (2026-07-28 신설, 게스트 코호트 통계 — prisma schema 반영)
+- `cohortDate TEXT PK`(가입일 YYYY-MM-DD, **KST 기준** — UTC 그대로 쓰면 새벽 가입자가 전날로
+  잡힘), `guestCount INT`(그날 생성된 게스트 수, 삭제된 누적), `usedAnyCount INT`(그중 기능을
+  1회 이상 사용), `freeTrialCount INT`(그중 '체험 첫 1회 무료' 사용), `exhaustedCount INT`
+  (그중 잔액<50P = 전환 지점 도달), `convertedCount INT`(정식전환, 삭제 시점엔 0이라 참고용),
+  `totalSpent INT`(코호트 총 소진 포인트), `updatedAt`.
+- **존재 이유**: 게스트(`provider='guest'`)는 가입 7일 후 cleanup 크론이 삭제하므로(어드민
+  회원목록 적체 방지, 2026-07-21) 체험→전환 개선의 효과를 7일 뒤엔 검증할 수 없었다. 계정은
+  지우되 "며칠에 몇 명 들어와 얼마나 써봤는가"만 남긴다. **개인정보 없음**(식별자·대화 미포함).
+- 적재: `internal-cron.ts` cleanup(매일 21시 KST)이 삭제 **직전에** 집계해 코호트별 누적 upsert.
+  ★함정 2개 — ⑴지표는 반드시 삭제 전에 읽어야 함(`PointTransaction`이 User에 Cascade로 묶여
+  함께 소멸) ⑵삭제 실패분은 집계 제외(다음 회차 재시도되므로 중복 계상 방지).
+- 조회: `GET /api/aimp/admin/guest-cohorts` — 살아있는 계정(User 실시간 집계)과 삭제분(이 표)을
+  합쳐 하나의 추세로 반환. 상세=doc/features/referral_system.md.

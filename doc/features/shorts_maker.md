@@ -283,3 +283,15 @@ meme        공감형 밈&POV          없음        false (신규)
 shared-api(`9124222`+`12474f9`, 서버1 git pull+`npx pm2 restart shared-api`)·ai_mp
 (`f97697f`+`3be5771`+`7a63f67`+`5dc61e5`, master push, Vercel — Promote to Production
 필요).
+
+## 쇼츠 QR 딥링크 — 바이럴 수리 후 재검증 (2026-07-28)
+바이럴 딥링크(`?f=`) 파손을 수리하면서(=referral_system.md) **쇼츠 End Card QR도 같은 경로를
+쓰므로 함께 검증**했다. QR은 `ADMIN_TOPIC_CTA_URL`이 `https://aichat.dbzone.kr/?f={key}&ref=youtube`
+로 만들고, 이 `?f=` 처리는 공유 링크와 **완전히 동일한 코드 경로**를 탄다.
+- `ADMIN_TOPICS` 17개 키 전수 검증 → **전부 정상 도착**(진입경로 누락 0).
+- 단 `golf-swing`·`learn`은 `FEATURES_GRID`(메인 카드)에 **없는** 키다. 그래도 동작하는 이유는
+  딥링크 known 판정이 `FEATURES_GRID.some(...) || !!FEATURE_BY_KEY[key]`라서 `personaFeatures.ts`의
+  `FEATURE_BY_KEY`로 통과하고, `featureBoardOpeners`에도 등록돼 있기 때문. **이 둘 중 하나라도
+  빠지면 조용히 무시된다**(`known` false면 `setPendingDeepLink(null)`로 끝) — 새 소재 추가 시 주의.
+- ★같은 날 `swing` 키 버그를 고쳤지만 쇼츠는 `golf-swing`을 쓰므로 무관했다. 두 키가 공존하는
+  이유: `swing`=메인 카드 키, `golf-swing`/`golf-record`=설아 채팅 내 기능버튼 키. **지우면 안 됨.**

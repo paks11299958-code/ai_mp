@@ -173,6 +173,10 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 - 삭제 실패분은 집계 제외(다음 회차 재시도되므로 중복 계상 방지).
 - `GET /admin/guest-cohorts` — 살아있는 계정(실시간 집계)과 삭제분(보존 통계)을 합쳐 하나의 추세로 반환.
 
+**퀵메뉴 기능 딥링크 자동실행 + 카드 3종 승격(같은 날 후속)**: 전용 보드가 없는 기능(꿈해몽·관상·운세·재물·인연)은 `?f=`로 와도 도결 선생 채팅만 열려 "뭘 하라는 건지" 알 수 없었다 → `FEATURE_QUICK_MENU_LABEL`(기능키→`quickMenuJson`의 label) 매핑 후 채팅 진입 시 해당 퀵메뉴 자동 실행. 딥링크 처리부가 `handleQuickMenuSelect`보다 위라 TDZ가 나므로 **예약 state + useEffect**로 처리(조기반환보다 앞에 둬 훅 순서 안전).
+또 **전생·손금·우정은 메인 카드가 없어 공유 버튼조차 없었다** — 퀵메뉴 사용량 70건(헤어 88 다음)인데 바이럴 경로만 막힌 상태였다. `rebirth`/`palm`/`friendship` 카드로 승격(id 26~28)하니 공유링크·검색·즐겨찾기가 자동 적용. 기능카드 24→27개.
+★**새 기능 카드 추가 시 4곳을 함께 갱신**해야 완성된다: ⑴`FEATURES_GRID`(카드) ⑵진입경로(`featureBoardOpeners` 또는 `FEATURE_QUICK_MENU_LABEL`) ⑶`FEATURE_SHARE_LABELS`(공유 제목) ⑷`FEATURE_SYNONYMS`(검색). 하나라도 빠지면 카드는 보이는데 링크가 엉뚱한 데로 가거나 검색이 안 된다. 27개 전부 누락 0 검증 완료.
+
 **보는 법**: 게스트 `bonusPoints`가 500 미만으로 떨어진 계정이 생기면 "실제로 써봤다", 50P 미만이 쌓이면 "전환 모달까지 도달했다"는 뜻.
 
 파일: `shared-api/lib/points.ts`(무료체험·`GUEST_SIGNUP_BONUS`), `shared-api/routes/aimp/internal-cron.ts`(집계 보존), `shared-api/routes/aimp/admin.ts`(조회 API), `ai_mp/frontend/App.tsx`·`components/MainPageNew.tsx`·`services/referral.ts`. 배포: shared-api `28dc13e`+`41f00c8`+`488b385`, ai_mp `8228690`+`987de4b`.
