@@ -563,7 +563,9 @@ const AppContent: React.FC = () => {
                 try { usesBirth = !!(target.quickMenuJson && JSON.parse(target.quickMenuJson).useBirthInfo); } catch {}
                 setDeepLinkGuide({
                     title: target.name,
-                    desc: target.description || '무엇이든 편하게 말씀해 보세요.',
+                    // 소개문은 DB에 저장된 introText를 쓴다(2026-07-28) — 매 렌더마다
+                    // 프롬프트를 파싱하지 않고, 프롬프트를 클라이언트로 내려보낼 이유도 없앤다.
+                    desc: target.introText || target.description || '무엇이든 편하게 말씀해 보세요.',
                     features: feats.length ? feats : undefined,
                     usesBirthInfo: usesBirth,
                 });

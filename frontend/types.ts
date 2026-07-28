@@ -21,6 +21,8 @@ export interface Persona {
     name: string;
     jobTitle?: string;
     description: string;
+    /** 공유 딥링크 안내 모달용 소개문(비면 description 폴백). 어드민에서 편집. */
+    introText?: string;
     iconName: string;
     systemInstruction: string;
     identityPrompt?: string;
