@@ -156,6 +156,27 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 
 파일: `shared-api/routes/aimp/auth.ts`(`guest-register`·`upgrade-guest`), `shared-api/lib/referral.ts`(`tryGrantReferral` 가드), `ai_mp/frontend/components/GuestUpgradeModal.tsx`(신규), `ai_mp/frontend/App.tsx`. 배포: shared-api `33bf1f1`, ai_mp `7a4d8d8`+`50632d3`(닉네임 필수화 후속).
 
+### 체험 퍼널 개선 + 코호트 보존 (2026-07-28 — 실측 기반)
+
+**실측**: 게스트 25명 중 **23명이 1,000P를 1P도 안 쓰고 이탈**, 레퍼럴 유입 19명 중 **정식전환 0명**. 실제 사용은 관상 4건·헤어 2건뿐. 전환 모달이 "잔액 부족 시"에만 뜨는 구조라 **아무도 그 지점에 도달한 적이 없었다**.
+
+원인 3가지를 함께 수정:
+
+1. **도착지가 깨져 있었다** — 공유 딥링크 `?f=swing`이 스윙 보드가 아니라 설아 채팅으로 빠졌다. `featureBoardOpeners`에 `FEATURES_GRID`의 키인 `swing`이 없었음(`golf-swing`/`golf-record`는 채팅 내 기능버튼 키라 별개). `tarot`도 누락. 친구 결과물을 보고 온 사람이 낯선 채팅창에 떨어지니 포인트를 쓸 이유가 없었다.
+2. **공유 문구가 아무 정보도 주지 않았다** — 무엇을 공유하든 제목이 `AI 페르소나 채팅` 고정 → 기능명을 앞에 붙임(`featureShareTitle`, `services/referral.ts`).
+3. **첫 사용의 심리적 문턱** — 잔액이 있어도 "얼마 나가는지" 앞에서 주저한다 → **게스트 첫 기능 1회 무료**(`deductMenuPoints`가 차감 단일 지점이라 여기 한 곳으로 전 기능 적용, 0원 MENU 거래 `체험 첫 1회 무료`로 멱등 판정). 어뷰징은 `guest-register`의 IP 제한이 1차 방어.
+
+**지급액 1,000P → 500P**(`GUEST_SIGNUP_BONUS`): 주력기능 단가가 대부분 200P라 1,000P는 5회분 = 체험 중 절대 소진되지 않는 금액이었다. 500P + 첫1회무료 = **3~4회 체험 후 자연스럽게 잔액이 바닥나 전환 지점에 닿는다**(검증: 500→500→300→100→차단). `grantSignupPoints`에 `amount` 인자를 추가해 게스트만 분리 — **정식가입/카카오는 1,000P 그대로**. 프론트의 하드코딩 `1000`도 서버 응답값(`u.bonusPoints`)으로 교체(안 그러면 화면만 거짓 안내).
+
+**★코호트 통계 보존**: 게스트 계정은 7일 후 cleanup 크론이 삭제하므로(위 적체 방지) **개선 효과를 7일 뒤엔 검증할 수 없었다**. 삭제 직전에 가입일(KST) 단위 집계를 `GuestCohortStat`에 누적 upsert — 유입수/1회이상사용/무료체험사용/잔액소진(전환지점 도달)/총소진P. 개인정보 없이 카운트만.
+- 지표는 **반드시 삭제 전에** 읽는다(`PointTransaction`이 Cascade로 함께 사라짐).
+- 삭제 실패분은 집계 제외(다음 회차 재시도되므로 중복 계상 방지).
+- `GET /admin/guest-cohorts` — 살아있는 계정(실시간 집계)과 삭제분(보존 통계)을 합쳐 하나의 추세로 반환.
+
+**보는 법**: 게스트 `bonusPoints`가 500 미만으로 떨어진 계정이 생기면 "실제로 써봤다", 50P 미만이 쌓이면 "전환 모달까지 도달했다"는 뜻.
+
+파일: `shared-api/lib/points.ts`(무료체험·`GUEST_SIGNUP_BONUS`), `shared-api/routes/aimp/internal-cron.ts`(집계 보존), `shared-api/routes/aimp/admin.ts`(조회 API), `ai_mp/frontend/App.tsx`·`components/MainPageNew.tsx`·`services/referral.ts`. 배포: shared-api `28dc13e`+`41f00c8`+`488b385`, ai_mp `8228690`+`987de4b`.
+
 ## 마케팅 채널 코드 (2026-07-15 — 유튜브 숏츠 QR 연계)
 
 - **개념**: `?ref=YOUTUBE` 같은 채널 코드는 회원 추천코드가 아니라 **유입 소스 표시**. 보상 없음, 측정만.
