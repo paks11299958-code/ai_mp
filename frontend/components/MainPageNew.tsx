@@ -1329,15 +1329,18 @@ const PersonaSelectPanel: React.FC<{
                 {user && tab === 'personas' && (
                     <div style={{ marginBottom: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
                         <span style={{ fontSize: 14, color: T.inkSoft }}>
-                            <span style={{ color: T.accent, fontWeight: 700 }}>{user.username || user.email.split('@')[0]}</span>님, 다시 만나 반가워요 ✦
+                            {user.provider === 'guest'
+                                ? <>반가워요 ✦ 가입 없이 둘러보는 중이에요</>
+                                : <><span style={{ color: T.accent, fontWeight: 700 }}>{user.username || user.email?.split('@')[0] || '회원'}</span>님, 다시 만나 반가워요 ✦</>}
                         </span>
+                        {/* 게스트는 잔액이 '체험분'임을 배지에 명시 — 써도 되는 돈이라는 신호 */}
                         <span style={{
                             display: 'inline-flex', alignItems: 'center', gap: 4,
                             fontSize: 12, fontWeight: 600, color: '#B89232',
                             background: '#FFF3D6', border: '1px solid #E8C56A',
                             borderRadius: 999, padding: '2px 10px',
                         }}>
-                            <span style={{ fontSize: 13 }}>✦</span> {totalPoints.toLocaleString()}P
+                            <span style={{ fontSize: 13 }}>✦</span> {user.provider === 'guest' ? '체험 ' : ''}{totalPoints.toLocaleString()}P
                         </span>
                     </div>
                 )}
@@ -1531,18 +1534,30 @@ const PersonaSelectPanel: React.FC<{
                     </div>
                 )}
 
-                {/* CTA 충전 배너 — 실제 보너스 문구(최대 20%). 로그인=충전, 비로그인=로그인 유도. 검색 중이면 숨김 */}
-                {!isSearching && (
+                {/* CTA 배너 — 검색 중이면 숨김.
+                    게스트(레퍼럴 체험 계정)는 충전 대신 "체험 포인트 보유" 안내를 띄운다:
+                    받은 줄 모르는 포인트는 쓰지 않아 전환 모달(포인트 소진 시)까지 도달하지 못하기 때문(2026-07-28).
+                    그 외 로그인=충전, 비로그인=로그인 유도. */}
+                {!isSearching && (() => {
+                    const isGuest = user?.provider === 'guest';
+                    return (
                 <div style={{
                     margin: '4px 0 18px', borderRadius: 22,
-                    background: 'linear-gradient(120deg, #F1ECFA, #FBF2F8)',
-                    border: `1px solid ${T.accent}33`, padding: '18px 18px',
+                    background: isGuest ? 'linear-gradient(120deg, #EAF4EC, #F5FBF6)' : 'linear-gradient(120deg, #F1ECFA, #FBF2F8)',
+                    border: `1px solid ${isGuest ? '#2E6B3233' : `${T.accent}33`}`, padding: '18px 18px',
                     display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
                 }}>
                     <div style={{ flex: '1 1 200px', minWidth: 0 }}>
-                        <div style={{ fontSize: 'clamp(15px, 4.4vw, 18px)', fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', marginBottom: 4, wordBreak: 'keep-all' }}>💎 충전하고 최대 20% 보너스</div>
-                        <div style={{ fontSize: 12.5, color: T.inkSoft, wordBreak: 'keep-all' }}>5만원 충전 시 60,000P · 1만원 충전 시 11,000P — 모든 기능을 더 넉넉하게.</div>
+                        <div style={{ fontSize: 'clamp(15px, 4.4vw, 18px)', fontWeight: 800, color: T.ink, letterSpacing: '-0.02em', marginBottom: 4, wordBreak: 'keep-all' }}>
+                            {isGuest ? '🎁 첫 번째 기능은 포인트 없이 무료예요' : '💎 충전하고 최대 20% 보너스'}
+                        </div>
+                        <div style={{ fontSize: 12.5, color: T.inkSoft, wordBreak: 'keep-all' }}>
+                            {isGuest
+                                ? `가입 없이 지금 바로 써보세요. 체험 포인트 ${totalPoints.toLocaleString()}P도 함께 드렸어요.`
+                                : '5만원 충전 시 60,000P · 1만원 충전 시 11,000P — 모든 기능을 더 넉넉하게.'}
+                        </div>
                     </div>
+                    {!isGuest && (
                     <button
                         onClick={() => { if (user) onChargeClick?.(); else onLoginClick?.(); }}
                         style={{
@@ -1551,8 +1566,10 @@ const PersonaSelectPanel: React.FC<{
                             cursor: 'pointer', boxShadow: '0 6px 16px rgba(142,111,183,0.35)',
                         }}
                     >포인트 충전하기</button>
+                    )}
                 </div>
-                )}
+                    );
+                })()}
 
                 {/* ③-2 최근 사용 기능 줄 — 기능 탭에서만. 최근 사용 없으면 즐겨찾기한 기능으로 대체 */}
                 {user && tab === 'features' && (() => {

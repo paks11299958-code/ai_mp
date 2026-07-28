@@ -353,6 +353,9 @@ const AppContent: React.FC = () => {
         insurance: () => setShowInsuranceBoard(true),
         mathtutor: () => setShowMathTutor(true),
         club: () => setShowClubBoard(true),
+        // golf-swing/golf-record는 설아 채팅 내 기능 버튼 키(personaFeatures.ts).
+        // swing은 메인 기능카드(FEATURES_GRID)의 키 — 공유 딥링크(?f=swing)가 이 키로 들어온다.
+        swing: () => setShowSwingInput(true),
         'golf-swing': () => setShowSwingInput(true),
         'golf-record': () => setShowSwingBoard(true),
         ebook: () => setShowEbookBoard(true),
@@ -493,6 +496,11 @@ const AppContent: React.FC = () => {
             if (key === 'webtoon') {
                 const wp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'webtoon')?.personaName);
                 if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
+            } else if (key === 'tarot') {
+                // 타로는 유나 채팅 컨텍스트 위에서 카드 모달을 띄운다(웹툰과 동일 패턴).
+                const tp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'tarot')?.personaName);
+                if (tp) { goTo('chat'); handlePersonaClick(tp.id); }
+                setTarotModalMode('full');
             } else {
                 const opener = featureBoardOpeners[key];
                 if (opener) {
@@ -654,7 +662,9 @@ const AppContent: React.FC = () => {
         // 추천코드가 있으면 공유 링크에 ?ref 부착 → 타고 가입 시 추천인 자동 기록(바이럴+보상).
         const refQs = referralCode ? `&ref=${encodeURIComponent(referralCode)}` : '';
         const url = `${window.location.origin}/?${param}=${encodeURIComponent(value)}${refQs}`;
-        const shareText = `${title} — AI 페르소나 채팅`;
+        // 받는 사람이 무엇을 보게 될지 제목에서 드러나야 링크를 누른다(2026-07-28).
+        // 기능은 기능명, 페르소나는 "OO와 대화하기"로 구분.
+        const shareText = param === 'f' ? `${title} · AI 페르소나 채팅` : `${title}와 대화하기 · AI 페르소나 채팅`;
         try {
             if (navigator.share) {
                 await navigator.share({ title: shareText, url });

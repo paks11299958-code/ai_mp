@@ -59,6 +59,27 @@ export function getMyReferralCode(): string | undefined {
     try { return localStorage.getItem(MY_CODE_KEY) || undefined; } catch { return undefined; }
 }
 
+// 공유 제목용 기능 라벨. 받는 사람이 "무엇을 보게 될지" 알아야 링크를 누른다
+// (기존엔 무엇을 공유하든 'AI 페르소나 채팅' 고정이라 클릭 동기가 없었음, 2026-07-28).
+// MainPageNew의 FEATURES_GRID를 import하면 순환 참조가 되므로 키→라벨만 여기 둔다.
+// 새 기능 카드 추가 시 이 맵에도 한 줄 넣어주면 공유 문구가 기능명으로 나간다.
+const FEATURE_SHARE_LABELS: Record<string, string> = {
+    news: '오늘 뉴스', stock: '주식 분석', swing: '스윙 분석', luxury: '명품 감정',
+    insurance: '보험 컨설팅', used: '중고 판매', hotkeyword: '핫 키워드',
+    mathtutor: 'AI 수학 튜터', club: '모임 출첵', siwoon: '시운의 흐름',
+    wealth: '성취와 재물', yeonn: '인연의 결', dream: '꿈해몽', gwansang: '관상학',
+    ebook: '전자책 만들기', webtoon: '웹툰 보기', hair: '헤어스타일',
+    outfit: '프로필 사진', lookalike: '연예인 매칭', marketing: 'AI 마케팅 글쓰기',
+    agetransform: '시간여행', tarot: '타로점', homepage: '홈페이지 만들기',
+    'shorts-maker': '쇼츠 만들기', learn: '학습자료',
+};
+
+/** 공유 시트에 뜰 제목. 모르는 키는 서비스명으로 폴백. */
+export function featureShareTitle(featureKey: string): string {
+    const label = FEATURE_SHARE_LABELS[featureKey];
+    return label ? `${label} · AI 페르소나 채팅` : 'AI 페르소나 채팅';
+}
+
 /** 기능 딥링크(+내 추천코드) 생성. 결과물 공유의 도착지. */
 export function buildFeatureShareLink(featureKey: string): string {
     const ref = getMyReferralCode();
@@ -76,7 +97,7 @@ export async function shareResultImage(imageUrl: string, featureKey: string, cap
     const link = buildFeatureShareLink(featureKey);
     // 링크에 내 추천코드가 붙는 공유라면 보상 안내 1줄 동봉(초대 동기 부여, 2026-07-07 바이럴 P2)
     const refHint = getMyReferralCode() ? '\n🎁 친구가 이 링크로 가입하면 두 분 다 +1000P!' : '';
-    const shareData: ShareData = { title: 'AI 페르소나 채팅', text: `${caption}${refHint}\n${link}` };
+    const shareData: ShareData = { title: featureShareTitle(featureKey), text: `${caption}${refHint}\n${link}` };
 
     // 1) 이미지 파일까지 첨부 시도(모바일 네이티브 공유). canShare(files)로 가능 여부 확인.
     try {
