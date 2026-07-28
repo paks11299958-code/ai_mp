@@ -23,8 +23,8 @@ const TIME_LABELS = ['모름','자시(子時) 23~01시','축시(丑時) 01~03시
 
 const selectStyle: React.CSSProperties = {
     background: 'rgba(20,14,6,0.95)',
-    border: '1px solid rgba(140,90,20,0.5)',
-    color: '#fde68a',
+    border: '1px solid rgba(107,79,160,0.28)',
+    color: '#3F3350',
     borderRadius: '8px',
     padding: '10px 10px',
     fontSize: '1rem',
@@ -69,7 +69,7 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
     };
 
     const labelStyle: React.CSSProperties = { color: '#92713a', fontSize: '0.72rem', letterSpacing: '0.08em', marginBottom: 4 };
-    const btnNext: React.CSSProperties = { background: 'rgba(120,70,10,0.45)', color: '#fbbf24', border: '1px solid rgba(140,90,20,0.4)', borderRadius: 12, padding: '8px 20px', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' };
+    const btnNext: React.CSSProperties = { background: 'rgba(107,79,160,0.10)', color: '#6B4FA0', border: '1px solid rgba(107,79,160,0.22)', borderRadius: 12, padding: '8px 20px', fontSize: '0.875rem', fontWeight: 500, cursor: 'pointer' };
     const btnPrev: React.CSSProperties = { color: '#6b7280', background: 'none', border: 'none', padding: '8px 16px', fontSize: '0.875rem', cursor: 'pointer' };
 
     return (
@@ -97,14 +97,14 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                 }
                 .ring-anim { animation: ring-expand 0.6s ease-out forwards; }
                 .birth-select:focus { border-color: rgba(180,130,50,0.8) !important; }
-                .birth-select option { background: #1c1408; color: #fde68a; }
+                .birth-select option { background: #F5F0FB; color: #3F3350; }
             `}</style>
 
             <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
-                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ width: 340, background: 'linear-gradient(160deg,#0d0b08 0%,#1c1408 100%)', border: '1px solid rgba(140,90,20,0.4)' }}>
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ width: 340, background: 'linear-gradient(170deg,#FFFFFF 0%,#F5F0FB 100%)', border: '1px solid rgba(107,79,160,0.22)' }}>
 
                     {/* 헤더 */}
-                    <div className="flex items-center justify-between px-6 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(140,90,20,0.25)' }}>
+                    <div className="flex items-center justify-between px-6 pt-5 pb-4" style={{ borderBottom: '1px solid rgba(107,79,160,0.16)' }}>
                         <span className="text-sm tracking-widest font-medium" style={{ color: '#b07d3a' }}>🏮 명부 기록</span>
                         {step !== 'complete' && (
                             <button onClick={onClose}
@@ -119,12 +119,12 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
 
                     {/* 대사 */}
                     <div className="px-6 pt-4 pb-2">
-                        <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(251,191,36,0.7)' }}>{DIALOGS[step]}</p>
+                        <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(107,79,160,0.85)' }}>{DIALOGS[step]}</p>
                         {/* 왜 묻는지 먼저 알려준다(2026-07-28) — 공유 링크로 처음 온 사람에게 이유 없이
                             이름·생년월일을 요구하면 개인정보 요구로 느껴져 그 자리에서 이탈한다.
                             첫 화면에만 노출(이후 단계는 맥락이 이미 잡혀 있음). */}
                         {step === 'name' && (
-                            <p className="mt-2 text-[12px] leading-relaxed" style={{ color: 'rgba(251,191,36,0.45)' }}>
+                            <p className="mt-2 text-[12px] leading-relaxed" style={{ color: 'rgba(107,79,160,0.60)' }}>
                                 사주로 흐름을 읽으려면 태어난 정보가 필요하다네.<br />
                                 한 번만 적어두면 다음부터는 묻지 않겠네.
                             </p>
@@ -143,11 +143,11 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                                     onKeyDown={e => e.key === 'Enter' && setStep('birth')}
                                     placeholder="성함을 입력하세요"
                                     className="w-full bg-transparent text-lg text-center py-2 focus:outline-none"
-                                    style={{ borderBottom: '1px solid rgba(180,130,50,0.5)', color: '#fde68a', caretColor: '#fbbf24' }}
+                                    style={{ borderBottom: '1px solid rgba(107,79,160,0.35)', color: '#3F3350', caretColor: '#6B4FA0' }}
                                 />
                                 <button onClick={() => setStep('birth')} className="self-end" style={btnNext}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(140,90,20,0.6)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(120,70,10,0.45)')}>
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.14)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.10)')}>
                                     다음 →
                                 </button>
                             </div>
@@ -157,13 +157,13 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                             <div className="flex flex-col gap-5 mt-3">
                                 {/* 양력/음력 */}
                                 <div className="flex justify-center">
-                                    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(140,90,20,0.4)' }}>
+                                    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(107,79,160,0.22)' }}>
                                         {(['양력', '음력'] as const).map(label => (
                                             <button key={label} onClick={() => setLunar(label === '음력')}
                                                 className="px-5 py-1.5 text-xs font-medium transition-colors"
                                                 style={{
-                                                    background: (label === '음력') === lunar ? 'rgba(140,90,20,0.6)' : 'transparent',
-                                                    color: (label === '음력') === lunar ? '#fbbf24' : '#6b7280',
+                                                    background: (label === '음력') === lunar ? 'rgba(107,79,160,0.14)' : 'transparent',
+                                                    color: (label === '음력') === lunar ? '#6B4FA0' : '#6b7280',
                                                 }}>
                                                 {label}
                                             </button>
@@ -203,8 +203,8 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                                         ← 이전
                                     </button>
                                     <button onClick={() => setStep('time')} style={btnNext}
-                                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(140,90,20,0.6)')}
-                                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(120,70,10,0.45)')}>
+                                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.14)')}
+                                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.10)')}>
                                         다음 →
                                     </button>
                                 </div>
@@ -255,7 +255,7 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                                                 <span className="text-2xl font-bold tracking-widest" style={{ fontFamily: 'serif' }}>記錄</span>
                                             </div>
                                         </div>
-                                        <p className="text-sm tracking-wider" style={{ color: 'rgba(251,191,36,0.65)' }}>명부에 기록되었습니다.</p>
+                                        <p className="text-sm tracking-wider" style={{ color: 'rgba(107,79,160,0.80)' }}>명부에 기록되었습니다.</p>
                                     </div>
                                 )}
                             </div>

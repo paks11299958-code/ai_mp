@@ -74,7 +74,7 @@ const WheelPicker: React.FC<{
                             onClick={() => { onChange(item); scrollToIdx(i); }}
                         >
                             <span style={{
-                                color: item === value ? '#fbbf24' : '#4b5563',
+                                color: item === value ? '#6B4FA0' : '#4b5563',
                                 fontSize: item === value ? '1rem' : '0.85rem',
                                 fontWeight: item === value ? 700 : 400,
                                 transition: 'all 0.1s',
@@ -111,12 +111,12 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.75)' }}>
             <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{
                 width: 360,
-                background: 'linear-gradient(160deg,#0d0b08 0%,#1c1408 100%)',
-                border: '1px solid rgba(140,90,20,0.4)',
+                background: 'linear-gradient(170deg,#FFFFFF 0%,#F5F0FB 100%)',
+                border: '1px solid rgba(107,79,160,0.22)',
             }}>
                 {/* 헤더 */}
                 <div className="flex items-center justify-between px-6 pt-5 pb-4"
-                    style={{ borderBottom: '1px solid rgba(140,90,20,0.25)' }}>
+                    style={{ borderBottom: '1px solid rgba(107,79,160,0.16)' }}>
                     <span className="text-sm tracking-widest font-medium" style={{ color: '#b07d3a' }}>{title ?? '💑 궁합 상대방 정보'}</span>
                     <button onClick={onClose}
                         className="text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
@@ -129,7 +129,7 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
 
                 {/* 대사 */}
                 <div className="px-6 pt-4 pb-2">
-                    <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(251,191,36,0.7)' }}>{DIALOGS[step]}</p>
+                    <p className="text-sm italic leading-relaxed" style={{ color: 'rgba(107,79,160,0.85)' }}>{DIALOGS[step]}</p>
                 </div>
 
                 {/* 콘텐츠 */}
@@ -143,13 +143,13 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
                                 onKeyDown={e => e.key === 'Enter' && setStep('birth')}
                                 placeholder="상대방 성함을 입력하세요"
                                 className="w-full bg-transparent text-lg text-center py-2 focus:outline-none"
-                                style={{ borderBottom: '1px solid rgba(180,130,50,0.5)', color: '#fde68a', caretColor: '#fbbf24' }}
+                                style={{ borderBottom: '1px solid rgba(107,79,160,0.35)', color: '#3F3350', caretColor: '#6B4FA0' }}
                             />
                             <button onClick={() => setStep('birth')}
                                 className="self-end px-5 py-2 rounded-xl text-sm font-medium transition-colors"
-                                style={{ background: 'rgba(120,70,10,0.45)', color: '#fbbf24', border: '1px solid rgba(140,90,20,0.4)' }}
-                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(140,90,20,0.6)')}
-                                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(120,70,10,0.45)')}>
+                                style={{ background: 'rgba(107,79,160,0.10)', color: '#6B4FA0', border: '1px solid rgba(107,79,160,0.22)' }}
+                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.14)')}
+                                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.10)')}>
                                 다음 →
                             </button>
                         </div>
@@ -158,14 +158,14 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
                     {step === 'birth' && (
                         <div className="flex flex-col gap-4 mt-2">
                             <div className="flex justify-center mb-1">
-                                <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(140,90,20,0.4)' }}>
+                                <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(107,79,160,0.22)' }}>
                                     {(['양력', '음력'] as const).map(label => (
                                         <button key={label}
                                             onClick={() => setLunar(label === '음력')}
                                             className="px-4 py-1 text-xs font-medium transition-colors"
                                             style={{
-                                                background: (label === '음력') === lunar ? 'rgba(140,90,20,0.6)' : 'transparent',
-                                                color: (label === '음력') === lunar ? '#fbbf24' : '#6b7280',
+                                                background: (label === '음력') === lunar ? 'rgba(107,79,160,0.14)' : 'transparent',
+                                                color: (label === '음력') === lunar ? '#6B4FA0' : '#6b7280',
                                             }}>
                                             {label}
                                         </button>
@@ -185,9 +185,9 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
                                 </button>
                                 <button onClick={() => setStep('time')}
                                     className="px-5 py-2 rounded-xl text-sm font-medium transition-colors"
-                                    style={{ background: 'rgba(120,70,10,0.45)', color: '#fbbf24', border: '1px solid rgba(140,90,20,0.4)' }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(140,90,20,0.6)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(120,70,10,0.45)')}>
+                                    style={{ background: 'rgba(107,79,160,0.10)', color: '#6B4FA0', border: '1px solid rgba(107,79,160,0.22)' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.14)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.10)')}>
                                     다음 →
                                 </button>
                             </div>
@@ -207,9 +207,9 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
                                 </button>
                                 <button onClick={() => onComplete({ name, year, month, day, time, lunar })}
                                     className="px-5 py-2 rounded-xl text-sm font-medium transition-colors"
-                                    style={{ background: 'rgba(120,70,10,0.45)', color: '#fbbf24', border: '1px solid rgba(140,90,20,0.4)' }}
-                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(140,90,20,0.6)')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(120,70,10,0.45)')}>
+                                    style={{ background: 'rgba(107,79,160,0.10)', color: '#6B4FA0', border: '1px solid rgba(107,79,160,0.22)' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.14)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(107,79,160,0.10)')}>
                                     확인
                                 </button>
                             </div>
