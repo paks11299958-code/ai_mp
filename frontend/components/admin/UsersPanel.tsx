@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi, AdminUser, UserTransactionRow } from '../../services/apiService';
 import { Icon } from '../Icons';
+import { fmtDateTime } from '../../utils/datetime';
 
 // 회원 관리 탭 — 일괄/개인 포인트 지급 + 회원 목록 + 역할 변경.
 // AdminPanel #6 분해(2026-06-01). 상태 12개·핸들러가 모두 이 탭에만 갇혀 있어
@@ -172,13 +173,13 @@ export const UsersPanel: React.FC = () => {
                                             <td className="px-4 py-3 text-right text-blue-300">{u.paidPoints.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-right text-yellow-300">{u.bonusPoints.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-right text-gray-400">{u.sessionCount}</td>
-                                            <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleString('sv-SE').slice(0, 16)}</td>
+                                            <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{fmtDateTime(u.createdAt).slice(0, 16)}</td>
                                             {/* 최근 접속 — 가입일만으론 "가입만 하고 안 오는 사람"과
                                                 "계속 쓰는 사람"이 구분되지 않는다(2026-07-28 사장 지시).
                                                 lastLoginAt 도입 이전 로그인은 기록이 없어 '—'로 뜬다. */}
                                             <td className="px-4 py-3 whitespace-nowrap">
                                                 {u.lastLoginAt
-                                                    ? <span className="text-gray-500">{new Date(u.lastLoginAt).toLocaleString('sv-SE').slice(0, 16)}</span>
+                                                    ? <span className="text-gray-500">{fmtDateTime(u.lastLoginAt).slice(0, 16)}</span>
                                                     : <span className="text-gray-600">—</span>}
                                             </td>
                                             <td className="px-4 py-3">
@@ -342,7 +343,7 @@ export const UsersPanel: React.FC = () => {
                                         {historyRows.map(r => (
                                             <tr key={r.id} className="border-b border-gray-800/60">
                                                 <td className="px-4 py-2 text-gray-400 whitespace-nowrap">
-                                                    {new Date(r.createdAt).toLocaleString('ko-KR', { year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                                    {new Date(r.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul',  year: '2-digit', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })}
                                                 </td>
                                                 <td className="px-4 py-2 text-gray-200">
                                                     {r.description || r.type}

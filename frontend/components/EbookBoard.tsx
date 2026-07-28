@@ -648,7 +648,7 @@ export const EbookBoard: React.FC<Props> = ({ onClose }) => {
                                                     <Trash2 size={14} className="opacity-0 group-hover:opacity-100 transition" style={{ color: '#C62828' }} onClick={(e) => handleDelete(p.id, e)} />
                                                 </div>
                                                 <p className="text-sm font-bold leading-snug" style={{ color: T.ink, fontFamily: '"Nanum Myeongjo", serif' }}>{p.title || p.topic}</p>
-                                                <p className="text-[11px] mt-auto" style={{ color: T.inkMute }}>{new Date(p.updatedAt).toLocaleDateString('ko-KR')}</p>
+                                                <p className="text-[11px] mt-auto" style={{ color: T.inkMute }}>{new Date(p.updatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                                             </button>
                                         ))}
                                     </div>

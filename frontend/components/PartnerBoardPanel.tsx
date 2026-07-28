@@ -11,7 +11,7 @@ interface Props {
 type View = 'list' | 'detail' | 'write' | 'edit';
 
 const formatDate = (iso: string) =>
-    new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    new Date(iso).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: '2-digit', day: '2-digit' });
 
 export const PartnerBoardPanel: React.FC<Props> = ({ user, onClose }) => {
     const [view, setView] = useState<View>('list');

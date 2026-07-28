@@ -29,7 +29,7 @@ export const FaceReadingResultCard: React.FC<FaceReadingResultCardProps> = ({ re
         try {
             const dataUrl = await toPng(cardRef.current, { pixelRatio: 2 });
             const link = document.createElement('a');
-            link.download = `관상분석_${new Date().toLocaleDateString('ko-KR').replace(/[\s.]/g, '')}.png`;
+            link.download = `관상분석_${new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }).replace(/[\s.]/g, '')}.png`;
             link.href = dataUrl;
             link.click();
         } catch (e) {
@@ -125,7 +125,7 @@ export const FaceReadingResultCard: React.FC<FaceReadingResultCardProps> = ({ re
                         </h2>
                         <div style={{ width: '56px', height: '1.5px', background: c.divider, margin: '10px auto 0' }} />
                         <p style={{ fontSize: '11px', color: c.headerSub, marginTop: '8px' }}>
-                            {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                     </div>
 

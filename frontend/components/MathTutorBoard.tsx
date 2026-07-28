@@ -430,7 +430,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                                                 className="w-full text-left rounded-xl px-3 py-2 border transition-all hover:border-pink-300"
                                                 style={{ borderColor: '#FFE0EF', background: '#fff' }}>
                                                 <p className="text-sm font-medium text-gray-700">초{h.grade} · {h.subject} · {h.chapter}</p>
-                                                <p className="text-[10px] text-gray-400 mt-0.5">{h.count}문제 · {new Date(h.createdAt).toLocaleDateString('ko-KR')}</p>
+                                                <p className="text-[10px] text-gray-400 mt-0.5">{h.count}문제 · {new Date(h.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                                             </button>
                                         ))}
                                     </div>
@@ -590,7 +590,7 @@ export const MathTutorBoard: React.FC<Props> = ({ onClose }) => {
                                         </button>
                                     </div>
                                     {h.answer && <p className="text-[10px] text-pink-500 font-bold mt-1">정답: {h.answer}</p>}
-                                    <p className="text-[9px] text-gray-400 mt-1">{new Date(h.createdAt).toLocaleDateString('ko-KR')}</p>
+                                    <p className="text-[9px] text-gray-400 mt-1">{new Date(h.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                                 </div>
                             ))}
                         </div>

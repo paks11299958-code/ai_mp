@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShortsAdminRow, sampleVaultApi } from '../../services/apiService';
 import { Icon } from '../Icons';
+import { fmtDateTime } from '../../utils/datetime';
 
 // 드롭다운에 표시할 한글 기능카드 명칭 — agent-api KNOWN_TOPICS(영문 키)와 1:1 대응.
 // 새 소재 추가 시 agent-api/routers/shorts.py의 KNOWN_TOPICS와 함께 여기도 갱신.
@@ -213,7 +214,7 @@ export const ShortsAdminPanel: React.FC = () => {
                         </>
                     );
                 })()}
-                <p className="text-[10px] text-gray-600 mt-1">{new Date(item.createdAt).toLocaleString('ko-KR')}</p>
+                <p className="text-[10px] text-gray-600 mt-1">{fmtDateTime(item.createdAt)}</p>
                 {section === 'pending' && (
                     <div className="flex gap-2 mt-2">
                         <button
@@ -395,7 +396,7 @@ export const ShortsAdminPanel: React.FC = () => {
                                         </span>
                                         <span className="text-[10px] text-gray-500 ml-auto">id={row.id} · userId={row.userId}</span>
                                     </div>
-                                    <p className="text-[10px] text-gray-600 mb-1">{new Date(row.createdAt).toLocaleString('ko-KR')}</p>
+                                    <p className="text-[10px] text-gray-600 mb-1">{fmtDateTime(row.createdAt)}</p>
                                     {row.errorMessage && (
                                         <p className="text-[11px] text-red-300 bg-red-950/40 rounded px-2 py-1 mt-1">❌ {row.errorMessage}</p>
                                     )}

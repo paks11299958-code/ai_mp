@@ -273,7 +273,7 @@ export const InsuranceBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                     <div className="flex-1 min-w-0">
                                                         <div className="text-sm font-semibold text-[#2D2438] truncate">{taskTitle(t)}</div>
                                                         <div className="text-xs text-[#9089A1] truncate">
-                                                            문서 {names.length}개 · {new Date(t.createdAt).toLocaleDateString('ko-KR')}
+                                                            문서 {names.length}개 · {new Date(t.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                                                             {t.status === 'completed' && t.duplicateCount != null && ` · 중복 ${t.duplicateCount}건`}
                                                         </div>
                                                         {t.status === 'pending' && (
@@ -606,7 +606,7 @@ const ResultView: React.FC<{
 
     // 인쇄/PDF용 HTML 생성 → 새 창 window.print() (서버 부하 0, 한글 안전)
     const buildPrintHtml = (): string => {
-        const date = new Date(detail.updatedAt).toLocaleString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const date = new Date(detail.updatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         const sevCls = (s: string) => s === '높음' ? 'badge-high' : s === '중간' ? 'badge-mid' : 'badge-low';
         const rows = duplicates.length === 0
             ? `<tr><td colspan="6" style="text-align:center;color:#888;padding:8mm 0">중복 보장 항목이 발견되지 않았습니다</td></tr>`
@@ -649,7 +649,7 @@ ${detail.disclaimer ? `<div class="disc">${esc(detail.disclaimer)}</div>` : ''}
             <div className="flex items-start justify-between gap-2">
                 <div>
                     <h3 className="text-base font-bold text-[#2D2438]">분석 완료 보고서</h3>
-                    <div className="text-xs text-[#9089A1] mt-0.5">{new Date(detail.updatedAt).toLocaleString('ko-KR')}</div>
+                    <div className="text-xs text-[#9089A1] mt-0.5">{new Date(detail.updatedAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                     {onConsult && (

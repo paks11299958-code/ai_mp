@@ -30,8 +30,8 @@ const T = {
 };
 
 // ── Helpers ────────────────────────────────────────────────
-const fmtDate = (s: string) => new Date(s).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-const fmtDateTime = (s: string) => new Date(s).toLocaleString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const fmtDate = (s: string) => new Date(s).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' });
+const fmtDateTime = (s: string) => new Date(s).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 const scoreGrade = (s: number) => {
     if (s >= 80) return { color: T.green, bg: T.greenBg, border: T.greenBorder, label: '우수' };

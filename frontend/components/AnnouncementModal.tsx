@@ -135,7 +135,7 @@ export const AnnouncementModal: React.FC<AnnouncementModalProps> = ({ announceme
                                                 />
                                             </div>
                                             <p className="text-[10px] mt-1.5" style={{ color: '#B0A090' }}>
-                                                {new Date(a.createdAt).toLocaleDateString('ko-KR')}
+                                                {new Date(a.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                                             </p>
                                         </button>
 

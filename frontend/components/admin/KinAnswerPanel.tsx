@@ -16,7 +16,7 @@ const STATUS_META: Record<string, { label: string; cls: string }> = {
 
 function fmtDate(s?: string | null): string {
     if (!s) return '';
-    try { return new Date(s).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
+    try { return new Date(s).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
     catch { return s; }
 }
 

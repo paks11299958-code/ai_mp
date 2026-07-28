@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../services/apiService';
+import { fmtDate, fmtDateTime } from '../../utils/datetime';
 
 // 이아린(마케팅) 산출물 조회 — /marketing 으로 생성된 리서치+초안을 목록·상세로 본다.
 // 재발행 없음: 조회 + 복사(클립보드)까지. 실제 발행은 사람이 직접.
@@ -75,7 +76,7 @@ export const MarketingAssetsPanel: React.FC = () => {
                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${CHANNEL_COLOR[r.channel] || 'bg-white/10 text-gray-200'}`}>
                                 {CHANNEL_LABEL[r.channel] || r.channel}
                             </span>
-                            <span className="text-[10px] text-gray-400">{new Date(r.createdAt).toLocaleDateString()}</span>
+                            <span className="text-[10px] text-gray-400">{fmtDate(r.createdAt)}</span>
                             {typeof r.score === 'number' && (
                                 <span className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded ${scoreColor(r.score)}`}>
                                     {r.score}점
@@ -99,7 +100,7 @@ export const MarketingAssetsPanel: React.FC = () => {
                                     {CHANNEL_LABEL[detail.channel] || detail.channel}
                                 </span>
                                 <span className="text-[11px] text-gray-400">
-                                    {new Date(detail.createdAt).toLocaleString()} · 리서치 소스 {detail.sourcesCount}개
+                                    {fmtDateTime(detail.createdAt)} · 리서치 소스 {detail.sourcesCount}개
                                 </span>
                             </div>
                             <h3 className="text-base font-bold text-white">{detail.topic}</h3>

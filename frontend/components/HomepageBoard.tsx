@@ -242,7 +242,7 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                                     {STATUS_LABEL[r.status] || r.status}
                                                 </span>
                                             </div>
-                                            <div className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleString('ko-KR')}</div>
+                                            <div className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</div>
                                             {r.status === 'done' && r.url && (
                                                 <div className="flex items-center gap-3 pt-0.5">
                                                     <a href={r.url} target="_blank" rel="noopener noreferrer"

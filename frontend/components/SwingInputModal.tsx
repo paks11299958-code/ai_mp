@@ -35,7 +35,7 @@ export const SwingInputModal: React.FC<SwingInputModalProps> = ({ onClose, onSub
 
     const handleSubmit = () => {
         if (!file) { alert('영상 또는 사진을 업로드해주세요.'); return; }
-        const finalTitle = title.trim() || `스윙 분석 ${new Date().toLocaleDateString('ko-KR')}`;
+        const finalTitle = title.trim() || `스윙 분석 ${new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}`;
         onSubmit({ title: finalTitle, gender, skillLevel, file });
     };
 

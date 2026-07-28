@@ -450,7 +450,7 @@ export const LuxuryBoard: React.FC<Props> = ({ onClose }) => {
                                                 {selected.geminiBrand || selected.brandHint || '명품'}
                                                 {selected.geminiModel && <span className="text-[#9089A1] font-normal text-base ml-2">{selected.geminiModel}</span>}
                                             </h3>
-                                            <p className="text-xs text-[#9089A1] mt-0.5">{new Date(selected.updatedAt).toLocaleDateString('ko-KR')}</p>
+                                            <p className="text-xs text-[#9089A1] mt-0.5">{new Date(selected.updatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                                         </div>
                                         {selected.finalVerdict && (() => {
                                             const vcfg = VERDICT_CONFIG[selected.finalVerdict];

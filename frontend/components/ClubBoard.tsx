@@ -58,11 +58,11 @@ async function apiFetch<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 function formatDate(iso: string) {
-    return new Date(iso).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' });
+    return new Date(iso).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function formatDateTime(iso: string) {
-    return new Date(iso).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 // QR 코드 URL 생성 (출석 페이지로 연결)

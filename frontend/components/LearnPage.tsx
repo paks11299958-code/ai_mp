@@ -417,7 +417,7 @@ const QuizSection: React.FC<{ record: { passed: boolean; passedAt: string | null
                             <div className="text-4xl mb-2">🏅</div>
                             <p className="font-extrabold text-green-600 text-lg">100점 합격!</p>
                             <p className="text-xs text-[#9A8FB0] mt-1">
-                                합격일: {record.passedAt ? new Date(record.passedAt).toLocaleDateString('ko-KR') : '기록됨'}
+                                합격일: {record.passedAt ? new Date(record.passedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }) : '기록됨'}
                             </p>
 
                             {/* 🎉 2편 잠금해제 — 1편 합격자에게만 보이는 다음 편 진입 버튼 */}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Persona, Announcement } from '../../types';
 import { announcementApi } from '../../services/apiService';
 import { Icon } from '../Icons';
+import { fmtDate } from '../../utils/datetime';
 
 // 공지사항 관리 탭 — 작성/수정 폼 + 목록(고정/공개 토글, 수정, 삭제).
 // AdminPanel #6 분해(2026-06-01). 상태 8개·핸들러 5개가 자기 탭에 갇혀 있어
@@ -152,7 +153,7 @@ export const AnnouncementsPanel: React.FC<{ personas: Persona[] }> = ({ personas
                                             {!a.isVisible && <span className="text-[10px] text-gray-600">비공개</span>}
                                         </div>
                                         <p className="text-sm text-white font-medium truncate">{a.title}</p>
-                                        <p className="text-[11px] text-gray-500 mt-0.5">{new Date(a.createdAt).toLocaleDateString('ko-KR')}</p>
+                                        <p className="text-[11px] text-gray-500 mt-0.5">{fmtDate(a.createdAt)}</p>
                                     </div>
                                     <div className="flex items-center gap-1 shrink-0">
                                         <button onClick={() => handleAnnToggleVisible(a)} className="p-1.5 text-gray-500 hover:text-gray-300 transition-colors" title={a.isVisible ? '숨기기' : '공개'}>

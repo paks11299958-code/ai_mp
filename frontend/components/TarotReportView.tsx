@@ -26,7 +26,7 @@ const PURPLE = '#6E4A9E';
 
 export const TarotReportView: React.FC<Props> = ({ data, mode, onShare, onClose, onCta }) => {
     const [shareMsg, setShareMsg] = useState('');
-    const dateStr = new Date(data.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+    const dateStr = new Date(data.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' });
 
     const doShare = async () => {
         if (!onShare) return;

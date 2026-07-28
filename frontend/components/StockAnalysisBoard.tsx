@@ -479,7 +479,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ fontSize: 12, fontWeight: 700, color: T.ink, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{task.stockName}</div>
-                                                <div style={{ fontSize: 9.5, color: T.inkMute }}>{new Date(task.createdAt).toLocaleDateString('ko-KR')}</div>
+                                                <div style={{ fontSize: 9.5, color: T.inkMute }}>{new Date(task.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</div>
                                             </div>
                                             {/* 상태 배지 */}
                                             <span style={{
@@ -604,7 +604,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                         <div style={{ flex: '1 1 160px', minWidth: 0 }}>
                                             <h3 style={{ fontSize: 22, fontWeight: 800, color: T.ink, margin: '0 0 4px', lineHeight: 1.2, fontFamily: '"Nanum Myeongjo", serif' }}>{selected.stockName}</h3>
                                             <p style={{ fontSize: 11, color: T.inkMute, margin: 0 }}>
-                                                정밀 투자 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                                                정밀 투자 분석 보고서 &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}
                                             </p>
                                         </div>
 

@@ -200,7 +200,7 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                                         <div key={h.id} className="bg-gray-800 rounded-xl p-3 flex items-start gap-3">
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm text-white font-medium truncate">{h.topic}</p>
-                                                <p className="text-xs text-gray-500 mt-0.5">{h.notebookName} · {new Date(h.createdAt).toLocaleDateString('ko-KR')}</p>
+                                                <p className="text-xs text-gray-500 mt-0.5">{h.notebookName} · {new Date(h.createdAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                                                 {h.errorMessage && <p className="text-xs text-red-400 mt-1">{h.errorMessage}</p>}
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
@@ -234,7 +234,7 @@ export const ResearchBoard: React.FC<Props> = ({ onClose, user }) => {
                                     <div>
                                         <p className="text-sm font-medium text-white">NotebookLM 연결</p>
                                         {cookieConnected && cookieUpdatedAt && (
-                                            <p className="text-xs text-gray-400 mt-0.5">등록일: {new Date(cookieUpdatedAt).toLocaleDateString('ko-KR')}</p>
+                                            <p className="text-xs text-gray-400 mt-0.5">등록일: {new Date(cookieUpdatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}</p>
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2">

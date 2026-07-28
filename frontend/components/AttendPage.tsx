@@ -127,7 +127,7 @@ export const AttendPage: React.FC<{ sheetUuid: string }> = ({ sheetUuid }) => {
     };
 
     const formatTime = (iso: string) =>
-        new Date(iso).toLocaleString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        new Date(iso).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul',  month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
     // ── 렌더링 ───────────────────────────────────────────
 

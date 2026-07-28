@@ -391,7 +391,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                     {STATUS_LABEL[r.status] || r.status}
                                                 </span>
                                             </div>
-                                            <div className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleString('ko-KR')}</div>
+                                            <div className="text-[11px] text-gray-400">{new Date(r.createdAt).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}</div>
                                             {r.status === 'done' && r.hasVideo && (
                                                 <div className="flex items-center gap-3 pt-0.5">
                                                     <button onClick={() => setPreviewSample({ label: bizName || `쇼츠 #${r.id}`, url: shortsMakerApi.videoUrl(r.id) })}

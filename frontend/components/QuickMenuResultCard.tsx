@@ -32,7 +32,7 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
         try {
             const dataUrl = await toPng(cardRef.current, { pixelRatio: 2 });
             const link = document.createElement('a');
-            link.download = `${title}_${new Date().toLocaleDateString('ko-KR').replace(/[\s.]/g, '')}.png`;
+            link.download = `${title}_${new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' }).replace(/[\s.]/g, '')}.png`;
             link.href = dataUrl;
             link.click();
         } catch (e) {
@@ -217,7 +217,7 @@ export const QuickMenuResultCard: React.FC<QuickMenuResultCardProps> = ({ title,
                         )}
                         <div style={{ width: '56px', height: '1.5px', background: c.divider, margin: '10px auto 0' }} />
                         <p style={{ fontSize: '11px', color: c.headerSub, marginTop: '8px' }}>
-                            {new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' })}
+                            {new Date().toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul',  year: 'numeric', month: 'long', day: 'numeric' })}
                         </p>
                     </div>
 

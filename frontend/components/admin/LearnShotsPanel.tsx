@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { learnShotApi, type LearnShotSlot } from '../../services/apiService';
+import { fmtDateTime } from '../../utils/datetime';
 
 // 📸 학습자료 이미지 — 사장이 실제 화면(깃허브·버셀)을 캡처해 강의 본문의 고정 자리에 채운다.
 // 자리 목록은 서버(SHOT_SLOTS)가 정본이라 여기서 추가/삭제하지 않는다(채우기·비우기만).
@@ -94,7 +95,7 @@ export const LearnShotsPanel: React.FC = () => {
                                     <div className="font-bold text-sm text-gray-100">{s.label}</div>
                                     <div className="text-[11px] text-gray-400 mt-0.5">
                                         {s.imageUrl
-                                            ? `올림 · ${s.updatedAt ? new Date(s.updatedAt).toLocaleString('ko-KR') : ''}`
+                                            ? `올림 · ${s.updatedAt ? fmtDateTime(s.updatedAt) : ''}`
                                             : '아직 없음'}
                                     </div>
                                 </div>

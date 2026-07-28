@@ -69,7 +69,7 @@ function parseJson<T>(raw: string | null | undefined, fallback: T): T {
 
 function fmtPrice(n: number | null | undefined) {
     if (!n) return '—';
-    return n.toLocaleString('ko-KR') + '원';
+    return n.toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) + '원';
 }
 
 // ── 메인 컴포넌트 ──────────────────────────────────────────
@@ -400,7 +400,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                                                 {[selected.brand, selected.modelName].filter(Boolean).join(' ') || selected.itemName || '분석 결과'}
                                             </h3>
                                             <p className="text-xs text-gray-500 mt-0.5">
-                                                {selected.category} &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR')}
+                                                {selected.category} &nbsp;·&nbsp; {new Date(selected.updatedAt).toLocaleDateString('ko-KR', { timeZone: 'Asia/Seoul' })}
                                             </p>
                                         </div>
                                         {selected.condition && (

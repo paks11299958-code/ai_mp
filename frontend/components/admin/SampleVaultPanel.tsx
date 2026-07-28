@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { sampleVaultApi, SampleVaultRow } from '../../services/apiService';
+import { fmtDateTime } from '../../utils/datetime';
 
 // 언어/카테고리 라벨 — ShortsAdminPanel.tsx와 동일 매핑(중복 정의, 두 파일이 서로 다른
 // 목적이라 공유 모듈로 안 뺌 — 기존 패턴 그대로 따름).
@@ -131,7 +132,7 @@ export const SampleVaultPanel: React.FC = () => {
                                                     {CATEGORY_LABEL[row.category] || row.category}
                                                 </span>
                                             </div>
-                                            <p className="text-[10px] text-gray-600 mt-1">{new Date(row.createdAt).toLocaleString('ko-KR')}</p>
+                                            <p className="text-[10px] text-gray-600 mt-1">{fmtDateTime(row.createdAt)}</p>
                                         </>
                                     )}
                                 </div>
