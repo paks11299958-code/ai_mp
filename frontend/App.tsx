@@ -397,6 +397,9 @@ const AppContent: React.FC = () => {
         usesBirthInfo?: boolean;
         /** 페르소나 대표 이미지 — 얼굴이 보여야 감정 연결이 된다(2026-07-28 사장 지시) */
         imageUrl?: string;
+        /** 기능 링크(?f=)일 때 담당 페르소나 이름 — CTA를 "OO과 시작하기"로 맞추기 위함.
+         *  없으면 title(=페르소나명)을 쓴다. */
+        personaName?: string;
     } | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
@@ -610,8 +613,21 @@ const AppContent: React.FC = () => {
                         if (qm) {
                             setPendingQuickMenuLabel(qm);
                             // 처음 온 사람은 입력창 placeholder만으론 뭘 하라는 건지 모른다 → 사용법 안내.
+                            // ★페르소나 모달과 같은 형태로 띄운다(2026-07-28 사장 지시): 얼굴이 보여야
+                            //   "누가 해주는지" 알고, 기능 카드는 그 하나만 넣어 바로 다시 실행할 수 있다.
                             const g = FEATURE_DEEPLINK_GUIDE[key];
-                            if (g) setDeepLinkGuide(g);
+                            if (g && grid) {
+                                let usesBirth = false;
+                                try { usesBirth = !!(persona.quickMenuJson && JSON.parse(persona.quickMenuJson).useBirthInfo); } catch {}
+                                setDeepLinkGuide({
+                                    title: g.title,
+                                    desc: g.desc,
+                                    features: [{ key: grid.key, name: grid.name, icon: grid.icon, accent: grid.palette.accent, bg: grid.palette.bg }],
+                                    usesBirthInfo: usesBirth,
+                                    imageUrl: persona.imageUrl || undefined,
+                                    personaName: persona.name,
+                                });
+                            } else if (g) setDeepLinkGuide(g);
                         }
                     }
                 }
@@ -2132,7 +2148,12 @@ const AppContent: React.FC = () => {
                                         boxShadow: '0 10px 24px -10px rgba(139,92,246,0.75)',
                                     }}
                                 >
-                                    {deepLinkGuide.title}{_josaGwaWa(deepLinkGuide.title)} 시작하기
+                                    {(() => {
+                                        // 기능 링크면 담당 페르소나 이름으로("도결 선생과 시작하기"),
+                                        // 페르소나 링크면 title이 곧 이름이다.
+                                        const who = deepLinkGuide.personaName || deepLinkGuide.title;
+                                        return `${who}${_josaGwaWa(who)} 시작하기`;
+                                    })()}
                                 </button>
                             </div>
                         </div>
