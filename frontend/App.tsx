@@ -129,7 +129,8 @@ const AppContent: React.FC = () => {
     const handleGuestAuthSuccess = useCallback((u: User, token: string) => {
         handleAuthSuccess(u, token);
         setShowAuthModal(false);
-        setRewardAlert({ kind: 'guestWelcome', amount: 1000 });
+        // 지급액은 서버(GUEST_SIGNUP_BONUS)가 정한다 — 하드코딩하면 서버 정책 변경 시 화면만 거짓말한다.
+        setRewardAlert({ kind: 'guestWelcome', amount: u.bonusPoints ?? 0 });
     }, [handleAuthSuccess, setShowAuthModal]);
 
     // 게스트(레퍼럴) 자동등록 진행 상태 — 선언은 여기, useEffect는 arrivedViaReferral 선언 뒤(아래)에 둔다
