@@ -513,6 +513,20 @@ const AppContent: React.FC = () => {
     useEffect(() => {
         if (!pendingDeepLink || isPersonasLoading || !personas.length) return;
 
+        // ★인사말 선(先)생성(2026-07-28 사장 지적): 원래는 인트로 영상이 재생되는 동안
+        // prefetchOnly로 인사말을 미리 만들었는데, 딥링크에서 인트로를 끄면서 그 시간이
+        // 사라져 "모달 닫으면 인사말 기다리는" 텀이 드러났다. 딥링크 처리보다 먼저 세션
+        // 생성+greet를 시작해, 사용자가 안내 모달을 읽는 동안 백그라운드에서 끝나게 한다.
+        // (없애는 게 아니라 가리는 것 — 인사말을 미리 만들어 재사용하면 매번 같은 인사가
+        //  나와 페르소나 느낌이 죽으므로 매번 새로 만들되 타이밍만 앞당긴다.)
+        const prefetchTarget = pendingDeepLink.kind === 'persona'
+            ? personas.find(p => p.id === pendingDeepLink.id && p.isVisible !== false)
+            : (() => {
+                const grid = FEATURES_GRID.find(g => g.key === pendingDeepLink.key);
+                return grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
+            })();
+        if (prefetchTarget) handleSelectPersona(prefetchTarget.id, { prefetchOnly: true });
+
         if (pendingDeepLink.kind === 'persona') {
             const target = personas.find(p => p.id === pendingDeepLink.id && p.isVisible !== false);
             if (!target) { setPendingDeepLink(null); return; } // 없는/숨김 페르소나 → 무시

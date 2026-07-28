@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Message, ChatSessionState, Persona, PersonaImage } from '../types';
 import { sessionApi } from '../services/apiService';
 
@@ -37,6 +37,8 @@ export function usePersonaSession(
 ) {
     const { setInputPlaceholder, setActiveQuickMenu, personaImages, refreshPersonaImages, setFirstChatMap, setIsGreeting } = deps;
     const [sessions, setSessions] = useState<Record<string, ChatSessionState>>({});
+    // 세션 로드가 진행 중인 personaId — sessions(비동기 state)만으론 못 막는 중복 생성 방어.
+    const loadingRef = useRef<Set<string>>(new Set());
 
     // 페르소나 목록 변경 시 세션 상태 동기화
     useEffect(() => {
@@ -113,6 +115,13 @@ export function usePersonaSession(
         const current = sessions[personaId];
         if (current?.dbSessionId || current?.messages.length > 0) return;
 
+        // ★중복 세션 생성 방지(2026-07-28): sessions는 비동기 상태라, 프리페치 직후 곧바로
+        // 같은 페르소나로 다시 호출되면(딥링크: prefetchOnly → handlePersonaClick) 위 검사가
+        // 아직 갱신 전 값을 보고 통과해 sessionApi.create가 두 번 돈다 = 빈 세션 하나가 남고
+        // 인사말도 두 번 생성돼 비용이 샌다. ref로 '진행 중'을 즉시 표시해 막는다.
+        if (loadingRef.current.has(personaId)) return;
+        loadingRef.current.add(personaId);
+
         try {
 
 
@@ -164,6 +173,8 @@ export function usePersonaSession(
             }
         } catch (error) {
             console.error('세션 로드 실패:', error);
+        } finally {
+            loadingRef.current.delete(personaId);
         }
     }, [sessions]);
 
