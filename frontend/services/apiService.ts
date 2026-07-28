@@ -1182,8 +1182,9 @@ export const adminApi = {
         return post<{ email: string; granted: number; newBalance: number }>('/points/admin-grant', body);
     },
 
-    bulkGrant: (amount: number, description?: string) =>
-        post<{ granted: number; userCount: number }>('/admin/bulk-grant', { amount, description }),
+    // ★위험 작업(돈·되돌리기 어려움)은 비밀번호 재확인 필수 — adminPassword 동반 (2026-07-29)
+    bulkGrant: (amount: number, description?: string, adminPassword?: string) =>
+        post<{ granted: number; userCount: number }>('/admin/bulk-grant', { amount, description, adminPassword }),
 
     changeRole: (userId: number, role: string) =>
         post<{ id: number; role: string }>('/admin/change-role', { userId, role }),
@@ -1254,7 +1255,7 @@ export const adminApi = {
             }[];
             now: string; server1Ok: boolean;
         }>('/admin/cron'),
-    setCronSchedule: (body: { server: string; cmdMatch: string; minute: string; hour: string; dom?: string; mon?: string; dow?: string }) =>
+    setCronSchedule: (body: { server: string; cmdMatch: string; minute: string; hour: string; dom?: string; mon?: string; dow?: string; adminPassword?: string }) =>
         post<{ ok: boolean; when: string; cycle: string; backup: string }>('/admin/cron/schedule', body),
     userBatches: () =>
         get<{
@@ -1293,11 +1294,11 @@ export const adminApi = {
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/paper/logs?limit=${limit}`),
     getTossSelection: () =>
         get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string }; max: number; paramBounds?: Record<string, [number, number]> }>('/admin/toss-trader/selection'),
-    saveTossSelection: (payload: { symbols?: string[]; halt?: boolean; params?: Record<string, Record<string, number>> }) =>
+    saveTossSelection: (payload: { symbols?: string[]; halt?: boolean; params?: Record<string, Record<string, number>>; adminPassword?: string }) =>
         post<{ ok: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string } }>('/admin/toss-trader/selection', payload),
     // 🔴긴급정지 해제 + 봇 재시작(래치 해제)을 한 번에. force=리스크 정지도 무시하고 재시작.
-    restartTossBot: (force = false) =>
-        post<{ ok: boolean; restarted: boolean; halted: boolean; message: string }>('/admin/toss-trader/restart', { force }),
+    restartTossBot: (force = false, adminPassword?: string) =>
+        post<{ ok: boolean; restarted: boolean; halted: boolean; message: string }>('/admin/toss-trader/restart', { force, adminPassword }),
     getTossCustomSymbols: () =>
         get<{ symbols: Record<string, string>; max: number }>('/admin/toss-trader/custom-symbols'),
     saveTossCustomSymbols: (payload: { add?: { symbol: string; name: string }; remove?: string }) =>

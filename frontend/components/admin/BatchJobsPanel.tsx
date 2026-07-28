@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { adminApi } from '../../services/apiService';
+import { AdminPasswordPrompt } from './AdminPasswordPrompt';
 
 // ⏰ 배치 작업 대시보드 (2026-07-29 신설)
 // 서버 크론(우리가 건 정기 작업)과 사용자 배치(회원 신청 큐)를 탭으로 구분해 본다.
@@ -61,7 +62,8 @@ export const BatchJobsPanel: React.FC = () => {
         setMsg('');
         setEditing(j);
     };
-    const save = async () => {
+    const [askPw, setAskPw] = useState(false);
+    const save = async (adminPassword: string) => {
         if (!editing) return;
         setSaving(true); setMsg('');
         try {
@@ -76,13 +78,14 @@ export const BatchJobsPanel: React.FC = () => {
                 server: editing.server,
                 cmdMatch: editing.cmd.split(/\s+/).find(s => /\.(py|sh|js|cjs)$/.test(s)) || editing.name,
                 minute: String(parseInt(form.minute, 10) || 0),
-                hour: String(utcH), dom: editing.dom || '*', mon: editing.mon || '*', dow,
+                hour: String(utcH), dom: editing.dom || '*', mon: editing.mon || '*', dow, adminPassword,
             });
             setMsg(`✅ 변경됨 — ${r.when}`);
-            setEditing(null);
+            setAskPw(false); setEditing(null);
             load();
         } catch (e: any) {
             setMsg(`❌ ${e?.message || '변경 실패'}`);
+            throw e;   // 모달이 닫히지 않고 재입력을 받게 한다
         } finally { setSaving(false); }
     };
 
@@ -269,13 +272,21 @@ export const BatchJobsPanel: React.FC = () => {
                                 className="flex-1 py-2 rounded-lg bg-gray-800 border border-gray-700 text-gray-300 text-sm">
                                 취소
                             </button>
-                            <button onClick={save} disabled={saving}
+                            <button onClick={() => setAskPw(true)} disabled={saving}
                                 className="flex-1 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm">
                                 {saving ? '변경 중…' : '변경'}
                             </button>
                         </div>
                     </div>
                 </div>
+            )}
+            {askPw && editing && (
+                <AdminPasswordPrompt
+                    title="배치 시각 변경"
+                    detail={`${editing.name} (${editing.server}) — 백업·보고가 이 시각에 실행됩니다.`}
+                    onConfirm={save}
+                    onCancel={() => setAskPw(false)}
+                />
             )}
         </div>
     );
