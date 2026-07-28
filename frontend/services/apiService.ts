@@ -1244,6 +1244,23 @@ export const adminApi = {
             top: { code: string; invited: number; rewarded: number; owner_name: string | null }[];
             dailyVisits: { day: string; n: number }[];
         }>('/admin/referral-stats'),
+    // ⏰ 배치 작업 대시보드 (2026-07-29) — 서버 크론 + 사용자 신청 배치
+    cronJobs: () =>
+        get<{
+            jobs: {
+                id: string; server: string; name: string; desc: string; kind: string;
+                cycle: string; when: string; log: string; cron: string;
+                minute: string; hour: string; dom: string; mon: string; dow: string; cmd: string;
+            }[];
+            now: string; server1Ok: boolean;
+        }>('/admin/cron'),
+    setCronSchedule: (body: { server: string; cmdMatch: string; minute: string; hour: string; dom?: string; mon?: string; dow?: string }) =>
+        post<{ ok: boolean; when: string; cycle: string; backup: string }>('/admin/cron/schedule', body),
+    userBatches: () =>
+        get<{
+            rows: { kind: string; id: string; status: string; user: string; title: string; createdAt: string }[];
+            pending: number;
+        }>('/admin/user-batches'),
     // 📊 일자별 마케팅 통계 (2026-07-28) — 유입(채널별)→사용→전환을 하루 한 줄로
     marketingDaily: (days = 14) =>
         get<{

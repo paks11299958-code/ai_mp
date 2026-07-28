@@ -26,6 +26,7 @@ import { TossTraderPanel } from './admin/TossTraderPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
 import { MarketingDailyPanel } from './admin/MarketingDailyPanel';
+import { BatchJobsPanel } from './admin/BatchJobsPanel';
 import { BizReportPanel } from './admin/BizReportPanel';
 import { ShortsAdminPanel } from './admin/ShortsAdminPanel';
 import { SampleVaultPanel } from './admin/SampleVaultPanel';
@@ -99,6 +100,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { id: 'system', label: '시스템', icon: 'Settings', tabs: [
                             { key: 'settings',      label: '공통 설정', icon: 'Settings' },
                             { key: 'monitor',       label: '서버 모니터', icon: 'Activity' },
+                            { key: 'batch-jobs',    label: '⏰ 배치 작업',  icon: 'Clock' },
                             { key: 'ai-usage',      label: 'AI 사용량',   icon: 'BarChart2' },
                             { key: 'ai-ideas',      label: 'AI 아이디어', icon: 'Lightbulb' },
                             { key: 'agent-growth',  label: '직원 성장',   icon: 'Sparkles' },
@@ -185,6 +187,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 서버 모니터링 패널 */}
                 {mainView === 'monitor' && <ServerMonitorPanel />}
+                {mainView === 'batch-jobs' && <BatchJobsPanel />}
                 {mainView === 'ai-usage' && <AiUsagePanel />}
                 {mainView === 'ai-ideas' && <AiIdeasPanel />}
                 {mainView === 'agent-growth' && <AgentGrowthPanel />}
