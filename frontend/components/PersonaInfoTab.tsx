@@ -60,6 +60,8 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
     const [name, setName] = useState('');
     const [jobTitle, setJobTitle] = useState('');
     const [description, setDescription] = useState('');
+    // 공유 딥링크 안내 모달 소개문(2026-07-28). 비면 description으로 폴백된다.
+    const [introText, setIntroText] = useState('');
     const [instruction, setInstruction] = useState('');
     const [identityPrompt, setIdentityPrompt] = useState('');
     const [quickMenuJson, setQuickMenuJson] = useState('');
@@ -123,7 +125,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
 
     useEffect(() => {
         if (selectedId === 'new') {
-            setName(''); setJobTitle(''); setDescription(''); setInstruction(''); setIdentityPrompt('');
+            setName(''); setJobTitle(''); setDescription(''); setIntroText(''); setInstruction(''); setIdentityPrompt('');
             setIconName('Bot'); setColorClass(AVAILABLE_COLORS[0].value);
             setImageUrl(''); setIntroVideoUrl(''); setStarVideoUrl(''); setFaceReadingBgUrl('');
             setChatBgUrls([]); setQuickMenuJson(''); setIsVisible(true); setUseGrounding(false);
@@ -133,6 +135,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
             const p = personas.find(p => p.id === selectedId);
             if (p) {
                 setName(p.name); setJobTitle(p.jobTitle || ''); setDescription(p.description || '');
+                setIntroText(p.introText || '');
                 setInstruction(p.systemInstruction); setIdentityPrompt(p.identityPrompt || '');
                 setIconName(p.iconName || 'Bot'); setColorClass(p.colorClass || AVAILABLE_COLORS[0].value);
                 setImageUrl(p.imageUrl || ''); setIntroVideoUrl(p.introVideoUrl || '');
@@ -153,7 +156,7 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
         setIsSaving(true); setSaveError(null);
         try {
             const chatBgUrlValue = chatBgUrls.length ? JSON.stringify(chatBgUrls) : undefined;
-            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, useGrounding, features: JSON.stringify(features), categoryId: selectedCategoryId });
+            await onSave({ id: idToSave, name, jobTitle: jobTitle.trim() || undefined, description, introText: introText.trim() || undefined, systemInstruction: instruction, identityPrompt: identityPrompt.trim() || undefined, iconName, colorClass, imageUrl, introVideoUrl: introVideoUrl.trim() || undefined, starVideoUrl: starVideoUrl.trim() || undefined, faceReadingBgUrl: faceReadingBgUrl.trim() || undefined, chatBgUrl: chatBgUrlValue, quickMenuJson: quickMenuJson.trim() || undefined, isVisible, useGrounding, features: JSON.stringify(features), categoryId: selectedCategoryId });
             localStorage.removeItem('personas_cache');
             if (isNew) onSelectId(idToSave);
             setShowSuccess(true);
@@ -381,6 +384,25 @@ export const PersonaInfoTab: React.FC<PersonaInfoTabProps> = ({
                         className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none"
                         placeholder="예: 마케팅 카피와 전략을 기획합니다."
                     />
+                </div>
+
+                {/* 공유 링크 소개문 — 친구 초대·지식iN 링크로 처음 온 사람이 보는 안내 모달 문구 */}
+                <div>
+                    <label className="block text-xs font-semibold text-gray-400 mb-1.5">
+                        공유 링크 소개문
+                        <span className="ml-1.5 font-normal text-gray-500">
+                            · 초대 링크로 들어온 사람이 처음 보는 안내 문구 (비우면 짧은 설명 사용)
+                        </span>
+                    </label>
+                    <textarea
+                        value={introText} onChange={e => setIntroText(e.target.value)}
+                        rows={2}
+                        className="w-full bg-gray-800 border border-gray-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:outline-none resize-none"
+                        placeholder="예: 57년의 내공으로 당신의 삶에 낀 안개를 걷어내는 인생 멘토입니다."
+                    />
+                    <p className="mt-1 text-[11px] text-gray-500">
+                        무엇을 해주는 사람인지 한두 문장으로. 슬로건보다 구체적일수록 좋아요.
+                    </p>
                 </div>
 
                 {/* 아이콘 + 색상 + 미디어 */}
