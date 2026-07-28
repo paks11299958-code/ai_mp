@@ -115,10 +115,12 @@ export function usePersonaSession(
         const current = sessions[personaId];
         if (current?.dbSessionId || current?.messages.length > 0) return;
 
-        // ★중복 세션 생성 방지(2026-07-28): sessions는 비동기 상태라, 프리페치 직후 곧바로
-        // 같은 페르소나로 다시 호출되면(딥링크: prefetchOnly → handlePersonaClick) 위 검사가
-        // 아직 갱신 전 값을 보고 통과해 sessionApi.create가 두 번 돈다 = 빈 세션 하나가 남고
-        // 인사말도 두 번 생성돼 비용이 샌다. ref로 '진행 중'을 즉시 표시해 막는다.
+        // ★중복 세션 생성 방지(2026-07-28): sessions는 비동기 state라 위 검사만으론 못 막는다.
+        // 딥링크는 prefetchOnly → handlePersonaClick 순으로 같은 페르소나를 연달아 부르는데,
+        // 두 번째 호출 시점엔 아직 setSessions가 반영되지 않아 그대로 통과 → sessionApi.create가
+        // 두 번 돌고 인사말도 두 번 생성된다(AI 비용). 실측으로 확인된 문제.
+        // '진행 중'만으론 부족하다 — 프리페치가 끝난 뒤 오는 호출도 막아야 하므로,
+        // 한 번이라도 로드를 시작한 페르소나는 계속 기억한다(로그아웃 시 clearSessionGuard로 해제).
         if (loadingRef.current.has(personaId)) return;
         loadingRef.current.add(personaId);
 
@@ -173,10 +175,12 @@ export function usePersonaSession(
             }
         } catch (error) {
             console.error('세션 로드 실패:', error);
-        } finally {
-            loadingRef.current.delete(personaId);
+            loadingRef.current.delete(personaId); // 실패는 재시도 가능해야 하므로 해제
         }
     }, [sessions]);
+
+    /** 로그아웃/계정 전환 시 중복방지 기록을 비운다(다른 계정에선 세션을 새로 만들어야 함). */
+    const clearSessionGuard = useCallback(() => { loadingRef.current.clear(); }, []);
 
     // 이전 메시지 더 불러오기
     const handleLoadMoreMessages = useCallback(async () => {
@@ -212,5 +216,6 @@ export function usePersonaSession(
         triggerSummaryUpdate,
         handleSelectPersona,
         handleLoadMoreMessages,
+        clearSessionGuard,
     };
 }

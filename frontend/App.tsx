@@ -435,6 +435,7 @@ const AppContent: React.FC = () => {
         triggerSummaryUpdate,
         handleSelectPersona,
         handleLoadMoreMessages,
+        clearSessionGuard,
     } = usePersonaSession(personas, activePersonaId, setActivePersonaId, {
         setInputPlaceholder, setActiveQuickMenu, personaImages, refreshPersonaImages, setFirstChatMap, setIsGreeting,
     });
@@ -636,6 +637,7 @@ const AppContent: React.FC = () => {
         setUserBonusPoints(0);
         setIsAdminMode(false);
         setPersonaImages({});
+        clearSessionGuard(); // 계정이 바뀌면 세션을 새로 만들어야 하므로 중복방지 기록도 초기화
         setTriggerVideos({});
         setMemoryEnabled({});
         setActiveQuickMenu(null);
