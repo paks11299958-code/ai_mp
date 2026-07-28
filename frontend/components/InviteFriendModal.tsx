@@ -101,9 +101,12 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
 
     return (
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" style={{ background: 'rgba(20,12,30,0.6)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
-            <div onClick={e => e.stopPropagation()} className="w-full max-w-sm rounded-2xl overflow-hidden" style={{ background: '#FFFCF8', boxShadow: '0 24px 64px -12px rgba(80,50,110,0.4)' }}>
+            {/* ★높이 제한 + 본문 스크롤: 목록 2개가 들어가며 모달이 길어져 화면 밖으로 넘쳤고,
+                헤더의 닫기(X)까지 잘려 나가 모달을 닫을 방법이 없었다(2026-07-28 사장 지적).
+                헤더는 고정(shrink-0)하고 아래 본문만 스크롤한다. */}
+            <div onClick={e => e.stopPropagation()} className="w-full max-w-sm rounded-2xl overflow-hidden flex flex-col" style={{ background: '#FFFCF8', boxShadow: '0 24px 64px -12px rgba(80,50,110,0.4)', maxHeight: 'calc(100dvh - 32px)' }}>
                 {/* 헤더 */}
-                <div className="px-6 pt-7 pb-6 text-center relative" style={{ background: 'linear-gradient(160deg, #8E6FB7 0%, #6B4F92 100%)' }}>
+                <div className="shrink-0 px-6 pt-7 pb-6 text-center relative" style={{ background: 'linear-gradient(160deg, #8E6FB7 0%, #6B4F92 100%)' }}>
                     <button onClick={onClose} className="absolute top-3 right-3 p-1.5 rounded-full text-white/80 hover:text-white hover:bg-white/15 transition-colors">
                         <Icon name="X" size={18} />
                     </button>
@@ -114,7 +117,7 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
                     </p>
                 </div>
 
-                <div className="px-6 py-5">
+                <div className="flex-1 min-h-0 overflow-y-auto px-6 py-5">
                     {loading && <div className="text-center text-sm text-[#8A7E96] py-6">불러오는 중…</div>}
                     {error && <div className="text-center text-sm text-[#C0505A] py-6">{error}</div>}
                     {stats && (
@@ -139,7 +142,7 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
                             </button>
 
                             {showPersonaPicker && (
-                                <div className="mt-1.5 h-[132px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
+                                <div className="mt-1.5 h-[112px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
                                     <button
                                         onClick={() => { setSelected({ kind: 'home' }); setPickedPersonaId(null); setShowPersonaPicker(false); }}
                                         className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b"
@@ -184,7 +187,7 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
                                     <label className="mt-3 block text-[11px] font-semibold text-[#8A7E96]">
                                         어떤 기능을 소개할까요?
                                     </label>
-                                    <div className="mt-1.5 max-h-[132px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
+                                    <div className="mt-1.5 max-h-[148px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
                                         <button
                                             onClick={() => setSelected({ kind: 'persona', id: pickedPersona.id, name: pickedPersona.name })}
                                             className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b"
