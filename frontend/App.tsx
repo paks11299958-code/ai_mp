@@ -532,7 +532,7 @@ const AppContent: React.FC = () => {
             } else if (key === 'tarot') {
                 // 타로는 유나 채팅 컨텍스트 위에서 카드 모달을 띄운다(웹툰과 동일 패턴).
                 const tp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'tarot')?.personaName);
-                if (tp) { goTo('chat'); handlePersonaClick(tp.id); }
+                if (tp) { goTo('chat'); handlePersonaClick(tp.id, { skipIntro: true }); }
                 setTarotModalMode('full');
             } else {
                 const opener = featureBoardOpeners[key];
@@ -543,7 +543,7 @@ const AppContent: React.FC = () => {
                     const persona = grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
                     if (persona) {
                         goTo('chat');
-                        handlePersonaClick(persona.id);
+                        handlePersonaClick(persona.id, { skipIntro: true });
                         // 전용 보드가 없는 기능(꿈해몽·관상·운세 등)은 채팅만 열면 뭘 하라는 건지 알 수 없다.
                         // 해당 퀵메뉴를 예약해 두면 아래 useEffect가 채팅 진입 후 자동 실행한다.
                         const qm = FEATURE_QUICK_MENU_LABEL[key];
@@ -675,8 +675,16 @@ const AppContent: React.FC = () => {
         });
     }, []);
 
-    const handlePersonaClick = useCallback((personaId: string) => {
+    // skipIntro: 공유 딥링크(?p=·?f=)로 도착한 경우엔 인트로(입장 영상/이미지)를 건너뛴다.
+    // 친구 링크를 타고 "꿈해몽 해봐"를 보고 온 사람에게 입장 영상부터 보여주면 목적지가
+    // 한 단계 더 멀어진다 — 바로 그 화면으로 들어가야 한다(2026-07-28 사장 지시).
+    const handlePersonaClick = useCallback((personaId: string, opts?: { skipIntro?: boolean }) => {
         const persona = personas.find(p => p.id === personaId);
+        if (opts?.skipIntro) {
+            rememberLastPersona(personaId);
+            handleSelectPersona(personaId);
+            return;
+        }
         if (persona?.introVideoUrl) {
             setIntroVideoModal({ personaId, type: 'video', url: persona.introVideoUrl });
             handleSelectPersona(personaId, { prefetchOnly: true }); // 인트로 보는 동안 인사말 미리 준비
