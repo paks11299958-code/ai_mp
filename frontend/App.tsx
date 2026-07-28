@@ -360,15 +360,28 @@ const AppContent: React.FC = () => {
     // 공유 딥링크(?f=dream 등)로 오면 채팅만 열리고 "그래서 뭘 하라는 거지?"가 되므로,
     // 도착 후 해당 퀵메뉴를 자동으로 눌러준다(2026-07-28). 값 = quickMenuJson의 label과 정확히 일치.
     // 공유 링크로 도착했을 때 띄울 사용법 안내(기능별). 없으면 안내 없이 조용히 진행.
+    // 기능별 이모지 — 안내 모달 제목 앞에 붙는다(2026-07-28 사장 지시로 27개 전체 정의).
+    // FEATURES_GRID의 catch에도 이모지가 있지만 카피용이라 기능 성격과 안 맞는 게 있어
+    // (꿈해몽 💭, 관상 😌) 여기서 별도로 정한다. 새 기능 추가 시 한 줄 넣어주면 된다.
+    const FEATURE_EMOJI: Record<string, string> = {
+        news: '📰', stock: '📈', swing: '🏌️', luxury: '🔍', insurance: '🛡️',
+        used: '🛒', hotkeyword: '🔥', mathtutor: '✏️', club: '📍',
+        siwoon: '📅', wealth: '💰', yeonn: '❤️', dream: '🌙', gwansang: '🔮',
+        rebirth: '🕉️', palm: '🖐', friendship: '🤝',
+        ebook: '📕', webtoon: '🖼️', hair: '✂️', outfit: '📸', lookalike: '✨',
+        marketing: '📣', agetransform: '⏳', tarot: '🔮', homepage: '🏠',
+        'shorts-maker': '🎬', learn: '📚',
+    };
+
     const FEATURE_DEEPLINK_GUIDE: Record<string, { title: string; desc: string }> = {
-        dream: { title: '🌙 꿈해몽', desc: '어젯밤 꾸신 꿈을 아래 입력창에 적어주시면 도결 선생이 그 뜻을 풀어드려요.' },
-        gwansang: { title: '🔮 관상학', desc: '얼굴 사진을 올리시면 도결 선생이 관상과 성격·운세를 풀어드려요.' },
-        palm: { title: '🖐 손금 보기', desc: '손바닥 사진을 올리시면 도결 선생이 생명선·감정선·재물운을 읽어드려요.' },
-        siwoon: { title: '📅 시운의 흐름', desc: '오늘·이달·올해 중 보고 싶은 흐름을 고르시면 도결 선생이 풀어드려요.' },
-        wealth: { title: '💰 성취와 재물', desc: '재물 흐름과 사업운 중 궁금한 쪽을 고르시면 도결 선생이 짚어드려요.' },
-        yeonn: { title: '❤️ 인연의 결', desc: '연애운과 궁합 중 보고 싶은 것을 고르시면 도결 선생이 읽어드려요.' },
-        rebirth: { title: '🕉️ 전생 이야기', desc: '도결 선생이 당신의 전생과 그것이 남긴 기질을 이야기처럼 들려드려요.' },
-        friendship: { title: '🤝 우정 궁합', desc: '나와 친구, 또는 친구 둘 사이의 우정을 도결 선생이 헤아려드려요.' },
+        dream: { title: '꿈해몽', desc: '어젯밤 꾸신 꿈을 아래 입력창에 적어주시면 도결 선생이 그 뜻을 풀어드려요.' },
+        gwansang: { title: '관상학', desc: '얼굴 사진을 올리시면 도결 선생이 관상과 성격·운세를 풀어드려요.' },
+        palm: { title: '손금 보기', desc: '손바닥 사진을 올리시면 도결 선생이 생명선·감정선·재물운을 읽어드려요.' },
+        siwoon: { title: '시운의 흐름', desc: '오늘·이달·올해 중 보고 싶은 흐름을 고르시면 도결 선생이 풀어드려요.' },
+        wealth: { title: '성취와 재물', desc: '재물 흐름과 사업운 중 궁금한 쪽을 고르시면 도결 선생이 짚어드려요.' },
+        yeonn: { title: '인연의 결', desc: '연애운과 궁합 중 보고 싶은 것을 고르시면 도결 선생이 읽어드려요.' },
+        rebirth: { title: '전생 이야기', desc: '도결 선생이 당신의 전생과 그것이 남긴 기질을 이야기처럼 들려드려요.' },
+        friendship: { title: '우정 궁합', desc: '나와 친구, 또는 친구 둘 사이의 우정을 도결 선생이 헤아려드려요.' },
     };
 
     const FEATURE_QUICK_MENU_LABEL: Record<string, string> = {
@@ -600,7 +613,22 @@ const AppContent: React.FC = () => {
             } else {
                 const opener = featureBoardOpeners[key];
                 if (opener) {
-                    opener();
+                    // 전용 보드가 있는 기능(헤어·프로필·전자책 등)도 **누가 해주는지 먼저 보여준다**
+                    // (2026-07-28 사장 지시). 보드만 바로 열면 담당 페르소나를 모른 채 입력 화면부터
+                    // 마주한다. 모달을 닫으면 그때 보드가 열리도록 pendingBoardOpener에 담아둔다.
+                    const g = FEATURES_GRID.find(x => x.key === key);
+                    const gp = g?.personaName ? personas.find(p => p.name === g.personaName) : undefined;
+                    if (g && gp) {
+                        setDeepLinkGuide({
+                            title: `${FEATURE_EMOJI[key] ?? ''} ${g.name}`.trim(),
+                            desc: g.desc || g.catch,
+                            features: [{ key: g.key, name: g.name, icon: g.icon, accent: g.palette.accent, bg: g.palette.bg }],
+                            imageUrl: gp.imageUrl || undefined,
+                            personaName: gp.name,
+                        });
+                    } else {
+                        opener();
+                    }
                 } else {
                     const grid = FEATURES_GRID.find(g => g.key === key);
                     const persona = grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
@@ -620,7 +648,8 @@ const AppContent: React.FC = () => {
                                 let usesBirth = false;
                                 try { usesBirth = !!(persona.quickMenuJson && JSON.parse(persona.quickMenuJson).useBirthInfo); } catch {}
                                 setDeepLinkGuide({
-                                    title: g.title,
+                                    // 제목 이모지는 FEATURE_EMOJI 단일 출처로(가이드 문구에 박힌 것과 중복 방지)
+                                    title: `${FEATURE_EMOJI[key] ?? ''} ${grid.name}`.trim(),
                                     desc: g.desc,
                                     features: [{ key: grid.key, name: grid.name, icon: grid.icon, accent: grid.palette.accent, bg: grid.palette.bg }],
                                     usesBirthInfo: usesBirth,
@@ -2138,9 +2167,20 @@ const AppContent: React.FC = () => {
                                     </p>
                                 )}
 
-                                {/* ④ CTA — 소프트 그라데이션 */}
+                                {/* ④ CTA — 소프트 그라데이션.
+                                    기능 링크(카드 1개)면 닫으면서 그 기능을 실행한다 — 전용 보드가 있는
+                                    기능은 모달만 닫으면 아무 일도 안 일어나 사용자가 길을 잃는다.
+                                    페르소나 링크(카드 여러 개)면 채팅으로 두고 사용자가 고르게 한다. */}
                                 <button
-                                    onClick={() => setDeepLinkGuide(null)}
+                                    onClick={() => {
+                                        const only = deepLinkGuide.features?.length === 1 ? deepLinkGuide.features[0] : null;
+                                        setDeepLinkGuide(null);
+                                        if (only) {
+                                            const qm = FEATURE_QUICK_MENU_LABEL[only.key];
+                                            if (qm) setPendingQuickMenuLabel(qm);
+                                            else FEATURE_ACTIONS[only.key]?.();
+                                        }
+                                    }}
                                     className="mt-5 w-full py-3.5 rounded-full text-[14.5px] font-bold text-white transition-transform active:scale-[0.98]"
                                     style={{
                                         background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
