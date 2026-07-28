@@ -619,6 +619,11 @@ const AppContent: React.FC = () => {
                     const g = FEATURES_GRID.find(x => x.key === key);
                     const gp = g?.personaName ? personas.find(p => p.name === g.personaName) : undefined;
                     if (g && gp) {
+                        // ★안내 모달은 채팅 화면에서만 렌더된다(모달 JSX가 screen==='main' 조기 return
+                        //   뒤에 있음). 보드형은 goTo('chat')을 안 부르면 메인에 머물러 모달이 안 뜨고
+                        //   보드도 안 열려 아무 일도 일어나지 않는다(2026-07-28 실측으로 발견).
+                        goTo('chat');
+                        handlePersonaClick(gp.id, { skipIntro: true });
                         setDeepLinkGuide({
                             title: `${FEATURE_EMOJI[key] ?? ''} ${g.name}`.trim(),
                             desc: g.desc || g.catch,
