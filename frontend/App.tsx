@@ -343,6 +343,22 @@ const AppContent: React.FC = () => {
     const [showAgeBoard, setShowAgeBoard] = useState(false);
     const [showWebtoon, setShowWebtoon] = useState(false);
 
+    // 전용 보드가 없고 페르소나 채팅의 퀵메뉴(quickMenuJson)로 실행되는 기능들.
+    // 공유 딥링크(?f=dream 등)로 오면 채팅만 열리고 "그래서 뭘 하라는 거지?"가 되므로,
+    // 도착 후 해당 퀵메뉴를 자동으로 눌러준다(2026-07-28). 값 = quickMenuJson의 label과 정확히 일치.
+    const FEATURE_QUICK_MENU_LABEL: Record<string, string> = {
+        dream: '🌙 해몽',
+        gwansang: '🔮 관상',
+        siwoon: '📅 운세',
+        wealth: '💰 재물',
+        yeonn: '❤️ 인연',
+        rebirth: '🕉️ 전생',
+        palm: '🖐 손금',
+        friendship: '🤝 우정',
+    };
+    // 딥링크로 도착해 아직 실행되지 않은 퀵메뉴 라벨(페르소나 채팅 진입 후 처리).
+    const [pendingQuickMenuLabel, setPendingQuickMenuLabel] = useState<string | null>(null);
+
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
     // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
     const featureBoardOpeners: Record<string, () => void> = {
@@ -509,7 +525,14 @@ const AppContent: React.FC = () => {
                 } else {
                     const grid = FEATURES_GRID.find(g => g.key === key);
                     const persona = grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
-                    if (persona) { goTo('chat'); handlePersonaClick(persona.id); }
+                    if (persona) {
+                        goTo('chat');
+                        handlePersonaClick(persona.id);
+                        // 전용 보드가 없는 기능(꿈해몽·관상·운세 등)은 채팅만 열면 뭘 하라는 건지 알 수 없다.
+                        // 해당 퀵메뉴를 예약해 두면 아래 useEffect가 채팅 진입 후 자동 실행한다.
+                        const qm = FEATURE_QUICK_MENU_LABEL[key];
+                        if (qm) setPendingQuickMenuLabel(qm);
+                    }
                 }
             }
             rememberLastFeature(key);
@@ -1289,6 +1312,18 @@ const AppContent: React.FC = () => {
             textareaRef.current?.focus();
         }
     };
+
+    // 공유 딥링크로 도착해 예약된 퀵메뉴 자동 실행(꿈해몽·관상·운세 등).
+    // 채팅 화면 + 대상 페르소나의 quickMenuJson이 준비된 뒤에야 실행 가능하므로 여기서 처리한다.
+    // 라벨이 그 페르소나에 없으면(메뉴 개편 등) 조용히 예약만 해제 — 채팅은 이미 열려 있다.
+    useEffect(() => {
+        if (!pendingQuickMenuLabel || screen !== 'chat' || !activePersona?.quickMenuJson) return;
+        let cfg: { menus?: QuickMenuItem[]; useBirthInfo?: boolean };
+        try { cfg = JSON.parse(activePersona.quickMenuJson); } catch { setPendingQuickMenuLabel(null); return; }
+        const menu = cfg.menus?.find(m => m.label === pendingQuickMenuLabel);
+        setPendingQuickMenuLabel(null);
+        if (menu) handleQuickMenuSelect(menu, !!cfg.useBirthInfo);
+    }, [pendingQuickMenuLabel, screen, activePersona?.quickMenuJson]);
 
     if (screen === 'main') {
         // 최근 대화 페르소나(보이는 것만, 최근순). "최근 대화" 줄 + 개인화 인사용.

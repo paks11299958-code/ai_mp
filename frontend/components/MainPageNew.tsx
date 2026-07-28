@@ -375,6 +375,12 @@ export const FEATURES_GRID = [
     // 진입은 박하진 채팅의 '학습자료' 버튼(FEATURE_REGISTRY+DB features)으로만.
     { id: 24, numeral: 'XXIV',latin: 'Homepage',key: 'homepage',name: '홈페이지 만들기',  tag: 'AI 시안 제작',   catch: '신청서만 쓰면 우리 가게 홈페이지 완성 🏠', category: 'create', desc: '업종·상호·소개만 적으면 웹 전문가 박하진이 홈페이지 시안을 만들어 실제 링크로 드려요. 소스코드(zip)도 함께!', icon: 'homepage',  palette: { bg: '#E9EBF9', deep: '#AEB4E8', accent: '#5C6AC4' }, personaName: '박하진',  releasedAt: '2026-07-17' },
     { id: 25, numeral: 'XXV', latin: 'Shorts',  key: 'shorts-maker',name: '쇼츠 만들기', tag: 'AI 영상 제작',   catch: '이미지 1장으로 쇼츠 시나리오 5개 뚝딱 🎬', category: 'create', desc: '이미지 1장과 업종·장점만 적으면 아린이가 서로 다른 쇼츠 시나리오 5개를 만들어 드려요. 마음에 드는 걸 고르면 실제 영상으로 완성!', icon: 'sparkles',  palette: { bg: '#FDE6F0', deep: '#F4A4C6', accent: '#D85C95' }, personaName: '이아린',  releasedAt: '2026-07-22' },
+    // 도결 선생 퀵메뉴로만 쓸 수 있던 3종을 메인 카드로 승격(2026-07-28).
+    // 퀵메뉴 사용량이 70건(헤어 다음으로 많음)인데 메인에 카드가 없어 공유 버튼조차 없었다
+    // = 실제로 잘 쓰이는데 바이럴 경로가 막혀 있었음. 진입은 FEATURE_QUICK_MENU_LABEL이 담당.
+    { id: 26, numeral: 'XXVI',latin: 'Rebirth', key: 'rebirth', name: '전생 이야기',   tag: 'AI 전생 풀이',   catch: '내 전생은 누구였을까? 🕉️', category: 'fortune', desc: '도결 선생이 전생의 신분·시대·삶을 이야기처럼 풀고, 지금의 나에게 남긴 업(業)과 기질까지 짚어드려요.', icon: 'moon',   palette: { bg: '#EDE7F6', deep: '#B4A0D8', accent: '#5E4A9E' }, personaName: '도결(道潔) 선생', releasedAt: '2026-07-28' },
+    { id: 27, numeral: 'XXVII',latin: 'Palm',   key: 'palm',    name: '손금 보기',     tag: 'AI 손금 분석',   catch: '손바닥에 그려진 내 인생 🖐', category: 'fortune', desc: '손바닥 사진 한 장이면 도결 선생이 생명선·감정선·재물운을 읽어드려요.',                                    icon: 'gwansang', palette: { bg: '#F2ECE2', deep: '#CDB79B', accent: '#8A6742' }, personaName: '도결(道潔) 선생', releasedAt: '2026-07-28' },
+    { id: 28, numeral: 'XXVIII',latin: 'Friend',key: 'friendship',name: '우정 궁합',   tag: 'AI 친구 궁합',   catch: '우리, 얼마나 잘 맞는 친구일까? 🤝', category: 'fortune', desc: '나와 친구, 또는 친구 둘 사이의 우정을 도결 선생이 제3자의 눈으로 헤아려드려요.',                        icon: 'people',  palette: { bg: '#E6F0EC', deep: '#A3C8B8', accent: '#3E7A62' }, personaName: '도결(道潔) 선생', releasedAt: '2026-07-28' },
 ];
 
 // 기능 연관 키워드(동의어) 맵 — 이름/설명에 없는 표현으로도 찾게 함.
@@ -405,6 +411,9 @@ export const FEATURE_SYNONYMS: Record<string, string[]> = {
     outfit:      ['프로필사진', '프사', '프로필', '증명사진', '컨셉사진', '실사', '지브리', '픽사', '민화', '베이비', '치비', '아기', '애니메이션', '캐릭터', '인생네컷', '셀카', '사진', '전통의상'],
     homepage:    ['홈페이지', '웹사이트', '홈피', '사이트', '사이트만들기', '홈페이지만들기', '사이트제작', '랜딩페이지', '가게홈페이지', '홈페이지제작', '웹', '소상공인', '창업', '학습', '배우기', '강의'],
     'shorts-maker': ['쇼츠', '숏츠', '유튜브', '영상제작', '영상', '동영상', '릴스', '숏폼', '마케팅영상', '쇼츠만들기', '숏츠만들기', '시나리오', '아린'],
+    rebirth:     ['전생', '환생', '윤회', '업', '카르마', '전생이야기', '내전생', '과거생'],
+    palm:        ['손금', '손바닥', '수상', '생명선', '감정선', '재물선', '손'],
+    friendship:  ['우정', '친구', '우정궁합', '친구궁합', '베프', '절친', '동료', '사이'],
 };
 
 // 기능이 검색어와 매칭되는지 — 이름/태그/설명(부분일치) + 연관 키워드(동의어)까지.
