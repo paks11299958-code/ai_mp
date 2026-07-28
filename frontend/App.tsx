@@ -1079,6 +1079,24 @@ const AppContent: React.FC = () => {
         }
     };
 
+    // 공유 딥링크로 도착해 예약된 퀵메뉴 자동 실행(꿈해몽·관상·운세 등).
+    // ★이 훅은 반드시 아래 조기 return(resetToken/isAuthChecking/screen==='authPage'/'main')
+    //   보다 **위**에 있어야 한다 — 아래에 두면 로그인·화면 상태에 따라 훅 개수가 달라져
+    //   React #310(Rendered fewer hooks than expected)로 앱 전체가 백지가 된다(2026-07-28 실사고).
+    // handleQuickMenuSelect는 아래에 선언된 함수 선언식이 아니라 const라 여기서 못 부른다
+    //   → 실행은 ref에 담아 우회(아래에서 채움).
+    const quickMenuRunnerRef = useRef<((menu: QuickMenuItem, useBirthInfo: boolean) => void) | null>(null);
+    useEffect(() => {
+        if (!pendingQuickMenuLabel || screen !== 'chat') return;
+        const json = personas.find(p => p.id === activePersonaId)?.quickMenuJson;
+        if (!json || !quickMenuRunnerRef.current) return;
+        let cfg: { menus?: QuickMenuItem[]; useBirthInfo?: boolean };
+        try { cfg = JSON.parse(json); } catch { setPendingQuickMenuLabel(null); return; }
+        const menu = cfg.menus?.find(m => m.label === pendingQuickMenuLabel);
+        setPendingQuickMenuLabel(null);
+        if (menu) quickMenuRunnerRef.current(menu, !!cfg.useBirthInfo);
+    }, [pendingQuickMenuLabel, screen, activePersonaId, personas]);
+
     if (resetToken) {
         return (
             <>
@@ -1312,18 +1330,9 @@ const AppContent: React.FC = () => {
             textareaRef.current?.focus();
         }
     };
-
-    // 공유 딥링크로 도착해 예약된 퀵메뉴 자동 실행(꿈해몽·관상·운세 등).
-    // 채팅 화면 + 대상 페르소나의 quickMenuJson이 준비된 뒤에야 실행 가능하므로 여기서 처리한다.
-    // 라벨이 그 페르소나에 없으면(메뉴 개편 등) 조용히 예약만 해제 — 채팅은 이미 열려 있다.
-    useEffect(() => {
-        if (!pendingQuickMenuLabel || screen !== 'chat' || !activePersona?.quickMenuJson) return;
-        let cfg: { menus?: QuickMenuItem[]; useBirthInfo?: boolean };
-        try { cfg = JSON.parse(activePersona.quickMenuJson); } catch { setPendingQuickMenuLabel(null); return; }
-        const menu = cfg.menus?.find(m => m.label === pendingQuickMenuLabel);
-        setPendingQuickMenuLabel(null);
-        if (menu) handleQuickMenuSelect(menu, !!cfg.useBirthInfo);
-    }, [pendingQuickMenuLabel, screen, activePersona?.quickMenuJson]);
+    // 위 딥링크 useEffect가 호출할 수 있도록 최신 핸들러를 ref에 담아둔다
+    // (훅은 조기 return보다 위에 있어야 하는데 이 함수는 아래에 선언되므로).
+    quickMenuRunnerRef.current = handleQuickMenuSelect;
 
     if (screen === 'main') {
         // 최근 대화 페르소나(보이는 것만, 최근순). "최근 대화" 줄 + 개인화 인사용.
