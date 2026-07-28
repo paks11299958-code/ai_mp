@@ -90,13 +90,6 @@ function quickMenuErrorMessage(e: any): string {
     return '분석에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 }
 
-/** 한글 받침에 따라 '와'/'과' — "도결 선생과 할 수 있는 것" / "유나와 할 수 있는 것". */
-const _josaWaGwa = (word: string): string => {
-    const ch = word?.trim().slice(-1) ?? '';
-    if (ch < '가' || ch > '힣') return '와';
-    return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '과' : '와';
-};
-
 const AppContent: React.FC = () => {
     const {
         paidPoints: userPaidPoints,
@@ -2034,27 +2027,29 @@ const AppContent: React.FC = () => {
                     <div onClick={e => e.stopPropagation()} className="w-full max-w-xs rounded-2xl overflow-hidden text-center"
                          style={{ background: '#FFFCF8', boxShadow: '0 24px 64px -12px rgba(80,50,110,0.4)' }}>
                         <div className="px-6 pt-6 pb-5">
-                            {/* ① 누구인가 — 페르소나 소개 */}
-                            {deepLinkGuide.features && (
-                                <p className="text-[10.5px] font-bold tracking-wide mb-1" style={{ color: '#B0A3BE' }}>
-                                    AI 페르소나
+                            {/* 이름은 카드 밖 제목으로 — 두 섹션(소개/기능)의 공통 머리글 */}
+                            <h3 className="text-[17px] font-extrabold mb-3" style={{ color: '#2D2017' }}>
+                                {deepLinkGuide.title}
+                            </h3>
+
+                            {/* ① 소개 — 기능 카드와 같은 무게의 카드로 감싼다(2026-07-28 사장 지시).
+                                예전엔 소개가 맨 바닥에 놓이고 기능만 카드라 두 블록의 무게가 안 맞았다.
+                                동일한 배경·라운드로 묶으니 "소개 / 기능" 두 덩어리로 단정하게 읽힌다. */}
+                            <div className="rounded-xl px-3 py-3 text-left" style={{ background: 'rgba(142,111,183,0.07)' }}>
+                                <p className="text-[11px] font-bold mb-1.5" style={{ color: '#8E6FB7' }}>소개</p>
+                                {/* whiteSpace: pre-line — 어드민에서 줄바꿈을 넣어 두 줄로 쓴 소개문이
+                                    많은데(14명 중 9명) HTML은 줄바꿈을 공백으로 처리해 한 줄로 붙었다. */}
+                                <p className="text-[12.5px] leading-relaxed"
+                                   style={{ color: '#6B5F78', whiteSpace: 'pre-line' }}>
+                                    {deepLinkGuide.desc}
                                 </p>
-                            )}
-                            <h3 className="text-[17px] font-extrabold" style={{ color: '#2D2017' }}>{deepLinkGuide.title}</h3>
-                            {/* whiteSpace: pre-line — 어드민에서 줄바꿈을 넣어 두 줄로 쓴 소개문이
-                                많은데(14명 중 9명) HTML은 줄바꿈을 공백으로 처리해 한 줄로 붙었다.
-                                의도한 줄 나눔을 살린다(2026-07-28). */}
-                            <p className="mt-2 text-[13px] leading-relaxed"
-                               style={{ color: '#6B5F78', whiteSpace: 'pre-line' }}>
-                                {deepLinkGuide.desc}
-                            </p>
-                            {/* ② 무엇을 해주는가 — 기능 소개(구분선으로 ①과 분리, 사장 지적) */}
+                            </div>
+                            {/* ② 기능 — ①과 같은 카드 형태로 나란히(구분선 대신 카드 분리) */}
                             {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
-                                <div className="mt-4 pt-4 rounded-xl px-3 pb-3 text-left"
-                                     style={{ background: 'rgba(142,111,183,0.07)', borderTop: '1px dashed rgba(142,111,183,0.3)' }}>
+                                <div className="mt-2.5 rounded-xl px-3 py-3 text-left"
+                                     style={{ background: 'rgba(142,111,183,0.07)' }}>
                                     <p className="text-[11px] font-bold mb-2.5" style={{ color: '#8E6FB7' }}>
-                                        {deepLinkGuide.title}{_josaWaGwa(deepLinkGuide.title)} 할 수 있는 것
-                                        <span className="font-normal text-[#A99BB5]"> · 눌러서 시작</span>
+                                        기능 <span className="font-normal text-[#A99BB5]">· 눌러서 바로 시작</span>
                                     </p>
                                     {/* 텍스트 칩 → 아이콘 카드. 누르면 그 기능이 바로 실행된다
                                         (기존엔 안내용 텍스트라 눌러도 아무 일도 없었음, 사장 지적). */}
