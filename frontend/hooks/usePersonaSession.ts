@@ -104,14 +104,16 @@ export function usePersonaSession(
 
     const handleSelectPersona = useCallback(async (personaId: string, { prefetchOnly = false } = {}) => {
         if (!prefetchOnly) { setActivePersonaId(personaId); setInputPlaceholder(null); setActiveQuickMenu(null); }
+        // ★이미지 로드는 세션 유무보다 먼저 한다(2026-07-28): 아래 early return이 이미지 로드보다
+        // 위에 있으면, 이미 대화 이력이 있는 페르소나로 진입할 때 프로필 이미지가 영영 안 뜬다.
+        if (!personaImages[personaId]) {
+            refreshPersonaImages(personaId);
+        }
+
         const current = sessions[personaId];
         if (current?.dbSessionId || current?.messages.length > 0) return;
 
         try {
-            // 이미지 로드 (아직 없을 경우)
-            if (!personaImages[personaId]) {
-                refreshPersonaImages(personaId);
-            }
 
 
             const { sessions: allSessions, firstChatMap: fcMap } = await sessionApi.getAll();

@@ -517,9 +517,12 @@ const AppContent: React.FC = () => {
             const target = personas.find(p => p.id === pendingDeepLink.id && p.isVisible !== false);
             if (!target) { setPendingDeepLink(null); return; } // 없는/숨김 페르소나 → 무시
             if (user) {
-                setActivePersonaId(target.id);
+                // handlePersonaClick(skipIntro)로 들어가야 세션·이미지 로딩까지 함께 이뤄진다.
+                // setActivePersonaId만 부르면 personaImages가 비어 왼쪽 프로필 이미지가 안 뜬다
+                // (2026-07-28 사장 지적).
                 rememberLastPersona(target.id);
                 goTo('chat');
+                handlePersonaClick(target.id, { skipIntro: true });
                 // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 친구 링크로 온 사람은 채팅창만
                 // 보고는 뭘 물어봐야 할지 모른다. 설명 + 기능 목록을 모달로 보여준다.
                 const feats = FEATURES_GRID.filter(f => f.personaName === target.name).map(f => f.name);
