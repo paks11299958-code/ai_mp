@@ -1,0 +1,16 @@
+# AI 놀이터 (aichat.dbzone.kr) — 검색 로봇 안내
+# 2026-07-29 신설. 종전엔 이 파일이 없어 SPA 폴백으로 index.html이 응답했다.
+
+User-agent: *
+Allow: /
+
+# 로그인 후에만 의미 있는 경로 — 크롤링해도 내용이 없고 검색 결과만 지저분해진다
+Disallow: /api/
+Disallow: /?embed=
+Disallow: /consult/
+
+# 링크 추적 파라미터가 붙은 주소가 따로 색인되면 같은 페이지가 중복 노출된다
+Disallow: /*?ref=
+Disallow: /*&ref=
+
+Sitemap: https://aichat.dbzone.kr/sitemap.xml
