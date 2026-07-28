@@ -379,7 +379,9 @@ const AppContent: React.FC = () => {
     // 공유 링크로 들어와 퀵메뉴가 자동 실행됐을 때 띄우는 안내(2026-07-28 사장 지시).
     // 처음 온 사람은 입력창 placeholder만으론 "여기에 뭘 쓰라는 건지" 모른다 —
     // 무엇을 하는 화면이고 어떻게 쓰는지 한 번 알려준 뒤 닫는다.
-    const [deepLinkGuide, setDeepLinkGuide] = useState<{ title: string; desc: string } | null>(null);
+    // features: 페르소나 링크(?p=)로 들어온 경우 "이 페르소나가 뭘 해주는지" 목록으로 보여준다.
+    // 채팅창만 열리면 무엇을 할 수 있는지 알 수 없어 그대로 나간다(2026-07-28 사장 지시).
+    const [deepLinkGuide, setDeepLinkGuide] = useState<{ title: string; desc: string; features?: string[] } | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
     // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
@@ -518,6 +520,14 @@ const AppContent: React.FC = () => {
                 setActivePersonaId(target.id);
                 rememberLastPersona(target.id);
                 goTo('chat');
+                // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 친구 링크로 온 사람은 채팅창만
+                // 보고는 뭘 물어봐야 할지 모른다. 설명 + 기능 목록을 모달로 보여준다.
+                const feats = FEATURES_GRID.filter(f => f.personaName === target.name).map(f => f.name);
+                setDeepLinkGuide({
+                    title: target.name,
+                    desc: target.description || '무엇이든 편하게 말씀해 보세요.',
+                    features: feats.length ? feats : undefined,
+                });
             } else {
                 handleGuestPersonaClick(target.id); // 가입 강요 X → 인트로(소개) 노출
             }
@@ -1986,6 +1996,23 @@ const AppContent: React.FC = () => {
                             <p className="mt-2.5 text-[13px] leading-relaxed" style={{ color: '#6B5F78' }}>
                                 {deepLinkGuide.desc}
                             </p>
+                            {/* 페르소나 링크로 온 경우 — 이 사람이 무엇을 해주는지 목록으로 */}
+                            {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
+                                <div className="mt-4 rounded-xl px-3 py-3 text-left" style={{ background: 'rgba(142,111,183,0.07)' }}>
+                                    <p className="text-[11px] font-bold mb-2" style={{ color: '#8E6FB7' }}>이런 걸 도와드려요</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {deepLinkGuide.features.map(f => (
+                                            <span key={f} className="text-[12px] px-2 py-1 rounded-lg"
+                                                  style={{ background: '#fff', color: '#5B3F82', border: '1px solid rgba(142,111,183,0.25)' }}>
+                                                {f}
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <p className="mt-2.5 text-[11.5px] leading-relaxed" style={{ color: '#9A8FA6' }}>
+                                        위 메뉴를 누르거나, 궁금한 것을 채팅으로 물어보세요.
+                                    </p>
+                                </div>
+                            )}
                             <button
                                 onClick={() => setDeepLinkGuide(null)}
                                 className="mt-5 w-full py-3 rounded-full text-[14px] font-bold text-white"
