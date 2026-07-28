@@ -32,6 +32,7 @@ isDefault, isVisible, categoryId
 quickMenuJson       ← 퀵메뉴 설정 JSON 문자열
 features            ← 활성 기능 키 JSON 배열, 예: ["stock","hotkeyword"] (String?, null이면 프론트 이름 폴백)
 ```
+- **`User.lastLoginAt`**(2026-07-28 신설, DateTime?): 마지막 로그인 시각. 어드민 회원 목록 '최근 접속' 열 — 가입일만으론 "가입만 하고 안 오는 사람"과 "계속 쓰는 사람"이 구분되지 않는다. 토큰 발급 5개 경로(`/login`·`/register`·`/guest-register`·`/upgrade-guest`·카카오) 모두에서 `touchLastLogin()`이 fire-and-forget으로 기록(실패해도 로그인은 진행). 도입 이전 로그인은 기록이 없어 화면에 `—`로 뜬다.
 - `introText`(2026-07-28): 공유·초대 링크(`?p=`/`?f=`)로 처음 온 사람에게 뜨는 안내 모달의 소개문. **비면 `description`으로 폴백**. 어드민 PersonaInfoTab '공유 링크 소개문'에서 편집. ★도입 배경: 원래 프론트가 모달을 열 때마다 `systemInstruction`을 파싱해 만들었는데, 결과가 늘 같은데도 매번 계산했고 그러려고 **프롬프트 전문이 `/api/personas` 응답에 실려 클라이언트까지 내려갔다**. 이제 프론트는 이 컬럼만 읽는다 — `systemInstruction`을 목록 응답에서 제외하는 후속 정리가 가능해졌다(현재는 여전히 반환 중).
 - `starVideoUrl`: 별스타 100개 이상 수신 시 재생할 감사 영상 URL (GCS)
 - `features`: 채팅 화면에 노출할 기능 버튼 키 목록. 키→라벨/아이콘/색은 `frontend/personaFeatures.ts` FEATURE_REGISTRY가 단일 출처(news/stock/hotkeyword/used/luxury/mathtutor/club/golf-swing/golf-record). null/빈배열이면 이름 기반 폴백(레거시 보존). 어드민 PersonaInfoTab "활성 기능" 체크박스로 관리.

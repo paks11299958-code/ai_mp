@@ -610,19 +610,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
     if (fullScreen) {
         return (
             <div className="fixed inset-0 z-50 flex flex-col" style={{ background: 'linear-gradient(135deg, #F5EFE6 0%, #FBF8F3 55%, #EDE4D8 100%)' }}>
-                <div className="flex items-center px-6 py-4">
-                    <button
-                        onClick={onBack}
-                        className="flex items-center gap-2 transition-colors text-sm"
-                        style={{ color: '#A89080' }}
-                        onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#2D2017'}
-                        onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#A89080'}
-                    >
-                        <Icon name="ChevronLeft" size={18} />
-                        돌아가기
-                    </button>
-                </div>
-                <div className="flex-1 flex flex-col items-center justify-center px-4 pb-16">
+                {/* ★뒤로가기를 좌측 상단 원형 아이콘으로(2026-07-28 사장 지시): 기존 '돌아가기'는
+                    한 줄을 통째로 차지해 폼을 아래로 밀었고, 그 탓에 카카오 로그인이 잘렸다.
+                    absolute로 띄우면 그 줄이 사라져 폼이 위로 올라온다.
+                    ※'닫기(X)'가 아니라 화살표인 이유 — 이건 모달이 아니라 전체 화면이라 닫는 게
+                      아니라 메인으로 '돌아가는' 것이고, 프로젝트 뒤로가기 패턴(헤더 내 원형
+                      아이콘 버튼)과도 맞다(memory/project_back_button_pattern). */}
+                <button
+                    onClick={onBack}
+                    aria-label="메인으로 돌아가기"
+                    title="메인으로"
+                    className="absolute top-3 left-3 z-10 p-2 rounded-full transition-colors"
+                    style={{ color: '#A89080', background: 'rgba(255,255,255,0.65)' }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#2D2017'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.95)'; }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#A89080'; (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.65)'; }}
+                >
+                    <Icon name="ChevronLeft" size={20} />
+                </button>
+                <div className="flex-1 flex flex-col items-center justify-center px-4 py-4">
                     {referralBanner && (
                         // 배너 분기(2026-07-14): 채널 코드(유튜브 QR 등)면 '환영' 문구,
                         // 진짜 친구 추천코드면 기존 '친구 초대' 문구(양방향 보상 안내).
