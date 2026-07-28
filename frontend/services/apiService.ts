@@ -1126,6 +1126,8 @@ export interface AdminUser {
     paidPoints: number;
     bonusPoints: number;
     createdAt: string;
+    /** 마지막 로그인 시각(2026-07-28 신설). 도입 이전 로그인은 기록이 없어 null. */
+    lastLoginAt: string | null;
     sessionCount: number;
 }
 

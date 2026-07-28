@@ -603,8 +603,11 @@ const AppContent: React.FC = () => {
             // 로그인: 전용 보드가 있으면 보드를 열고(featureBoardOpeners), 그 외(운세 등)는
             // 해당 페르소나 채팅으로 이동. (hero 렌더의 onFeatureSelect와 동일한 분기)
             if (key === 'webtoon') {
+                // ★goTo('chat') 필수(2026-07-28 전수테스트로 발견): 웹툰 모달도 채팅 화면에서만
+                // 렌더되는데 setActivePersonaId만 부르면 메인에 머물러 아무 일도 일어나지 않았다.
+                // 타로와 동일 패턴으로 맞춘다.
                 const wp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'webtoon')?.personaName);
-                if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
+                if (wp) { goTo('chat'); handlePersonaClick(wp.id, { skipIntro: true }); setShowWebtoon(true); }
             } else if (key === 'tarot') {
                 // 타로는 유나 채팅 컨텍스트 위에서 카드 모달을 띄운다(웹툰과 동일 패턴).
                 const tp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'tarot')?.personaName);

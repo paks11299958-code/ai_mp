@@ -153,6 +153,7 @@ export const UsersPanel: React.FC = () => {
                                     <th className="px-4 py-3 font-medium text-right">무료P</th>
                                     <th className="px-4 py-3 font-medium text-right">세션</th>
                                     <th className="px-4 py-3 font-medium">가입일</th>
+                                    <th className="px-4 py-3 font-medium">최근 접속</th>
                                     <th className="px-4 py-3 font-medium">역할</th>
                                     <th className="px-4 py-3 font-medium"></th>
                                 </tr>
@@ -172,6 +173,14 @@ export const UsersPanel: React.FC = () => {
                                             <td className="px-4 py-3 text-right text-yellow-300">{u.bonusPoints.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-right text-gray-400">{u.sessionCount}</td>
                                             <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleString('sv-SE').slice(0, 16)}</td>
+                                            {/* 최근 접속 — 가입일만으론 "가입만 하고 안 오는 사람"과
+                                                "계속 쓰는 사람"이 구분되지 않는다(2026-07-28 사장 지시).
+                                                lastLoginAt 도입 이전 로그인은 기록이 없어 '—'로 뜬다. */}
+                                            <td className="px-4 py-3 whitespace-nowrap">
+                                                {u.lastLoginAt
+                                                    ? <span className="text-gray-500">{new Date(u.lastLoginAt).toLocaleString('sv-SE').slice(0, 16)}</span>
+                                                    : <span className="text-gray-600">—</span>}
+                                            </td>
                                             <td className="px-4 py-3">
                                                 <select
                                                     value={u.role}
