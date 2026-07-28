@@ -35,7 +35,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
     const [username, setUsername] = useState('');
-    const [registerTab, setRegisterTab] = useState<RegisterTab>('email');
+    // 가입은 휴대전화를 기본으로(2026-07-28 사장 지시) — 문자 인증이 이메일보다 빠르고
+    // 메일함을 열러 나갔다가 안 돌아오는 이탈이 없다. 이메일 가입은 탭으로 전환.
+    const [registerTab, setRegisterTab] = useState<RegisterTab>('phone');
     const [registerStep, setRegisterStep] = useState<RegisterStep>('form');
     const [regVerifyCode, setRegVerifyCode] = useState('');
     const [resendCountdown, setResendCountdown] = useState(0);
@@ -140,7 +142,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
     };
 
     // 크림 스타일 공통 클래스
-    const inputClass = 'w-full rounded-xl px-4 py-3 text-sm transition-colors focus:outline-none';
+    // py-3 → py-2.5: 필드가 5~6개라 0.5씩만 줄여도 폼 전체가 눈에 띄게 짧아진다(카카오 노출 확보)
+    const inputClass = 'w-full rounded-xl px-4 py-2.5 text-sm transition-colors focus:outline-none';
     const inputStyle: React.CSSProperties = {
         background: '#FFFDF9',
         border: '1px solid #D9CEBF',
@@ -407,15 +410,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                 </div>
 
             ) : (
-                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                // ★여백 압축(2026-07-28 사장 지적): 가입 폼이 길어 아래쪽 카카오 로그인이 화면
+                // 밖으로 밀려 스크롤해야 보였다. 소셜 로그인은 가려지면 안 되는 진입점이다.
+                // 구조는 그대로 두고 패딩·간격만 줄여 한 화면에 들어오게 한다.
+                <form onSubmit={handleSubmit} className="px-6 py-4 space-y-3">
 
                     {/* 회원가입 전용: 가입 혜택 안내(실지급액과 동일 표기 — SIGNUP_BONUS=1000) */}
                     {mode === 'register' && (
-                        <div className="flex items-center gap-2 rounded-xl px-3 py-2.5"
+                        <div className="flex items-center gap-2 rounded-xl px-3 py-2"
                              style={{ background: '#F3E9F4', border: '1px solid #D4A8DC' }}>
-                            <span style={{ fontSize: 16 }}>🎁</span>
-                            <span className="text-xs font-semibold" style={{ color: '#7A4B96' }}>
-                                지금 가입하면 무료 <b>1,000P</b> 즉시 지급 — AI 기능 바로 체험
+                            <span style={{ fontSize: 14 }}>🎁</span>
+                            <span className="text-[11.5px] font-semibold" style={{ color: '#7A4B96' }}>
+                                지금 가입하면 무료 <b>1,000P</b> 즉시 지급
                             </span>
                         </div>
                     )}
