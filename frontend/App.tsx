@@ -1492,7 +1492,10 @@ const AppContent: React.FC = () => {
     quickMenuRunnerRef.current = handleQuickMenuSelect;
 
     if (screen === 'main') {
-        // 최근 대화 페르소나(보이는 것만, 최근순). "최근 대화" 줄 + 개인화 인사용.
+        // 최근 대화 페르소나(보이는 것만, 최근순).
+        // ※ 현재 MainPageNew는 이 값을 렌더에 쓰지 않는다(프롭만 받고 미사용) — 2026-07-29 확인.
+        //   기록(rememberLastPersona)은 계속 쌓아둔다: 나중에 '이어서 대화'류를 되살릴 때
+        //   그 시점부터 이력이 비어 있으면 곤란하기 때문. 표시 여부와 수집은 별개 문제다.
         const recentPersonas = recentPersonaIds
             .map(id => visiblePersonas.find(p => p.id === id))
             .filter((p): p is Persona => !!p);
@@ -2516,13 +2519,21 @@ const AppContent: React.FC = () => {
                         <header className="h-16 flex items-center justify-between px-4 shrink-0 z-10 border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             <div className="flex items-center">
                                 {/* 첫 화면(=페르소나·기능 둘러보기). 단일화 이후 홈/둘러보기가 같은 main이라 버튼 하나로 통합. */}
+                                {/* 2026-07-29 사장 지적 "버튼처럼 보이지도 않고 너무 작다" — 세 가지를 함께 고침:
+                                    ①아이콘만으론 처음 온 사람이 한 번 더 생각해야 한다(title은 모바일에서 안 보임)
+                                      → "홈" 글자를 붙여 뭘 하는 버튼인지 즉시 읽히게 한다.
+                                    ②배경(#F5E6F7)과 흰 헤더의 명도 차가 거의 없어 "눌리는 것"으로 안 읽혔다
+                                      → 배경·테두리·글자를 모두 진하게 올려 대비를 확보.
+                                    ③높이 약 32px = 모바일 터치 권장(44px) 미달 → min-h-[44px]로 키움. */}
                                 <button
-                                    className="flex items-center gap-1.5 mr-2 rounded-full px-3 py-1.5 text-[#8E6FB7] hover:bg-[#EAD5F2] transition-colors"
-                                    style={{ background: '#F5E6F7', border: '1px solid #E4D3EC' }}
+                                    className="flex items-center gap-1.5 mr-2 rounded-full px-3.5 min-h-[44px] text-[#6B4A96] font-semibold text-sm hover:brightness-95 active:scale-[0.97] transition-all"
+                                    style={{ background: '#EBD9F5', border: '1.5px solid #C9A8E0' }}
                                     onClick={() => { setMainInitialTab('personas'); goTo('main'); }}
                                     title="첫 화면 · 페르소나·기능 둘러보기"
+                                    aria-label="첫 화면으로"
                                 >
-                                    <Icon name="Home" size={17} />
+                                    <Icon name="Home" size={18} />
+                                    <span>홈</span>
                                 </button>
                                 {activePersona && (
                                     <>
@@ -2683,39 +2694,11 @@ const AppContent: React.FC = () => {
                             </div>
                         </header>
 
-                        {/* 최근 페르소나 빠른 전환 칩 (현재 페르소나 제외, 사이드바 대체) */}
-                        {(() => {
-                            const recentOthers = recentPersonaIds
-                                .filter(id => id !== activePersonaId)
-                                .map(id => visiblePersonas.find(p => p.id === id))
-                                .filter((p): p is NonNullable<typeof p> => !!p)
-                                .slice(0, 8);
-                            if (recentOthers.length === 0) return null;
-                            return (
-                                <div className="shrink-0 border-b border-[#F0E9DE] bg-white/55 backdrop-blur-sm">
-                                    <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-                                        {recentOthers.map(p => (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => handlePersonaClick(p.id)}
-                                                className="flex items-center gap-1.5 shrink-0 pl-1 pr-2.5 py-1 rounded-full transition-colors hover:bg-[#EAD5F2]"
-                                                style={{ background: '#F5E6F7', border: '1px solid #E4D3EC', color: '#8E6FB7' }}
-                                                title={`${p.name}와 대화`}
-                                            >
-                                                {p.imageUrl ? (
-                                                    <img src={p.imageUrl} alt={p.name} className="w-6 h-6 rounded-full object-cover shrink-0" />
-                                                ) : (
-                                                    <span className={`w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-white bg-gradient-to-br ${p.colorClass}`}>
-                                                        <Icon name={p.iconName} size={12} />
-                                                    </span>
-                                                )}
-                                                <span className="text-xs font-medium text-[#2D2438] whitespace-nowrap">{p.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            );
-                        })()}
+                        {/* 최근 페르소나 빠른 전환 칩 제거(2026-07-29, 사장 결정).
+                            원래 '사이드바 대체'로 넣었으나 ①헤더 아래 약 44px을 상시 차지해
+                            모바일 대화 영역을 잠식하고 ②지금 대화 중인 사람과 시선이 분산되며
+                            ③같은 날 헤더 홈 버튼을 "🏠 홈"으로 크게 고쳐 역할이 겹쳤다.
+                            페르소나 전환은 홈(첫 화면)에서 전체를 보고 고르는 흐름으로 일원화. */}
 
                         {(() => {
                             // 기능 키 → 보드 열기 핸들러는 본체 FEATURE_ACTIONS 재사용(메타는 FEATURE_REGISTRY 단일출처)
