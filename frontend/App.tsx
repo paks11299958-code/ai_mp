@@ -993,19 +993,36 @@ const AppContent: React.FC = () => {
         }));
     };
 
-    useEffect(() => {
-        if (isAdminMode) return;
-        // ★scrollIntoView는 body 등 조상 전부를 스크롤시켜 모바일에서 상단 헤더가
-        //   화면 밖으로 밀려났음(2026-07-06 수정) → 메시지 컨테이너(첫 스크롤 가능한
-        //   조상)만 스크롤한다.
+    /** 메시지 목록 맨 아래로. instant=true면 애니메이션 없이(방 진입 시 사용).
+     *  ★scrollIntoView는 body 등 조상 전부를 스크롤시켜 모바일에서 상단 헤더가
+     *    화면 밖으로 밀려났음(2026-07-06 수정) → 메시지 컨테이너(첫 스크롤 가능한
+     *    조상)만 스크롤한다. */
+    const scrollMessagesToBottom = useCallback((instant = false) => {
         const end = messagesEndRef.current;
         if (!end) return;
         let sc: HTMLElement | null = end.parentElement;
         while (sc && sc.scrollHeight <= sc.clientHeight + 1) sc = sc.parentElement;
         if (sc && sc !== document.body && sc !== document.documentElement) {
-            sc.scrollTo({ top: sc.scrollHeight, behavior: 'smooth' });
+            sc.scrollTo({ top: sc.scrollHeight, behavior: instant ? 'auto' : 'smooth' });
         }
-    }, [currentSession.messages, isAdminMode]);
+    }, []);
+
+    useEffect(() => {
+        if (isAdminMode) return;
+        scrollMessagesToBottom();
+    }, [currentSession.messages, isAdminMode, scrollMessagesToBottom]);
+
+    // ★채팅방 진입 시 마지막 대화로 자동 스크롤(2026-07-29 사장 지시 "수동으로 내리기 귀찮다").
+    //   위 useEffect는 messages **배열 참조**가 바뀔 때만 도는데, 방을 다시 열면 이미 로드된
+    //   세션이라 참조가 그대로여서 스크롤이 안 걸렸다. 그래서 personaId 변경을 따로 잡는다.
+    //   ★instant(behavior:'auto')로 내린다 — 진입하자마자 위에서 아래로 주르륵 흐르면
+    //     산만하고, 메시지가 많으면 애니메이션이 끝나기 전에 사용자가 스크롤해 충돌한다.
+    //   렌더가 끝난 뒤여야 scrollHeight가 정확하므로 rAF 두 번(레이아웃 확정 후)에 실행.
+    useEffect(() => {
+        if (isAdminMode || !activePersonaId) return;
+        const id = requestAnimationFrame(() => requestAnimationFrame(() => scrollMessagesToBottom(true)));
+        return () => cancelAnimationFrame(id);
+    }, [activePersonaId, isAdminMode, scrollMessagesToBottom]);
 
     // 포인트 부족(402) 전역 처리: 어느 기능에서든 충전 모달을 띄운다.
     useEffect(() => {
