@@ -1012,16 +1012,36 @@ const AppContent: React.FC = () => {
         scrollMessagesToBottom();
     }, [currentSession.messages, isAdminMode, scrollMessagesToBottom]);
 
-    // ★채팅방 진입 시 마지막 대화로 자동 스크롤(2026-07-29 사장 지시 "수동으로 내리기 귀찮다").
+    // ★채팅방 진입 시 마지막 대화로 자동 스크롤(2026-07-29 사장 지시 "수동으로 내리기 귀찮다",
+    //   이어서 "스크롤은 무조건 잘 넘겨야 한다").
     //   위 useEffect는 messages **배열 참조**가 바뀔 때만 도는데, 방을 다시 열면 이미 로드된
     //   세션이라 참조가 그대로여서 스크롤이 안 걸렸다. 그래서 personaId 변경을 따로 잡는다.
     //   ★instant(behavior:'auto')로 내린다 — 진입하자마자 위에서 아래로 주르륵 흐르면
     //     산만하고, 메시지가 많으면 애니메이션이 끝나기 전에 사용자가 스크롤해 충돌한다.
-    //   렌더가 끝난 뒤여야 scrollHeight가 정확하므로 rAF 두 번(레이아웃 확정 후)에 실행.
+    //   ★★한 번만 시도하면 안 된다: 세션 로드가 비동기라 진입 직후엔 메시지가 비어 있고,
+    //     이미지·폰트가 늦게 뜨면 그만큼 높이가 또 늘어난다. 그래서 **바닥에 닿을 때까지
+    //     짧게 재시도**한다(최대 2초). 이미 바닥이면 즉시 멈춰 사용자 스크롤을 방해하지 않는다.
     useEffect(() => {
         if (isAdminMode || !activePersonaId) return;
-        const id = requestAnimationFrame(() => requestAnimationFrame(() => scrollMessagesToBottom(true)));
-        return () => cancelAnimationFrame(id);
+        let raf = 0;
+        let timer = 0;
+        const deadline = Date.now() + 2000;
+        const atBottom = () => {
+            const end = messagesEndRef.current;
+            if (!end) return false;
+            let sc: HTMLElement | null = end.parentElement;
+            while (sc && sc.scrollHeight <= sc.clientHeight + 1) sc = sc.parentElement;
+            if (!sc || sc === document.body || sc === document.documentElement) return false;
+            return sc.scrollHeight - sc.clientHeight - sc.scrollTop < 8;
+        };
+        const tick = () => {
+            scrollMessagesToBottom(true);
+            if (Date.now() < deadline && !atBottom()) {
+                timer = window.setTimeout(() => { raf = requestAnimationFrame(tick); }, 120);
+            }
+        };
+        raf = requestAnimationFrame(() => { raf = requestAnimationFrame(tick); });
+        return () => { cancelAnimationFrame(raf); clearTimeout(timer); };
     }, [activePersonaId, isAdminMode, scrollMessagesToBottom]);
 
     // 포인트 부족(402) 전역 처리: 어느 기능에서든 충전 모달을 띄운다.
