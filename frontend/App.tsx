@@ -2519,15 +2519,29 @@ const AppContent: React.FC = () => {
                         <header className="h-16 flex items-center justify-between px-4 shrink-0 z-10 border-b border-[#F0E9DE] bg-white/75 backdrop-blur-sm">
                             <div className="flex items-center">
                                 {/* 첫 화면(=페르소나·기능 둘러보기). 단일화 이후 홈/둘러보기가 같은 main이라 버튼 하나로 통합. */}
-                                {/* 2026-07-29 사장 지적 "버튼처럼 보이지도 않고 너무 작다" — 세 가지를 함께 고침:
-                                    ①아이콘만으론 처음 온 사람이 한 번 더 생각해야 한다(title은 모바일에서 안 보임)
-                                      → "홈" 글자를 붙여 뭘 하는 버튼인지 즉시 읽히게 한다.
-                                    ②배경(#F5E6F7)과 흰 헤더의 명도 차가 거의 없어 "눌리는 것"으로 안 읽혔다
-                                      → 배경·테두리·글자를 모두 진하게 올려 대비를 확보.
-                                    ③높이 약 32px = 모바일 터치 권장(44px) 미달 → min-h-[44px]로 키움. */}
+                                {/* 2026-07-29 사장 지적 "버튼처럼 보이지도 않고 너무 작다" → 3가지 수정 후
+                                    재차 "스톤 버튼처럼" 요청. 색만 진하게 한 1차는 **평평한 걸 더 진하게 칠한 것**
+                                    이라 근본 해결이 아니었다 — 사람이 "누를 수 있다"고 느끼는 건 색 대비가 아니라
+                                    **깊이 신호**다. 그래서 셋을 넣었다:
+                                      ①아래쪽 그림자 = 표면에서 떠 있다는 신호
+                                      ②위 밝고 아래 어두운 그라데이션 + 안쪽 하이라이트 = 빛 받는 입체
+                                      ③누를 때 그림자가 줄고 내려앉음(active) = 물리적 반응
+                                    글자("홈")·44px 터치 영역은 1차에서 넣은 것 유지. */}
                                 <button
-                                    className="flex items-center gap-1.5 mr-2 rounded-full px-3.5 min-h-[44px] text-[#6B4A96] font-semibold text-sm hover:brightness-95 active:scale-[0.97] transition-all"
-                                    style={{ background: '#EBD9F5', border: '1.5px solid #C9A8E0' }}
+                                    className="group flex items-center gap-1.5 mr-2 rounded-full px-4 min-h-[44px] text-white font-bold text-sm transition-all duration-100"
+                                    style={{
+                                        background: 'linear-gradient(180deg, #A97FD0 0%, #8E5FBF 55%, #7B4CAF 100%)',
+                                        border: '1px solid #6E3FA3',
+                                        // 위 안쪽 하이라이트(빛) + 아래 안쪽 음영 + 바깥 드롭섀도(떠 있음)
+                                        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -2px 4px rgba(76,40,110,0.35), 0 3px 0 #6A3D9C, 0 5px 10px -2px rgba(90,50,140,0.45)',
+                                        textShadow: '0 1px 1px rgba(60,30,95,0.35)',
+                                    }}
+                                    onMouseDown={e => {
+                                        e.currentTarget.style.transform = 'translateY(3px)';
+                                        e.currentTarget.style.boxShadow = 'inset 0 1px 0 rgba(255,255,255,0.25), inset 0 2px 6px rgba(76,40,110,0.45), 0 0 0 #6A3D9C, 0 1px 3px rgba(90,50,140,0.35)';
+                                    }}
+                                    onMouseUp={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+                                    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
                                     onClick={() => { setMainInitialTab('personas'); goTo('main'); }}
                                     title="첫 화면 · 페르소나·기능 둘러보기"
                                     aria-label="첫 화면으로"
@@ -2729,16 +2743,34 @@ const AppContent: React.FC = () => {
                             return (
                                 <div className="px-4 py-2.5 shrink-0 border-b border-[#F0E9DE] bg-white/60 backdrop-blur-sm">
                                     <div className="max-w-4xl mx-auto flex items-center gap-2 flex-wrap">
+                                        {/* 2026-07-29: 기능 버튼에 **은은한** 입체 + 눌림 반응.
+                                            ★홈 버튼처럼 강한 입체를 쓰지 않는 이유: 이 줄에는 버튼이 5~6개
+                                            나란히 놓이는데 전부 튀어나오면 아무것도 강조되지 않고, 기능마다
+                                            고유 팔레트(c.color/bgColor)라 색마다 그림자를 따로 조율해야 한다.
+                                            부족했던 건 입체감보다 **눌림 반응**이었다(전엔 색 변화만 있었다). */}
                                         {standardCards.map((c, i) => (
                                             <button key={`f${i}`} onClick={c.onClick}
-                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors whitespace-nowrap"
-                                                style={{ color: c.color, background: c.bgColor, borderColor: c.borderColor }}>
+                                                className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition-all duration-100 whitespace-nowrap active:translate-y-[2px]"
+                                                style={{
+                                                    color: c.color, background: c.bgColor, borderColor: c.borderColor,
+                                                    // 위 하이라이트(얇게) + 아래 2px 단차 + 옅은 드롭섀도 — 색은 건드리지 않는다
+                                                    boxShadow: `inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 0 ${c.borderColor}, 0 3px 6px -2px rgba(90,70,120,0.25)`,
+                                                }}
+                                                onMouseDown={e => { e.currentTarget.style.boxShadow = `inset 0 1px 3px rgba(90,70,120,0.25), 0 0 0 ${c.borderColor}`; }}
+                                                onMouseUp={e => { e.currentTarget.style.boxShadow = ''; }}
+                                                onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                                            >
                                                 <Icon name={c.icon} size={13} />{c.label}
                                             </button>
                                         ))}
                                         {quickMenuChips.map((c, i) => (
                                             <button key={`q${i}`} onClick={c.onClick}
-                                                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2] transition-colors whitespace-nowrap">
+                                                className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#B49AC9] bg-[#F5E6F7] text-[#8E6FB7] hover:bg-[#E5D5F2] transition-all duration-100 whitespace-nowrap active:translate-y-[2px]"
+                                                style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6), 0 2px 0 #B49AC9, 0 3px 6px -2px rgba(90,70,120,0.25)' }}
+                                                onMouseDown={e => { e.currentTarget.style.boxShadow = 'inset 0 1px 3px rgba(90,70,120,0.25), 0 0 0 #B49AC9'; }}
+                                                onMouseUp={e => { e.currentTarget.style.boxShadow = ''; }}
+                                                onMouseLeave={e => { e.currentTarget.style.boxShadow = ''; }}
+                                            >
                                                 {c.label}
                                             </button>
                                         ))}

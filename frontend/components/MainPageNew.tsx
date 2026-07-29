@@ -834,6 +834,8 @@ const PersonaSelectPanel: React.FC<{
     const filteredFeatures = isSearching ? searchedFeatures : browseFeatures;
 
     // ── 카드 렌더 함수(탭 그리드·통합검색 결과에서 공용) ──────────────
+    // 2026-07-29: 눌림 반응(onMouseDown/Up) 추가. 이 카드는 이미 그림자·호버 리프트가 있어
+    // 입체감은 충분했고, 없던 건 **누를 때의 반응**이었다 — 잘 잡힌 디자인은 건드리지 않는다.
     const renderFeatureCard = (feat: typeof FEATURES_GRID[number], i: number) => {
         const gold = T.gold;
         const numeral = ROMAN_MPN[i % ROMAN_MPN.length];
@@ -864,6 +866,14 @@ const PersonaSelectPanel: React.FC<{
                     (e.currentTarget as HTMLElement).style.boxShadow = isFocused
                         ? `0 0 0 2.5px ${feat.palette.accent}, 0 16px 36px -8px ${feat.palette.accent}60`
                         : `0 6px 20px -6px ${feat.palette.accent}40`;
+                }}
+                onMouseDown={e => {
+                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px) scale(0.99)';
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 2px 8px -4px ${feat.palette.accent}55`;
+                }}
+                onMouseUp={e => {
+                    (e.currentTarget as HTMLElement).style.transform = 'translateY(-5px) scale(1.02)';
+                    (e.currentTarget as HTMLElement).style.boxShadow = `0 16px 36px -8px ${feat.palette.accent}55`;
                 }}
             >
                 {/* 공유 🔗 버튼 (좌상단) — ?f 딥링크 복사/공유 */}
