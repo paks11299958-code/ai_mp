@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { playSound, isSoundMuted, setSoundMuted } from '../utils/sound';
 
 // 🔮 타로 카드 뽑기 모달 (유나 전용 퀵메뉴, 2026-07-06)
 // 흐름: 질문 떠올리기 → 셔플 애니메이션 → 부채꼴에서 3장(과거/현재/미래) 연속 선택(대기 없음)
@@ -64,8 +65,13 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
     const [deck, setDeck] = useState<{ card: typeof MAJOR_ARCANA[number]; reversed: boolean }[]>([]);
     const [drawn, setDrawn] = useState<DrawnCard[]>([]);
     const [usedIdx, setUsedIdx] = useState<Set<number>>(new Set());
+    // 효과음 음소거(2026-07-29 신설) — 기본 켬, 끄면 기기에 기억(utils/sound.ts).
+    const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
 
     const doShuffle = () => {
+        // ★소리는 여기서 시작한다 — "카드 섞기" 클릭이 이 모달의 첫 사용자 조작이라
+        //   모바일 자동재생 차단(사용자 제스처 전 재생 금지)에 걸리지 않는다.
+        playSound('tarotShuffle');
         setStage('shuffling');
         setDeck(shuffled(MAJOR_ARCANA).map(card => ({ card, reversed: Math.random() < 0.3 })));
         setTimeout(() => setStage('spread'), 1600);
@@ -80,6 +86,12 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
         setUsedIdx(prev => new Set(prev).add(idx));
         const next = [...drawn, dc];
         setDrawn(next);
+        playSound('tarotFlip');
+        // 마지막 한 장이 공개되는 순간에만 차임 — 뽑기 소리와 겹치지 않게 살짝 늦춘다
+        // (동시에 울리면 둘 다 뭉개져 들린다).
+        if (next.length >= positions.length) {
+            setTimeout(() => playSound('tarotReveal', 0.25), 320);
+        }
         if (mode === 'daily') {
             // 오늘의 카드는 원래도 1장+즉시 해석 요청 구조 — 그대로 유지.
             const dir = dc.reversed ? '역방향' : '정방향';
@@ -138,10 +150,19 @@ export const TarotCardModal: React.FC<TarotCardModalProps> = ({ onSend, onClose,
                     <div className="text-amber-200/90 text-sm font-semibold tracking-widest" style={{ fontFamily: 'serif' }}>
                         ✦ YUNA TAROT ✦
                     </div>
-                    <button
-                        onClick={() => { if (drawn.length === 0 || confirm('리딩을 중단할까요?')) onClose(); }}
-                        className="text-purple-200/70 hover:text-white text-lg leading-none px-1"
-                    >✕</button>
+                    <div className="flex items-center gap-1">
+                        {/* 효과음 토글 — 지하철·사무실에서 열었을 때 바로 끌 수 있어야 한다 */}
+                        <button
+                            onClick={() => { const n = !muted; setMuted(n); setSoundMuted(n); if (!n) playSound('tarotFlip'); }}
+                            aria-label={muted ? '효과음 켜기' : '효과음 끄기'}
+                            title={muted ? '효과음 켜기' : '효과음 끄기'}
+                            className="text-purple-200/70 hover:text-white text-sm leading-none px-1"
+                        >{muted ? '🔇' : '🔊'}</button>
+                        <button
+                            onClick={() => { if (drawn.length === 0 || confirm('리딩을 중단할까요?')) onClose(); }}
+                            className="text-purple-200/70 hover:text-white text-lg leading-none px-1"
+                        >✕</button>
+                    </div>
                 </div>
 
                 {/* 진행 슬롯: 과거/현재/미래 */}
