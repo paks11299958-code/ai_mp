@@ -171,7 +171,14 @@ export async function shareResultImage(imageUrl: string, featureKey: string, cap
 // 새 채널 추가 시 여기와 shared-api lib/referral.ts CHANNEL_CODES 둘 다 갱신.
 export const CHANNEL_CODES = ['YOUTUBE', 'SHORTS', 'INSTA', 'INSTAGRAM', 'THREADS', 'BLOG', 'NAVER', 'KIN'];
 
+// 접두사 규칙(2026-07-29) — 소재별 세분 코드(SHORTS_TAROT 등)를 화이트리스트에 일일이
+// 추가하지 않기 위함. shared-api lib/referral.ts CHANNEL_PREFIXES와 짝(둘 다 갱신).
+const CHANNEL_PREFIXES = ['SHORTS_'];
+
 /** 보관된 ref가 마케팅 채널 코드인지(친구 추천코드가 아닌지). */
 export function isChannelRef(code?: string): boolean {
-    return !!code && CHANNEL_CODES.includes(code.trim().toUpperCase());
+    if (!code) return false;
+    const c = code.trim().toUpperCase();
+    return CHANNEL_CODES.includes(c)
+        || CHANNEL_PREFIXES.some(p => c.startsWith(p) && c.length > p.length);
 }
