@@ -825,7 +825,13 @@ const AppContent: React.FC = () => {
         //   경험을 하게 된다. introVideoUrl 자산은 DB에 그대로 남아 있어 되살리려면
         //   이 분기만 바꾸면 된다. 비회원 경로(handleGuestPersonaClick)는 가입 유도라는
         //   별개 목적이 있어 인트로를 그대로 둔다.
+        // ★★인사말 선(先)생성: 원래 인트로 영상이 재생되는 동안 prefetchOnly로 인사말을
+        //   만들었는데, 인트로를 없애면서 그 시간이 사라져 **"시작하기를 눌렀는데 인사를
+        //   안 한다"**는 지적을 받았다(2026-07-29). 딥링크 쪽과 같은 방식으로, 소개 모달을
+        //   읽는 동안 백그라운드에서 세션 생성+greet가 끝나게 앞당긴다.
+        //   (handleSelectPersona의 loadingRef 가드가 중복 생성을 막으므로 연달아 불러도 안전)
         rememberLastPersona(personaId);
+        handleSelectPersona(personaId, { prefetchOnly: true });
         handleSelectPersona(personaId);
         if (persona) showPersonaGuide(persona);
     }, [personas, handleSelectPersona, rememberLastPersona, showPersonaGuide]);
