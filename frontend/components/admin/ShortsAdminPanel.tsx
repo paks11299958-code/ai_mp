@@ -27,6 +27,12 @@ const TOPIC_LABELS: Record<string, string> = {
     tarot: '타로 리딩',
 };
 
+// 실제 서비스 화면을 캡처해 영상 소재로 쓰는 소재(2026-07-29 신설).
+// 그 외 소재는 AI가 장면을 새로 그리므로 결과물 성격이 다르다 — 어떤 쪽인지
+// 화면에서 구분되지 않으면 사장이 고를 때 판단할 근거가 없어 배지로 표시한다.
+// rag/shorts_maker_worker.py ADMIN_TOPICS의 capture 필드와 함께 갱신할 것.
+const CAPTURE_TOPICS = new Set(['tarot']);
+
 // 회원용 UserShorts 상태 라벨 — ShortsMakerBoard.tsx의 STATUS_LABEL과 동일 매핑(중복 정의,
 // 두 파일이 다른 목적이라 공유 모듈로 안 뺌).
 const STATUS_LABEL: Record<string, string> = {
@@ -138,8 +144,10 @@ export const ShortsAdminPanel: React.FC = () => {
         pollRef.current = setInterval(() => {
             ticks++;
             loadQueue();
-            if (ticks >= 20 && pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } // 최대 ~3분
-        }, 8000);
+            // ★제작이 실제로 10~20분 걸리는데 예전엔 20틱(~3분)에 폴링을 끊어, 정작
+            //   결과가 나올 무렵엔 갱신이 멈춰 있었다(수동 새로고침해야 보임). 25분까지 본다.
+            if (ticks >= 125 && pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; } // 최대 ~25분
+        }, 12000);
     };
 
     const handleGenerate = async () => {
@@ -148,7 +156,9 @@ export const ShortsAdminPanel: React.FC = () => {
         setMsg(null);
         try {
             await shortsApi.generate(selectedTopic);
-            setMsg('생성을 시작했어요. 완료되면(약 1~2분) 아래 승인대기 목록에 자동으로 나타납니다.');
+            // ★"1~2분"은 사실과 달랐다(2026-07-29 실측): 리서치+대본+이미지+TTS+조립에
+            //   10~20분 걸린다. 짧게 안내하면 3분쯤 보다가 "실패했네" 하고 다시 누르게 된다.
+            setMsg('생성을 시작했어요. 10~20분 걸리며, 완료되면 아래 승인대기 목록과 텔레그램에 나타납니다. 창을 닫아도 계속 진행돼요.');
             startPolling();
         } catch (e: any) {
             setMsg('생성 요청 실패: ' + e.message);
@@ -325,7 +335,12 @@ export const ShortsAdminPanel: React.FC = () => {
                             onChange={e => setSelectedTopic(e.target.value)}
                             className="bg-gray-700 border border-gray-600 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none"
                         >
-                            {topics.map(t => <option key={t} value={t}>{TOPIC_LABELS[t] ? `${TOPIC_LABELS[t]} (${t})` : t}</option>)}
+                            {topics.map(t => (
+                                <option key={t} value={t}>
+                                    {CAPTURE_TOPICS.has(t) ? '🎬 ' : ''}
+                                    {TOPIC_LABELS[t] ? `${TOPIC_LABELS[t]} (${t})` : t}
+                                </option>
+                            ))}
                         </select>
                         <button
                             onClick={handleGenerate}
@@ -335,6 +350,10 @@ export const ShortsAdminPanel: React.FC = () => {
                             {generating ? '요청 중...' : '지금 생성'}
                         </button>
                     </div>
+                    <p className="text-[11px] text-gray-500">
+                        🎬 표시 소재는 <b className="text-gray-400">실제 서비스 화면을 캡처</b>해 영상에 씁니다
+                        (그 외는 AI가 장면을 생성). 제작에 <b className="text-gray-400">약 10~20분</b> 걸립니다.
+                    </p>
                     {msg && <p className="text-xs text-gray-400">{msg}</p>}
                 </div>
 
