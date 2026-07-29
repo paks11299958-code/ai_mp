@@ -27,11 +27,16 @@ const TOPIC_LABELS: Record<string, string> = {
     tarot: '타로 리딩',
 };
 
-// 실제 서비스 화면을 캡처해 영상 소재로 쓰는 소재(2026-07-29 신설).
-// 그 외 소재는 AI가 장면을 새로 그리므로 결과물 성격이 다르다 — 어떤 쪽인지
-// 화면에서 구분되지 않으면 사장이 고를 때 판단할 근거가 없어 배지로 표시한다.
-// rag/shorts_maker_worker.py ADMIN_TOPICS의 capture 필드와 함께 갱신할 것.
-const CAPTURE_TOPICS = new Set(['tarot']);
+// 실제 서비스 화면을 캡처해 영상 소재로 쓰는 소재(2026-07-29 신설 → 전 소재 확장).
+// hair·outfit은 구식 파이프라인(arin_script.TOPICS, 정적 견본 이미지)이라 대상이 아니다.
+// 그 외는 rag/shorts_maker_worker.py TOPIC_PERSONA에 담당 페르소나가 있어
+// 최소한 **소개 화면은 실제 캡처**로 들어간다(tarot은 카드 조작까지 전용 시나리오).
+// ★소재를 추가할 땐 TOPIC_PERSONA와 여기를 함께 갱신할 것.
+const CAPTURE_TOPICS = new Set([
+    'tarot', 'lookalike', 'agetransform', 'mathtutor', 'hotkeyword', 'golf-swing',
+    'ebook', 'used', 'luxury', 'insurance', 'club', 'news', 'stock',
+    'marketing', 'homepage', 'learn', 'webtoon',
+]);
 
 // 회원용 UserShorts 상태 라벨 — ShortsMakerBoard.tsx의 STATUS_LABEL과 동일 매핑(중복 정의,
 // 두 파일이 다른 목적이라 공유 모듈로 안 뺌).
@@ -351,8 +356,9 @@ export const ShortsAdminPanel: React.FC = () => {
                         </button>
                     </div>
                     <p className="text-[11px] text-gray-500">
-                        🎬 표시 소재는 <b className="text-gray-400">실제 서비스 화면을 캡처</b>해 영상에 씁니다
-                        (그 외는 AI가 장면을 생성). 제작에 <b className="text-gray-400">약 10~20분</b> 걸립니다.
+                        🎬 표시 소재는 <b className="text-gray-400">실제 서비스 화면을 캡처</b>해 영상에 씁니다 —
+                        담당 페르소나 소개 화면이 기본이고, 타로는 카드 조작까지 담깁니다.
+                        제작에 <b className="text-gray-400">약 10~20분</b> 걸립니다.
                     </p>
                     {msg && <p className="text-xs text-gray-400">{msg}</p>}
                 </div>
