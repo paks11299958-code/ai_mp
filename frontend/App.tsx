@@ -572,9 +572,22 @@ const AppContent: React.FC = () => {
                 handlePersonaClick(target.id, { skipIntro: true });
                 // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 친구 링크로 온 사람은 채팅창만
                 // 보고는 뭘 물어봐야 할지 모른다. 설명 + 기능 목록을 모달로 보여준다.
-                // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 채팅창만 보고는 뭘 물어봐야
-                // 할지 모른다. 메인 카드 클릭과 **같은 함수**를 쓴다(2026-07-29 공통화).
-                showPersonaGuide(target);
+                const feats = FEATURES_GRID
+                    .filter(f => f.personaName === target.name)
+                    .map(f => ({ key: f.key, name: f.name, icon: f.icon, accent: f.palette.accent, bg: f.palette.bg }));
+                // 명부(생년월일)를 쓰는 페르소나면 "적으면 더 정확하다"고 미리 알린다 —
+                // 나중에 명부 모달이 떴을 때 뜬금없지 않게(2026-07-28 사장 지시).
+                let usesBirth = false;
+                try { usesBirth = !!(target.quickMenuJson && JSON.parse(target.quickMenuJson).useBirthInfo); } catch {}
+                setDeepLinkGuide({
+                    title: target.name,
+                    // 소개문은 DB에 저장된 introText를 쓴다(2026-07-28) — 매 렌더마다
+                    // 프롬프트를 파싱하지 않고, 프롬프트를 클라이언트로 내려보낼 이유도 없앤다.
+                    desc: target.introText || target.description || '무엇이든 편하게 말씀해 보세요.',
+                    features: feats.length ? feats : undefined,
+                    usesBirthInfo: usesBirth,
+                    imageUrl: target.imageUrl || undefined,
+                });
             } else {
                 handleGuestPersonaClick(target.id); // 가입 강요 X → 인트로(소개) 노출
             }
@@ -665,7 +678,7 @@ const AppContent: React.FC = () => {
             goTo('main');
         }
         setPendingDeepLink(null);
-    }, [pendingDeepLink, isPersonasLoading, personas, user, showPersonaGuide]);
+    }, [pendingDeepLink, isPersonasLoading, personas, user]);
 
     // activePersonaId 변경 시 트리거 영상 로드
     useEffect(() => {
@@ -779,29 +792,6 @@ const AppContent: React.FC = () => {
     // skipIntro: 공유 딥링크(?p=·?f=)로 도착한 경우엔 인트로(입장 영상/이미지)를 건너뛴다.
     // 친구 링크를 타고 "꿈해몽 해봐"를 보고 온 사람에게 입장 영상부터 보여주면 목적지가
     // 한 단계 더 멀어진다 — 바로 그 화면으로 들어가야 한다(2026-07-28 사장 지시).
-    /** 페르소나 소개 모달(얼굴·이름·소개문·기능칩)을 띄운다.
-     *  ★친구초대 링크(?p=)와 메인 카드 클릭이 **같은 화면**을 쓰도록 공통화(2026-07-29 사장 지시).
-     *    전엔 딥링크만 이 모달을 봤고 메인에서 들어온 사람은 인트로 영상만 보고 채팅에 떨어져
-     *    "뭘 물어봐야 할지 모르는" 상태였다 — 정작 메인 유입이 더 많은데 정보를 덜 받았다. */
-    const showPersonaGuide = useCallback((persona: Persona) => {
-        const feats = FEATURES_GRID
-            .filter(f => f.personaName === persona.name)
-            .map(f => ({ key: f.key, name: f.name, icon: f.icon, accent: f.palette.accent, bg: f.palette.bg }));
-        // 명부(생년월일)를 쓰는 페르소나면 "적으면 더 정확하다"고 미리 알린다 —
-        // 나중에 명부 모달이 떴을 때 뜬금없지 않게(2026-07-28 사장 지시).
-        let usesBirth = false;
-        try { usesBirth = !!(persona.quickMenuJson && JSON.parse(persona.quickMenuJson).useBirthInfo); } catch {}
-        setDeepLinkGuide({
-            title: persona.name,
-            // 소개문은 DB에 저장된 introText를 쓴다(2026-07-28) — 매 렌더마다
-            // 프롬프트를 파싱하지 않고, 프롬프트를 클라이언트로 내려보낼 이유도 없앤다.
-            desc: persona.introText || persona.description || '무엇이든 편하게 말씀해 보세요.',
-            features: feats.length ? feats : undefined,
-            usesBirthInfo: usesBirth,
-            imageUrl: persona.imageUrl || undefined,
-        });
-    }, []);
-
     const handlePersonaClick = useCallback((personaId: string, opts?: { skipIntro?: boolean }) => {
         const persona = personas.find(p => p.id === personaId);
         if (opts?.skipIntro) {
@@ -809,18 +799,17 @@ const AppContent: React.FC = () => {
             handleSelectPersona(personaId);
             return;
         }
-        // ★인트로 영상/이미지 대신 **소개 모달**(기능칩 포함)로 통일(2026-07-29 사장 결정).
-        //   친구초대 링크로 온 사람과 메인에서 들어온 사람이 같은 경험을 하게 된다.
-        //   introVideoUrl 자산은 그대로 남아 있으므로 되살리려면 이 분기만 바꾸면 된다.
-        if (persona) {
-            rememberLastPersona(personaId);
-            handleSelectPersona(personaId);
-            showPersonaGuide(persona);
+        if (persona?.introVideoUrl) {
+            setIntroVideoModal({ personaId, type: 'video', url: persona.introVideoUrl });
+            handleSelectPersona(personaId, { prefetchOnly: true }); // 인트로 보는 동안 인사말 미리 준비
+        } else if (persona?.imageUrl) {
+            setIntroVideoModal({ personaId, type: 'image', url: persona.imageUrl });
+            handleSelectPersona(personaId, { prefetchOnly: true }); // 인트로 보는 동안 인사말 미리 준비
         } else {
             rememberLastPersona(personaId);
             handleSelectPersona(personaId);
         }
-    }, [personas, handleSelectPersona, rememberLastPersona, showPersonaGuide]);
+    }, [personas, handleSelectPersona, rememberLastPersona]);
 
     // 비회원이 페르소나 클릭 → 인트로 표시, 입장 시 회원가입 유도
     const handleGuestPersonaClick = useCallback((personaId: string) => {
