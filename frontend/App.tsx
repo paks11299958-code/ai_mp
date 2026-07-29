@@ -413,6 +413,13 @@ const AppContent: React.FC = () => {
         /** 기능 링크(?f=)일 때 담당 페르소나 이름 — CTA를 "OO과 시작하기"로 맞추기 위함.
          *  없으면 title(=페르소나명)을 쓴다. */
         personaName?: string;
+        /** ★CTA를 눌렀을 때 자동 실행할 기능 키(2026-07-29 신설).
+         *  기능 링크(?f=)로 왔을 때만 채운다 — 그 기능을 보러 온 사람이니 바로 열어주는 게 맞다.
+         *  ★페르소나 링크(?p=)·메인 카드 클릭은 **비운다**: 전엔 "카드가 1개면 기능 링크"라고
+         *    가정했는데, 담당 기능이 하나뿐인 페르소나(신은비=명품감정, 유나=타로, 서아=뉴스 등
+         *    9명)가 전부 걸려 **"OO와 시작하기"를 눌렀는데 기능 보드가 뜨는** 문제가 있었다
+         *    (사장 지적). 페르소나를 만나러 온 사람에겐 채팅을 보여줘야 한다. */
+        autoRunFeatureKey?: string;
     } | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
@@ -645,6 +652,7 @@ const AppContent: React.FC = () => {
                             features: [{ key: g.key, name: g.name, icon: g.icon, accent: g.palette.accent, bg: g.palette.bg }],
                             imageUrl: gp.imageUrl || undefined,
                             personaName: gp.name,
+                            autoRunFeatureKey: key,   // 기능 링크로 왔으니 CTA에서 그 기능을 연다
                         });
                     } else {
                         opener();
@@ -675,6 +683,7 @@ const AppContent: React.FC = () => {
                                     usesBirthInfo: usesBirth,
                                     imageUrl: persona.imageUrl || undefined,
                                     personaName: persona.name,
+                                    autoRunFeatureKey: key,   // 기능 링크로 왔으니 CTA에서 그 기능을 연다
                                 });
                             } else if (g) setDeepLinkGuide(g);
                         }
@@ -2203,17 +2212,20 @@ const AppContent: React.FC = () => {
                                 )}
 
                                 {/* ④ CTA — 소프트 그라데이션.
-                                    기능 링크(카드 1개)면 닫으면서 그 기능을 실행한다 — 전용 보드가 있는
-                                    기능은 모달만 닫으면 아무 일도 안 일어나 사용자가 길을 잃는다.
-                                    페르소나 링크(카드 여러 개)면 채팅으로 두고 사용자가 고르게 한다. */}
+                                    ★기능 링크(?f=)로 왔을 때만 그 기능을 실행한다(autoRunFeatureKey).
+                                      전용 보드가 있는 기능은 모달만 닫으면 아무 일도 안 일어나 길을 잃는다.
+                                    ★페르소나 링크·메인 카드 클릭이면 **채팅으로 간다**. 예전엔 "카드가
+                                      1개면 기능 링크"라고 가정해, 담당 기능이 하나뿐인 페르소나 9명
+                                      (신은비·유나·서아·윤채원·설아·정우진·강지훈·향기·박하진)이 전부
+                                      "OO와 시작하기"를 눌렀는데 기능 보드가 떴다(2026-07-29 사장 지적). */}
                                 <button
                                     onClick={() => {
-                                        const only = deepLinkGuide.features?.length === 1 ? deepLinkGuide.features[0] : null;
+                                        const runKey = deepLinkGuide.autoRunFeatureKey;
                                         setDeepLinkGuide(null);
-                                        if (only) {
-                                            const qm = FEATURE_QUICK_MENU_LABEL[only.key];
+                                        if (runKey) {
+                                            const qm = FEATURE_QUICK_MENU_LABEL[runKey];
                                             if (qm) setPendingQuickMenuLabel(qm);
-                                            else FEATURE_ACTIONS[only.key]?.();
+                                            else FEATURE_ACTIONS[runKey]?.();
                                         }
                                     }}
                                     className="mt-5 w-full py-3.5 rounded-full text-[14.5px] font-bold text-white transition-transform active:scale-[0.98]"
