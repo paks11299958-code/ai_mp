@@ -295,3 +295,50 @@ shared-api(`9124222`+`12474f9`, 서버1 git pull+`npx pm2 restart shared-api`)·
   빠지면 조용히 무시된다**(`known` false면 `setPendingDeepLink(null)`로 끝) — 새 소재 추가 시 주의.
 - ★같은 날 `swing` 키 버그를 고쳤지만 쇼츠는 `golf-swing`을 쓰므로 무관했다. 두 키가 공존하는
   이유: `swing`=메인 카드 키, `golf-swing`/`golf-record`=설아 채팅 내 기능버튼 키. **지우면 안 됨.**
+
+## 실화면 캡처 파이프라인 신설 (2026-07-29, 사장 지시)
+
+**문제**: `ADMIN_TOPICS`는 소재를 `biz`/`strengths`/`target` **글자 3줄**로만 정의해, AI가
+매번 장면을 상상해 그렸다. 그런데 사이트에는 타로 카드 **셔플 애니메이션**(translate ±46px /
+rotate ±14도)·**뒤집기**(`tarotFlip`, rotateY 90→0deg)·페르소나 **유나** 이미지·리딩 보고서가
+**살아 움직이는 채로 이미 있었다**. 상상시키니 결과가 흔들리고(`seg1·seg3 재생성 검수 실패`
+반복) 영상 속 인물이 실제 서비스와 따로 놀았다.
+※ 역전 현상: 구식 경로(`arin_script.TOPICS` hair/outfit)는 `images` 배열로 실제 견본을 쓰는데,
+개선판인 `ADMIN_TOPICS` 17개가 오히려 자산을 덜 쓰고 있었다.
+
+**신설**: `shorts-factory/capture_feature.cjs` (Playwright, ai_mp `node_modules` 경로 명시)
+- 9:16(1080x1920)으로 운영 사이트 로그인(`localStorage.token` 주입) → `?f=tarot` 딥링크 →
+  카드 섞기 → 3장 뽑기(플립) → 스틸 6컷. 시나리오는 `SCENARIOS` 딕셔너리에 소재별로 둔다.
+- **모달만 크롭**: 전체 화면(1080x1920)을 그대로 넣으면 정작 카드 모달이 손톱만해져
+  "뭘 보여주는지 모르는 영상"이 된다(1차 결과 실측). `.fixed.inset-0` 박스+여백 40px만 잘라
+  528x505로 저장 → 카드 이름까지 읽힌다.
+- ★★**배경 블러(개인정보)**: 캡처 계정의 지난 대화가 모달 뒤에 그대로 읽히는 상태로 찍혔다.
+  `<style>` 규칙은 Tailwind와의 특이도 싸움에서 밀려 **`!important`를 붙여도** computed
+  filter가 `none`이었다 — **인라인 `style.setProperty(..., 'important')`** + 300ms 재적용으로 해결.
+  첫 페인트부터 걸어야 한다(`addInitScript`).
+- **종합 리딩 단계는 캡처 제외**: 버튼을 누르면 모달이 닫혀 크롭 기준이 사라지고 채팅 전체가
+  드러난다. 리딩 결과는 자막·나레이션으로 설명한다.
+- **녹화 영상 기본 OFF**(`CAPTURE_VIDEO=1`로 켬): 스틸은 모달만 크롭해 안전하지만 녹화본은
+  모달 밖·로딩 구간까지 통째로 담긴다. 파이프라인이 쓰는 건 스틸뿐이라 위험만 남기지 않는다.
+
+**연결**: `rag/shorts_maker_worker.py`
+- `ADMIN_TOPICS["tarot"]`에 `capture`·`persona_id`(유나 `cmr7a072h0000jwbezom9bi9v`) 추가.
+- `_capture_feature_shots()`가 스틸을 `raw_list`로 실어 **`isProduct=True`**로 태운다 →
+  기존 상품 안전망(원본 강제 배정·`scene_prompt` 무시)이 그대로 작동해 **AI가 새로 상상하지
+  않는다**. 신규 분기 없이 검증된 코드를 재사용.
+- ★캡처 실패는 예외를 올리지 않는다 — 품질 향상이지 필수가 아니다. 실패 시 `raw_list`가
+  비어 기존 AI 생성 경로로 자동 폴백(제작이 멈추지 않음).
+
+**어드민 UI 보정** (`ShortsAdminPanel.tsx`, ai_mp `50642d3`)
+- 소재 선택+"지금 생성"은 **이미 있었고**(`shared-api → agent-api → manual_run.py →
+  run_admin_topic`), 이번 작업이 자동으로 그 버튼에 연결됐다. 만들 게 아니라 어긋난 걸 고쳤다:
+- **🎬 배지**(`CAPTURE_TOPICS`)로 실화면 캡처 소재 구분 — 그 외는 AI 생성이라 성격이 다른데
+  화면상 구분이 없었다. ★소재 추가 시 `ADMIN_TOPICS.capture`와 함께 갱신할 것.
+- 안내 "약 1~2분" → **"10~20분"**(실측). 폴링 20틱(~3분) → **125틱(~25분)** — 결과가 나올
+  무렵 갱신이 멈춰 수동 새로고침해야 했다.
+
+**결과**: `SHORTS-20260729-190936`(35.5초, 7세그먼트) — 텔레그램 승인요청 + 어드민 승인대기
+등록(`pending.json` 공통 소스). **재생성 검수 실패 0건**(이전 동일 소재는 seg1·seg3 반복 실패).
+
+**남은 일**: 캡처 시나리오가 붙은 소재는 타로뿐. 나머지 18개는 조작 경로가 달라 하나씩
+작성해야 한다(헤어=사진 업로드→스타일 선택, 웹툰=회차 열기). 화면이 볼거리인 것부터 권장.
