@@ -43,6 +43,8 @@
 - **즉시생성 전부 제거**: `/content`(즉시본문)·`/rewrite`(다시쓰기)·`/draft`(즉시일괄) → 409 예약안내. 자료수집도 즉시 안 함(`collect-all`은 자료만, 사실상 미사용). **모든 생성은 새벽 cron만.** 목적="오늘 등록→내일 결과 확인"=재방문 유도(리텐션).
 - **본문 모델 = Claude Sonnet**(야간 대량): 같은 CLI 구독에서 opus→sonnet이면 한도 적게 차감+빠름 → 하룻밤에 더 많은 책. 비용은 구독이라 ₩0. (소량·고품질이면 opus가 낫지만 즉시생성 경로를 다 막아 현재 opus 호출 없음.) 추론은 끔(산문엔 불필요, CLI -p 모드라 자동). 상세 [[feedback_ebook_model_choice]].
 - **rate limit 안전장치**: `ClaudeRateLimitError`(CLI 한도초과 감지) → cron이 그날 밤 배치 깔끔히 중단(만든 건 저장, 다음밤 이어서).
+- **인증 만료 안전장치**(2026-07-30 신설): `ClaudeAuthError`(구독 토큰 만료=401) → 야간 배치 **즉시 중단**(`authExpired` 플래그) + `notifyClaudeAuthDown()`으로 사장 알림. 한도 초과와 달리 **다음 밤 cron도 재로그인 전까지 똑같이 실패**하므로 "다음에 이어서"가 성립하지 않는다.
+  ★**감지 원리 주의**: 401 문구는 **stdout**으로 오고 stderr는 빈 문자열이다. 예전엔 stderr만 검사해 한도 정규식에 **구조적으로 걸릴 수 없었고** `"Claude CLI 실패: code 1"`로만 떠서 29시간(과거 12일) 방치됐다. 지금은 `stdout+stderr`를 합쳐 판정하고 **인증을 한도보다 먼저** 검사한다(401 본문의 `out of`류가 한도로 오분류되는 것 방지). 상세 → `~/claude_env_status.md`.
 - **시간대 정원제(품절)**: 슬롯 1~5시 × `EBOOK_SLOT_CAPACITY=5` = 총 25권/일(상수만 올리면 증설). `PUT /schedule` 슬롯 차면 409 품절, `GET /ebook/slots`로 프론트 품절표시.
 - **표지 = 사용자 업로드 + AI 생성(2026-07-25 부활)**: 2026-06-11에 gpt-image-1로 자동생성했다가 "한글 텍스트 렌더링 깨짐"으로 폐기했었음. 2026-07-25에 나노바나나(gemini-3.1-flash-image)로 재도입 — 이미지 안에 글자를 아예 안 넣는 원칙(프롬프트에 명시)으로 같은 실수를 피함. 사용자 업로드도 그대로 유지(`POST /cover-url`+`PUT /cover`), AI 생성은 `POST /generate-cover`(장당 200P).
 - **.docx = 북크크 양식 + 판형 + 판권지**: `docx` npm. 판형(EbookProject.pageSize: sinkuk/a5/gukbae)별 페이지 크기. 표지 다음 **판권지(저작권) 페이지**(제목·발행·저자 동적 / 부크크정보·ISBN 고정). 전 페이지 하단 쪽번호 footer.

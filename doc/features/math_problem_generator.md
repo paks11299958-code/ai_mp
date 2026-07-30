@@ -20,6 +20,8 @@
 - `routes/aimp/math-tutor.ts` 라우트 추가:
   - `GET /chapters?grade=&subject=` (requireAuth, 무료) — 단원 자동 생성. ⚠️`/:id`보다 먼저 정의(안 그러면 chapters가 id로 잡힘).
   - `POST /generate` (requireAuth) — checkMenuAccess+deductMenuPoints(quick-menu=50P) → 생성 → MathProblemSet 저장. 실패 시 refundMenuPoints. ClaudeRateLimitError→503+환불.
+  - **`ClaudeAuthError`→503+환불+사장 알림**(2026-07-30 신설): 구독 토큰 만료는 한도 초과와 달리 **기다려도 안 낫고 재로그인이 필요**해 문구를 분리("AI 기능이 일시 중단됐어요. 관리자 확인이 필요합니다") + `notifyClaudeAuthDown()`으로 문자·텔레그램. 상세 → `~/claude_env_status.md`.
+  - ※**사진 풀이(`analyzeMathProblem`)는 Gemini**라 claude 토큰과 무관하다. claude가 죽어도 사진 풀이는 정상 — 문제 *생성*만 막힌다(혼동 주의).
   - `POST /:id/docx` (requireAuth) — 저장 문제셋 → buildProblemsDocx → uploadToGCS(`math-tutor/sets/{userId}/...`) → docxUrl 저장.
 
 ## DB
