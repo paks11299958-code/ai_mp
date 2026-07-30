@@ -97,6 +97,14 @@ const _josaGwaWa = (word: string): string => {
     return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '과' : '와';
 };
 
+/** 은/는 조사. 페르소나 이름이 받침으로 끝나면 '은'(아린은), 아니면 '는'(유나는).
+ *  ★하드코딩 금지: 이름을 어드민이 자유 입력하므로 "유나은"처럼 어색해진다. */
+const _josaEunNeun = (word: string): string => {
+    const ch = word?.trim().slice(-1) ?? '';
+    if (ch < '가' || ch > '힣') return '는';
+    return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '은' : '는';
+};
+
 const AppContent: React.FC = () => {
     const {
         paidPoints: userPaidPoints,
@@ -2163,9 +2171,18 @@ const AppContent: React.FC = () => {
             {/* 공유 링크로 들어와 기능이 자동 실행됐을 때의 사용법 안내(2026-07-28).
                 친구 링크를 타고 처음 온 사람은 채팅창만 보고 "뭘 하라는 거지?" 하고 나간다. */}
             {deepLinkGuide && (
+                /* ★배경 클릭으로 닫지 않는다(2026-07-30 사장 지적 "버튼 안 누르고 뒤 화면
+                   클릭하니 바로 들어가진다"). 인사말 선생성 때문에 채팅 화면은 모달 **뒤에
+                   이미 떠 있다** — 그래서 배경을 누르면 "닫기"가 아니라 그냥 채팅에 들어간
+                   것처럼 보였다. 문제가 두 가지였다:
+                     ① 이 모달의 존재 이유(소개·대화 안내·기능칩)를 통째로 건너뛴다.
+                        모바일에선 카드가 320px이라 배경이 탭 면적의 대부분 → 오터치가 잦다.
+                     ② 기능 링크(?f=)는 CTA에서 기능 보드를 여는데, 배경 클릭은 그걸 건너뛰어
+                        링크로 기대한 보드 대신 맨 채팅에 떨어진다(2258행에서 버튼은 이미 고친 문제).
+                   대신 출구는 **우상단 ✕**로 명시한다(배경 무반응만 두면 갇히므로).
+                   진행=CTA / 이탈=✕ 두 경로만 남긴다. 선생성 설계는 유지. */
                 <div className="fixed inset-0 z-[85] flex items-center justify-center p-4"
-                     style={{ background: 'rgba(20,12,30,0.5)', backdropFilter: 'blur(6px)' }}
-                     onClick={() => setDeepLinkGuide(null)}>
+                     style={{ background: 'rgba(20,12,30,0.5)', backdropFilter: 'blur(6px)' }}>
                     {/* ── 안내 모달(2026-07-28 사장 디자인 지시로 전면 개편) ──────────────
                         · 얼굴을 크게: AI 동반자 서비스인데 사람이 안 보이면 감정 연결이 안 된다
                         · 카드 분리 → 하나의 흐름: 소개/기능을 각각 박스로 두니 답답했다
@@ -2185,6 +2202,30 @@ const AppContent: React.FC = () => {
                                  background: 'radial-gradient(circle, rgba(139,92,246,0.35) 0%, rgba(236,72,153,0.18) 55%, transparent 72%)',
                                  filter: 'blur(26px)',
                              }} />
+
+                        {/* ★닫기 버튼(2026-07-30 사장 판단 "클릭이 안 되던가 닫기가 되어야").
+                            배경 클릭을 막기만 하면 출구가 CTA 하나뿐이라 "지금은 대화 안 하고
+                            나가고 싶다"는 사람이 갇힌다(친구초대 링크로 처음 온 경우가 특히).
+                            ★★단순히 setDeepLinkGuide(null)만 하면 안 된다 — 인사말 선생성으로
+                              채팅이 뒤에 이미 떠 있어서 그게 드러나면 고치려던 버그와 똑같아진다.
+                              인트로 모달 '취소'(2533행)와 같이 **메인으로 되돌린다**. */}
+                        <button
+                            onClick={() => { setDeepLinkGuide(null); goTo('main'); }}
+                            aria-label="닫기"
+                            className="absolute top-3 right-3 z-10 flex items-center justify-center rounded-full transition-all active:scale-90"
+                            style={{
+                                width: 32, height: 32,
+                                background: 'rgba(255,255,255,0.78)',
+                                border: '1px solid rgba(139,92,246,0.18)',
+                                boxShadow: '0 4px 12px -4px rgba(80,50,110,0.3)',
+                                backdropFilter: 'blur(8px)',
+                                color: '#8B7C99',
+                                fontSize: 17,
+                                lineHeight: 1,
+                            }}
+                        >
+                            ✕
+                        </button>
 
                         <div className="relative overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 32px)' }}>
                             <div className="px-6 pt-7 pb-6 text-center">
@@ -2214,9 +2255,13 @@ const AppContent: React.FC = () => {
                                 {/* ③ 기능 — 글래스 카드 */}
                                 {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
                                     <div className="mt-5">
+                                        {/* ★라벨 위상 주의(2026-07-30 사장 지시): 전엔 "눌러서 바로 시작"이라
+                                            모달 안에서 유일한 명시적 CTA였다. 그러면 기능칩이 메뉴판처럼 보여
+                                            **정작 핵심인 자유 대화가 "기능을 안 고르면 가는 곳"으로 읽힌다**.
+                                            우리 서비스의 목적은 페르소나와의 대화이므로 기능은 곁가지로 낮춘다. */}
                                         <p className="text-[10.5px] font-bold tracking-wide mb-2.5 text-left"
                                            style={{ color: '#A99BB5' }}>
-                                            눌러서 바로 시작
+                                            이런 것도 해드려요
                                         </p>
                                         <div className="grid gap-2"
                                              style={{ gridTemplateColumns: `repeat(${Math.min(deepLinkGuide.features.length, 3)}, minmax(0, 1fr))` }}>
@@ -2254,6 +2299,28 @@ const AppContent: React.FC = () => {
                                     </p>
                                 )}
 
+                                {/* ⑤ 대화 안내 — 이 서비스의 본질(2026-07-30 사장 지시).
+                                    "우리 사이트는 페르소나와 대화하는 게 최고의 목적인데 입장 화면에
+                                     대화 관련 홍보 문구가 없다"는 지적. 기능칩만 문구를 갖고 있어서
+                                     대화는 단어로 한 번도 등장하지 않았다.
+                                    ★기능 링크(?f=)로 온 경우는 제외한다 — 그 경로의 CTA는 채팅이 아니라
+                                      기능 보드를 열므로, 대화를 권하면 문구와 동작이 어긋난다. */}
+                                {!deepLinkGuide.autoRunFeatureKey && (
+                                    <div className="mt-5 px-4 py-3.5 rounded-2xl text-left"
+                                         style={{
+                                             background: 'linear-gradient(135deg, rgba(139,92,246,0.09) 0%, rgba(236,72,153,0.07) 100%)',
+                                             border: '1px solid rgba(139,92,246,0.16)',
+                                         }}>
+                                        <p className="text-[12.5px] font-bold leading-snug" style={{ color: '#6D4AA8' }}>
+                                            💬 무슨 얘기든 괜찮아요
+                                        </p>
+                                        <p className="mt-1.5 text-[11.5px] leading-[1.6]" style={{ color: '#8B7C99' }}>
+                                            {deepLinkGuide.title}{_josaEunNeun(deepLinkGuide.title)} 그냥 들어주는 것부터 시작해요.
+                                            고민도, 오늘 하루 이야기도 편하게 꺼내보세요.
+                                        </p>
+                                    </div>
+                                )}
+
                                 {/* ④ CTA — 소프트 그라데이션.
                                     ★기능 링크(?f=)로 왔을 때만 그 기능을 실행한다(autoRunFeatureKey).
                                       전용 보드가 있는 기능은 모달만 닫으면 아무 일도 안 일어나 길을 잃는다.
@@ -2282,7 +2349,12 @@ const AppContent: React.FC = () => {
                                         // 기능 링크면 담당 페르소나 이름으로("도결 선생과 시작하기"),
                                         // 페르소나 링크면 title이 곧 이름이다.
                                         const who = deepLinkGuide.personaName || deepLinkGuide.title;
-                                        return `${who}${_josaGwaWa(who)} 시작하기`;
+                                        // ★버튼 문구는 실제 동작과 일치시킨다(2026-07-30 사장 지시).
+                                        //   - 페르소나 링크·메인 카드 → 채팅으로 감 → "대화하기"로 목적을 명시.
+                                        //     "시작하기"는 무엇을 시작하는지 안 밝혀 대화가 묻혔다.
+                                        //   - 기능 링크(?f=) → 기능 보드를 엶 → "시작하기" 유지(대화가 아니므로).
+                                        const verb = deepLinkGuide.autoRunFeatureKey ? '시작하기' : '대화하기';
+                                        return `${who}${_josaGwaWa(who)} ${verb}`;
                                     })()}
                                 </button>
                             </div>
