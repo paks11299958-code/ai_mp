@@ -73,9 +73,16 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
     );
     const pickedPersona = personaList.find(p => p.id === pickedPersonaId) ?? null;
     // 페르소나 목록은 평소 접어둔다(이미 선택돼 열리므로) — '바꾸기'를 눌렀을 때만 펼침.
-    // 반면 **기능 목록은 항상 펼쳐둔다**: 접어두면 "선택 안 함(대화로 시작)"이라는 선택지가
-    // 있다는 것 자체를 모르고, 만들어진 링크가 페르소나용인지 기능용인지 헷갈린다(사장 지적).
     const [showPersonaPicker, setShowPersonaPicker] = useState(false);
+
+    // 기능 목록도 접어둔다(2026-07-30 사장 지시). 초대는 "이 서비스 같이 하자"는 맥락이라
+    // 기본 목적지는 페르소나 소개(?p=)면 충분하고, 초대 한 번에 두 번 고르게 할 이유가 없다.
+    // ★그렇다고 없애지는 않는다 — 도결 선생(기능 8개)·윤채린(4개)은 기능을 콕 집어 소개할
+    //   길이 사라진다. 07-28에 "기능 1개면 결과가 같다"고 페르소나 선택을 뺐다가 되돌린 것과
+    //   같은 실수다. 접어두되 펼치면 고를 수 있게 한다.
+    // 예전 주석의 우려("접으면 선택 안 함 선택지를 모른다")는 기본값이 곧 그 상태이고
+    // 아래 '내 초대 링크'가 도착지를 항상 문장으로 알려주므로 해소된다.
+    const [showFeaturePicker, setShowFeaturePicker] = useState(false);
 
     const link = stats ? buildInviteLink(stats.code, selected) : '';
 
@@ -144,7 +151,7 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
                             {showPersonaPicker && (
                                 <div className="mt-1.5 h-[112px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
                                     <button
-                                        onClick={() => { setSelected({ kind: 'home' }); setPickedPersonaId(null); setShowPersonaPicker(false); }}
+                                        onClick={() => { setSelected({ kind: 'home' }); setPickedPersonaId(null); setShowPersonaPicker(false); setShowFeaturePicker(false); }}
                                         className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b"
                                         style={{ background: selected.kind === 'home' ? '#F0E7F8' : 'transparent', borderColor: '#EEE6F4' }}
                                     >
@@ -160,8 +167,10 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
                                                 key={row.id}
                                                 onClick={() => {
                                                     setPickedPersonaId(row.id);
+                                                    // 페르소나가 바뀌면 목적지도 그 페르소나로 리셋된다(이전 기능 선택은 무효).
                                                     setSelected({ kind: 'persona', id: row.id, name: row.name });
                                                     setShowPersonaPicker(false);
+                                                    setShowFeaturePicker(false); // 기능 목록도 접는다 — 선택이 리셋됐으므로
                                                 }}
                                                 className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b last:border-b-0"
                                                 style={{ background: on ? '#F0E7F8' : 'transparent', borderColor: '#EEE6F4' }}
@@ -180,43 +189,58 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
                                 </div>
                             )}
 
-                            {/* 기능 목록은 **항상 펼쳐둔다** — 접으면 "선택 안 함(대화로 시작)"이라는
-                                선택지가 있다는 걸 모르고, 만들어진 링크가 어느 쪽인지 헷갈린다. */}
-                            {pickedPersona && (
+                            {/* 기능 선택 — 접어둔 보조 선택지(기본은 페르소나 소개).
+                                전용 기능이 없는 페르소나면 줄 자체를 감춘다(눌러봐야 빈 목록). */}
+                            {pickedPersona && pickedPersona.features.length > 0 && (
                                 <>
-                                    <label className="mt-3 block text-[11px] font-semibold text-[#8A7E96]">
-                                        어떤 기능을 소개할까요?
-                                    </label>
-                                    <div className="mt-1.5 max-h-[148px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
-                                        <button
-                                            onClick={() => setSelected({ kind: 'persona', id: pickedPersona.id, name: pickedPersona.name })}
-                                            className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b"
-                                            style={{ background: selected.kind === 'persona' ? '#F0E7F8' : 'transparent', borderColor: '#EEE6F4' }}
-                                        >
-                                            <Radio on={selected.kind === 'persona'} />
-                                            <span className="text-[12.5px]" style={{ color: selected.kind === 'persona' ? '#5B3F82' : '#6B5F78' }}>
-                                                선택 안 함 — {pickedPersona.name}와 대화
+                                    <button
+                                        onClick={() => setShowFeaturePicker(v => !v)}
+                                        className="mt-2 w-full flex items-center gap-1.5 px-1 py-1.5 text-left"
+                                    >
+                                        <span className="text-[12px] font-semibold" style={{ color: '#8E6FB7' }}>
+                                            특정 기능만 소개하기
+                                        </span>
+                                        <span className="text-[11px] text-[#A99BB5]">
+                                            {showFeaturePicker ? '▲' : '▼'}
+                                        </span>
+                                        {/* 접힌 상태에서 기능이 선택돼 있으면 무엇인지 보이게 한다 */}
+                                        {!showFeaturePicker && selected.kind === 'feature' && (
+                                            <span className="ml-auto shrink-0 text-[11px] font-bold truncate max-w-[45%]" style={{ color: '#5B3F82' }}>
+                                                {selected.label}
                                             </span>
-                                        </button>
-                                        {pickedPersona.features.length === 0 ? (
-                                            <div className="px-3 py-2.5 text-[12px] text-[#A99BB5]">이 페르소나는 전용 기능이 없어요.</div>
-                                        ) : pickedPersona.features.map(f => {
-                                            const on = selected.kind === 'feature' && selected.key === f.key;
-                                            return (
-                                                <button
-                                                    key={f.key}
-                                                    onClick={() => setSelected({ kind: 'feature', key: f.key, label: f.label, personaName: pickedPersona.name })}
-                                                    className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b last:border-b-0"
-                                                    style={{ background: on ? '#F0E7F8' : 'transparent', borderColor: '#EEE6F4' }}
-                                                >
-                                                    <Radio on={on} />
-                                                    <span className="text-[12.5px] truncate" style={{ color: on ? '#5B3F82' : '#6B5F78', fontWeight: on ? 700 : 400 }}>
-                                                        {f.label}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                                        )}
+                                    </button>
+
+                                    {showFeaturePicker && (
+                                        <div className="mt-1 max-h-[148px] overflow-y-auto rounded-xl border" style={{ borderColor: '#E2D5EC', background: '#FDFBFE' }}>
+                                            <button
+                                                onClick={() => setSelected({ kind: 'persona', id: pickedPersona.id, name: pickedPersona.name })}
+                                                className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b"
+                                                style={{ background: selected.kind === 'persona' ? '#F0E7F8' : 'transparent', borderColor: '#EEE6F4' }}
+                                            >
+                                                <Radio on={selected.kind === 'persona'} />
+                                                <span className="text-[12.5px]" style={{ color: selected.kind === 'persona' ? '#5B3F82' : '#6B5F78' }}>
+                                                    선택 안 함 — {pickedPersona.name}와 대화
+                                                </span>
+                                            </button>
+                                            {pickedPersona.features.map(f => {
+                                                const on = selected.kind === 'feature' && selected.key === f.key;
+                                                return (
+                                                    <button
+                                                        key={f.key}
+                                                        onClick={() => setSelected({ kind: 'feature', key: f.key, label: f.label, personaName: pickedPersona.name })}
+                                                        className="w-full flex items-center gap-2 px-3 py-2.5 text-left border-b last:border-b-0"
+                                                        style={{ background: on ? '#F0E7F8' : 'transparent', borderColor: '#EEE6F4' }}
+                                                    >
+                                                        <Radio on={on} />
+                                                        <span className="text-[12.5px] truncate" style={{ color: on ? '#5B3F82' : '#6B5F78', fontWeight: on ? 700 : 400 }}>
+                                                            {f.label}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
                                 </>
                             )}
 

@@ -627,19 +627,37 @@ const AppContent: React.FC = () => {
         const known = FEATURES_GRID.some(g => g.key === key) || !!FEATURE_BY_KEY[key];
         if (!known) { setPendingDeepLink(null); return; } // 모르는 기능 키 → 무시
         if (user) {
-            // 로그인: 전용 보드가 있으면 보드를 열고(featureBoardOpeners), 그 외(운세 등)는
+            // ★처음 온 사람(체험계정)은 기능 링크라도 소개 모달을 반드시 거친다(2026-07-30 사장 지시).
+            //   초대로 온 사람은 이 서비스를 처음 본다. 보드로 직행하면 "여기가 뭐 하는 곳인지"
+            //   모른 채 기능 하나만 쓰고 나간다(뿌니가 데려온 게스트 10명 중 8명이 1P도 안 씀).
+            //   소개 모달에는 담당 페르소나 얼굴과 기능칩이 있어 다른 기능까지 눈에 들어온다.
+            //   판별은 provider==='guest' — role은 정식회원과 똑같이 'USER'라 쓸 수 없다(운영 실측).
+            //   기존 회원은 결과물 공유(?f=)·쇼츠 QR로 반복 진입하므로 지금처럼 보드 직행을 유지한다.
+            const isTrialUser = user.provider === 'guest';
+            // 전용 보드가 있으면 보드를 열고(featureBoardOpeners), 그 외(운세 등)는
             // 해당 페르소나 채팅으로 이동. (hero 렌더의 onFeatureSelect와 동일한 분기)
-            if (key === 'webtoon') {
-                // ★goTo('chat') 필수(2026-07-28 전수테스트로 발견): 웹툰 모달도 채팅 화면에서만
+            if (key === 'webtoon' || key === 'tarot') {
+                // 웹툰·타로는 담당 페르소나 채팅 컨텍스트 위에 모달을 띄운다.
+                // ★goTo('chat') 필수(2026-07-28 전수테스트로 발견): 두 모달 모두 채팅 화면에서만
                 // 렌더되는데 setActivePersonaId만 부르면 메인에 머물러 아무 일도 일어나지 않았다.
-                // 타로와 동일 패턴으로 맞춘다.
-                const wp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'webtoon')?.personaName);
-                if (wp) { goTo('chat'); handlePersonaClick(wp.id, { skipIntro: true }); setShowWebtoon(true); }
-            } else if (key === 'tarot') {
-                // 타로는 유나 채팅 컨텍스트 위에서 카드 모달을 띄운다(웹툰과 동일 패턴).
-                const tp = personas.find(p => p.name === FEATURES_GRID.find(g => g.key === 'tarot')?.personaName);
-                if (tp) { goTo('chat'); handlePersonaClick(tp.id, { skipIntro: true }); }
-                setTarotModalMode('full');
+                const g = FEATURES_GRID.find(x => x.key === key);
+                const fp = personas.find(p => p.name === g?.personaName);
+                if (fp) { goTo('chat'); handlePersonaClick(fp.id, { skipIntro: true }); }
+                if (isTrialUser && g && fp) {
+                    // 소개 모달을 먼저 띄우고, 실행은 CTA로 미룬다(FEATURE_ACTIONS에 두 키 모두 등록됨).
+                    setDeepLinkGuide({
+                        title: `${FEATURE_EMOJI[key] ?? ''} ${g.name}`.trim(),
+                        desc: g.desc || g.catch,
+                        features: [{ key: g.key, name: g.name, icon: g.icon, accent: g.palette.accent, bg: g.palette.bg }],
+                        imageUrl: fp.imageUrl || undefined,
+                        personaName: fp.name,
+                        autoRunFeatureKey: key,   // 기능 링크로 왔으니 CTA에서 그 기능을 연다
+                    });
+                } else if (key === 'webtoon') {
+                    if (fp) setShowWebtoon(true);
+                } else {
+                    setTarotModalMode('full');
+                }
             } else {
                 const opener = featureBoardOpeners[key];
                 if (opener) {
