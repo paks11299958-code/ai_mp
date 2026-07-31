@@ -230,3 +230,25 @@ ALTER TABLE "User" ADD COLUMN "referralRewarded" BOOLEAN NOT NULL DEFAULT false;
 - **가입 측정**: `referredBy`는 유저 id(int)라 채널 코드 저장 불가 → `recordReferredBy`가 채널 코드면 **`ChannelSignup`**(raw SQL 테이블, userId UNIQUE=멱등)에 기록. 가입 3경로(이메일·휴대폰·카카오) 모두 커버.
 - **어드민**: 레퍼럴 탭 '마케팅 채널 유입' 표 — ReferralVisit(방문)과 ChannelSignup(가입) JOIN, 전환율 표시(`GET /admin/referral-stats` 응답 `channels`).
 - **가입 배너**: 채널 코드 유입 = "환영" 배너(1,000P), 친구 코드 = 기존 "친구 초대" 배너 (AuthModal 분기).
+
+## ⚠️ 초대링크 재진입마다 체험계정이 새로 생기던 버그 (2026-07-31 수정, `561d357`)
+
+- **증상**: 같은 브라우저로 초대 링크(`?ref=`)를 열 때마다 게스트 계정이 새로 생성됐다.
+  운영 실측: 3회 진입 → user id **230 → 231 → 232**.
+- **원인(경합)**: 게스트 자동생성 `useEffect`가 `!user`로 비회원을 판단하는데, `user`는
+  `me()` **응답이 와야** 채워진다. 이 effect는 첫 렌더 직후 곧바로 돌기 때문에 그 시점엔
+  localStorage에 토큰이 멀쩡히 있어도 `user`가 `null` → "비회원"으로 오판해 또 만들었다.
+  `isAuthChecking`은 렌더 쪽 조기 return에만 쓰이고 있어 이 effect는 무방비였다.
+- **수정**: `if (isAuthChecking) return;` + **의존성 배열에도 추가**
+  (안 넣으면 확인 완료 후 재실행이 안 돼 게스트가 아예 안 생긴다).
+- **영향**: 계정 자체는 7일 뒤 cleanup이 삭제하지만(`internal-cron/cleanup`, 매일 21시,
+  `provider='guest' AND createdAt<7d`, `deleteMany`=실삭제), **집계는 삭제 전에
+  `guestCohortStat`에 적립**되므로 부풀려진 수치가 통계에 영구히 남는다(전환율 분모↑).
+  07-28 "뿌니 게스트 10명 중 8명 미사용" 판단도 실인원이 아닐 수 있다.
+  포인트도 계정당 500P가 이미 발행된 뒤라 회수되지 않는다.
+  - 실측 DB(07-31): 전체 216명 중 **게스트 157명(73%)**, 그중 156명이 최근 7일 이내 생성.
+  - ※추천보상 1000P는 "가입 후 기능 1회 사용" 조건이라 자동 지급되지 않는다(안전).
+  - ※`guest-register`엔 IP당 레이트리밋이 있어 대량 악용은 원래 막힌다 — 이 버그의 실제
+    피해자는 악의적 어뷰저가 아니라 **"링크를 두 번 누른 평범한 사용자"**다.
+- **검증**: 수정 전 4회→230/231/232… / 수정 후 4회→236 고정 / **운영 배포 후 4회→237 고정**(에러 0건).
+- 파일: `ai_mp/frontend/App.tsx`(게스트 자동생성 useEffect).
