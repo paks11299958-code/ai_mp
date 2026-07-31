@@ -2,7 +2,14 @@
  * Site Monitor — 3시간마다 crontab으로 실행
  * 1. 사이트 열림 확인 (HTTP 상태)
  * 2. 로그인 + 페르소나 목록 확인
- * 결과를 Brevo 이메일로 발송 + 스크린샷 첨부
+ * 결과를 **텔레그램**으로 발송 + 스크린샷 첨부
+ *
+ * ★알림 경로를 Brevo 이메일 → 텔레그램으로 교체(2026-07-31 사장 결정).
+ *   Brevo가 서버 IP를 인식 못 해 401로 계속 실패하고 있었다:
+ *     "unrecognised IP address 34.50.63.45"
+ *   점검 자체는 정상 동작했지만 **결과가 전달되지 않아** "알림이 없다"가
+ *   "정상이다"를 뜻하지 못하는 상태였다 — 감시의 존재 이유가 무너진다.
+ *   텔레그램은 IP 화이트리스트가 없어 서버 IP가 바뀌어도 계속 동작한다.
  *
  * 실행: node /home/paks11299958/ai_mp/monitor.js
  */
@@ -19,42 +26,58 @@ const SCREENSHOT_PATH  = path.join(__dirname, 'site_status.png');
 // 점검 결과 요약 — 어드민 대시보드가 "마지막 실행 시각/성공여부"를 읽는다
 const STATUS_PATH      = path.join(__dirname, 'monitor-status.json');
 const TIMEOUT_MS       = 15_000;
-const RECIPIENT_EMAIL  = 'paks11299958@gmail.com';
-const BREVO_API_KEY    = process.env.BREVO_API_KEY;
-const SENDER_EMAIL     = process.env.BREVO_SENDER_EMAIL || 'noreply@golf.dbzone.kr';
 const MONITOR_EMAIL    = process.env.MONITOR_EMAIL;
 const MONITOR_PASSWORD = process.env.MONITOR_PASSWORD;
+const TG_TOKEN         = process.env.TELEGRAM_BOT_TOKEN;
+const TG_CHAT          = process.env.TELEGRAM_CHAT_ID;
+
+// ★IPv4 강제(2026-07-31 실측). 이 서버는 IPv6 경로가 막혀 있는데(curl -6 = 실패)
+//   api.telegram.org는 AAAA 레코드를 준다. curl은 IPv4로 폴백해 성공하지만 node의
+//   fetch는 폴백하지 못하고 ETIMEDOUT으로 죽는다 — "fetch failed"의 정체가 이것이다.
+//   dns.setDefaultResultOrder('ipv4first')로는 안 잡히고, undici 커넥트 옵션이어야 한다.
+const { Agent } = require('undici');
+const ipv4Agent = new Agent({ connect: { family: 4 } });
 // ──────────────────────────────────────────────────────
 
-async function sendEmail({ subject, htmlContent, screenshotPath }) {
-    if (!BREVO_API_KEY) {
-        console.warn('⚠️  BREVO_API_KEY 없음 — 이메일 발송 건너뜀');
-        return;
+/**
+ * 텔레그램 알림. 장애일 때만 스크린샷을 붙인다(정상 보고까지 이미지를 보내면
+ * 알림이 무거워져 정작 장애 알림을 흘려보게 된다).
+ * ★던지지 않고 false를 반환한다 — 발송 실패가 점검 결과 기록(monitor-status.json)까지
+ *   막으면 안 된다. 예전 Brevo판은 여기서 throw해 크론이 통째로 죽었다.
+ */
+async function sendTelegram({ text, screenshotPath }) {
+    if (!TG_TOKEN || !TG_CHAT) {
+        console.warn('⚠️  TELEGRAM_BOT_TOKEN/CHAT_ID 없음 — 알림 건너뜀');
+        return false;
     }
 
-    const attachments = [];
-    if (screenshotPath && fs.existsSync(screenshotPath)) {
-        const content = fs.readFileSync(screenshotPath).toString('base64');
-        attachments.push({ name: 'site_status.png', content });
-    }
-
-    const body = JSON.stringify({
-        sender:     { name: '사이트 모니터', email: SENDER_EMAIL },
-        to:         [{ email: RECIPIENT_EMAIL }],
-        subject,
-        htmlContent,
-        ...(attachments.length > 0 ? { attachment: attachments } : {}),
-    });
-
-    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method:  'POST',
-        headers: { 'api-key': BREVO_API_KEY, 'Content-Type': 'application/json' },
-        body,
-    });
-
-    if (!res.ok) {
-        const err = await res.text().catch(() => '');
-        throw new Error(`Brevo 발송 실패 (${res.status}): ${err}`);
+    const api = (m) => `https://api.telegram.org/bot${TG_TOKEN}/${m}`;
+    try {
+        if (screenshotPath && fs.existsSync(screenshotPath)) {
+            // 사진 + 캡션을 한 번에 보낸다(캡션 상한 1024자).
+            const form = new FormData();
+            form.append('chat_id', TG_CHAT);
+            form.append('parse_mode', 'HTML');
+            form.append('caption', text.slice(0, 1024));
+            form.append('photo', new Blob([fs.readFileSync(screenshotPath)]), 'site_status.png');
+            const res = await fetch(api('sendPhoto'), { method: 'POST', body: form, dispatcher: ipv4Agent });
+            if (res.ok) return true;
+            console.error(`⚠️ 사진 발송 실패(${res.status}) — 텍스트로 폴백`);
+        }
+        const res = await fetch(api('sendMessage'), {
+            method:     'POST',
+            headers:    { 'Content-Type': 'application/json' },
+            body:       JSON.stringify({ chat_id: TG_CHAT, text, parse_mode: 'HTML' }),
+            dispatcher: ipv4Agent,
+        });
+        if (!res.ok) {
+            console.error(`⚠️ 텔레그램 발송 실패 (${res.status}): ${await res.text().catch(() => '')}`);
+            return false;
+        }
+        return true;
+    } catch (e) {
+        console.error(`⚠️ 텔레그램 발송 예외: ${e.message}`);
+        return false;
     }
 }
 
@@ -144,40 +167,29 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
         await page.screenshot({ path: SCREENSHOT_PATH, fullPage: false });
         console.log(`📸 스크린샷: ${SCREENSHOT_PATH}`);
 
-        // ── 이메일 발송 ───────────────────────────────────────
-        const allOk     = results.site.ok && results.login.ok;
-        const siteRow   = row('사이트 열림', results.site);
-        const loginRow  = row('로그인',     results.login);
+        // ── 텔레그램 발송 ─────────────────────────────────────
+        const allOk = results.site.ok && results.login.ok;
+        const line  = (label, { ok, detail }) =>
+            `${ok ? '✅' : '❌'} <b>${label}</b> — ${ok ? '정상' : '실패'}${ok ? '' : `\n     ${esc(detail)}`}`;
 
-        await sendEmail({
-            subject: allOk
-                ? `✅ [정상] aichat.dbzone.kr — ${now}`
-                : `🚨 [장애] aichat.dbzone.kr — ${now}`,
-            htmlContent: `
-                <h2 style="color:${allOk ? '#16a34a' : '#dc2626'}">
-                    ${allOk ? '✅ 사이트 정상 운영 중' : '🚨 장애 감지'}
-                </h2>
-                <table style="font-size:14px;line-height:2;border-collapse:collapse;width:100%;max-width:480px">
-                    <thead>
-                        <tr style="background:#f3f4f6">
-                            <th style="padding:8px 14px;text-align:left">점검 항목</th>
-                            <th style="padding:8px 14px;text-align:left">결과</th>
-                            <th style="padding:8px 14px;text-align:left">상세</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${siteRow}
-                        ${loginRow}
-                    </tbody>
-                </table>
-                <p style="font-size:13px;color:#6b7280;margin-top:16px">점검 시각: ${now}</p>
-                ${!allOk ? '<p style="margin-top:12px;font-weight:bold;color:#dc2626">즉시 서버 상태를 확인해주세요.</p>' : ''}
-                <p style="color:#9ca3af;font-size:12px;margin-top:8px">스크린샷을 첨부파일에서 확인하세요.</p>
-            `,
-            screenshotPath: SCREENSHOT_PATH,
+        const text = [
+            allOk ? '✅ <b>사이트 정상</b>' : '🚨 <b>장애 감지</b>',
+            'aichat.dbzone.kr',
+            '',
+            line('사이트 열림', results.site),
+            line('로그인', results.login),
+            '',
+            `🕘 ${now}`,
+            ...(allOk ? [] : ['', '<b>즉시 서버 상태를 확인해주세요.</b>']),
+        ].join('\n');
+
+        // 장애일 때만 스크린샷을 붙인다 — 정상 보고까지 이미지면 알림이 무거워져
+        // 정작 장애 알림을 흘려보게 된다.
+        const sent = await sendTelegram({
+            text,
+            screenshotPath: allOk ? null : SCREENSHOT_PATH,
         });
-
-        console.log(`📧 이메일 발송 → ${RECIPIENT_EMAIL}`);
+        console.log(sent ? '📨 텔레그램 발송 완료' : '⚠️ 텔레그램 발송 실패(점검 결과는 기록됨)');
         if (!allOk) process.exitCode = 1;
 
     } finally {
@@ -202,14 +214,8 @@ async function sendEmail({ subject, htmlContent, screenshotPath }) {
     }
 })();
 
-function row(label, { ok, detail }) {
-    const icon  = ok ? '✅' : '❌';
-    const color = ok ? '#16a34a' : '#dc2626';
-    return `
-        <tr style="border-top:1px solid #e5e7eb">
-            <td style="padding:8px 14px">${label}</td>
-            <td style="padding:8px 14px;color:${color};font-weight:bold">${icon} ${ok ? '정상' : '실패'}</td>
-            <td style="padding:8px 14px;color:#6b7280;font-size:13px">${detail}</td>
-        </tr>
-    `;
+/** 텔레그램 parse_mode=HTML용 이스케이프. 에러 메시지에 <, > 가 섞이면
+ *  (Playwright 셀렉터 등) 태그로 해석돼 발송이 400으로 실패한다. */
+function esc(s) {
+    return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
