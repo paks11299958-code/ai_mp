@@ -172,9 +172,18 @@ const AppContent: React.FC = () => {
     // ※ pendingDeepLink 초기화보다 먼저 실행돼야 하므로(ref 제거가 선행) 이 useState를 위에 둔다.
     const [arrivedViaReferral, setArrivedViaReferral] = useState<boolean>(() => captureRefFromUrl());
 
-    // 레퍼럴 링크(?ref)로 막 들어온 비회원 → 가입폼 대신 임시계정 자동생성+로그인(2026-07-21).
+    // 레퍼럴 링크(?ref)로 막 들어온 **비회원** → 가입폼 대신 임시계정 자동생성+로그인(2026-07-21).
     // failed면 렌더 쪽에서 기존처럼 가입폼으로 폴백.
+    //
+    // ★★isAuthChecking 가드 필수(2026-07-31 사장 지적 "클릭할 때마다 새 초대유저 만드는 거 아냐?"
+    //   → 운영 실측 결과 **사실이었다**: 같은 브라우저로 초대 링크를 3번 열었더니 user id가
+    //   230→231→232로 매번 새로 생겼다).
+    //   원인은 경합이다. `user` 는 me() **응답이 와야** 채워지는데, 이 effect 는 첫 렌더 직후
+    //   곧바로 돈다. 그 시점엔 토큰이 localStorage 에 멀쩡히 있어도 user 는 아직 null 이라
+    //   `!user` 가 통과해 게스트를 또 만들었다. 토큰 확인이 끝날 때까지 기다려야 한다.
+    //   (isAuthChecking 은 렌더 쪽 조기 return 에만 쓰이고 있어서 이 effect 는 무방비였다.)
     useEffect(() => {
+        if (isAuthChecking) return;   // ★토큰 확인 끝나기 전엔 판단 불가 — 기다린다
         if (!arrivedViaReferral || user || guestRegisterState !== 'idle') return;
         setGuestRegisterState('loading');
         authApi.guestRegister()
@@ -183,7 +192,7 @@ const AppContent: React.FC = () => {
                 setGuestRegisterState('done');
             })
             .catch(() => setGuestRegisterState('failed'));
-    }, [arrivedViaReferral, user, guestRegisterState, handleGuestAuthSuccess]);
+    }, [isAuthChecking, arrivedViaReferral, user, guestRegisterState, handleGuestAuthSuccess]);
 
     const [pendingDeepLink, setPendingDeepLink] = useState<{ kind: 'persona'; id: string } | { kind: 'feature'; key: string } | null>(() => {
         const params = new URLSearchParams(window.location.search);
