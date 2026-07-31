@@ -24,6 +24,7 @@ import { GuestUpgradeModal } from './components/GuestUpgradeModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { LandingPageNew } from './components/LandingPageNew';
 import { MainPageNew, FEATURES_GRID, MpnFeatureIcon } from './components/MainPageNew';
+import { PersonaEntrySheet, PersonaEntryGuide, josaGwaWa, josaEunNeun } from './components/PersonaEntrySheet';
 import { PersonaImageViewer } from './components/PersonaImageViewer';
 import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
@@ -90,20 +91,8 @@ function quickMenuErrorMessage(e: any): string {
     return '분석에 실패했습니다. 잠시 후 다시 시도해 주세요.';
 }
 
-/** 한글 받침에 따라 '과'/'와' — "도결 선생과 시작하기" / "유나와 시작하기". */
-const _josaGwaWa = (word: string): string => {
-    const ch = word?.trim().slice(-1) ?? '';
-    if (ch < '가' || ch > '힣') return '와';
-    return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '과' : '와';
-};
-
-/** 은/는 조사. 페르소나 이름이 받침으로 끝나면 '은'(아린은), 아니면 '는'(유나는).
- *  ★하드코딩 금지: 이름을 어드민이 자유 입력하므로 "유나은"처럼 어색해진다. */
-const _josaEunNeun = (word: string): string => {
-    const ch = word?.trim().slice(-1) ?? '';
-    if (ch < '가' || ch > '힣') return '는';
-    return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '은' : '는';
-};
+// 조사 헬퍼(josaGwaWa/josaEunNeun)는 PersonaEntrySheet.tsx로 옮겼다 — 그 시트가 유일한
+// 사용처였고, 같은 로직이 두 파일에 갈라지면 "유나은" 같은 어색한 조사가 한쪽에서만 고쳐진다.
 
 const AppContent: React.FC = () => {
     const {
@@ -409,26 +398,12 @@ const AppContent: React.FC = () => {
     // 무엇을 하는 화면이고 어떻게 쓰는지 한 번 알려준 뒤 닫는다.
     // features: 페르소나 링크(?p=)로 들어온 경우 "이 페르소나가 뭘 해주는지" 목록으로 보여준다.
     // 채팅창만 열리면 무엇을 할 수 있는지 알 수 없어 그대로 나간다(2026-07-28 사장 지시).
-    const [deepLinkGuide, setDeepLinkGuide] = useState<{
-        title: string;
-        desc: string;
-        /** 페르소나 링크(?p=)로 왔을 때 — 누르면 그 기능이 바로 실행되는 카드 목록 */
-        features?: { key: string; name: string; icon: string; accent: string; bg: string }[];
-        /** 명부(생년월일)를 쓰면 더 정확해지는 페르소나인지 — 안내 한 줄 노출 */
-        usesBirthInfo?: boolean;
-        /** 페르소나 대표 이미지 — 얼굴이 보여야 감정 연결이 된다(2026-07-28 사장 지시) */
-        imageUrl?: string;
-        /** 기능 링크(?f=)일 때 담당 페르소나 이름 — CTA를 "OO과 시작하기"로 맞추기 위함.
-         *  없으면 title(=페르소나명)을 쓴다. */
-        personaName?: string;
-        /** ★CTA를 눌렀을 때 자동 실행할 기능 키(2026-07-29 신설).
-         *  기능 링크(?f=)로 왔을 때만 채운다 — 그 기능을 보러 온 사람이니 바로 열어주는 게 맞다.
-         *  ★페르소나 링크(?p=)·메인 카드 클릭은 **비운다**: 전엔 "카드가 1개면 기능 링크"라고
-         *    가정했는데, 담당 기능이 하나뿐인 페르소나(신은비=명품감정, 유나=타로, 서아=뉴스 등
-         *    9명)가 전부 걸려 **"OO와 시작하기"를 눌렀는데 기능 보드가 뜨는** 문제가 있었다
-         *    (사장 지적). 페르소나를 만나러 온 사람에겐 채팅을 보여줘야 한다. */
-        autoRunFeatureKey?: string;
-    } | null>(null);
+    /** 페르소나 진입 시트에 넘길 내용. 필드 설명은 PersonaEntryGuide(PersonaEntrySheet.tsx) 참고.
+     *  ★autoRunFeatureKey는 **기능 링크(?f=)일 때만** 채운다. 페르소나 링크(?p=)·메인 카드는
+     *    비워야 한다 — 전엔 "카드가 1개면 기능 링크"라고 가정했다가, 담당 기능이 하나뿐인
+     *    페르소나(신은비=명품감정, 유나=타로, 서아=뉴스 등 9명)가 전부 걸려 **"OO와 시작하기"를
+     *    눌렀는데 기능 보드가 뜨는** 문제가 있었다(2026-07-29 사장 지적). */
+    const [deepLinkGuide, setDeepLinkGuide] = useState<PersonaEntryGuide | null>(null);
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
     // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
@@ -560,7 +535,9 @@ const AppContent: React.FC = () => {
      *    **사용처보다 아래에 두면 의존성 배열 평가 시점에 TDZ로 터진다**
      *    (`Cannot access 'X' before initialization` → 전 화면 백지, 2026-07-29 실사고).
      *    tsc·React 안전검사 둘 다 통과하므로 배포 후 실렌더로만 잡힌다. */
-    const showPersonaGuide = useCallback((persona: Persona) => {
+    /** @param runFeatureKey 메인의 **기능 카드**로 들어온 경우 그 키. CTA가 채팅 대신 그 기능을
+     *  연다("유나와 시작하기"). 페르소나 카드로 들어왔으면 비운다(→ "유나와 대화하기"). */
+    const showPersonaGuide = useCallback((persona: Persona, runFeatureKey?: string) => {
         const feats = FEATURES_GRID
             .filter(f => f.personaName === persona.name)
             .map(f => ({ key: f.key, name: f.name, icon: f.icon, accent: f.palette.accent, bg: f.palette.bg }));
@@ -576,6 +553,7 @@ const AppContent: React.FC = () => {
             features: feats.length ? feats : undefined,
             usesBirthInfo: usesBirth,
             imageUrl: persona.imageUrl || undefined,
+            autoRunFeatureKey: runFeatureKey,
         });
     }, []);
 
@@ -610,7 +588,11 @@ const AppContent: React.FC = () => {
                 // setActivePersonaId만 부르면 personaImages가 비어 왼쪽 프로필 이미지가 안 뜬다
                 // (2026-07-28 사장 지적).
                 rememberLastPersona(target.id);
-                goTo('chat');
+                // ★goTo('chat')을 부르지 않는다(2026-07-30). 시트가 화면과 무관하게 뜨므로
+                //   여기서 전환하면 "소개를 보려고 채팅으로 먼저 넘어가는" 그 문제가 그대로다.
+                //   전환은 시트의 CTA에서 한 번만 일어난다.
+                // handlePersonaClick(skipIntro)는 그대로 — 세션·이미지 로딩과 인사말 선생성을
+                // 백그라운드로 진행시킨다(화면 렌더와 무관한 데이터 로직이라 안전).
                 handlePersonaClick(target.id, { skipIntro: true });
                 // 이 페르소나가 무엇을 해주는지 먼저 알린다 — 채팅창만 보고는 뭘 물어봐야
                 // 할지 모른다. 메인 카드 클릭과 **같은 함수**를 쓴다(2026-07-29 공통화).
@@ -638,12 +620,17 @@ const AppContent: React.FC = () => {
             // 해당 페르소나 채팅으로 이동. (hero 렌더의 onFeatureSelect와 동일한 분기)
             if (key === 'webtoon' || key === 'tarot') {
                 // 웹툰·타로는 담당 페르소나 채팅 컨텍스트 위에 모달을 띄운다.
-                // ★goTo('chat') 필수(2026-07-28 전수테스트로 발견): 두 모달 모두 채팅 화면에서만
-                // 렌더되는데 setActivePersonaId만 부르면 메인에 머물러 아무 일도 일어나지 않았다.
                 const g = FEATURES_GRID.find(x => x.key === key);
                 const fp = personas.find(p => p.name === g?.personaName);
-                if (fp) { goTo('chat'); handlePersonaClick(fp.id, { skipIntro: true }); }
-                if (isTrialUser && g && fp) {
+                // 시트를 띄울 땐 전환을 미룬다(전환은 CTA에서 한 번). 바로 실행하는 경우에만
+                // 지금 채팅으로 간다 — 두 모달 모두 채팅 화면에서만 렌더되기 때문
+                // (2026-07-28 전수테스트: setActivePersonaId만으론 메인에 머물러 아무 일도 안 일어남).
+                const willShowSheet = isTrialUser && !!g && !!fp;
+                if (fp) {
+                    if (!willShowSheet) goTo('chat');
+                    handlePersonaClick(fp.id, { skipIntro: true });
+                }
+                if (willShowSheet && g && fp) {
                     // 소개 모달을 먼저 띄우고, 실행은 CTA로 미룬다(FEATURE_ACTIONS에 두 키 모두 등록됨).
                     setDeepLinkGuide({
                         title: `${FEATURE_EMOJI[key] ?? ''} ${g.name}`.trim(),
@@ -667,10 +654,9 @@ const AppContent: React.FC = () => {
                     const g = FEATURES_GRID.find(x => x.key === key);
                     const gp = g?.personaName ? personas.find(p => p.name === g.personaName) : undefined;
                     if (g && gp) {
-                        // ★안내 모달은 채팅 화면에서만 렌더된다(모달 JSX가 screen==='main' 조기 return
-                        //   뒤에 있음). 보드형은 goTo('chat')을 안 부르면 메인에 머물러 모달이 안 뜨고
-                        //   보드도 안 열려 아무 일도 일어나지 않는다(2026-07-28 실측으로 발견).
-                        goTo('chat');
+                        // ★goTo('chat')을 부르지 않는다(2026-07-30). 예전엔 안내 모달이 채팅
+                        //   화면에서만 렌더돼 전환이 필수였지만, 이제 시트가 화면과 무관하게 뜬다.
+                        //   보드는 CTA를 눌렀을 때 열린다.
                         handlePersonaClick(gp.id, { skipIntro: true });
                         setDeepLinkGuide({
                             title: `${FEATURE_EMOJI[key] ?? ''} ${g.name}`.trim(),
@@ -687,11 +673,14 @@ const AppContent: React.FC = () => {
                     const grid = FEATURES_GRID.find(g => g.key === key);
                     const persona = grid?.personaName ? personas.find(p => p.name === grid.personaName) : undefined;
                     if (persona) {
-                        goTo('chat');
                         handlePersonaClick(persona.id, { skipIntro: true });
                         // 전용 보드가 없는 기능(꿈해몽·관상·운세 등)은 채팅만 열면 뭘 하라는 건지 알 수 없다.
                         // 해당 퀵메뉴를 예약해 두면 아래 useEffect가 채팅 진입 후 자동 실행한다.
                         const qm = FEATURE_QUICK_MENU_LABEL[key];
+                        // ★시트를 띄울 땐 전환을 미룬다(CTA에서 한 번). 시트가 안 뜨는 경우
+                        //   (가이드 문구가 없는 기능)에는 여기서 바로 채팅으로 가야 퀵메뉴가 실행된다.
+                        const willShowSheet = !!qm && !!FEATURE_DEEPLINK_GUIDE[key];
+                        if (!willShowSheet) goTo('chat');
                         if (qm) {
                             setPendingQuickMenuLabel(qm);
                             // 처음 온 사람은 입력창 placeholder만으론 뭘 하라는 건지 모른다 → 사용법 안내.
@@ -839,7 +828,7 @@ const AppContent: React.FC = () => {
     // skipIntro: 공유 딥링크(?p=·?f=)로 도착한 경우엔 인트로(입장 영상/이미지)를 건너뛴다.
     // 친구 링크를 타고 "꿈해몽 해봐"를 보고 온 사람에게 입장 영상부터 보여주면 목적지가
     // 한 단계 더 멀어진다 — 바로 그 화면으로 들어가야 한다(2026-07-28 사장 지시).
-    const handlePersonaClick = useCallback((personaId: string, opts?: { skipIntro?: boolean }) => {
+    const handlePersonaClick = useCallback((personaId: string, opts?: { skipIntro?: boolean; runFeatureKey?: string }) => {
         const persona = personas.find(p => p.id === personaId);
         if (opts?.skipIntro) {
             rememberLastPersona(personaId);
@@ -856,10 +845,15 @@ const AppContent: React.FC = () => {
         //   안 한다"**는 지적을 받았다(2026-07-29). 딥링크 쪽과 같은 방식으로, 소개 모달을
         //   읽는 동안 백그라운드에서 세션 생성+greet가 끝나게 앞당긴다.
         //   (handleSelectPersona의 loadingRef 가드가 중복 생성을 막으므로 연달아 불러도 안전)
+        // ★화면 전환(goTo('chat'))은 여기서도, 호출부에서도 하지 않는다(2026-07-30 사장 지시).
+        //   전엔 메인 카드를 누르는 즉시 채팅으로 갈아치워지고 그 위에 소개가 떴다 — 그게
+        //   "채팅 페이지로 전환되는 게 불만"의 진원지였다. 이제 메인에 머문 채 시트만 덮이고,
+        //   전환은 시트의 "OO와 대화하기"를 눌렀을 때 한 번만 일어난다.
+        //   아래 선생성 호출은 그대로 둔다 — 화면 렌더가 아니라 데이터 로직이라 전환과 무관하다.
         rememberLastPersona(personaId);
         handleSelectPersona(personaId, { prefetchOnly: true });
         handleSelectPersona(personaId);
-        if (persona) showPersonaGuide(persona);
+        if (persona) showPersonaGuide(persona, opts?.runFeatureKey);
     }, [personas, handleSelectPersona, rememberLastPersona, showPersonaGuide]);
 
     // 비회원이 페르소나 클릭 → 인트로 표시, 입장 시 회원가입 유도
@@ -1360,6 +1354,53 @@ const AppContent: React.FC = () => {
         );
     }
 
+    // 기능 키 → 실행. 보드형은 featureBoardOpeners를 그대로 쓰고, 채팅 컨텍스트가 필요한
+    // 웹툰·타로만 따로 둔다.
+    // ★선언 위치 주의: 아래 personaEntrySheet가 이걸 참조하므로 **그보다 앞**이어야 한다.
+    //   (이 파일은 선언 순서를 어겨 TDZ 백지 사고를 낸 적이 있다 — 541decd)
+    const FEATURE_ACTIONS: Record<string, () => void> = {
+        ...featureBoardOpeners,
+        webtoon: () => setShowWebtoon(true),
+        tarot: () => setTarotModalMode('full'),        // 유나 타로 뽑기(3장 리딩)
+        'tarot-daily': () => setTarotModalMode('daily'), // 오늘의 카드 — 같은 셔플·플립 의식으로 1장(성의)
+    };
+
+    // ── 페르소나 진입 시트 ────────────────────────────────────────────────────
+    // ★main·chat **양쪽 return에서 같은 걸 렌더한다**(2026-07-30 사장 지시 "채팅 페이지로
+    //   전환되는 게 불만"). 전엔 이 JSX가 chat return 안에만 있어 소개를 띄우려면
+    //   goTo('chat')이 선행돼야 했다 — 그게 화면이 갈아치워지는 원인이었다.
+    //   여기서 한 번 만들어 두 곳에 꽂으면 전환 없이도 뜬다.
+    // ★보상/환영 알럿(z-9999)이 떠 있는 동안엔 시트를 내보내지 않는다(2026-07-30 실측으로 발견).
+    //   초대 링크(?ref=)로 처음 온 사람은 체험계정 환영 알럿과 이 시트가 **동시에** 뜨는데,
+    //   알럿이 z-9999라 시트(z-85)를 통째로 덮어 CTA가 눌리지 않는다. 전엔 시트가 채팅 위에만
+    //   떠서 겹칠 일이 드물었지만, 이제 메인에서도 뜨므로 정면으로 부딪힌다.
+    //   알럿을 닫으면 그때 시트가 나타난다 — 순서가 생겨 오히려 읽기 좋다.
+    const personaEntrySheet = deepLinkGuide && !rewardAlert ? (
+        <PersonaEntrySheet
+            guide={deepLinkGuide}
+            // ✕·배경 클릭 = 레이어만 닫는다. goTo('main') 불필요 — 뒤에 채팅이 떠 있지 않고
+            // 원래 보던 화면이 그대로 남아 있으므로 스크롤·탭도 보존된다.
+            onClose={() => setDeepLinkGuide(null)}
+            // ★화면 전환은 여기서 **딱 한 번**. 사용자가 의도한 순간이라 전환이 납득된다.
+            onStart={(runKey) => {
+                setDeepLinkGuide(null);
+                goTo('chat');
+                if (runKey) {
+                    const qm = FEATURE_QUICK_MENU_LABEL[runKey];
+                    if (qm) setPendingQuickMenuLabel(qm);
+                    else FEATURE_ACTIONS[runKey]?.();
+                }
+            }}
+            onFeature={(key) => {
+                setDeepLinkGuide(null);
+                goTo('chat');
+                const qm = FEATURE_QUICK_MENU_LABEL[key];
+                if (qm) setPendingQuickMenuLabel(qm);
+                else FEATURE_ACTIONS[key]?.();
+            }}
+        />
+    ) : null;
+
     // 로그인 전용 화면 — 로그인/비로그인 무관하게 screen==='authPage'면 항상 노출
     // (탑메뉴 로그인 토글 → goTo('authPage'). 상태 불일치로 안 뜨던 문제 방지차 최상위로).
     if (screen === 'authPage') {
@@ -1474,13 +1515,6 @@ const AppContent: React.FC = () => {
     // (FAVORITABLE_KEYS는 비회원 블록보다 위로 끌어올림 — 위 정의 참고)
     // 기능 키 → 보드 열기 핸들러 (Hero 즐겨찾기 칩 + 채팅 기능카드 공용).
     // 보드 오프너는 featureBoardOpeners 단일출처를 재사용, webtoon만 별도(페르소나 컨텍스트 필요).
-    const FEATURE_ACTIONS: Record<string, () => void> = {
-        ...featureBoardOpeners,
-        webtoon: () => setShowWebtoon(true),
-        tarot: () => setTarotModalMode('full'),        // 유나 타로 뽑기(3장 리딩)
-        'tarot-daily': () => setTarotModalMode('daily'), // 오늘의 카드 — 같은 셔플·플립 의식으로 1장(성의)
-    };
-
     // 닮은꼴 모달에 넘길 윤채린 personaId. 메인 카드에서 열면 activePersona가 아직
     // 윤채린이 아닐 수 있어(setState 비동기), personas에서 직접 찾아 폴백.
     const lookalikePersonaId = (activePersona?.name === '윤채린' ? activePersona.id : undefined)
@@ -1599,7 +1633,7 @@ const AppContent: React.FC = () => {
                     spotlightOrder={spotlightOrder}
                     newFeaturesOrder={newFeaturesOrder}
                     isLoading={isPersonasLoading}
-                    onSelectPersona={(id) => { goTo('chat'); handlePersonaClick(id); }}
+                    onSelectPersona={(id) => { handlePersonaClick(id); }}
                     onAdminClick={() => handleAdminLogin()}
                     onAnnouncementClick={() => setShowAnnouncementModal(true)}
                     unreadAnnouncementCount={unreadAnnouncementCount}
@@ -1621,10 +1655,13 @@ const AppContent: React.FC = () => {
                             if (wp) { setActivePersonaId(wp.id); setShowWebtoon(true); }
                             return;
                         }
-                        // 타로는 유나 채팅 화면 위 모달 + 카드마다 채팅 전송 → 페르소나 활성화+채팅 진입 선행.
+                        // 타로는 유나 채팅 화면 위 모달 + 카드마다 채팅 전송 → 페르소나 활성화 선행.
+                        // ★goTo('chat')·타로모달 열기를 여기서 하지 않는다(2026-07-30). handlePersonaClick이
+                        //   진입 시트를 띄우므로, 전환과 실행은 시트의 CTA에서 한 번에 일어난다.
+                        //   (여기서 열면 시트 뒤에 타로 모달이 먼저 떠 화면이 갈아치워진 것처럼 보인다.)
                         if (featureKey === 'tarot') {
                             const tp = personas.find(p => p.name === personaName);
-                            if (tp) { goTo('chat'); handlePersonaClick(tp.id); setTarotModalMode('full'); }
+                            if (tp) handlePersonaClick(tp.id, { runFeatureKey: 'tarot' });
                             return;
                         }
                         // 닮은꼴·헤어·프로필사진은 윤채린 컨텍스트(systemInstruction)가 필요 → 페르소나 먼저 활성화 후 보드.
@@ -1636,9 +1673,11 @@ const AppContent: React.FC = () => {
                         }
                         // 전용 보드가 있는 기능(전자책·보험·뉴스 등)은 보드를 바로 연다.
                         if (featureKey && FEATURE_ACTIONS[featureKey]) { FEATURE_ACTIONS[featureKey](); return; }
-                        // 그 외(운세 계열 등)는 해당 페르소나 채팅으로 이동.
+                        // 그 외(운세 계열 등)는 해당 페르소나 진입 시트를 띄운다.
+                        // ★goTo('chat') 제거(2026-07-30) — 전환은 시트 CTA에서 한 번만.
+                        //   기능 카드로 들어왔으니 그 키를 넘겨 CTA가 채팅 대신 그 기능을 열게 한다.
                         const persona = personas.find(p => p.name === personaName);
-                        if (persona) { goTo('chat'); handlePersonaClick(persona.id); }
+                        if (persona) handlePersonaClick(persona.id, { runFeatureKey: featureKey || undefined });
                     }}
                     isFavorite={isFavorite}
                     onToggleFavorite={toggleFavorite}
@@ -1798,6 +1837,10 @@ const AppContent: React.FC = () => {
                     </div>
                 )}
                 {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} personas={visiblePersonas.map(p => ({ id: p.id, name: p.name }))} />}
+                {/* ★메인에서도 진입 시트를 렌더한다(2026-07-30). 이게 이번 변경의 핵심 —
+                    전엔 chat return에만 있어서 소개를 보려면 화면이 먼저 채팅으로 갈아치워졌다.
+                    이제 메인에 머문 채 시트만 덮이고, 전환은 CTA를 눌렀을 때 한 번만 일어난다. */}
+                {personaEntrySheet}
             </>
         );
     }
@@ -2188,198 +2231,10 @@ const AppContent: React.FC = () => {
             {/* 퀵메뉴 로딩 오버레이 — 명리학 감정서 컨셉(팔괘 링 + 주제별 멘트) */}
             {/* 공유 링크로 들어와 기능이 자동 실행됐을 때의 사용법 안내(2026-07-28).
                 친구 링크를 타고 처음 온 사람은 채팅창만 보고 "뭘 하라는 거지?" 하고 나간다. */}
-            {deepLinkGuide && (
-                /* ★배경 클릭으로 닫지 않는다(2026-07-30 사장 지적 "버튼 안 누르고 뒤 화면
-                   클릭하니 바로 들어가진다"). 인사말 선생성 때문에 채팅 화면은 모달 **뒤에
-                   이미 떠 있다** — 그래서 배경을 누르면 "닫기"가 아니라 그냥 채팅에 들어간
-                   것처럼 보였다. 문제가 두 가지였다:
-                     ① 이 모달의 존재 이유(소개·대화 안내·기능칩)를 통째로 건너뛴다.
-                        모바일에선 카드가 320px이라 배경이 탭 면적의 대부분 → 오터치가 잦다.
-                     ② 기능 링크(?f=)는 CTA에서 기능 보드를 여는데, 배경 클릭은 그걸 건너뛰어
-                        링크로 기대한 보드 대신 맨 채팅에 떨어진다(2258행에서 버튼은 이미 고친 문제).
-                   대신 출구는 **우상단 ✕**로 명시한다(배경 무반응만 두면 갇히므로).
-                   진행=CTA / 이탈=✕ 두 경로만 남긴다. 선생성 설계는 유지. */
-                <div className="fixed inset-0 z-[85] flex items-center justify-center p-4"
-                     style={{ background: 'rgba(20,12,30,0.5)', backdropFilter: 'blur(6px)' }}>
-                    {/* ── 안내 모달(2026-07-28 사장 디자인 지시로 전면 개편) ──────────────
-                        · 얼굴을 크게: AI 동반자 서비스인데 사람이 안 보이면 감정 연결이 안 된다
-                        · 카드 분리 → 하나의 흐름: 소개/기능을 각각 박스로 두니 답답했다
-                        · 배경 연보라 + 상단 blur circle + 글래스 카드 + 소프트 그라데이션 */}
-                    <div onClick={e => e.stopPropagation()}
-                         className="relative w-full max-w-[320px] rounded-[26px] overflow-hidden"
-                         style={{
-                             background: '#FCFAFF',
-                             boxShadow: '0 30px 70px -20px rgba(80,50,110,0.45)',
-                             maxHeight: 'calc(100dvh - 32px)',
-                         }}>
-                        {/* 상단 blur circle — 요즘 앱 특유의 부드러운 광원 */}
-                        <div aria-hidden className="pointer-events-none absolute"
-                             style={{
-                                 top: -70, left: '50%', transform: 'translateX(-50%)',
-                                 width: 240, height: 240, borderRadius: '50%',
-                                 background: 'radial-gradient(circle, rgba(139,92,246,0.35) 0%, rgba(236,72,153,0.18) 55%, transparent 72%)',
-                                 filter: 'blur(26px)',
-                             }} />
-
-                        {/* ★닫기 버튼(2026-07-30 사장 판단 "클릭이 안 되던가 닫기가 되어야").
-                            배경 클릭을 막기만 하면 출구가 CTA 하나뿐이라 "지금은 대화 안 하고
-                            나가고 싶다"는 사람이 갇힌다(친구초대 링크로 처음 온 경우가 특히).
-                            ★★단순히 setDeepLinkGuide(null)만 하면 안 된다 — 인사말 선생성으로
-                              채팅이 뒤에 이미 떠 있어서 그게 드러나면 고치려던 버그와 똑같아진다.
-                              인트로 모달 '취소'(2533행)와 같이 **메인으로 되돌린다**. */}
-                        <button
-                            onClick={() => { setDeepLinkGuide(null); goTo('main'); }}
-                            aria-label="닫기"
-                            className="absolute top-3 right-3 z-10 flex items-center justify-center rounded-full transition-all active:scale-90"
-                            style={{
-                                width: 32, height: 32,
-                                background: 'rgba(255,255,255,0.78)',
-                                border: '1px solid rgba(139,92,246,0.18)',
-                                boxShadow: '0 4px 12px -4px rgba(80,50,110,0.3)',
-                                backdropFilter: 'blur(8px)',
-                                color: '#8B7C99',
-                                fontSize: 17,
-                                lineHeight: 1,
-                            }}
-                        >
-                            ✕
-                        </button>
-
-                        <div className="relative overflow-y-auto" style={{ maxHeight: 'calc(100dvh - 32px)' }}>
-                            <div className="px-6 pt-7 pb-6 text-center">
-                                {/* ① 얼굴 */}
-                                {deepLinkGuide.imageUrl && (
-                                    <div className="mx-auto mb-3.5 rounded-full overflow-hidden"
-                                         style={{
-                                             width: 96, height: 96,
-                                             border: '3px solid rgba(255,255,255,0.9)',
-                                             boxShadow: '0 12px 28px -8px rgba(139,92,246,0.45)',
-                                         }}>
-                                        <img src={deepLinkGuide.imageUrl} alt={deepLinkGuide.title}
-                                             className="w-full h-full object-cover" />
-                                    </div>
-                                )}
-
-                                <h3 className="text-[19px] font-extrabold tracking-tight" style={{ color: '#2D2017' }}>
-                                    {deepLinkGuide.title}
-                                </h3>
-
-                                {/* ② 소개 — 박스 없이 흐름으로 */}
-                                <p className="mt-2.5 text-[13px] leading-[1.65]"
-                                   style={{ color: '#6B5F78', whiteSpace: 'pre-line' }}>
-                                    {deepLinkGuide.desc}
-                                </p>
-
-                                {/* ③ 기능 — 글래스 카드 */}
-                                {deepLinkGuide.features && deepLinkGuide.features.length > 0 && (
-                                    <div className="mt-5">
-                                        {/* ★라벨 위상 주의(2026-07-30 사장 지시): 전엔 "눌러서 바로 시작"이라
-                                            모달 안에서 유일한 명시적 CTA였다. 그러면 기능칩이 메뉴판처럼 보여
-                                            **정작 핵심인 자유 대화가 "기능을 안 고르면 가는 곳"으로 읽힌다**.
-                                            우리 서비스의 목적은 페르소나와의 대화이므로 기능은 곁가지로 낮춘다. */}
-                                        <p className="text-[10.5px] font-bold tracking-wide mb-2.5 text-left"
-                                           style={{ color: '#A99BB5' }}>
-                                            이런 것도 해드려요
-                                        </p>
-                                        <div className="grid gap-2"
-                                             style={{ gridTemplateColumns: `repeat(${Math.min(deepLinkGuide.features.length, 3)}, minmax(0, 1fr))` }}>
-                                            {deepLinkGuide.features.map(f => (
-                                                <button
-                                                    key={f.key}
-                                                    onClick={() => {
-                                                        setDeepLinkGuide(null);
-                                                        const qm = FEATURE_QUICK_MENU_LABEL[f.key];
-                                                        if (qm) setPendingQuickMenuLabel(qm);
-                                                        else FEATURE_ACTIONS[f.key]?.();
-                                                    }}
-                                                    className="flex flex-col items-center gap-1.5 px-1.5 py-3 rounded-2xl transition-all active:scale-95"
-                                                    style={{
-                                                        background: 'rgba(255,255,255,0.72)',
-                                                        border: '1px solid rgba(255,255,255,0.9)',
-                                                        boxShadow: '0 6px 18px -8px rgba(80,50,110,0.28)',
-                                                        backdropFilter: 'blur(8px)',
-                                                    }}
-                                                >
-                                                    <MpnFeatureIcon kind={f.icon} size={26} color={f.accent} bg={f.bg} />
-                                                    <span className="text-[11px] font-semibold leading-tight text-center"
-                                                          style={{ color: '#5B3F82' }}>
-                                                        {f.name}
-                                                    </span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {deepLinkGuide.usesBirthInfo && (
-                                    <p className="mt-3.5 text-[11.5px] leading-relaxed text-left" style={{ color: '#A99BB5' }}>
-                                        🏮 <b style={{ color: '#8E6FB7' }}>명부</b>(이름·생년월일)를 적어두시면 더 정확하게 풀어드려요.
-                                    </p>
-                                )}
-
-                                {/* ⑤ 대화 안내 — 이 서비스의 본질(2026-07-30 사장 지시).
-                                    "우리 사이트는 페르소나와 대화하는 게 최고의 목적인데 입장 화면에
-                                     대화 관련 홍보 문구가 없다"는 지적. 기능칩만 문구를 갖고 있어서
-                                     대화는 단어로 한 번도 등장하지 않았다.
-                                    ★기능 링크(?f=)로 온 경우는 제외한다 — 그 경로의 CTA는 채팅이 아니라
-                                      기능 보드를 열므로, 대화를 권하면 문구와 동작이 어긋난다. */}
-                                {!deepLinkGuide.autoRunFeatureKey && (
-                                    <div className="mt-5 px-4 py-3.5 rounded-2xl text-left"
-                                         style={{
-                                             background: 'linear-gradient(135deg, rgba(139,92,246,0.09) 0%, rgba(236,72,153,0.07) 100%)',
-                                             border: '1px solid rgba(139,92,246,0.16)',
-                                         }}>
-                                        <p className="text-[12.5px] font-bold leading-snug" style={{ color: '#6D4AA8' }}>
-                                            💬 무슨 얘기든 괜찮아요
-                                        </p>
-                                        <p className="mt-1.5 text-[11.5px] leading-[1.6]" style={{ color: '#8B7C99' }}>
-                                            {deepLinkGuide.title}{_josaEunNeun(deepLinkGuide.title)} 그냥 들어주는 것부터 시작해요.
-                                            고민도, 오늘 하루 이야기도 편하게 꺼내보세요.
-                                        </p>
-                                    </div>
-                                )}
-
-                                {/* ④ CTA — 소프트 그라데이션.
-                                    ★기능 링크(?f=)로 왔을 때만 그 기능을 실행한다(autoRunFeatureKey).
-                                      전용 보드가 있는 기능은 모달만 닫으면 아무 일도 안 일어나 길을 잃는다.
-                                    ★페르소나 링크·메인 카드 클릭이면 **채팅으로 간다**. 예전엔 "카드가
-                                      1개면 기능 링크"라고 가정해, 담당 기능이 하나뿐인 페르소나 9명
-                                      (신은비·유나·서아·윤채원·설아·정우진·강지훈·향기·박하진)이 전부
-                                      "OO와 시작하기"를 눌렀는데 기능 보드가 떴다(2026-07-29 사장 지적). */}
-                                <button
-                                    onClick={() => {
-                                        const runKey = deepLinkGuide.autoRunFeatureKey;
-                                        setDeepLinkGuide(null);
-                                        if (runKey) {
-                                            const qm = FEATURE_QUICK_MENU_LABEL[runKey];
-                                            if (qm) setPendingQuickMenuLabel(qm);
-                                            else FEATURE_ACTIONS[runKey]?.();
-                                        }
-                                    }}
-                                    className="mt-5 w-full py-3.5 rounded-full text-[14.5px] font-bold text-white transition-transform active:scale-[0.98]"
-                                    style={{
-                                        background: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%)',
-                                        border: 'none',
-                                        boxShadow: '0 10px 24px -10px rgba(139,92,246,0.75)',
-                                    }}
-                                >
-                                    {(() => {
-                                        // 기능 링크면 담당 페르소나 이름으로("도결 선생과 시작하기"),
-                                        // 페르소나 링크면 title이 곧 이름이다.
-                                        const who = deepLinkGuide.personaName || deepLinkGuide.title;
-                                        // ★버튼 문구는 실제 동작과 일치시킨다(2026-07-30 사장 지시).
-                                        //   - 페르소나 링크·메인 카드 → 채팅으로 감 → "대화하기"로 목적을 명시.
-                                        //     "시작하기"는 무엇을 시작하는지 안 밝혀 대화가 묻혔다.
-                                        //   - 기능 링크(?f=) → 기능 보드를 엶 → "시작하기" 유지(대화가 아니므로).
-                                        const verb = deepLinkGuide.autoRunFeatureKey ? '시작하기' : '대화하기';
-                                        return `${who}${_josaGwaWa(who)} ${verb}`;
-                                    })()}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* 페르소나 진입 시트 — 실체는 components/PersonaEntrySheet.tsx.
+                ★main return(아래)에서도 **같은 personaEntrySheet를 렌더**한다. 그래야
+                  소개를 띄우려고 goTo('chat')으로 화면을 갈아치울 필요가 없다. */}
+            {personaEntrySheet}
 
             {quickMenuLoading && <QuickMenuLoading title={activeQuickMenu ?? ''} />}
 
