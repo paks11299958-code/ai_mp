@@ -608,8 +608,11 @@ export interface UserShortsRow {
 }
 export const shortsMakerApi = {
     // 1단계: 이미지(최대 3장)+폼 접수(리서치+시나리오5개 생성, 선차감). 202 → { id }.
-    create: (form: Record<string, string>, imagesBase64: string[]) =>
-        post<{ id: number; status: string; pointsCharged: number }>('/shorts-maker/requests', { ...form, imagesBase64 }),
+    // cakeImageBase64(2026-08-02 2차, 생일축하 전용): 케이크 사진 1장을 별도 필드로 보낸다 —
+    // shared-api가 images 배열 맨 뒤에 이어붙이고 hasCakePhoto 플래그를 세워, 워커가
+    // "마지막 원소 = 케이크"로 식별해 재해석 없이 지정 위치에 고정 배정한다.
+    create: (form: Record<string, string>, imagesBase64: string[], cakeImageBase64?: string) =>
+        post<{ id: number; status: string; pointsCharged: number }>('/shorts-maker/requests', { ...form, imagesBase64, ...(cakeImageBase64 ? { cakeImageBase64 } : {}) }),
     get: (id: number) => get<UserShortsRow>(`/shorts-maker/requests/${id}`),
     mine: () => get<UserShortsRow[]>('/shorts-maker/requests/mine'),
     // 2단계: 시나리오 선택→실제 영상 제작(선차감). 202 → { id }.

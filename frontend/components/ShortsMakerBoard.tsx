@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { shortsMakerApi, UserShortsRow, sampleVaultApi, SampleVaultRow } from '../services/apiService';
+import { shortsMakerApi, UserShortsRow, sampleVaultApi, SampleVaultRow, outfitApi, OutfitStyle } from '../services/apiService';
 
 // 이아린 — 쇼츠 만들기 보드. 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오
 // 5개를 만들어 보여주고, 회원이 고른 1개만 실제 TTS+영상으로 제작한다(homepage 만들기와
@@ -35,6 +35,14 @@ const CATEGORIES: {
                             // 대본(내레이션) 샘플. "글로 만드는" 카테고리는 결과물이 눈에
                             // 안 보여 감이 안 온다는 사장 지적으로 추가.
 }[] = [
+    // 생일축하(2026-08-02 3차, 사장 지시로 맨 위 배치) — 개인용 축하 콘텐츠가 마케팅용
+    // 5종보다 먼저 눈에 띄어야 진입장벽이 낮다는 판단. 가족사진·케이크사진은 선택 첨부 —
+    // 있으면 실제 사진 그대로(재해석은 별도 옵션) 쓰고, 없어도 AI가 대신 채워 완성된다.
+    { code: 'birthday', emoji: '🎂', label: '생일축하',
+      desc: '소중한 사람에게 보내는 축하 영상이에요. 이름과 하고 싶은 말만 적어주세요.',
+      inputHint: '✍️📷 사진 선택 (가족사진·케이크사진은 있으면 넣고, 없어도 AI가 채워요)',
+      example: '예: 엄마 생신 축하, 친구 지훈이 서른 번째 생일',
+      scriptSample: '"오늘은 아주 특별한 날이에요. 늘 곁에서 힘이 되어준 당신에게, 진심을 담아 축하를 전합니다. 앞으로의 하루하루가 오늘처럼 빛나기를..."' },
     { code: 'community', emoji: '📸', label: '커뮤니티·동호회',
       desc: '모임·동호회 활동을 자랑하는 홍보 쇼츠예요.',
       inputHint: '📷 사진 필요 (활동 사진 1~3장)',
@@ -58,16 +66,13 @@ const CATEGORIES: {
       inputHint: '✍️ 사진 불필요 (다루고 싶은 공감 상황만 입력)',
       example: '예: 재택근무할 때 흔한 착각, 퇴근 5분 전 상사의 급한 부탁',
       scriptSample: '"다들 재택근무하면 여유로울 줄 알았지? 하지만 현실은 우리가 생각한 것과 완전 다르다는거... 출퇴근 시간 아껴서 자기계발은 무슨! 그냥 일하는 시간이 두 배로..."' },
-    // 생일축하(2026-08-02 사장 요청) — 유일하게 "특정 한 사람에게 보내는" 카테고리.
-    // 사진을 받지 않는 이유: 특정 개인의 얼굴 사진은 초상권·개인정보 취급이 달라진다.
-    // 이름과 전하고 싶은 말만으로 축하 영상은 충분히 성립한다.
-    { code: 'birthday', emoji: '🎂', label: '생일축하',
-      desc: '소중한 사람에게 보내는 축하 영상이에요. 이름과 하고 싶은 말만 적어주세요.',
-      inputHint: '✍️ 사진 불필요 (받는 사람과 전하고 싶은 말만 입력)',
-      example: '예: 엄마 생신 축하, 친구 지훈이 서른 번째 생일',
-      scriptSample: '"오늘은 아주 특별한 날이에요. 늘 곁에서 힘이 되어준 당신에게, 진심을 담아 축하를 전합니다. 앞으로의 하루하루가 오늘처럼 빛나기를..."' },
 ];
-const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme', 'birthday'];
+const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme'];
+// 생일축하(2026-08-02 2차, 사장 요청) — 가족사진·케이크사진 모두 "선택"이라 NO_IMAGE와
+// 구분한다. NO_IMAGE는 사진 업로드 UI 자체가 없지만, 이 카테고리는 업로드는 가능하되
+// 필수는 아니다.
+const OPTIONAL_IMAGE_CATEGORIES: Category[] = ['birthday'];
+const MAX_FAMILY_PHOTOS = 3;
 
 // 사진 없는 카테고리의 주제 입력 [라벨, placeholder].
 // ★맵으로 뺀 이유(2026-08-02): 원래 삼항 3겹이었는데 생일축하가 늘면서 4겹이 됐다.
@@ -132,8 +137,24 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     // 그대로 두고 값만 category에서 계산해 변경 범위를 최소화한다.
     const isProduct = category === 'product';
     const noImage = NO_IMAGE_CATEGORIES.includes(category);
+    const optionalImage = OPTIONAL_IMAGE_CATEGORIES.includes(category);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    // 생일축하 전용(2026-08-02 2차) — 케이크 사진(선택, 1장)+위치+가족사진 재해석 옵션.
+    // 가족사진 자체는 기존 imageFiles/imagePreviews를 그대로 재사용(최대 장수만 다름).
+    const [cakeFile, setCakeFile] = useState<File | null>(null);
+    const [cakePreview, setCakePreview] = useState<string | null>(null);
+    const [cakePosition, setCakePosition] = useState<'start' | 'end'>('end');
+    const [restyle, setRestyle] = useState(false);
+    const [restyleKey, setRestyleKey] = useState('');
+    const [outfitStyles, setOutfitStyles] = useState<OutfitStyle[] | null>(null);
+    const cakeFileRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (category === 'birthday' && restyle && outfitStyles === null) {
+            outfitApi.styles().then(setOutfitStyles).catch(() => setOutfitStyles([]));
+        }
+    }, [category, restyle, outfitStyles]);
     const [reqId, setReqId] = useState<number | null>(null);
     const [row, setRow] = useState<UserShortsRow | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -188,7 +209,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const onPickImages = (e: React.ChangeEvent<HTMLInputElement>) => {
         const picked = Array.from(e.target.files || []);
         if (picked.length === 0) return;
-        const max = isProduct ? MAX_IMAGES_PRODUCT : MAX_IMAGES;
+        const max = isProduct ? MAX_IMAGES_PRODUCT : (optionalImage ? MAX_FAMILY_PHOTOS : MAX_IMAGES);
         const room = max - imageFiles.length;
         if (room <= 0) { setError(`이미지는 최대 ${max}장까지 올릴 수 있어요.`); return; }
         const toAdd = picked.slice(0, room);
@@ -232,15 +253,30 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
 
     const productSlotsFilled = () => isProduct && PRODUCT_SLOTS.every((_, i) => !!imageFiles[i]);
 
+    const onPickCake = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        if (file.size > 6 * 1024 * 1024) { setError('이미지는 장당 6MB 이내로 올려주세요.'); return; }
+        setCakeFile(file);
+        setCakePreview(URL.createObjectURL(file));
+        setError(null);
+    };
+    const removeCake = () => { setCakeFile(null); setCakePreview(null); };
+
     const submit = async () => {
-        if (noImage) {
+        if (optionalImage) {
+            // 생일축하 — 가족사진·케이크사진 모두 선택이라 이미지 검증 자체가 없다(topic만 필수).
+            if (form.topic.trim().length < 2) { setError('누구의 생일인지 적어주세요.'); return; }
+            if (restyle && !restyleKey) { setError('재해석 스타일을 선택해 주세요.'); return; }
+        } else if (noImage) {
             if (form.topic.trim().length < 2) { setError('다루고 싶은 주제를 입력해 주세요.'); return; }
         } else if (isProduct) {
             if (!productSlotsFilled()) { setError('제품 사진은 앞면·옆면·위(또는 아래) 3장이 모두 필요해요.'); return; }
         } else if (imageFiles.length === 0) {
             setError('이미지를 1장 이상 올려 주세요.'); return;
         }
-        if (!noImage) {
+        if (!noImage && !optionalImage) {
             if (form.biz.trim().length < 2) { setError('업종/상품명을 입력해 주세요.'); return; }
             if (form.strengths.trim().length < 2) { setError('핵심 장점을 입력해 주세요.'); return; }
             if (form.target.trim().length < 2) { setError('타겟 고객을 입력해 주세요.'); return; }
@@ -253,12 +289,17 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                 reader.onerror = reject;
                 reader.readAsDataURL(f);
             });
-            const validFiles = noImage ? [] : imageFiles.filter((f): f is File => !!f);
+            const validFiles = (noImage || (optionalImage && imageFiles.length === 0)) ? [] : imageFiles.filter((f): f is File => !!f);
             const images = await Promise.all(validFiles.map(toB64));
+            const cakeB64 = cakeFile ? await toB64(cakeFile) : undefined;
             const body: Record<string, string> = { category };
             (Object.keys(form) as (keyof FormState)[]).forEach(k => { const v = form[k].trim(); if (v) body[k] = v; });
             if (isProduct) body.isProduct = 'true';
-            const res = await shortsMakerApi.create(body, images);
+            if (optionalImage) {
+                body.cakePosition = cakePosition;
+                if (restyle && restyleKey) { body.restyle = 'true'; body.restyleKey = restyleKey; }
+            }
+            const res = await shortsMakerApi.create(body, images, cakeB64);
             setReqId(res.id); setRow(null); setStep('waiting');
         } catch (e: any) {
             if (e.code !== 'INSUFFICIENT_POINTS') setError(e.message || '신청에 실패했어요.');
@@ -457,7 +498,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     {step === 'form' && (
                         <>
                             <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">어떤 쇼츠를 만들까요? *</p>
+                                {/* ★타이틀 스타일(2026-08-02 3차, 사장 지적 "타이틀 느낌이 안 남") —
+                                    랜딩페이지 브랜드 폰트(Cormorant Garamond)로 통일 + 크기 확대.
+                                    문구는 유지하고 폰트만 제목답게 바꾼다. */}
+                                <p className="text-lg font-semibold text-gray-800"
+                                   style={{ fontFamily: "'Cormorant Garamond', serif" }}>어떤 쇼츠를 만들까요? *</p>
                                 <div className="grid grid-cols-1 gap-1.5">
                                     {CATEGORIES.map(c => {
                                         const open = category === c.code || hoverCat === c.code;
@@ -483,8 +528,12 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                     <span className="shrink-0 text-[9.5px] font-medium rounded-full px-1.5 py-0.5"
                                                           style={NO_IMAGE_CATEGORIES.includes(c.code)
                                                               ? { backgroundColor: '#EFF6FF', color: '#3B7DD8' }
+                                                              : OPTIONAL_IMAGE_CATEGORIES.includes(c.code)
+                                                              ? { backgroundColor: '#F5F0FF', color: '#8B5FBF' }
                                                               : { backgroundColor: '#FDE6F0', color: PINK }}>
-                                                        {NO_IMAGE_CATEGORIES.includes(c.code) ? '✍️ 사진 불필요' : '📷 사진 필요'}
+                                                        {NO_IMAGE_CATEGORIES.includes(c.code) ? '✍️ 사진 불필요'
+                                                            : OPTIONAL_IMAGE_CATEGORIES.includes(c.code) ? '✍️📷 사진 선택'
+                                                            : '📷 사진 필요'}
                                                     </span>
                                                 </span>
                                                 <span className="block text-[11px] text-gray-500 mt-0.5">{c.desc}</span>
@@ -519,7 +568,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 <p className="text-xs font-bold text-gray-800">📋 핵심 정보</p>
                                 <p className="text-xs text-gray-500 -mt-2">
                                     {category === 'birthday' ? (
-                                        <><b>받는 분과 전하고 싶은 말</b>만 적어주시면 AI가 영상까지 전부 만들어요. 적지 않은 내용(나이·직업 등)은 지어내지 않아요.</>
+                                        <><b>받는 분과 전하고 싶은 말</b>은 꼭 적어주세요. 가족사진·케이크사진은 있으면 실제 사진 그대로 넣어드리고, 없어도 AI가 대신 채워드려요. 적지 않은 내용(나이·직업 등)은 지어내지 않아요.</>
                                     ) : noImage ? (
                                         <><b>다루고 싶은 주제</b>만 적어주시면 AI가 사진부터 대본까지 전부 새로 만들어요. 사실과 다른 정보는 신중하게 확인 후 전달해요.</>
                                     ) : (
@@ -542,7 +591,88 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                             : '입력하신 내용에 대한 책임은 신청자 본인에게 있어요.'} 타인의 권리를 침해하는 내용은 삼가주세요.</>}
                                 </p>
 
-                                {noImage ? (
+                                {optionalImage ? (
+                                    <div className="space-y-3">
+                                        {/* 가족사진(선택, 최대 3장) — 재해석 옵션이 꺼져 있으면 원본 그대로 사용 */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                                가족/인물 사진 <span className="font-normal text-gray-400">(선택, 최대 {MAX_FAMILY_PHOTOS}장 — 없어도 AI가 대신 채워요)</span>
+                                            </label>
+                                            {imagePreviews.length > 0 && (
+                                                <div className="flex gap-2 mb-2 flex-wrap">
+                                                    {imagePreviews.map((src, i) => (
+                                                        <div key={i} className="relative">
+                                                            <img src={src} alt={`업로드 ${i + 1}`} className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                            <button onClick={() => removeImage(i)} type="button"
+                                                                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {imageFiles.length < MAX_FAMILY_PHOTOS && (
+                                                <div onClick={() => fileRef.current?.click()}
+                                                     className="border-2 border-dashed border-pink-200 rounded-xl p-3 text-center cursor-pointer hover:bg-pink-50/50 transition-colors bg-white">
+                                                    <div className="text-gray-400 text-xs py-3">📷 눌러서 가족사진을 올려주세요 ({imageFiles.length}/{MAX_FAMILY_PHOTOS})</div>
+                                                </div>
+                                            )}
+                                            <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
+                                            {imageFiles.length > 0 && (
+                                                <label className="flex items-center gap-2 mt-2 text-xs text-gray-600">
+                                                    <input type="checkbox" checked={restyle} onChange={e => setRestyle(e.target.checked)} />
+                                                    ✨ AI 스타일로 재해석하기(실사·지브리풍·픽사풍 등 — 끄면 사진 그대로 나가요)
+                                                </label>
+                                            )}
+                                            {imageFiles.length > 0 && restyle && (
+                                                <div className="mt-2">
+                                                    {outfitStyles === null ? (
+                                                        <p className="text-[11px] text-gray-400">스타일 목록을 불러오는 중…</p>
+                                                    ) : outfitStyles.length === 0 ? (
+                                                        <p className="text-[11px] text-gray-400">스타일 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+                                                    ) : (
+                                                        <div className="flex gap-1.5 flex-wrap">
+                                                            {outfitStyles.map(s => (
+                                                                <button key={s.id} type="button" onClick={() => setRestyleKey(s.styleKey)}
+                                                                        className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${restyleKey === s.styleKey ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
+                                                                    {s.emoji ? `${s.emoji} ` : ''}{s.name}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                    <p className="text-[11px] text-gray-400 mt-1">'프로필 사진' 기능이 검증한 화풍을 그대로 사용해요. 실존 인물이라 재해석해도 닮은 느낌은 유지돼요.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {/* 케이크 사진(선택, 1장) — 항상 원본 그대로, 위치만 선택 */}
+                                        <div className="pt-2 border-t border-gray-100">
+                                            <label className="text-xs font-semibold text-gray-700 block mb-1">
+                                                🎂 케이크 사진 <span className="font-normal text-gray-400">(선택, 1장 — 재해석 없이 실제 사진 그대로 넣어요)</span>
+                                            </label>
+                                            {cakePreview ? (
+                                                <div className="relative w-20">
+                                                    <img src={cakePreview} alt="케이크" className="w-20 h-20 object-cover rounded-lg border border-gray-100" />
+                                                    <button onClick={removeCake} type="button"
+                                                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
+                                                </div>
+                                            ) : (
+                                                <div onClick={() => cakeFileRef.current?.click()}
+                                                     className="border-2 border-dashed border-pink-200 rounded-xl p-3 text-center cursor-pointer hover:bg-pink-50/50 transition-colors bg-white">
+                                                    <div className="text-gray-400 text-xs py-3">🎂 눌러서 케이크 사진을 올려주세요</div>
+                                                </div>
+                                            )}
+                                            <input ref={cakeFileRef} type="file" accept="image/*" className="hidden" onChange={onPickCake} />
+                                            {cakePreview && (
+                                                <div className="flex gap-2 mt-2">
+                                                    {(['start', 'end'] as const).map(pos => (
+                                                        <button key={pos} type="button" onClick={() => setCakePosition(pos)}
+                                                                className={`flex-1 py-1.5 rounded-lg text-xs border transition-colors ${cakePosition === pos ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200'}`}>
+                                                            {pos === 'start' ? '영상 맨 처음에' : '영상 맨 마지막에'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ) : noImage ? (
                                     <div className="rounded-xl bg-blue-50/60 border border-blue-100 px-3 py-2.5 text-xs text-gray-600">
                                         📷 이 카테고리는 사진이 필요 없어요 — 아래 주제만 입력하면 AI가 이미지까지 전부 새로 만들어요.
                                     </div>
@@ -621,7 +751,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                         <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
                                     </div>
                                 )}
-                                {noImage ? (
+                                {(noImage || optionalImage) ? (
                                     <div className="space-y-1.5">
                                         <p className="text-xs font-semibold text-gray-700">
                                             {TOPIC_LABEL[category]?.[0] || '다루고 싶은 주제'} *
@@ -692,7 +822,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             </div>
 
-                            {/* 섹션: 참고 자료(선택) */}
+                            {/* 섹션: 참고 자료(선택) — ★생일축하는 제외(2026-08-02 3차, 사장 지적).
+                                "참고하고 싶은 쇼츠"·QR은 홍보·정보 목적 카테고리에만 맞는 개념이라,
+                                특정 개인에게 보내는 축하 영상에 그대로 두면 성격이 안 맞았다
+                                (마케팅 QR을 강제하지 않는다는 기존 설계와도 어긋남). */}
+                            {category !== 'birthday' && (
                             <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
                                 <p className="text-xs font-bold text-gray-800">🔗 참고 자료(선택)</p>
                                 <div className="space-y-1.5">
@@ -712,6 +846,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     </p>
                                 </div>
                             </div>
+                            )}
 
                             {error && <p className="text-xs text-red-500">{error}</p>}
                             <button onClick={submit} disabled={submitting}
