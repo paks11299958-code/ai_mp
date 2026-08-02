@@ -1042,6 +1042,27 @@ export const shortsApi = {
         post<{ result: string }>('/admin/shorts/delete', { id, section }),
 
     videoUrl: (id: string) => `${BASE}/admin/shorts/video/${id}`,
+
+    // 내레이션 음성(2026-08-02) — 어드민이 직접 들어보고 고른다.
+    getVoices: (lang = 'ko') =>
+        get<{ lang: string; current: string | null; candidates: { name: string; gender: 'F' | 'M' }[] }>(
+            `/admin/shorts/voices?lang=${lang}`),
+    // 미리듣기는 mp3 바이너리라 get<T>(JSON 파서)를 못 쓴다 — fetch로 직접 받아 Blob URL을 만든다.
+    previewVoice: async (voiceName: string, text?: string): Promise<string> => {
+        const res = await fetch(`${BASE}/admin/shorts/voice-preview`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
+            },
+            body: JSON.stringify({ voiceName, ...(text ? { text } : {}) }),
+        });
+        if (!res.ok) {
+            const msg = await res.json().catch(() => ({}));
+            throw new Error(msg.error || `미리듣기 실패 (${res.status})`);
+        }
+        return URL.createObjectURL(await res.blob());
+    },
 };
 
 // 온보딩 미션 보상 결과(즐겨찾기 저장 응답에 포함)

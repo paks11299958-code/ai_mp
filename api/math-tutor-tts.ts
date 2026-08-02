@@ -67,7 +67,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (text.length > 4800) return res.status(400).json({ error: '텍스트가 너무 깁니다.' });
 
     const lang = String(req.body?.language || 'ko');
-    const voiceName = VOICE_BY_LANG[lang] || VOICE_BY_LANG.ko;
+    // 어드민이 고른 목소리가 있으면 그걸 쓴다(2026-08-02 사장 지시 — 어드민 쇼츠 메뉴에서
+    // 들어보고 저장). 없거나 조회 실패면 기존 기본값으로 폴백 — 설정 때문에 TTS가 멈추면
+    // 안 되므로 실패는 삼킨다. AppConfig 키: shorts_voice_{lang}
+    let voiceName = VOICE_BY_LANG[lang] || VOICE_BY_LANG.ko;
+    try {
+        const r = await getPool().query(
+            'SELECT value FROM "AppConfig" WHERE key=$1', [`shorts_voice_${lang}`]);
+        const picked = r.rows?.[0]?.value?.trim();
+        // 언어 접두사가 맞는 것만 채택 — 잘못 저장된 값이 그대로 외부 API로 나가지 않게.
+        if (picked && picked.startsWith((LANG_CODE[lang] || LANG_CODE.ko) + '-')) voiceName = picked;
+    } catch { /* 기본 목소리로 진행 */ }
     const languageCode = LANG_CODE[lang] || LANG_CODE.ko;
 
     const credsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
