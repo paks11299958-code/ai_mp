@@ -37,7 +37,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
         err.code = 'INSUFFICIENT_POINTS';
         throw err;
     }
-    if (!res.ok) throw new Error(data.error || `서버 오류 (${res.status})`);
+    if (!res.ok) {
+        // 에러에도 상태·본문을 실어 보낸다(2026-08-02) — 예전엔 message만 남기고 본문을
+        // 버려서, 409 중복 응답이 실어 보내는 "어떤 항목과 중복인지"를 호출측이 못 읽었다.
+        const err: any = new Error(data.error || `서버 오류 (${res.status})`);
+        err.status = res.status;
+        err.body = data;
+        throw err;
+    }
     return data;
 }
 
@@ -642,17 +649,23 @@ export interface SampleVaultRow {
     language: string;
     hasThumbnail: boolean;
     sourceUserShortsId: number | null;
+    sourceTaskId: string | null;
     createdAt: string;
+}
+// 409 중복 응답 본문(2026-08-02) — err.body로 전달된다.
+export interface VaultDuplicate {
+    id: number; title: string; createdAt: string;
 }
 export const sampleVaultApi = {
     list: () => get<SampleVaultRow[]>('/sample-vault'),
     update: (id: number, patch: { title?: string; description?: string }) =>
         put<{ ok: boolean }>(`/sample-vault/${id}`, patch),
     remove: (id: number) => del<{ ok: boolean }>(`/sample-vault/${id}`),
-    copyFromUserShorts: (userShortsId: number) =>
-        post<{ id: number }>(`/sample-vault/from-user-shorts/${userShortsId}`, {}),
-    copyFromQueue: (taskId: string) =>
-        post<{ id: number }>(`/sample-vault/from-queue/${taskId}`, {}),
+    // force=true면 이미 보관된 원본이어도 다시 복사(어드민이 확인창에서 승인한 경우).
+    copyFromUserShorts: (userShortsId: number, force = false) =>
+        post<{ id: number }>(`/sample-vault/from-user-shorts/${userShortsId}${force ? '?force=1' : ''}`, {}),
+    copyFromQueue: (taskId: string, force = false) =>
+        post<{ id: number }>(`/sample-vault/from-queue/${encodeURIComponent(taskId)}${force ? '?force=1' : ''}`, {}),
     videoUrl: (id: number) => `${BASE}/sample-vault/${id}/video`,
     thumbnailUrl: (id: number) => `${BASE}/sample-vault/${id}/thumbnail`,
 };

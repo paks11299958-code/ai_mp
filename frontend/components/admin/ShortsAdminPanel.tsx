@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShortsAdminRow, sampleVaultApi } from '../../services/apiService';
+import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShortsAdminRow, sampleVaultApi, VaultDuplicate } from '../../services/apiService';
 import { Icon } from '../Icons';
 import { fmtDateTime } from '../../utils/datetime';
 
@@ -104,33 +104,72 @@ export const ShortsAdminPanel: React.FC = () => {
         return shortsMakerAdminApi.list().then(setMemberRows).catch(() => {});
     }, []);
 
-    const copyToVault = async (userShortsId: number) => {
+    // 이미 보관된 원본은 버튼을 처음부터 "보관됨"으로(2026-08-02) — 예전엔 복사 여부가
+    // 이 화면의 state에만 있어서, 새로고침하면 기억이 날아가고 이미 보관한 영상도 복사
+    // 버튼이 멀쩡히 활성화됐다(중복이 쌓인 경로 중 하나). 보관함 목록을 출처 id로 역인덱싱한다.
+    const loadVaultMarks = useCallback(() => {
+        return sampleVaultApi.list().then(rows => {
+            const byShorts: Record<number, 'done'> = {};
+            const byTask: Record<string, 'done'> = {};
+            rows.forEach(r => {
+                if (r.sourceUserShortsId != null) byShorts[r.sourceUserShortsId] = 'done';
+                if (r.sourceTaskId) byTask[r.sourceTaskId] = 'done';
+            });
+            setVaultCopyState(prev => ({ ...byShorts, ...prev }));
+            setQueueVaultCopyState(prev => ({ ...byTask, ...prev }));
+        }).catch(() => {});
+    }, []);
+
+    // 중복 복사 확인(2026-08-02) — 서버가 409로 "이미 보관함에 있다"를 알려주면 언제 복사한
+    // 건지 보여주고 되묻는다. 확인하면 force로 다시 복사(완전 차단은 안 함 — 일부러 두 벌
+    // 두려는 경우까지 막히면 우회로가 없다). 확인창을 닫으면 복사하지 않는다.
+    const confirmDuplicate = (e: any): boolean => {
+        const dup: VaultDuplicate | undefined = e?.body?.duplicate;
+        if (!dup) return false;
+        return confirm(
+            `이미 보관함에 있는 영상이에요.\n\n· ${dup.title}\n· 복사한 날짜: ${fmtDateTime(dup.createdAt)}\n\n그래도 한 번 더 복사할까요?`
+        );
+    };
+
+    const copyToVault = async (userShortsId: number, force = false) => {
         setVaultCopyState(prev => ({ ...prev, [userShortsId]: 'copying' }));
         try {
-            await sampleVaultApi.copyFromUserShorts(userShortsId);
+            await sampleVaultApi.copyFromUserShorts(userShortsId, force);
             setVaultCopyState(prev => ({ ...prev, [userShortsId]: 'done' }));
         } catch (e: any) {
-            alert('보관함 복사 실패: ' + e.message);
-            setVaultCopyState(prev => {
+            const clear = () => setVaultCopyState(prev => {
                 const next = { ...prev };
                 delete next[userShortsId];
                 return next;
             });
+            if (e?.status === 409) {
+                clear();
+                if (confirmDuplicate(e)) await copyToVault(userShortsId, true);
+                return;
+            }
+            alert('보관함 복사 실패: ' + e.message);
+            clear();
         }
     };
 
-    const copyQueueToVault = async (taskId: string) => {
+    const copyQueueToVault = async (taskId: string, force = false) => {
         setQueueVaultCopyState(prev => ({ ...prev, [taskId]: 'copying' }));
         try {
-            await sampleVaultApi.copyFromQueue(taskId);
+            await sampleVaultApi.copyFromQueue(taskId, force);
             setQueueVaultCopyState(prev => ({ ...prev, [taskId]: 'done' }));
         } catch (e: any) {
-            alert('보관함 복사 실패: ' + e.message);
-            setQueueVaultCopyState(prev => {
+            const clear = () => setQueueVaultCopyState(prev => {
                 const next = { ...prev };
                 delete next[taskId];
                 return next;
             });
+            if (e?.status === 409) {
+                clear();
+                if (confirmDuplicate(e)) await copyQueueToVault(taskId, true);
+                return;
+            }
+            alert('보관함 복사 실패: ' + e.message);
+            clear();
         }
     };
 
@@ -139,9 +178,10 @@ export const ShortsAdminPanel: React.FC = () => {
         loadQueue().finally(() => setLoading(false));
         loadStatus();
         loadMemberRows();
+        loadVaultMarks();
         const statusTimer = setInterval(loadStatus, 30000);   // 30초마다 서버 상태 갱신
         return () => { if (pollRef.current) clearInterval(pollRef.current); clearInterval(statusTimer); };
-    }, [loadQueue, loadStatus, loadMemberRows]);
+    }, [loadQueue, loadStatus, loadMemberRows, loadVaultMarks]);
 
     const startPolling = () => {
         if (pollRef.current) clearInterval(pollRef.current);
