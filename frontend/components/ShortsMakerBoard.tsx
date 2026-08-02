@@ -106,6 +106,10 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'producing' | 'result' | 'list'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [category, setCategory] = useState<Category>('community');
+    // 카테고리 카드 상세 펼침(2026-08-02) — 카드가 늘수록 목록이 복잡해 보인다는 사장 지적.
+    // 접힌 카드는 아이콘·이름·한 줄 요약·사진 배지만, 상세는 호버(데스크톱)로 미리보고
+    // 탭(모바일)으로도 열 수 있게 한다. 호버 전용으로 만들면 폰에서 정보가 막힌다.
+    const [hoverCat, setHoverCat] = useState<Category | null>(null);
     // isProduct/noImage는 category의 파생값 — 기존 isProduct 참조 코드(검증·업로드 로직)를
     // 그대로 두고 값만 category에서 계산해 변경 범위를 최소화한다.
     const isProduct = category === 'product';
@@ -437,30 +441,58 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="space-y-1.5">
                                 <p className="text-xs font-semibold text-gray-700">어떤 쇼츠를 만들까요? *</p>
                                 <div className="grid grid-cols-1 gap-1.5">
-                                    {CATEGORIES.map(c => (
+                                    {CATEGORIES.map(c => {
+                                        const open = category === c.code || hoverCat === c.code;
+                                        return (
                                         <button key={c.code} type="button"
                                                 onClick={() => {
                                                     setCategory(c.code);
                                                     setImageFiles([]); setImagePreviews([]); setError(null);
                                                 }}
+                                                onMouseEnter={() => setHoverCat(c.code)}
+                                                onMouseLeave={() => setHoverCat(null)}
                                                 className="flex items-start gap-2.5 text-left rounded-xl px-3 py-2.5 border transition-colors"
                                                 style={category === c.code
                                                     ? { backgroundColor: '#FDE6F0', borderColor: PINK }
                                                     : { borderColor: '#e5e7eb' }}>
                                             <span className="text-xl shrink-0 mt-0.5">{c.emoji}</span>
                                             <span className="flex-1 min-w-0">
-                                                <span className="block text-sm font-semibold text-gray-800">{c.label}</span>
-                                                <span className="block text-[11px] text-gray-500 mt-0.5">{c.desc}</span>
-                                                <span className="block text-[11px] text-pink-600 font-medium mt-1">{c.inputHint}</span>
-                                                <span className="block text-[10px] text-gray-400 mt-0.5">{c.example}</span>
-                                                {c.scriptSample && (
-                                                    <span className="block text-[10px] text-gray-500 italic mt-1 bg-gray-50 rounded-lg px-2 py-1">
-                                                        📝 완성 대본 예시: {c.scriptSample}
+                                                {/* 접힌 상태에도 남기는 것: 이름 + 한 줄 요약 + 사진 배지.
+                                                    ★사진 필요/불필요는 설명이 아니라 **선택 조건**이다 — 사진이 없는
+                                                    회원은 이걸 보고 카테고리를 거르므로 접어두면 안 된다. */}
+                                                <span className="flex items-center gap-1.5">
+                                                    <span className="text-sm font-semibold text-gray-800">{c.label}</span>
+                                                    <span className="shrink-0 text-[9.5px] font-medium rounded-full px-1.5 py-0.5"
+                                                          style={NO_IMAGE_CATEGORIES.includes(c.code)
+                                                              ? { backgroundColor: '#EFF6FF', color: '#3B7DD8' }
+                                                              : { backgroundColor: '#FDE6F0', color: PINK }}>
+                                                        {NO_IMAGE_CATEGORIES.includes(c.code) ? '✍️ 사진 불필요' : '📷 사진 필요'}
                                                     </span>
+                                                </span>
+                                                <span className="block text-[11px] text-gray-500 mt-0.5">{c.desc}</span>
+
+                                                {/* 상세는 접어둔다 — 카테고리가 늘어도 목록이 한 화면에 들어오게.
+                                                    여는 방법을 **호버와 탭 둘 다** 둔 건 의도적이다: 폰에는 호버가
+                                                    없어서, 호버에만 걸면 모바일에서 이 정보에 영영 닿을 수 없다.
+                                                    (선택된 카드는 계속 펼쳐둔다 — 지금 고른 게 뭔지 확인해야 하므로.) */}
+                                                {open && (
+                                                    <>
+                                                        <span className="block text-[11px] text-pink-600 font-medium mt-1">{c.inputHint}</span>
+                                                        <span className="block text-[10px] text-gray-400 mt-0.5">{c.example}</span>
+                                                        {c.scriptSample && (
+                                                            <span className="block text-[10px] text-gray-500 italic mt-1 bg-gray-50 rounded-lg px-2 py-1">
+                                                                📝 완성 대본 예시: {c.scriptSample}
+                                                            </span>
+                                                        )}
+                                                    </>
+                                                )}
+                                                {!open && (
+                                                    <span className="block text-[10px] text-gray-300 mt-0.5">눌러서 자세히 보기</span>
                                                 )}
                                             </span>
                                         </button>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
 
