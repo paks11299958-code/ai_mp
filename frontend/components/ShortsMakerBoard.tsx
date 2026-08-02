@@ -25,7 +25,7 @@ const MAX_IMAGES_PRODUCT = 8;
 // 카테고리 5종(2026-07-25 사장 지시) — 커뮤니티·제품은 기존처럼 사진 기반, 나머지 3개는
 // 사진 업로드 없이 주제만 입력하면 AI가 이미지까지 전부 완전 생성한다(shorts_maker_worker.py의
 // "사진 없음" 분기 재사용 — 이미 어드민 수동생성 17개 소재로 검증된 경로).
-type Category = 'community' | 'product' | 'insight' | 'wellness' | 'meme';
+type Category = 'community' | 'product' | 'insight' | 'wellness' | 'meme' | 'birthday';
 const CATEGORIES: {
     code: Category; emoji: string; label: string;
     desc: string;       // 한 줄 설명 — 무엇을 만드는지
@@ -58,8 +58,26 @@ const CATEGORIES: {
       inputHint: '✍️ 사진 불필요 (다루고 싶은 공감 상황만 입력)',
       example: '예: 재택근무할 때 흔한 착각, 퇴근 5분 전 상사의 급한 부탁',
       scriptSample: '"다들 재택근무하면 여유로울 줄 알았지? 하지만 현실은 우리가 생각한 것과 완전 다르다는거... 출퇴근 시간 아껴서 자기계발은 무슨! 그냥 일하는 시간이 두 배로..."' },
+    // 생일축하(2026-08-02 사장 요청) — 유일하게 "특정 한 사람에게 보내는" 카테고리.
+    // 사진을 받지 않는 이유: 특정 개인의 얼굴 사진은 초상권·개인정보 취급이 달라진다.
+    // 이름과 전하고 싶은 말만으로 축하 영상은 충분히 성립한다.
+    { code: 'birthday', emoji: '🎂', label: '생일축하',
+      desc: '소중한 사람에게 보내는 축하 영상이에요. 이름과 하고 싶은 말만 적어주세요.',
+      inputHint: '✍️ 사진 불필요 (받는 사람과 전하고 싶은 말만 입력)',
+      example: '예: 엄마 생신 축하, 친구 지훈이 서른 번째 생일',
+      scriptSample: '"오늘은 아주 특별한 날이에요. 늘 곁에서 힘이 되어준 당신에게, 진심을 담아 축하를 전합니다. 앞으로의 하루하루가 오늘처럼 빛나기를..."' },
 ];
-const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme'];
+const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme', 'birthday'];
+
+// 사진 없는 카테고리의 주제 입력 [라벨, placeholder].
+// ★맵으로 뺀 이유(2026-08-02): 원래 삼항 3겹이었는데 생일축하가 늘면서 4겹이 됐다.
+//   카테고리가 더 늘 예정이라 여기 한 줄 추가로 끝나게 한다.
+const TOPIC_LABEL: Partial<Record<Category, [string, string]>> = {
+    insight:  ['다루고 싶은 주제/키워드', '예: 요즘 금리 인하가 내 월급에 미치는 영향'],
+    wellness: ['다루고 싶은 건강·생활 팁 주제', '예: 저속노화 식단, 아침 루틴'],
+    meme:     ['다루고 싶은 공감 상황', '예: 퇴근 5분 전 상사가 급한 일을 시킬 때'],
+    birthday: ['누구의 생일인가요? 전하고 싶은 말도 함께 적어주세요', '예: 엄마 생신이에요. 늘 고맙고 건강하셨으면 좋겠어요'],
+};
 
 // 실제 매일 자동 생성되는 쇼츠 완성본 2편 — 신뢰 형성용 샘플(HomepageBoard 패턴과 동일 취지).
 const SAMPLES = [
@@ -500,7 +518,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
                                 <p className="text-xs font-bold text-gray-800">📋 핵심 정보</p>
                                 <p className="text-xs text-gray-500 -mt-2">
-                                    {noImage ? (
+                                    {category === 'birthday' ? (
+                                        <><b>받는 분과 전하고 싶은 말</b>만 적어주시면 AI가 영상까지 전부 만들어요. 적지 않은 내용(나이·직업 등)은 지어내지 않아요.</>
+                                    ) : noImage ? (
                                         <><b>다루고 싶은 주제</b>만 적어주시면 AI가 사진부터 대본까지 전부 새로 만들어요. 사실과 다른 정보는 신중하게 확인 후 전달해요.</>
                                     ) : (
                                         <><b>업종/상품명·핵심 장점·타겟 고객</b>은 필수예요. 여기 적지 않은 효과·수치는 AI가 지어내지 않아요.</>
@@ -509,12 +529,17 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 {/* ★콘텐츠 책임 고지(2026-07-25 사장 지시) — 특정 개인/기업 비방(밈)·오정보(지식
                                     큐레이션) 리스크가 있는 카테고리는 신청 시점에 책임 소재를 명확히 안내한다.
                                     법적 효력은 TermsModal.tsx 제7조가 담당, 이 문구는 사용자 인지 목적. */}
+                                {/* ★생일축하는 이 경고를 다르게 준다(2026-08-02) — 축하 영상 화면에
+                                    "타인의 권리 침해" 경고가 붙으면 분위기가 어긋난다. 대신 실제로
+                                    필요한 안내(받는 분 동의)만 부드럽게 남긴다. */}
                                 <p className="text-[11px] text-gray-400 leading-relaxed -mt-1.5">
-                                    ⚠️ {category === 'meme'
-                                        ? '특정 인물·회사·단체가 특정되지 않게, 보편적인 상황으로 입력해 주세요.'
-                                        : category === 'insight'
-                                        ? '입력하신 주제와 내용에 대한 사실관계 확인 책임은 신청자에게 있어요.'
-                                        : '입력하신 내용에 대한 책임은 신청자 본인에게 있어요.'} 타인의 권리를 침해하는 내용은 삼가주세요.
+                                    {category === 'birthday'
+                                        ? '💝 받는 분이 기뻐할 내용으로 적어주세요. 공개된 곳에 올릴 때는 본인 동의를 받는 게 좋아요.'
+                                        : <>⚠️ {category === 'meme'
+                                            ? '특정 인물·회사·단체가 특정되지 않게, 보편적인 상황으로 입력해 주세요.'
+                                            : category === 'insight'
+                                            ? '입력하신 주제와 내용에 대한 사실관계 확인 책임은 신청자에게 있어요.'
+                                            : '입력하신 내용에 대한 책임은 신청자 본인에게 있어요.'} 타인의 권리를 침해하는 내용은 삼가주세요.</>}
                                 </p>
 
                                 {noImage ? (
@@ -599,15 +624,20 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 {noImage ? (
                                     <div className="space-y-1.5">
                                         <p className="text-xs font-semibold text-gray-700">
-                                            {category === 'insight' ? '다루고 싶은 주제/키워드' : category === 'wellness' ? '다루고 싶은 건강·생활 팁 주제' : '다루고 싶은 공감 상황'} *
+                                            {TOPIC_LABEL[category]?.[0] || '다루고 싶은 주제'} *
                                         </p>
                                         <textarea value={form.topic} onChange={set('topic')} rows={2}
-                                                  placeholder={
-                                                      category === 'insight' ? '예: 요즘 금리 인하가 내 월급에 미치는 영향'
-                                                      : category === 'wellness' ? '예: 저속노화 식단, 아침 루틴'
-                                                      : '예: 퇴근 5분 전 상사가 급한 일을 시킬 때'
-                                                  }
+                                                  placeholder={TOPIC_LABEL[category]?.[1] || ''}
                                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y bg-white" />
+                                        {category === 'birthday' && (
+                                            // 이 카테고리만 받는 사람이 실재하는 개인이라, 무엇을 적어야
+                                            // 좋은 결과가 나오는지 한 줄 안내한다(빈 입력으로 어색한
+                                            // 축하문이 나오는 걸 줄인다).
+                                            <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                💡 받는 분과의 관계(엄마·친구 등)와 전하고 싶은 한마디를 함께 적으면 더 따뜻하게 나와요.
+                                                나이·외모 이야기는 넣지 않습니다.
+                                            </p>
+                                        )}
                                     </div>
                                 ) : (
                                     <>
