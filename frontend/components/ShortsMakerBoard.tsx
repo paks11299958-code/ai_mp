@@ -98,7 +98,9 @@ const LANGUAGES: { code: string; label: string }[] = [
 
 const STATUS_LABEL: Record<string, string> = {
     pending: '시나리오 준비 중', processing_research: '시나리오 준비 중',
-    scenarios_ready: '선택 대기', producing: '영상 제작 중', processing_produce: '영상 제작 중',
+    scenarios_ready: '선택 대기',
+    previewing: '미리보기 준비 중', processing_preview: '미리보기 준비 중', preview_ready: '미리보기 완성',
+    producing: '영상 제작 중', processing_produce: '영상 제작 중',
     done: '완성', failed: '실패',
 };
 
@@ -125,8 +127,28 @@ interface FormState {
 }
 const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '', topic: '' };
 
+// ★스타일 목록 지연 로더(2026-08-02 3차) — plan 단계 진입 시 1회만 outfitApi.styles()를
+// 호출한다. 별도 컴포넌트로 뽑은 이유: [plan] 블록은 조건부 렌더라 부모의 useEffect에
+// 두면 "카테고리를 오갈 때마다 다시 부르는지" 의존성 배열 관리가 번거로워진다 — 이
+// 컴포넌트가 마운트되는 순간(=step==='plan'이고 사진 카테고리일 때)에만 자연히 1회 호출.
+const StyleLoader: React.FC<{ onLoaded: (styles: OutfitStyle[]) => void }> = ({ onLoaded }) => {
+    useEffect(() => {
+        outfitApi.styles().then(onLoaded).catch(() => onLoaded([]));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    return <p className="text-[11px] text-gray-400">스타일 목록을 불러오는 중…</p>;
+};
+
 export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
-    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'producing' | 'result' | 'list'>('intro');
+    // ★2026-08-02 3차 개편 — 'scenarios'(시나리오 선택) 다음에 'plan'(요금제+스타일 확정)
+    // → 'previewing'/'preview'(5초 미리보기) → 'producing'(결제 후 실제 제작) 순서로 확장.
+    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'plan' | 'previewing' | 'preview' | 'producing' | 'result' | 'list'>('intro');
+    // 요금제+스타일 선택 상태(2026-08-02 3차) — plan 단계에서 채워 preview API로 넘긴다.
+    const [selectedScenarioIdx, setSelectedScenarioIdx] = useState<number | null>(null);
+    const [plan, setPlan] = useState<'standard' | 'premium'>('standard');
+    const [planRestyleKeys, setPlanRestyleKeys] = useState<string[]>([]);
+    const [planOutfitStyles, setPlanOutfitStyles] = useState<OutfitStyle[] | null>(null);
+    const [selectedFinalSlot, setSelectedFinalSlot] = useState<0 | 1>(0);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [category, setCategory] = useState<Category>('community');
     // 카테고리 카드 상세 펼침(2026-08-02) — 카드가 늘수록 목록이 복잡해 보인다는 사장 지적.
@@ -140,26 +162,22 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const optionalImage = OPTIONAL_IMAGE_CATEGORIES.includes(category);
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-    // 생일축하 전용(2026-08-02 2차) — 케이크 사진(선택, 1장)+위치+가족사진 재해석 옵션.
-    // 가족사진 자체는 기존 imageFiles/imagePreviews를 그대로 재사용(최대 장수만 다름).
+    // 생일축하 전용(2026-08-02 2차) — 케이크 사진(선택, 1장)+위치.
+    // ★가족사진 AI 재해석(restyle/restyleKey)은 2026-08-02 3차에서 신청서 단계에서
+    // 빼고 [plan] 단계(시나리오 선택 후 요금제+스타일 확정)로 옮겼다 — 전 카테고리
+    // 공통 스타일 선택 UI로 통합(planRestyleKeys 참고).
     const [cakeFile, setCakeFile] = useState<File | null>(null);
     const [cakePreview, setCakePreview] = useState<string | null>(null);
     const [cakePosition, setCakePosition] = useState<'start' | 'end'>('end');
-    const [restyle, setRestyle] = useState(false);
-    const [restyleKey, setRestyleKey] = useState('');
-    const [outfitStyles, setOutfitStyles] = useState<OutfitStyle[] | null>(null);
     const cakeFileRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        if (category === 'birthday' && restyle && outfitStyles === null) {
-            outfitApi.styles().then(setOutfitStyles).catch(() => setOutfitStyles([]));
-        }
-    }, [category, restyle, outfitStyles]);
     const [reqId, setReqId] = useState<number | null>(null);
     const [row, setRow] = useState<UserShortsRow | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    // ★페이징(2026-08-02 3차) — 완성본은 영구 보관이라 "더 보기"로 전체를 볼 수 있어야 한다.
     const [mineList, setMineList] = useState<UserShortsRow[]>([]);
+    const [mineTotal, setMineTotal] = useState(0);
+    const MINE_PAGE_SIZE = 30;
     const [previewSample, setPreviewSample] = useState<{ label: string; url: string } | null>(null);
     // 인트로 샘플(2026-07-25) — 샘플 영상 보관함(SampleVault)의 실제 완성본을 보여준다.
     // 아직 로딩 전/실패 시엔 아래 SAMPLES(고정 2개)로 폴백해 화면이 비지 않게 한다.
@@ -168,8 +186,15 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const fileRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
+    const loadMine = (offset = 0, append = false) => {
+        shortsMakerApi.mine(offset, MINE_PAGE_SIZE).then(res => {
+            setMineList(prev => append ? [...prev, ...res.rows] : res.rows);
+            setMineTotal(res.total);
+        }).catch(() => {});
+    };
+
     useEffect(() => {
-        shortsMakerApi.mine().then(setMineList).catch(() => {});
+        loadMine();
         sampleVaultApi.list().then(setVaultSamples).catch(() => {});
     }, []);
 
@@ -187,14 +212,16 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         scrollRef.current?.scrollTo({ top: 0 });
     }, [step]);
 
-    // 폴링: pending(시나리오 대기)이면 scenarios_ready까지, producing이면 done/failed까지.
+    // 폴링(2026-08-02 3차 확장): pending→scenarios_ready, previewing→preview_ready,
+    // producing→done/failed. 3단계 모두 폴링 대상에 추가.
     useEffect(() => {
-        if ((step !== 'waiting' && step !== 'producing') || !reqId) return;
+        if ((step !== 'waiting' && step !== 'previewing' && step !== 'producing') || !reqId) return;
         const tick = async () => {
             try {
                 const r = await shortsMakerApi.get(reqId);
                 setRow(r);
                 if (r.status === 'scenarios_ready') { if (pollRef.current) clearInterval(pollRef.current); setStep('scenarios'); }
+                else if (r.status === 'preview_ready') { if (pollRef.current) clearInterval(pollRef.current); setStep('preview'); }
                 else if (r.status === 'done' || r.status === 'failed') { if (pollRef.current) clearInterval(pollRef.current); setStep('result'); }
             } catch { /* 일시 오류는 다음 폴링에서 재시도 */ }
         };
@@ -268,7 +295,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         if (optionalImage) {
             // 생일축하 — 가족사진·케이크사진 모두 선택이라 이미지 검증 자체가 없다(topic만 필수).
             if (form.topic.trim().length < 2) { setError('누구의 생일인지 적어주세요.'); return; }
-            if (restyle && !restyleKey) { setError('재해석 스타일을 선택해 주세요.'); return; }
         } else if (noImage) {
             if (form.topic.trim().length < 2) { setError('다루고 싶은 주제를 입력해 주세요.'); return; }
         } else if (isProduct) {
@@ -297,7 +323,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
             if (isProduct) body.isProduct = 'true';
             if (optionalImage) {
                 body.cakePosition = cakePosition;
-                if (restyle && restyleKey) { body.restyle = 'true'; body.restyleKey = restyleKey; }
             }
             const res = await shortsMakerApi.create(body, images, cakeB64);
             setReqId(res.id); setRow(null); setStep('waiting');
@@ -308,14 +333,44 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
-    const selectScenario = async (idx: number) => {
+    // ★2026-08-02 3차 — 시나리오를 고르면 바로 제작하지 않고 요금제+스타일 선택 화면으로.
+    const selectScenario = (idx: number) => {
+        setSelectedScenarioIdx(idx);
+        setPlan('standard');
+        setPlanRestyleKeys([]);
+        setPlanOutfitStyles(null); // StyleLoader가 다시 조회하도록 초기화
+        setStep('plan');
+    };
+
+    // 요금제·스타일 확정 → 5초 미리보기 생성 요청(무료). 프리미엄은 스타일 정확히 2개 필수.
+    const confirmPlanAndPreview = async () => {
+        if (!reqId || selectedScenarioIdx === null) return;
+        if (plan === 'premium' && planRestyleKeys.length !== 2) {
+            setError('프리미엄은 스타일을 2개 선택해 주세요.'); return;
+        }
+        if (plan === 'standard' && planRestyleKeys.length > 1) {
+            setError('스탠다드는 스타일을 1개까지만 선택할 수 있어요.'); return;
+        }
+        setError(null); setSubmitting(true);
+        try {
+            await shortsMakerApi.preview(reqId, selectedScenarioIdx, plan, planRestyleKeys);
+            setRow(null); setStep('previewing');
+        } catch (e: any) {
+            setError(e.message || '미리보기 요청에 실패했어요.');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // 미리보기 확인 후 결제 확정 → 실제 제작 시작.
+    const confirmProduce = async () => {
         if (!reqId) return;
         setSubmitting(true); setError(null);
         try {
-            await shortsMakerApi.select(reqId, idx);
+            await shortsMakerApi.confirm(reqId);
             setStep('producing');
         } catch (e: any) {
-            if (e.code !== 'INSUFFICIENT_POINTS') setError(e.message || '선택에 실패했어요.');
+            if (e.code !== 'INSUFFICIENT_POINTS') setError(e.message || '제작 확정에 실패했어요.');
         } finally {
             setSubmitting(false);
         }
@@ -326,6 +381,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         try {
             await shortsMakerApi.delete(id);
             setMineList(prev => prev.filter(r => r.id !== id));
+            setMineTotal(prev => Math.max(0, prev - 1));
         } catch (e: any) {
             alert('삭제 실패: ' + e.message);
         }
@@ -334,7 +390,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const reset = () => {
         setForm(EMPTY_FORM); setCategory('community'); setImageFiles([]); setImagePreviews([]);
         setReqId(null); setRow(null); setError(null); setStep('intro');
-        shortsMakerApi.mine().then(setMineList).catch(() => {});
+        loadMine();
     };
 
     const done = row?.status === 'done';
@@ -475,7 +531,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 <div className="flex items-center gap-3 pt-0.5">
                                                     <button onClick={() => setPreviewSample({ label: bizName || `쇼츠 #${r.id}`, url: shortsMakerApi.videoUrl(r.id) })}
                                                             className="text-xs font-semibold underline" style={{ color: PINK }}>▶️ 보기</button>
-                                                    <a href={shortsMakerApi.videoUrl(r.id)} download className="text-xs underline text-gray-400 hover:text-gray-600">📦 다운로드</a>
+                                                    <a href={shortsMakerApi.videoUrl(r.id, { download: true })} download className="text-xs underline text-gray-400 hover:text-gray-600">📦 다운로드</a>
                                                     <button onClick={() => remove(r.id)}
                                                             className="text-xs underline text-gray-400 hover:text-red-500 ml-auto">🗑️ 삭제</button>
                                                 </div>
@@ -491,6 +547,15 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     );
                                 })}
                             </div>
+                            {/* ★완성본 영구 보관(2026-08-02 3차) — 목록이 30개를 넘으면 "더 보기"로
+                                끝까지 볼 수 있게 한다(예전엔 최신 30건 고정이라 그 이전 건은 UI에서
+                                안 보였음, DB엔 그대로 남아있었지만 진입 경로가 없었다). */}
+                            {mineList.length < mineTotal && (
+                                <button onClick={() => loadMine(mineList.length, true)}
+                                        className="w-full py-2 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-gray-50">
+                                    더 보기 ({mineList.length}/{mineTotal})
+                                </button>
+                            )}
                         </>
                     )}
 
@@ -616,31 +681,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 </div>
                                             )}
                                             <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={onPickImages} />
-                                            {imageFiles.length > 0 && (
-                                                <label className="flex items-center gap-2 mt-2 text-xs text-gray-600">
-                                                    <input type="checkbox" checked={restyle} onChange={e => setRestyle(e.target.checked)} />
-                                                    ✨ AI 스타일로 재해석하기(실사·지브리풍·픽사풍 등 — 끄면 사진 그대로 나가요)
-                                                </label>
-                                            )}
-                                            {imageFiles.length > 0 && restyle && (
-                                                <div className="mt-2">
-                                                    {outfitStyles === null ? (
-                                                        <p className="text-[11px] text-gray-400">스타일 목록을 불러오는 중…</p>
-                                                    ) : outfitStyles.length === 0 ? (
-                                                        <p className="text-[11px] text-gray-400">스타일 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>
-                                                    ) : (
-                                                        <div className="flex gap-1.5 flex-wrap">
-                                                            {outfitStyles.map(s => (
-                                                                <button key={s.id} type="button" onClick={() => setRestyleKey(s.styleKey)}
-                                                                        className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${restyleKey === s.styleKey ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
-                                                                    {s.emoji ? `${s.emoji} ` : ''}{s.name}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                    <p className="text-[11px] text-gray-400 mt-1">'프로필 사진' 기능이 검증한 화풍을 그대로 사용해요. 실존 인물이라 재해석해도 닮은 느낌은 유지돼요.</p>
-                                                </div>
-                                            )}
+                                            {/* ★AI 스타일 재해석 선택은 2026-08-02 3차부터 여기(신청서 단계)가 아니라
+                                                시나리오를 고른 뒤 [plan] 단계(요금제+스타일 확정)에서 전 카테고리
+                                                공통으로 처리한다 — 신청서 단계엔 사진 업로드까지만 남긴다. */}
                                         </div>
                                         {/* 케이크 사진(선택, 1장) — 항상 원본 그대로, 위치만 선택 */}
                                         <div className="pt-2 border-t border-gray-100">
@@ -907,7 +950,101 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 ))}
                             </div>
                             {error && <p className="text-xs text-red-500">{error}</p>}
-                            <p className="text-[11px] text-gray-400 text-center">선택 시 영상 제작 2,000P가 추가로 차감돼요.</p>
+                            <p className="text-[11px] text-gray-400 text-center">선택 후 요금제·스타일을 고르면 5초 미리보기를 먼저 보여드려요(무료).</p>
+                        </>
+                    )}
+
+                    {/* [plan] 요금제(스탠다드/프리미엄)+스타일 확정 → 미리보기 요청(2026-08-02 3차 신설).
+                        ★사진 없는 카테고리(insight/wellness/meme)는 재해석할 실사진이 없으므로
+                        스타일 선택 UI 자체를 생략한다. */}
+                    {step === 'plan' && (
+                        <>
+                            <p className="text-lg font-semibold text-gray-800" style={{ fontFamily: "'Cormorant Garamond', serif" }}>어떤 등급으로 만들까요?</p>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button type="button" onClick={() => { setPlan('standard'); if (planRestyleKeys.length > 1) setPlanRestyleKeys(planRestyleKeys.slice(0, 1)); }}
+                                        className="text-left rounded-xl border p-3 transition-colors"
+                                        style={plan === 'standard' ? { backgroundColor: '#FDE6F0', borderColor: PINK } : { borderColor: '#e5e7eb' }}>
+                                    <p className="text-sm font-bold text-gray-800">스탠다드</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">3,000P</p>
+                                    <p className="text-[11px] text-gray-400 mt-1">완성본 1개 · 나레이션+배경음악</p>
+                                </button>
+                                <button type="button" onClick={() => setPlan('premium')}
+                                        className="text-left rounded-xl border p-3 transition-colors"
+                                        style={plan === 'premium' ? { backgroundColor: '#FDE6F0', borderColor: PINK } : { borderColor: '#e5e7eb' }}>
+                                    <p className="text-sm font-bold text-gray-800">🌟 프리미엄</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">5,000P</p>
+                                    <p className="text-[11px] text-gray-400 mt-1">화풍 다른 완성본 2개 중 선택 · 검증 강화</p>
+                                </button>
+                            </div>
+
+                            {!NO_IMAGE_CATEGORIES.includes(category) && (
+                                <div className="space-y-1.5">
+                                    <p className="text-xs font-semibold text-gray-700">
+                                        스타일 선택 {plan === 'premium' ? '(정확히 2개 선택)' : '(선택, 최대 1개 — 안 고르면 AI가 알아서 구성해요)'}
+                                    </p>
+                                    {planOutfitStyles === null ? (
+                                        <StyleLoader onLoaded={setPlanOutfitStyles} />
+                                    ) : planOutfitStyles.length === 0 ? (
+                                        <p className="text-[11px] text-gray-400">스타일 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</p>
+                                    ) : (
+                                        <div className="flex gap-1.5 flex-wrap">
+                                            {planOutfitStyles.map(s => {
+                                                const picked = planRestyleKeys.includes(s.styleKey);
+                                                return (
+                                                    <button key={s.id} type="button" onClick={() => {
+                                                        setPlanRestyleKeys(prev => {
+                                                            if (prev.includes(s.styleKey)) return prev.filter(k => k !== s.styleKey);
+                                                            const max = plan === 'premium' ? 2 : 1;
+                                                            const next = [...prev, s.styleKey];
+                                                            return next.length > max ? next.slice(next.length - max) : next;
+                                                        });
+                                                    }}
+                                                    className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${picked ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
+                                                        {s.emoji ? `${s.emoji} ` : ''}{s.name}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {error && <p className="text-xs text-red-500">{error}</p>}
+                            <button onClick={confirmPlanAndPreview} disabled={submitting}
+                                    className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+                                    style={{ background: `linear-gradient(135deg, ${PINK}, #F4A4C6)` }}>
+                                {submitting ? '처리 중...' : '✨ 5초 미리보기 보기'}
+                            </button>
+                        </>
+                    )}
+
+                    {/* [previewing] 5초 미리보기 생성 대기(무료) */}
+                    {step === 'previewing' && (
+                        <div className="py-8 space-y-3 text-center">
+                            <span className="inline-block w-6 h-6 animate-spin border-2 border-t-transparent rounded-full" style={{ borderColor: PINK, borderTopColor: 'transparent' }} />
+                            <p className="text-sm text-gray-700 font-semibold">5초 미리보기를 만들고 있어요</p>
+                            <p className="text-xs text-gray-400">보통 10~20초 정도 걸려요.</p>
+                        </div>
+                    )}
+
+                    {/* [preview] 미리보기 확인 → 결제 확정 */}
+                    {step === 'preview' && row && (
+                        <>
+                            <p className="text-sm font-semibold text-gray-800 text-center">미리보기예요. 마음에 드시나요?</p>
+                            {row.hasPreviewVideo ? (
+                                <video src={shortsMakerApi.previewVideoUrl(row.id)} controls autoPlay muted loop
+                                       className="w-full rounded-xl bg-black mx-auto" style={{ aspectRatio: '9/16', maxHeight: 360 }} />
+                            ) : (
+                                <p className="text-xs text-gray-400 text-center py-6">미리보기 생성에 실패했어요 — 결제 후 실제 완성본으로 바로 확인하실 수 있어요.</p>
+                            )}
+                            {error && <p className="text-xs text-red-500">{error}</p>}
+                            <button onClick={confirmProduce} disabled={submitting}
+                                    className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-60"
+                                    style={{ background: `linear-gradient(135deg, ${PINK}, #F4A4C6)` }}>
+                                {submitting ? '처리 중...' : `💎 ${plan === 'premium' ? '5,000P' : '3,000P'} — 전체 영상 만들기`}
+                            </button>
+                            <button onClick={() => setStep('scenarios')} className="w-full text-center text-xs text-gray-400 underline">
+                                다른 시나리오 다시 고르기
+                            </button>
                         </>
                     )}
 
@@ -945,13 +1082,41 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                         );
                     })()}
 
-                    {/* [result-완성] */}
+                    {/* [result-완성] ★프리미엄은 hasVideo2가 true면 2버전 비교 UI(2026-08-02 3차) */}
                     {step === 'result' && done && row && (
                         <div className="space-y-3">
                             <p className="text-sm font-semibold text-gray-800 text-center">🎉 쇼츠가 완성됐어요!</p>
-                            <video src={shortsMakerApi.videoUrl(row.id)} controls className="w-full rounded-xl bg-black" style={{ aspectRatio: '9/16', maxHeight: 480 }} />
+                            {row.plan === 'premium' && row.hasVideo2 ? (
+                                <>
+                                    <p className="text-xs text-gray-500 text-center">화풍이 다른 2개 중 마음에 드는 걸 골라주세요</p>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {([0, 1] as const).map(slot => (
+                                            <button key={slot} type="button" onClick={() => setSelectedFinalSlot(slot)}
+                                                    className="rounded-xl border-2 p-1.5 transition-colors"
+                                                    style={selectedFinalSlot === slot ? { borderColor: PINK } : { borderColor: '#e5e7eb' }}>
+                                                <video src={shortsMakerApi.videoUrl(row.id, { slot })} controls
+                                                       className="w-full rounded-lg bg-black" style={{ aspectRatio: '9/16', maxHeight: 320 }} />
+                                                <p className="text-xs font-semibold mt-1 text-center" style={selectedFinalSlot === slot ? { color: PINK } : { color: '#9ca3af' }}>
+                                                    {slot === 0 ? '버전 A' : '버전 B'}{row.selectedVideoSlot === slot ? ' ✓ 선택됨' : ''}
+                                                </p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button onClick={async () => {
+                                                try { await shortsMakerApi.selectFinal(row.id, selectedFinalSlot); setRow({ ...row, selectedVideoSlot: selectedFinalSlot }); }
+                                                catch (e: any) { setError(e.message || '선택에 실패했어요.'); }
+                                            }}
+                                            className="w-full py-2.5 rounded-xl text-white font-semibold text-sm"
+                                            style={{ background: `linear-gradient(135deg, ${PINK}, #F4A4C6)` }}>
+                                        이 버전으로 최종 선택
+                                    </button>
+                                    {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+                                </>
+                            ) : (
+                                <video src={shortsMakerApi.videoUrl(row.id)} controls className="w-full rounded-xl bg-black" style={{ aspectRatio: '9/16', maxHeight: 480 }} />
+                            )}
                             <div className="flex items-center justify-center gap-4 text-xs">
-                                <a href={shortsMakerApi.videoUrl(row.id)} download className="underline font-semibold" style={{ color: PINK }}>📦 다운로드</a>
+                                <a href={shortsMakerApi.videoUrl(row.id, { slot: row.plan === 'premium' ? selectedFinalSlot : undefined, download: true })} download className="underline font-semibold" style={{ color: PINK }}>📦 다운로드</a>
                                 <button onClick={reset} className="underline text-gray-500">다른 쇼츠 만들기</button>
                             </div>
                         </div>

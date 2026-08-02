@@ -588,16 +588,26 @@ export const homepageApi = {
         post<{ id: number; status: string }>(`/homepage/requests/${requestId}/edits/${editId}/revert`, {}),
 };
 
-// 이아린 — 쇼츠 만들기(이미지 1장 → 시나리오 5개 → 선택 1개 실제 제작).
-// 2단계 과금: ①리서치+시나리오5개(shorts_maker_research) ②영상제작(shorts_maker_produce).
+// 이아린 — 쇼츠 만들기(이미지 1장 → 시나리오 5개 → 요금제+스타일 확정 → 5초 미리보기 →
+// 결제 → 실제 제작). 2026-08-02 3차 개편: Veo 옵션 폐지, 요금제 스탠다드(3000P)/
+// 프리미엄(5000P) 2단계로 단순화, 프리미엄은 화풍 다른 완성본 2개 중 선택.
+// 과금: ①리서치+시나리오5개(shorts_maker_research, 100P) ②영상제작
+// (shorts_maker_produce_standard/premium, 3000P/5000P — 미리보기 자체는 무료).
 export interface ShortsScenario { angle: string; title: string; hook: string; summary: string; }
+export interface ShortsPreview { caption?: string; }
 export interface UserShortsRow {
     id: number;
-    status: 'pending' | 'processing_research' | 'scenarios_ready' | 'producing' | 'processing_produce' | 'done' | 'failed';
+    status: 'pending' | 'processing_research' | 'scenarios_ready' | 'previewing' | 'processing_preview'
+          | 'preview_ready' | 'producing' | 'processing_produce' | 'done' | 'failed';
     formJson: string;
     scenarios: ShortsScenario[];
     selectedIndex: number | null;
+    plan: 'standard' | 'premium';
+    preview: ShortsPreview | null;
+    hasPreviewVideo: boolean;
     hasVideo: boolean;
+    hasVideo2: boolean;               // 프리미엄 2번째 완성본 존재 여부
+    selectedVideoSlot: number | null; // 프리미엄에서 최종 선택한 슬롯(0|1)
     errorMessage: string | null;
     pointsChargedResearch: number;
     pointsChargedVideo: number;
@@ -614,11 +624,30 @@ export const shortsMakerApi = {
     create: (form: Record<string, string>, imagesBase64: string[], cakeImageBase64?: string) =>
         post<{ id: number; status: string; pointsCharged: number }>('/shorts-maker/requests', { ...form, imagesBase64, ...(cakeImageBase64 ? { cakeImageBase64 } : {}) }),
     get: (id: number) => get<UserShortsRow>(`/shorts-maker/requests/${id}`),
-    mine: () => get<UserShortsRow[]>('/shorts-maker/requests/mine'),
-    // 2단계: 시나리오 선택→실제 영상 제작(선차감). 202 → { id }.
-    select: (id: number, scenarioIndex: number) =>
-        post<{ id: number; status: string; pointsCharged: number }>(`/shorts-maker/requests/${id}/select`, { scenarioIndex }),
-    videoUrl: (id: number) => `${BASE}/shorts-maker/requests/${id}/video`,
+    // ★페이징(2026-08-02 3차) — 완성본은 영구 보관이라 회원이 언제든 전체를 볼 수 있어야
+    // 한다. offset/limit로 "더 보기" 구현, total로 남은 항목 유무 판단.
+    mine: (offset = 0, limit = 30) =>
+        get<{ rows: UserShortsRow[]; total: number; offset: number; limit: number }>(
+            `/shorts-maker/requests/mine?offset=${offset}&limit=${limit}`),
+    // 2단계(2026-08-02 3차 신설): 시나리오+요금제+스타일 확정 → 무료 5초 미리보기 생성.
+    // restyleKeys: 스탠다드는 0~1개, 프리미엄은 정확히 2개(화풍 다른 완성본 2개 예고).
+    preview: (id: number, scenarioIndex: number, plan: 'standard' | 'premium', restyleKeys: string[]) =>
+        post<{ id: number; status: string }>(`/shorts-maker/requests/${id}/preview`,
+            { scenarioIndex, plan, restyleKeys }),
+    previewVideoUrl: (id: number) => `${BASE}/shorts-maker/requests/${id}/preview-video`,
+    // 3단계: 미리보기 확인 후 결제 확정→실제 제작(선차감). 202 → { id }.
+    confirm: (id: number) =>
+        post<{ id: number; status: string; pointsCharged: number }>(`/shorts-maker/requests/${id}/confirm`, {}),
+    // 프리미엄 2버전 중 최종 선택(완성 후).
+    selectFinal: (id: number, slot: 0 | 1) =>
+        post<{ id: number; selectedVideoSlot: number }>(`/shorts-maker/requests/${id}/select-final`, { slot }),
+    videoUrl: (id: number, opts?: { slot?: 0 | 1; download?: boolean }) => {
+        const params = new URLSearchParams();
+        if (opts?.slot !== undefined) params.set('slot', String(opts.slot));
+        if (opts?.download) params.set('download', '1');
+        const qs = params.toString();
+        return `${BASE}/shorts-maker/requests/${id}/video${qs ? `?${qs}` : ''}`;
+    },
     delete: (id: number) => del<{ ok: boolean }>(`/shorts-maker/requests/${id}`),
 };
 

@@ -620,3 +620,127 @@ birthday를 `NO_IMAGE_CATEGORIES`에서 빼고 **`OPTIONAL_IMAGE_CATEGORIES`**�
 커밋 전 상태(2026-08-02, 이 세션 종료 시점): `rag/shorts_maker_worker.py`(+139/-13)·
 `shared-api/routes/aimp/shorts-maker.ts`(+47/-6)·`ai_mp frontend/components/
 ShortsMakerBoard.tsx`(+146/-17 두 파일 합산)·`apiService.ts` 수정 완료, 아직 커밋 전.
+
+## 💎 요금제 개편 + 5초 미리보기 + Veo 폐지 (2026-08-02 3차, 사장 지시)
+
+사장 지시 "5초 분량 먼저 만들어 보여주고 결제하면 나머지 만들기 + 시나리오 100P는
+유지하되 요금제를 스탠다드(3000원)/프리미엄(5000원) 2단계로 단순화, 배경음악 유무로
+차등"을 시작으로 여러 차례 논의를 거쳐 최종 설계가 크게 바뀌었다. 아래는 확정된 최종본.
+
+### 논의 경위 — 세 번 뒤집힌 결정들
+
+1. **차등 기준**: "BGM 유무" → 논의 중 "BGM 원가가 거의 0이라 가격 차이를 설명 못 한다"는
+   지적으로 **BGM은 둘 다 포함**, 대신 **완성본 검증 재시도 횟수(1회 vs 2회)** + **결과물
+   개수(1개 vs 2개 중 선택)**로 교체.
+2. **프리미엄 2개의 성격**: "같은 화풍, 구도만 다르게" → 사장 반문("고급이면 화풍이 다른 걸
+   좋아할 것 같은데?") → **화풍이 다른 2개**로 변경 → 다시 "사용자가 스타일을 이미 골랐으면
+   어떻게 하나" 문제 발견 → 최종: **프리미엄은 스타일을 사용자가 직접 2개 선택**(AI가
+   임의로 정하지 않음, 스탠다드는 0~1개 선택).
+3. **Veo 옵션**: 애초 계획엔 없었으나, 프리미엄 차별화 논의 중 사장이 "Veo가 품질도 안
+   나오고 비싸기만 한 것 같다"고 지적 → 실측 이력(2026-07-24, 손가락 왜곡 반복) 재확인 후
+   **완전 폐지**로 결론(선택지 자체를 없앰, 추가과금 옵션도 제거).
+
+### 확정 최종 설계
+
+**요금제**: 스탠다드 3,000P / 프리미엄 5,000P (기존 "제작 2,000P+Veo 1,000P" 체계 대체)
+
+| 항목 | 스탠다드 | 프리미엄 |
+|---|---|---|
+| 나레이션 TTS + BGM | 포함 | 포함 |
+| 스타일 선택 | 0~1개(안 고르면 AI가 알아서) | **정확히 2개 선택 필수** |
+| 완성본 검증 재시도 | 1회 | 2회 |
+| 결과물 | 1개 | **화풍 다른 2개 중 최종 선택** |
+| Veo(실사영상) | **완전 폐지** — 전 회원 대상, 옵션 자체 없음 |
+
+**흐름 재설계**: `pending→scenarios_ready→`(신규)`previewing→preview_ready→`(신규,
+과금 시점)`producing→done`. 시나리오 5개 생성(100P)은 그대로 유지 — 그 아래에 **무료
+5초 미리보기 단계**를 끼워 넣어 "결제 전 실물 확인"을 가능하게 했다.
+
+### 원가 검토 (구현 승인 전 실측 없이 견적만)
+
+이미지 재생성(나노바나나 $0.067/장)·TTS·Vision 검증 API 단가로 역산: 스탠다드 원가
+약 700~800원(마진 75%+), 프리미엄은 이미지를 2벌 생성해 원가 약 1,400~1,550원(마진
+70%대) — 두 가격 모두 충분한 마진 확보를 확인 후 그대로 진행.
+
+### 구현 — 워커 (`rag/shorts_maker_worker.py`, +336/-234)
+
+- **Veo 관련 코드 전량 삭제**: `_generate_veo_clip`·`_extract_last_frame` 함수 제거,
+  `build_script_draft`의 `use_veo` 매개변수 제거(항상 정지이미지 경로), 프롬프트의
+  Veo 관련 삼항 분기 전부 정리.
+- **`load_outfit_style_prompt()` 확장 적용** — 기존엔 생일축하 전용이었던 이 헬퍼를
+  `render_scene_images(restyle_key=...)` 매개변수로 받아 **커뮤니티·제품 카테고리의
+  "재해석 샷 A/B" 세그먼트에도 화풍을 입힐 수 있게** 확장. `_regenerate_scene`에도
+  `restyle_prompt` 인자 추가.
+- **`_produce_one_video()` 신설** — 대본(`script_base`) 하나를 받아 이미지생성+TTS+조립+
+  검증까지 수행하는 헬퍼로 `process_produce`에서 분리. 프리미엄은 이 함수를
+  `restyle_keys[0]`, `restyle_keys[1]`로 **각각 호출**해 화풍 다른 완성본 2개를 만든다
+  (대본은 `deepcopy`로 공유, 이미지 생성 단계에서만 갈라짐 — 대본 재확정 비용은 절감).
+- **`build_preview_video()` + `process_preview()` 신설** — 시나리오의 hook 문장만으로
+  "1세그먼트짜리 초경량 대본"을 별도로 만들어 오프닝 이미지 1장(사진 있으면 원본 재사용,
+  없으면 나노바나나 1장 생성)+TTS로 5초 mp4를 조립. **완성본 검증은 생략**(원가·시간
+  절약, 미리보기는 품질 보증 대상이 아님). 실패해도 예외를 삼키고 `preview_ready`로
+  넘어가 핵심 흐름(결제→전체 제작)을 막지 않는다.
+- **`main()` 3-way 상태 머신 확장** — `producing > previewing > pending` 우선순위로
+  폴링, `_reset_stale`에도 `processing_preview`(과금 없어 환불 대신 `scenarios_ready`로
+  복구) 추가.
+- ★**실측 검증 중 버그 발견·수정**: `build_preview_video`가 존재하지 않는 상수
+  `NO_IMAGE_CATEGORIES`를 참조해 `NameError`로 죽는 코드가 있었다(프론트/shared-api
+  TS 코드에만 있는 상수를 파이썬에 그대로 옮겨 쓴 실수). 사진 있는 카테고리의 미리보기가
+  **항상 조용히 실패**했을 뻔한 걸 Fake 클라이언트 모킹 테스트로 잡아 즉시 수정.
+
+### 구현 — shared-api (`routes/aimp/shorts-maker.ts`, +206/-62)
+
+- `PRODUCE_VEO_FEATURE` 등 Veo 관련 상수·로직 제거, `PRODUCE_STANDARD_FEATURE`/
+  `PRODUCE_PREMIUM_FEATURE` 2개로 교체(MenuLimit DB에도 별도 등록 필요).
+- **`POST /requests/:id/select` → `/preview`+`/confirm` 2개로 분리**: `/preview`(시나리오+
+  요금제+스타일 확정, 무과금)가 `previewing` 상태로 전이시키면 워커가 미리보기를 만들어
+  `preview_ready`로 바꾸고, `/confirm`(무료 미리보기 확인 후 결제)이 실제 과금+`producing`
+  전이를 수행.
+- `validateSelectOptions()` 신설 — 프리미엄이면 스타일 정확히 2개, 스탠다드는 0~1개
+  강제하는 검증을 `/preview`에서 공통으로 수행.
+- **`POST /requests/:id/select-final`** 신설 — 프리미엄 2버전 중 최종 선택(`selectedVideoSlot`
+  저장).
+- `GET /video`에 **`slot`·`download` 쿼리 파라미터** 추가 — `slot`으로 프리미엄 두 버전 중
+  선택 스트리밍, `download=1`일 때만 `Content-Disposition: attachment` 헤더(재생용 요청과
+  분리 — 재생 경로에 다운로드 헤더를 그대로 붙이면 `<video>` 재생 자체가 깨진다).
+- **`GET /requests/mine` 페이징화**(사장 지시 "회원이 만든 자료는 언제나 볼 수 있어야") —
+  기존 `LIMIT 30` 고정을 `offset`/`limit`+`total` 응답으로 교체. 완성본은 **영구 보관**으로
+  확정(자동삭제 없음 — DB 용량은 계속 늘지만 결제한 콘텐츠가 사라지는 리스크를 피함).
+
+### 구현 — 프론트 (`ShortsMakerBoard.tsx` +269/-, `apiService.ts` +45/-)
+
+- `step` 상태 머신에 `plan`(요금제+스타일 확정) → `previewing`(대기) → `preview`(확인)
+  3단계 신설. 시나리오 선택(`selectScenario`)은 더 이상 즉시 과금하지 않고 `plan` 화면으로만
+  이동, `confirmPlanAndPreview()`(미리보기 요청)와 `confirmProduce()`(결제 확정)로 분리.
+- **생일축하 전용이던 "AI 스타일 재해석" UI를 신청서 단계에서 제거**하고, `plan` 단계에
+  전 카테고리 공통 스타일 선택 UI로 새로 구성(`StyleLoader` 헬퍼 컴포넌트, `outfitApi.styles()`
+  1회 지연 로드). 프리미엄은 최대 2개까지만 선택되도록 자동 트리밍.
+- **완성 화면에 프리미엄 2버전 비교 UI** 추가 — `hasVideo2`가 true면 두 영상을 나란히
+  보여주고 `selectFinal` API로 최종 선택.
+- **"더 보기" 페이징** — `mineList`/`mineTotal` 상태로 `offset` 누적 로드.
+- **다운로드 링크 전부 `download: true` 쿼리 반영** — `videoUrl()` 헬퍼 시그니처를
+  `(id, slot?)` → `(id, {slot?, download?})` 객체 인자로 변경(호출부 5곳 전부 갱신).
+
+### 검증
+
+워커는 Fake Gemini 클라이언트로 `build_script_draft`(스타일 지정 문구 유무), `render_scene_images`
+(restyle_key 실제 전달), `process_produce`(스탠다드 1회/프리미엄 2회 `_produce_one_video`
+호출), `process_preview`(정상/오류/내부실패 3케이스) 각각 실측 확인. 프론트는 타입체크·
+React 안전검사·프로덕션 빌드 통과, 신규 UI는 정적 코드 검토로 인터페이스 필드 일치 확인
+(브라우저 렌더 실측은 로그인 세션 없이는 `row`가 null이라 이번엔 생략 — 배포 후 확인 필요).
+
+### 보류
+
+**카카오톡 공유 기능**은 이번 세션에서 보류. 카카오톡 "공유하기" SDK는 로그인용 REST API
+키와 별개로 **JavaScript 키 발급 + 디벨로퍼스 콘솔에서 카카오톡 공유 기능 활성화**가
+필요한데, 이건 Claude가 대신할 수 없는 콘솔 작업이라 사장이 키를 발급한 뒤 다시 요청하기로
+합의. 대신 **다운로드 기능을 확실히 하는 쪽으로 대체**(Content-Disposition 헤더 추가).
+
+### 남은 일
+
+- Veo 폐지·요금제 개편이 아직 **커밋 전 상태**로 세션 종료 — 다음 세션에서 커밋+배포
+  (Vercel Promote to Production 포함) 필요.
+- MenuLimit DB에 `shorts_maker_produce_standard`/`shorts_maker_produce_premium` 두
+  feature를 실제로 등록해야 함(현재는 코드의 fallback 상수로만 동작).
+- 프리미엄 2버전 UI는 브라우저 실측 검증을 못 했으므로 배포 후 실제 화면에서 재확인 권장.
+- `ShortsTrend` 학습 파이프라인 공백은 여전히 미해결(2026-08-02 2차부터 이어지는 항목).
