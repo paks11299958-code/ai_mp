@@ -454,3 +454,54 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   함께 소멸) ⑵삭제 실패분은 집계 제외(다음 회차 재시도되므로 중복 계상 방지).
 - 조회: `GET /api/aimp/admin/guest-cohorts` — 살아있는 계정(User 실시간 집계)과 삭제분(이 표)을
   합쳐 하나의 추세로 반환. 상세=doc/features/referral_system.md.
+
+---
+
+## ShortsTrend / ShortsUserPref (2026-08-02 신설, 쇼츠 학습 계층 — raw SQL 전용, prisma schema 미반영)
+
+사장 지시 "트렌드가 바뀌는데 확장이 될 수 있으면 좋겠다 — 쇼츠→카테고리→트렌드→사용자지정
+자동학습까지". 쇼츠 대본 프롬프트를 **4겹**으로 쌓는 구조의 ③④번 계층.
+
+```
+①공통 규칙(워커 인라인) ②카테고리(CATEGORY_SPECS) ③트렌드(ShortsTrend) ④사용자지정(ShortsUserPref)
+```
+
+### ShortsTrend — 카테고리별 축적 트렌드
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `id` | serial PK | |
+| `category` | text | community/product/insight/wellness/meme/birthday |
+| `trendMd` | text | 프롬프트에 그대로 얹히는 마크다운 본문 |
+| `sourceNote` | text? | 출처 메모(어떤 근거로 갱신했는지) |
+| `sampleCount` | int | 집계에 쓴 표본 수 |
+| `isActive` | bool | false면 조회 제외(과거분 보관) |
+
+- 조회: `load_trend(category)` — **최신 활성 1건**만 사용(`isActive AND ORDER BY updatedAt DESC LIMIT 1`)
+- 인덱스: `(category, isActive, updatedAt DESC)`
+
+### ShortsUserPref — 회원별 톤·금지어
+| 컬럼 | 타입 | 설명 |
+|---|---|---|
+| `id` | serial PK | |
+| `userId` | int | |
+| `category` | text? | **NULL이면 모든 카테고리 공통** |
+| `toneNote` | text? | 신청자가 지정한 톤(프롬프트에서 최우선) |
+| `banWords` | text? | 금지어 |
+
+- 조회: `load_user_pref(user_id, category)` — **카테고리 전용 > 공통(NULL)** 우선
+  (`ORDER BY (category IS NULL), updatedAt DESC LIMIT 1`)
+- 유니크: `(userId, COALESCE(category,'*'))` — NULL도 하나만 두려고 표현식 인덱스 사용
+
+### ★설계 원칙 — "있으면 얹고 없으면 지나간다"
+트렌드가 리서치를 *대체*하도록 짜면 **테이블이 비어 있는 동안 오히려 품질이 떨어진다.**
+그래서 **보강만** 하고, 조회 실패도 삼킨다(학습 계층 때문에 제작이 실패하면 본말전도).
+`build_learning_block()`이 빈 상태에서 `''`를 반환 → 기존 프롬프트와 **완전히 동일**(회귀 없음).
+
+### 함께 수정한 기존 컬럼 2개
+- **`UserShorts.researchJson`** — 컬럼은 있었는데 **쓰는 코드가 없어 실측 0건**이었다.
+  매 요청 검색비를 들여 리서치를 돌리고 결과를 그대로 폐기 = 100번 만들어도 101번째가
+  나아지지 않는 구조. 트렌드 학습의 **원재료**라 `process_research`에서 저장하도록 수정.
+- **`SampleVault.sourceTaskId`**(신규, text) — 보관함 복사 중복 방지용. 승인큐 경로가
+  taskId를 어디에도 남기지 않아 **"이미 복사했는지" 물어볼 근거조차 없었다.**
+  판정은 제목이 아니라 **출처 id**로 한다(제목은 수정 가능하고 서로 다른 원본이 같은 제목일 수 있어 오탐).
+  인덱스: `sourceTaskId`, `sourceUserShortsId`. ★2026-08-02 이전 복사분은 NULL이라 과거분 중복은 못 잡는다.
