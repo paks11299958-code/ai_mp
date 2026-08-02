@@ -123,11 +123,26 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [vaultSamples, setVaultSamples] = useState<SampleVaultRow[]>([]);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         shortsMakerApi.mine().then(setMineList).catch(() => {});
         sampleVaultApi.list().then(setVaultSamples).catch(() => {});
     }, []);
+
+    // ★단계가 바뀌면 항상 맨 위부터 보여준다(2026-08-02 사장 지적 "포커스가 중간 이하").
+    //   원인: intro의 "내 쇼츠 만들기 시작"과 form의 "100P — 시나리오 5개 받기"가
+    //   className·부모 내 위치까지 같아 React가 **같은 DOM 노드로 재사용**한다. 그래서
+    //   intro에서 클릭해 포커스를 얻은 그 노드가 form에서도 포커스를 유지한 채 폼 맨
+    //   아래로 이동하고, 브라우저가 포커스된 요소를 보이게 하려 1128px까지 스크롤해버렸다
+    //   (실측: scrollTop 0 → 1128, 전체 1749). 그래서 폼 상단 입력칸이 아니라 "참고 자료"
+    //   근처가 첫 화면으로 보였다.
+    //   blur()로 포커스를 놓아 브라우저의 자동 스크롤 근거를 없애고, 스크롤도 0으로 되돌린다.
+    //   ('smooth'를 쓰면 되돌리는 과정이 눈에 보여 오히려 산만하다 — 즉시 이동.)
+    useEffect(() => {
+        (document.activeElement as HTMLElement | null)?.blur?.();
+        scrollRef.current?.scrollTo({ top: 0 });
+    }, [step]);
 
     // 폴링: pending(시나리오 대기)이면 scenarios_ready까지, producing이면 done/failed까지.
     useEffect(() => {
@@ -291,7 +306,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         )}
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4
                          pb-[calc(64px+env(safe-area-inset-bottom))] sm:pb-4">
-            <div className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
+            <div ref={scrollRef}
+                 className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
                         {(step === 'list' || step === 'form') && (
