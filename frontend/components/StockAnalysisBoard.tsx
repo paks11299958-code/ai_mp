@@ -339,7 +339,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         setSharing(true);
         try {
             const { shareId } = await stockAnalysisApi.share(selected.id);
-            const url = `${window.location.origin}/?stock=${shareId}`;
+            const url = `${window.location.origin}/s/stock/${shareId}`;
             if (navigator.share) { await navigator.share({ title: `📊 ${selected.stockName} 정밀분석`, url }); return; }
             await navigator.clipboard.writeText(url);
             setShareMsg('공유 링크가 복사되었습니다 ✨');

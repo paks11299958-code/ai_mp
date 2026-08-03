@@ -8,6 +8,9 @@
     },
     "api/math-tutor-tts.ts": {
       "maxDuration": 30
+    },
+    "api/stock-share.ts": {
+      "maxDuration": 10
     }
   },
   "redirects": [
@@ -15,6 +18,7 @@
   ],
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
+    { "source": "/s/stock/:id", "destination": "/api/stock-share?id=:id" },
 
     { "source": "/sites/:sitename", "destination": "/sites/:sitename/index.html" },
     { "source": "/sites/:sitename/", "destination": "/sites/:sitename/index.html" },
