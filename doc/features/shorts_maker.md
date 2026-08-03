@@ -744,3 +744,116 @@ React 안전검사·프로덕션 빌드 통과, 신규 UI는 정적 코드 검�
   feature를 실제로 등록해야 함(현재는 코드의 fallback 상수로만 동작).
 - 프리미엄 2버전 UI는 브라우저 실측 검증을 못 했으므로 배포 후 실제 화면에서 재확인 권장.
 - `ShortsTrend` 학습 파이프라인 공백은 여전히 미해결(2026-08-02 2차부터 이어지는 항목).
+
+## 🎬 실사용 버그 연쇄 수정 + 목소리 선택 신설 (2026-08-03)
+
+사장이 생일축하 쇼츠를 실제로 만들어보며 지적한 문제 4건 + 후속 기능 요청 2건.
+
+### ① 화풍(스타일) 완전 미적용
+
+`render_scene_images`의 상품모드 안전망(`is_product_seg = isProduct or category==
+'birthday'`)이 생일축하 가족사진에도 무조건 걸려 원본 그대로만 썼다 — "실물 재해석
+금지" 원칙(상품 사진용으로 설계)이 생일축하 가족사진에도 그대로 적용돼 스타일 선택이
+무의미했다.
+
+**원칙 변경**(생일축하만 해당, 사장 확인 후 진행): 스타일을 골랐으면 가족사진도
+재해석 허용. **케이크는 여전히 절대 재해석 금지**(`cake_idx`로 구분해 예외 유지 — 그날의
+진짜 케이크가 바뀌면 안 됨). community/product는 무영향(기존 "실사진 재해석 금지"
+원칙 그대로 — 재검증 완료).
+
+구현: `render_scene_images`에 `birthday_family_restyle`(is_birthday and restyle_key and
+raw_list) 플래그 신설, 실사진 우선 배정 분기에서 이 경우만 재해석(②) 경로로 보냄 —
+`scene_prompt`가 없어도 `raw_list[image_index]`를 참조 이미지로 삼아 화풍 프롬프트만
+적용.
+
+### ② 케이크 자동생성 + 꽃다발 선택
+
+케이크 사진 첨부 시에만 케이크 지시문이 만들어지고, 미첨부 시 관련 지시 자체가 없어
+케이크가 아예 안 나왔다. AI가 케이크 장면을 `scene_prompt`로 그리도록 else 분기 추가.
+이어서 "케익하고 꽃다발 선택 하게 해주면 어때?" 요청으로 **`autoSceneKind`**
+(`cake`/`flowers`/`auto`) 선택 UI 신설 — 케이크 사진 미첨부 시 신청서 화면에 3버튼 노출,
+shared-api가 화이트리스트 검증 후 formJson에 저장, 워커가 값별로 다른 장면 묘사 프롬프트
+생성.
+
+부수 발견: `cakePosition`(맨 처음/맨 마지막)이 `has_cake`일 때만 읽혀 사진 미첨부
+자동생성 경로에서는 사용자가 고른 위치가 조용히 무시되고 항상 기본값(`end`)으로
+나가던 버그도 함께 수정(`is_birthday` 기준으로 변경).
+
+### ③ 5초 미리보기 BGM 없음
+
+`build_preview_video`가 `build_segment_clip`만 쓰고 `mix_bgm`을 호출하지 않아 무음
+배경이었다(완성본은 12% 볼륨으로 BGM이 이미 있음). `make_short()`가 전체 제작에 쓰는
+`pick_bgm()`/`mix_bgm()`을 그대로 재사용 — 이미지 생성·TTS 호출은 그대로라 원가·속도
+영향 없이 ffmpeg 믹스 단계 하나만 추가. BGM 없거나 믹스 실패 시 무음 버전으로 폴백.
+
+실측 검증: ffprobe로 오디오 스트림(aac) 존재, astats로 RMS 레벨 -68~-89dB(무음이면
+-inf), `SHORTS_BGM=off` 대비 파일 크기 차이(56KB, 믹스된 BGM 데이터량과 일치) 확인.
+
+### ④ ★심각한 기존 버그 — plan/restyleKeys가 워커에 아예 전달 안 되고 있었음
+
+목소리 기능(⑥)을 만들다 우연히 발견. `_fetch_next()`(리서치/미리보기/제작 공용 행
+조회 함수)의 SELECT에 `UserShorts."plan"`·`"restyleKeys"` 컬럼이 **원래부터 빠져
+있었다**. `process_preview`/`process_produce`는 `form.get('plan', 'standard')`,
+`form.get('restyleKeys')`로 이 값을 읽으려 했지만, `plan`·`restyleKeys`는 `formJson`이
+아니라 **UserShorts 테이블의 별도 컬럼**에만 저장된다(shared-api `POST /preview`가
+`"plan"=$3, "restyleKeys"=$4`로 컬럼에 UPDATE) — 즉 **워커는 프리미엄으로 결제해도
+항상 `plan='standard'`로 폴백, `restyleKeys`도 항상 빈 배열로 처리하고 있었다.**
+
+①의 "화풍이 하나도 적용 안 된다"는 지적의 더 근본적인 원인일 가능성이 크다 —
+안전망(①) 때문이 아니라 애초에 스타일 선택값 자체가 워커에 도달하지 못했을 수 있다.
+
+수정: SELECT에 두 컬럼 추가, `process_preview`·`process_produce`의 튜플 언패킹을
+10필드로 맞추고 `form`에 병합(`form['plan'] = plan`, `form['restyleKeys'] =
+restyle_keys_col`) — `build_script_draft`·`render_scene_images` 등 기존 `form.get(...)`
+호출부는 그대로 재사용(변경 최소화). `_fetch_next`는 리서치 단계도 공유하는 함수라
+컬럼 추가는 다른 단계에 영향 없음(`process_research`는 `*_`로 나머지 무시).
+
+검증: 실제 `process_preview()`를 Fake 이미지/TTS 클라이언트로 전체 호출 — formJson에는
+없는 `plan='premium'`·`restyleKeys=["ghibli_female"]`을 컬럼으로 흉내내 넘긴 뒤,
+언패킹 성공 + 실제 ffmpeg로 mp4 생성까지 확인.
+
+### ⑤ 요금제별 이미지 장수 고정 (사장 지시 "프리미엄은 이미지5장, 일반은 이미지3장")
+
+④가 고쳐져 `form['plan']`을 정상 수신하므로 활용 가능해짐. `build_script_draft`의
+세그먼트 수 지시를 요금제별로 분기:
+- 스탠다드: 이미지 3개 + CTA 1개 = 4세그먼트, 내레이션 23~29초
+- 프리미엄: 이미지 5개 + CTA 1개 = 6세그먼트, 내레이션 35~45초(기존 6~7개·35~45초와
+  거의 동일해 하위호환 자연스러움)
+
+사진 없는 카테고리(insight/wellness/meme)의 "4가지 샷 타입" 강제 다양화 원칙도 고정
+숫자("세그먼트가 6개면", "7개면") 대신 세그먼트 수에 맞춰 순환 배정하도록 일반화.
+
+실측: Fake Gemini로 프롬프트 텍스트 직접 캡처 — 스탠다드 "세그먼트 정확히 4개(이미지
+있는 장면 3개 + 마지막 CTA 1개)... 23~29초", 프리미엄 "...6개(...5개...)... 35~45초"
+정확히 확인.
+
+### ⑥ 목소리 직접 선택 (사장 지시 "회원이 신청할 때 직접 고르는 UI")
+
+기존(직전 세션)엔 어드민이 카테고리별로 지정한 목소리가 전역 적용만 됐음. 이번엔
+**회원이 신청 흐름(`[plan]` 단계, 요금제·스타일 확정하는 자리)에서 직접 고르고
+미리듣기까지** 가능하도록 확장 — 시나리오도 아직 안 정해진 신청서 단계보다, "이
+쇼츠에 어울리는 걸 고르는" 자리로 이미 확립된 `[plan]` 단계가 자연스럽다는 판단.
+
+**설계 원칙 유지**: 어드민 화면과 동일한 검증된 후보 목록(`VOICE_CANDIDATES`)을
+재사용 — 회원에게 임의 문자열이 아니라 어드민이 미리 들어보고 확정한 목록 안에서만
+고르게 한다(나이 라벨 거짓 표기 방지 원칙과 동일한 이유).
+
+- shared-api: `GET /requests/voices`(카테고리 기본값+후보), `POST
+  /requests/voice-preview`(회원용 미리듣기 — 어드민 로직을 `synthesizeVoicePreview()`로
+  분리해 재사용), `POST /requests/:id/preview`에 `voiceName` 검증 후 `formJson` 병합
+  저장(이 요청 1건에만 적용).
+- `math-tutor-tts.ts`: 우선순위 회원 선택 > 카테고리 지정 > 언어 전역 > 하드코딩
+  기본값. 언어 접두사 검증은 회원 선택도 예외 없이 적용.
+- `make_short.tts()`에 `voice_name` 파라미터 추가, `shorts_maker_worker.py`가
+  `script['voiceName']`으로 전달(전체 제작 경로), `build_preview_video`도 동일.
+- 프론트: `VoiceLoader`(StyleLoader와 동일 지연 로딩 패턴) + `[plan]` 단계에 성별별
+  버튼 목록, 카테고리 기본값은 "(기본)" 라벨로 미리 선택.
+
+Playwright로 신청→시나리오→`[plan]` 단계까지 실제 흐름 재현, 목소리 섹션·후보 표시·
+기본값 라벨까지 렌더 확인(콘솔 에러 0건).
+
+### 배포
+
+rag(`f62c679`·`2dbba74`·`d05bbef` — 서버2 직접 실행이라 커밋 즉시 반영) · shared-api
+(`cd0c6c6`·`512ec46`) · ai_mp(`82d768d`·`14ecaef`). shared-api·ai_mp는 Vercel Promote /
+서버1 자동배포 확인 필요.

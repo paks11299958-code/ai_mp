@@ -162,3 +162,38 @@ Gemini 2.5 Flash (Google Search 그라운딩) + Claude Sonnet + GPT-4o 3중 AI �
 - Vercel Cron 최소 주기 1분 (`* * * * *`) — 요청 후 최대 1분 대기 가능
 - 서아 페르소나 전용 기능 (pill 바에서만 접근 가능)
 - Claude/GPT 중 하나가 실패해도 나머지 AI 결과로 분석 완료 (safeAnalyze 래퍼)
+
+## 공유 링크 (2026-08-03)
+
+타로 리딩 공유(`?tr=shareId`)와 동일한 옵트인 패턴. 완료된 보고서만 공유 가능,
+기본 비공개 — "링크 공유" 버튼(다운로드 옆)을 눌러야 `shareId`가 발급된다.
+
+```
+POST /api/stock-analysis/:id/share      → { shareId }  (본인 소유·완료 상태만, 멱등)
+GET  /api/stock-analysis/shared/:shareId → 공개 조회(비로그인, 사용자 정보 제외, 5분 캐시)
+```
+
+- `StockAnalysis.shareId String? @unique` — nullable(기본 비공개), unique 인덱스.
+- 프론트 공유 URL: `/s/stock/:shareId` (`?stock=shareId` 아님 — 아래 OG 카드용 경로).
+- **비로그인 렌더 버그**: 최초 구현 시 `AppContent` 내부의 여러 return 분기(로그인/게스트/
+  화면별) 중 하나에만 공개 뷰 컴포넌트를 넣어, 비로그인 사용자가 링크를 열면 그 앞의
+  다른 분기(로그인 유도 화면 등)로 먼저 빠져나가 렌더 자체가 안 됐다. `App` 최상위
+  (`EMBED_KEY`·`/consult/:slug`와 동일 레벨)로 옮겨 로그인 상태와 완전히 분리해 해소.
+  타로(`?tr=`)는 여러 return 분기에 반복 삽입하는 방식으로 우회했었는데, 이쪽은 최상위
+  분리로 실수 여지 자체를 없앴다.
+
+### 카톡·문자 미리보기 카드(OG)
+
+SPA라 `?stock=` 진입 시 서버가 내려주는 `index.html`은 항상 사이트 공통 고정 OG만
+갖고 있어(카톡 크롤러는 JS를 실행 안 함) 종목별 카드를 못 만들었다. `/s/stock/:shareId`
+Vercel 함수(`api/stock-share.ts`) 신설:
+
+- 카카오톡·페이스북 등 크롤러 UA(`kakaotalk|katalk|facebookexternalhit|...`)로 오면
+  shared-api 공개 조회 API를 호출해 종목명+투자의견(`analysisReport`에서 정규식 파싱)이
+  담긴 OG HTML을 서버에서 직접 조립해 즉시 응답.
+- 일반 브라우저는 `/?stock=shareId`로 302 리다이렉트해 기존 SPA가 처리.
+- `vercel.json`에 `{ "source": "/s/stock/:id", "destination": "/api/stock-share?id=:id" }`
+  rewrite + 함수 등록.
+
+실제 shareId(완료된 보고서)로 발급→API 응답→OG 파싱까지 curl로 실측 검증
+(제목 "📊 주성엔지니어링 정밀분석 — AI 놀이터", 설명에 투자의견 정확히 반영 확인).
