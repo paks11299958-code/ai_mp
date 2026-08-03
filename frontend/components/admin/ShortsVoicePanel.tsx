@@ -9,10 +9,23 @@ import { shortsApi, settingsApi } from '../../services/apiService';
 // "20대 목소리" 같은 라벨을 개발자가 임의로 붙이면 거짓 표기가 된다. 실제로 들어보고
 // 고르는 수밖에 없고, 그 판단은 사람만 할 수 있으므로 이 화면이 필요하다.
 //
-// 저장은 AppConfig(shorts_voice_{lang}) — 기존 설정 API를 그대로 쓴다(새 테이블 없음).
-// 저장된 값은 math-tutor-tts.ts가 읽어 쓰므로, 쇼츠 전 소재(회원용·자동생성)에 함께 적용된다.
+// 저장은 AppConfig(shorts_voice_{lang} 전역 / shorts_voice_{lang}_{category} 카테고리별)
+// — 기존 설정 API를 그대로 쓴다(새 테이블 없음). math-tutor-tts.ts가 카테고리별 지정이
+// 있으면 그걸, 없으면 전역값을 읽어 쓰므로, 회원용·자동생성 소재에 함께 적용된다.
+// ★카테고리별 확장(2026-08-03 사장 지시 — "생일쇼츠에 맞는 톤을 지정했는데"): 생일축하
+// (따뜻한 톤)와 상품 홍보(발랄한 톤)처럼 카테고리마다 어울리는 목소리가 다를 수 있다.
 
 const PREVIEW_TEXT = '안녕하세요. 오늘은 아주 특별한 날이죠. 진심을 담아 축하드립니다.';
+
+const CATEGORY_TABS: { key: string; label: string }[] = [
+    { key: 'default', label: '전역(기본)' },
+    { key: 'community', label: '커뮤니티' },
+    { key: 'product', label: '제품' },
+    { key: 'insight', label: '인사이트' },
+    { key: 'wellness', label: '웰니스' },
+    { key: 'meme', label: '밈' },
+    { key: 'birthday', label: '생일축하' },
+];
 
 interface Voice { name: string; gender: 'F' | 'M' }
 
@@ -20,8 +33,10 @@ interface Voice { name: string; gender: 'F' | 'M' }
 const shortName = (full: string) => full.split('-').pop() || full;
 
 export const ShortsVoicePanel: React.FC = () => {
+    const [category, setCategory] = useState('default');
     const [candidates, setCandidates] = useState<Voice[]>([]);
-    const [current, setCurrent] = useState<string | null>(null);   // 저장된 값(서버)
+    const [current, setCurrent] = useState<string | null>(null);   // 이 카테고리 전용 지정값
+    const [fallback, setFallback] = useState<string | null>(null); // 미지정 시 실제 적용될 전역값
     const [picked, setPicked] = useState<string | null>(null);      // 화면에서 고른 값
     const [playing, setPlaying] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
@@ -32,10 +47,10 @@ export const ShortsVoicePanel: React.FC = () => {
     const urlsRef = useRef<string[]>([]);
 
     const load = useCallback(() => {
-        shortsApi.getVoices('ko')
-            .then(d => { setCandidates(d.candidates); setCurrent(d.current); setPicked(d.current); })
+        shortsApi.getVoices('ko', category)
+            .then(d => { setCandidates(d.candidates); setCurrent(d.current); setFallback(d.fallback); setPicked(d.current); })
             .catch(e => setMsg('목록 조회 실패: ' + e.message));
-    }, []);
+    }, [category]);
 
     useEffect(() => { load(); }, [load]);
     useEffect(() => () => {
@@ -60,15 +75,34 @@ export const ShortsVoicePanel: React.FC = () => {
         }
     };
 
+    const configKey = category === 'default' ? 'shorts_voice_ko' : `shorts_voice_ko_${category}`;
+
     const save = async () => {
         if (!picked) return;
         setSaving(true); setMsg('');
         try {
-            await settingsApi.update({ shorts_voice_ko: picked });
+            await settingsApi.update({ [configKey]: picked });
             setCurrent(picked);
-            setMsg('저장했어요 — 다음 쇼츠부터 이 목소리로 만들어집니다.');
+            setMsg(category === 'default'
+                ? '저장했어요 — 카테고리별 지정이 없는 쇼츠는 이제부터 이 목소리로 만들어집니다.'
+                : '저장했어요 — 이 카테고리 쇼츠는 이제부터 이 목소리로 만들어집니다.');
         } catch (e: any) {
             setMsg('저장 실패: ' + e.message);
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    // 카테고리 전용 지정을 지우고 전역값을 따르게(설정 API가 삭제를 지원 안 해 빈 문자열
+    // 저장 대신, math-tutor-tts.ts가 빈 값은 무시하도록 맞추는 편이 간단하다).
+    const clearOverride = async () => {
+        setSaving(true); setMsg('');
+        try {
+            await settingsApi.update({ [configKey]: '' });
+            setCurrent(null); setPicked(null);
+            setMsg('카테고리 전용 지정을 지웠어요 — 이제 전역 설정을 따릅니다.');
+        } catch (e: any) {
+            setMsg('삭제 실패: ' + e.message);
         } finally {
             setSaving(false);
         }
@@ -81,11 +115,31 @@ export const ShortsVoicePanel: React.FC = () => {
             <div>
                 <p className="text-xs font-semibold text-gray-300">🎙 내레이션 목소리 (한국어)</p>
                 <p className="text-[11px] text-gray-500 mt-0.5">
-                    들어보고 고른 뒤 저장하세요. 저장하면 <b className="text-gray-400">이후 만드는 모든 쇼츠</b>에 적용됩니다.
+                    카테고리를 선택해 들어보고 고른 뒤 저장하세요. <b className="text-gray-400">전역(기본)</b>은 카테고리별
+                    지정이 없는 쇼츠에 적용되고, 카테고리를 따로 지정하면 그 카테고리만 다른 목소리를 씁니다.
                     {/* 나이 라벨을 안 붙인 이유를 화면에도 남긴다 — 나중에 "왜 20대가 없냐"는 질문 방지 */}
                     <br />※ 나이는 지정할 수 없어요(TTS에 해당 기능 없음) — 목소리마다 인상이 다를 뿐이라 직접 들어보고 고르시면 됩니다.
                 </p>
             </div>
+
+            <div className="flex flex-wrap gap-1">
+                {CATEGORY_TABS.map(t => (
+                    <button key={t.key} onClick={() => setCategory(t.key)}
+                            className="text-[11px] px-2.5 py-1 rounded-lg border transition-colors"
+                            style={category === t.key
+                                ? { borderColor: '#8B5CF6', backgroundColor: 'rgba(139,92,246,0.15)', color: '#C4B5FD' }
+                                : { borderColor: '#374151', color: '#9CA3AF' }}>
+                        {t.label}
+                    </button>
+                ))}
+            </div>
+            {category !== 'default' && (
+                <p className="text-[11px] text-gray-500">
+                    {current
+                        ? '이 카테고리 전용 목소리가 지정돼 있어요.'
+                        : `지정 안 함 — 전역 설정(${fallback ? shortName(fallback) : '기본값'})을 따릅니다.`}
+                </p>
+            )}
 
             <input
                 value={text}
@@ -133,6 +187,12 @@ export const ShortsVoicePanel: React.FC = () => {
                         className="bg-purple-700 hover:bg-purple-600 disabled:opacity-50 text-white text-xs font-medium px-4 py-1.5 rounded-lg transition-colors">
                     {saving ? '저장 중...' : picked === current ? '저장됨' : '이 목소리로 저장'}
                 </button>
+                {category !== 'default' && current && (
+                    <button onClick={clearOverride} disabled={saving}
+                            className="text-[11px] text-gray-400 hover:text-gray-200 underline disabled:opacity-50">
+                        지정 해제(전역으로)
+                    </button>
+                )}
                 {picked && picked !== current && (
                     <span className="text-[11px] text-gray-400">선택: {shortName(picked)}</span>
                 )}

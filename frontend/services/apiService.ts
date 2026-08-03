@@ -1089,9 +1089,10 @@ export const shortsApi = {
     videoUrl: (id: string) => `${BASE}/admin/shorts/video/${id}`,
 
     // 내레이션 음성(2026-08-02) — 어드민이 직접 들어보고 고른다.
-    getVoices: (lang = 'ko') =>
-        get<{ lang: string; current: string | null; candidates: { name: string; gender: 'F' | 'M' }[] }>(
-            `/admin/shorts/voices?lang=${lang}`),
+    // category(2026-08-03): 카테고리별 지정 — 생략(또는 'default')이면 언어 전역 설정.
+    getVoices: (lang = 'ko', category = 'default') =>
+        get<{ lang: string; category: string; current: string | null; fallback: string | null; candidates: { name: string; gender: 'F' | 'M' }[] }>(
+            `/admin/shorts/voices?lang=${lang}&category=${category}`),
     // 미리듣기는 mp3 바이너리라 get<T>(JSON 파서)를 못 쓴다 — fetch로 직접 받아 Blob URL을 만든다.
     previewVoice: async (voiceName: string, text?: string): Promise<string> => {
         const res = await fetch(`${BASE}/admin/shorts/voice-preview`, {
