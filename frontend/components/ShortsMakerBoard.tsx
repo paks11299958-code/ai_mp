@@ -225,6 +225,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [cakePreview, setCakePreview] = useState<string | null>(null);
     const [cakePosition, setCakePosition] = useState<'start' | 'end'>('end');
     const cakeFileRef = useRef<HTMLInputElement>(null);
+    // 케이크 사진 미첨부 시 AI가 그릴 장면 선택(2026-08-03 사장 지시 — 케이크가 아예 안
+    // 보이는 문제 발견 후 자동생성 추가, 이어서 "케이크/꽃다발 선택하게 해주면 어때?"로 확장).
+    const [autoSceneKind, setAutoSceneKind] = useState<'cake' | 'flowers' | 'auto'>('cake');
     const [reqId, setReqId] = useState<number | null>(null);
     const [row, setRow] = useState<UserShortsRow | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -376,6 +379,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
             if (isProduct) body.isProduct = 'true';
             if (optionalImage) {
                 body.cakePosition = cakePosition;
+                if (!cakeFile) body.autoSceneKind = autoSceneKind;
             }
             const res = await shortsMakerApi.create(body, images, cakeB64);
             setReqId(res.id); setRow(null); setStep('waiting');
@@ -770,10 +774,25 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                             className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gray-700 text-white text-xs leading-none flex items-center justify-center">×</button>
                                                 </div>
                                             ) : (
-                                                <div onClick={() => cakeFileRef.current?.click()}
-                                                     className="border-2 border-dashed border-pink-200 rounded-xl p-3 text-center cursor-pointer hover:bg-pink-50/50 transition-colors bg-white">
-                                                    <div className="text-gray-400 text-xs py-3">🎂 눌러서 케이크 사진을 올려주세요</div>
-                                                </div>
+                                                <>
+                                                    <div onClick={() => cakeFileRef.current?.click()}
+                                                         className="border-2 border-dashed border-pink-200 rounded-xl p-3 text-center cursor-pointer hover:bg-pink-50/50 transition-colors bg-white">
+                                                        <div className="text-gray-400 text-xs py-3">🎂 눌러서 케이크 사진을 올려주세요</div>
+                                                    </div>
+                                                    {/* 사진 미첨부 — AI가 그릴 장면을 고른다(2026-08-03) */}
+                                                    <div className="flex gap-1.5 mt-2">
+                                                        {([
+                                                            ['cake', '🎂 케이크'],
+                                                            ['flowers', '💐 꽃다발'],
+                                                            ['auto', '✨ AI가 알아서'],
+                                                        ] as const).map(([kind, label]) => (
+                                                            <button key={kind} type="button" onClick={() => setAutoSceneKind(kind)}
+                                                                    className={`flex-1 py-1.5 rounded-lg text-[11px] border transition-colors ${autoSceneKind === kind ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200'}`}>
+                                                                {label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </>
                                             )}
                                             <input ref={cakeFileRef} type="file" accept="image/*" className="hidden" onChange={onPickCake} />
                                             {cakePreview && (
