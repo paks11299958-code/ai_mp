@@ -170,8 +170,13 @@ interface FormState {
     biz: string; strengths: string; target: string; mood: string;
     referenceUrl1: string; referenceUrl2: string; language: string; qrUrl: string;
     topic: string;   // 사진 없는 카테고리(insight/wellness/meme) 전용 — 다루고 싶은 주제/키워드
+    // 생일축하 전용(2026-08-03 사장 지적 "남자 목소리면 아빠라고 짐작은 했어야지, 근데
+    // 삼촌일 수도 있으니 관계 빈칸을 만들자") — topic 자유텍스트에 맡기면 LLM이 관계·이름을
+    // 놓치거나 잘못 추측할 수 있어 명시 필드로 분리. 둘 다 선택 입력(비워도 topic에서 추론).
+    recipientName: string;  // 받는 사람 이름/애칭 — 축하 카드 "OO야 생일 축하해"에 반영
+    relation: string;       // 보내는 사람과의 관계 — 서명 "사랑하는 OO가"에 반영
 }
-const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '', topic: '' };
+const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '', topic: '', recipientName: '', relation: '' };
 
 // ★스타일 목록 지연 로더(2026-08-02 3차) — plan 단계 진입 시 1회만 outfitApi.styles()를
 // 호출한다. 별도 컴포넌트로 뽑은 이유: [plan] 블록은 조건부 렌더라 부모의 useEffect에
@@ -933,6 +938,27 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 )}
                                 {(noImage || optionalImage) ? (
                                     <div className="space-y-1.5">
+                                        {category === 'birthday' && (
+                                            // ★이름/관계 명시 입력(2026-08-03 사장 지적 "남자 목소리면
+                                            // 아빠라고 짐작은 했어야지, 근데 삼촌일 수도 있으니 관계
+                                            // 빈칸을 만들자") — topic 자유텍스트에 맡기면 축하 카드
+                                            // 문구("OO야 생일 축하해", "사랑하는 아빠가")가 부정확해질
+                                            // 수 있어 별도 입력칸으로 분리. 둘 다 선택(비워도 topic에서 추론).
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-semibold text-gray-700">받는 분 이름·애칭</p>
+                                                    <input value={form.recipientName} onChange={set('recipientName')}
+                                                           placeholder="예: 지은이, 공주님"
+                                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-xs font-semibold text-gray-700">나와의 관계</p>
+                                                    <input value={form.relation} onChange={set('relation')}
+                                                           placeholder="예: 아빠, 삼촌, 친구"
+                                                           className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white" />
+                                                </div>
+                                            </div>
+                                        )}
                                         <p className="text-xs font-semibold text-gray-700">
                                             {TOPIC_LABEL[category]?.[0] || '다루고 싶은 주제'} *
                                         </p>
@@ -944,7 +970,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                             // 좋은 결과가 나오는지 한 줄 안내한다(빈 입력으로 어색한
                                             // 축하문이 나오는 걸 줄인다).
                                             <p className="text-[11px] text-gray-400 leading-relaxed">
-                                                💡 받는 분과의 관계(엄마·친구 등)와 전하고 싶은 한마디를 함께 적으면 더 따뜻하게 나와요.
+                                                💡 전하고 싶은 한마디를 적으면 더 따뜻하게 나와요. 이름·관계는 위 칸에 적어주세요.
                                                 나이·외모 이야기는 넣지 않습니다.
                                             </p>
                                         )}
