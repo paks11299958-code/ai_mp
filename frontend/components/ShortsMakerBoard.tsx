@@ -140,10 +140,20 @@ const PROGRESS_STEPS: { key: 'script' | 'images' | 'tts' | 'verify'; label: stri
 
 // 시나리오 준비(waiting) 단계 세부 진행상황 — process_research가 기록하는 순서와 1:1 대응
 // (research→scenarios). 사장 피드백(2026-07-23): 이 단계도 스피너만 돌아서 답답함.
-const WAITING_STEPS: { key: 'research' | 'scenarios'; label: string }[] = [
-    { key: 'research', label: '업종·트렌드를 조사하고 있어요' },
-    { key: 'scenarios', label: '서로 다른 시나리오 5개를 쓰고 있어요' },
-];
+// ★"업종·트렌드 조사"는 광고성 카테고리(community/product) 전용 문구다 — 생일축하는
+//   특정 개인 축하 메시지라 업종이 없는데 이 문구가 그대로 뜨는 게 어색했다(2026-08-03
+//   사장 지적). 카테고리별로 다른 문구를 쓰도록 함수화.
+function waitingSteps(category: Category): { key: 'research' | 'scenarios'; label: string }[] {
+    const researchLabel = category === 'birthday'
+        ? '따뜻한 축하 문구를 구상하고 있어요'
+        : category === 'insight' || category === 'wellness' || category === 'meme'
+        ? '주제를 조사하고 있어요'
+        : '업종·트렌드를 조사하고 있어요';
+    return [
+        { key: 'research', label: researchLabel },
+        { key: 'scenarios', label: '서로 다른 시나리오 5개를 쓰고 있어요' },
+    ];
+}
 
 interface FormState {
     biz: string; strengths: string; target: string; mood: string;
@@ -334,7 +344,10 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         }
         setError(null); setSubmitting(true);
         try {
-            const toB64 = (f: File) => resizeToDataUrl(f, 1600, 0.85);
+            // ★product는 최대 8장이라 같은 강도로는 총합이 커진다(Vercel 프록시 상한
+            //   ~10MB 실측, shared-api MAX_IMAGE_B64_LEN_PRODUCT=8MB) — 장수가 많을수록
+            //   장당 더 강하게 압축한다(2026-08-03).
+            const toB64 = (f: File) => resizeToDataUrl(f, isProduct ? 1280 : 1600, isProduct ? 0.75 : 0.85);
             const validFiles = (noImage || (optionalImage && imageFiles.length === 0)) ? [] : imageFiles.filter((f): f is File => !!f);
             const images = await Promise.all(validFiles.map(toB64));
             const cakeB64 = cakeFile ? await toB64(cakeFile) : undefined;
@@ -922,12 +935,16 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
 
                     {/* [waiting] 시나리오 생성 대기 */}
                     {step === 'waiting' && (() => {
-                        const curIdx = WAITING_STEPS.findIndex(s => s.key === row?.progressStep);
+                        const steps = waitingSteps(category);
+                        const curIdx = steps.findIndex(s => s.key === row?.progressStep);
+                        const headline = category === 'birthday'
+                            ? '아린이 축하 메시지를 담아 시나리오 5개를 준비하고 있어요'
+                            : '아린이 업종을 분석하고 시나리오 5개를 준비하고 있어요';
                         return (
                             <div className="py-6 space-y-4">
-                                <p className="text-sm text-gray-700 text-center font-semibold">아린이 업종을 분석하고 시나리오 5개를 준비하고 있어요</p>
+                                <p className="text-sm text-gray-700 text-center font-semibold">{headline}</p>
                                 <div className="space-y-2.5 max-w-xs mx-auto">
-                                    {WAITING_STEPS.map((s, i) => {
+                                    {steps.map((s, i) => {
                                         const isDone = curIdx >= 0 && i < curIdx;
                                         const isCurrent = i === curIdx;
                                         return (
