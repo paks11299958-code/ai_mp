@@ -129,6 +129,17 @@ const STATUS_LABEL: Record<string, string> = {
     done: '완성', failed: '실패',
 };
 
+// 진행 화면 전체를 아우르는 큰 단계 표시(2026-08-03) — 목록을 첫 화면으로 바꾸고 나니
+// "지금 전체 7단계 중 어디쯤인지"가 안 보였다(사장 지시 "계속해" — 진행 화면 정리를
+// 이어서 진행). form~result의 세부 step을 4개 큰 단계로 묶는다(처리 중인 waiting/
+// previewing/producing은 바로 앞 단계에 포함 — "지금 그 단계를 처리 중"이라는 뜻이라).
+const MAIN_STEPS: { key: string; label: string; matches: string[] }[] = [
+    { key: 'form', label: '신청서', matches: ['form', 'waiting'] },
+    { key: 'scenarios', label: '시나리오', matches: ['scenarios'] },
+    { key: 'plan', label: '요금제', matches: ['plan', 'previewing', 'preview'] },
+    { key: 'result', label: '완성', matches: ['producing', 'result'] },
+];
+
 // 영상 제작(producing) 단계 세부 진행상황 — shorts_maker_worker.py의 _set_progress가 기록하는
 // 순서와 1:1 대응(script→images→tts→verify). 사장 피드백(2026-07-23): 스피너만 돌아서 답답함.
 const PROGRESS_STEPS: { key: 'script' | 'images' | 'tts' | 'verify'; label: string }[] = [
@@ -482,6 +493,39 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
                 </div>
+
+                {/* 진행 단계 표시 — 신청 이후(form 포함)에만, 목록에서는 안 보인다(2026-08-03). */}
+                {step !== 'list' && (() => {
+                    const curIdx = MAIN_STEPS.findIndex(s => s.matches.includes(step));
+                    return (
+                        <div className="flex items-center px-4 py-2.5 border-b border-gray-100 bg-gray-50/50">
+                            {MAIN_STEPS.map((s, i) => {
+                                const isDone = curIdx >= 0 && i < curIdx;
+                                const isCurrent = i === curIdx;
+                                return (
+                                    <React.Fragment key={s.key}>
+                                        <div className="flex flex-col items-center gap-0.5">
+                                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold"
+                                                  style={isDone || isCurrent
+                                                      ? { backgroundColor: PINK, color: '#fff' }
+                                                      : { backgroundColor: '#e5e7eb', color: '#9ca3af' }}>
+                                                {isDone ? '✓' : i + 1}
+                                            </span>
+                                            <span className="text-[9px] whitespace-nowrap"
+                                                  style={{ color: isCurrent ? PINK : isDone ? '#9ca3af' : '#d1d5db', fontWeight: isCurrent ? 700 : 500 }}>
+                                                {s.label}
+                                            </span>
+                                        </div>
+                                        {i < MAIN_STEPS.length - 1 && (
+                                            <div className="flex-1 h-0.5 mx-1 mb-3.5 rounded"
+                                                 style={{ backgroundColor: i < curIdx ? PINK : '#e5e7eb' }} />
+                                        )}
+                                    </React.Fragment>
+                                );
+                            })}
+                        </div>
+                    );
+                })()}
 
                 <div className="p-4 space-y-4">
                     {/* [list] 내가 만든 쇼츠 목록 — 진입 즉시 첫 화면(2026-08-03, 옛 intro 통합).
