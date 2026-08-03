@@ -182,7 +182,11 @@ const StyleLoader: React.FC<{ onLoaded: (styles: OutfitStyle[]) => void }> = ({ 
 export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     // ★2026-08-02 3차 개편 — 'scenarios'(시나리오 선택) 다음에 'plan'(요금제+스타일 확정)
     // → 'previewing'/'preview'(5초 미리보기) → 'producing'(결제 후 실제 제작) 순서로 확장.
-    const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'scenarios' | 'plan' | 'previewing' | 'preview' | 'producing' | 'result' | 'list'>('intro');
+    // ★2026-08-03 — 진입 즉시 'intro'(설명+시작하기 버튼)를 거쳐야 목록이 보이던 구조를
+    // 없애고 'list'(내가 만든 쇼츠)를 첫 화면으로 바꿨다(사장 지적 "한 페이지에 다 있어서
+    // 복잡"). 전자책 메뉴의 "목록→상세" 패턴 참고 — intro의 설명·샘플·가격 안내는 list
+    // 상단으로 옮기고 별도 단계로는 안 둔다(intro 타입 자체 제거).
+    const [step, setStep] = useState<'form' | 'waiting' | 'scenarios' | 'plan' | 'previewing' | 'preview' | 'producing' | 'result' | 'list'>('list');
     // 요금제+스타일 선택 상태(2026-08-02 3차) — plan 단계에서 채워 preview API로 넘긴다.
     const [selectedScenarioIdx, setSelectedScenarioIdx] = useState<number | null>(null);
     const [plan, setPlan] = useState<'standard' | 'premium'>('standard');
@@ -427,7 +431,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
 
     const reset = () => {
         setForm(EMPTY_FORM); setCategory('community'); setImageFiles([]); setImagePreviews([]);
-        setReqId(null); setRow(null); setError(null); setStep('intro');
+        setReqId(null); setRow(null); setError(null); setStep('list');
         loadMine();
     };
 
@@ -467,8 +471,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                  className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
-                        {(step === 'list' || step === 'form') && (
-                            <button onClick={() => setStep('intro')} aria-label="뒤로"
+                        {/* ★list는 이제 최상위 화면(뒤로가기 없음), form만 list로 돌아가는 버튼(2026-08-03) */}
+                        {step === 'form' && (
+                            <button onClick={() => setStep('list')} aria-label="뒤로"
                                     style={{ backgroundColor: '#FCE7F0', color: PINK }}
                                     className="shrink-0 -ml-1 w-7 h-7 rounded-full hover:brightness-95 flex items-center justify-center text-sm">←</button>
                         )}
@@ -479,77 +484,63 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                 </div>
 
                 <div className="p-4 space-y-4">
-                    {/* [intro] */}
-                    {step === 'intro' && (
+                    {/* [list] 내가 만든 쇼츠 목록 — 진입 즉시 첫 화면(2026-08-03, 옛 intro 통합).
+                        비어있으면 안내·샘플을 먼저 보여주고, 항목이 있으면 목록을 우선 노출하되
+                        안내는 접어서 필요할 때만 펼친다(전자책 "목록→상세" 패턴 참고). */}
+                    {step === 'list' && (
                         <>
-                            <div className="text-sm text-gray-600 leading-relaxed space-y-1">
-                                <p>마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.</p>
-                                <ul className="list-disc list-inside text-[13px] text-gray-500 space-y-0.5">
-                                    <li><b>커뮤니티·제품</b> — 사진을 올려주세요</li>
-                                    <li><b>지식·웰니스·밈</b> — 사진 없이 주제만 입력해도 돼요</li>
-                                </ul>
-                                <p className="text-[13px]">마음에 드는 시나리오를 고르면 실제 영상으로 완성해 드려요.</p>
-                            </div>
-                            <div className="space-y-1.5">
-                                <p className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</p>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {(vaultSamples.length > 0
-                                        ? vaultSamples.slice(0, 6).map(row => ({
-                                            key: `vault-${row.id}`,
-                                            label: row.title,
-                                            emoji: CATEGORIES.find(c => c.code === row.category)?.emoji || '🎬',
-                                            thumbnailUrl: row.hasThumbnail ? sampleVaultApi.thumbnailUrl(row.id) : null,
-                                            onClick: () => setPreviewSample({ label: row.title, url: sampleVaultApi.videoUrl(row.id) }),
-                                          }))
-                                        : SAMPLES.map(s => ({
-                                            key: s.label, label: s.label, emoji: s.emoji, thumbnailUrl: null,
-                                            onClick: () => setPreviewSample(s),
-                                          }))
-                                    ).map(card => (
-                                        <button key={card.key} type="button" onClick={card.onClick}
-                                           className="rounded-xl border border-pink-100 bg-pink-50/50 p-2 text-center hover:bg-pink-50 transition-colors overflow-hidden">
-                                            {card.thumbnailUrl ? (
-                                                // 쇼츠 원본이 세로(9:16)라 썸네일도 그 비율 그대로 — object-cover를
-                                                // 고정 높이(h-16)에 억지로 채우면 인물이 위아래로 잘려 보이던 문제 수정.
-                                                <img src={card.thumbnailUrl} alt={card.label}
-                                                     className="w-full aspect-[9/16] object-cover rounded-lg mb-1" />
-                                            ) : (
-                                                <div className="text-2xl py-4">{card.emoji}</div>
-                                            )}
-                                            <div className="text-[11px] font-semibold text-gray-700 mt-1 truncate">{card.label}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            {mineList.length > 0 && (
-                                <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2 text-xs text-gray-600 flex items-center justify-between gap-2">
-                                    <span>🎞️ 내가 만든 쇼츠가 있어요</span>
-                                    <button onClick={() => setStep('list')}
-                                            className="shrink-0 font-semibold underline" style={{ color: PINK }}>보러 가기</button>
-                                </div>
+                            {mineList.length === 0 ? (
+                                <>
+                                    <div className="text-sm text-gray-600 leading-relaxed space-y-1">
+                                        <p>마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.</p>
+                                        <ul className="list-disc list-inside text-[13px] text-gray-500 space-y-0.5">
+                                            <li><b>커뮤니티·제품</b> — 사진을 올려주세요</li>
+                                            <li><b>지식·웰니스·밈</b> — 사진 없이 주제만 입력해도 돼요</li>
+                                        </ul>
+                                        <p className="text-[13px]">마음에 드는 시나리오를 고르면 실제 영상으로 완성해 드려요.</p>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <p className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {(vaultSamples.length > 0
+                                                ? vaultSamples.slice(0, 6).map(row => ({
+                                                    key: `vault-${row.id}`,
+                                                    label: row.title,
+                                                    emoji: CATEGORIES.find(c => c.code === row.category)?.emoji || '🎬',
+                                                    thumbnailUrl: row.hasThumbnail ? sampleVaultApi.thumbnailUrl(row.id) : null,
+                                                    onClick: () => setPreviewSample({ label: row.title, url: sampleVaultApi.videoUrl(row.id) }),
+                                                  }))
+                                                : SAMPLES.map(s => ({
+                                                    key: s.label, label: s.label, emoji: s.emoji, thumbnailUrl: null,
+                                                    onClick: () => setPreviewSample(s),
+                                                  }))
+                                            ).map(card => (
+                                                <button key={card.key} type="button" onClick={card.onClick}
+                                                   className="rounded-xl border border-pink-100 bg-pink-50/50 p-2 text-center hover:bg-pink-50 transition-colors overflow-hidden">
+                                                    {card.thumbnailUrl ? (
+                                                        // 쇼츠 원본이 세로(9:16)라 썸네일도 그 비율 그대로 — object-cover를
+                                                        // 고정 높이(h-16)에 억지로 채우면 인물이 위아래로 잘려 보이던 문제 수정.
+                                                        <img src={card.thumbnailUrl} alt={card.label}
+                                                             className="w-full aspect-[9/16] object-cover rounded-lg mb-1" />
+                                                    ) : (
+                                                        <div className="text-2xl py-4">{card.emoji}</div>
+                                                    )}
+                                                    <div className="text-[11px] font-semibold text-gray-700 mt-1 truncate">{card.label}</div>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
+                                        💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 2,000P. 실패하면 자동 환불돼요.
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-sm font-semibold text-gray-800">내가 만든 쇼츠</p>
                             )}
-                            <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
-                                💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 2,000P. 실패하면 자동 환불돼요.
-                            </div>
                             <button onClick={() => setStep('form')}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
                                     style={{ backgroundColor: PINK }}>
-                                ✨ 내 쇼츠 만들기 시작
-                            </button>
-                        </>
-                    )}
-
-                    {/* [list] 내가 만든 쇼츠 목록 */}
-                    {step === 'list' && (
-                        <>
-                            <p className="text-sm font-semibold text-gray-800">내가 만든 쇼츠</p>
-                            {mineList.length === 0 && (
-                                <p className="text-xs text-gray-400 py-6 text-center">아직 만든 쇼츠가 없어요.</p>
-                            )}
-                            <button onClick={() => setStep('form')}
-                                    className="w-full py-2.5 rounded-xl border text-sm font-semibold"
-                                    style={{ borderColor: PINK, color: PINK }}>
-                                ✨ 새 쇼츠 만들기
+                                ✨ {mineList.length === 0 ? '내 쇼츠 만들기 시작' : '새 쇼츠 만들기'}
                             </button>
                             <div className="space-y-2">
                                 {mineList.map(r => {
