@@ -1141,8 +1141,19 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                             return next.length > max ? next.slice(next.length - max) : next;
                                                         });
                                                     }}
-                                                    className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${picked ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
-                                                        {s.emoji ? `${s.emoji} ` : ''}{s.name}
+                                                    className="flex flex-col items-center gap-1 rounded-lg border p-1.5 transition-colors w-[76px]"
+                                                    style={picked ? { backgroundColor: '#FDE6F0', borderColor: PINK } : { borderColor: '#e5e7eb', backgroundColor: '#fff' }}>
+                                                        {/* ★프로필사진 기능(OutfitStyle)의 imageUrl을 그대로 재사용(2026-08-03
+                                                            사장 지적 "이미지풍 썸네일 보여줘 — 프로필에서 가져오면 되잖아") —
+                                                            새 이미지를 만들지 않고 이미 검증된 화풍 미리보기를 그대로 쓴다. */}
+                                                        {s.imageUrl ? (
+                                                            <img src={s.imageUrl} alt={s.name} className="w-full aspect-square object-cover rounded-md" />
+                                                        ) : (
+                                                            <div className="w-full aspect-square rounded-md bg-gray-100 flex items-center justify-center text-xl">{s.emoji || '🎨'}</div>
+                                                        )}
+                                                        <span className={`text-[11px] leading-tight ${picked ? 'font-semibold' : 'text-gray-600'}`} style={picked ? { color: PINK } : undefined}>
+                                                            {s.name}
+                                                        </span>
                                                     </button>
                                                 );
                                             })}
@@ -1151,7 +1162,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 </div>
                             )}
                             {/* 목소리 선택(2026-08-03, 사장 지시) — 안 고르면 어드민이 지정한
-                                카테고리/전역 기본값을 그대로 쓴다(설명 문구로 안내). */}
+                                카테고리/전역 기본값을 그대로 쓴다(설명 문구로 안내).
+                                ★남/여 구분이 눈에 안 띈다는 지적으로 라벨·구획선 추가, "눌러서
+                                들어본다"는 걸 안내 문구로 명시(2026-08-03 2차). */}
                             <div className="space-y-1.5">
                                 <p className="text-xs font-semibold text-gray-700">🎙 목소리 선택 <span className="font-normal text-gray-400">(선택 — 안 고르면 기본 목소리로 만들어요)</span></p>
                                 {planVoices === null ? (
@@ -1160,28 +1173,36 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     <p className="text-[11px] text-gray-400">목소리 목록을 불러오지 못했어요.</p>
                                 ) : (
                                     <>
-                                        {(['F', 'M'] as const).map(g => (
-                                            <div key={g} className="flex gap-1.5 flex-wrap mb-1">
-                                                {planVoices!.filter(v => v.gender === g).map(v => {
-                                                    const shortLabel = v.name.split('-').pop() || v.name;
-                                                    const isDefault = !planVoiceName && v.name === planVoiceDefault;
-                                                    const picked = planVoiceName === v.name || isDefault;
-                                                    return (
-                                                        <button key={v.name} type="button" onClick={async () => {
-                                                                    setPlanVoiceName(v.name);
-                                                                    if (voicePlaying) return;
-                                                                    setVoicePlaying(v.name);
-                                                                    try { const url = await shortsMakerApi.previewVoice(v.name); new Audio(url).play(); }
-                                                                    catch { /* 미리듣기 실패는 조용히 무시 — 선택 자체엔 지장 없음 */ }
-                                                                    finally { setVoicePlaying(null); }
-                                                                }}
-                                                                className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${picked ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
-                                                            {g === 'F' ? '👩' : '👨'} {shortLabel}{isDefault ? ' (기본)' : ''}
-                                                        </button>
-                                                    );
-                                                })}
+                                        <p className="text-[11px] text-gray-400">눌러서 들어보고 고르세요 — 고른 목소리로 만들어드려요.</p>
+                                        {(['F', 'M'] as const).map(g => {
+                                            const list = planVoices!.filter(v => v.gender === g);
+                                            if (list.length === 0) return null;
+                                            return (
+                                            <div key={g} className="space-y-1">
+                                                <p className="text-[11px] font-medium text-gray-500">{g === 'F' ? '👩 여성' : '👨 남성'}</p>
+                                                <div className="flex gap-1.5 flex-wrap">
+                                                    {list.map(v => {
+                                                        const shortLabel = v.name.split('-').pop() || v.name;
+                                                        const isDefault = !planVoiceName && v.name === planVoiceDefault;
+                                                        const picked = planVoiceName === v.name || isDefault;
+                                                        return (
+                                                            <button key={v.name} type="button" onClick={async () => {
+                                                                        setPlanVoiceName(v.name);
+                                                                        if (voicePlaying) return;
+                                                                        setVoicePlaying(v.name);
+                                                                        try { const url = await shortsMakerApi.previewVoice(v.name); new Audio(url).play(); }
+                                                                        catch { /* 미리듣기 실패는 조용히 무시 — 선택 자체엔 지장 없음 */ }
+                                                                        finally { setVoicePlaying(null); }
+                                                                    }}
+                                                                    className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${picked ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
+                                                                {shortLabel}{isDefault ? ' (기본)' : ''}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                        ))}
+                                            );
+                                        })}
                                     </>
                                 )}
                             </div>
