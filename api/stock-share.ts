@@ -27,9 +27,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const dest = shareId ? `${SITE_ORIGIN}/?stock=${encodeURIComponent(shareId)}` : SITE_ORIGIN;
 
     const ua = String(req.headers['user-agent'] || '');
-    if (req.query.debug === '1') {
-        return res.status(200).json({ shareId, ua, matched: BOT_UA.test(ua), headerKeys: Object.keys(req.headers) });
-    }
     if (!shareId || !BOT_UA.test(ua)) {
         res.setHeader('Cache-Control', 'no-store');
         res.writeHead(302, { Location: dest });
