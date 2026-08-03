@@ -305,17 +305,27 @@ export const TossTraderPanel: React.FC = () => {
         }
     };
 
+    // ★위험작업 비밀번호(2026-08-03) — halt 설정도 saveTossSelection(POST /selection)을
+    // 타서 requirePassword()에 걸린다. "긴급정지도 비밀번호를 유지할지"는 사장 판단으로
+    // 확인 후 결정(유지) — 어차피 confirm 창을 한 번 더 거치므로 실사용 지연은 크지 않다.
+    const [askHaltPw, setAskHaltPw] = useState<false | { halt: boolean }>(false);
     const setHalt = async (halt: boolean) => {
         const ask = halt
             ? '🔴 긴급정지: 봇이 미체결을 전량 취소하고 신규 주문을 중단합니다. 실행할까요?'
             : '정지 해제 플래그만 저장합니다(봇 재시작은 안 함). 보통은 "정지 해제 + 재시작"을 쓰세요. 진행할까요?';
         if (!window.confirm(ask)) return;
+        setAskHaltPw({ halt });
+    };
+    const doSetHalt = async (adminPassword: string) => {
+        const halt = askHaltPw && askHaltPw.halt;
         setSaving(true);
         try {
-            await adminApi.saveTossSelection({ halt });
+            await adminApi.saveTossSelection({ halt: !!halt, adminPassword });
+            setAskHaltPw(false);
             await load();
         } catch (e: any) {
             setSaveMsg(`처리 실패: ${e?.message || '오류'}`);
+            throw e;
         } finally {
             setSaving(false);
         }
@@ -323,21 +333,31 @@ export const TossTraderPanel: React.FC = () => {
 
     // 🔴 긴급정지 해제 + 봇 재시작을 한 번에(래치 해제). 리스크 halt(위험 감지)면
     // 서버가 409로 막고, 사용자가 원인 확인 후 force 로 재확인해야 진행된다.
+    // ★위험작업 비밀번호(2026-08-03) — POST /toss-trader/restart도 requirePassword()로
+    // 막혀 있는데 adminPassword를 안 보내고 있었다(saveSelection과 같은 계열 버그).
+    // 8/3 00:10 실제 401 실패 로그 확인 — 웹의 "정지 해제+재시작" 버튼이 원래도 안 먹혔다.
+    const [askRestartPw, setAskRestartPw] = useState<false | { force: boolean }>(false);
     const restartBot = async (force = false) => {
         const ask = force
             ? '⚠️ 리스크 정지(위험 감지)를 무시하고 재시작합니다. 원인을 확인하셨습니까? 계속할까요?'
             : '정지를 해제하고 봇을 재시작합니다(래치 해제). 재시작 후 정상 가동됩니다. 진행할까요?';
         if (!window.confirm(ask)) return;
+        setAskRestartPw({ force });
+    };
+    const doRestartBot = async (adminPassword: string) => {
+        const force = askRestartPw && askRestartPw.force;
         setSaving(true);
         setSaveMsg('봇 재시작 중… (최대 15초)');
         try {
-            const r = await adminApi.restartTossBot(force);
+            const r = await adminApi.restartTossBot(!!force, adminPassword);
             setSaveMsg(r?.message || '재시작 완료');
+            setAskRestartPw(false);
             await load();
         } catch (e: any) {
             // 409 risk_halt = 위험 정지라 force 재확인 유도
             const detail = e?.response?.data || e?.data || {};
             if (detail?.error === 'risk_halt' || /risk_halt|리스크/.test(e?.message || '')) {
+                setAskRestartPw(false);
                 if (window.confirm(`${detail?.message || '리스크 정지 상태입니다.'}\n\n그래도 재시작하시겠습니까?`)) {
                     setSaving(false);
                     return restartBot(true);
@@ -345,6 +365,7 @@ export const TossTraderPanel: React.FC = () => {
                 setSaveMsg('재시작 취소(리스크 정지 확인 필요).');
             } else {
                 setSaveMsg(`재시작 실패: ${detail?.message || e?.message || '오류'}`);
+                throw e;   // 비밀번호 오류 등은 모달을 유지하고 재입력 받는다
             }
         } finally {
             setSaving(false);
@@ -1710,6 +1731,28 @@ export const TossTraderPanel: React.FC = () => {
                     detail={`선택 ${effChecked.length}종목으로 저장됩니다 — 봇이 60초 내 반영합니다.`}
                     onConfirm={saveSelection}
                     onCancel={() => setAskSavePw(false)}
+                />
+            )}
+            {askRestartPw && (
+                <AdminPasswordPrompt
+                    title="토스봇 정지 해제 + 재시작"
+                    detail={askRestartPw.force
+                        ? '리스크 정지(위험 감지)를 무시하고 재시작합니다 — 실거래가 즉시 재개됩니다.'
+                        : '정지를 해제하고 봇을 재시작합니다 — 실거래가 즉시 재개됩니다.'}
+                    danger
+                    onConfirm={doRestartBot}
+                    onCancel={() => setAskRestartPw(false)}
+                />
+            )}
+            {askHaltPw && (
+                <AdminPasswordPrompt
+                    title={askHaltPw.halt ? '토스봇 긴급정지' : '토스봇 정지 해제(플래그만)'}
+                    detail={askHaltPw.halt
+                        ? '미체결을 전량 취소하고 신규 주문을 중단합니다.'
+                        : '정지 해제 플래그만 저장합니다 — 봇 재시작 전까지는 정지 상태가 유지됩니다.'}
+                    danger={askHaltPw.halt}
+                    onConfirm={doSetHalt}
+                    onCancel={() => setAskHaltPw(false)}
                 />
             )}
         </div>
