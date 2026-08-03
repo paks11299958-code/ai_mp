@@ -190,6 +190,20 @@ const StyleLoader: React.FC<{ onLoaded: (styles: OutfitStyle[]) => void }> = ({ 
     return <p className="text-[11px] text-gray-400">스타일 목록을 불러오는 중…</p>;
 };
 
+// 목소리 후보 지연 로더(2026-08-03, 사장 지시 "회원이 신청할 때 직접 고르는 UI") —
+// StyleLoader와 동일 패턴. category 기본값(어드민이 미리 지정해둔 값)을 함께 받아
+// 화면에서 "기본값을 그대로 쓸지, 다른 걸 고를지" 안내한다.
+const VoiceLoader: React.FC<{
+    category: string;
+    onLoaded: (voices: { name: string; gender: 'F' | 'M' }[], defaultVoice: string | null) => void;
+}> = ({ category, onLoaded }) => {
+    useEffect(() => {
+        shortsMakerApi.getVoices(category).then(d => onLoaded(d.candidates, d.defaultVoice)).catch(() => onLoaded([], null));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [category]);
+    return <p className="text-[11px] text-gray-400">목소리 목록을 불러오는 중…</p>;
+};
+
 export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     // ★2026-08-02 3차 개편 — 'scenarios'(시나리오 선택) 다음에 'plan'(요금제+스타일 확정)
     // → 'previewing'/'preview'(5초 미리보기) → 'producing'(결제 후 실제 제작) 순서로 확장.
@@ -203,6 +217,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [plan, setPlan] = useState<'standard' | 'premium'>('standard');
     const [planRestyleKeys, setPlanRestyleKeys] = useState<string[]>([]);
     const [planOutfitStyles, setPlanOutfitStyles] = useState<OutfitStyle[] | null>(null);
+    // 목소리 직접 선택(2026-08-03 사장 지시) — null이면 카테고리/전역 어드민 설정을 그대로 씀.
+    const [planVoices, setPlanVoices] = useState<{ name: string; gender: 'F' | 'M' }[] | null>(null);
+    const [planVoiceDefault, setPlanVoiceDefault] = useState<string | null>(null);
+    const [planVoiceName, setPlanVoiceName] = useState<string | null>(null);
+    const [voicePlaying, setVoicePlaying] = useState<string | null>(null);
     const [selectedFinalSlot, setSelectedFinalSlot] = useState<0 | 1>(0);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [category, setCategory] = useState<Category>('community');
@@ -396,6 +415,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         setPlan('standard');
         setPlanRestyleKeys([]);
         setPlanOutfitStyles(null); // StyleLoader가 다시 조회하도록 초기화
+        setPlanVoices(null); setPlanVoiceDefault(null); setPlanVoiceName(null); // VoiceLoader가 다시 조회
         setStep('plan');
     };
 
@@ -410,7 +430,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         }
         setError(null); setSubmitting(true);
         try {
-            await shortsMakerApi.preview(reqId, selectedScenarioIdx, plan, planRestyleKeys);
+            await shortsMakerApi.preview(reqId, selectedScenarioIdx, plan, planRestyleKeys, planVoiceName || undefined);
             setRow(null); setStep('previewing');
         } catch (e: any) {
             setError(e.message || '미리보기 요청에 실패했어요.');
@@ -1104,6 +1124,41 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     )}
                                 </div>
                             )}
+                            {/* 목소리 선택(2026-08-03, 사장 지시) — 안 고르면 어드민이 지정한
+                                카테고리/전역 기본값을 그대로 쓴다(설명 문구로 안내). */}
+                            <div className="space-y-1.5">
+                                <p className="text-xs font-semibold text-gray-700">🎙 목소리 선택 <span className="font-normal text-gray-400">(선택 — 안 고르면 기본 목소리로 만들어요)</span></p>
+                                {planVoices === null ? (
+                                    <VoiceLoader category={category} onLoaded={(voices, def) => { setPlanVoices(voices); setPlanVoiceDefault(def); }} />
+                                ) : planVoices.length === 0 ? (
+                                    <p className="text-[11px] text-gray-400">목소리 목록을 불러오지 못했어요.</p>
+                                ) : (
+                                    <>
+                                        {(['F', 'M'] as const).map(g => (
+                                            <div key={g} className="flex gap-1.5 flex-wrap mb-1">
+                                                {planVoices!.filter(v => v.gender === g).map(v => {
+                                                    const shortLabel = v.name.split('-').pop() || v.name;
+                                                    const isDefault = !planVoiceName && v.name === planVoiceDefault;
+                                                    const picked = planVoiceName === v.name || isDefault;
+                                                    return (
+                                                        <button key={v.name} type="button" onClick={async () => {
+                                                                    setPlanVoiceName(v.name);
+                                                                    if (voicePlaying) return;
+                                                                    setVoicePlaying(v.name);
+                                                                    try { const url = await shortsMakerApi.previewVoice(v.name); new Audio(url).play(); }
+                                                                    catch { /* 미리듣기 실패는 조용히 무시 — 선택 자체엔 지장 없음 */ }
+                                                                    finally { setVoicePlaying(null); }
+                                                                }}
+                                                                className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${picked ? 'bg-pink-500 text-white border-pink-500' : 'bg-white text-gray-600 border-gray-200 hover:bg-pink-50/50'}`}>
+                                                            {g === 'F' ? '👩' : '👨'} {shortLabel}{isDefault ? ' (기본)' : ''}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
+                            </div>
                             {error && <p className="text-xs text-red-500">{error}</p>}
                             <button onClick={confirmPlanAndPreview} disabled={submitting}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-60"

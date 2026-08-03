@@ -644,10 +644,30 @@ export const shortsMakerApi = {
             `/shorts-maker/requests/mine?offset=${offset}&limit=${limit}`),
     // 2단계(2026-08-02 3차 신설): 시나리오+요금제+스타일 확정 → 무료 5초 미리보기 생성.
     // restyleKeys: 스탠다드는 0~1개, 프리미엄은 정확히 2개(화풍 다른 완성본 2개 예고).
-    preview: (id: number, scenarioIndex: number, plan: 'standard' | 'premium', restyleKeys: string[]) =>
+    // voiceName(2026-08-03): 회원이 직접 고른 목소리(선택) — 안 넘기면 카테고리/전역 설정 폴백.
+    preview: (id: number, scenarioIndex: number, plan: 'standard' | 'premium', restyleKeys: string[], voiceName?: string) =>
         post<{ id: number; status: string }>(`/shorts-maker/requests/${id}/preview`,
-            { scenarioIndex, plan, restyleKeys }),
+            { scenarioIndex, plan, restyleKeys, ...(voiceName ? { voiceName } : {}) }),
     previewVideoUrl: (id: number) => `${BASE}/shorts-maker/requests/${id}/preview-video`,
+    // 회원용 목소리 후보(2026-08-03) — 어드민 화면과 같은 검증된 목록, 카테고리 기본값도 함께.
+    getVoices: (category = 'default', lang = 'ko') =>
+        get<{ lang: string; category: string; defaultVoice: string | null; candidates: { name: string; gender: 'F' | 'M' }[] }>(
+            `/shorts-maker/requests/voices?lang=${lang}&category=${category}`),
+    previewVoice: async (voiceName: string, text?: string): Promise<string> => {
+        const res = await fetch(`${BASE}/shorts-maker/requests/voice-preview`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
+            },
+            body: JSON.stringify({ voiceName, ...(text ? { text } : {}) }),
+        });
+        if (!res.ok) {
+            const msg = await res.json().catch(() => ({}));
+            throw new Error(msg.error || `미리듣기 실패 (${res.status})`);
+        }
+        return URL.createObjectURL(await res.blob());
+    },
     // 3단계: 미리보기 확인 후 결제 확정→실제 제작(선차감). 202 → { id }.
     confirm: (id: number) =>
         post<{ id: number; status: string; pointsCharged: number }>(`/shorts-maker/requests/${id}/confirm`, {}),
