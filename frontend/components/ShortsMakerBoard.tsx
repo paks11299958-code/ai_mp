@@ -224,7 +224,13 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [voicePlaying, setVoicePlaying] = useState<string | null>(null);
     const [selectedFinalSlot, setSelectedFinalSlot] = useState<0 | 1>(0);
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
-    const [category, setCategory] = useState<Category>('community');
+    // ★기본 선택 카테고리를 생일축하로(2026-08-03 사장 지시 "생일축하 쇼츠가 맨 먼저
+    // 선택 되게 해줘") — 목록 순서는 이미 맨 위였지만 실제 선택값은 'community'였다.
+    const [category, setCategory] = useState<Category>('birthday');
+    // ★[form] 화면을 카테고리 선택→정보 입력 2단계로 분리(2026-08-03 사장 지시 —
+    // "정보 넣는 걸 다음탭에서 넣게 해줘, 아래에 있으니 불편해, 카테고리 선택하면
+    // 입력정보 탭을 유동적으로"). 카테고리를 고르면 자동으로 'info'로 넘어간다.
+    const [formSubStep, setFormSubStep] = useState<'category' | 'info'>('category');
     // 카테고리 카드 상세 펼침(2026-08-02) — 카드가 늘수록 목록이 복잡해 보인다는 사장 지적.
     // 접힌 카드는 아이콘·이름·한 줄 요약·사진 배지만, 상세는 호버(데스크톱)로 미리보고
     // 탭(모바일)으로도 열 수 있게 한다. 호버 전용으로 만들면 폰에서 정보가 막힌다.
@@ -465,7 +471,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     };
 
     const reset = () => {
-        setForm(EMPTY_FORM); setCategory('community'); setImageFiles([]); setImagePreviews([]);
+        setForm(EMPTY_FORM); setCategory('birthday'); setImageFiles([]); setImagePreviews([]);
+        setFormSubStep('category');
         setReqId(null); setRow(null); setError(null); setStep('list');
         loadMine();
     };
@@ -506,9 +513,10 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                  className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[92vh] overflow-y-auto shadow-xl">
                 <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between z-10">
                     <div className="flex items-center gap-2">
-                        {/* ★list는 이제 최상위 화면(뒤로가기 없음), form만 list로 돌아가는 버튼(2026-08-03) */}
+                        {/* ★list는 이제 최상위 화면(뒤로가기 없음). form은 한 단계씩 뒤로 —
+                            info면 category 탭으로, category면 list로(2026-08-03 서브탭 분리). */}
                         {step === 'form' && (
-                            <button onClick={() => setStep('list')} aria-label="뒤로"
+                            <button onClick={() => formSubStep === 'info' ? setFormSubStep('category') : setStep('list')} aria-label="뒤로"
                                     style={{ backgroundColor: '#FCE7F0', color: PINK }}
                                     className="shrink-0 -ml-1 w-7 h-7 rounded-full hover:brightness-95 flex items-center justify-center text-sm">←</button>
                         )}
@@ -605,7 +613,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                             ) : (
                                 <p className="text-sm font-semibold text-gray-800">내가 만든 쇼츠</p>
                             )}
-                            <button onClick={() => setStep('form')}
+                            <button onClick={() => { setFormSubStep('category'); setStep('form'); }}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
                                     style={{ backgroundColor: PINK }}>
                                 ✨ {mineList.length === 0 ? '내 쇼츠 만들기 시작' : '새 쇼츠 만들기'}
@@ -656,8 +664,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                         </>
                     )}
 
-                    {/* [form] 신청서 */}
-                    {step === 'form' && (
+                    {/* [form] 신청서 — 카테고리 선택(category)/정보 입력(info) 2개 서브탭(2026-08-03) */}
+                    {step === 'form' && formSubStep === 'category' && (
                         <>
                             <div className="space-y-1.5">
                                 {/* ★타이틀 스타일(2026-08-02 3차, 사장 지적 "타이틀 느낌이 안 남") —
@@ -673,6 +681,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 onClick={() => {
                                                     setCategory(c.code);
                                                     setImageFiles([]); setImagePreviews([]); setError(null);
+                                                    setFormSubStep('info'); // 카테고리 선택 즉시 정보 입력 탭으로
                                                 }}
                                                 onMouseEnter={() => setHoverCat(c.code)}
                                                 onMouseLeave={() => setHoverCat(null)}
@@ -724,6 +733,22 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     })}
                                 </div>
                             </div>
+                        </>
+                    )}
+
+                    {step === 'form' && formSubStep === 'info' && (() => {
+                        const cat = CATEGORIES.find(c => c.code === category);
+                        return (
+                        <>
+                            {/* 선택한 카테고리 요약 + 되돌아가기(2026-08-03) — 카테고리 선택 탭에서
+                                넘어온 걸 확인하고, 잘못 골랐으면 바로 되돌아갈 수 있게. */}
+                            <button type="button" onClick={() => setFormSubStep('category')}
+                                    className="w-full flex items-center gap-2 rounded-xl px-3 py-2 border transition-colors text-left"
+                                    style={{ backgroundColor: '#FDE6F0', borderColor: PINK }}>
+                                <span className="text-lg shrink-0">{cat?.emoji}</span>
+                                <span className="flex-1 min-w-0 text-sm font-semibold text-gray-800">{cat?.label}</span>
+                                <span className="shrink-0 text-[11px] font-medium" style={{ color: PINK }}>카테고리 다시 고르기 ›</span>
+                            </button>
 
                             {/* 섹션: 사진 + 핵심 정보(카테고리에 따라 이미지 업로드 또는 주제 입력) */}
                             <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
@@ -1010,7 +1035,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                 {submitting ? '신청 중...' : '💎 100P — 시나리오 5개 받기'}
                             </button>
                         </>
-                    )}
+                        );
+                    })()}
 
                     {/* [waiting] 시나리오 생성 대기 */}
                     {step === 'waiting' && (() => {
