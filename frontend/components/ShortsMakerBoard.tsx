@@ -272,8 +272,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const [vaultSamples, setVaultSamples] = useState<SampleVaultRow[]>([]);
     // ★예시 갤러리 접기(2026-08-04 사장 지적 "쇼츠 보관함 리스트가 없어졌다") — 예전엔
     // 내 쇼츠가 하나라도 생기면 예시 갤러리 섹션 자체가 통째로 사라졌다. 계속 참고할 수
-    // 있게 유지하되, 내 쇼츠가 있을 땐 기본 접어서 목록이 우선 보이게 한다.
-    const [showSamples, setShowSamples] = useState(false);
+    // 있게 유지하고, 기본값도 항상 펼침("그래야 사람들이 샘플을 볼 수 있지" 사장 지적 —
+    // 접어두면 정작 봐야 할 사람이 안 보게 됨). 필요하면 접을 수만 있게.
+    const [showSamples, setShowSamples] = useState(true);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -282,9 +283,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         shortsMakerApi.mine(offset, MINE_PAGE_SIZE).then(res => {
             setMineList(prev => append ? [...prev, ...res.rows] : res.rows);
             setMineTotal(res.total);
-            // 처음 방문(내 쇼츠 0개)이면 예시 갤러리를 펼쳐서 먼저 보여준다 — 목록이
-            // 있으면 접어서 "내가 만든 쇼츠"가 먼저 보이게(위 showSamples 참고).
-            if (offset === 0 && res.total === 0) setShowSamples(true);
         }).catch(() => {});
     };
 
@@ -535,7 +533,20 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                         <span className="text-lg">🎬</span>
                         <h2 className="text-base font-bold" style={{ color: PINK }}>쇼츠 만들기</h2>
                     </div>
-                    <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                    <div className="flex items-center gap-2">
+                        {/* ★스크롤해도 안 움직는 헤더에 "새 쇼츠 만들기" 고정(2026-08-04 사장
+                            지적 "스크롤해도 안 움직는 탑메뉴에 스톤버튼으로 잇는 게 어때") —
+                            목록이 길어져도 항상 손 닿는 곳에 핵심 행동 버튼을 둔다. list
+                            화면에서만 노출(다른 step은 이미 폼 진행 중이라 불필요). */}
+                        {step === 'list' && (
+                            <button onClick={() => { setFormSubStep('category'); setStep('form'); }}
+                                    className="shrink-0 px-3 h-7 rounded-full text-xs font-semibold text-white hover:brightness-95"
+                                    style={{ backgroundColor: PINK }}>
+                                ✨ 새 쇼츠
+                            </button>
+                        )}
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl leading-none px-1">×</button>
+                    </div>
                 </div>
 
                 {/* 진행 단계 표시 — 신청 이후(form 포함)에만, 목록에서는 안 보인다(2026-08-03). */}
@@ -579,6 +590,17 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                         펼쳐서 보여주고, 이후엔 접어서 "내가 만든 쇼츠"가 먼저 보이게 한다. */}
                     {step === 'list' && (
                         <>
+                            {/* ★목록이 비어있을 때만 큰 CTA(2026-08-04) — 목록이 있으면 이제
+                                헤더에 항상 고정된 "✨ 새 쇼츠" 버튼이 있어(스크롤해도 안 움직임)
+                                여기서 또 큰 버튼을 반복할 필요가 없다. 빈 목록(첫 방문)은
+                                헤더 버튼만으론 존재감이 약해 큰 CTA를 그대로 유지. */}
+                            {mineList.length === 0 && (
+                                <button onClick={() => { setFormSubStep('category'); setStep('form'); }}
+                                        className="w-full py-3 rounded-xl text-white font-semibold text-sm"
+                                        style={{ backgroundColor: PINK }}>
+                                    ✨ 내 쇼츠 만들기 시작
+                                </button>
+                            )}
                             <div className="rounded-xl border border-pink-100 bg-pink-50/40 p-3 space-y-3">
                                 <button type="button" onClick={() => setShowSamples(v => !v)}
                                         className="w-full flex items-center justify-between text-left">
@@ -629,11 +651,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                     </>
                                 )}
                             </div>
-                            <button onClick={() => { setFormSubStep('category'); setStep('form'); }}
-                                    className="w-full py-3 rounded-xl text-white font-semibold text-sm"
-                                    style={{ backgroundColor: PINK }}>
-                                ✨ {mineList.length === 0 ? '내 쇼츠 만들기 시작' : '새 쇼츠 만들기'}
-                            </button>
                             {/* ★"내가 만든 쇼츠" 영역 구분(2026-08-04 사장 지적 "영역을 구분되게
                                 나누는 게 좋을 거 같다") — 배경색 카드 섹션으로 감싸 위 예시
                                 갤러리·아래 폼 버튼과 시각적으로 명확히 분리(기존 폼 UI 그룹핑
