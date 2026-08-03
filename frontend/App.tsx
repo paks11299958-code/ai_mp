@@ -240,18 +240,6 @@ const AppContent: React.FC = () => {
             .catch(() => { /* 만료/비공개 링크 — 조용히 무시 */ });
     }, [publicTarotShareId]);
 
-    // 📊 주식 정밀분석 공개 공유(?stock=shareId) — 비로그인도 열람 가능(바이럴 유입).
-    const [publicStockShareId, setPublicStockShareId] = useState<string | null>(() => {
-        const params = new URLSearchParams(window.location.search);
-        const stock = params.get('stock');
-        if (stock) {
-            params.delete('stock');
-            const qs = params.toString();
-            window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
-        }
-        return stock;
-    });
-
     const [personas, setPersonas] = useState<Persona[]>(() => {
         try {
             const cached = localStorage.getItem('personas_cache');
@@ -1869,9 +1857,6 @@ const AppContent: React.FC = () => {
 
     return (
         <>
-        {publicStockShareId && (
-            <StockPublicShareView shareId={publicStockShareId} onClose={() => setPublicStockShareId(null)} />
-        )}
         {rewardAlert && (
             <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
         )}
@@ -3077,7 +3062,15 @@ const IS_LEARN_INDEX = /^\/learn$/.test(LEARN_PATH);
 const IS_LEARN_1 = /^\/learn\/homepage$/.test(LEARN_PATH);
 const IS_LEARN_2 = /^\/learn\/homepage\/2$/.test(LEARN_PATH);
 
+// 📊 주식 정밀분석 공개 공유(?stock=shareId) — 비로그인도 열람 가능(바이럴 유입).
+// ★AppContent 내부의 return 분기(로그인/게스트/화면별로 여러 갈래)보다 여기서 먼저 걸러야
+//   한다 — 안에 넣었다가 !user(비로그인) 분기로 먼저 빠져나가 렌더가 안 되는 사고가 있었다
+//   (2026-08-03). 타로 공유(?tr=)는 그 여러 갈래 전부에 반복 삽입하는 방식으로 우회했지만,
+//   이쪽은 최상위에서 완전히 분리해 실수로 빠뜨릴 여지 자체를 없앤다.
+const STOCK_SHARE_ID = new URLSearchParams(window.location.search).get('stock');
+
 const App: React.FC = () => (
+    STOCK_SHARE_ID ? <StockPublicShareView shareId={STOCK_SHARE_ID} onClose={() => { window.location.href = '/'; }} /> :
     EMBED_KEY ? <EmbedChat personaKey={EMBED_KEY} /> :
     CONSULT_SLUG ? <ConsultPage slug={CONSULT_SLUG} /> :
     IS_LEARN_INDEX ? <LearnIndex /> :
