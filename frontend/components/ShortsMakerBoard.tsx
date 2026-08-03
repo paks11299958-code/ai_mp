@@ -168,7 +168,12 @@ const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', re
 // 컴포넌트가 마운트되는 순간(=step==='plan'이고 사진 카테고리일 때)에만 자연히 1회 호출.
 const StyleLoader: React.FC<{ onLoaded: (styles: OutfitStyle[]) => void }> = ({ onLoaded }) => {
     useEffect(() => {
-        outfitApi.styles().then(onLoaded).catch(() => onLoaded([]));
+        // ★outfitApi.styles()를 gender 없이 부르면 프로필사진 기능(성별별 인물 참조가
+        //   다름)과 달리 여기선 같은 화풍(실사/지브리풍 등)이 male+female 두 벌로 겹쳐
+        //   보인다(2026-08-03 사장 지적 — 실제 화면 캡처로 확인). promptEn을 대조해보니
+        //   두 버전이 동일한 화풍 프롬프트라 쇼츠 만들기엔 성별 구분이 무의미 — 한쪽만
+        //   받아 6개로 고정한다(화풍 결과물은 어느 쪽을 골라도 같다).
+        outfitApi.styles('female').then(onLoaded).catch(() => onLoaded([]));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return <p className="text-[11px] text-gray-400">스타일 목록을 불러오는 중…</p>;
