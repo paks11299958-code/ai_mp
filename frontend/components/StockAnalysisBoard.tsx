@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Trash2, RefreshCw, RotateCcw, ChevronLeft, BarChart2, MessageCircle } from 'lucide-react';
-import { stockReportApi } from '../services/apiService';
+import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Trash2, RefreshCw, RotateCcw, ChevronLeft, BarChart2, MessageCircle, Share2 } from 'lucide-react';
+import { stockReportApi, stockAnalysisApi } from '../services/apiService';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
 import { useTaskList } from '../hooks/useTaskList';
 import { usePoints } from '../contexts/PointsContext';
@@ -10,7 +10,7 @@ import { HelpButton } from './HelpButton';
 const YUNCHAEWON_PERSONA_ID = 'cmois970w0000xsvie6aag2f5';
 
 // ── 크림 팔레트 ──────────────────────────────────────
-const T = {
+export const T = {
     bg:        '#FBF8F3',
     surface:   '#F5F0E8',
     card:      '#FFFFFF',
@@ -45,7 +45,7 @@ interface StockDetail extends StockTask {
 }
 
 // ── AI 투자의견 비교 카드 ────────────────────────────
-const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: string | null; gptReport: string | null }> = ({ geminiReport, claudeReport, gptReport }) => {
+export const AiOpinionCard: React.FC<{ geminiReport: string | null; claudeReport: string | null; gptReport: string | null }> = ({ geminiReport, claudeReport, gptReport }) => {
     const gemini = parseGeminiOpinion(geminiReport);
     const claude = parseClaudeGptOpinion(claudeReport);
     const gpt    = parseClaudeGptOpinion(gptReport);
@@ -180,7 +180,7 @@ const TableBlock: React.FC<{ lines: string[] }> = ({ lines }) => {
 };
 
 // ── 마크다운 렌더러 ──────────────────────────────────
-const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
+export const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
     const lines = content.split('\n');
     const elements: React.ReactNode[] = [];
     let i = 0;
@@ -255,6 +255,8 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const [selected, setSelected] = useState<StockDetail | null>(null);
     const [detailLoading, setDetailLoading] = useState(false);
     const [consulting, setConsulting] = useState(false);
+    const [sharing, setSharing] = useState(false);
+    const [shareMsg, setShareMsg] = useState('');
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
@@ -330,6 +332,22 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const handleRetry = async (id: number) => {
         await apiFetch(API(`/${id}/retry`), { method: 'POST' });
         setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'pending' } : t));
+    };
+
+    const handleShare = async () => {
+        if (!selected || sharing) return;
+        setSharing(true);
+        try {
+            const { shareId } = await stockAnalysisApi.share(selected.id);
+            const url = `${window.location.origin}/?stock=${shareId}`;
+            if (navigator.share) { await navigator.share({ title: `📊 ${selected.stockName} 정밀분석`, url }); return; }
+            await navigator.clipboard.writeText(url);
+            setShareMsg('공유 링크가 복사되었습니다 ✨');
+            setTimeout(() => setShareMsg(''), 2500);
+        } catch {
+            setShareMsg('공유 링크 발급에 실패했어요');
+            setTimeout(() => setShareMsg(''), 2500);
+        } finally { setSharing(false); }
     };
 
     const krxSymbol = selected?.yahooSymbol ? `KRX:${selected.yahooSymbol.replace(/\.(KS|KQ)$/i, '')}` : null;
@@ -644,8 +662,13 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: T.surface, border: `1px solid ${T.border}`, color: T.inkSoft, fontSize: 11, fontWeight: 600, cursor: 'pointer' }}>
                                                 <Download size={11} /> .md 다운로드
                                             </button>
+                                            <button onClick={handleShare} disabled={sharing}
+                                                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 8, background: T.surface, border: `1px solid ${T.border}`, color: T.inkSoft, fontSize: 11, fontWeight: 600, cursor: sharing ? 'not-allowed' : 'pointer', opacity: sharing ? 0.5 : 1 }}>
+                                                {sharing ? <Loader size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Share2 size={11} />} 링크 공유
+                                            </button>
                                         </div>
                                     </div>
+                                    {shareMsg && <div style={{ marginTop: 8, fontSize: 10.5, color: T.accent, fontWeight: 600 }}>{shareMsg}</div>}
 
                                     {/* 데이터 소스 */}
                                     <div style={{ background: T.surface, borderRadius: 8, padding: '8px 12px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
@@ -702,7 +725,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     );
 };
 
-const SourceLinks: React.FC<{ raw: string | null }> = ({ raw }) => {
+export const SourceLinks: React.FC<{ raw: string | null }> = ({ raw }) => {
     if (!raw) return null;
     let links: string[];
     try { links = JSON.parse(raw); } catch { return null; }

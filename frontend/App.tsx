@@ -63,6 +63,7 @@ import { SubMenuModal, SubMenuConfig, SubMenuItem } from './components/SubMenuMo
 import { FaceReadingModal } from './components/FaceReadingModal';
 import { TarotCardModal } from './components/TarotCardModal';
 import { TarotReportView, TarotReportData } from './components/TarotReportView';
+import { StockPublicShareView } from './components/StockPublicShareView';
 import { EmbedChat } from './components/EmbedChat';
 import { ConsultPage } from './components/ConsultPage';
 import { LearnPage } from './components/LearnPage';
@@ -238,6 +239,18 @@ const AppContent: React.FC = () => {
             }))
             .catch(() => { /* 만료/비공개 링크 — 조용히 무시 */ });
     }, [publicTarotShareId]);
+
+    // 📊 주식 정밀분석 공개 공유(?stock=shareId) — 비로그인도 열람 가능(바이럴 유입).
+    const [publicStockShareId, setPublicStockShareId] = useState<string | null>(() => {
+        const params = new URLSearchParams(window.location.search);
+        const stock = params.get('stock');
+        if (stock) {
+            params.delete('stock');
+            const qs = params.toString();
+            window.history.replaceState({}, '', window.location.pathname + (qs ? `?${qs}` : ''));
+        }
+        return stock;
+    });
 
     const [personas, setPersonas] = useState<Persona[]>(() => {
         try {
@@ -1856,6 +1869,9 @@ const AppContent: React.FC = () => {
 
     return (
         <>
+        {publicStockShareId && (
+            <StockPublicShareView shareId={publicStockShareId} onClose={() => setPublicStockShareId(null)} />
+        )}
         {rewardAlert && (
             <RewardAlertModal kind={rewardAlert.kind} amount={rewardAlert.amount} onClose={() => setRewardAlert(null)} />
         )}

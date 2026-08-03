@@ -391,6 +391,19 @@ export const triggerVideoApi = {
         del<{ ok: boolean }>(`/trigger-videos/${id}`),
 };
 
+// Stock Analysis (정밀분석 — 공유 링크)
+export const stockAnalysisApi = {
+    share: (id: number) =>
+        post<{ shareId: string }>(`/stock-analysis/${id}/share`, {}),
+    getShared: (shareId: string) =>
+        get<{
+            stockName: string; status: string;
+            analysisReport: string | null; claudeReport: string | null; gptReport: string | null;
+            sourceLinks: string | null; yahooSymbol: string | null; chartImageUrl: string | null;
+            createdAt: string; updatedAt: string;
+        }>(`/stock-analysis/shared/${shareId}`),
+};
+
 // Stock Report (RAG)
 export const stockReportApi = {
     consult: (analysisId: number) =>
