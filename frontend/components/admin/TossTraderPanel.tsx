@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { adminApi } from '../../services/apiService';
 import { Icon } from '../Icons';
+import { AdminPasswordPrompt } from './AdminPasswordPrompt';
 
 // 토스 자동매매 봇 어드민.
 // 봇은 서버1 pm2에서 상시 실행. 상태는 봇이 서버1 파일(status.json)에 기록한 것을 읽는다.
@@ -208,18 +209,27 @@ export const TossTraderPanel: React.FC = () => {
         return out;
     };
 
-    const saveSelection = async () => {
+    // ★위험작업 비밀번호 재확인(2026-08-03) — 서버(POST /toss-trader/selection)가
+    // requirePassword()로 adminPassword를 요구하는데, 이 화면은 그동안 비밀번호를 전혀
+    // 안 보내고 있었다. 그 결과 저장 버튼을 눌러도 항상 401로 조용히 실패해, "종목을
+    // 지우고 저장했는데 계속 나온다"는 사장 지적으로 발견(로그 실측: POST 요청 전부 401,
+    // selection.json은 7/15 이후 갱신된 적 없음). 다른 위험작업(BatchJobsPanel)과 동일
+    // 패턴으로 AdminPasswordPrompt를 붙인다.
+    const [askSavePw, setAskSavePw] = useState(false);
+    const saveSelection = async (adminPassword: string) => {
         // 선택(symbols)과 점수설정(params)을 함께 저장 — 한 번의 저장으로 봇에 반영.
         setSaving(true);
         try {
-            const payload: any = { symbols: effChecked, params: buildParamsPayload() };
+            const payload: any = { symbols: effChecked, params: buildParamsPayload(), adminPassword };
             await adminApi.saveTossSelection(payload);
             setChecked(null);
             setEditParams({});
             setSaveMsg('저장됨 — 봇이 60초 내 반영합니다');
+            setAskSavePw(false);
             await load();
         } catch (e: any) {
             setSaveMsg(`저장 실패: ${e?.message || '오류'}`);
+            throw e;   // 모달이 닫히지 않고 재입력을 받게 한다(비밀번호 오타 등)
         } finally {
             setSaving(false);
         }
@@ -1009,7 +1019,7 @@ export const TossTraderPanel: React.FC = () => {
                                 <div className="ml-auto flex items-center gap-2">
                                     <button onClick={() => { setChecked(null); setEditParams({}); setSaveMsg(null); }}
                                         className="px-3 py-1 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
-                                    <button onClick={saveSelection} disabled={saving}
+                                    <button onClick={() => setAskSavePw(true)} disabled={saving}
                                         className="px-4 py-1 rounded font-medium bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-60">
                                         {saving ? '저장 중…' : '감시 목록 저장'}
                                     </button>
@@ -1272,7 +1282,7 @@ export const TossTraderPanel: React.FC = () => {
                                     <button onClick={() => { setChecked(null); setEditParams({}); setSaveMsg(null); }}
                                         className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">되돌리기</button>
                                 )}
-                                <button onClick={saveSelection} disabled={(!dirty && !paramsDirty) || saving}
+                                <button onClick={() => setAskSavePw(true)} disabled={(!dirty && !paramsDirty) || saving}
                                     className={`text-xs px-4 py-1.5 rounded font-medium ${(dirty || paramsDirty) ? 'bg-blue-600 hover:bg-blue-500 text-white' : 'bg-gray-700 text-gray-500'} disabled:opacity-60`}>
                                     {saving ? '저장 중…' : '선택·설정 저장'}
                                 </button>
@@ -1693,6 +1703,14 @@ export const TossTraderPanel: React.FC = () => {
                         </pre>
                     </div>
                 </div>
+            )}
+            {askSavePw && (
+                <AdminPasswordPrompt
+                    title="토스봇 매매 대상·설정 저장"
+                    detail={`선택 ${effChecked.length}종목으로 저장됩니다 — 봇이 60초 내 반영합니다.`}
+                    onConfirm={saveSelection}
+                    onCancel={() => setAskSavePw(false)}
+                />
             )}
         </div>
     );
