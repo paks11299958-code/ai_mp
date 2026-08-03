@@ -270,6 +270,10 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     // 인트로 샘플(2026-07-25) — 샘플 영상 보관함(SampleVault)의 실제 완성본을 보여준다.
     // 아직 로딩 전/실패 시엔 아래 SAMPLES(고정 2개)로 폴백해 화면이 비지 않게 한다.
     const [vaultSamples, setVaultSamples] = useState<SampleVaultRow[]>([]);
+    // ★예시 갤러리 접기(2026-08-04 사장 지적 "쇼츠 보관함 리스트가 없어졌다") — 예전엔
+    // 내 쇼츠가 하나라도 생기면 예시 갤러리 섹션 자체가 통째로 사라졌다. 계속 참고할 수
+    // 있게 유지하되, 내 쇼츠가 있을 땐 기본 접어서 목록이 우선 보이게 한다.
+    const [showSamples, setShowSamples] = useState(false);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -278,6 +282,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         shortsMakerApi.mine(offset, MINE_PAGE_SIZE).then(res => {
             setMineList(prev => append ? [...prev, ...res.rows] : res.rows);
             setMineTotal(res.total);
+            // 처음 방문(내 쇼츠 0개)이면 예시 갤러리를 펼쳐서 먼저 보여준다 — 목록이
+            // 있으면 접어서 "내가 만든 쇼츠"가 먼저 보이게(위 showSamples 참고).
+            if (offset === 0 && res.total === 0) setShowSamples(true);
         }).catch(() => {});
     };
 
@@ -566,22 +573,28 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
 
                 <div className="p-4 space-y-4">
                     {/* [list] 내가 만든 쇼츠 목록 — 진입 즉시 첫 화면(2026-08-03, 옛 intro 통합).
-                        비어있으면 안내·샘플을 먼저 보여주고, 항목이 있으면 목록을 우선 노출하되
-                        안내는 접어서 필요할 때만 펼친다(전자책 "목록→상세" 패턴 참고). */}
+                        ★예시 갤러리는 내 쇼츠가 생겨도 사라지지 않고 접힌 채로 남는다(2026-08-04
+                        사장 지적 "쇼츠 보관함 리스트가 없어졌다" — 전엔 mineList가 하나라도
+                        있으면 섹션 자체가 렌더에서 빠져 완전히 사라졌다). 처음 방문(목록 0개)엔
+                        펼쳐서 보여주고, 이후엔 접어서 "내가 만든 쇼츠"가 먼저 보이게 한다. */}
                     {step === 'list' && (
                         <>
-                            {mineList.length === 0 ? (
-                                <>
-                                    <div className="text-sm text-gray-600 leading-relaxed space-y-1">
-                                        <p>마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.</p>
-                                        <ul className="list-disc list-inside text-[13px] text-gray-500 space-y-0.5">
-                                            <li><b>커뮤니티·제품</b> — 사진을 올려주세요</li>
-                                            <li><b>지식·웰니스·밈</b> — 사진 없이 주제만 입력해도 돼요</li>
-                                        </ul>
-                                        <p className="text-[13px]">마음에 드는 시나리오를 고르면 실제 영상으로 완성해 드려요.</p>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <p className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</p>
+                            <div className="rounded-xl border border-pink-100 bg-pink-50/40 p-3 space-y-3">
+                                <button type="button" onClick={() => setShowSamples(v => !v)}
+                                        className="w-full flex items-center justify-between text-left">
+                                    <span className="text-xs font-semibold text-gray-700">👀 이런 쇼츠가 나와요 — 눌러서 구경해 보세요</span>
+                                    <span className="text-xs text-gray-400 shrink-0 ml-2">{showSamples ? '접기 ▲' : '펼치기 ▼'}</span>
+                                </button>
+                                {showSamples && (
+                                    <>
+                                        <div className="text-sm text-gray-600 leading-relaxed space-y-1">
+                                            <p>마케팅 담당 <b>아린</b>이 <b>쇼츠 시나리오 5개</b>를 만들어 드려요.</p>
+                                            <ul className="list-disc list-inside text-[13px] text-gray-500 space-y-0.5">
+                                                <li><b>커뮤니티·제품</b> — 사진을 올려주세요</li>
+                                                <li><b>지식·웰니스·밈</b> — 사진 없이 주제만 입력해도 돼요</li>
+                                            </ul>
+                                            <p className="text-[13px]">마음에 드는 시나리오를 고르면 실제 영상으로 완성해 드려요.</p>
+                                        </div>
                                         <div className="grid grid-cols-2 gap-2">
                                             {(vaultSamples.length > 0
                                                 ? vaultSamples.slice(0, 6).map(row => ({
@@ -597,7 +610,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                   }))
                                             ).map(card => (
                                                 <button key={card.key} type="button" onClick={card.onClick}
-                                                   className="rounded-xl border border-pink-100 bg-pink-50/50 p-2 text-center hover:bg-pink-50 transition-colors overflow-hidden">
+                                                   className="rounded-xl border border-pink-100 bg-white p-2 text-center hover:bg-pink-50 transition-colors overflow-hidden">
                                                     {card.thumbnailUrl ? (
                                                         // 쇼츠 원본이 세로(9:16)라 썸네일도 그 비율 그대로 — object-cover를
                                                         // 고정 높이(h-16)에 억지로 채우면 인물이 위아래로 잘려 보이던 문제 수정.
@@ -610,25 +623,30 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 </button>
                                             ))}
                                         </div>
-                                    </div>
-                                    <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
-                                        💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 2,000P. 실패하면 자동 환불돼요.
-                                    </div>
-                                </>
-                            ) : (
-                                <p className="text-sm font-semibold text-gray-800">내가 만든 쇼츠</p>
-                            )}
+                                        <div className="rounded-xl bg-pink-50 border border-pink-100 px-3 py-2 text-xs" style={{ color: PINK }}>
+                                            💎 시나리오 5개 100P → 마음에 드는 것 선택 시 영상 제작 2,000P. 실패하면 자동 환불돼요.
+                                        </div>
+                                    </>
+                                )}
+                            </div>
                             <button onClick={() => { setFormSubStep('category'); setStep('form'); }}
                                     className="w-full py-3 rounded-xl text-white font-semibold text-sm"
                                     style={{ backgroundColor: PINK }}>
                                 ✨ {mineList.length === 0 ? '내 쇼츠 만들기 시작' : '새 쇼츠 만들기'}
                             </button>
-                            <div className="space-y-2">
+                            {/* ★"내가 만든 쇼츠" 영역 구분(2026-08-04 사장 지적 "영역을 구분되게
+                                나누는 게 좋을 거 같다") — 배경색 카드 섹션으로 감싸 위 예시
+                                갤러리·아래 폼 버튼과 시각적으로 명확히 분리(기존 폼 UI 그룹핑
+                                패턴 재사용, [[feedback_form_ui_grouping]]). */}
+                            {mineList.length > 0 && (
+                            <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 space-y-3">
+                                <p className="text-sm font-semibold text-gray-800">🎬 내가 만든 쇼츠 <span className="text-xs font-normal text-gray-400">({mineTotal}개)</span></p>
+                                <div className="space-y-2">
                                 {mineList.map(r => {
                                     let bizName = '';
                                     try { bizName = r.formJson ? (JSON.parse(r.formJson).biz || '') : ''; } catch { /* 무시 */ }
                                     return (
-                                        <div key={r.id} className="rounded-xl border border-gray-100 px-3 py-2.5 space-y-1.5">
+                                        <div key={r.id} className="rounded-xl border border-gray-100 bg-white px-3 py-2.5 space-y-1.5">
                                             <div className="flex items-center justify-between gap-2">
                                                 <span className="text-sm font-medium text-gray-800 truncate">{bizName || `쇼츠 #${r.id}`}</span>
                                                 <span className={`text-[11px] px-2 py-0.5 rounded-full shrink-0 ${r.status === 'done' ? 'text-white' : 'text-gray-500 bg-gray-100'}`}
@@ -656,15 +674,17 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                         </div>
                                     );
                                 })}
-                            </div>
+                                </div>
                             {/* ★완성본 영구 보관(2026-08-02 3차) — 목록이 30개를 넘으면 "더 보기"로
                                 끝까지 볼 수 있게 한다(예전엔 최신 30건 고정이라 그 이전 건은 UI에서
                                 안 보였음, DB엔 그대로 남아있었지만 진입 경로가 없었다). */}
                             {mineList.length < mineTotal && (
                                 <button onClick={() => loadMine(mineList.length, true)}
-                                        className="w-full py-2 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-gray-50">
+                                        className="w-full py-2 rounded-lg border border-gray-200 text-xs text-gray-500 hover:bg-white bg-white/60">
                                     더 보기 ({mineList.length}/{mineTotal})
                                 </button>
+                            )}
+                            </div>
                             )}
                         </>
                     )}
