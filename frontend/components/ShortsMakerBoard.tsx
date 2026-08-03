@@ -74,6 +74,31 @@ const NO_IMAGE_CATEGORIES: Category[] = ['insight', 'wellness', 'meme'];
 const OPTIONAL_IMAGE_CATEGORIES: Category[] = ['birthday'];
 const MAX_FAMILY_PHOTOS = 3;
 
+// 업로드 이미지를 원본 그대로 base64 인코딩하면 폰 카메라 사진(장당 6MB 허용) 여러 장이
+// 겹쳐 shared-api의 요청 본문 제한(10MB)을 쉽게 넘는다(2026-08-03 생일축하 413 에러 실측 —
+// 가족사진 최대 3장+케이크 1장까지 받다 보니 유일하게 4장이 겹치는 카테고리에서 터졌다).
+// Vision 분석 재료로는 원본 화질이 필요 없으므로 긴 변 1600px로 축소해 크기를 줄인다.
+function resizeToDataUrl(file: File, maxSide: number, quality: number): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+            const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const w = Math.round(img.width * scale);
+            const h = Math.round(img.height * scale);
+            const canvas = document.createElement('canvas');
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) { reject(new Error('canvas context 없음')); return; }
+            ctx.drawImage(img, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('이미지 로드 실패')); };
+        img.src = url;
+    });
+}
+
 // 사진 없는 카테고리의 주제 입력 [라벨, placeholder].
 // ★맵으로 뺀 이유(2026-08-02): 원래 삼항 3겹이었는데 생일축하가 늘면서 4겹이 됐다.
 //   카테고리가 더 늘 예정이라 여기 한 줄 추가로 끝나게 한다.
@@ -309,12 +334,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         }
         setError(null); setSubmitting(true);
         try {
-            const toB64 = (f: File) => new Promise<string>((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = reject;
-                reader.readAsDataURL(f);
-            });
+            const toB64 = (f: File) => resizeToDataUrl(f, 1600, 0.85);
             const validFiles = (noImage || (optionalImage && imageFiles.length === 0)) ? [] : imageFiles.filter((f): f is File => !!f);
             const images = await Promise.all(validFiles.map(toB64));
             const cakeB64 = cakeFile ? await toB64(cakeFile) : undefined;
