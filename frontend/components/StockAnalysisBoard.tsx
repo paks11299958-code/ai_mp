@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Plus, TrendingUp, Clock, CheckCircle, XCircle, Loader, Download, Trash2, RefreshCw, RotateCcw, ChevronLeft, BarChart2, MessageCircle, Share2 } from 'lucide-react';
 import { stockReportApi, stockAnalysisApi } from '../services/apiService';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
-import { useTaskList } from '../hooks/useTaskList';
+import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
 import { usePoints } from '../contexts/PointsContext';
 import { parseClaudeGptOpinion, parseGeminiOpinion, opinionColor, type AiOpinion } from '../utils/parsing';
 import { HelpButton } from './HelpButton';
@@ -247,13 +247,12 @@ export const ReportRenderer: React.FC<{ content: string }> = ({ content }) => {
 interface Suggestion { corpName: string; stockCode: string | null; }
 
 export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
-    const { tasks, setTasks, loading, loadTasks } = useTaskList<StockTask>(API(''));
+    const { tasks, loading, selected, detailLoading, setSelected, loadTasks, selectTask, retryTask, deleteTask } =
+        useAsyncTaskBoard<StockTask, StockDetail>({ api: API, apiFetch });
     const { priceOf, requirePoints } = usePoints();
     const cost = priceOf('stock');
     const [stockName, setStockName] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [selected, setSelected] = useState<StockDetail | null>(null);
-    const [detailLoading, setDetailLoading] = useState(false);
     const [consulting, setConsulting] = useState(false);
     const [sharing, setSharing] = useState(false);
     const [shareMsg, setShareMsg] = useState('');
@@ -263,6 +262,14 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
     const suggestTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const inputWrapRef = useRef<HTMLDivElement>(null);
     const reportPanelRef = useRef<HTMLDivElement>(null);
+
+    // 상세 선택은 useAsyncTaskBoard.selectTask가 담당. 클릭 즉시(로드 전) 스크롤을 되돌리던
+    // 원본 타이밍 대신, selected가 바뀔 때(로드 후) 스크롤+시각 갱신 — 체감 차이는 거의 없음.
+    useEffect(() => {
+        if (!selected) return;
+        reportPanelRef.current?.scrollTo({ top: 0 });
+        setLastUpdated(new Date());
+    }, [selected?.id]);
 
     useEffect(() => { return () => { if (suggestTimer.current) clearTimeout(suggestTimer.current); }; }, []);
     useEffect(() => {
@@ -305,20 +312,6 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         finally { setSubmitting(false); }
     };
 
-    const handleSelect = async (task: StockTask) => {
-        if (task.status !== 'completed') return;
-        setDetailLoading(true);
-        reportPanelRef.current?.scrollTo({ top: 0 });
-        try { const detail = await apiFetch<StockDetail>(API(`/${task.id}`)); setSelected(detail); setLastUpdated(new Date()); }
-        finally { setDetailLoading(false); }
-    };
-
-    const handleDelete = async (id: number) => {
-        await apiFetch(API(`/${id}`), { method: 'DELETE' });
-        if (selected?.id === id) setSelected(null);
-        setTasks(prev => prev.filter(t => t.id !== id));
-    };
-
     const handleDownload = (task: StockTask | StockDetail) => {
         const detail = selected?.id === task.id ? selected : null;
         if (!detail?.analysisReport) return;
@@ -327,11 +320,6 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
         const a = document.createElement('a');
         a.href = url; a.download = `${task.stockName}_분석보고서.md`; a.click();
         URL.revokeObjectURL(url);
-    };
-
-    const handleRetry = async (id: number) => {
-        await apiFetch(API(`/${id}/retry`), { method: 'POST' });
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'pending' } : t));
     };
 
     const handleShare = async () => {
@@ -481,7 +469,7 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                 const stepIdx = task.status === 'pending' ? 0 : task.status === 'processing' ? 1 : 2;
                                 return (
                                     <div key={task.id}
-                                        onClick={() => handleSelect(task)}
+                                        onClick={() => selectTask(task)}
                                         style={{
                                             padding: '9px 10px',
                                             borderRadius: 10, marginBottom: 3,
@@ -516,11 +504,11 @@ export const StockAnalysisBoard: React.FC<Props> = ({ onClose, onConsult }) => {
                                                     </button>
                                                 )}
                                                 {(isFail || isDone) && (
-                                                    <button onClick={e => { e.stopPropagation(); handleRetry(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                    <button onClick={e => { e.stopPropagation(); retryTask(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
                                                         <RotateCcw size={11} />
                                                     </button>
                                                 )}
-                                                <button onClick={e => { e.stopPropagation(); handleDelete(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
+                                                <button onClick={e => { e.stopPropagation(); deleteTask(task.id); }} style={{ padding: 3, borderRadius: 4, border: 'none', background: 'transparent', cursor: 'pointer', color: T.inkMute }}>
                                                     <Trash2 size={11} />
                                                 </button>
                                             </div>

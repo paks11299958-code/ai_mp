@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     X, Plus, ShoppingBag, Clock, CheckCircle, XCircle, Loader,
     Trash2, RefreshCw, RotateCcw, Upload, Copy, Check,
     ImageIcon, Tag, Banknote, Package,
 } from 'lucide-react';
 import { boardFetch as apiFetch } from '../lib/boardFetch';
-import { useTaskList } from '../hooks/useTaskList';
+import { useAsyncTaskBoard } from '../hooks/useAsyncTaskBoard';
 import { usePoints } from '../contexts/PointsContext';
 
 // ── 타입 ──────────────────────────────────────────────────
@@ -75,9 +75,8 @@ function fmtPrice(n: number | null | undefined) {
 // ── 메인 컴포넌트 ──────────────────────────────────────────
 
 export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
-    const { tasks, setTasks, loading, loadTasks } = useTaskList<UsedItemTask>(API(''));
-    const [selected, setSelected] = useState<UsedItemDetail | null>(null);
-    const [detailLoading, setDetailLoading] = useState(false);
+    const { tasks, loading, selected, detailLoading, setSelected, loadTasks, selectTask, retryTask, deleteTask } =
+        useAsyncTaskBoard<UsedItemTask, UsedItemDetail>({ api: API, apiFetch });
 
     const { priceOf, requirePoints } = usePoints();
     const cost = priceOf('used-item');
@@ -152,20 +151,13 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
-    // 상세 조회
-    const handleSelect = async (task: UsedItemTask) => {
-        if (task.status !== 'completed') return;
-        setDetailLoading(true);
-        try {
-            const detail = await apiFetch<UsedItemDetail>(API(`/${task.id}`));
-            setSelected(detail);
-            setEditTitle(detail.finalTitle || detail.aiTitle || '');
-            setEditPrice(String(detail.finalPrice || detail.suggestedPrice || ''));
-            setEditDesc(detail.finalDescription || detail.aiDescription || '');
-        } finally {
-            setDetailLoading(false);
-        }
-    };
+    // 상세 선택은 useAsyncTaskBoard.selectTask가 담당. 편집 폼은 selected가 바뀔 때 동기화.
+    useEffect(() => {
+        if (!selected) return;
+        setEditTitle(selected.finalTitle || selected.aiTitle || '');
+        setEditPrice(String(selected.finalPrice || selected.suggestedPrice || ''));
+        setEditDesc(selected.finalDescription || selected.aiDescription || '');
+    }, [selected]);
 
     // 수정 저장
     const handleSave = async () => {
@@ -205,17 +197,6 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
         }, 1500);
     };
 
-    const handleRetry = async (id: number) => {
-        await apiFetch(API(`/${id}/retry`), { method: 'POST' });
-        setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'pending', errorMessage: null } : t));
-    };
-
-    const handleDelete = async (id: number) => {
-        if (!confirm('삭제하시겠습니까?')) return;
-        await apiFetch(API(`/${id}`), { method: 'DELETE' });
-        setTasks(prev => prev.filter(t => t.id !== id));
-        if (selected?.id === id) setSelected(null);
-    };
 
 
     const displayName = (t: UsedItemTask) =>
@@ -321,7 +302,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                                 return (
                                     <div
                                         key={task.id}
-                                        onClick={() => handleSelect(task)}
+                                        onClick={() => selectTask(task)}
                                         className={`flex items-center gap-2 p-2 rounded-xl transition-all ${
                                             task.status === 'completed' ? 'cursor-pointer hover:bg-gray-50' : 'cursor-default'
                                         } ${selected?.id === task.id ? 'bg-orange-50 ring-1 ring-orange-300' : ''}`}
@@ -343,7 +324,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                                         <div className="flex items-center gap-0.5 shrink-0">
                                             {task.status === 'failed' && (
                                                 <button
-                                                    onClick={e => { e.stopPropagation(); handleRetry(task.id); }}
+                                                    onClick={e => { e.stopPropagation(); retryTask(task.id); }}
                                                     className="p-1 rounded text-gray-400 hover:text-yellow-500 transition-colors"
                                                     title="재분석"
                                                 >
@@ -351,7 +332,7 @@ export const UsedItemBoard: React.FC<Props> = ({ onClose }) => {
                                                 </button>
                                             )}
                                             <button
-                                                onClick={e => { e.stopPropagation(); handleDelete(task.id); }}
+                                                onClick={e => { e.stopPropagation(); deleteTask(task.id, '삭제하시겠습니까?'); }}
                                                 className="p-1 rounded text-gray-400 hover:text-red-500 transition-colors"
                                             >
                                                 <Trash2 size={11} />
