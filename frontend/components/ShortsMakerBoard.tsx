@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { shortsMakerApi, UserShortsRow, sampleVaultApi, SampleVaultRow, outfitApi, OutfitStyle } from '../services/apiService';
+import { useShortsMakerPolling } from '../hooks/useShortsMakerPolling';
 
 // 이아린 — 쇼츠 만들기 보드. 이미지(최대 3장) + 신청서 → 서로 다른 후킹 앵글의 시나리오
 // 5개를 만들어 보여주고, 회원이 고른 1개만 실제 TTS+영상으로 제작한다(homepage 만들기와
@@ -279,7 +280,6 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     // 있게 유지하고, 기본값도 항상 펼침("그래야 사람들이 샘플을 볼 수 있지" 사장 지적 —
     // 접어두면 정작 봐야 할 사람이 안 보게 됨). 필요하면 접을 수만 있게.
     const [showSamples, setShowSamples] = useState(true);
-    const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -310,22 +310,8 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     }, [step]);
 
     // 폴링(2026-08-02 3차 확장): pending→scenarios_ready, previewing→preview_ready,
-    // producing→done/failed. 3단계 모두 폴링 대상에 추가.
-    useEffect(() => {
-        if ((step !== 'waiting' && step !== 'previewing' && step !== 'producing') || !reqId) return;
-        const tick = async () => {
-            try {
-                const r = await shortsMakerApi.get(reqId);
-                setRow(r);
-                if (r.status === 'scenarios_ready') { if (pollRef.current) clearInterval(pollRef.current); setStep('scenarios'); }
-                else if (r.status === 'preview_ready') { if (pollRef.current) clearInterval(pollRef.current); setStep('preview'); }
-                else if (r.status === 'done' || r.status === 'failed') { if (pollRef.current) clearInterval(pollRef.current); setStep('result'); }
-            } catch { /* 일시 오류는 다음 폴링에서 재시도 */ }
-        };
-        tick();
-        pollRef.current = setInterval(tick, 5000);
-        return () => { if (pollRef.current) clearInterval(pollRef.current); };
-    }, [step, reqId]);
+    // producing→done/failed. 3단계 모두 폴링 대상에 추가. (hooks/useShortsMakerPolling.ts로 분리, 2026-08-04)
+    useShortsMakerPolling({ step, reqId, setRow, setStep });
 
     const set = (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         setForm(f => ({ ...f, [k]: e.target.value }));
