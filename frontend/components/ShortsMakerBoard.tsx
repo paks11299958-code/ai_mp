@@ -129,6 +129,10 @@ const STATUS_LABEL: Record<string, string> = {
     done: '완성', failed: '실패',
 };
 
+// 서버가 할 일을 끝내고 **사용자 입력을 기다리는** 상태. 이 둘만 목록에서 강조 버튼으로
+// 띄운다(나머지는 기다리면 알아서 넘어가므로 재촉할 이유가 없다).
+const ACTION_NEEDED = ['scenarios_ready', 'preview_ready'];
+
 // 진행 화면 전체를 아우르는 큰 단계 표시(2026-08-03) — 목록을 첫 화면으로 바꾸고 나니
 // "지금 전체 7단계 중 어디쯤인지"가 안 보였다(사장 지시 "계속해" — 진행 화면 정리를
 // 이어서 진행). form~result의 세부 step을 4개 큰 단계로 묶는다(처리 중인 waiting/
@@ -469,6 +473,31 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         }
     };
 
+    // ★목록에서 진행 중인 건으로 다시 들어가기(2026-08-04 사장 지적 "대기상태면 들어갈 수
+    //   있어야지 아무런 버튼도 없다"). 그동안 `reqId`를 채우는 경로가 **신규 접수 때 한 번뿐**
+    //   이라(setReqId는 submit 성공 시에만 호출), 접수한 탭을 닫거나 새로고침만 해도 그 건은
+    //   영구히 진입 불가였다 — 목록엔 보이는데 삭제 말곤 할 수 있는 게 없는 상태. 단계 화면과
+    //   폴링은 이미 reqId+row만으로 완성돼 있었으므로(폴링 effect가 scenarios_ready/
+    //   preview_ready/done을 모두 매핑) 여기서 그 둘을 채워주면 그대로 이어진다.
+    const resume = async (id: number) => {
+        setError(null);
+        try {
+            const r = await shortsMakerApi.get(id);
+            setReqId(id);
+            setRow(r);
+            // 처리 중인 상태는 '결과를 기다리는 단계'로 보내 폴링이 돌게 한다(폴링 대상은
+            // waiting/previewing/producing 3개뿐 — 완료 상태로 바로 보내면 폴링이 안 돈다).
+            if (r.status === 'scenarios_ready') setStep('scenarios');
+            else if (r.status === 'preview_ready') setStep('preview');
+            else if (r.status === 'done' || r.status === 'failed') setStep('result');
+            else if (r.status === 'previewing' || r.status === 'processing_preview') setStep('previewing');
+            else if (r.status === 'producing' || r.status === 'processing_produce') setStep('producing');
+            else setStep('waiting'); // pending / processing_research
+        } catch (e: any) {
+            alert('불러오기 실패: ' + (e.message || '잠시 후 다시 시도해 주세요.'));
+        }
+    };
+
     const remove = async (id: number) => {
         if (!confirm('이 쇼츠를 삭제할까요?')) return;
         try {
@@ -681,9 +710,27 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                             className="text-xs underline text-gray-400 hover:text-red-500 ml-auto">🗑️ 삭제</button>
                                                 </div>
                                             )}
+                                            {/* ★진행 중인 건의 진입 경로(2026-08-04) — 예전엔 여기가 삭제 버튼
+                                                하나뿐이라 "선택 대기"인데도 들어갈 방법이 없었다. 사용자 행동이
+                                                필요한 상태(선택 대기/미리보기 완성)는 채워진 버튼으로 눈에 띄게,
+                                                서버가 일하는 중이거나 실패한 건은 약한 링크로 구분한다. */}
                                             {r.status !== 'done' && (
-                                                <button onClick={() => remove(r.id)}
-                                                        className="text-xs underline text-gray-400 hover:text-red-500">🗑️ 삭제</button>
+                                                <div className="flex items-center gap-3 pt-0.5">
+                                                    {ACTION_NEEDED.includes(r.status) ? (
+                                                        <button onClick={() => resume(r.id)}
+                                                                className="text-xs font-semibold text-white rounded-full px-3 py-1"
+                                                                style={{ backgroundColor: PINK }}>
+                                                            {r.status === 'scenarios_ready' ? '👉 시나리오 고르기' : '👉 미리보기 확인'}
+                                                        </button>
+                                                    ) : (
+                                                        <button onClick={() => resume(r.id)}
+                                                                className="text-xs font-semibold underline" style={{ color: PINK }}>
+                                                            {r.status === 'failed' ? '🔎 자세히' : '📊 진행 상황 보기'}
+                                                        </button>
+                                                    )}
+                                                    <button onClick={() => remove(r.id)}
+                                                            className="text-xs underline text-gray-400 hover:text-red-500 ml-auto">🗑️ 삭제</button>
+                                                </div>
                                             )}
                                             {r.status === 'failed' && (
                                                 <div className="text-[11px] text-gray-400">{r.errorMessage || '생성에 실패했어요.'}</div>
