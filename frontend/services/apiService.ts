@@ -1094,6 +1094,11 @@ export const aiStudioApi = {
     getStatus: () =>
         get<{
             server: { ok: boolean; status: string; detail: string };
+            // 디스크 — ★서버가 켜져 있을 때만 온다(꺼져 있으면 null)
+            disk: {
+                totalMb: number; usedMb: number; freeMb: number; usedPct: number;
+                modelsMb: number; outputsMb: number;
+            } | null;
             queue: { pending: number; processing: number; completed: number; failed: number };
             today: { jobs: number; busySec: number };
             krwPerHour: number;
@@ -1116,11 +1121,17 @@ export const aiStudioApi = {
     deleteModel: (file: string) =>
         del<{ ok: boolean; status: string; detail: string }>(
             `/admin/ai-studio/model/${encodeURIComponent(file)}`),
+    // img2img 원본 올리기(2026-08-05) — base64 를 보내면 서버3에 저장하고 파일명을 준다.
+    // ★t2i 와 달리 **서버가 켜져 있어야** 한다(원본을 둘 곳이 서버3 디스크라서).
+    uploadImage: (base64: string) =>
+        post<{ ok: boolean; file: string }>('/admin/ai-studio/upload', { image: base64 }),
     generate: (payload: {
         prompt: string; negative?: string; model?: string;
         width?: number; height?: number; steps?: number; cfg?: number; count?: number;
         // 업스케일(선택) — 확대 후보정 모델 파일명과 배율
         upscale?: string; upscaleScale?: number;
+        // img2img(선택) — uploadImage 가 준 파일명과 디노이징 강도(원본을 얼마나 지울지)
+        initImage?: string; denoise?: number;
     }) => post<{ ok: boolean; ids: number[]; queued: number }>('/admin/ai-studio/generate', payload),
     getJobs: (limit = 20) =>
         get<{

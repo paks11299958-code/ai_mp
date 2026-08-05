@@ -184,6 +184,33 @@ export const STYLE_PRESETS: StylePreset[] = [
     },
 ];
 
+/** 모델 파일명 → 한 줄 설명.
+ *
+ * ★파일명만 보면 무엇에 쓰는 물건인지 알 수 없다("JuggernautXL_v9"가 인물용인지
+ *   사물용인지 이름에 안 적혀 있다). 고를 때마다 문서를 뒤지게 하지 않으려면
+ *   화면에 성격을 같이 적어야 한다.
+ * ★설명은 **실측으로 확인된 성격**을 적는다(2026-08-05 비교):
+ *   RealVis=인물, Juggernaut=사물·공간, FLUX schnell=기대보다 못했음.
+ * ★키는 확장자를 뺀 이름 — .safetensors/.pth 둘 다 같은 방식으로 찾는다.
+ */
+const MODEL_NOTES: Record<string, string> = {
+    RealVisXL_V5:              '실사 인물 최고 — 프로필·헤드샷',
+    JuggernautXL_v9:           '사물·공간에 강함 — 제품컷·인테리어',
+    sd_xl_base_1_0:            '기본 모델 — 무난하지만 밋밋함',
+    sd_xl_refiner_1_0:         '보정 전용 — 단독 생성용 아님',
+    DreamShaperXL_Turbo_v2:    '초고속(적은 스텝) — 시안 뽑기용',
+    'flux1-schnell-fp8':       '최신이지만 실사는 RealVis가 나았음(상업 가능)',
+    'flux1-dev-fp8':           '고품질이나 ★비상업 — 내부 검토 전용',
+    '4x-UltraSharp':           '확대 후보정 — 디테일 살리기(기본)',
+    RealESRGAN_x4:             '확대 후보정 — 부드러운 편',
+};
+
+/** 모델 파일명 → 설명(없으면 빈 문자열). 확장자와 점(.) 표기 차이를 흡수한다. */
+export function modelNote(file: string): string {
+    const base = file.replace(/\.(safetensors|pth)$/i, '');
+    return MODEL_NOTES[base] ?? MODEL_NOTES[base.replace(/\./g, '_')] ?? '';
+}
+
 /** 프리셋 + 사장이 쓴 내용 → 최종 프롬프트 */
 export function buildPrompt(preset: StylePreset, subject: string): string {
     const s = subject.trim();
