@@ -1091,6 +1091,22 @@ export interface ShortsStatus {
 export const shortsApi = {
     getStatus: () => get<ShortsStatus>('/admin/shorts/status'),
 
+    // 🎂 생일 축하카드 배경 관리(2026-08-05) — 목록/미리보기/AI자동추가/저장/삭제.
+    // ★미리보기 이미지는 저장하지 않고 base64 로 그때만 받는다(실제 영상은 매번 새로 생성).
+    getCardBgList: () =>
+        get<{ items: { key: string; label: string; prompt: string; scrim: boolean }[] }>('/admin/shorts/card-bg'),
+    previewCardBg: (key: string) =>
+        post<{ key: string; image: string }>('/admin/shorts/card-bg/preview', { key }),
+    generateCardBg: () =>
+        post<{
+            candidate: { key: string; label: string; prompt: string; scrim: boolean };
+            image: string | null; note?: string | null;
+        }>('/admin/shorts/card-bg/generate', {}),
+    saveCardBg: (payload: { key: string; label: string; prompt: string; scrim: boolean }) =>
+        post<{ ok: boolean; count: number }>('/admin/shorts/card-bg/save', payload),
+    deleteCardBg: (key: string) =>
+        del<{ ok: boolean; count: number }>(`/admin/shorts/card-bg/${encodeURIComponent(key)}`),
+
     getQueue: () =>
         get<{ pending: ShortsQueueItem[]; approved: ShortsQueueItem[]; rejected: ShortsQueueItem[] }>('/admin/shorts/queue'),
 

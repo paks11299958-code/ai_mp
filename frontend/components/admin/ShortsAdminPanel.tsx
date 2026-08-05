@@ -3,6 +3,7 @@ import { shortsApi, ShortsQueueItem, ShortsStatus, shortsMakerAdminApi, UserShor
 import { Icon } from '../Icons';
 import { fmtDateTime } from '../../utils/datetime';
 import { ShortsVoicePanel } from './ShortsVoicePanel';
+import { ShortsCardBgPanel } from './ShortsCardBgPanel';
 
 // 드롭다운에 표시할 한글 기능카드 명칭 — agent-api KNOWN_TOPICS(영문 키)와 1:1 대응.
 // 새 소재 추가 시 agent-api/routers/shorts.py의 KNOWN_TOPICS와 함께 여기도 갱신.
@@ -406,6 +407,9 @@ export const ShortsAdminPanel: React.FC = () => {
 
                 {/* 내레이션 목소리(2026-08-02) — 사장이 직접 들어보고 고른다 */}
                 <ShortsVoicePanel />
+
+                {/* 생일 축하카드 배경(2026-08-05) — 보고 추가/삭제, [추가]는 AI가 새 연출을 지어낸다 */}
+                <ShortsCardBgPanel />
 
                 {/* 승인 대기 */}
                 <div>
