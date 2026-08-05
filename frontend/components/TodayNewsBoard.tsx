@@ -32,6 +32,7 @@ const CATEGORIES: CategoryItem[] = [
     { key: '해외뉴스', label: '해외',   emoji: '🌍', accent: '#5E9070' },
     { key: '경제증시', label: '경제',   emoji: '📈', accent: '#A07828' },
     { key: 'AI기술',   label: 'AI/기술', emoji: '🤖', accent: '#7A5FA0' },
+    { key: 'AI신기능', label: 'AI 신기능', emoji: '🆕', accent: '#2E9E8F' },
     { key: '부동산',   label: '부동산', emoji: '🏢', accent: '#C68760' },
     { key: '스포츠',   label: '스포츠', emoji: '⚽', accent: '#5E7E86' },
     { key: '날씨',     label: '날씨',   emoji: '☀️', accent: '#4A90B8' },
