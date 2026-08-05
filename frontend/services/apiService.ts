@@ -1088,6 +1088,44 @@ export interface ShortsStatus {
     dailyShortCronLog: { exists: boolean; ageSeconds: number | null };
     userShortsQueue: { ok: boolean; waiting?: Record<string, number>; completed?: Record<string, number>; error?: string };
 }
+// 🎨 AI 스튜디오(서버3 GPU) — 2026-08-05.
+// ★서버가 꺼져 있어도 생성 요청이 가능하다 — 큐에 쌓이면 디스패처가 켠다.
+export const aiStudioApi = {
+    getStatus: () =>
+        get<{
+            server: { ok: boolean; status: string; detail: string };
+            queue: { pending: number; processing: number; completed: number; failed: number };
+            today: { jobs: number; busySec: number };
+            krwPerHour: number;
+        }>('/admin/ai-studio/status'),
+    power: (action: 'start' | 'stop') =>
+        post<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/power', { action }),
+    getModels: () =>
+        get<{ available: boolean; reason?: string; models: string[] }>('/admin/ai-studio/models'),
+    generate: (payload: {
+        prompt: string; negative?: string; model?: string;
+        width?: number; height?: number; steps?: number; cfg?: number; count?: number;
+    }) => post<{ ok: boolean; ids: number[]; queued: number }>('/admin/ai-studio/generate', payload),
+    getJobs: (limit = 20) =>
+        get<{
+            jobs: {
+                id: number; status: string; error: string | null; prompt: string;
+                model: string; size: string; files: string[]; elapsedSec: number | null;
+                createdAt: string; finishedAt: string | null;
+            }[];
+        }>(`/admin/ai-studio/jobs?limit=${limit}`),
+    // ★<img src>로 직접 못 쓴다 — 인증이 Authorization 헤더 방식이라 img 태그는
+    //   헤더를 못 붙여 401 이 난다. fetch 로 받아 blob URL 을 만들어 쓴다.
+    //   (서버3을 인터넷에 노출하지 않고 이미지를 보여주기 위한 중계 경로)
+    fetchImage: async (file: string): Promise<string> => {
+        const res = await fetch(`/api/admin/ai-studio/image/${encodeURIComponent(file)}`, {
+            headers: { ...authHeaders() },
+        });
+        if (!res.ok) throw new Error(`이미지 로드 실패 (${res.status})`);
+        return URL.createObjectURL(await res.blob());
+    },
+};
+
 export const shortsApi = {
     getStatus: () => get<ShortsStatus>('/admin/shorts/status'),
 

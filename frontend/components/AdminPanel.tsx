@@ -24,6 +24,7 @@ import { RefundGuidePanel } from './admin/RefundGuidePanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
+import { AiStudioPanel } from './admin/AiStudioPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
 import { MarketingDailyPanel } from './admin/MarketingDailyPanel';
@@ -112,6 +113,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             // 가상매매 성과는 실봇 탭과 성격이 달라 분리(2026-08-05) —
                             // 실봇 탭은 '지금 뭘 하나', 이 탭은 '결과가 어땠나'가 중심.
                             { key: 'paper-trader',  label: '가상매매(페이퍼)', icon: 'Activity' },
+                            // AI 스튜디오(서버3 GPU) — 필요할 때만 켜는 온디맨드 서버(2026-08-05)
+                            { key: 'ai-studio',     label: 'AI 스튜디오', icon: 'Zap' },
                         ] },
                     ] as const;
                     // 현재 mainView가 속한 그룹을 활성 그룹으로
@@ -201,6 +204,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'sites' && <SitesPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'paper-trader' && <TossTraderPanel mode="paper" />}
+                {mainView === 'ai-studio' && <AiStudioPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}
                 {mainView === 'marketing-daily' && <MarketingDailyPanel />}
                 {mainView === 'biz' && <BizReportPanel />}
