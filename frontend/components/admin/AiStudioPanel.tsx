@@ -151,6 +151,9 @@ export const AiStudioPanel: React.FC = () => {
     // ★프리셋을 고르면 프롬프트를 '무엇을 찍을지'만 쓰면 된다(촬영 용어는 프리셋이 붙인다).
     //   null 이면 자유 입력 — 프롬프트 전체를 직접 쓰는 모드.
     const [preset, setPreset] = useState<StylePreset | null>(null);
+    // ★AI 다듬기 전 원문 — LLM 이 엉뚱하게 바꿀 수 있으므로 되돌릴 수 있어야 한다.
+    //   null 이면 '되돌릴 것 없음'(버튼도 안 보인다).
+    const [prevPrompt, setPrevPrompt] = useState<string | null>(null);
 
     // 모델 관리(2차)
     const [catalog, setCatalog] = useState<{ key: string; file: string; kind?: string }[]>([]);
@@ -166,6 +169,15 @@ export const AiStudioPanel: React.FC = () => {
     const [initInfo, setInitInfo] = useState('');
     const [denoise, setDenoise] = useState(0.55);
     const fileRef = useRef<HTMLInputElement | null>(null);
+
+    // 스타일 참조(IP-Adapter, 2026-08-05) — ★img2img 와 **다른 기능**이다.
+    //   img2img = 올린 사진을 고친다 / 스타일참조 = 견본의 화풍만 빌려 새로 그린다.
+    //   사장이 이 둘을 혼동했던 지점이라 화면에서도 분명히 나눠 적는다.
+    const [styleFile, setStyleFile] = useState<string | null>(null);
+    const [stylePreview, setStylePreview] = useState<string | null>(null);
+    const [styleWeight, setStyleWeight] = useState(0.8);
+    const [styleMode, setStyleMode] = useState('style transfer');
+    const styleRef = useRef<HTMLInputElement | null>(null);
 
     // ★진행 폴링은 ref 로 관리한다 — 여러 번 누르면 타이머가 겹쳐
     //   같은 요청이 중복으로 나간다(전자책 표지 중복생성 사고와 같은 유형).
@@ -279,6 +291,30 @@ export const AiStudioPanel: React.FC = () => {
         }
     };
 
+    /** 스타일 견본 올리기 — 업로드 경로는 img2img 와 같다(둘 다 서버3 input 폴더). */
+    const doUploadStyle = async (f: File | null | undefined) => {
+        if (!f) return;
+        if (!running) { setMsg('견본을 올리려면 서버를 먼저 켜 주세요.'); return; }
+        setBusy('uploadStyle'); setMsg('');
+        try {
+            const { data } = await toScaledBase64(f, 1024);   // 견본은 화풍만 보므로 더 작아도 된다
+            const r = await aiStudioApi.uploadImage(data);
+            setStyleFile(r.file);
+            setStylePreview(data);
+            setMsg('견본을 올렸습니다 — 이 그림의 화풍을 따라 그립니다.');
+        } catch (e: any) {
+            setMsg(e?.body?.error || e?.message || '견본 업로드에 실패했습니다.');
+        } finally {
+            setBusy(null);
+            if (styleRef.current) styleRef.current.value = '';
+        }
+    };
+
+    const clearStyle = () => {
+        setStyleFile(null); setStylePreview(null);
+        if (styleRef.current) styleRef.current.value = '';
+    };
+
     /** 원본 사진 올리기(img2img).
      *
      * ★t2i 와 달리 **서버가 켜져 있어야** 한다 — 원본을 둘 곳이 서버3 디스크라서다.
@@ -312,10 +348,36 @@ export const AiStudioPanel: React.FC = () => {
         if (fileRef.current) fileRef.current.value = '';
     };
 
+    /** 프롬프트를 이미지 생성용 영어 문장으로 다듬는다(LLM).
+     *
+     * ★한글로 써도 되게 하는 게 목적이다 — 촬영 용어를 영어로 외우게 하면
+     *   결과가 사람 컨디션을 탄다(프리셋을 만든 이유와 같다).
+     * ★원문을 남겨 되돌릴 수 있게 한다 — 손으로 쓴 게 날아가면 안 된다.
+     */
+    const doRefine = async () => {
+        const text = prompt.trim();
+        if (!text) return;
+        setBusy('refine'); setMsg('');
+        try {
+            const r = await aiStudioApi.refinePrompt(text, preset?.label);
+            setPrevPrompt(text);          // 되돌리기용
+            setPrompt(r.refined);
+            setMsg('프롬프트를 다듬었습니다 — 마음에 안 들면 ↩ 되돌리기를 누르세요.');
+        } catch (e: any) {
+            setMsg(e?.body?.error || e?.message || '다듬기에 실패했습니다.');
+        } finally {
+            setBusy(null);
+        }
+    };
+
     /** 프리셋 선택 — 모델·크기·스텝·네거티브를 검증된 값으로 채운다. */
     const applyPreset = (p: StylePreset | null) => {
         setPreset(p);
+        setPrevPrompt(null);          // 프리셋이 바뀌면 이전 되돌리기 대상은 의미가 없다
         if (!p) return;
+        // ★프롬프트가 비어 있으면 예시를 넣어 준다 — 빈 칸만 보면 뭘 써야 할지 막막하다.
+        //   ★이미 쓴 내용은 절대 덮지 않는다(쓰던 걸 날리면 프리셋을 못 바꾼다).
+        setPrompt((cur) => (cur.trim() ? cur : p.example));
         setNegative(p.negative ?? '');
         setSteps(p.steps);
         // ★확대 후보정 기본값 — 인물·제품은 켜는 게 낫다는 게 2026-08-05 비교 실측 결론.
@@ -344,6 +406,10 @@ export const AiStudioPanel: React.FC = () => {
                 // img2img — 원본이 있을 때만. 없으면 기존과 똑같이 동작한다.
                 initImage: initFile ?? undefined,
                 denoise: initFile ? denoise : undefined,
+                // 스타일 참조 — 견본이 있을 때만
+                styleImage: styleFile ?? undefined,
+                styleWeight: styleFile ? styleWeight : undefined,
+                styleMode: styleFile ? styleMode : undefined,
             });
             setMsg(running
                 ? `${r.queued}건 접수 — 곧 처리됩니다.`
@@ -482,8 +548,8 @@ export const AiStudioPanel: React.FC = () => {
                 <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-3 space-y-2">
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div>
-                            <span className="text-xs font-bold text-gray-200">🖼 원본 사진에서 바꾸기</span>
-                            <span className="text-[12px] text-gray-400"> (선택 — 없으면 새로 그립니다)</span>
+                            <span className="text-xs font-bold text-gray-200">🖼 내 사진 고치기</span>
+                            <span className="text-[12px] text-gray-400"> (선택 — 없으면 글로만 새로 그립니다)</span>
                         </div>
                         {initFile && (
                             <button onClick={clearInit} className="text-[12px] px-2 py-1 rounded
@@ -540,10 +606,79 @@ export const AiStudioPanel: React.FC = () => {
 
                     {initFile && (
                         <p className="text-[12px] text-gray-300 leading-relaxed">
-                            ★프롬프트에는 <b className="text-gray-400">바뀐 뒤의 모습</b>을 적으세요 —
-                            원본 설명을 그대로 쓰면 거의 같은 사진이 나옵니다.
+                            ★<b className="text-gray-300">여기 올린 사진이 '바뀔 대상'</b>입니다
+                            (참고용 견본이 아닙니다 — 견본처럼 만들려면 아래 '스타일 따라하기'를 쓰세요).
+                            프롬프트에는 <b className="text-gray-300">바뀐 뒤의 모습</b>을 적으세요 —
+                            지금 사진 설명을 그대로 쓰면 거의 같은 사진이 나옵니다.
                             마음에 안 들면 강도만 바꿔 다시 눌러 보세요(원본은 그대로 남습니다).
                         </p>
+                    )}
+                </div>
+
+                {/* 스타일 따라하기(IP-Adapter) — ★위 '내 사진 고치기'와 **다른 기능**이다.
+                     · 내 사진 고치기 = 올린 사진 **그 자체를** 바꾼다
+                     · 스타일 따라하기 = 견본의 **화풍만 빌려** 새로 그린다(피사체는 프롬프트대로)
+                     사장이 이 둘을 혼동했던 지점이라 화면에 차이를 분명히 적는다. */}
+                <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                            <span className="text-xs font-bold text-gray-200">🎭 스타일 따라하기</span>
+                            <span className="text-[12px] text-gray-400"> (선택 — 견본 그림의 화풍을 따라 그립니다)</span>
+                        </div>
+                        {styleFile && (
+                            <button onClick={clearStyle} className="text-[12px] px-2 py-1 rounded
+                                        bg-gray-700 hover:bg-gray-600 text-gray-200">견본 빼기</button>
+                        )}
+                    </div>
+
+                    {!styleFile ? (
+                        <>
+                            <input ref={styleRef} type="file" accept="image/*"
+                                onChange={(e) => doUploadStyle(e.target.files?.[0])}
+                                disabled={busy !== null || !running}
+                                className="block w-full text-[12px] text-gray-300
+                                           file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0
+                                           file:text-[12px] file:font-bold file:bg-gray-700 file:text-gray-200
+                                           hover:file:bg-gray-600 disabled:opacity-50" />
+                            {busy === 'uploadStyle' && <p className="text-[12px] text-amber-300">올리는 중…</p>}
+                            <p className="text-[12px] text-gray-400 leading-relaxed">
+                                ★<b className="text-gray-300">여기 올린 건 '견본'</b>입니다 —
+                                이 그림처럼 그려 달라는 뜻이고, <b className="text-gray-300">이 그림이 바뀌는 게 아닙니다.</b>
+                                {!running && <span className="text-amber-300"> 서버를 먼저 켜 주세요.</span>}
+                            </p>
+                        </>
+                    ) : (
+                        <div className="flex gap-3">
+                            {stylePreview && (
+                                <img src={stylePreview} alt="견본"
+                                    className="w-20 h-20 object-cover rounded border border-gray-600 shrink-0" />
+                            )}
+                            <div className="flex-1 min-w-0 space-y-2">
+                                <div>
+                                    <div className="text-[12px] text-gray-400 mb-1">무엇을 따라할지</div>
+                                    <select value={styleMode} onChange={(e) => setStyleMode(e.target.value)}
+                                        className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
+                                        <option value="style transfer">화풍·색감만 (피사체는 프롬프트대로)</option>
+                                        <option value="standard">인물·구성까지 폭넓게 (얼굴 비슷하게)</option>
+                                        <option value="prompt is more important">약하게만 (프롬프트 우선)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <div className="flex items-baseline justify-between">
+                                        <span className="text-[12px] text-gray-400">따라하는 정도</span>
+                                        <span className="text-[12px] text-gray-400">{styleWeight.toFixed(1)}</span>
+                                    </div>
+                                    <input type="range" min={0.3} max={1.2} step={0.1} value={styleWeight}
+                                        onChange={(e) => setStyleWeight(Number(e.target.value))}
+                                        className="w-full accent-purple-600" />
+                                    <p className="text-[12px] text-gray-400">
+                                        {styleWeight >= 1.0 ? '아주 강하게 — 프롬프트가 묻힐 수 있습니다'
+                                            : styleWeight >= 0.7 ? '견본 느낌이 뚜렷합니다(권장)'
+                                            : '살짝만 참고합니다'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
 
@@ -552,7 +687,36 @@ export const AiStudioPanel: React.FC = () => {
                         ? `무엇을 찍을지만 쓰세요 — 예: ${preset.example}`
                         : '프롬프트 (영문 권장) — 예: a professional Korean woman in a modern office, photorealistic…'}
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                               placeholder-gray-600 focus:border-purple-500 focus:outline-none" />
+                               placeholder-gray-400 focus:border-purple-500 focus:outline-none" />
+
+                {/* 프롬프트 보조 — ①예시 넣기 ②AI로 다듬기
+                    ★예시가 placeholder 로만 있으면 **보고 따라 타이핑**해야 한다. 눌러서 넣게 한다.
+                    ★번역 버튼을 따로 두지 않았다 — 직역은 프롬프트로 잘 안 먹고,
+                      버튼이 둘이면 어느 걸 눌러야 하는지 헷갈린다. 하나로 합쳤다. */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                    {preset && (
+                        <button onClick={() => setPrompt(preset.example)}
+                            className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                            📋 예시 넣기
+                        </button>
+                    )}
+                    <button onClick={doRefine} disabled={busy !== null || !prompt.trim()}
+                        title="한글로 써도 됩니다 — 영어 이미지 프롬프트로 바꿔 줍니다"
+                        className="text-[12px] px-2.5 py-1 rounded bg-purple-800 hover:bg-purple-700
+                                   text-purple-100 font-bold disabled:opacity-40">
+                        {busy === 'refine' ? '다듬는 중…' : '✨ AI로 다듬기'}
+                    </button>
+                    {/* ★되돌리기 — LLM 이 엉뚱하게 바꿀 수 있는데 손으로 쓴 게 날아가면 안 된다 */}
+                    {prevPrompt !== null && (
+                        <button onClick={() => { setPrompt(prevPrompt); setPrevPrompt(null); }}
+                            className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                            ↩ 되돌리기
+                        </button>
+                    )}
+                    <span className="text-[12px] text-gray-400">
+                        한글로 써도 됩니다 — 다듬기를 누르면 영어로 바꿔 줍니다
+                    </span>
+                </div>
 
                 {/* ★프리셋이 실제로 어떤 문장을 붙이는지 보여준다 — 안 보이면
                      결과가 마음에 안 들 때 무엇을 고쳐야 할지 알 수 없다. */}

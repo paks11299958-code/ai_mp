@@ -80,18 +80,26 @@ export const STYLE_PRESETS: StylePreset[] = [
     },
     {
         key: 'fashion',
-        label: '패션 화보',
+        // ★이름을 '패션 화보'로만 두었더니 **전신 프리셋이 있는 줄 모른다**는 지적을
+        //   받았다(사장, 08-05). 프로필=상반신 / 이것=전신 임을 이름에 드러낸다.
+        label: '전신·패션',
         icon: '🧥',
-        hint: '전신 착장 컷. 잡지 화보 톤의 조명과 포즈',
+        hint: '머리부터 발끝까지 나오는 전신 컷. 착장·화보용',
         model: 'RealVisXL_V5.safetensors',
         scaffold:
             'Full body editorial fashion photograph of {subject}, ' +
-            'head to toe in frame, natural graceful posture, looking toward camera, ' +
+            // ★실측(08-05): `head to toe` 만으로는 **발이 잘렸다.** 모델이 인물을 크게
+            //   잡으려는 성향이 있어서, 프레임에 여백이 있음을 명시해야 전신이 들어온다.
+            'entire body visible from head to shoes, full figure standing, ' +
+            'camera positioned far back with empty space above head and below feet, ' +
+            'natural graceful posture, looking toward camera, ' +
             'cinematic directional lighting, realistic fabric texture and drape, ' +
             'shallow depth of field with soft bokeh background, ' +
-            'high-end magazine editorial photography, 85mm lens, ' +
+            'high-end magazine editorial photography, 50mm lens, wide framing, ' +
             'ultra realistic, masterpiece, best quality, 8K',
-        negative: `${PORTRAIT_NEG}, cropped legs, cropped feet`,
+        // ★잘림 방지를 네거티브에도 넣는다 — 프롬프트 한쪽만으로는 잘 안 걸린다
+        negative: `${PORTRAIT_NEG}, cropped legs, cropped feet, cut off feet, ` +
+                  `close-up, headshot, upper body only, waist up, zoomed in`,
         width: 832, height: 1216, steps: 35,
         example: 'a Korean woman wearing a beige trench coat on a city street in autumn',
         upscale: true,

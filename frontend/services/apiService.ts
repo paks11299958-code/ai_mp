@@ -1132,6 +1132,10 @@ export const aiStudioApi = {
         upscale?: string; upscaleScale?: number;
         // img2img(선택) — uploadImage 가 준 파일명과 디노이징 강도(원본을 얼마나 지울지)
         initImage?: string; denoise?: number;
+        // 스타일 참조(선택, IP-Adapter) — ★img2img 와 다른 기능이다.
+        //   img2img=올린 사진을 고친다 / 스타일참조=견본의 화풍만 빌려 새로 그린다.
+        //   styleMode: 'style transfer'(화풍만) | 'standard'(인물까지) | 'prompt is more important'
+        styleImage?: string; styleWeight?: number; styleMode?: string;
     }) => post<{ ok: boolean; ids: number[]; queued: number }>('/admin/ai-studio/generate', payload),
     getJobs: (limit = 20) =>
         get<{
@@ -1147,6 +1151,12 @@ export const aiStudioApi = {
     getGallery: () =>
         get<{ ok: boolean; reason?: string; files: { file: string; kb: number; mtime: number }[] }>(
             '/admin/ai-studio/gallery'),
+    // 프롬프트 다듬기(2026-08-05) — 한글/거친 문장 → 영어 이미지 프롬프트.
+    // ★'번역'과 '고급화'를 나누지 않았다 — 어차피 둘 다 LLM 이고, 직역은 프롬프트로
+    //   잘 안 먹는다. 버튼이 둘이면 어느 걸 눌러야 하는지도 헷갈린다.
+    refinePrompt: (text: string, kind?: string) =>
+        post<{ ok: boolean; original: string; refined: string }>(
+            '/admin/ai-studio/refine-prompt', { text, kind }),
     // 썸네일 일괄(2026-08-05) — ★한 장씩 원본을 받으면 몹시 느리다. 서버1→서버2→서버3
     //   2단 SSH 라 장당 1.26초에 6~8MB 원본이 그대로 온다(28장이면 35초).
     //   서버3에서 320px JPEG 로 줄여 **한 번에** 받는다(실측 1/575, 전체 약 4초·471KB).
