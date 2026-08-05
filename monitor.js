@@ -75,6 +75,12 @@ const DB_TARGETS = [
     },
 ];
 
+// AI 스튜디오 서버3 — ★다른 서버와 판정 기준이 정반대다.
+// 서버1·2 는 "꺼져 있으면 장애"지만, 서버3 은 **꺼져 있는 것이 정상**이다
+// (필요할 때만 켜는 온디맨드 GPU). 그래서 '켜져 있음'을 눈에 띄게 알리는 게 목적 —
+// 끄는 걸 잊으면 시간당 1,260원이 계속 나간다.
+const AI_STUDIO_IP = '10.178.0.5';
+
 // n8n·타입봇(2026-08-05 추가 지시). 컨테이너 Up 과 웹 응답을 **둘 다** 본다 —
 // Up 인데 앱이 안 뜨는 구간이 실제로 있고(컨테이너는 살아도 프로세스가 멎음),
 // 반대로 웹만 보면 Nginx 캐시/오류페이지에 속을 수 있다.
@@ -358,6 +364,38 @@ async function checkDockerServices() {
     return out;
 }
 
+/**
+ * ── Check 8: AI 스튜디오(서버3) ───────────────────────────
+ * ★"꺼져 있음"이 정상이고 "켜져 있음"이 주의 신호다.
+ *   07-31 토스봇 HALT 알림 0건 사고와 같은 계열 — 상태가 평소와 다를 때
+ *   반드시 눈에 띄어야 한다. 여기선 '켜져 있다'가 그 상태다.
+ * ★ok 판정: 꺼져 있으면 ok(정상). 켜져 있어도 ok 로 두되 문구로 드러낸다 —
+ *   일하려고 켠 것일 수 있으므로 '장애'로 보고하면 거짓 경보가 된다.
+ */
+async function checkAiStudio() {
+    // SSH 로 살아있는지 + 큐/가동시간 확인. 꺼져 있으면 접속 자체가 실패한다.
+    const r = await run('ssh', ['-o', 'ControlMaster=no', '-o', 'ConnectTimeout=8',
+                                '-o', 'BatchMode=yes', `paks11299958@${AI_STUDIO_IP}`,
+        `up=$(awk '{print int($1/60)}' /proc/uptime); ` +
+        `q=$(curl -s -m 3 http://127.0.0.1:8188/queue 2>/dev/null | ` +
+        `python3 -c "import json,sys;d=json.load(sys.stdin);print(len(d.get('queue_running',[]))+len(d.get('queue_pending',[])))" 2>/dev/null || echo '?'); ` +
+        `w=$(systemctl is-active gpu-worker 2>/dev/null); ` +
+        `echo "$up|$q|$w"`], 20_000);
+
+    if (!r.ok) {
+        // 접속 실패 = 꺼져 있음. 이게 기본 상태이므로 정상으로 본다.
+        return { ok: true, detail: '⚫ 꺼짐(정상 — 필요할 때만 켜는 서버)' };
+    }
+    const [upRaw, queue, worker] = (r.out.trim().split('\n').pop() || '').split('|');
+    const up = parseInt(upRaw, 10);
+    const parts = [`🟡 **가동 중** ${Number.isFinite(up) ? `${Math.floor(up / 60)}시간 ${up % 60}분째` : ''}`];
+    parts.push(`큐 ${queue === '?' ? '확인불가' : `${queue}건`}`);
+    parts.push(`워커 ${worker || '?'}`);
+    // 시간당 약 1,260원 — 얼마나 쓰고 있는지 바로 보이게 한다
+    if (Number.isFinite(up)) parts.push(`누적 약 ${Math.round(up / 60 * 1260).toLocaleString('ko-KR')}원`);
+    return { ok: true, detail: parts.join(' · ') };
+}
+
 /** /proc/meminfo·df 파싱 결과를 한 줄 요약 + 이상여부로 변환. 서버1·2 공용. */
 function summarizeResources(label, { diskPct, memPct, swapPct, swapUsedMb }) {
     const flags = [];
@@ -436,6 +474,7 @@ async function checkResources() {
         n8n:     { ok: false, detail: '미점검' },
         tbBuild: { ok: false, detail: '미점검' },
         tbView:  { ok: false, detail: '미점검' },
+        aiStudio: { ok: false, detail: '미점검' },
         server1: { ok: false, detail: '미점검' },
         server2: { ok: false, detail: '미점검' },
     };
@@ -537,13 +576,15 @@ async function checkResources() {
         // 브라우저 점검과 독립이라 병렬로 돈다(각 함수는 던지지 않고 결과를 반환).
         // Promise.all 이 아니라 allSettled 로 받는다 — 하나가 예상 못 한 예외로
         // 터져도 나머지 보고는 나가야 한다.
-        const [tossR, hermesR, dbR, dockerR, resR] = await Promise.allSettled([
+        const [tossR, hermesR, dbR, dockerR, resR, studioR] = await Promise.allSettled([
             checkTossTrader(), checkHermes(), checkDatabase(), checkDockerServices(), checkResources(),
+            checkAiStudio(),
         ]);
         const unwrap = (r, label) =>
             r.status === 'fulfilled' ? r.value : { ok: false, detail: `${label} 점검 예외: ${r.reason?.message ?? r.reason}` };
 
-        results.toss   = unwrap(tossR,   '토스봇');
+        results.toss     = unwrap(tossR,   '토스봇');
+        results.aiStudio = unwrap(studioR, 'AI스튜디오');
         results.hermes = unwrap(hermesR, '헤르메스');
 
         if (dbR.status === 'fulfilled') {
@@ -575,6 +616,7 @@ async function checkResources() {
                                               메인DB: results.dbMain, 타입봇DB: results.dbTypebot,
                                               n8n: results.n8n,
                                               타입봇빌더: results.tbBuild, 타입봇뷰어: results.tbView,
+                                              AI스튜디오: results.aiStudio,
                                               서버1: results.server1, 서버2: results.server2 })) {
             console.log(`${v.ok ? '✅' : '❌'} [${k}] ${v.detail}`);
         }
@@ -597,6 +639,7 @@ async function checkResources() {
             ['n8n',          results.n8n],
             ['타입봇 빌더',  results.tbBuild],
             ['타입봇 뷰어',  results.tbView],
+            ['AI 스튜디오',  results.aiStudio],
             ['서버1 자원',   results.server1],
             ['서버2 자원',   results.server2],
         ];
@@ -654,6 +697,7 @@ async function checkResources() {
                 n8n:        results.n8n,
                 typebotBuilder: results.tbBuild,
                 typebotViewer:  results.tbView,
+                aiStudio:   results.aiStudio,
                 server1:    results.server1,
                 server2:    results.server2,
                 durationMs: Date.now() - startedAt,
