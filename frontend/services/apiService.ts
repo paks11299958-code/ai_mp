@@ -1100,12 +1100,15 @@ export const aiStudioApi = {
         }>('/admin/ai-studio/status'),
     power: (action: 'start' | 'stop') =>
         post<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/power', { action }),
+    // models=그림 모델(체크포인트), upscalers=확대 후보정 모델
     getModels: () =>
-        get<{ available: boolean; reason?: string; models: string[] }>('/admin/ai-studio/models'),
+        get<{ available: boolean; reason?: string; models: string[]; upscalers?: string[] }>(
+            '/admin/ai-studio/models'),
     // 모델 관리(2차, 2026-08-05) — ★임의 URL 은 못 넣는다. 서버가 가진
     //   화이트리스트(catalog)의 key 만 내려받을 수 있다.
+    // kind: 'checkpoints'(그림 모델) | 'upscale_models'(확대 후보정)
     getCatalog: () =>
-        get<{ ok: boolean; catalog: { key: string; file: string }[] }>('/admin/ai-studio/catalog'),
+        get<{ ok: boolean; catalog: { key: string; file: string; kind?: string }[] }>('/admin/ai-studio/catalog'),
     addModel: (key: string) =>
         post<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/model', { key }),
     modelProgress: () =>
@@ -1116,6 +1119,8 @@ export const aiStudioApi = {
     generate: (payload: {
         prompt: string; negative?: string; model?: string;
         width?: number; height?: number; steps?: number; cfg?: number; count?: number;
+        // 업스케일(선택) — 확대 후보정 모델 파일명과 배율
+        upscale?: string; upscaleScale?: number;
     }) => post<{ ok: boolean; ids: number[]; queued: number }>('/admin/ai-studio/generate', payload),
     getJobs: (limit = 20) =>
         get<{

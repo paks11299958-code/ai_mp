@@ -92,8 +92,11 @@ export const AiStudioPanel: React.FC = () => {
     const [preset, setPreset] = useState<StylePreset | null>(null);
 
     // 모델 관리(2차)
-    const [catalog, setCatalog] = useState<{ key: string; file: string }[]>([]);
+    const [catalog, setCatalog] = useState<{ key: string; file: string; kind?: string }[]>([]);
     const [dlMsg, setDlMsg] = useState('');
+    // 업스케일(후보정) — 설치된 확대 모델과 사용 여부
+    const [upscalers, setUpscalers] = useState<string[]>([]);
+    const [useUpscale, setUseUpscale] = useState(false);
 
     // ★진행 폴링은 ref 로 관리한다 — 여러 번 누르면 타이머가 겹쳐
     //   같은 요청이 중복으로 나간다(전자책 표지 중복생성 사고와 같은 유형).
@@ -110,7 +113,10 @@ export const AiStudioPanel: React.FC = () => {
                 if (p.status !== 'DOWNLOADING') {
                     if (dlTimer.current !== null) { clearInterval(dlTimer.current); dlTimer.current = null; }
                     // 다 받았으면 모델 목록을 다시 읽는다
-                    aiStudioApi.getModels().then((m) => setModels(m.models ?? [])).catch(() => {});
+                    aiStudioApi.getModels().then((m) => {
+                        setModels(m.models ?? []);
+                        setUpscalers(m.upscalers ?? []);
+                    }).catch(() => {});
                 }
             } catch { /* 일시적 실패는 무시하고 다음 주기에 재시도 */ }
         }, 10_000);
@@ -133,6 +139,7 @@ export const AiStudioPanel: React.FC = () => {
             if (s.server?.status === 'RUNNING') {
                 aiStudioApi.getModels().then((m) => {
                     setModels(m.models ?? []);
+                    setUpscalers(m.upscalers ?? []);
                     if (!model && m.models?.length) setModel(m.models[0]);
                 }).catch(() => {});
                 aiStudioApi.getCatalog().then((c) => setCatalog(c.catalog ?? [])).catch(() => {});
@@ -153,6 +160,8 @@ export const AiStudioPanel: React.FC = () => {
         return () => clearInterval(t);
     }, [load]);
 
+    // FLUX 계열은 샘플링 규칙이 달라 워커가 설정을 자동 조정한다(cfg 1.0 고정, 네거티브 미사용)
+    const isFlux = model.toLowerCase().includes('flux');
     const running = st?.server?.status === 'RUNNING';
     const transitioning = ['STARTING', 'STOPPING', 'STAGING', 'PROVISIONING'].includes(st?.server?.status ?? '');
 
@@ -193,6 +202,7 @@ export const AiStudioPanel: React.FC = () => {
             setDlMsg(r.detail);
             const m = await aiStudioApi.getModels();
             setModels(m.models ?? []);
+            setUpscalers(m.upscalers ?? []);
         } catch (e: any) {
             setDlMsg(e?.body?.detail || e?.message || '삭제에 실패했습니다.');
         } finally {
@@ -206,6 +216,9 @@ export const AiStudioPanel: React.FC = () => {
         if (!p) return;
         setNegative(p.negative ?? '');
         setSteps(p.steps);
+        // ★확대 후보정 기본값 — 인물·제품은 켜는 게 낫다는 게 2026-08-05 비교 실측 결론.
+        //   설치된 확대 모델이 없으면 켜 봐야 소용없으므로 그때만 반영한다.
+        setUseUpscale(!!p.upscale && upscalers.length > 0);
         const i = SIZES.findIndex((s) => s.w === p.width && s.h === p.height);
         if (i >= 0) setSizeIdx(i);
         // ★프리셋이 지정한 모델이 서버에 없으면 무시한다 — 없는 파일명을 보내면 생성이 실패한다.
@@ -223,6 +236,9 @@ export const AiStudioPanel: React.FC = () => {
             const r = await aiStudioApi.generate({
                 prompt: finalPrompt, negative: negative || undefined, model: model || undefined,
                 width: size.w, height: size.h, steps, count,
+                // 업스케일은 켜져 있고 설치된 모델이 있을 때만 보낸다
+                upscale: useUpscale && upscalers[0] ? upscalers[0] : undefined,
+                upscaleScale: 2,
             });
             setMsg(running
                 ? `${r.queued}건 접수 — 곧 처리됩니다.`
@@ -377,6 +393,32 @@ export const AiStudioPanel: React.FC = () => {
                     </Field>
                 </div>
 
+                {/* 업스케일(후보정) — 미드저니와의 격차에서 모델만큼 큰 부분이 이것이다.
+                    1024 원본은 피부·머리카락 디테일이 뭉개져 보인다. */}
+                {upscalers.length > 0 && (
+                    <label className="flex items-start gap-2 bg-gray-900/60 rounded-lg px-3 py-2 cursor-pointer">
+                        <input type="checkbox" checked={useUpscale}
+                            onChange={(e) => setUseUpscale(e.target.checked)}
+                            className="mt-0.5 accent-purple-600" />
+                        <span className="text-[11px] leading-relaxed">
+                            <b className="text-gray-200">✨ 선명하게 (2배 확대 후보정)</b>
+                            <span className="text-gray-500">
+                                {' '}— 디테일이 살아납니다. 시간은 5~10초 더 걸리고 파일이 커집니다.
+                            </span>
+                        </span>
+                    </label>
+                )}
+
+                {/* ★FLUX 는 규칙이 달라 위 스텝·네거티브가 그대로 적용되지 않는다 —
+                     화면에 안 적으면 "왜 설정이 무시되지?"로 보인다. */}
+                {isFlux && (
+                    <p className="text-[10px] text-blue-300/80 bg-blue-900/20 border border-blue-800/40 rounded px-2.5 py-2">
+                        ⚡ FLUX 모델은 설정이 자동 조정됩니다 — 네거티브·CFG는 쓰지 않고,
+                        스텝은 {model.includes('schnell') ? '4~8' : '20'} 안팎으로 맞춰집니다.
+                        {model.includes('dev') && <b className="text-blue-200"> (dev는 비상업 라이선스 — 내부 검토용)</b>}
+                    </p>
+                )}
+
                 <button onClick={doGenerate} disabled={busy !== null}
                     className="w-full text-sm px-4 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600
                                font-bold disabled:opacity-50">
@@ -390,7 +432,10 @@ export const AiStudioPanel: React.FC = () => {
             {/* 모델 관리(2차) — 접어 둔다. 자주 쓰는 기능이 아니라 생성 폼을 가리면 안 된다. */}
             <details className="bg-gray-800/40 border border-gray-700 rounded-lg">
                 <summary className="px-4 py-3 text-sm font-bold text-gray-200 cursor-pointer hover:text-white">
-                    모델 관리 {models.length > 0 && <span className="text-[11px] font-normal text-gray-500">— 설치됨 {models.length}개</span>}
+                    모델 관리 {models.length + upscalers.length > 0 && (
+                        <span className="text-[11px] font-normal text-gray-500">
+                            — 그림 {models.length}개{upscalers.length > 0 && ` · 후보정 ${upscalers.length}개`}
+                        </span>)}
                 </summary>
                 <div className="px-4 pb-4 space-y-3">
                     {!running ? (
@@ -401,11 +446,11 @@ export const AiStudioPanel: React.FC = () => {
 
                             <div>
                                 <div className="text-[10px] text-gray-500 mb-1.5">설치된 모델</div>
-                                {models.length === 0 ? (
+                                {models.length + upscalers.length === 0 ? (
                                     <p className="text-xs text-gray-600">없음</p>
                                 ) : (
                                     <div className="space-y-1">
-                                        {models.map((m) => (
+                                        {[...models, ...upscalers].map((m) => (
                                             <div key={m} className="flex items-center justify-between gap-2
                                                             bg-gray-900/60 rounded px-2.5 py-1.5">
                                                 <span className="text-xs text-gray-300 truncate">{m.replace('.safetensors', '')}</span>
@@ -425,7 +470,7 @@ export const AiStudioPanel: React.FC = () => {
                                     추가할 수 있는 모델 (등록된 것만 — 임의 주소는 받지 않습니다)
                                 </div>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {catalog.filter((c) => !models.includes(c.file)).map((c) => (
+                                    {catalog.filter((c) => !models.includes(c.file) && !upscalers.includes(c.file)).map((c) => (
                                         <button key={c.key} onClick={() => doAddModel(c.key)} disabled={busy !== null}
                                             className="px-2.5 py-1.5 text-[11px] rounded-md border border-gray-700
                                                        bg-gray-900 text-gray-300 hover:text-white hover:border-purple-600
@@ -433,7 +478,7 @@ export const AiStudioPanel: React.FC = () => {
                                             + {c.file.replace('.safetensors', '')}
                                         </button>
                                     ))}
-                                    {catalog.length > 0 && catalog.every((c) => models.includes(c.file)) && (
+                                    {catalog.length > 0 && catalog.every((c) => models.includes(c.file) || upscalers.includes(c.file)) && (
                                         <p className="text-xs text-gray-600">등록된 모델이 모두 설치돼 있습니다.</p>
                                     )}
                                 </div>

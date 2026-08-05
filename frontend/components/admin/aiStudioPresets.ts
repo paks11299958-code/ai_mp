@@ -13,6 +13,16 @@
 //   - JuggernautXL_v9   : 인물 외 사물·공간·조명 표현이 강함 → 제품·인테리어·풍경
 //   - sd_xl_base_1.0    : 기본 모델. 특화 없음 → 일러스트·범용
 //
+// ★2026-08-05 FLUX 비교 실측 — **RealVisXL + 확대 후보정으로 확정**(사장 결정).
+//   같은 프롬프트·같은 시드로 3장을 비교한 결과:
+//     ① RealVisXL V5(35스텝)      → 피부·머릿결이 가장 자연스러움  ← 채택
+//     ② FLUX.1-schnell(4스텝)     → 매끈하지만 인위적, **워터마크 흔적**까지 생김
+//     ③ FLUX + 2배 확대           → 해상도는 오르나 ②의 한계는 그대로
+//   "최신 모델 = 더 좋음"이 아니었다. schnell 은 4스텝 고속용이라 세밀함을 포기한
+//   버전이고, 그 대가가 컸다. FLUX 는 지우지 않고 보관한다(나중에 dev 비교 여지).
+//   ★대신 **확대 후보정의 효과는 분명했다**(1024→2배, 머리카락·피부 디테일이 살아남).
+//   그래서 디테일이 곧 품질인 프리셋은 upscale 을 기본 ON 으로 둔다.
+//
 // ★서버에 해당 모델이 없으면 폼은 목록의 첫 모델로 자동 대체된다(AiStudioPanel 참조).
 
 export interface StylePreset {
@@ -32,6 +42,11 @@ export interface StylePreset {
     steps: number;
     /** 폼 placeholder 로 보여줄 예시 */
     example: string;
+    /** 확대 후보정을 기본으로 켤지.
+     *  ★2026-08-05 비교 실측 결과 확정: 인물·제품처럼 **디테일이 곧 품질**인 것은 기본 ON.
+     *    1024 원본은 피부·머리카락이 뭉개져 보이는데, 4배 확대 후 2배로 줄이면 살아난다.
+     *    썸네일·일러스트는 어차피 작게 쓰거나 선이 단순해 효과가 적고 용량만 커진다. */
+    upscale?: boolean;
 }
 
 // 인물 계열에서 공통으로 빠지기 쉬운 실패(잘린 머리·손 왜곡 등)를 막는 네거티브.
@@ -61,6 +76,7 @@ export const STYLE_PRESETS: StylePreset[] = [
         negative: PORTRAIT_NEG,
         width: 832, height: 1216, steps: 35,
         example: 'a Korean man in his 40s wearing a navy suit',
+        upscale: true,
     },
     {
         key: 'fashion',
@@ -78,6 +94,7 @@ export const STYLE_PRESETS: StylePreset[] = [
         negative: `${PORTRAIT_NEG}, cropped legs, cropped feet`,
         width: 832, height: 1216, steps: 35,
         example: 'a Korean woman wearing a beige trench coat on a city street in autumn',
+        upscale: true,
     },
     {
         key: 'product',
@@ -95,6 +112,7 @@ export const STYLE_PRESETS: StylePreset[] = [
         negative: PRODUCT_NEG,
         width: 1024, height: 1024, steps: 35,
         example: 'a matte black stainless steel tumbler with a wooden lid',
+        upscale: true,
     },
     {
         key: 'interior',
@@ -112,6 +130,7 @@ export const STYLE_PRESETS: StylePreset[] = [
         negative: 'distorted perspective, tilted horizon, fisheye, cluttered, cartoon, low quality',
         width: 1216, height: 832, steps: 35,
         example: 'a modern Scandinavian living room with a linen sofa and indoor plants',
+        upscale: true,
     },
     {
         key: 'food',
@@ -129,6 +148,7 @@ export const STYLE_PRESETS: StylePreset[] = [
         negative: `${PRODUCT_NEG}, unappetizing, burnt, messy plating`,
         width: 1024, height: 1024, steps: 35,
         example: 'a bowl of Korean beef bulgogi with rice and side dishes',
+        upscale: true,
     },
     {
         key: 'thumbnail',
