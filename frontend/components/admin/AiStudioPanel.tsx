@@ -228,7 +228,10 @@ export const AiStudioPanel: React.FC = () => {
     const estKrw = (busySec / 3600) * (st?.krwPerHour ?? 1260);
 
     return (
-        <div className="p-4 sm:p-6 space-y-5 text-gray-200">
+        /* ★flex-1 + overflow-y-auto 필수 — 부모(AdminPanel 본문)가 overflow-hidden 이라
+           패널이 스스로 스크롤하지 않으면 아래 내용이 잘려서 아예 못 본다.
+           다른 어드민 패널들도 전부 이 형태다. */
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 text-gray-200">
             {/* 헤더 — 상태와 전원 */}
             <div className="bg-gray-800/60 border border-gray-700 rounded-lg p-4">
                 <div className="flex items-start justify-between flex-wrap gap-3">

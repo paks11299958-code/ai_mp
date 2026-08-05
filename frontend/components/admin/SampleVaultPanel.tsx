@@ -66,7 +66,9 @@ export const SampleVaultPanel: React.FC = () => {
     };
 
     return (
-        <div className="p-4 space-y-4">
+        /* ★flex-1 + overflow-y-auto 필수 — 부모(AdminPanel 본문)가 overflow-hidden 이라
+           패널이 스스로 스크롤하지 않으면 목록이 늘어날 때 아래가 잘려 못 본다. */
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
             <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-white">📦 샘플 영상 보관함</h3>
                 <button onClick={load} className="text-[10px] text-gray-500 hover:text-gray-300">🔄 새로고침</button>
