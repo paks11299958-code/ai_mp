@@ -60,6 +60,13 @@ html { color-scheme: light; }
 .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .hide-scrollbar::-webkit-scrollbar { display: none; }
 
+/* 어드민 하위탭 가로 스크롤바 — 탭 높이(약 32px) 안에 들어가야 하므로 기본 8px보다 얇게.
+   ★숨기지 않고 '보이게' 둔다: 탭이 더 있다는 사실 자체가 보여야 사장이 옆으로 넘긴다. */
+.admin-subtabs { scrollbar-width: thin; scrollbar-color: #4b5563 transparent; }
+.admin-subtabs::-webkit-scrollbar { height: 6px; }
+.admin-subtabs::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
+.admin-subtabs::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
 .markdown-body p { margin-bottom: 0.75em; }
 .markdown-body p:last-child { margin-bottom: 0; }
 .markdown-body pre { background-color: #1f2937; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-top: 0.5em; margin-bottom: 0.5em; }

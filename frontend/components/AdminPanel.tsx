@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Persona, Category } from '../types';
 import { categoryApi, adminApi } from '../services/apiService';
 import { Icon } from './Icons';
@@ -51,6 +51,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     useEffect(() => {
         categoryApi.getAll().then(setCategories).catch(() => {});
     }, []);
+
+    // 하위탭이 가로 스크롤이라 선택된 탭이 화면 밖에 있을 수 있다.
+    // ★특히 그룹을 바꾸면 첫 탭으로 이동하는데, 스크롤은 이전 위치에 남아 있어
+    //   "탭을 눌렀는데 아무것도 선택 안 된 것처럼" 보인다. 활성 탭을 보이는 곳으로 끌어온다.
+    const activeTabRef = useRef<HTMLButtonElement | null>(null);
+    useEffect(() => {
+        activeTabRef.current?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }, [mainView]);
 
     return (
         <div className="flex-1 flex flex-col h-full bg-gray-900 z-40 relative animate-in fade-in duration-200">
@@ -138,13 +146,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                                     );
                                 })}
                             </nav>
-                            {/* 2단: 활성 그룹의 하위 탭 */}
-                            <nav className="flex gap-1 flex-wrap bg-gray-800 rounded-b-lg rounded-tr-lg px-1.5 py-1">
+                            {/* 2단: 활성 그룹의 하위 탭
+                                ★줄바꿈(flex-wrap) 대신 가로 스크롤 — 콘텐츠 그룹은 탭이 15개라
+                                  줄바꿈하면 3줄까지 쌓여 본문이 아래로 밀린다. 한 줄 고정 + 스크롤이
+                                  탭이 더 늘어나도 높이가 변하지 않아 안정적이다. */}
+                            <nav className="flex gap-1 flex-nowrap overflow-x-auto admin-subtabs
+                                            bg-gray-800 rounded-b-lg rounded-tr-lg px-1.5 py-1">
                                 {activeGroup.tabs.map(tab => (
                                     <button
                                         key={tab.key}
+                                        ref={mainView === tab.key ? activeTabRef : undefined}
                                         onClick={() => setMainView(tab.key)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap
+                                        /* ★shrink-0 필수 — 없으면 탭이 스크롤되지 않고 눌려서 글자가 찌그러진다 */
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap shrink-0
                                             ${mainView === tab.key
                                                 ? 'bg-blue-600 text-white'
                                                 : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'

@@ -1102,6 +1102,17 @@ export const aiStudioApi = {
         post<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/power', { action }),
     getModels: () =>
         get<{ available: boolean; reason?: string; models: string[] }>('/admin/ai-studio/models'),
+    // 모델 관리(2차, 2026-08-05) — ★임의 URL 은 못 넣는다. 서버가 가진
+    //   화이트리스트(catalog)의 key 만 내려받을 수 있다.
+    getCatalog: () =>
+        get<{ ok: boolean; catalog: { key: string; file: string }[] }>('/admin/ai-studio/catalog'),
+    addModel: (key: string) =>
+        post<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/model', { key }),
+    modelProgress: () =>
+        get<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/model-progress'),
+    deleteModel: (file: string) =>
+        del<{ ok: boolean; status: string; detail: string }>(
+            `/admin/ai-studio/model/${encodeURIComponent(file)}`),
     generate: (payload: {
         prompt: string; negative?: string; model?: string;
         width?: number; height?: number; steps?: number; cfg?: number; count?: number;

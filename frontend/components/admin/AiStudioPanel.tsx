@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStudioApi } from '../../services/apiService';
 import { Icon } from '../Icons';
+import { STYLE_PRESETS, buildPrompt, type StylePreset } from './aiStudioPresets';
 
 // 🎨 AI 스튜디오(서버3 GPU) 어드민 — 2026-08-05 신설
 //
@@ -75,6 +76,39 @@ export const AiStudioPanel: React.FC = () => {
     const [sizeIdx, setSizeIdx] = useState(1);
     const [steps, setSteps] = useState(30);
     const [count, setCount] = useState(1);
+    // ★프리셋을 고르면 프롬프트를 '무엇을 찍을지'만 쓰면 된다(촬영 용어는 프리셋이 붙인다).
+    //   null 이면 자유 입력 — 프롬프트 전체를 직접 쓰는 모드.
+    const [preset, setPreset] = useState<StylePreset | null>(null);
+
+    // 모델 관리(2차)
+    const [catalog, setCatalog] = useState<{ key: string; file: string }[]>([]);
+    const [dlMsg, setDlMsg] = useState('');
+
+    // ★진행 폴링은 ref 로 관리한다 — 여러 번 누르면 타이머가 겹쳐
+    //   같은 요청이 중복으로 나간다(전자책 표지 중복생성 사고와 같은 유형).
+    // ★load 보다 **먼저** 선언해야 한다 — load 가 이걸 부르는데 아래에 두면
+    //   최초 렌더의 useEffect 에서 TDZ(초기화 전 접근)로 화면이 백지가 된다.
+    //   tsc 는 이걸 못 잡는다(런타임 오류).
+    const dlTimer = useRef<number | null>(null);
+    const pollDownload = useCallback(() => {
+        if (dlTimer.current !== null) return;
+        dlTimer.current = window.setInterval(async () => {
+            try {
+                const p = await aiStudioApi.modelProgress();
+                setDlMsg(p.detail);
+                if (p.status !== 'DOWNLOADING') {
+                    if (dlTimer.current !== null) { clearInterval(dlTimer.current); dlTimer.current = null; }
+                    // 다 받았으면 모델 목록을 다시 읽는다
+                    aiStudioApi.getModels().then((m) => setModels(m.models ?? [])).catch(() => {});
+                }
+            } catch { /* 일시적 실패는 무시하고 다음 주기에 재시도 */ }
+        }, 10_000);
+    }, []);
+
+    // ★언마운트 시 타이머 정리 — 안 하면 탭을 옮겨도 요청이 계속 나간다
+    useEffect(() => () => {
+        if (dlTimer.current !== null) clearInterval(dlTimer.current);
+    }, []);
 
     const load = useCallback(async () => {
         try {
@@ -90,11 +124,16 @@ export const AiStudioPanel: React.FC = () => {
                     setModels(m.models ?? []);
                     if (!model && m.models?.length) setModel(m.models[0]);
                 }).catch(() => {});
+                aiStudioApi.getCatalog().then((c) => setCatalog(c.catalog ?? [])).catch(() => {});
+                // ★화면을 새로 열었을 때 이미 받는 중일 수 있다 — 그 경우도 진행 상황이 보여야 한다
+                aiStudioApi.modelProgress().then((p) => {
+                    if (p.status === 'DOWNLOADING') { setDlMsg(p.detail); pollDownload(); }
+                }).catch(() => {});
             }
         } catch (e: any) {
             setMsg(e?.message ?? '상태를 불러오지 못했습니다.');
         }
-    }, [model]);
+    }, [model, pollDownload]);
 
     useEffect(() => {
         load();
@@ -121,13 +160,57 @@ export const AiStudioPanel: React.FC = () => {
         }
     };
 
+    /** 모델 내려받기 시작 — 완료까지 5~10분이라 진행 상황을 폴링한다. */
+    const doAddModel = async (key: string) => {
+        setBusy('model'); setDlMsg('');
+        try {
+            const r = await aiStudioApi.addModel(key);
+            setDlMsg(r.detail);
+            if (r.status === 'DOWNLOADING') pollDownload();
+        } catch (e: any) {
+            setDlMsg(e?.body?.detail || e?.message || '모델 추가에 실패했습니다.');
+        } finally {
+            setBusy(null);
+        }
+    };
+
+    const doDeleteModel = async (file: string) => {
+        if (!window.confirm(`${file}\n\n이 모델을 삭제합니다. 다시 받으려면 5~10분 걸립니다.\n계속할까요?`)) return;
+        setBusy('model'); setDlMsg('');
+        try {
+            const r = await aiStudioApi.deleteModel(file);
+            setDlMsg(r.detail);
+            const m = await aiStudioApi.getModels();
+            setModels(m.models ?? []);
+        } catch (e: any) {
+            setDlMsg(e?.body?.detail || e?.message || '삭제에 실패했습니다.');
+        } finally {
+            setBusy(null);
+        }
+    };
+
+    /** 프리셋 선택 — 모델·크기·스텝·네거티브를 검증된 값으로 채운다. */
+    const applyPreset = (p: StylePreset | null) => {
+        setPreset(p);
+        if (!p) return;
+        setNegative(p.negative ?? '');
+        setSteps(p.steps);
+        const i = SIZES.findIndex((s) => s.w === p.width && s.h === p.height);
+        if (i >= 0) setSizeIdx(i);
+        // ★프리셋이 지정한 모델이 서버에 없으면 무시한다 — 없는 파일명을 보내면 생성이 실패한다.
+        //   (모델 목록은 서버가 켜져 있을 때만 채워지므로, 비어 있으면 그대로 둔다.)
+        if (models.length === 0 || models.includes(p.model)) setModel(p.model);
+    };
+
     const doGenerate = async () => {
         if (!prompt.trim()) { setMsg('프롬프트를 입력하세요.'); return; }
         setBusy('generate'); setMsg('');
         try {
             const size = SIZES[sizeIdx];
+            // 프리셋 모드면 사장이 쓴 내용을 뼈대에 끼워 넣는다
+            const finalPrompt = preset ? buildPrompt(preset, prompt) : prompt;
             const r = await aiStudioApi.generate({
-                prompt, negative: negative || undefined, model: model || undefined,
+                prompt: finalPrompt, negative: negative || undefined, model: model || undefined,
                 width: size.w, height: size.h, steps, count,
             });
             setMsg(running
@@ -202,10 +285,51 @@ export const AiStudioPanel: React.FC = () => {
             <div className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-3">
                 <p className="text-sm font-bold text-gray-200">이미지 만들기</p>
 
-                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={4}
-                    placeholder="프롬프트 (영문 권장) — 예: a professional Korean woman in a modern office, photorealistic…"
+                {/* 스타일 프리셋 — 촬영 용어를 외우지 않아도 되게 검증된 조합을 굳혀 둔 것 */}
+                <div>
+                    <div className="text-[10px] text-gray-500 mb-1.5">스타일</div>
+                    <div className="flex flex-wrap gap-1.5">
+                        <button onClick={() => applyPreset(null)}
+                            className={`px-2.5 py-1.5 text-[11px] rounded-md border transition-colors ${
+                                preset === null
+                                    ? 'bg-purple-700 border-purple-500 text-white font-bold'
+                                    : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200'}`}>
+                            ✏️ 직접 입력
+                        </button>
+                        {STYLE_PRESETS.map((p) => (
+                            <button key={p.key} onClick={() => applyPreset(p)} title={p.hint}
+                                className={`px-2.5 py-1.5 text-[11px] rounded-md border transition-colors ${
+                                    preset?.key === p.key
+                                        ? 'bg-purple-700 border-purple-500 text-white font-bold'
+                                        : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200'}`}>
+                                {p.icon} {p.label}
+                            </button>
+                        ))}
+                    </div>
+                    {preset && (
+                        <p className="text-[10px] text-gray-500 mt-1.5">
+                            {preset.hint} · 모델·크기·네거티브가 자동으로 맞춰집니다.
+                        </p>
+                    )}
+                </div>
+
+                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={preset ? 2 : 4}
+                    placeholder={preset
+                        ? `무엇을 찍을지만 쓰세요 — 예: ${preset.example}`
+                        : '프롬프트 (영문 권장) — 예: a professional Korean woman in a modern office, photorealistic…'}
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
                                placeholder-gray-600 focus:border-purple-500 focus:outline-none" />
+
+                {/* ★프리셋이 실제로 어떤 문장을 붙이는지 보여준다 — 안 보이면
+                     결과가 마음에 안 들 때 무엇을 고쳐야 할지 알 수 없다. */}
+                {preset && (
+                    <details className="text-[10px] text-gray-500">
+                        <summary className="cursor-pointer hover:text-gray-300">최종 프롬프트 확인</summary>
+                        <p className="mt-1 p-2 bg-gray-900 rounded border border-gray-700 leading-relaxed break-words">
+                            {buildPrompt(preset, prompt)}
+                        </p>
+                    </details>
+                )}
 
                 <textarea value={negative} onChange={(e) => setNegative(e.target.value)} rows={2}
                     placeholder="네거티브(선택) — 비워두면 손·얼굴 왜곡 방지 기본값이 적용됩니다"
@@ -249,6 +373,66 @@ export const AiStudioPanel: React.FC = () => {
                 </p>
             </div>
 
+            {/* 모델 관리(2차) — 접어 둔다. 자주 쓰는 기능이 아니라 생성 폼을 가리면 안 된다. */}
+            <details className="bg-gray-800/40 border border-gray-700 rounded-lg">
+                <summary className="px-4 py-3 text-sm font-bold text-gray-200 cursor-pointer hover:text-white">
+                    모델 관리 {models.length > 0 && <span className="text-[11px] font-normal text-gray-500">— 설치됨 {models.length}개</span>}
+                </summary>
+                <div className="px-4 pb-4 space-y-3">
+                    {!running ? (
+                        <p className="text-xs text-gray-500">서버를 켜야 모델을 관리할 수 있습니다.</p>
+                    ) : (
+                        <>
+                            {dlMsg && <p className="text-xs text-amber-300">{dlMsg}</p>}
+
+                            <div>
+                                <div className="text-[10px] text-gray-500 mb-1.5">설치된 모델</div>
+                                {models.length === 0 ? (
+                                    <p className="text-xs text-gray-600">없음</p>
+                                ) : (
+                                    <div className="space-y-1">
+                                        {models.map((m) => (
+                                            <div key={m} className="flex items-center justify-between gap-2
+                                                            bg-gray-900/60 rounded px-2.5 py-1.5">
+                                                <span className="text-xs text-gray-300 truncate">{m.replace('.safetensors', '')}</span>
+                                                <button onClick={() => doDeleteModel(m)} disabled={busy !== null}
+                                                    className="text-[10px] px-2 py-1 rounded bg-red-900/70 hover:bg-red-800
+                                                               text-red-200 shrink-0 disabled:opacity-50">
+                                                    삭제
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div>
+                                <div className="text-[10px] text-gray-500 mb-1.5">
+                                    추가할 수 있는 모델 (등록된 것만 — 임의 주소는 받지 않습니다)
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {catalog.filter((c) => !models.includes(c.file)).map((c) => (
+                                        <button key={c.key} onClick={() => doAddModel(c.key)} disabled={busy !== null}
+                                            className="px-2.5 py-1.5 text-[11px] rounded-md border border-gray-700
+                                                       bg-gray-900 text-gray-300 hover:text-white hover:border-purple-600
+                                                       disabled:opacity-50">
+                                            + {c.file.replace('.safetensors', '')}
+                                        </button>
+                                    ))}
+                                    {catalog.length > 0 && catalog.every((c) => models.includes(c.file)) && (
+                                        <p className="text-xs text-gray-600">등록된 모델이 모두 설치돼 있습니다.</p>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-gray-600 mt-2">
+                                    모델 1개가 약 6.5GB — 내려받는 데 5~10분 걸립니다.
+                                    받는 동안에는 서버가 자동으로 꺼지지 않습니다.
+                                </p>
+                            </div>
+                        </>
+                    )}
+                </div>
+            </details>
+
             {/* 결과 */}
             <div>
                 <p className="text-sm font-bold text-gray-200 mb-2">최근 작업</p>
@@ -281,7 +465,8 @@ export const AiStudioPanel: React.FC = () => {
 
             <p className="text-[10px] text-gray-600 leading-relaxed border-t border-gray-800 pt-3">
                 서버3(ai-studio-gpu)은 마지막 작업 후 <b className="text-gray-500">30분이 지나면 자동으로 꺼집니다</b>
-                (최대 가동 4시간). 일이 들어오면 유휴 시간이 다시 0으로 초기화됩니다.
+                (그와 별개로 최대 가동시간 상한이 있습니다 — 기본 4시간).
+                일이 들어오면 유휴 시간이 다시 0으로 초기화되고, 모델을 내려받는 중에도 꺼지지 않습니다.
                 이미지는 서버3에 저장되며, 서버가 꺼지면 목록은 남지만 미리보기는 표시되지 않습니다 —
                 필요한 이미지는 <b className="text-gray-500">클릭해서 내려받아 두세요</b>.
             </p>
