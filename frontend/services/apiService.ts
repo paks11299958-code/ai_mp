@@ -1392,6 +1392,25 @@ export const adminApi = {
         get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/paper/status'),
     getTossPaperLogs: (limit = 100) =>
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/paper/logs?limit=${limit}`),
+    getTossPaperOrders: (limit = 100) =>
+        get<{ lines: string[]; total?: number }>(`/admin/toss-trader/paper/orders?limit=${limit}`),
+    // 가상매매 성과 요약(2026-08-05) — 누적/일별 손익 + 체결수 + '왜 안 샀는지'(감시 점수).
+    // ★체결 0건이 정상일 수 있어(임계 미달) hasTrades 로 빈 화면과 고장을 구분한다.
+    getTossPaperPerformance: () =>
+        get<{
+            available: boolean; reason?: string;
+            mode?: string; alive?: boolean; halted?: boolean; haltReason?: string;
+            marketOpen?: boolean; buyThreshold?: number;
+            initialCapitalKrw?: number; realizedPnlTotalKrw?: number; realizedPnlTodayKrw?: number;
+            unrealizedPnlKrw?: number; equityKrw?: number; returnPct?: number;
+            filledCount?: number; orderLogLines?: number; hasTrades?: boolean;
+            daily?: { date: string; pnl: number }[];
+            watch?: { symbol: string; name: string; lastPrice: number | null; signal: string | null;
+                      reason: string; score: number | null; held: boolean;
+                      avgPrice: number | null; unrealizedPnlKrw: number | null }[];
+            heldSymbols?: string[]; selectionUpdatedAt?: string | null;
+            updatedAt?: string | null; staleSeconds?: number | null;
+        }>('/admin/toss-trader/paper/performance'),
     getTossSelection: () =>
         get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string }; max: number; paramBounds?: Record<string, [number, number]> }>('/admin/toss-trader/selection'),
     saveTossSelection: (payload: { symbols?: string[]; halt?: boolean; params?: Record<string, Record<string, number>>; adminPassword?: string }) =>
