@@ -167,6 +167,13 @@ export const AiStudioPanel: React.FC = () => {
     const [denoise, setDenoise] = useState(0.55);
     const fileRef = useRef<HTMLInputElement | null>(null);
 
+    // 보관함(2026-08-05) — ★'최근 작업'은 DB(최근 12건)만 본다. 큐를 거치지 않고 만든
+    //   이미지는 아예 안 뜨고 옛것도 볼 수 없었다(실측: 파일 33장 vs job 28건).
+    //   보관함은 **서버3의 실제 파일**이 정본이라 전부 보인다.
+    const [gallery, setGallery] = useState<{ file: string; kb: number; mtime: number }[]>([]);
+    const [galleryOpen, setGalleryOpen] = useState(false);
+    const [picked, setPicked] = useState<Set<string>>(new Set());
+
     // ★진행 폴링은 ref 로 관리한다 — 여러 번 누르면 타이머가 겹쳐
     //   같은 요청이 중복으로 나간다(전자책 표지 중복생성 사고와 같은 유형).
     // ★load 보다 **먼저** 선언해야 한다 — load 가 이걸 부르는데 아래에 두면
@@ -277,6 +284,52 @@ export const AiStudioPanel: React.FC = () => {
         } finally {
             setBusy(null);
         }
+    };
+
+    /** 보관함 열기/닫기 — ★열 때만 읽는다. 목록이 수백 장이 될 수 있어
+     *  상태 폴링(15초)에 얹으면 쓸데없는 SSH 왕복이 계속 생긴다. */
+    const toggleGallery = async () => {
+        const next = !galleryOpen;
+        setGalleryOpen(next);
+        if (!next) { setPicked(new Set()); return; }
+        if (!running) { setMsg('보관함을 보려면 서버를 켜 주세요.'); return; }
+        setBusy('gallery');
+        try {
+            const g = await aiStudioApi.getGallery();
+            setGallery(g.files ?? []);
+            if (!g.ok && g.reason) setMsg(g.reason);
+        } catch (e: any) {
+            setMsg(e?.message ?? '보관함을 불러오지 못했습니다.');
+        } finally { setBusy(null); }
+    };
+
+    const togglePick = (f: string) => {
+        setPicked((prev) => {
+            const n = new Set(prev);
+            n.has(f) ? n.delete(f) : n.add(f);
+            return n;
+        });
+    };
+
+    /** 고른 이미지 삭제 — ★되돌릴 수 없으므로 장수를 명시해 확인받는다. */
+    const doDeleteImages = async () => {
+        const files = [...picked];
+        if (files.length === 0) return;
+        if (!window.confirm(
+            `이미지 ${files.length}장을 삭제합니다.\n★되돌릴 수 없습니다. 필요한 건 먼저 내려받으세요.\n계속할까요?`)) return;
+        setBusy('gallery'); setMsg('');
+        try {
+            const r = await aiStudioApi.deleteImages(files);
+            setMsg(r.failed
+                ? `${r.deleted}장 삭제 — ${r.failed}장은 실패했습니다.`
+                : `${r.deleted}장을 삭제했습니다.`);
+            setPicked(new Set());
+            const g = await aiStudioApi.getGallery();
+            setGallery(g.files ?? []);
+            await load();   // 디스크 사용량·최근 작업도 다시 읽는다
+        } catch (e: any) {
+            setMsg(e?.message ?? '삭제에 실패했습니다.');
+        } finally { setBusy(null); }
     };
 
     /** 원본 사진 올리기(img2img).
@@ -759,6 +812,88 @@ export const AiStudioPanel: React.FC = () => {
                                 </p>
                             </div>
                         ))}
+                    </div>
+                )}
+            </div>
+
+            {/* 보관함 — ★위 '최근 작업'은 DB 최근 12건만 본다. 큐를 거치지 않고 만든
+                 이미지는 거기 아예 안 뜬다. 여기는 **서버3의 실제 파일**이 정본이다. */}
+            <div className="bg-gray-800/40 border border-gray-700 rounded-lg">
+                <button onClick={toggleGallery}
+                    className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-800/40">
+                    <span className="text-sm font-bold text-gray-200">
+                        🗂 보관함 {galleryOpen && gallery.length > 0 && (
+                            <span className="text-[12px] font-normal text-gray-400">— 전체 {gallery.length}장</span>
+                        )}
+                    </span>
+                    <span className="text-[12px] text-gray-400">{galleryOpen ? '접기 ▲' : '열기 ▼'}</span>
+                </button>
+
+                {galleryOpen && (
+                    <div className="px-4 pb-4 space-y-3">
+                        {!running ? (
+                            <p className="text-xs text-gray-300">서버를 켜야 보관함을 볼 수 있습니다.</p>
+                        ) : busy === 'gallery' ? (
+                            <p className="text-xs text-amber-300">불러오는 중…</p>
+                        ) : gallery.length === 0 ? (
+                            <p className="text-xs text-gray-300">저장된 이미지가 없습니다.</p>
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="flex gap-1.5">
+                                        <button onClick={() => setPicked(new Set(gallery.map((g) => g.file)))}
+                                            className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                                            전체 선택
+                                        </button>
+                                        <button onClick={() => setPicked(new Set())}
+                                            className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                                            선택 해제
+                                        </button>
+                                    </div>
+                                    {/* ★고른 게 있을 때만 삭제 버튼을 보인다 — 실수로 누를 여지를 줄인다 */}
+                                    {picked.size > 0 && (
+                                        <button onClick={doDeleteImages} disabled={busy !== null}
+                                            className="text-[12px] px-3 py-1 rounded bg-red-800 hover:bg-red-700
+                                                       font-bold text-red-100 disabled:opacity-50">
+                                            선택한 {picked.size}장 삭제
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+                                    {gallery.map((g) => {
+                                        const on = picked.has(g.file);
+                                        return (
+                                            <div key={g.file}
+                                                onClick={() => togglePick(g.file)}
+                                                className={`relative rounded-lg border-2 cursor-pointer overflow-hidden
+                                                    ${on ? 'border-purple-500' : 'border-gray-700 hover:border-gray-500'}`}>
+                                                <JobImage file={g.file} serverOff={!running} />
+                                                {/* 체크 표시 — 골랐는지 한눈에 보여야 한다 */}
+                                                <span className={`absolute top-1 left-1 w-5 h-5 rounded flex items-center
+                                                    justify-center text-[12px] font-bold
+                                                    ${on ? 'bg-purple-600 text-white' : 'bg-gray-900/80 text-gray-400'}`}>
+                                                    {on ? '✓' : ''}
+                                                </span>
+                                                <div className="px-1.5 py-1 bg-gray-900/80">
+                                                    <p className="text-[11px] text-gray-300 truncate">
+                                                        {g.file.replace('.png', '')}
+                                                    </p>
+                                                    <p className="text-[11px] text-gray-400">
+                                                        {g.kb >= 1024 ? `${(g.kb / 1024).toFixed(1)}MB` : `${g.kb}KB`}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[12px] text-gray-400">
+                                    눌러서 고르고, 위의 삭제 버튼으로 지웁니다.
+                                    ★<b className="text-gray-300">지우면 되돌릴 수 없습니다</b> —
+                                    필요한 이미지는 미리보기를 눌러 내려받아 두세요.
+                                </p>
+                            </>
+                        )}
                     </div>
                 )}
             </div>

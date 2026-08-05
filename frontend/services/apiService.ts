@@ -1141,6 +1141,16 @@ export const aiStudioApi = {
                 createdAt: string; finishedAt: string | null;
             }[];
         }>(`/admin/ai-studio/jobs?limit=${limit}`),
+    // 보관함(2026-08-05) — ★/jobs 와 다르다. /jobs 는 DB(GpuJob)를 보므로 큐를 거치지
+    //   않고 만든 이미지는 안 뜨고, 최근 N건만 가져온다. 보관함은 **서버3의 실제 파일**이
+    //   정본이라 전부 보인다.
+    getGallery: () =>
+        get<{ ok: boolean; reason?: string; files: { file: string; kb: number; mtime: number }[] }>(
+            '/admin/ai-studio/gallery'),
+    // 여러 장 한 번에 삭제 — 한 장씩만 되면 수십 장 정리할 때 못 쓴다
+    deleteImages: (files: string[]) =>
+        del<{ ok: boolean; deleted: number; failed: number; failedFiles: string[] }>(
+            '/admin/ai-studio/gallery', { files }),
     // ★<img src>로 직접 못 쓴다 — 인증이 Authorization 헤더 방식이라 img 태그는
     //   헤더를 못 붙여 401 이 난다. fetch 로 받아 blob URL 을 만들어 쓴다.
     //   (서버3을 인터넷에 노출하지 않고 이미지를 보여주기 위한 중계 경로)
