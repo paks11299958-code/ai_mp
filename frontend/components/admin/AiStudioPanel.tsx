@@ -22,13 +22,22 @@ const SIZES = [
 
 const won = (n: number) => Math.round(n).toLocaleString('ko-KR');
 
-/** 생성 결과 썸네일 — 인증 헤더가 필요해 fetch 로 받아 blob 으로 그린다. */
-const JobImage: React.FC<{ file: string }> = ({ file }) => {
+/** 생성 결과 썸네일 — 인증 헤더가 필요해 fetch 로 받아 blob 으로 그린다.
+ *
+ * ★이미지는 **서버3에만** 있고, 서버3은 유휴 30분이면 꺼진다. 꺼진 뒤에는
+ *   미리보기를 못 가져온다 — 그런데 브라우저 캐시(1시간)에 남은 것은 계속 보이므로
+ *   **"어떤 건 보이고 어떤 건 안 보이는" 상태**가 된다. 버그처럼 보이지만 정상 동작이다.
+ *   그래서 실패 사유를 **읽히는 색으로** 분명히 적는다(예전엔 gray-600 이라 안 보였다).
+ */
+const JobImage: React.FC<{ file: string; serverOff: boolean }> = ({ file, serverOff }) => {
     const [url, setUrl] = useState<string | null>(null);
     const [err, setErr] = useState(false);
     const urlRef = useRef<string | null>(null);
 
     useEffect(() => {
+        // ★서버가 꺼진 걸 이미 아는데 요청하지 않는다 — 어차피 502 라
+        //   목록에 있는 이미지 수만큼 헛된 요청이 나간다(SSH 시도라 느리기까지 하다).
+        if (serverOff) { setErr(true); return; }
         let alive = true;
         aiStudioApi.fetchImage(file)
             .then((u) => {
@@ -42,13 +51,15 @@ const JobImage: React.FC<{ file: string }> = ({ file }) => {
             // ★blob URL 은 명시적으로 해제하지 않으면 메모리에 남는다
             if (urlRef.current) URL.revokeObjectURL(urlRef.current);
         };
-    }, [file]);
+    }, [file, serverOff]);
 
     if (err) {
         return (
-            <div className="w-full aspect-[3/4] rounded-lg bg-gray-900 border border-gray-700
-                            flex items-center justify-center text-[11px] text-gray-600 text-center px-2">
-                이미지를 불러올 수 없습니다<br />(서버가 꺼졌을 수 있음)
+            <div className="w-full aspect-[3/4] rounded-lg bg-gray-900/80 border border-gray-700
+                            flex flex-col items-center justify-center gap-1 text-center px-2">
+                <span className="text-lg">🌙</span>
+                <span className="text-[11px] text-gray-300 font-medium">서버가 꺼져 있어<br />미리보기를 볼 수 없습니다</span>
+                <span className="text-[10px] text-gray-500">켜면 다시 보입니다</span>
             </div>
         );
     }
@@ -439,6 +450,16 @@ export const AiStudioPanel: React.FC = () => {
             {/* 결과 */}
             <div>
                 <p className="text-sm font-bold text-gray-200 mb-2">최근 작업</p>
+                {/* ★서버가 꺼지면 미리보기가 안 뜨는데, 캐시에 남은 것만 보여서
+                     "어떤 건 보이고 어떤 건 안 보이는" 상태가 된다 — 이유를 미리 알린다. */}
+                {!running && jobs.some((j) => j.status === 'completed' && j.files[0]) && (
+                    <p className="text-[11px] text-amber-300/90 bg-amber-900/20 border border-amber-800/40
+                                  rounded px-3 py-2 mb-2">
+                        🌙 서버가 꺼져 있어 미리보기를 불러올 수 없습니다.
+                        <span className="text-amber-200/70"> 일부가 보이는 건 브라우저에 남은 캐시입니다.</span>
+                        {' '}이미지는 서버3에 그대로 있으니 <b>켜기</b>를 누르면 다시 보입니다.
+                    </p>
+                )}
                 {jobs.length === 0 ? (
                     <p className="text-xs text-gray-600 py-6 text-center">아직 생성한 이미지가 없습니다.</p>
                 ) : (
@@ -446,7 +467,7 @@ export const AiStudioPanel: React.FC = () => {
                         {jobs.map((j) => (
                             <div key={j.id} className="bg-gray-900/60 border border-gray-700 rounded-lg p-2 space-y-1.5">
                                 {j.status === 'completed' && j.files[0] ? (
-                                    <JobImage file={j.files[0]} />
+                                    <JobImage file={j.files[0]} serverOff={!running} />
                                 ) : (
                                     <div className="w-full aspect-[3/4] rounded-lg bg-gray-800 flex items-center
                                                     justify-center text-[11px] text-gray-500">
