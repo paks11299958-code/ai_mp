@@ -1147,6 +1147,11 @@ export const aiStudioApi = {
     getGallery: () =>
         get<{ ok: boolean; reason?: string; files: { file: string; kb: number; mtime: number }[] }>(
             '/admin/ai-studio/gallery'),
+    // 썸네일 일괄(2026-08-05) — ★한 장씩 원본을 받으면 몹시 느리다. 서버1→서버2→서버3
+    //   2단 SSH 라 장당 1.26초에 6~8MB 원본이 그대로 온다(28장이면 35초).
+    //   서버3에서 320px JPEG 로 줄여 **한 번에** 받는다(실측 1/575, 전체 약 4초·471KB).
+    getThumbs: () =>
+        get<{ ok: boolean; reason?: string; thumbs: Record<string, string> }>('/admin/ai-studio/thumbs'),
     // 여러 장 한 번에 삭제 — 한 장씩만 되면 수십 장 정리할 때 못 쓴다
     deleteImages: (files: string[]) =>
         del<{ ok: boolean; deleted: number; failed: number; failedFiles: string[] }>(

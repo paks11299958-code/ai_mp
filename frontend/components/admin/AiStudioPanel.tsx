@@ -173,6 +173,9 @@ export const AiStudioPanel: React.FC = () => {
     const [gallery, setGallery] = useState<{ file: string; kb: number; mtime: number }[]>([]);
     const [galleryOpen, setGalleryOpen] = useState(false);
     const [picked, setPicked] = useState<Set<string>>(new Set());
+    // ★썸네일은 **한 번에** 받는다(파일명 → base64 JPEG). 예전처럼 장당 원본을 받으면
+    //   서버1→서버2→서버3 2단 SSH 로 장당 1.26초 × 6~8MB 라 28장에 35초가 걸렸다.
+    const [thumbs, setThumbs] = useState<Record<string, string>>({});
 
     // ★진행 폴링은 ref 로 관리한다 — 여러 번 누르면 타이머가 겹쳐
     //   같은 요청이 중복으로 나간다(전자책 표지 중복생성 사고와 같은 유형).
@@ -295,12 +298,32 @@ export const AiStudioPanel: React.FC = () => {
         if (!running) { setMsg('보관함을 보려면 서버를 켜 주세요.'); return; }
         setBusy('gallery');
         try {
-            const g = await aiStudioApi.getGallery();
+            // ★목록과 썸네일을 **같이** 받는다 — 순차로 하면 왕복이 2배가 된다
+            const [g, t] = await Promise.all([
+                aiStudioApi.getGallery(),
+                aiStudioApi.getThumbs().catch(() => ({ ok: false, thumbs: {} as Record<string, string> })),
+            ]);
             setGallery(g.files ?? []);
+            setThumbs(t.thumbs ?? {});
             if (!g.ok && g.reason) setMsg(g.reason);
         } catch (e: any) {
             setMsg(e?.message ?? '보관함을 불러오지 못했습니다.');
         } finally { setBusy(null); }
+    };
+
+    /** 원본 내려받기 — ★격자에 뜬 건 320px 썸네일이다. 원본이 필요할 때만 따로 받는다
+     *  (장당 6~8MB라 목록에서 전부 받으면 느려진다). 인증 헤더가 필요해 fetch 로 받는다. */
+    const downloadOriginal = async (file: string) => {
+        try {
+            const url = await aiStudioApi.fetchImage(file);
+            const a = document.createElement('a');
+            a.href = url; a.download = file;
+            a.click();
+            // ★blob URL 은 해제하지 않으면 메모리에 남는다
+            setTimeout(() => URL.revokeObjectURL(url), 10_000);
+        } catch {
+            setMsg('원본을 가져오지 못했습니다(서버가 꺼졌을 수 있습니다).');
+        }
     };
 
     const togglePick = (f: string) => {
@@ -324,9 +347,16 @@ export const AiStudioPanel: React.FC = () => {
                 ? `${r.deleted}장 삭제 — ${r.failed}장은 실패했습니다.`
                 : `${r.deleted}장을 삭제했습니다.`);
             setPicked(new Set());
-            const g = await aiStudioApi.getGallery();
-            setGallery(g.files ?? []);
-            await load();   // 디스크 사용량·최근 작업도 다시 읽는다
+            // ★지운 것만 화면에서 빼면 된다 — 서버를 다시 부를 이유가 없다.
+            //   (예전엔 여기서 목록+썸네일을 통째로 다시 받아 삭제할 때마다 느렸다)
+            const gone = new Set(files);
+            setGallery((prev) => prev.filter((g) => !gone.has(g.file)));
+            setThumbs((prev) => {
+                const n = { ...prev };
+                for (const f of files) delete n[f];
+                return n;
+            });
+            await load();   // 디스크 사용량·최근 작업은 값이 바뀌므로 갱신한다
         } catch (e: any) {
             setMsg(e?.message ?? '삭제에 실패했습니다.');
         } finally { setBusy(null); }
@@ -868,29 +898,49 @@ export const AiStudioPanel: React.FC = () => {
                                                 onClick={() => togglePick(g.file)}
                                                 className={`relative rounded-lg border-2 cursor-pointer overflow-hidden
                                                     ${on ? 'border-purple-500' : 'border-gray-700 hover:border-gray-500'}`}>
-                                                <JobImage file={g.file} serverOff={!running} />
+                                                {/* ★받아둔 썸네일을 그린다 — 장당 요청(JobImage)을 쓰면
+                                                     28장에 35초가 걸린다(2단 SSH × 6MB 원본). */}
+                                                {thumbs[g.file] ? (
+                                                    <img src={`data:image/jpeg;base64,${thumbs[g.file]}`}
+                                                        alt={g.file} loading="lazy"
+                                                        className="w-full aspect-square object-cover" />
+                                                ) : (
+                                                    <div className="w-full aspect-square bg-gray-800 animate-pulse" />
+                                                )}
                                                 {/* 체크 표시 — 골랐는지 한눈에 보여야 한다 */}
                                                 <span className={`absolute top-1 left-1 w-5 h-5 rounded flex items-center
                                                     justify-center text-[12px] font-bold
                                                     ${on ? 'bg-purple-600 text-white' : 'bg-gray-900/80 text-gray-400'}`}>
                                                     {on ? '✓' : ''}
                                                 </span>
-                                                <div className="px-1.5 py-1 bg-gray-900/80">
-                                                    <p className="text-[11px] text-gray-300 truncate">
-                                                        {g.file.replace('.png', '')}
-                                                    </p>
-                                                    <p className="text-[11px] text-gray-400">
-                                                        {g.kb >= 1024 ? `${(g.kb / 1024).toFixed(1)}MB` : `${g.kb}KB`}
-                                                    </p>
+                                                <div className="px-1.5 py-1 bg-gray-900/80 flex items-center justify-between gap-1">
+                                                    <span className="min-w-0">
+                                                        <span className="text-[11px] text-gray-300 truncate block">
+                                                            {g.file.replace('.png', '')}
+                                                        </span>
+                                                        <span className="text-[11px] text-gray-400">
+                                                            {g.kb >= 1024 ? `${(g.kb / 1024).toFixed(1)}MB` : `${g.kb}KB`}
+                                                        </span>
+                                                    </span>
+                                                    {/* ★원본 받기 — 격자는 썸네일이라 여기서 원본을 따로 가져온다.
+                                                         stopPropagation 필수: 안 하면 선택 토글까지 같이 눌린다. */}
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); downloadOriginal(g.file); }}
+                                                        title="원본 내려받기"
+                                                        className="text-[12px] px-1.5 py-0.5 rounded bg-gray-700
+                                                                   hover:bg-gray-600 text-gray-200 shrink-0">
+                                                        ⤓
+                                                    </button>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
                                 <p className="text-[12px] text-gray-400">
-                                    눌러서 고르고, 위의 삭제 버튼으로 지웁니다.
+                                    눌러서 고르고, 위의 삭제 버튼으로 지웁니다. 원본은 <b className="text-gray-300">⤓</b> 로 받습니다
+                                    (격자에 보이는 건 빠르게 보려고 줄인 미리보기입니다).
                                     ★<b className="text-gray-300">지우면 되돌릴 수 없습니다</b> —
-                                    필요한 이미지는 미리보기를 눌러 내려받아 두세요.
+                                    필요한 이미지는 먼저 내려받아 두세요.
                                 </p>
                             </>
                         )}
