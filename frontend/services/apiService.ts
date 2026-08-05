@@ -1394,6 +1394,10 @@ export const adminApi = {
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/paper/logs?limit=${limit}`),
     getTossPaperOrders: (limit = 100) =>
         get<{ lines: string[]; total?: number }>(`/admin/toss-trader/paper/orders?limit=${limit}`),
+    // ★읽기 전용 — 페이퍼는 auto_select 가 매일 실봇 발굴 추천을 자동 반영하므로
+    //   수동 선택은 다음 스캔에 덮어써진다(쓰기 API 자체를 만들지 않았다).
+    getTossPaperSelection: () =>
+        get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string; autoScanDate?: string }; readOnly?: boolean }>('/admin/toss-trader/paper/selection'),
     // 가상매매 성과 요약(2026-08-05) — 누적/일별 손익 + 체결수 + '왜 안 샀는지'(감시 점수).
     // ★체결 0건이 정상일 수 있어(임계 미달) hasTrades 로 빈 화면과 고장을 구분한다.
     getTossPaperPerformance: () =>

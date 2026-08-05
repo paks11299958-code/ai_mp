@@ -64,7 +64,23 @@ const LOG_SCROLL_CSS = `
 type View = 'scan' | 'select' | 'profit' | 'monitor' | 'score' | 'log' | 'settings';
 type LogFilter = 'all' | 'info' | 'order' | 'error';
 
-export const TossTraderPanel: React.FC = () => {
+/**
+ * 봇 모드. 실봇(live)과 가상매매(paper)는 **같은 코드·같은 전략**으로 돌고
+ * status 파일 구조가 46개 키까지 완전히 동일하다(2026-08-05 실측). 그래서 화면도
+ * 이 컴포넌트 하나를 공유한다 — 1795줄을 복제하면 앞으로 모든 수정이 2배가 되고,
+ * 그 2배는 곧 어긋난다(페이퍼/실봇 소스 분리를 하지 않은 것과 같은 이유).
+ *
+ * paper 모드에서 달라지는 것은 셋뿐이다:
+ *   ① 데이터 소스가 *_paper 파일
+ *   ② 쓰기(선택 저장·긴급정지·재시작) 전부 비활성 — 페이퍼는 auto_select 가 매일
+ *      덮어쓰므로 수동 선택이 다음 스캔에 사라진다. 눌리는데 사라지는 버튼은
+ *      없느니만 못하다.
+ *   ③ '선택' 탭 자체를 감춘다(위와 같은 이유)
+ */
+export type BotMode = 'live' | 'paper';
+
+export const TossTraderPanel: React.FC<{ mode?: BotMode }> = ({ mode = 'live' }) => {
+    const isPaper = mode === 'paper';
     const [data, setData] = useState<any>(null);
     const [paperData, setPaperData] = useState<any>(null);    // 가상매매(페이퍼 봇) 상태
     const [scanData, setScanData] = useState<any>(null);      // 발굴 스캔 결과
@@ -123,16 +139,26 @@ export const TossTraderPanel: React.FC = () => {
         } catch { setArchDates([]); }
     }, [pickArchDate]);
 
+    // 페이퍼 모드에서 '선택' 탭에 머무르면 아무것도 렌더되지 않는다(탭 자체가 없으므로).
+    // 모드가 바뀌는 경우는 없지만, 방어적으로 발굴 탭으로 돌려놓는다.
+    useEffect(() => {
+        if (isPaper && view === 'select') setView('scan');
+    }, [isPaper, view]);
+
     const load = useCallback(async () => {
         try {
+            // ★모드별 소스 분기. 발굴(scan_results)·채원 일기·커스텀 종목은 실봇이
+            //   만들어 페이퍼가 읽기만 하는 **공유 자산**이라 양쪽 동일 API를 쓴다
+            //   (paths.py 의 base_path 원칙과 같다).
             const [s, l, o, sel, cu, disc, paper] = await Promise.all([
-                adminApi.getTossStatus(),
-                adminApi.getTossLogs(120),
-                adminApi.getTossOrders(80),
-                adminApi.getTossSelection().catch(() => null),
+                isPaper ? adminApi.getTossPaperStatus() : adminApi.getTossStatus(),
+                isPaper ? adminApi.getTossPaperLogs(120) : adminApi.getTossLogs(120),
+                isPaper ? adminApi.getTossPaperOrders(80) : adminApi.getTossOrders(80),
+                (isPaper ? adminApi.getTossPaperSelection() : adminApi.getTossSelection()).catch(() => null),
                 adminApi.getTossCustomSymbols().catch(() => null),
-                adminApi.getTossDiscovery().catch(() => null), // 채원 발굴 일기
-                adminApi.getTossPaperStatus().catch(() => null), // 가상매매(페이퍼)
+                adminApi.getTossDiscovery().catch(() => null), // 채원 발굴 일기(공유)
+                // 실봇 화면에만 '가상매매 비교' 카드가 있다 — 페이퍼 화면에선 자기 자신이라 불필요
+                isPaper ? Promise.resolve(null) : adminApi.getTossPaperStatus().catch(() => null),
             ]);
             setData(s);
             setPaperData(paper);
@@ -145,7 +171,7 @@ export const TossTraderPanel: React.FC = () => {
         } catch {
             setError('불러오기 실패 (봇 미기동이거나 서버 오류)');
         }
-    }, []);
+    }, [isPaper]);
 
     const savedSymbols: string[] = selection?.selection?.symbols || [];
     const maxSelect: number = selection?.max ?? 5;
@@ -217,6 +243,9 @@ export const TossTraderPanel: React.FC = () => {
     // 패턴으로 AdminPasswordPrompt를 붙인다.
     const [askSavePw, setAskSavePw] = useState(false);
     const saveSelection = async (adminPassword: string) => {
+        // ★페이퍼는 쓰기 금지 — auto_select 가 매일 덮어써 수동 변경이 사라진다.
+        //   UI에서 버튼을 감추지만, 우회 경로가 남지 않게 함수 진입부에서도 막는다.
+        if (isPaper) return;
         // 선택(symbols)과 점수설정(params)을 함께 저장 — 한 번의 저장으로 봇에 반영.
         setSaving(true);
         try {
@@ -252,7 +281,8 @@ export const TossTraderPanel: React.FC = () => {
         setParam(sym, 'stopLossPct', String(+(stop * 100).toFixed(1)));
         setParam(sym, 'takeProfitPct', String(+(take * 100).toFixed(1)));
         setBtOpen(false);
-        setView('select');
+        // ★페이퍼엔 '선택' 탭이 없다(auto_select 가 덮어씀) — 이동시키면 빈 화면이 된다.
+        if (!isPaper) setView('select');
     };
 
     // 종목 통합 분석 — 비동기(요청만 하고 창 닫힘). 완료되면 채원이 텔레그램으로 요약 발송.
@@ -275,6 +305,9 @@ export const TossTraderPanel: React.FC = () => {
     };
 
     const addCustomSymbol = async () => {
+        // ★custom_symbols.json 은 실봇·페이퍼 **공유 자산**이다(paths.py base_path).
+        //   페이퍼 화면에서 고치면 실봇 유니버스까지 바뀌므로 여기선 읽기만 한다.
+        if (isPaper) return;
         const symbol = newCode.trim();
         const name = newName.trim();
         if (!/^\d{6}$/.test(symbol)) { setCustomMsg('종목코드는 6자리 숫자'); return; }
@@ -293,6 +326,9 @@ export const TossTraderPanel: React.FC = () => {
     };
 
     const removeCustomSymbol = async (symbol: string, name: string) => {
+        // ★custom_symbols.json 은 실봇·페이퍼 **공유 자산**이다(paths.py base_path).
+        //   페이퍼 화면에서 고치면 실봇 유니버스까지 바뀌므로 여기선 읽기만 한다.
+        if (isPaper) return;
         if (!window.confirm(`직접 추가 종목 ${name}(${symbol})을 삭제할까요? 선택돼 있으면 선택도 해제해야 합니다.`)) return;
         setSaving(true);
         try {
@@ -310,6 +346,9 @@ export const TossTraderPanel: React.FC = () => {
     // 확인 후 결정(유지) — 어차피 confirm 창을 한 번 더 거치므로 실사용 지연은 크지 않다.
     const [askHaltPw, setAskHaltPw] = useState<false | { halt: boolean }>(false);
     const setHalt = async (halt: boolean) => {
+        // ★페이퍼는 쓰기 금지 — auto_select 가 매일 덮어써 수동 변경이 사라진다.
+        //   UI에서 버튼을 감추지만, 우회 경로가 남지 않게 함수 진입부에서도 막는다.
+        if (isPaper) return;
         const ask = halt
             ? '🔴 긴급정지: 봇이 미체결을 전량 취소하고 신규 주문을 중단합니다. 실행할까요?'
             : '정지 해제 플래그만 저장합니다(봇 재시작은 안 함). 보통은 "정지 해제 + 재시작"을 쓰세요. 진행할까요?';
@@ -317,6 +356,9 @@ export const TossTraderPanel: React.FC = () => {
         setAskHaltPw({ halt });
     };
     const doSetHalt = async (adminPassword: string) => {
+        // ★페이퍼는 쓰기 금지 — auto_select 가 매일 덮어써 수동 변경이 사라진다.
+        //   UI에서 버튼을 감추지만, 우회 경로가 남지 않게 함수 진입부에서도 막는다.
+        if (isPaper) return;
         const halt = askHaltPw && askHaltPw.halt;
         setSaving(true);
         try {
@@ -338,6 +380,9 @@ export const TossTraderPanel: React.FC = () => {
     // 8/3 00:10 실제 401 실패 로그 확인 — 웹의 "정지 해제+재시작" 버튼이 원래도 안 먹혔다.
     const [askRestartPw, setAskRestartPw] = useState<false | { force: boolean }>(false);
     const restartBot = async (force = false) => {
+        // ★페이퍼 재시작은 이 화면에서 막는다 — 재시작은 pm2 프로세스를 건드리는
+        //   작업이고, 실봇 재시작(위험작업 4종)과 버튼이 같아 오조작 위험이 있다.
+        if (isPaper) return;
         const ask = force
             ? '⚠️ 리스크 정지(위험 감지)를 무시하고 재시작합니다. 원인을 확인하셨습니까? 계속할까요?'
             : '정지를 해제하고 봇을 재시작합니다(래치 해제). 재시작 후 정상 가동됩니다. 진행할까요?';
@@ -345,6 +390,9 @@ export const TossTraderPanel: React.FC = () => {
         setAskRestartPw({ force });
     };
     const doRestartBot = async (adminPassword: string) => {
+        // ★페이퍼 재시작은 이 화면에서 막는다 — 재시작은 pm2 프로세스를 건드리는
+        //   작업이고, 실봇 재시작(위험작업 4종)과 버튼이 같아 오조작 위험이 있다.
+        if (isPaper) return;
         const force = askRestartPw && askRestartPw.force;
         setSaving(true);
         setSaveMsg('봇 재시작 중… (최대 15초)');
@@ -423,11 +471,18 @@ export const TossTraderPanel: React.FC = () => {
             {/* 헤더 */}
             <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold flex items-center gap-2">
-                    <Icon name="TrendingUp" className="w-5 h-5 text-blue-400" />
-                    토스 자동매매 봇
+                    <Icon name={isPaper ? 'Activity' : 'TrendingUp'} className={`w-5 h-5 ${isPaper ? 'text-purple-400' : 'text-blue-400'}`} />
+                    {isPaper ? '가상매매 봇 (페이퍼)' : '토스 자동매매 봇'}
+                    {isPaper && (
+                        <span className="px-2 py-0.5 text-[11px] font-bold rounded bg-purple-900/50 text-purple-300 border border-purple-700">
+                            실주문 없음 · 읽기 전용
+                        </span>
+                    )}
                 </h3>
                 <div className="flex items-center gap-2">
-                    {(haltActive || st?.webHalt || halted) ? (
+                    {/* ★페이퍼엔 정지/재시작 버튼을 두지 않는다 — 가상매매라 정지의 실익이 없고,
+                        실봇 재시작(위험작업 4종)과 버튼 모양이 같아 오조작 위험만 생긴다. */}
+                    {!isPaper && ((haltActive || st?.webHalt || halted) ? (
                         <button onClick={() => restartBot(false)} disabled={saving}
                             className="text-xs px-3 py-1.5 rounded bg-green-700 hover:bg-green-600 text-white font-bold disabled:opacity-50">
                             ▶ 정지 해제 + 재시작
@@ -437,7 +492,7 @@ export const TossTraderPanel: React.FC = () => {
                             className="text-xs px-3 py-1.5 rounded bg-red-700 hover:bg-red-600 text-white font-bold disabled:opacity-50">
                             🔴 긴급정지
                         </button>
-                    )}
+                    ))}
                     <button onClick={load} className="text-xs px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">
                         새로고침
                     </button>
@@ -459,9 +514,18 @@ export const TossTraderPanel: React.FC = () => {
                     모드 전환은 안전상 서버1에서만 가능합니다(웹에서는 긴급정지만).
                 </div>
             ) : (
-                <div className="text-xs bg-amber-900/30 border border-amber-700/40 rounded-lg px-3 py-2 text-amber-200">
-                    🟢 <b>드라이런(DEBUG)</b> 모드 — 실제 주문이 나가지 않습니다. 봇은 서버1에서 상시 실행됩니다.
-                </div>
+                st?.mode === 'PAPER' ? (
+                    /* ★PAPER 를 DEBUG 로 뭉뚱그리면 안 된다 — 둘은 다르다.
+                       DEBUG=관찰용 드라이런, PAPER=가상 계좌로 손익까지 누적하는 실험. */
+                    <div className="text-xs bg-purple-900/30 border border-purple-700/40 rounded-lg px-3 py-2 text-purple-200">
+                        📝 <b>가상매매(PAPER)</b> — 실제 주문이 나가지 않지만 <b>손익은 가상 계좌에 누적</b>됩니다.
+                        실봇과 같은 코드·같은 전략으로 돌며, 설정만 다르게 두고 결과를 관찰합니다.
+                    </div>
+                ) : (
+                    <div className="text-xs bg-amber-900/30 border border-amber-700/40 rounded-lg px-3 py-2 text-amber-200">
+                        🟢 <b>드라이런(DEBUG)</b> 모드 — 실제 주문이 나가지 않습니다. 봇은 서버1에서 상시 실행됩니다.
+                    </div>
+                )
             )}
 
             {error && <div className="text-sm text-red-400">{error}</div>}
@@ -472,9 +536,14 @@ export const TossTraderPanel: React.FC = () => {
             {/* 최상위 탭 — 모바일에선 라벨이 세로로 꺾이지 않게 가로 스크롤 */}
             <div className="flex gap-1 border-b border-gray-700 overflow-x-auto toss-log-scroll">
                 <ViewTab on={view === 'scan'} onClick={() => setView('scan')} icon="Search">발굴</ViewTab>
-                <ViewTab on={view === 'select'} onClick={() => setView('select')} icon="CheckCircle">
-                    선택{effChecked.length > 0 && <span className="ml-1 text-[10px] bg-blue-600/70 text-white rounded px-1">{effChecked.length}</span>}
-                </ViewTab>
+                {/* ★페이퍼엔 '선택' 탭이 없다 — auto_select 가 매일 실봇 발굴 추천으로
+                    덮어쓰므로 수동 선택이 다음 스캔에 사라진다. 선택 종목은 모니터링
+                    탭에서 읽기 전용으로 확인한다. */}
+                {!isPaper && (
+                    <ViewTab on={view === 'select'} onClick={() => setView('select')} icon="CheckCircle">
+                        선택{effChecked.length > 0 && <span className="ml-1 text-[10px] bg-blue-600/70 text-white rounded px-1">{effChecked.length}</span>}
+                    </ViewTab>
+                )}
                 <ViewTab on={view === 'profit'} onClick={() => setView('profit')} icon="TrendingUp">수익률</ViewTab>
                 <ViewTab on={view === 'monitor'} onClick={() => setView('monitor')} icon="Activity">모니터링</ViewTab>
                 <ViewTab on={view === 'score'} onClick={() => setView('score')} icon="BarChart2">평가</ViewTab>
@@ -1103,7 +1172,9 @@ export const TossTraderPanel: React.FC = () => {
 
                         <div className="text-[11px] text-gray-500 px-1">
                             봇 추세 점수(6조건, 임계 이상=매수 신호) + 통합분석(재무·수급·뉴스+AI)을 종합한 발굴입니다.
-                            실제 매매 선택은 <button onClick={() => setView('select')} className="text-blue-300 underline">선택 탭</button>에서 직접 하세요.
+                            {isPaper
+                                ? ' 가상매매 봇은 이 발굴 추천 상위 2종목을 매일 자동으로 반영합니다(수동 선택 없음).'
+                                : <> 실제 매매 선택은 <button onClick={() => setView('select')} className="text-blue-300 underline">선택 탭</button>에서 직접 하세요.</>}
                         </div>
                     </div>
                 );
@@ -1542,7 +1613,7 @@ export const TossTraderPanel: React.FC = () => {
                         <Row label="시장 프록시">{st.marketSymbol ? `KODEX200 (${st.marketSymbol})` : '미사용'}</Row>
                         <Row label="전략">{st.strategy === 'ScoreTrend' ? '점수형 추세추종' : (st.strategy || '-')}</Row>
                         <Row label="매수 임계 점수">{st.buyThreshold ?? '-'}점 이상</Row>
-                        <Row label="모드">{st.mode === 'LIVE' ? '🔴 실거래' : '🟢 드라이런(DEBUG)'}</Row>
+                        <Row label="모드">{st.mode === 'LIVE' ? '🔴 실거래' : st.mode === 'PAPER' ? '📝 가상매매(PAPER)' : '🟢 드라이런(DEBUG)'}</Row>
                     </SettingsSection>
                     <SettingsSection title="주문 상한 · 리스크">
                         <Row label="1회 주문 상한">{won(st.maxOrderAmountKrw)} / {st.maxOrderQuantity}주</Row>
