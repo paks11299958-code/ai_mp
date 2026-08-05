@@ -162,11 +162,16 @@ async function checkTossTrader() {
     // pm2 상태 + selection.json 을 한 번의 SSH 로 (왕복 줄이기)
     const r = await ssh1(
         `cd ~/shared-api && node_modules/.bin/pm2 jlist 2>/dev/null; ` +
-        `echo '---SPLIT---'; cat ${TOSS_DIR}/logs/selection.json 2>/dev/null`
+        `echo '---SPLIT---'; cat ${TOSS_DIR}/logs/selection.json 2>/dev/null; ` +
+        // 페이퍼 실험 현황(2026-08-05 손절5%·익절3% 관찰) — 체결이 나오면 알려야 한다.
+        // ★봇에 체결 알림 경로가 아예 없어(notify.py 는 HALT 전용) 첫 거래가 나도
+        //   로그를 뒤지기 전엔 아무도 모른다. 관찰이 목적인데 관찰 수단이 없던 셈.
+        `echo '---SPLIT---'; cat ${TOSS_DIR}/logs/pnl_ledger_paper.json 2>/dev/null; ` +
+        `echo '---SPLIT---'; grep -c '주문 성공' ${TOSS_DIR}/logs/orders_paper.log 2>/dev/null || echo 0`
     );
     if (!r.ok) return { ok: false, detail: `서버1 SSH 실패: ${r.err.slice(0, 120)}` };
 
-    const [jlistRaw, selRaw] = r.out.split('---SPLIT---');
+    const [jlistRaw, selRaw, paperLedgerRaw, paperFillsRaw] = r.out.split('---SPLIT---');
     let procs;
     try {
         procs = JSON.parse((jlistRaw || '').trim());
@@ -197,7 +202,26 @@ async function checkTossTrader() {
     else                     parts.push('⚠️ selection.json 없음');
     if (scanDate) parts.push(`발굴기준일 ${scanDate}`);
 
+    // ── 페이퍼 실험 현황(손절5%·익절3%·임계70 관찰, 2026-08-05~) ──
+    // 체결이 0건이면 "아직"이라고만 적고, 나오기 시작하면 건수·손익을 싣는다.
+    // 실봇 적용 여부를 이 숫자로 판단하기로 했으므로(사장 결정) 눈에 보여야 한다.
+    const fills = parseInt((paperFillsRaw || '').trim(), 10);
+    let paperPnl = null;
+    try {
+        const led = JSON.parse((paperLedgerRaw || '').trim());
+        paperPnl = Number(led.realizedPnlKrw ?? 0);
+    } catch { /* 거래 전이면 파일 자체가 없다 — 정상 */ }
+
+    if (Number.isFinite(fills) && fills > 0) {
+        const pnlTxt = paperPnl == null ? '' :
+            ` 손익 ${paperPnl > 0 ? '+' : ''}${Math.round(paperPnl).toLocaleString('ko-KR')}원`;
+        parts.push(`📝페이퍼실험 체결 ${fills}건${pnlTxt}`);
+    } else {
+        parts.push('📝페이퍼실험 체결 아직 0건');
+    }
+
     // online 이어도 halt 면 정상이 아니다 — 실제로 매매를 안 하고 있는 상태다.
+    // ★페이퍼 체결 수는 판정에 넣지 않는다 — 0건은 '이상'이 아니라 관찰 대기 상태다.
     const ok = liveStatus === 'online' && halt === false;
     return { ok, detail: parts.join(' · ') };
 }
