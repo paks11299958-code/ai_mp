@@ -400,9 +400,40 @@ GCP 예산 알림을 **월 10만원**에 걸어 초과 시 텔레그램으로 �
   `id · type · payloadJson · status · resultJson · error · userId ·
    createdAt · startedAt · updatedAt · finishedAt` + `(status, createdAt)` 인덱스
 
+### GPU 큐 워커 (`~/gpu_worker.py`, systemd `gpu-worker`)
+
+`GpuJob` 을 폴링해 ComfyUI 로 처리한다. 기존 큐 워커들과 같은 신뢰 모델:
+원자적 상태 전이(`FOR UPDATE SKIP LOCKED`) · 멱등 · stale 회수.
+
+**payload 형식**(모두 선택, 없으면 안전한 기본값):
+```json
+{"prompt":"...", "negative":"...", "width":1024, "height":1024,
+ "steps":28, "cfg":7.0, "seed":123, "sampler":"dpmpp_2m",
+ "model":"sd_xl_base_1.0.safetensors"}
+```
+
+**★고장 주입으로 검증한 4가지**
+
+| 케이스 | 결과 |
+|---|---|
+| 정상 job | ✅ 12초에 완료, `resultJson` 에 파일명 기록 |
+| 없는 모델 지정 | ✅ `failed` 로 기록하고 **워커는 안 죽음** — 다음 job 이어서 처리 |
+| `processing` 25분 박제 | ✅ **stale 회수**로 `pending` 복귀 후 재처리 |
+| ComfyUI 재기동 중 job | ⚠️ **첫 시도에서 실패** → 아래 수정 |
+
+★**ComfyUI 준비 대기(`wait_comfy`)를 추가한 이유**: 서버가 켜질 때 워커가 ComfyUI 보다
+먼저 준비되면 첫 job 을 집어서 `Connection refused` 로 **실패 처리해버린다**(실측).
+서버3 은 껐다 켜는 구조라 **매번 기동할 때마다 이 창이 생긴다** — 켤 때마다 첫 요청이
+버려지는 셈이었다. systemd 의 `After=` 만으로는 부족하다(프로세스 시작 ≠ 서비스 준비).
+→ 기동 시 대기 + job 을 집은 뒤에도 재확인, 미응답이면 **`failed` 가 아니라 `pending`
+복귀**(ComfyUI 문제로 회원 요청을 버리면 안 된다).
+
+★로그 확인 시 주의: 재시작했는데 **로그가 옛것 그대로**여서 "안 고쳐졌다"고 오판할 뻔했다.
+줄 수·타임스탬프를 함께 봐야 새 로그인지 알 수 있다.
+
 ### 남은 작업
 
-1. GPU 큐 워커(서버3) — `GpuJob` 폴링 → ComfyUI 실행 → 결과 저장
+1. ~~GPU 큐 워커~~ ✅ **완료**(위 참조)
 2. 디스패처(서버2 크론) — 큐에 pending 있으면 서버3 start
    ★**이 서버의 gcloud 는 권한 범위 제한으로 인스턴스 제어가 막혀 있다**
    (`Request had insufficient authentication scopes`) — 서비스 계정 권한 조정 필요
