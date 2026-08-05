@@ -424,9 +424,31 @@ async function checkResources() {
                 waitUntil: 'networkidle',
             });
             const status = response?.status() ?? 0;
-            if (status >= 400) throw new Error(`HTTP ${status}`);
-            results.site = { ok: true, detail: `HTTP ${status}` };
-            console.log(`✅ [사이트] ${TARGET_URL} — HTTP ${status}`);
+
+            // ★403 + "Security Checkpoint" = Vercel 봇 차단이지 사이트 장애가 아니다
+            //   (2026-08-05 실측: 감시 서버 IP가 반복 요청으로 일시 차단됐는데
+            //    같은 시각 서버1에서는 HTTP 200 정상이었다).
+            //   이걸 장애로 보고하면 "사이트가 죽었다"는 거짓 경보가 되고, 반대로
+            //   조용히 통과시키면 진짜 장애를 놓친다 — 별도 상태로 구분해 알린다.
+            let checkpoint = false;
+            if (status === 403) {
+                const body = await page.content().catch(() => '');
+                checkpoint = /Security Checkpoint/i.test(body);
+            }
+
+            if (checkpoint) {
+                results.site = {
+                    ok: false,
+                    detail: 'Vercel 보안 체크포인트(403) — 이 감시 서버 IP가 차단된 상태. ' +
+                            '사이트 자체 장애가 아닐 수 있으니 다른 경로에서 접속 확인 필요',
+                };
+                console.error('⚠️ [사이트] Vercel 보안 체크포인트 403 — 감시 IP 차단 의심');
+            } else if (status >= 400) {
+                throw new Error(`HTTP ${status}`);
+            } else {
+                results.site = { ok: true, detail: `HTTP ${status}` };
+                console.log(`✅ [사이트] ${TARGET_URL} — HTTP ${status}`);
+            }
         } catch (err) {
             results.site = { ok: false, detail: err.message };
             console.error(`❌ [사이트] ${err.message}`);
