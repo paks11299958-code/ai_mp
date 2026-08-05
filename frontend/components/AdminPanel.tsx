@@ -25,6 +25,7 @@ import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
 import { AiStudioPanel } from './admin/AiStudioPanel';
+import { AiGalleryPanel } from './admin/AiGalleryPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
 import { MarketingDailyPanel } from './admin/MarketingDailyPanel';
@@ -123,6 +124,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'paper-trader',  label: '가상매매(페이퍼)', icon: 'Activity' },
                             // AI 스튜디오(서버3 GPU) — 필요할 때만 켜는 온디맨드 서버(2026-08-05)
                             { key: 'ai-studio',     label: 'AI 스튜디오', icon: 'Zap' },
+                            // ★보관함을 분리(2026-08-05) — 스튜디오 안에 접이식으로 두니
+                            //   '만드는 곳'과 '보는 곳'이 섞여 헷갈린다는 지적. 생성/관리를 나눈다.
+                            { key: 'ai-gallery',    label: 'AI 보관함', icon: 'Image' },
                         ] },
                     ] as const;
                     // 현재 mainView가 속한 그룹을 활성 그룹으로
@@ -219,6 +223,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'paper-trader' && <TossTraderPanel mode="paper" />}
                 {mainView === 'ai-studio' && <AiStudioPanel />}
+                {mainView === 'ai-gallery' && <AiGalleryPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}
                 {mainView === 'marketing-daily' && <MarketingDailyPanel />}
                 {mainView === 'biz' && <BizReportPanel />}
