@@ -623,6 +623,17 @@ export const AiStudioPanel: React.FC = () => {
                                 <p className="text-[12px] text-gray-400 leading-snug">
                                     {denoiseGuide(denoise).desc}
                                 </p>
+                                {/* ★상반신 사진으로 전신을 만들려면 강도를 올려야 한다 —
+                                     실측(2026-08-06): 같은 프롬프트·시드로 0.55 는 상반신 그대로,
+                                     0.85 에서 비로소 전신이 나왔다. 대신 얼굴은 원본과 달라진다.
+                                     (여백 패딩도 시도했으나 모델이 여백을 배경 물체로 읽어 더 나빴다) */}
+                                {denoise < 0.8 && (
+                                    <p className="text-[12px] text-amber-200/90 bg-amber-900/20 border border-amber-800/40 rounded px-2 py-1.5 leading-snug">
+                                        💡 <b>전신</b>을 만들려는데 상반신 사진을 올리셨다면 강도를 <b>0.85 이상</b>으로
+                                        올리세요 — 이보다 낮으면 원본 구도(상반신)를 벗어나지 못합니다.
+                                        <span className="text-amber-200/70"> 단 그만큼 얼굴도 원본과 달라집니다.</span>
+                                    </p>
+                                )}
                                 {initInfo && <p className="text-[11px] text-gray-400">{initInfo}</p>}
                             </div>
                         </div>
@@ -830,10 +841,24 @@ export const AiStudioPanel: React.FC = () => {
                     </p>
                 )}
 
-                <button onClick={doGenerate} disabled={busy !== null}
+                {/* ★FLUX + 견본 = 견본이 **조용히 무시된다**(워커 `if style_image and not flux`).
+                     IP-Adapter 노드가 SDXL 전용이라 그렇다. 경고가 없으면 견본을 올려 놓고
+                     "왜 화풍이 안 따라오지?"만 반복하게 된다(2026-08-06). */}
+                {isFlux && styleFile && (
+                    <p className="text-[12px] text-amber-200 bg-amber-900/25 border border-amber-700/50 rounded px-2.5 py-2">
+                        ⚠️ 지금 고른 <b>FLUX 모델은 '스타일 따라하기'를 쓰지 못합니다</b> — 견본은 무시되고
+                        프롬프트로만 그려집니다. 견본을 쓰시려면 <b>RealVisXL·JuggernautXL</b> 같은 SDXL 모델을 고르세요.
+                    </p>
+                )}
+
+                {/* ★프롬프트가 비면 버튼을 잠근다 — 예전엔 눌려도 첫 줄에서 조용히 반환돼
+                     "생성하기가 안 눌린다"는 오해가 생겼다(2026-08-06 사장 지적). */}
+                <button onClick={doGenerate} disabled={busy !== null || !prompt.trim()}
                     className="w-full text-sm px-4 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600
                                font-bold disabled:opacity-50">
-                    {busy === 'generate' ? '접수 중…' : '🎨 생성 요청'}
+                    {busy === 'generate' ? '접수 중…'
+                        : !prompt.trim() ? '⌨ 먼저 프롬프트를 입력하세요'
+                            : '🎨 생성 요청'}
                 </button>
                 <p className="text-[12px] text-gray-400">
                     장당 약 14~16초, 원가 약 5원. 같은 프롬프트라도 매번 다른 그림이 나옵니다.
