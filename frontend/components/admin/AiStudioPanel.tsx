@@ -161,6 +161,11 @@ export const AiStudioPanel: React.FC = () => {
     // 업스케일(후보정) — 설치된 확대 모델과 사용 여부
     const [upscalers, setUpscalers] = useState<string[]>([]);
     const [useUpscale, setUseUpscale] = useState(false);
+    // ★"고른 프리셋이 확대를 원했는가" — 체크박스의 현재 상태(useUpscale)와 **별개**다.
+    //   확대 모델 목록은 서버가 켜져야 오는데, 그 전에 프리셋을 고르면 켤 수가 없다.
+    //   그 의도를 여기 적어 두었다가 목록이 도착하면 그때 반영한다(아래 useEffect).
+    //   ★사장이 직접 체크를 끈 경우와 구분하려고 별도 상태로 둔다.
+    const [wantUpscale, setWantUpscale] = useState(false);
 
     // img2img(원본 사진 바꾸기) — 서버3에 올린 파일명 + 미리보기 + 디노이징 강도
     // ★file 이 있으면 img2img, 없으면 기존처럼 t2i 다. 같은 폼을 공유한다.
@@ -207,6 +212,17 @@ export const AiStudioPanel: React.FC = () => {
     useEffect(() => () => {
         if (dlTimer.current !== null) clearInterval(dlTimer.current);
     }, []);
+
+    // ★확대 모델 목록이 **늦게 도착했을 때** 프리셋의 확대 의도를 뒤늦게 반영한다.
+    //   서버가 꺼진 채 프리셋을 고르면 그 시점엔 켤 수 없었기 때문이다.
+    //   ★`없음 → 있음` 으로 바뀌는 **그 순간에만** 켠다. 매번 켜면 사장이 직접 끈
+    //     체크를 15초 주기 갱신이 도로 켜버린다(끌 수 없는 체크박스가 된다).
+    const hadUpscalers = useRef(false);
+    useEffect(() => {
+        const has = upscalers.length > 0;
+        if (has && !hadUpscalers.current && wantUpscale) setUseUpscale(true);
+        hadUpscalers.current = has;
+    }, [upscalers, wantUpscale]);
 
     const load = useCallback(async () => {
         try {
@@ -374,7 +390,9 @@ export const AiStudioPanel: React.FC = () => {
     const applyPreset = (p: StylePreset | null) => {
         setPreset(p);
         setPrevPrompt(null);          // 프리셋이 바뀌면 이전 되돌리기 대상은 의미가 없다
-        if (!p) return;
+        // ★'직접 입력'으로 되돌리면 확대 의도도 함께 지운다 — 안 지우면 옛 프리셋의
+        //   의도가 남아 있다가 목록이 도착할 때 체크가 되살아난다.
+        if (!p) { setWantUpscale(false); return; }
         // ★프롬프트가 비어 있으면 예시를 넣어 준다 — 빈 칸만 보면 뭘 써야 할지 막막하다.
         //   ★이미 쓴 내용은 절대 덮지 않는다(쓰던 걸 날리면 프리셋을 못 바꾼다).
         setPrompt((cur) => (cur.trim() ? cur : p.example));
@@ -382,6 +400,12 @@ export const AiStudioPanel: React.FC = () => {
         setSteps(p.steps);
         // ★확대 후보정 기본값 — 인물·제품은 켜는 게 낫다는 게 2026-08-05 비교 실측 결론.
         //   설치된 확대 모델이 없으면 켜 봐야 소용없으므로 그때만 반영한다.
+        // ★단 '지금 확대 모델이 없다'와 '이 프리셋은 확대를 원한다'는 **다른 사실**이다.
+        //   서버가 꺼진 채 프리셋을 고르면 upscalers 가 비어 있어 여기서 OFF 가 되는데,
+        //   나중에 서버가 켜져 목록이 도착해도 **다시 켜주지 않아** 조용히 품질이 떨어졌다
+        //   (2026-08-06 시나리오 재현으로 확인). 그래서 의도를 따로 기억해 두고,
+        //   목록이 도착하는 시점에 아래 useEffect 가 반영한다.
+        setWantUpscale(!!p.upscale);
         setUseUpscale(!!p.upscale && upscalers.length > 0);
         const i = SIZES.findIndex((s) => s.w === p.width && s.h === p.height);
         if (i >= 0) setSizeIdx(i);
@@ -739,7 +763,9 @@ export const AiStudioPanel: React.FC = () => {
                         <select value={model} onChange={(e) => setModel(e.target.value)}
                             className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
                             {models.length === 0 && <option value="">서버 켜면 목록 표시</option>}
-                            {/* ★고르는 자리에서 성격이 보여야 한다 — 이름만으론 인물용인지 사물용인지 모른다 */}
+                            {/* ★고르는 자리에서 성격이 보여야 한다 — 이름만으론 인물용인지 사물용인지 모른다.
+                                ★단 `<option>` 안에서는 줄바꿈·색상이 **브라우저에서 무시된다.**
+                                  그래서 여기는 한 줄로 두고, 고른 뒤의 설명은 아래에 크게 따로 띄운다. */}
                             {models.map((m) => (
                                 <option key={m} value={m}>
                                     {m.replace('.safetensors', '')}
@@ -747,6 +773,17 @@ export const AiStudioPanel: React.FC = () => {
                                 </option>
                             ))}
                         </select>
+                        {/* ★고른 모델의 설명을 드롭다운 **바깥**에 다시 보여준다(2026-08-05).
+                            닫힌 select 는 폭이 좁아 괄호 설명이 잘려 보이고, 그래서
+                            "설명이 헷갈린다"는 지적이 나왔다. 여기선 잘리지 않는다. */}
+                        {modelNote(model) && (
+                            <p className={`mt-1 text-[12px] leading-snug ${
+                                modelNote(model).startsWith('⛔') ? 'text-red-300'
+                                    : modelNote(model).startsWith('★') ? 'text-green-300'
+                                        : 'text-gray-400'}`}>
+                                {modelNote(model)}
+                            </p>
+                        )}
                     </Field>
                     <Field label="크기">
                         <select value={sizeIdx} onChange={(e) => setSizeIdx(Number(e.target.value))}
@@ -832,8 +869,12 @@ export const AiStudioPanel: React.FC = () => {
                                                     <span className="text-xs text-gray-300 block truncate">
                                                         {m.replace('.safetensors', '')}
                                                     </span>
+                                                    {/* ★★=권장 / ⛔=고르지 말 것. 위 모델 드롭다운과 같은 규칙으로 칠한다 */}
                                                     {modelNote(m) && (
-                                                        <span className="text-[12px] text-gray-400 block truncate">
+                                                        <span className={`text-[12px] block truncate ${
+                                                            modelNote(m).startsWith('⛔') ? 'text-red-300'
+                                                                : modelNote(m).startsWith('★') ? 'text-green-300'
+                                                                    : 'text-gray-400'}`}>
                                                             {modelNote(m)}
                                                         </span>
                                                     )}
