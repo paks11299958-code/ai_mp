@@ -26,6 +26,13 @@ const gb = (mb: number) => (mb >= 1024 ? `${(mb / 1024).toFixed(1)}GB` : `${Math
 
 /** 디노이징 강도 눈금 — 숫자만 보여주면 무슨 뜻인지 알 수 없다.
  *  ★값의 의미를 말로 붙여야 "0.55가 뭔데?"가 안 생긴다. */
+/** 설치된 확대 모델 중 **가장 좋은 것**을 고른다(2026-08-06 A/B 실측 기준).
+ *  UltraSharp 우선 — 인물에서 속눈썹·잔머리·모공이 살아난다.
+ *  RealESRGAN 은 매끈하지만 피부결을 뭉개서 차선이다.
+ *  ★목록 첫 번째를 쓰면 **설치 순서에 결과가 좌우**되므로 이름으로 고른다. */
+const pickUpscaler = (list: string[]): string | undefined =>
+    list.find((u) => u.toLowerCase().includes('ultrasharp')) ?? list[0];
+
 const DENOISE_GUIDE: { max: number; label: string; desc: string }[] = [
     { max: 0.35, label: '살짝 다듬기',   desc: '원본과 거의 같게 — 화질·디테일만 정리' },
     { max: 0.65, label: '스타일 바꾸기', desc: '구도·포즈는 그대로, 분위기와 묘사를 바꿉니다' },
@@ -424,8 +431,13 @@ export const AiStudioPanel: React.FC = () => {
             const r = await aiStudioApi.generate({
                 prompt: finalPrompt, negative: negative || undefined, model: model || undefined,
                 width: size.w, height: size.h, steps, count,
-                // 업스케일은 켜져 있고 설치된 모델이 있을 때만 보낸다
-                upscale: useUpscale && upscalers[0] ? upscalers[0] : undefined,
+                // 업스케일은 켜져 있고 설치된 모델이 있을 때만 보낸다.
+                // ★어느 걸 쓸지는 고르게 하지 않고 **가장 좋은 것으로 고정**한다 —
+                //   2026-08-06 같은 시드 A/B 실측에서 UltraSharp 가 인물 디테일(속눈썹·잔머리·
+                //   모공)에서 확실히 나았고, RealESRGAN 은 피부결을 뭉갰다. 우열이 분명한
+                //   선택지를 화면에 늘리면 잘못 고를 여지만 생긴다.
+                //   ★예전엔 `upscalers[0]`(목록 첫 번째)라 **설치 순서에 결과가 좌우**됐다.
+                upscale: useUpscale ? pickUpscaler(upscalers) : undefined,
                 upscaleScale: 2,
                 // img2img — 원본이 있을 때만. 없으면 기존과 똑같이 동작한다.
                 initImage: initFile ?? undefined,
@@ -825,7 +837,13 @@ export const AiStudioPanel: React.FC = () => {
                         <span className="text-[13px] leading-relaxed">
                             <b className="text-gray-200">✨ 선명하게 (2배 확대 후보정)</b>
                             <span className="text-gray-400">
-                                {' '}— 디테일이 살아납니다. 시간은 5~10초 더 걸리고 파일이 커집니다.
+                                {' '}— 머리카락·피부결이 살아납니다. 시간은 5~10초 더 걸리고 파일이 커집니다.
+                                {/* ★어느 모델을 쓰는지 밝힌다 — 모델 관리에 2종이 보이는데
+                                     화면에 표시가 없으면 "어느 게 쓰이지?"가 생긴다(고르는 칸은 일부러 안 만든다). */}
+                                {(() => {
+                                    const u = pickUpscaler(upscalers);
+                                    return u ? ` 좋은 쪽(${u.replace(/\.(pth|safetensors)$/i, '')})으로 자동 적용됩니다.` : '';
+                                })()}
                             </span>
                         </span>
                     </label>
