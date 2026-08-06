@@ -1329,6 +1329,9 @@ export interface AdminUser {
     phone: string | null;
     username: string | null;
     role: string;
+    /** 가입 경로. `'guest'` = 레퍼럴 링크로 자동 발급된 체험계정(7일 뒤 크론이 삭제).
+     *  ★옛 배포와 섞일 수 있어 optional 이다 — 없으면 정회원으로 취급한다. */
+    provider?: string;
     paidPoints: number;
     bonusPoints: number;
     createdAt: string;

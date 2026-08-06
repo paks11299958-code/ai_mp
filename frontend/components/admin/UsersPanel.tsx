@@ -10,6 +10,15 @@ export const UsersPanel: React.FC = () => {
     const [userList, setUserList] = useState<AdminUser[]>([]);
     const [userListLoading, setUserListLoading] = useState(false);
     const [userSearch, setUserSearch] = useState('');
+    // ★체험계정(provider='guest') 접기 — 기본 숨김(2026-08-06 사장 지시).
+    //   레퍼럴 링크로 자동 발급되는 계정이라 유입이 있는 날엔 수십 건이 한꺼번에 쌓여
+    //   정회원이 묻힌다. 삭제는 7일 크론이 이미 정상 처리 중이므로(실측 확인),
+    //   보관 기간을 줄이는 대신 **화면에서만** 접는다.
+    const [showGuests, setShowGuests] = useState(false);
+    // provider 가 없는 옛 응답은 정회원으로 본다(체험계정을 실수로 감추지 않도록).
+    const isGuest = (u: AdminUser) => u.provider === 'guest';
+    const guestCount = userList.filter(isGuest).length;
+    const memberCount = userList.length - guestCount;
     const [grantTarget, setGrantTarget] = useState<AdminUser | null>(null);
     const [grantAmount, setGrantAmount] = useState('');
     const [grantDesc, setGrantDesc] = useState('');
@@ -128,18 +137,34 @@ export const UsersPanel: React.FC = () => {
 
             {/* 유저 목록 */}
             <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
-                <div className="px-5 py-4 flex items-center justify-between border-b border-gray-700">
+                <div className="px-5 py-4 flex items-center justify-between border-b border-gray-700 gap-3 flex-wrap">
                     <h3 className="text-sm font-semibold text-gray-200 flex items-center gap-2">
                         <Icon name="Users" size={15} className="text-gray-400" />
-                        전체 회원 목록 ({userList.length}명)
+                        회원 목록 ({memberCount}명)
+                        {/* ★체험계정은 접혀 있으므로 '몇 명이 숨어 있는지'를 반드시 보여준다.
+                            숫자가 안 보이면 이번엔 "체험회원이 사라졌다"고 오해하게 된다. */}
+                        {guestCount > 0 && (
+                            <span className="text-[12px] font-normal text-gray-500">
+                                {showGuests ? `· 체험 ${guestCount}명 포함` : `· 체험 ${guestCount}명 숨김`}
+                            </span>
+                        )}
                     </h3>
-                    <input
-                        type="text"
-                        placeholder="이메일 / 이름 검색"
-                        value={userSearch}
-                        onChange={e => setUserSearch(e.target.value)}
-                        className="w-48 px-3 py-1.5 rounded-lg bg-gray-700 border border-gray-600 text-white text-xs focus:outline-none focus:border-blue-500"
-                    />
+                    <div className="flex items-center gap-3">
+                        {/* 체험계정 보기 — 기본은 꺼짐(정회원만 보인다) */}
+                        <label className="flex items-center gap-1.5 text-xs text-gray-400 cursor-pointer select-none whitespace-nowrap">
+                            <input type="checkbox" checked={showGuests}
+                                onChange={e => setShowGuests(e.target.checked)}
+                                className="accent-blue-500" />
+                            체험계정 보기
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="이메일 / 이름 검색"
+                            value={userSearch}
+                            onChange={e => setUserSearch(e.target.value)}
+                            className="w-48 px-3 py-1.5 rounded-lg bg-gray-700 border border-gray-600 text-white text-xs focus:outline-none focus:border-blue-500"
+                        />
+                    </div>
                 </div>
                 {userListLoading ? (
                     <div className="p-8 text-center text-sm text-gray-500">로딩 중...</div>
@@ -161,6 +186,9 @@ export const UsersPanel: React.FC = () => {
                             </thead>
                             <tbody>
                                 {userList
+                                    // ★체험계정은 기본으로 접는다. 단 검색 중일 때는 보여준다 —
+                                    //   특정 체험회원을 찾으려고 검색했는데 안 나오면 "없다"고 오해한다.
+                                    .filter(u => showGuests || userSearch.trim() !== '' || !isGuest(u))
                                     .filter(u => {
                                         const q = userSearch.toLowerCase();
                                         const identifier = u.email ?? u.phone ?? '';
@@ -168,7 +196,15 @@ export const UsersPanel: React.FC = () => {
                                     })
                                     .map(u => (
                                         <tr key={u.id} className="border-b border-gray-700/50 hover:bg-gray-700/30 transition-colors">
-                                            <td className="px-4 py-3 text-gray-200">{u.email ?? u.phone}</td>
+                                            <td className="px-4 py-3 text-gray-200">
+                                                {u.email ?? u.phone}
+                                                {/* 접기를 풀었을 때 어느 줄이 체험계정인지 한눈에 보이게 한다 */}
+                                                {isGuest(u) && (
+                                                    <span className="ml-1.5 px-1.5 py-0.5 rounded text-[10px] bg-amber-900/60 text-amber-300 align-middle">
+                                                        체험
+                                                    </span>
+                                                )}
+                                            </td>
                                             <td className="px-4 py-3 text-gray-400">{u.username || '—'}</td>
                                             <td className="px-4 py-3 text-right text-blue-300">{u.paidPoints.toLocaleString()}</td>
                                             <td className="px-4 py-3 text-right text-yellow-300">{u.bonusPoints.toLocaleString()}</td>
