@@ -26,12 +26,18 @@ const gb = (mb: number) => (mb >= 1024 ? `${(mb / 1024).toFixed(1)}GB` : `${Math
 
 /** 디노이징 강도 눈금 — 숫자만 보여주면 무슨 뜻인지 알 수 없다.
  *  ★값의 의미를 말로 붙여야 "0.55가 뭔데?"가 안 생긴다. */
-/** 설치된 확대 모델 중 **가장 좋은 것**을 고른다(2026-08-06 A/B 실측 기준).
- *  UltraSharp 우선 — 인물에서 속눈썹·잔머리·모공이 살아난다.
- *  RealESRGAN 은 매끈하지만 피부결을 뭉개서 차선이다.
- *  ★목록 첫 번째를 쓰면 **설치 순서에 결과가 좌우**되므로 이름으로 고른다. */
-const pickUpscaler = (list: string[]): string | undefined =>
-    list.find((u) => u.toLowerCase().includes('ultrasharp')) ?? list[0];
+/** 설치된 확대 모델 중 **소재에 맞는 것**을 고른다(2026-08-06 A/B 실측 2회 기준).
+ *  ★사진(인물·제품) → UltraSharp : 머리카락·광택이 또렷해진다.
+ *  ★플랫 일러스트   → RealESRGAN : 색 면이 깨끗하다. UltraSharp 는 평면에 노이즈를 만든다.
+ *  같은 "선명하게 하는 힘"이 사진엔 디테일로, 평면 그림엔 자글거림으로 나타나기 때문이다.
+ *  ★목록 첫 번째(`upscalers[0]`)를 쓰면 **설치 순서에 결과가 좌우**되므로 이름으로 고른다.
+ *  ★없으면 조용히 차선으로 떨어진다(설치 안 된 모델명을 보내면 생성이 실패한다). */
+const pickUpscaler = (list: string[], flat = false): string | undefined => {
+    const find = (kw: string) => list.find((u) => u.toLowerCase().includes(kw));
+    return flat
+        ? (find('esrgan') ?? find('ultrasharp') ?? list[0])
+        : (find('ultrasharp') ?? find('esrgan') ?? list[0]);
+};
 
 const DENOISE_GUIDE: { max: number; label: string; desc: string }[] = [
     { max: 0.35, label: '살짝 다듬기',   desc: '원본과 거의 같게 — 화질·디테일만 정리' },
@@ -266,6 +272,11 @@ export const AiStudioPanel: React.FC = () => {
 
     // FLUX 계열은 샘플링 규칙이 달라 워커가 설정을 자동 조정한다(cfg 1.0 고정, 네거티브 미사용)
     const isFlux = model.toLowerCase().includes('flux');
+    // ★평면 그림(일러스트·썸네일) 여부 — 확대 모델을 여기에 맞춰 고른다.
+    //   실측(2026-08-06): 같은 확대라도 사진엔 디테일로, 평면 그림엔 **자글거리는 노이즈**로
+    //   나타난다. 그래서 평면이면 RealESRGAN 이 낫다. 프리셋을 안 골랐으면 사진으로 본다
+    //   (기본이 인물·제품이고, 잘못 골랐을 때 손해가 더 작은 쪽이다).
+    const isFlatArt = preset?.key === 'illust' || preset?.key === 'thumbnail';
     const running = st?.server?.status === 'RUNNING';
     const transitioning = ['STARTING', 'STOPPING', 'STAGING', 'PROVISIONING'].includes(st?.server?.status ?? '');
 
@@ -437,7 +448,7 @@ export const AiStudioPanel: React.FC = () => {
                 //   모공)에서 확실히 나았고, RealESRGAN 은 피부결을 뭉갰다. 우열이 분명한
                 //   선택지를 화면에 늘리면 잘못 고를 여지만 생긴다.
                 //   ★예전엔 `upscalers[0]`(목록 첫 번째)라 **설치 순서에 결과가 좌우**됐다.
-                upscale: useUpscale ? pickUpscaler(upscalers) : undefined,
+                upscale: useUpscale ? pickUpscaler(upscalers, isFlatArt) : undefined,
                 upscaleScale: 2,
                 // img2img — 원본이 있을 때만. 없으면 기존과 똑같이 동작한다.
                 initImage: initFile ?? undefined,
@@ -729,6 +740,13 @@ export const AiStudioPanel: React.FC = () => {
                     )}
                 </div>
 
+                {/* ★소제목 — 텍스트창 2개가 나란히 있는데 라벨이 없어 **아래 칸이 뭔지
+                     placeholder 를 읽어야만** 알 수 있었다("헷갈린다", 2026-08-06 사장 지적).
+                     placeholder 는 글자를 넣는 순간 사라지므로 라벨 역할을 못 한다. */}
+                <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap">
+                    ✏️ 그리고 싶은 것
+                    <span className="text-[12px] font-normal text-green-300/90">(필수 — 원하는 그림을 적습니다)</span>
+                </div>
                 <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={preset ? 2 : 4}
                     placeholder={preset
                         ? `무엇을 찍을지만 쓰세요 — 예: ${preset.example}`
@@ -776,8 +794,16 @@ export const AiStudioPanel: React.FC = () => {
                     </details>
                 )}
 
+                {/* ★위 칸과 **반대 의미**라는 걸 제목에서 바로 알게 한다 —
+                     '네거티브'라는 낱말만으론 무슨 뜻인지 알 수 없다. */}
+                <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap pt-1">
+                    🚫 빼고 싶은 것 <span className="text-gray-400 font-normal">(네거티브)</span>
+                    <span className="text-[12px] font-normal text-gray-400">
+                        (선택 — 비워두면 손·얼굴 왜곡 방지 기본값이 들어갑니다)
+                    </span>
+                </div>
                 <textarea value={negative} onChange={(e) => setNegative(e.target.value)} rows={2}
-                    placeholder="네거티브(선택) — 비워두면 손·얼굴 왜곡 방지 기본값이 적용됩니다"
+                    placeholder="그림에 나오면 안 되는 것을 적습니다 — 예: blurry, extra fingers, watermark"
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs
                                placeholder-gray-600 focus:border-purple-500 focus:outline-none" />
 
@@ -841,7 +867,7 @@ export const AiStudioPanel: React.FC = () => {
                                 {/* ★어느 모델을 쓰는지 밝힌다 — 모델 관리에 2종이 보이는데
                                      화면에 표시가 없으면 "어느 게 쓰이지?"가 생긴다(고르는 칸은 일부러 안 만든다). */}
                                 {(() => {
-                                    const u = pickUpscaler(upscalers);
+                                    const u = pickUpscaler(upscalers, isFlatArt);
                                     return u ? ` 좋은 쪽(${u.replace(/\.(pth|safetensors)$/i, '')})으로 자동 적용됩니다.` : '';
                                 })()}
                             </span>
