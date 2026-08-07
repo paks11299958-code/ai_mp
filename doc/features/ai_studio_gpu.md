@@ -1015,3 +1015,87 @@ placeholder 를 읽어야만 알 수 있었다. ★**placeholder 는 글자를 �
 - [Suspend, stop, or reset Compute Engine instances](https://docs.cloud.google.com/compute/docs/instances/suspend-stop-reset-instances-overview)
 - [ComfyUI VRAM 요구사항 가이드](https://comfyui-wiki.com/en/install/install-comfyui/gpu-buying-guide)
 - [How to Save Money on GCP by Scheduling VM Start and Stop Times](https://oneuptime.com/blog/post/2026-02-17-how-to-save-money-on-gcp-by-scheduling-vm-start-and-stop-times/view)
+
+---
+
+## 🖼 3단계 — 서비스 연동 실적 (2026-08-07)
+
+기획 당시 "3단계: 서비스 연동"으로 잡아둔 항목의 실제 착수·완료 기록.
+**★API를 버리지 않는다**는 원칙(GPU 기본, API 폴백)을 전 구간에서 지켰다.
+
+### 판별 기준 — "참조 사진을 넣는가" 하나
+
+전환 가능 여부는 **`inline_data`(파이썬)·`inlineData`(TS) 유무**로 갈린다.
+넣으면 불가(얼굴 보존), 안 넣으면 가능(순수 텍스트→이미지).
+
+| 구분 | 기능 | 위치 |
+|---|---|---|
+| ✅ 적용 | 쇼츠(참조사진 없는 장면) | `rag/shorts_maker_worker.py` `_regenerate_scene` src_bytes=None |
+| ✅ 적용 | 홈페이지 이미지 | `rag/homepage_worker.py` `generate_images` |
+| ✅ 적용 | 쇼츠 카드 배경 | `shared-api/routes/aimp/admin-shorts.ts` `genCardBgImage` |
+| ✅ 적용 | 전자책 삽화 | `shared-api/lib/gemini.ts` `generateEbookImage` |
+| 🔴 불가 | 헤어스타일·시간여행·프로필사진 | `shared-api/lib/gemini.ts` (원본 사진 참조) |
+| 🔴 불가 | 홈페이지 **편집** | `rag/homepage_edit_worker.py` (기존 이미지 참조) |
+| ⚠️ 제외 | 전자책 **표지** | `gpt-image-2` — 제목 **한글 렌더링**이 필요해 SDXL로 대체 불가 |
+
+얼굴 보존 4곳은 InstantID/IPAdapter FaceID 구축이 선행돼야 한다(서버3에 전무).
+상세 조건은 메모리 `project_todo`의 "프로필사진 서버3 전환" 항목.
+
+### 공용 모듈
+
+- `rag/gpu_image.py` (파이썬) / `shared-api/lib/gpuImage.ts` (TS)
+- 흐름: `GpuJob` 큐 적재 → 완료 폴링 → 결과 바이트 회수
+- **서버3을 직접 호출하지 않는다** — 큐에 넣으면 `ai_studio_dispatcher`(서버2 크론 */2)가
+  꺼져 있는 서버3을 켜고 워커가 처리한다. 서버3은 유휴 30분에 스스로 끈다.
+- 실패는 조용히 `None`/`null` → 호출부가 gemini 폴백
+- 스위치: `SHORTS_GPU_TEXT2IMG` / `HOMEPAGE_GPU_TEXT2IMG` / `SHORTS_CARDBG_GPU` / `EBOOK_IMAGE_GPU` (=0이면 끔)
+- ★**seed를 항상 명시한다** — 워커는 seed가 없으면 초 단위 시각으로 채워서,
+  한 건에서 여러 장을 연속 적재하면 **같은 초에 걸려 똑같은 그림**이 나온다.
+
+### ★비용보다 컸던 이득 — 쿼터 대기 제거
+
+홈페이지는 API 경로에서 나노바나나 쿼터 회복을 위해 장마다 `IMAGE_GAP_S = 25`초를 쉰다.
+4장이면 **순수 대기만 100초**였고, 회원이 결과를 기다리는 기능이라 체감이 컸다.
+GPU는 우리 서버라 쿼터가 없어 이 텀이 필요 없다.
+
+★텀 계산은 `i > 0`이 아니라 **`api_calls > 0`**으로 세야 한다 —
+`i`로 세면 GPU가 다 처리한 뒤 폴백 1장에도 불필요하게 25초를 쉰다.
+
+### ★에러 없이 틀리는 실패 2건 (둘 다 눈으로만 잡힌다)
+
+**① 한글 프롬프트를 SDXL에 그대로 보냄**
+카드 배경에 "생일 케이크와 풍선이 있는 파티 테이블"을 한국어로 보냈더니
+**전혀 무관한 인물 클로즈업**이 나왔다. SDXL은 영어로 학습된 모델이라 한글을 무시하고
+학습 데이터의 흔한 구도를 그린다.
+★위험한 건 **에러가 안 난다**는 점 — 반환값·크기(1.23MB)·소요시간(22초)이 전부 정상이라
+로그엔 `GPU 생성 성공 — 1229406B`로 찍힌다. **눈으로 보기 전엔 성공한 줄 안다.**
+
+→ `toEnglishPrompt()`(gemini-2.5-flash)가 **GPU로 보낼 때만** 영어로 번역한다.
+화면 표시·회원이 ChatGPT에 복사하는 프롬프트는 **한글이어야 하므로**(2026-07-25 사장 지시)
+원본은 바꾸지 않는다. 번역 결과에 한글이 남으면 실패로 보고 API 폴백(반쪽 번역이면 같은 사고).
+
+**② 일러스트를 지시했는데 사진이 나옴**
+전자책 삽화가 "깔끔한 플랫 일러스트" 지시에도 사실적인 사진으로 나왔다.
+원인이 둘 겹쳤다 — ①모델이 실사 전용(`RealVisXL`) ②네거티브에 `illustration`.
+**원하는 스타일을 코드가 스스로 막고 있었다**(4곳 전부 기본값 하나로 보낸 탓).
+
+→ 용도별 상수 분리. 2026-08-05 A/B로 이미 정리돼 있던 기준을 그대로 쓴다:
+
+| 모델 | 용도 |
+|---|---|
+| `RealVisXL_V5` | 인물 얼굴·피부 → 프로필·인물 |
+| `JuggernautXL_v9` | 사물·공간·조명 → 제품·인테리어·풍경 |
+| `sd_xl_base_1.0` | 특화 없음 → **일러스트** |
+
+`ILLUSTRATION_NEGATIVE`는 `cartoon, illustration`을 빼고 대신
+`photorealistic, photograph, 3d render`를 금지한다.
+
+### 홈페이지 모델 A/B — 바꾸지 않기로 결론
+
+같은 프롬프트·같은 시드(777001)로 비교:
+- **A `RealVisXL`**: 요청대로 대기실. 의자 배치 정확 ← **채택(유지)**
+- **B `JuggernautXL`**: **미용실처럼** 나옴(거울·회전의자)
+
+"공간·사물에 강하다"는 기록만 보면 B가 나을 것 같았으나 이 프롬프트에선 A가 정확했다.
+★**소재에 따라 갈리므로 단정하지 않는다** — 확대모델 A/B(08-06)와 같은 교훈.
+**바꾸지 않는 것도 검증의 결과다.**
