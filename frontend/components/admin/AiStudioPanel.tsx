@@ -562,351 +562,364 @@ export const AiStudioPanel: React.FC = () => {
             <div className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-3">
                 <p className="text-sm font-bold text-gray-200">이미지 만들기</p>
 
-                {/* 스타일 프리셋 — 촬영 용어를 외우지 않아도 되게 검증된 조합을 굳혀 둔 것 */}
-                <div>
-                    <div className="text-[12px] text-gray-400 mb-1.5">스타일</div>
-                    <div className="flex flex-wrap gap-1.5">
-                        <button onClick={() => applyPreset(null)}
-                            className={`px-2.5 py-1.5 text-[13px] rounded-md border transition-colors ${
-                                preset === null
-                                    ? 'bg-purple-700 border-purple-500 text-white font-bold'
-                                    : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200'}`}>
-                            ✏️ 직접 입력
-                        </button>
-                        {STYLE_PRESETS.map((p) => (
-                            <button key={p.key} onClick={() => applyPreset(p)} title={p.hint}
+                {/* ★2단 배치(2026-08-08 사장 지시) — 예전엔 한 줄로 길게 늘어서
+                    프롬프트를 쓰려면 프리셋·업로드를 한참 지나쳐야 했다.
+                    왼쪽=재료(프리셋·사진), 오른쪽=지시와 결과. 좁은 화면에선 자동으로 한 줄이 된다. */}
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] gap-4 items-start">
+
+                    {/* ── 왼쪽: 무엇으로 만들까 (재료) ── */}
+                    <div className="space-y-3 min-w-0">
+                    {/* 스타일 프리셋 — 촬영 용어를 외우지 않아도 되게 검증된 조합을 굳혀 둔 것 */}
+                    <div>
+                        <div className="text-[12px] text-gray-400 mb-1.5">스타일</div>
+                        <div className="flex flex-wrap gap-1.5">
+                            <button onClick={() => applyPreset(null)}
                                 className={`px-2.5 py-1.5 text-[13px] rounded-md border transition-colors ${
-                                    preset?.key === p.key
+                                    preset === null
                                         ? 'bg-purple-700 border-purple-500 text-white font-bold'
                                         : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200'}`}>
-                                {p.icon} {p.label}
+                                ✏️ 직접 입력
                             </button>
-                        ))}
-                    </div>
-                    {preset && (
-                        <p className="text-[12px] text-gray-400 mt-1.5">
-                            {preset.hint} · 모델·크기·네거티브가 자동으로 맞춰집니다.
-                        </p>
-                    )}
-                </div>
-
-                {/* 원본 사진(img2img) — 있으면 '새로 그리기'가 아니라 '이 사진을 바꾸기'가 된다.
-                    ★서버가 켜져 있어야 올릴 수 있다(원본을 둘 곳이 서버3 디스크). */}
-                <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div>
-                            <span className="text-xs font-bold text-gray-200">🖼 내 사진 고치기</span>
-                            <span className="text-[12px] text-gray-400"> (선택 — 없으면 글로만 새로 그립니다)</span>
+                            {STYLE_PRESETS.map((p) => (
+                                <button key={p.key} onClick={() => applyPreset(p)} title={p.hint}
+                                    className={`px-2.5 py-1.5 text-[13px] rounded-md border transition-colors ${
+                                        preset?.key === p.key
+                                            ? 'bg-purple-700 border-purple-500 text-white font-bold'
+                                            : 'bg-gray-900 border-gray-700 text-gray-400 hover:text-gray-200'}`}>
+                                    {p.icon} {p.label}
+                                </button>
+                            ))}
                         </div>
-                        {initFile && (
-                            <button onClick={clearInit} className="text-[12px] px-2 py-1 rounded
-                                        bg-gray-700 hover:bg-gray-600 text-gray-300">원본 빼기</button>
+                        {preset && (
+                            <p className="text-[12px] text-gray-400 mt-1.5">
+                                {preset.hint} · 모델·크기·네거티브가 자동으로 맞춰집니다.
+                            </p>
                         )}
                     </div>
 
-                    {!initFile ? (
-                        <>
-                            <input ref={fileRef} type="file" accept="image/*"
-                                onChange={(e) => doUpload(e.target.files?.[0])}
-                                disabled={busy !== null || !running}
-                                className="block w-full text-[13px] text-gray-300
-                                           file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0
-                                           file:text-[13px] file:font-bold file:bg-gray-700 file:text-gray-200
-                                           hover:file:bg-gray-600 disabled:opacity-50" />
-                            {busy === 'upload' && <p className="text-[12px] text-amber-300">올리는 중…</p>}
-                            {/* ★꺼져 있으면 왜 못 올리는지 먼저 알린다 — 만들기(t2i)는 꺼져 있어도 되는데
-                                 이것만 안 되면 고장으로 보인다. */}
-                            {!running && (
-                                <p className="text-[12px] text-amber-300/90">
-                                    원본을 올리려면 <b>서버를 먼저 켜야</b> 합니다
-                                    (사진을 서버에 둬야 하기 때문입니다).
-                                </p>
+                    {/* 원본 사진(img2img) — 있으면 '새로 그리기'가 아니라 '이 사진을 바꾸기'가 된다.
+                        ★서버가 켜져 있어야 올릴 수 있다(원본을 둘 곳이 서버3 디스크). */}
+                    <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div>
+                                <span className="text-xs font-bold text-gray-200">🖼 내 사진 고치기</span>
+                                <span className="text-[12px] text-gray-400"> (선택 — 없으면 글로만 새로 그립니다)</span>
+                            </div>
+                            {initFile && (
+                                <button onClick={clearInit} className="text-[12px] px-2 py-1 rounded
+                                            bg-gray-700 hover:bg-gray-600 text-gray-300">원본 빼기</button>
                             )}
-                        </>
-                    ) : (
-                        <div className="flex gap-3">
-                            {initPreview && (
-                                <img src={initPreview} alt="원본"
-                                    className="w-20 h-20 object-cover rounded border border-gray-600 shrink-0" />
-                            )}
-                            <div className="flex-1 min-w-0 space-y-1.5">
-                                <div className="flex items-baseline justify-between gap-2">
-                                    <span className="text-[13px] font-bold text-purple-300">
-                                        {denoiseGuide(denoise).label}
-                                    </span>
-                                    <span className="text-[12px] text-gray-400">강도 {denoise.toFixed(2)}</span>
-                                </div>
-                                {/* ★슬라이더가 핵심이다 — img2img 결과를 좌우하는 값은 사실상 이것 하나다. */}
-                                <input type="range" min={0.15} max={0.95} step={0.05} value={denoise}
-                                    onChange={(e) => setDenoise(Number(e.target.value))}
-                                    className="w-full accent-purple-600" />
-                                <div className="flex justify-between text-[11px] text-gray-400">
-                                    <span>원본 유지</span><span>많이 바꾸기</span>
-                                </div>
-                                <p className="text-[12px] text-gray-400 leading-snug">
-                                    {denoiseGuide(denoise).desc}
-                                </p>
-                                {/* ★상반신 사진으로 전신을 만들려면 강도를 올려야 한다 —
-                                     실측(2026-08-06): 같은 프롬프트·시드로 0.55 는 상반신 그대로,
-                                     0.85 에서 비로소 전신이 나왔다. 대신 얼굴은 원본과 달라진다.
-                                     (여백 패딩도 시도했으나 모델이 여백을 배경 물체로 읽어 더 나빴다) */}
-                                {denoise < 0.8 && (
-                                    <p className="text-[12px] text-amber-200/90 bg-amber-900/20 border border-amber-800/40 rounded px-2 py-1.5 leading-snug">
-                                        💡 <b>전신</b>을 만들려는데 상반신 사진을 올리셨다면 강도를 <b>0.85 이상</b>으로
-                                        올리세요 — 이보다 낮으면 원본 구도(상반신)를 벗어나지 못합니다.
-                                        <span className="text-amber-200/70"> 단 그만큼 얼굴도 원본과 달라집니다.</span>
+                        </div>
+
+                        {!initFile ? (
+                            <>
+                                <input ref={fileRef} type="file" accept="image/*"
+                                    onChange={(e) => doUpload(e.target.files?.[0])}
+                                    disabled={busy !== null || !running}
+                                    className="block w-full text-[13px] text-gray-300
+                                               file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0
+                                               file:text-[13px] file:font-bold file:bg-gray-700 file:text-gray-200
+                                               hover:file:bg-gray-600 disabled:opacity-50" />
+                                {busy === 'upload' && <p className="text-[12px] text-amber-300">올리는 중…</p>}
+                                {/* ★꺼져 있으면 왜 못 올리는지 먼저 알린다 — 만들기(t2i)는 꺼져 있어도 되는데
+                                     이것만 안 되면 고장으로 보인다. */}
+                                {!running && (
+                                    <p className="text-[12px] text-amber-300/90">
+                                        원본을 올리려면 <b>서버를 먼저 켜야</b> 합니다
+                                        (사진을 서버에 둬야 하기 때문입니다).
                                     </p>
                                 )}
-                                {initInfo && <p className="text-[11px] text-gray-400">{initInfo}</p>}
+                            </>
+                        ) : (
+                            <div className="flex gap-3">
+                                {initPreview && (
+                                    <img src={initPreview} alt="원본"
+                                        className="w-20 h-20 object-cover rounded border border-gray-600 shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0 space-y-1.5">
+                                    <div className="flex items-baseline justify-between gap-2">
+                                        <span className="text-[13px] font-bold text-purple-300">
+                                            {denoiseGuide(denoise).label}
+                                        </span>
+                                        <span className="text-[12px] text-gray-400">강도 {denoise.toFixed(2)}</span>
+                                    </div>
+                                    {/* ★슬라이더가 핵심이다 — img2img 결과를 좌우하는 값은 사실상 이것 하나다. */}
+                                    <input type="range" min={0.15} max={0.95} step={0.05} value={denoise}
+                                        onChange={(e) => setDenoise(Number(e.target.value))}
+                                        className="w-full accent-purple-600" />
+                                    <div className="flex justify-between text-[11px] text-gray-400">
+                                        <span>원본 유지</span><span>많이 바꾸기</span>
+                                    </div>
+                                    <p className="text-[12px] text-gray-400 leading-snug">
+                                        {denoiseGuide(denoise).desc}
+                                    </p>
+                                    {/* ★상반신 사진으로 전신을 만들려면 강도를 올려야 한다 —
+                                         실측(2026-08-06): 같은 프롬프트·시드로 0.55 는 상반신 그대로,
+                                         0.85 에서 비로소 전신이 나왔다. 대신 얼굴은 원본과 달라진다.
+                                         (여백 패딩도 시도했으나 모델이 여백을 배경 물체로 읽어 더 나빴다) */}
+                                    {denoise < 0.8 && (
+                                        <p className="text-[12px] text-amber-200/90 bg-amber-900/20 border border-amber-800/40 rounded px-2 py-1.5 leading-snug">
+                                            💡 <b>전신</b>을 만들려는데 상반신 사진을 올리셨다면 강도를 <b>0.85 이상</b>으로
+                                            올리세요 — 이보다 낮으면 원본 구도(상반신)를 벗어나지 못합니다.
+                                            <span className="text-amber-200/70"> 단 그만큼 얼굴도 원본과 달라집니다.</span>
+                                        </p>
+                                    )}
+                                    {initInfo && <p className="text-[11px] text-gray-400">{initInfo}</p>}
+                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {initFile && (
-                        <p className="text-[12px] text-gray-300 leading-relaxed">
-                            ★<b className="text-gray-300">여기 올린 사진이 '바뀔 대상'</b>입니다
-                            (참고용 견본이 아닙니다 — 견본처럼 만들려면 아래 '스타일 따라하기'를 쓰세요).
-                            프롬프트에는 <b className="text-gray-300">바뀐 뒤의 모습</b>을 적으세요 —
-                            지금 사진 설명을 그대로 쓰면 거의 같은 사진이 나옵니다.
-                            마음에 안 들면 강도만 바꿔 다시 눌러 보세요(원본은 그대로 남습니다).
-                        </p>
-                    )}
-                </div>
-
-                {/* 스타일 따라하기(IP-Adapter) — ★위 '내 사진 고치기'와 **다른 기능**이다.
-                     · 내 사진 고치기 = 올린 사진 **그 자체를** 바꾼다
-                     · 스타일 따라하기 = 견본의 **화풍만 빌려** 새로 그린다(피사체는 프롬프트대로)
-                     사장이 이 둘을 혼동했던 지점이라 화면에 차이를 분명히 적는다. */}
-                <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-3 space-y-2">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div>
-                            <span className="text-xs font-bold text-gray-200">🎭 스타일 따라하기</span>
-                            <span className="text-[12px] text-gray-400"> (선택 — 견본 그림의 화풍을 따라 그립니다)</span>
-                        </div>
-                        {styleFile && (
-                            <button onClick={clearStyle} className="text-[12px] px-2 py-1 rounded
-                                        bg-gray-700 hover:bg-gray-600 text-gray-200">견본 빼기</button>
+                        {initFile && (
+                            <p className="text-[12px] text-gray-300 leading-relaxed">
+                                ★<b className="text-gray-300">여기 올린 사진이 '바뀔 대상'</b>입니다
+                                (참고용 견본이 아닙니다 — 견본처럼 만들려면 아래 '스타일 따라하기'를 쓰세요).
+                                프롬프트에는 <b className="text-gray-300">바뀐 뒤의 모습</b>을 적으세요 —
+                                지금 사진 설명을 그대로 쓰면 거의 같은 사진이 나옵니다.
+                                마음에 안 들면 강도만 바꿔 다시 눌러 보세요(원본은 그대로 남습니다).
+                            </p>
                         )}
                     </div>
 
-                    {!styleFile ? (
-                        <>
-                            <input ref={styleRef} type="file" accept="image/*"
-                                onChange={(e) => doUploadStyle(e.target.files?.[0])}
-                                disabled={busy !== null || !running}
-                                className="block w-full text-[12px] text-gray-300
-                                           file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0
-                                           file:text-[12px] file:font-bold file:bg-gray-700 file:text-gray-200
-                                           hover:file:bg-gray-600 disabled:opacity-50" />
-                            {busy === 'uploadStyle' && <p className="text-[12px] text-amber-300">올리는 중…</p>}
-                            <p className="text-[12px] text-gray-400 leading-relaxed">
-                                ★<b className="text-gray-300">여기 올린 건 '견본'</b>입니다 —
-                                이 그림처럼 그려 달라는 뜻이고, <b className="text-gray-300">이 그림이 바뀌는 게 아닙니다.</b>
-                                {!running && <span className="text-amber-300"> 서버를 먼저 켜 주세요.</span>}
-                            </p>
-                        </>
-                    ) : (
-                        <div className="flex gap-3">
-                            {stylePreview && (
-                                <img src={stylePreview} alt="견본"
-                                    className="w-20 h-20 object-cover rounded border border-gray-600 shrink-0" />
+                    {/* 스타일 따라하기(IP-Adapter) — ★위 '내 사진 고치기'와 **다른 기능**이다.
+                         · 내 사진 고치기 = 올린 사진 **그 자체를** 바꾼다
+                         · 스타일 따라하기 = 견본의 **화풍만 빌려** 새로 그린다(피사체는 프롬프트대로)
+                         사장이 이 둘을 혼동했던 지점이라 화면에 차이를 분명히 적는다. */}
+                    <div className="bg-gray-900/40 border border-gray-700 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                            <div>
+                                <span className="text-xs font-bold text-gray-200">🎭 스타일 따라하기</span>
+                                <span className="text-[12px] text-gray-400"> (선택 — 견본 그림의 화풍을 따라 그립니다)</span>
+                            </div>
+                            {styleFile && (
+                                <button onClick={clearStyle} className="text-[12px] px-2 py-1 rounded
+                                            bg-gray-700 hover:bg-gray-600 text-gray-200">견본 빼기</button>
                             )}
-                            <div className="flex-1 min-w-0 space-y-2">
-                                <div>
-                                    <div className="text-[12px] text-gray-400 mb-1">무엇을 따라할지</div>
-                                    <select value={styleMode} onChange={(e) => setStyleMode(e.target.value)}
-                                        className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                                        <option value="style transfer">화풍·색감만 (피사체는 프롬프트대로)</option>
-                                        <option value="standard">인물·구성까지 폭넓게 (얼굴 비슷하게)</option>
-                                        <option value="prompt is more important">약하게만 (프롬프트 우선)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <div className="flex items-baseline justify-between">
-                                        <span className="text-[12px] text-gray-400">따라하는 정도</span>
-                                        <span className="text-[12px] text-gray-400">{styleWeight.toFixed(1)}</span>
+                        </div>
+
+                        {!styleFile ? (
+                            <>
+                                <input ref={styleRef} type="file" accept="image/*"
+                                    onChange={(e) => doUploadStyle(e.target.files?.[0])}
+                                    disabled={busy !== null || !running}
+                                    className="block w-full text-[12px] text-gray-300
+                                               file:mr-2 file:py-1.5 file:px-3 file:rounded file:border-0
+                                               file:text-[12px] file:font-bold file:bg-gray-700 file:text-gray-200
+                                               hover:file:bg-gray-600 disabled:opacity-50" />
+                                {busy === 'uploadStyle' && <p className="text-[12px] text-amber-300">올리는 중…</p>}
+                                <p className="text-[12px] text-gray-400 leading-relaxed">
+                                    ★<b className="text-gray-300">여기 올린 건 '견본'</b>입니다 —
+                                    이 그림처럼 그려 달라는 뜻이고, <b className="text-gray-300">이 그림이 바뀌는 게 아닙니다.</b>
+                                    {!running && <span className="text-amber-300"> 서버를 먼저 켜 주세요.</span>}
+                                </p>
+                            </>
+                        ) : (
+                            <div className="flex gap-3">
+                                {stylePreview && (
+                                    <img src={stylePreview} alt="견본"
+                                        className="w-20 h-20 object-cover rounded border border-gray-600 shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0 space-y-2">
+                                    <div>
+                                        <div className="text-[12px] text-gray-400 mb-1">무엇을 따라할지</div>
+                                        <select value={styleMode} onChange={(e) => setStyleMode(e.target.value)}
+                                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
+                                            <option value="style transfer">화풍·색감만 (피사체는 프롬프트대로)</option>
+                                            <option value="standard">인물·구성까지 폭넓게 (얼굴 비슷하게)</option>
+                                            <option value="prompt is more important">약하게만 (프롬프트 우선)</option>
+                                        </select>
                                     </div>
-                                    <input type="range" min={0.3} max={1.2} step={0.1} value={styleWeight}
-                                        onChange={(e) => setStyleWeight(Number(e.target.value))}
-                                        className="w-full accent-purple-600" />
-                                    <p className="text-[12px] text-gray-400">
-                                        {styleWeight >= 1.0 ? '아주 강하게 — 프롬프트가 묻힐 수 있습니다'
-                                            : styleWeight >= 0.7 ? '견본 느낌이 뚜렷합니다(권장)'
-                                            : '살짝만 참고합니다'}
-                                    </p>
+                                    <div>
+                                        <div className="flex items-baseline justify-between">
+                                            <span className="text-[12px] text-gray-400">따라하는 정도</span>
+                                            <span className="text-[12px] text-gray-400">{styleWeight.toFixed(1)}</span>
+                                        </div>
+                                        <input type="range" min={0.3} max={1.2} step={0.1} value={styleWeight}
+                                            onChange={(e) => setStyleWeight(Number(e.target.value))}
+                                            className="w-full accent-purple-600" />
+                                        <p className="text-[12px] text-gray-400">
+                                            {styleWeight >= 1.0 ? '아주 강하게 — 프롬프트가 묻힐 수 있습니다'
+                                                : styleWeight >= 0.7 ? '견본 느낌이 뚜렷합니다(권장)'
+                                                : '살짝만 참고합니다'}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* ★소제목 — 텍스트창 2개가 나란히 있는데 라벨이 없어 **아래 칸이 뭔지
-                     placeholder 를 읽어야만** 알 수 있었다("헷갈린다", 2026-08-06 사장 지적).
-                     placeholder 는 글자를 넣는 순간 사라지므로 라벨 역할을 못 한다. */}
-                <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap">
-                    ✏️ 그리고 싶은 것
-                    <span className="text-[12px] font-normal text-green-300/90">(필수 — 원하는 그림을 적습니다)</span>
-                </div>
-                <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={preset ? 2 : 4}
-                    placeholder={preset
-                        ? `무엇을 찍을지만 쓰세요 — 예: ${preset.example}`
-                        : '프롬프트 (영문 권장) — 예: a professional Korean woman in a modern office, photorealistic…'}
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                               placeholder-gray-400 focus:border-purple-500 focus:outline-none" />
-
-                {/* 프롬프트 보조 — ①예시 넣기 ②AI로 다듬기
-                    ★예시가 placeholder 로만 있으면 **보고 따라 타이핑**해야 한다. 눌러서 넣게 한다.
-                    ★번역 버튼을 따로 두지 않았다 — 직역은 프롬프트로 잘 안 먹고,
-                      버튼이 둘이면 어느 걸 눌러야 하는지 헷갈린다. 하나로 합쳤다. */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                    {preset && (
-                        <button onClick={() => setPrompt(preset.example)}
-                            className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
-                            📋 예시 넣기
-                        </button>
-                    )}
-                    <button onClick={doRefine} disabled={busy !== null || !prompt.trim()}
-                        title="한글로 써도 됩니다 — 영어 이미지 프롬프트로 바꿔 줍니다"
-                        className="text-[12px] px-2.5 py-1 rounded bg-purple-800 hover:bg-purple-700
-                                   text-purple-100 font-bold disabled:opacity-40">
-                        {busy === 'refine' ? '다듬는 중…' : '✨ AI로 다듬기'}
-                    </button>
-                    {/* ★되돌리기 — LLM 이 엉뚱하게 바꿀 수 있는데 손으로 쓴 게 날아가면 안 된다 */}
-                    {prevPrompt !== null && (
-                        <button onClick={() => { setPrompt(prevPrompt); setPrevPrompt(null); }}
-                            className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
-                            ↩ 되돌리기
-                        </button>
-                    )}
-                    <span className="text-[12px] text-gray-400">
-                        한글로 써도 됩니다 — 다듬기를 누르면 영어로 바꿔 줍니다
-                    </span>
-                </div>
-
-                {/* ★프리셋이 실제로 어떤 문장을 붙이는지 보여준다 — 안 보이면
-                     결과가 마음에 안 들 때 무엇을 고쳐야 할지 알 수 없다. */}
-                {preset && (
-                    <details className="text-[12px] text-gray-400">
-                        <summary className="cursor-pointer hover:text-gray-300">최종 프롬프트 확인</summary>
-                        <p className="mt-1 p-2 bg-gray-900 rounded border border-gray-700 leading-relaxed break-words">
-                            {buildPrompt(preset, prompt)}
-                        </p>
-                    </details>
-                )}
-
-                {/* ★위 칸과 **반대 의미**라는 걸 제목에서 바로 알게 한다 —
-                     '네거티브'라는 낱말만으론 무슨 뜻인지 알 수 없다. */}
-                <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap pt-1">
-                    🚫 빼고 싶은 것 <span className="text-gray-400 font-normal">(네거티브)</span>
-                    <span className="text-[12px] font-normal text-gray-400">
-                        (선택 — 비워두면 손·얼굴 왜곡 방지 기본값이 들어갑니다)
-                    </span>
-                </div>
-                <textarea value={negative} onChange={(e) => setNegative(e.target.value)} rows={2}
-                    placeholder="그림에 나오면 안 되는 것을 적습니다 — 예: blurry, extra fingers, watermark"
-                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs
-                               placeholder-gray-600 focus:border-purple-500 focus:outline-none" />
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <Field label="모델">
-                        <select value={model} onChange={(e) => setModel(e.target.value)}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                            {models.length === 0 && <option value="">서버 켜면 목록 표시</option>}
-                            {/* ★고르는 자리에서 성격이 보여야 한다 — 이름만으론 인물용인지 사물용인지 모른다.
-                                ★단 `<option>` 안에서는 줄바꿈·색상이 **브라우저에서 무시된다.**
-                                  그래서 여기는 한 줄로 두고, 고른 뒤의 설명은 아래에 크게 따로 띄운다. */}
-                            {models.map((m) => (
-                                <option key={m} value={m}>
-                                    {m.replace('.safetensors', '')}
-                                    {modelNote(m) && ` (${modelNote(m)})`}
-                                </option>
-                            ))}
-                        </select>
-                        {/* ★고른 모델의 설명을 드롭다운 **바깥**에 다시 보여준다(2026-08-05).
-                            닫힌 select 는 폭이 좁아 괄호 설명이 잘려 보이고, 그래서
-                            "설명이 헷갈린다"는 지적이 나왔다. 여기선 잘리지 않는다. */}
-                        {modelNote(model) && (
-                            <p className={`mt-1 text-[12px] leading-snug ${
-                                modelNote(model).startsWith('⛔') ? 'text-red-300'
-                                    : modelNote(model).startsWith('★') ? 'text-green-300'
-                                        : 'text-gray-400'}`}>
-                                {modelNote(model)}
-                            </p>
                         )}
-                    </Field>
-                    <Field label="크기">
-                        <select value={sizeIdx} onChange={(e) => setSizeIdx(Number(e.target.value))}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                            {SIZES.map((s, i) => <option key={s.label} value={i}>{s.label}</option>)}
-                        </select>
-                    </Field>
-                    <Field label="스텝">
-                        <input type="number" min={10} max={60} value={steps}
-                            onChange={(e) => setSteps(Number(e.target.value))}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs" />
-                    </Field>
-                    <Field label="장수">
-                        <select value={count} onChange={(e) => setCount(Number(e.target.value))}
-                            className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                            {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}장</option>)}
-                        </select>
-                    </Field>
-                </div>
+                    </div>
+                    </div>
 
-                {/* 업스케일(후보정) — 미드저니와의 격차에서 모델만큼 큰 부분이 이것이다.
-                    1024 원본은 피부·머리카락 디테일이 뭉개져 보인다. */}
-                {upscalers.length > 0 && (
-                    <label className="flex items-start gap-2 bg-gray-900/60 rounded-lg px-3 py-2 cursor-pointer">
-                        <input type="checkbox" checked={useUpscale}
-                            onChange={(e) => setUseUpscale(e.target.checked)}
-                            className="mt-0.5 accent-purple-600" />
-                        <span className="text-[13px] leading-relaxed">
-                            <b className="text-gray-200">✨ 선명하게 (2배 확대 후보정)</b>
-                            <span className="text-gray-400">
-                                {' '}— 머리카락·피부결이 살아납니다. 시간은 5~10초 더 걸리고 파일이 커집니다.
-                                {/* ★어느 모델을 쓰는지 밝힌다 — 모델 관리에 2종이 보이는데
-                                     화면에 표시가 없으면 "어느 게 쓰이지?"가 생긴다(고르는 칸은 일부러 안 만든다). */}
-                                {(() => {
-                                    const u = pickUpscaler(upscalers, isFlatArt);
-                                    return u ? ` 좋은 쪽(${u.replace(/\.(pth|safetensors)$/i, '')})으로 자동 적용됩니다.` : '';
-                                })()}
-                            </span>
+                    {/* ── 오른쪽: 무엇을 만들까 (지시 → 설정 → 생성) ── */}
+                    <div className="space-y-3 min-w-0">
+                    {/* ★소제목 — 텍스트창 2개가 나란히 있는데 라벨이 없어 **아래 칸이 뭔지
+                         placeholder 를 읽어야만** 알 수 있었다("헷갈린다", 2026-08-06 사장 지적).
+                         placeholder 는 글자를 넣는 순간 사라지므로 라벨 역할을 못 한다. */}
+                    <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap">
+                        ✏️ 그리고 싶은 것
+                        <span className="text-[12px] font-normal text-green-300/90">(필수 — 원하는 그림을 적습니다)</span>
+                    </div>
+                    <textarea value={prompt} onChange={(e) => setPrompt(e.target.value)} rows={preset ? 2 : 4}
+                        placeholder={preset
+                            ? `무엇을 찍을지만 쓰세요 — 예: ${preset.example}`
+                            : '프롬프트 (영문 권장) — 예: a professional Korean woman in a modern office, photorealistic…'}
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
+                                   placeholder-gray-400 focus:border-purple-500 focus:outline-none" />
+
+                    {/* 프롬프트 보조 — ①예시 넣기 ②AI로 다듬기
+                        ★예시가 placeholder 로만 있으면 **보고 따라 타이핑**해야 한다. 눌러서 넣게 한다.
+                        ★번역 버튼을 따로 두지 않았다 — 직역은 프롬프트로 잘 안 먹고,
+                          버튼이 둘이면 어느 걸 눌러야 하는지 헷갈린다. 하나로 합쳤다. */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        {preset && (
+                            <button onClick={() => setPrompt(preset.example)}
+                                className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                                📋 예시 넣기
+                            </button>
+                        )}
+                        <button onClick={doRefine} disabled={busy !== null || !prompt.trim()}
+                            title="한글로 써도 됩니다 — 영어 이미지 프롬프트로 바꿔 줍니다"
+                            className="text-[12px] px-2.5 py-1 rounded bg-purple-800 hover:bg-purple-700
+                                       text-purple-100 font-bold disabled:opacity-40">
+                            {busy === 'refine' ? '다듬는 중…' : '✨ AI로 다듬기'}
+                        </button>
+                        {/* ★되돌리기 — LLM 이 엉뚱하게 바꿀 수 있는데 손으로 쓴 게 날아가면 안 된다 */}
+                        {prevPrompt !== null && (
+                            <button onClick={() => { setPrompt(prevPrompt); setPrevPrompt(null); }}
+                                className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                                ↩ 되돌리기
+                            </button>
+                        )}
+                        <span className="text-[12px] text-gray-400">
+                            한글로 써도 됩니다 — 다듬기를 누르면 영어로 바꿔 줍니다
                         </span>
-                    </label>
-                )}
+                    </div>
 
-                {/* ★FLUX 는 규칙이 달라 위 스텝·네거티브가 그대로 적용되지 않는다 —
-                     화면에 안 적으면 "왜 설정이 무시되지?"로 보인다. */}
-                {isFlux && (
-                    <p className="text-[12px] text-blue-300/80 bg-blue-900/20 border border-blue-800/40 rounded px-2.5 py-2">
-                        ⚡ FLUX 모델은 설정이 자동 조정됩니다 — 네거티브·CFG는 쓰지 않고,
-                        스텝은 {model.includes('schnell') ? '4~8' : '20'} 안팎으로 맞춰집니다.
-                        {model.includes('dev') && <b className="text-blue-200"> (dev는 비상업 라이선스 — 내부 검토용)</b>}
+                    {/* ★프리셋이 실제로 어떤 문장을 붙이는지 보여준다 — 안 보이면
+                         결과가 마음에 안 들 때 무엇을 고쳐야 할지 알 수 없다. */}
+                    {preset && (
+                        <details className="text-[12px] text-gray-400">
+                            <summary className="cursor-pointer hover:text-gray-300">최종 프롬프트 확인</summary>
+                            <p className="mt-1 p-2 bg-gray-900 rounded border border-gray-700 leading-relaxed break-words">
+                                {buildPrompt(preset, prompt)}
+                            </p>
+                        </details>
+                    )}
+
+                    {/* ★위 칸과 **반대 의미**라는 걸 제목에서 바로 알게 한다 —
+                         '네거티브'라는 낱말만으론 무슨 뜻인지 알 수 없다. */}
+                    <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap pt-1">
+                        🚫 빼고 싶은 것 <span className="text-gray-400 font-normal">(네거티브)</span>
+                        <span className="text-[12px] font-normal text-gray-400">
+                            (선택 — 비워두면 손·얼굴 왜곡 방지 기본값이 들어갑니다)
+                        </span>
+                    </div>
+                    <textarea value={negative} onChange={(e) => setNegative(e.target.value)} rows={2}
+                        placeholder="그림에 나오면 안 되는 것을 적습니다 — 예: blurry, extra fingers, watermark"
+                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs
+                                   placeholder-gray-600 focus:border-purple-500 focus:outline-none" />
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <Field label="모델">
+                            <select value={model} onChange={(e) => setModel(e.target.value)}
+                                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
+                                {models.length === 0 && <option value="">서버 켜면 목록 표시</option>}
+                                {/* ★고르는 자리에서 성격이 보여야 한다 — 이름만으론 인물용인지 사물용인지 모른다.
+                                    ★단 `<option>` 안에서는 줄바꿈·색상이 **브라우저에서 무시된다.**
+                                      그래서 여기는 한 줄로 두고, 고른 뒤의 설명은 아래에 크게 따로 띄운다. */}
+                                {models.map((m) => (
+                                    <option key={m} value={m}>
+                                        {m.replace('.safetensors', '')}
+                                        {modelNote(m) && ` (${modelNote(m)})`}
+                                    </option>
+                                ))}
+                            </select>
+                            {/* ★고른 모델의 설명을 드롭다운 **바깥**에 다시 보여준다(2026-08-05).
+                                닫힌 select 는 폭이 좁아 괄호 설명이 잘려 보이고, 그래서
+                                "설명이 헷갈린다"는 지적이 나왔다. 여기선 잘리지 않는다. */}
+                            {modelNote(model) && (
+                                <p className={`mt-1 text-[12px] leading-snug ${
+                                    modelNote(model).startsWith('⛔') ? 'text-red-300'
+                                        : modelNote(model).startsWith('★') ? 'text-green-300'
+                                            : 'text-gray-400'}`}>
+                                    {modelNote(model)}
+                                </p>
+                            )}
+                        </Field>
+                        <Field label="크기">
+                            <select value={sizeIdx} onChange={(e) => setSizeIdx(Number(e.target.value))}
+                                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
+                                {SIZES.map((s, i) => <option key={s.label} value={i}>{s.label}</option>)}
+                            </select>
+                        </Field>
+                        <Field label="스텝">
+                            <input type="number" min={10} max={60} value={steps}
+                                onChange={(e) => setSteps(Number(e.target.value))}
+                                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs" />
+                        </Field>
+                        <Field label="장수">
+                            <select value={count} onChange={(e) => setCount(Number(e.target.value))}
+                                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
+                                {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}장</option>)}
+                            </select>
+                        </Field>
+                    </div>
+
+                    {/* 업스케일(후보정) — 미드저니와의 격차에서 모델만큼 큰 부분이 이것이다.
+                        1024 원본은 피부·머리카락 디테일이 뭉개져 보인다. */}
+                    {upscalers.length > 0 && (
+                        <label className="flex items-start gap-2 bg-gray-900/60 rounded-lg px-3 py-2 cursor-pointer">
+                            <input type="checkbox" checked={useUpscale}
+                                onChange={(e) => setUseUpscale(e.target.checked)}
+                                className="mt-0.5 accent-purple-600" />
+                            <span className="text-[13px] leading-relaxed">
+                                <b className="text-gray-200">✨ 선명하게 (2배 확대 후보정)</b>
+                                <span className="text-gray-400">
+                                    {' '}— 머리카락·피부결이 살아납니다. 시간은 5~10초 더 걸리고 파일이 커집니다.
+                                    {/* ★어느 모델을 쓰는지 밝힌다 — 모델 관리에 2종이 보이는데
+                                         화면에 표시가 없으면 "어느 게 쓰이지?"가 생긴다(고르는 칸은 일부러 안 만든다). */}
+                                    {(() => {
+                                        const u = pickUpscaler(upscalers, isFlatArt);
+                                        return u ? ` 좋은 쪽(${u.replace(/\.(pth|safetensors)$/i, '')})으로 자동 적용됩니다.` : '';
+                                    })()}
+                                </span>
+                            </span>
+                        </label>
+                    )}
+
+                    {/* ★FLUX 는 규칙이 달라 위 스텝·네거티브가 그대로 적용되지 않는다 —
+                         화면에 안 적으면 "왜 설정이 무시되지?"로 보인다. */}
+                    {isFlux && (
+                        <p className="text-[12px] text-blue-300/80 bg-blue-900/20 border border-blue-800/40 rounded px-2.5 py-2">
+                            ⚡ FLUX 모델은 설정이 자동 조정됩니다 — 네거티브·CFG는 쓰지 않고,
+                            스텝은 {model.includes('schnell') ? '4~8' : '20'} 안팎으로 맞춰집니다.
+                            {model.includes('dev') && <b className="text-blue-200"> (dev는 비상업 라이선스 — 내부 검토용)</b>}
+                        </p>
+                    )}
+
+                    {/* ★FLUX + 견본 = 견본이 **조용히 무시된다**(워커 `if style_image and not flux`).
+                         IP-Adapter 노드가 SDXL 전용이라 그렇다. 경고가 없으면 견본을 올려 놓고
+                         "왜 화풍이 안 따라오지?"만 반복하게 된다(2026-08-06). */}
+                    {isFlux && styleFile && (
+                        <p className="text-[12px] text-amber-200 bg-amber-900/25 border border-amber-700/50 rounded px-2.5 py-2">
+                            ⚠️ 지금 고른 <b>FLUX 모델은 '스타일 따라하기'를 쓰지 못합니다</b> — 견본은 무시되고
+                            프롬프트로만 그려집니다. 견본을 쓰시려면 <b>RealVisXL·JuggernautXL</b> 같은 SDXL 모델을 고르세요.
+                        </p>
+                    )}
+
+                    {/* ★프롬프트가 비면 버튼을 잠근다 — 예전엔 눌려도 첫 줄에서 조용히 반환돼
+                         "생성하기가 안 눌린다"는 오해가 생겼다(2026-08-06 사장 지적). */}
+                    <button onClick={doGenerate} disabled={busy !== null || !prompt.trim()}
+                        className="w-full text-sm px-4 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600
+                                   font-bold disabled:opacity-50">
+                        {busy === 'generate' ? '접수 중…'
+                            : !prompt.trim() ? '⌨ 먼저 프롬프트를 입력하세요'
+                                : '🎨 생성 요청'}
+                    </button>
+                    <p className="text-[12px] text-gray-400">
+                        장당 약 14~16초, 원가 약 5원. 같은 프롬프트라도 매번 다른 그림이 나옵니다.
                     </p>
-                )}
+                    </div>
 
-                {/* ★FLUX + 견본 = 견본이 **조용히 무시된다**(워커 `if style_image and not flux`).
-                     IP-Adapter 노드가 SDXL 전용이라 그렇다. 경고가 없으면 견본을 올려 놓고
-                     "왜 화풍이 안 따라오지?"만 반복하게 된다(2026-08-06). */}
-                {isFlux && styleFile && (
-                    <p className="text-[12px] text-amber-200 bg-amber-900/25 border border-amber-700/50 rounded px-2.5 py-2">
-                        ⚠️ 지금 고른 <b>FLUX 모델은 '스타일 따라하기'를 쓰지 못합니다</b> — 견본은 무시되고
-                        프롬프트로만 그려집니다. 견본을 쓰시려면 <b>RealVisXL·JuggernautXL</b> 같은 SDXL 모델을 고르세요.
-                    </p>
-                )}
-
-                {/* ★프롬프트가 비면 버튼을 잠근다 — 예전엔 눌려도 첫 줄에서 조용히 반환돼
-                     "생성하기가 안 눌린다"는 오해가 생겼다(2026-08-06 사장 지적). */}
-                <button onClick={doGenerate} disabled={busy !== null || !prompt.trim()}
-                    className="w-full text-sm px-4 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600
-                               font-bold disabled:opacity-50">
-                    {busy === 'generate' ? '접수 중…'
-                        : !prompt.trim() ? '⌨ 먼저 프롬프트를 입력하세요'
-                            : '🎨 생성 요청'}
-                </button>
-                <p className="text-[12px] text-gray-400">
-                    장당 약 14~16초, 원가 약 5원. 같은 프롬프트라도 매번 다른 그림이 나옵니다.
-                </p>
+                </div>
             </div>
 
             {/* 모델 관리(2차) — 접어 둔다. 자주 쓰는 기능이 아니라 생성 폼을 가리면 안 된다. */}
