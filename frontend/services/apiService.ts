@@ -1105,6 +1105,16 @@ export const aiStudioApi = {
         }>('/admin/ai-studio/status'),
     power: (action: 'start' | 'stop') =>
         post<{ ok: boolean; status: string; detail: string }>('/admin/ai-studio/power', { action }),
+    // 일자별 사용량·금액(2026-08-08) — ★금액은 **작업 처리시간** 기준이라
+    //   실제 청구액보다 작다(서버가 켜져 있어도 노는 시간은 안 잡힘).
+    //   "어느 날 많이 썼나"를 보는 용도.
+    getUsage: (days = 14) =>
+        get<{ krwPerHour: number; days: { day: string; jobs: number; sec: number; krw: number }[] }>(
+            `/admin/ai-studio/usage?days=${days}`),
+    // 작업 기록 삭제(2026-08-08) — ★DB 기록만 지운다.
+    //   서버3의 이미지 파일은 [AI 보관함] 탭에서 따로 지운다.
+    deleteJob: (id: number) =>
+        del<{ ok: boolean; id: number }>(`/admin/ai-studio/job/${id}`),
     // models=그림 모델(체크포인트), upscalers=확대 후보정 모델
     getModels: () =>
         get<{ available: boolean; reason?: string; models: string[]; upscalers?: string[] }>(
@@ -1154,9 +1164,11 @@ export const aiStudioApi = {
     // 프롬프트 다듬기(2026-08-05) — 한글/거친 문장 → 영어 이미지 프롬프트.
     // ★'번역'과 '고급화'를 나누지 않았다 — 어차피 둘 다 LLM 이고, 직역은 프롬프트로
     //   잘 안 먹는다. 버튼이 둘이면 어느 걸 눌러야 하는지도 헷갈린다.
-    refinePrompt: (text: string, kind?: string) =>
+    // ★mode='negative' 면 **빼고 싶은 것**을 다듬는다(2026-08-08) — 프롬프트와 의미가
+    //   정반대라 서버가 다른 지시문을 쓴다("손가락 이상하지 않게" → "deformed hands").
+    refinePrompt: (text: string, kind?: string, mode?: 'positive' | 'negative') =>
         post<{ ok: boolean; original: string; refined: string }>(
-            '/admin/ai-studio/refine-prompt', { text, kind }),
+            '/admin/ai-studio/refine-prompt', { text, kind, mode }),
     // 썸네일 일괄(2026-08-05) — ★한 장씩 원본을 받으면 몹시 느리다. 서버1→서버2→서버3
     //   2단 SSH 라 장당 1.26초에 6~8MB 원본이 그대로 온다(28장이면 35초).
     //   서버3에서 320px JPEG 로 줄여 **한 번에** 받는다(실측 1/575, 전체 약 4초·471KB).

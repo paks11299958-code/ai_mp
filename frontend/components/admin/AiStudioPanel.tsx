@@ -103,7 +103,9 @@ const toScaledBase64 = async (
  *   **"어떤 건 보이고 어떤 건 안 보이는" 상태**가 된다. 버그처럼 보이지만 정상 동작이다.
  *   그래서 실패 사유를 **읽히는 색으로** 분명히 적는다(예전엔 gray-600 이라 안 보였다).
  */
-const JobImage: React.FC<{ file: string; serverOff: boolean }> = ({ file, serverOff }) => {
+// ★onZoom 이 있으면 클릭 시 **확대**(2026-08-08 사장 요청) — 예전엔 클릭이 곧 다운로드였다.
+//   썸네일을 작게 줄인 대신 눌러서 크게 볼 수 있어야 한다. 다운로드는 확대 화면에서 한다.
+const JobImage: React.FC<{ file: string; serverOff: boolean; onZoom?: (url: string) => void }> = ({ file, serverOff, onZoom }) => {
     const [url, setUrl] = useState<string | null>(null);
     const [err, setErr] = useState(false);
     const urlRef = useRef<string | null>(null);
@@ -140,6 +142,15 @@ const JobImage: React.FC<{ file: string; serverOff: boolean }> = ({ file, server
     if (!url) {
         return <div className="w-full aspect-[3/4] rounded-lg bg-gray-800 animate-pulse" />;
     }
+    if (onZoom) {
+        return (
+            <button type="button" onClick={() => onZoom(url)} title="클릭하면 크게 보기"
+                    className="block w-full rounded-lg overflow-hidden border border-gray-700
+                               hover:border-purple-500/60 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <img src={url} alt={file} className="w-full block hover:opacity-90 transition-opacity" />
+            </button>
+        );
+    }
     return (
         <a href={url} download={file} title="클릭하면 다운로드">
             <img src={url} alt={file} className="w-full rounded-lg border border-gray-700 hover:opacity-90" />
@@ -153,6 +164,10 @@ export const AiStudioPanel: React.FC = () => {
     const [jobs, setJobs] = useState<Awaited<ReturnType<typeof aiStudioApi.getJobs>>['jobs']>([]);
     const [busy, setBusy] = useState<string | null>(null);
     const [msg, setMsg] = useState('');
+    // 일자별 사용량(2026-08-08) — "오늘"만 보면 추세를 알 수 없어 며칠치를 함께 본다.
+    const [usage, setUsage] = useState<{ day: string; jobs: number; sec: number; krw: number }[]>([]);
+    // 최근 작업 이미지를 크게 볼 때 쓰는 확대 오버레이. null 이면 닫힘.
+    const [zoom, setZoom] = useState<string | null>(null);
 
     // 생성 폼
     const [prompt, setPrompt] = useState('');
@@ -167,6 +182,8 @@ export const AiStudioPanel: React.FC = () => {
     // ★AI 다듬기 전 원문 — LLM 이 엉뚱하게 바꿀 수 있으므로 되돌릴 수 있어야 한다.
     //   null 이면 '되돌릴 것 없음'(버튼도 안 보인다).
     const [prevPrompt, setPrevPrompt] = useState<string | null>(null);
+    // 네거티브도 한글로 쓰는 사람이 있다(2026-08-08 사장 지적) — 되돌리기도 따로 둔다.
+    const [prevNegative, setPrevNegative] = useState<string | null>(null);
 
     // 모델 관리(2차)
     const [catalog, setCatalog] = useState<{ key: string; file: string; kind?: string }[]>([]);
@@ -239,12 +256,15 @@ export const AiStudioPanel: React.FC = () => {
 
     const load = useCallback(async () => {
         try {
-            const [s, j] = await Promise.all([
+            const [s, j, u] = await Promise.all([
                 aiStudioApi.getStatus(),
                 aiStudioApi.getJobs(12).catch(() => ({ jobs: [] })),
+                // ★사용량은 실패해도 화면 전체가 죽으면 안 된다 — 빈 배열로 폴백.
+                aiStudioApi.getUsage(14).catch(() => ({ days: [] as any[] })),
             ]);
             setSt(s);
             setJobs(j.jobs ?? []);
+            setUsage((u as any).days ?? []);
             // 모델 목록은 서버가 켜져 있을 때만 읽을 수 있다
             if (s.server?.status === 'RUNNING') {
                 aiStudioApi.getModels().then((m) => {
@@ -325,6 +345,21 @@ export const AiStudioPanel: React.FC = () => {
         }
     };
 
+    /** 최근 작업 1건 지우기(2026-08-08) — ★목록에서만 치운다. 서버3의 이미지 파일은
+     *  그대로 남아 [AI 보관함] 탭에서 볼 수 있다(여기서 원본까지 지우면 사고가 난다). */
+    const doDeleteJob = async (id: number) => {
+        if (!window.confirm(`#${id} 작업을 목록에서 지웁니다.\n\n이미지 파일은 서버에 그대로 남습니다([AI 보관함] 탭에서 관리).\n계속할까요?`)) return;
+        // ★낙관적 갱신 — 지운 뒤 목록을 다시 부르면 15초 폴링과 겹쳐 깜빡인다.
+        const before = jobs;
+        setJobs((prev) => prev.filter((j) => j.id !== id));
+        try {
+            await aiStudioApi.deleteJob(id);
+        } catch (e: any) {
+            setJobs(before);   // 실패하면 되돌린다 — 지워진 것처럼 보이면 안 된다
+            setMsg(e?.body?.error || e?.message || '삭제에 실패했습니다.');
+        }
+    };
+
     /** 스타일 견본 올리기 — 업로드 경로는 img2img 와 같다(둘 다 서버3 input 폴더). */
     const doUploadStyle = async (f: File | null | undefined) => {
         if (!f) return;
@@ -388,15 +423,20 @@ export const AiStudioPanel: React.FC = () => {
      *   결과가 사람 컨디션을 탄다(프리셋을 만든 이유와 같다).
      * ★원문을 남겨 되돌릴 수 있게 한다 — 손으로 쓴 게 날아가면 안 된다.
      */
-    const doRefine = async () => {
-        const text = prompt.trim();
+    /** 프롬프트/네거티브 다듬기.
+     *  ★한 함수로 둘 다 처리한다 — 복사해서 두 개로 만들면 나중에 한쪽만 고치는 실수가 난다.
+     *  ★mode 에 따라 **서버 지시문이 달라진다**: 네거티브는 의미가 정반대라
+     *    "손가락 이상하지 않게" → "deformed hands, extra fingers" 로 바꿔야 한다. */
+    const doRefine = async (mode: 'positive' | 'negative' = 'positive') => {
+        const isNeg = mode === 'negative';
+        const text = (isNeg ? negative : prompt).trim();
         if (!text) return;
-        setBusy('refine'); setMsg('');
+        setBusy(isNeg ? 'refine-neg' : 'refine'); setMsg('');
         try {
-            const r = await aiStudioApi.refinePrompt(text, preset?.label);
-            setPrevPrompt(text);          // 되돌리기용
-            setPrompt(r.refined);
-            setMsg('프롬프트를 다듬었습니다 — 마음에 안 들면 ↩ 되돌리기를 누르세요.');
+            const r = await aiStudioApi.refinePrompt(text, preset?.label, mode);
+            if (isNeg) { setPrevNegative(text); setNegative(r.refined); }
+            else { setPrevPrompt(text); setPrompt(r.refined); }
+            setMsg(`${isNeg ? '빼고 싶은 것을' : '프롬프트를'} 다듬었습니다 — 마음에 안 들면 ↩ 되돌리기를 누르세요.`);
         } catch (e: any) {
             setMsg(e?.body?.error || e?.message || '다듬기에 실패했습니다.');
         } finally {
@@ -557,6 +597,54 @@ export const AiStudioPanel: React.FC = () => {
                 )}
                 {msg && <p className="text-xs text-amber-300 mt-2">{msg}</p>}
             </div>
+
+            {/* 일자별 사용량(2026-08-08 사장 요청) — ★"오늘"만 보면 추세를 알 수 없다.
+                어느 날 몰아 썼는지, 끄는 걸 잊은 날이 있는지가 여기서 보인다.
+                ★금액은 **작업 처리시간** 기준이라 실제 청구액보다 작다(노는 시간은 안 잡힘). */}
+            {usage.length > 0 && (
+                <details className="bg-gray-800/40 border border-gray-700 rounded-lg" open>
+                    <summary className="cursor-pointer select-none px-4 py-3 text-sm font-bold text-gray-200">
+                        일자별 사용량
+                        <span className="ml-2 text-[12px] font-normal text-gray-400">
+                            최근 {usage.length}일 · 합계 약 {usage.reduce((a, d) => a + d.krw, 0).toLocaleString()}원
+                        </span>
+                    </summary>
+                    <div className="px-4 pb-4">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-[13px]">
+                                <thead>
+                                    <tr className="text-gray-400 border-b border-gray-700">
+                                        <th className="text-left font-medium py-1.5">날짜</th>
+                                        <th className="text-right font-medium py-1.5">건수</th>
+                                        <th className="text-right font-medium py-1.5">사용시간</th>
+                                        <th className="text-right font-medium py-1.5">금액</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {usage.map((d) => (
+                                        <tr key={d.day} className="border-b border-gray-800/70">
+                                            <td className="py-1.5 text-gray-300">{d.day.slice(5).replace('-', '/')}</td>
+                                            {/* ★숫자는 tabular-nums 로 자릿수를 맞춘다 — 세로로 비교해야 하는 값이다 */}
+                                            <td className="py-1.5 text-right text-gray-300 tabular-nums">{d.jobs}건</td>
+                                            <td className="py-1.5 text-right text-gray-400 tabular-nums">
+                                                {d.sec >= 60 ? `${Math.round(d.sec / 60)}분` : `${d.sec}초`}
+                                            </td>
+                                            <td className="py-1.5 text-right text-gray-200 tabular-nums font-medium">
+                                                {d.krw.toLocaleString()}원
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                        <p className="text-[12px] text-gray-400 mt-2 leading-relaxed">
+                            ★<b className="text-gray-400">그림을 그린 시간</b>만 계산한 값입니다 —
+                            서버가 켜져 있어도 노는 시간은 빠져 있어 <b className="text-gray-400">실제 청구액보다 작습니다</b>.
+                            정확한 금액은 GCP 결제 화면에서 확인하세요.
+                        </p>
+                    </div>
+                </details>
+            )}
 
             {/* 생성 폼 */}
             <div className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-3">
@@ -753,6 +841,12 @@ export const AiStudioPanel: React.FC = () => {
                     {/* ★소제목 — 텍스트창 2개가 나란히 있는데 라벨이 없어 **아래 칸이 뭔지
                          placeholder 를 읽어야만** 알 수 있었다("헷갈린다", 2026-08-06 사장 지적).
                          placeholder 는 글자를 넣는 순간 사라지므로 라벨 역할을 못 한다. */}
+                    {/* ★제목·입력칸·보조버튼을 **한 덩어리로 묶는다**(2026-08-08 사장 지시).
+                         예전엔 셋이 space-y-3 로 똑같이 벌어져 있어, 다듬기 버튼이
+                         아래 '빼고 싶은 것'과도 거리가 비슷해 보였다 →
+                         "다듬기를 누르면 네거티브도 영어로 바뀌나?"라는 오해가 생겼다.
+                         ★실제로는 **위 칸만** 바꾼다(doRefine 이 prompt 만 읽고 쓴다). */}
+                    <div className="space-y-1.5">
                     <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap">
                         ✏️ 그리고 싶은 것
                         <span className="text-[12px] font-normal text-green-300/90">(필수 — 원하는 그림을 적습니다)</span>
@@ -775,11 +869,13 @@ export const AiStudioPanel: React.FC = () => {
                                 📋 예시 넣기
                             </button>
                         )}
-                        <button onClick={doRefine} disabled={busy !== null || !prompt.trim()}
-                            title="한글로 써도 됩니다 — 영어 이미지 프롬프트로 바꿔 줍니다"
+                        {/* ★onClick={doRefine} 로 두면 클릭 이벤트가 첫 인자(mode)로 들어간다 —
+                             반드시 화살표로 감싼다. */}
+                        <button onClick={() => doRefine('positive')} disabled={busy !== null || !prompt.trim()}
+                            title="바로 위 칸만 다듬습니다 — 한글로 써도 영어 프롬프트로 바꿔 줍니다"
                             className="text-[12px] px-2.5 py-1 rounded bg-purple-800 hover:bg-purple-700
                                        text-purple-100 font-bold disabled:opacity-40">
-                            {busy === 'refine' ? '다듬는 중…' : '✨ AI로 다듬기'}
+                            {busy === 'refine' ? '다듬는 중…' : '✨ 위 칸을 AI로 다듬기'}
                         </button>
                         {/* ★되돌리기 — LLM 이 엉뚱하게 바꿀 수 있는데 손으로 쓴 게 날아가면 안 된다 */}
                         {prevPrompt !== null && (
@@ -791,6 +887,7 @@ export const AiStudioPanel: React.FC = () => {
                         <span className="text-[12px] text-gray-400">
                             한글로 써도 됩니다 — 다듬기를 누르면 영어로 바꿔 줍니다
                         </span>
+                    </div>
                     </div>
 
                     {/* ★프리셋이 실제로 어떤 문장을 붙이는지 보여준다 — 안 보이면
@@ -805,8 +902,10 @@ export const AiStudioPanel: React.FC = () => {
                     )}
 
                     {/* ★위 칸과 **반대 의미**라는 걸 제목에서 바로 알게 한다 —
-                         '네거티브'라는 낱말만으론 무슨 뜻인지 알 수 없다. */}
-                    <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap pt-1">
+                         '네거티브'라는 낱말만으론 무슨 뜻인지 알 수 없다.
+                         ★여기도 제목·입력·버튼을 한 덩어리로 묶는다(위 칸과 같은 규칙). */}
+                    <div className="space-y-1.5 pt-1">
+                    <div className="text-xs font-bold text-gray-200 flex items-baseline gap-1.5 flex-wrap">
                         🚫 빼고 싶은 것 <span className="text-gray-400 font-normal">(네거티브)</span>
                         <span className="text-[12px] font-normal text-gray-400">
                             (선택 — 비워두면 손·얼굴 왜곡 방지 기본값이 들어갑니다)
@@ -816,6 +915,29 @@ export const AiStudioPanel: React.FC = () => {
                         placeholder="그림에 나오면 안 되는 것을 적습니다 — 예: blurry, extra fingers, watermark"
                         className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs
                                    placeholder-gray-600 focus:border-purple-500 focus:outline-none" />
+
+                    {/* ★네거티브도 한글로 쓰는 사람이 있다(2026-08-08 사장 지적).
+                         단 **의미가 정반대**라 서버가 다른 지시문을 쓴다 —
+                         "손가락 이상하지 않게" → "deformed hands, extra fingers". */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <button onClick={() => doRefine('negative')}
+                            disabled={busy !== null || !negative.trim()}
+                            title="바로 위 칸만 다듬습니다 — 한글로 써도 영어 네거티브로 바꿔 줍니다"
+                            className="text-[12px] px-2.5 py-1 rounded bg-purple-800 hover:bg-purple-700
+                                       text-purple-100 font-bold disabled:opacity-40">
+                            {busy === 'refine-neg' ? '다듬는 중…' : '✨ 위 칸을 AI로 다듬기'}
+                        </button>
+                        {prevNegative !== null && (
+                            <button onClick={() => { setNegative(prevNegative); setPrevNegative(null); }}
+                                className="text-[12px] px-2.5 py-1 rounded bg-gray-700 hover:bg-gray-600 text-gray-200">
+                                ↩ 되돌리기
+                            </button>
+                        )}
+                        <span className="text-[12px] text-gray-400">
+                            한글로 써도 됩니다 — 예: "손가락 이상하지 않게"
+                        </span>
+                    </div>
+                    </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <Field label="모델">
@@ -1023,32 +1145,73 @@ export const AiStudioPanel: React.FC = () => {
                         {' '}이미지는 서버3에 그대로 있으니 <b>켜기</b>를 누르면 다시 보입니다.
                     </p>
                 )}
+                {/* ★썸네일을 반의반으로 줄였다(2026-08-08 사장 지시) — 예전엔 4열이라
+                     한 장이 너무 커서 최근 작업을 훑기 어려웠다. 8열로 늘려 크기를 1/4로.
+                     대신 **클릭하면 확대**되고, 각 칸에서 **바로 지울 수** 있다.
+                   ★주석은 삼항 밖에 둔다 — `: (` 바로 뒤엔 표현식만 올 수 있어
+                     JSX 주석을 넣으면 빌드가 깨진다(2026-08-08 실제로 겪음). */}
                 {jobs.length === 0 ? (
                     <p className="text-xs text-gray-400 py-6 text-center">아직 생성한 이미지가 없습니다.</p>
                 ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-2">
                         {jobs.map((j) => (
-                            <div key={j.id} className="bg-gray-900/60 border border-gray-700 rounded-lg p-2 space-y-1.5">
+                            <div key={j.id} className="group relative bg-gray-900/60 border border-gray-700
+                                                       rounded-lg p-1.5 space-y-1">
+                                {/* ★삭제 — 평소엔 흐리게 두고 마우스를 올리면 또렷해진다.
+                                     칸이 작아 항상 진하게 두면 그림을 가린다. */}
+                                <button onClick={() => doDeleteJob(j.id)} title="목록에서 지우기"
+                                    className="absolute top-1 right-1 z-10 w-5 h-5 rounded
+                                               bg-gray-900/80 hover:bg-red-700 text-gray-300 hover:text-white
+                                               text-[11px] leading-none opacity-40 group-hover:opacity-100
+                                               transition-opacity border border-gray-600">
+                                    ✕
+                                </button>
                                 {j.status === 'completed' && j.files[0] ? (
-                                    <JobImage file={j.files[0]} serverOff={!running} />
+                                    <JobImage file={j.files[0]} serverOff={!running} onZoom={setZoom} />
                                 ) : (
-                                    <div className="w-full aspect-[3/4] rounded-lg bg-gray-800 flex items-center
-                                                    justify-center text-[13px] text-gray-300">
+                                    <div className="w-full aspect-[3/4] rounded bg-gray-800 flex items-center
+                                                    justify-center text-[11px] text-gray-300 text-center px-1">
                                         {j.status === 'pending' ? '대기 중…'
                                             : j.status === 'processing' ? '생성 중…'
-                                            : <span className="text-red-400 px-2 text-center">실패<br />{(j.error || '').slice(0, 40)}</span>}
+                                            : <span className="text-red-400">실패</span>}
                                     </div>
                                 )}
-                                <p className="text-[12px] text-gray-400 line-clamp-2 leading-snug">{j.prompt}</p>
-                                <p className="text-[11px] text-gray-400">
-                                    #{j.id} · {j.model.replace('.safetensors', '')} · {j.size}
-                                    {j.elapsedSec != null && ` · ${j.elapsedSec}초`}
+                                {/* ★칸이 작아진 만큼 글자도 줄인다 — 프롬프트는 한 줄만,
+                                     자세한 건 확대해서 보거나 [AI 보관함]에서 본다. */}
+                                <p className="text-[11px] text-gray-400 truncate leading-snug" title={j.prompt}>
+                                    {j.prompt}
+                                </p>
+                                <p className="text-[10px] text-gray-500 truncate">
+                                    #{j.id}{j.elapsedSec != null && ` · ${j.elapsedSec}초`}
                                 </p>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            {/* 확대 보기(2026-08-08) — 썸네일을 작게 줄인 대신 눌러서 크게 본다.
+                 ★배경 아무 곳이나 눌러도 닫힌다(닫는 법을 못 찾으면 갇힌 느낌이 든다). */}
+            {zoom && (
+                <div onClick={() => setZoom(null)}
+                     className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4
+                                cursor-zoom-out">
+                    <div className="relative max-w-full max-h-full" onClick={(e) => e.stopPropagation()}>
+                        <img src={zoom} alt="확대"
+                             className="max-w-full max-h-[88vh] rounded-lg border border-gray-600" />
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                            <a href={zoom} download
+                               className="text-[13px] px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-100">
+                                ⬇ 내려받기
+                            </a>
+                            <button onClick={() => setZoom(null)}
+                               className="text-[13px] px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-100">
+                                닫기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* ★보관함은 별도 탭으로 분리했다(2026-08-05) — 여기서 만들고,
                  만든 것은 [AI 보관함] 탭에서 보고 지운다. 한 화면에 섞여 있으니
