@@ -7,7 +7,9 @@ import { adminApi } from '../../services/apiService';
 
 interface Report {
     reportDate: string; revenueKrw: number; chargeCount: number; aiCostUsd: number;
-    newUsers: number; dau: number; chatCount: number; pointSpent: number;
+    // ★newUsers=정회원만, guestUsers=레퍼럴 체험계정. 합산 표시 금지(2026-08-07).
+    //   합쳐 보여주던 시절 7월 "43명"이 실회원 17명이었고, 8월 실회원 0명을 17명으로 오독했다.
+    newUsers: number; guestUsers?: number; dau: number; chatCount: number; pointSpent: number;
     topFeatures: { name: string; count: number }[]; errorCount: number; tossPnlKrw: number | null;
 }
 interface Directive {
@@ -75,7 +77,7 @@ export const BizReportPanel: React.FC = () => {
                     <div className="bg-gray-800/60 border border-gray-700 rounded-xl p-4">
                         <p className="text-xs text-gray-400">활동</p>
                         <p className="text-2xl font-bold text-purple-300">{latest.dau}<span className="text-sm font-medium text-gray-400"> DAU</span></p>
-                        <p className="text-[11px] text-gray-500">신규 {latest.newUsers} · 채팅 {latest.chatCount} · 에러 {latest.errorCount}</p>
+                        <p className="text-[11px] text-gray-500">신규 정회원 {latest.newUsers}(체험 {latest.guestUsers ?? 0}) · 채팅 {latest.chatCount} · 에러 {latest.errorCount}</p>
                     </div>
                 </div>
             </div>
@@ -99,7 +101,7 @@ export const BizReportPanel: React.FC = () => {
                 <div className="overflow-x-auto border border-gray-700 rounded-xl">
                     <table className="w-full text-xs">
                         <thead className="bg-gray-800 text-gray-400">
-                            <tr>{['날짜', '매출', 'AI비용', '순익', '신규', 'DAU', '채팅', '포인트소비', '기능 TOP', '에러', '토스봇'].map(h => (
+                            <tr>{['날짜', '매출', 'AI비용', '순익', '신규(정회원)', '체험', 'DAU', '채팅', '포인트소비', '기능 TOP', '에러', '토스봇'].map(h => (
                                 <th key={h} className="px-3 py-2 text-left whitespace-nowrap">{h}</th>))}</tr>
                         </thead>
                         <tbody className="divide-y divide-gray-800">
@@ -109,7 +111,8 @@ export const BizReportPanel: React.FC = () => {
                                     <td className={`px-3 py-2 ${r.revenueKrw > 0 ? 'text-green-300 font-bold' : ''}`}>{won(r.revenueKrw)}</td>
                                     <td className="px-3 py-2">{won(aiKrw(r))}</td>
                                     <td className={`px-3 py-2 ${profit(r) < 0 ? 'text-red-300' : ''}`}>{won(profit(r))}</td>
-                                    <td className="px-3 py-2">{r.newUsers}</td>
+                                    <td className={`px-3 py-2 ${r.newUsers > 0 ? 'text-green-300 font-bold' : 'text-gray-600'}`}>{r.newUsers}</td>
+                                    <td className="px-3 py-2 text-gray-500">{r.guestUsers ?? 0}</td>
                                     <td className="px-3 py-2">{r.dau}</td>
                                     <td className="px-3 py-2">{r.chatCount}</td>
                                     <td className="px-3 py-2">{r.pointSpent.toLocaleString()}P</td>

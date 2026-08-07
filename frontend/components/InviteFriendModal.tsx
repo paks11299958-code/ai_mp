@@ -57,12 +57,17 @@ export const InviteFriendModal: React.FC<InviteFriendModalProps> = ({ onClose, c
 
     // 기본값: 지금 보고 있던 페르소나(은비 채팅에서 열면 '신은비'). 그 화면에서 초대를 누른 건
     // "이 페르소나를 소개하려는" 의도에 가깝고, 기능만 콕 집으려면 펼쳐서 고르면 된다.
+    // ★페르소나 밖에서 열었을 때의 기본값을 '홈'에서 킬러 기능으로 바꿨다(2026-08-07).
+    //   홈으로 떨어뜨리면 체험계정이 채팅만 한 번 눌러보고 나간다 — 실측으로 확인됐다:
+    //   체험계정 43명 중 유료기능까지 간 사람 1명(2%), 정회원 전환 0명. 채팅은 무료라
+    //   첫 화면이 채팅이면 "다른 AI와 뭐가 다른지"를 보여줄 기회 자체가 없다.
+    //   헤어스타일은 포인트 소비 실적 1위(87건)이자 첫 1회 무료 대상이라 도착지로 적합하다.
     const [selected, setSelected] = useState<InviteTarget>(() => {
         if (currentPersonaName) {
             const p = personas.find(x => x.name === currentPersonaName);
             if (p) return { kind: 'persona', id: p.id, name: p.name };
         }
-        return { kind: 'home' };
+        return { kind: 'feature', key: 'hair', label: '헤어스타일' };
     });
 
     // 위 리스트박스에서 고른 페르소나 id. 아래 기능 리스트박스가 이 값에 따라 채워진다.
