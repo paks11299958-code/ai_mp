@@ -117,6 +117,10 @@ const AppContent: React.FC = () => {
     } = useAuth();
     // 온보딩 알럿: 가입 환영 / 미션 달성 축하 / 레퍼럴 체험계정 환영 (한 모달로 공용)
     const [rewardAlert, setRewardAlert] = useState<{ kind: 'welcome' | 'mission' | 'guestWelcome'; amount: number } | null>(null);
+    // 포인트 부족으로 충전 모달이 떴을 때의 사유(2026-08-08) — 필요액·잔액·기능명.
+    // 서버가 안 줄 수도 있으므로 전부 optional이고, 모달은 없는 값을 알아서 생략한다.
+    const [insufficientInfo, setInsufficientInfo] = useState<
+        { required?: number; balance?: number; shortfall?: number; feature?: string } | null>(null);
     const handleMissionAwarded = useCallback((amount: number) => {
         setRewardAlert({ kind: 'mission', amount });
         // 잔액 즉시 갱신
@@ -1082,8 +1086,13 @@ const AppContent: React.FC = () => {
     }, [activePersonaId, isAdminMode, scrollMessagesToBottom]);
 
     // 포인트 부족(402) 전역 처리: 어느 기능에서든 충전 모달을 띄운다.
+    // 2026-08-08: 서버가 함께 준 필요액·잔액·기능명을 모달에 넘겨 "왜 떴는지"를 말해주게 했다.
+    // ★값이 없을 수도 있다(구버전 경로 등) — 그때는 detail 없이 뜨고 모달이 알아서 생략한다.
     useEffect(() => {
-        const onInsufficient = () => setShowPointModal(true);
+        const onInsufficient = (e: Event) => {
+            setInsufficientInfo((e as CustomEvent).detail ?? null);
+            setShowPointModal(true);
+        };
         window.addEventListener('insufficient-points', onInsufficient);
         return () => window.removeEventListener('insufficient-points', onInsufficient);
     }, [setShowPointModal]);
@@ -1488,7 +1497,7 @@ const AppContent: React.FC = () => {
                             unreadAnnouncementCount={unreadAnnouncementCount}
                             onProfileClick={requireLogin}
                             onLoginClick={() => goTo('authPage')}
-                            onChargeClick={() => setShowPointModal(true)}
+                            onChargeClick={() => { setInsufficientInfo(null); setShowPointModal(true); }}
                             categories={categories}
                             onGoHome={() => { window.location.href = '/'; }}
                             initialTab={mainInitialTab}
@@ -1689,7 +1698,7 @@ const AppContent: React.FC = () => {
                     unreadAnnouncementCount={unreadAnnouncementCount}
                     onProfileClick={() => setShowUserProfile(true)}
                     onLoginClick={() => goTo('authPage')}
-                    onChargeClick={() => setShowPointModal(true)}
+                    onChargeClick={() => { setInsufficientInfo(null); setShowPointModal(true); }}
                     categories={categories}
                     onGoHome={() => { window.location.href = '/'; }}
                     initialTab={mainInitialTab}
@@ -1772,7 +1781,9 @@ const AppContent: React.FC = () => {
                             onClose={() => setShowPointModal(false)}
                         />
                     ) : (
-                        <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)}
+                        <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0}
+                            onClose={() => { setShowPointModal(false); setInsufficientInfo(null); }}
+                            insufficient={insufficientInfo}
                             onInviteClick={() => { setShowPointModal(false); setShowInviteModal(true); }} />
                     )
                 )}
@@ -2301,7 +2312,9 @@ const AppContent: React.FC = () => {
                         onClose={() => setShowPointModal(false)}
                     />
                 ) : (
-                    <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0} onClose={() => setShowPointModal(false)} />
+                    <PointModal currentPoints={userPaidPoints + userBonusPoints} userId={user?.id ?? 0}
+                        onClose={() => { setShowPointModal(false); setInsufficientInfo(null); }}
+                        insufficient={insufficientInfo} />
                 )
             )}
 
@@ -2309,7 +2322,7 @@ const AppContent: React.FC = () => {
             {showPointDashboard && (
                 <PointDashboard
                     onClose={() => setShowPointDashboard(false)}
-                    onCharge={() => { setShowPointDashboard(false); setShowPointModal(true); }}
+                    onCharge={() => { setShowPointDashboard(false); setInsufficientInfo(null); setShowPointModal(true); }}
                     onBalanceRefresh={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
                 />
             )}

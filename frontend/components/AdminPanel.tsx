@@ -3,6 +3,7 @@ import { Persona, Category } from '../types';
 import { categoryApi, adminApi } from '../services/apiService';
 import { Icon } from './Icons';
 import { pointApi } from '../services/pointService';
+import { FEATURE_LABELS } from '../lib/featureLabels';
 import { CleanupPanel } from './admin/CleanupPanel';
 import { ToolsPanel } from './admin/ToolsPanel';
 import { SettingsPanel } from './admin/SettingsPanel';
@@ -263,37 +264,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
     );
 };
 
-// 포인트를 차감하는 모든 기능(checkMenuAccess 기준). 순서 = 화면 표시 순서.
-const FEATURE_LABELS: Record<string, string> = {
-    'news':       '오늘 뉴스',
-    'stock':      '주식 분석',
-    'luxury':     '명품 감정',
-    'used-item':  '중고판매 분석',
-    'hot-keyword':'핫쇼핑 키워드',
-    'insurance':  '보험 컨설팅',
-    'face':       '얼굴 관상',
-    'palm':       '손금',
-    'quick-menu': '운세·사주(시운·재물·인연·꿈해몽)',
-    'mathtutor':  'AI쌤 수학(풀이·출제)',
-    'hair':       '헤어Style',
-    'agetransform':'시간여행(나이변환)',
-    'outfit':     '프로필 사진',
-    'lookalike':  '연예인 매칭',
-    'golf':       '골프 스윙 분석',
-    'webtoon':    '웹툰 보기',
-    'club':       '모임(출첵)',
-    'ebook_docx_per1k': '전자책 문서 만들기(1,000자당)',
-    'ebook_image_prompt': '전자책 그림 프롬프트 뽑기(일괄)',
-    'ebook_image': '전자책 그림 이미지 생성(장당)',
-    'ebook_cover': '전자책 AI 표지 생성(장당)',
-    'marketing':  'AI 마케팅 글쓰기',
-    'homepage':   '홈페이지 만들기',
-    'homepage_edit_text':   '홈페이지 수정(텍스트)',
-    'homepage_edit_image':  '홈페이지 수정(AI 사진)',
-    'homepage_edit_upload': '홈페이지 수정(내 사진)',
-    'shorts_maker_research': '쇼츠 만들기(리서치+시나리오5개)',
-    'shorts_maker_produce':  '쇼츠 만들기(영상 제작)',
-};
+// FEATURE_LABELS는 frontend/lib/featureLabels.ts로 이동(2026-08-08) — 회원용 포인트
+// 부족 안내에서도 같은 표가 필요해졌다. 복사본을 두면 새 기능 추가 시 한쪽만 갱신된다.
 // 위 라벨의 key 순서 = 표시 순서 (차감 기능 전체)
 const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 

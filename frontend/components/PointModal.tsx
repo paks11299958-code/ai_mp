@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Coins, X, Loader2 } from 'lucide-react';
+import { shortFeatureLabel } from '../lib/featureLabels';
 
 // 1pt=1원(2026-06-17). 기본 1:1, 큰 패키지는 보너스 %.
 const PACKAGES = [
@@ -14,10 +15,20 @@ interface PointModalProps {
     onClose: () => void;
     /** '친구 초대하고 +1000P' CTA 클릭 시(충전모달 닫고 초대모달 열기). 미전달 시 CTA 숨김. */
     onInviteClick?: () => void;
+    /**
+     * 포인트가 모자라서 자동으로 뜬 경우의 사유(2026-08-08 사장 지시).
+     * 전달되면 상단에 "왜 떴는지"를 먼저 알려준다 — 없으면(직접 '충전하기'를 누른 경우)
+     * 기존처럼 평범한 충전 화면으로 뜬다.
+     * ★서버가 값을 일부만 줄 수도 있어 전 필드가 optional이다. 있는 것만 문장에 넣는다.
+     */
+    insufficient?: { required?: number; balance?: number; shortfall?: number; feature?: string } | null;
 }
 
-export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, onClose, onInviteClick }) => {
+export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, onClose, onInviteClick, insufficient }) => {
     const [loading, setLoading] = useState(false);
+    // 기능 키 → 회원용 짧은 이름. 모르는 키면 undefined라 문구를 통째로 생략한다
+    // (원문 키 'quick-menu'가 그대로 노출되는 게 최악이다).
+    const featureName = shortFeatureLabel(insufficient?.feature);
 
     const handlePurchase = async (pkg: typeof PACKAGES[0]) => {
         if (loading) return;
@@ -52,10 +63,39 @@ export const PointModal: React.FC<PointModalProps> = ({ currentPoints, userId, o
             <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Coins size={20} className="text-yellow-400" />포인트 충전
+                        <Coins size={20} className="text-yellow-400" />
+                        {insufficient ? '포인트가 부족해요' : '포인트 충전'}
                     </h3>
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><X size={20} /></button>
                 </div>
+
+                {/* 부족해서 자동으로 뜬 경우의 사유 안내(2026-08-08 사장 지시).
+                    그 전에는 기능을 눌렀는데 아무 설명 없이 결제창처럼 떠서, 회원 입장에선
+                    "내가 충전을 눌렀나?" 싶고 **막힌 이유를 알 수 없었다**.
+                    ★서버가 필요액을 안 실어줄 수도 있으므로(구버전 경로 등) 있는 값만 문장에
+                      넣는다 — 값이 없다고 안내가 사라지거나 'undefined P'가 뜨면 안 된다. */}
+                {insufficient && (
+                    <div className="rounded-xl px-4 py-3 mb-4"
+                         style={{ background: 'rgba(239,68,68,0.10)', border: '1px solid rgba(239,68,68,0.35)' }}>
+                        <p className="text-sm font-semibold text-red-300 mb-0.5">
+                            {featureName ? `${featureName}을(를) 시작하지 못했어요` : '기능을 시작하지 못했어요'}
+                        </p>
+                        <p className="text-xs text-red-200/90 leading-relaxed">
+                            {typeof insufficient.required === 'number' ? (
+                                <>
+                                    {insufficient.required.toLocaleString()}P가 필요한데{' '}
+                                    {(insufficient.balance ?? currentPoints).toLocaleString()}P가 남아 있어요
+                                    {typeof insufficient.shortfall === 'number' && insufficient.shortfall > 0 && (
+                                        <> · <b className="text-red-200">{insufficient.shortfall.toLocaleString()}P 부족</b></>
+                                    )}
+                                </>
+                            ) : (
+                                <>충전하시면 바로 이어서 사용할 수 있어요</>
+                            )}
+                        </p>
+                    </div>
+                )}
+
                 <p className="text-sm text-gray-400 mb-5">
                     잔여 포인트: <span className="text-yellow-400 font-bold">{currentPoints.toLocaleString()}pt</span>
                 </p>

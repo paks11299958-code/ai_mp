@@ -12,6 +12,30 @@ function authHeaders(): HeadersInit {
     return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/**
+ * 포인트 부족(402) 공통 처리 — 전역 충전 모달을 띄우고 표준 에러를 던진다.
+ *
+ * 2026-08-08 사장 지시로 **필요액·잔액·기능명**을 함께 전달하도록 확장했다.
+ * 그 전에는 모달이 그냥 "포인트 충전" 결제창처럼 떠서, 회원 입장에선 기능을 눌렀는데
+ * 갑자기 충전창이 뜬 셈이라 **왜 떴는지 알 수 없었다**.
+ * ★서버가 값을 안 실어줄 수도 있으므로(구버전 경로·다른 402 지점) 화면은 반드시
+ *   '있으면 쓰고 없으면 생략'으로 만든다 — 값이 없다고 안내가 깨지면 안 된다.
+ * ★code/message는 그대로 유지: 호출부 12곳이 이 문자열로 분기하므로 바꾸면 조용히 깨진다.
+ */
+export function throwInsufficientPoints(detail?: any): never {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('insufficient-points', {
+            detail: detail && typeof detail === 'object' ? {
+                required: detail.required, balance: detail.balance,
+                shortfall: detail.shortfall, feature: detail.feature,
+            } : undefined,
+        }));
+    }
+    const err: any = new Error('INSUFFICIENT_POINTS');
+    err.code = 'INSUFFICIENT_POINTS';
+    throw err;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     const res = await fetch(`${BASE}${path}`, {
         ...options,
@@ -32,10 +56,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
 
     // 포인트 부족(402): 모든 기능 공통 — 전역 이벤트로 충전 모달을 띄우게 한다.
     if (res.status === 402) {
-        if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('insufficient-points'));
-        const err: any = new Error('INSUFFICIENT_POINTS');
-        err.code = 'INSUFFICIENT_POINTS';
-        throw err;
+        throwInsufficientPoints(data);
     }
     if (!res.ok) {
         // 에러에도 상태·본문을 실어 보낸다(2026-08-02) — 예전엔 message만 남기고 본문을
@@ -493,8 +514,10 @@ export const lookalikeApi = {
             body: JSON.stringify({ imageBase64, mimeType, personaId }),
         });
         if (res.status === 402) {
-            if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('insufficient-points'));
-            throw new Error('포인트가 부족합니다.');
+            // 본문을 먼저 읽어 필요액·잔액을 모달에 넘긴다(2026-08-08).
+            // 기존엔 본문을 읽기 전에 던져서 서버가 준 정보를 통째로 버리고 있었다.
+            const d = await res.json().catch(() => ({}));
+            throwInsufficientPoints(d);
         }
         const text = await res.text();
         const data: any = text ? JSON.parse(text) : {};
