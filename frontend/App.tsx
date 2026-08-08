@@ -1421,13 +1421,17 @@ const AppContent: React.FC = () => {
     // 로그인 전용 화면 — 로그인/비로그인 무관하게 screen==='authPage'면 항상 노출
     // (탑메뉴 로그인 토글 → goTo('authPage'). 상태 불일치로 안 뜨던 문제 방지차 최상위로).
     if (screen === 'authPage') {
+        // ErrorBoundary 추가(2026-08-08) — 로그인·회원가입은 **신규 회원이 처음 만나는 화면**이라
+        // 여기서 죽으면 가입 자체가 불가능해진다. 다른 기능 화면 23곳은 이미 감싸져 있었다.
         return (
-            <AuthModal
-                onSuccess={handleAuthSuccessWithWelcome}
-                onBack={() => goTo('main')}
-                defaultMode="login"
-                fullScreen
-            />
+            <ErrorBoundary label="로그인 화면 오류" onClose={() => goTo('main')}>
+                <AuthModal
+                    onSuccess={handleAuthSuccessWithWelcome}
+                    onBack={() => goTo('main')}
+                    defaultMode="login"
+                    fullScreen
+                />
+            </ErrorBoundary>
         );
     }
 
@@ -1447,13 +1451,15 @@ const AppContent: React.FC = () => {
         }
         if (arrivedViaReferral && guestRegisterState === 'failed') {
             return (
-                <AuthModal
-                    onSuccess={handleAuthSuccessWithWelcome}
-                    onBack={() => setArrivedViaReferral(false)}
-                    defaultMode="register"
-                    fullScreen
-                    referralBanner
-                />
+                <ErrorBoundary label="회원가입 화면 오류" onClose={() => setArrivedViaReferral(false)}>
+                    <AuthModal
+                        onSuccess={handleAuthSuccessWithWelcome}
+                        onBack={() => setArrivedViaReferral(false)}
+                        defaultMode="register"
+                        fullScreen
+                        referralBanner
+                    />
+                </ErrorBoundary>
             );
         }
         // 비로그인 'AI 둘러보기' — MainPageNew를 그대로 렌더하되 인증 필요 액션은 로그인 모달로 분기.
@@ -1533,12 +1539,14 @@ const AppContent: React.FC = () => {
                         );
                     })()}
                     {showAuthModal && (
-                        <AuthModal
-                            onSuccess={handleAuthSuccessWithWelcome}
-                            onClose={() => setShowAuthModal(false)}
-                            defaultMode="login"
-                            personas={personas}
-                        />
+                        <ErrorBoundary label="로그인 화면 오류" onClose={() => setShowAuthModal(false)}>
+                            <AuthModal
+                                onSuccess={handleAuthSuccessWithWelcome}
+                                onClose={() => setShowAuthModal(false)}
+                                defaultMode="login"
+                                personas={personas}
+                            />
+                        </ErrorBoundary>
                     )}
                     {showAnnouncementModal && (
                         <AnnouncementModal
@@ -2025,8 +2033,12 @@ const AppContent: React.FC = () => {
                 <GolfReserveDialog onClose={() => setShowGolfReserve(false)} />
             )}
 
-            {/* 생년월일 명부 모달 */}
+            {/* 생년월일 명부 모달 — ErrorBoundary 추가(2026-08-08).
+                전자책·웹툰 등 23곳은 이미 감싸져 있는데 이 모달과 회원가입만 빠져 있었다.
+                여기서 렌더 에러가 나면 안내 없이 앱 전체가 죽는다(2026-07-28 백지 사고와 같은 형태).
+                onClose로 '닫기'를 주면 사용자가 갇히지 않고 원래 화면으로 빠져나올 수 있다. */}
             {showBirthModal && (
+              <ErrorBoundary label="명부 입력 화면 오류" onClose={() => { setShowBirthModal(false); setPendingQuickMenu(null); }}>
                 <BirthInfoModal
                     initialData={birthInfo ?? undefined}
                     onComplete={info => {
@@ -2060,6 +2072,7 @@ const AppContent: React.FC = () => {
                         if (activePersonaId) birthModalSkippedRef.current.add(activePersonaId);
                     }}
                 />
+              </ErrorBoundary>
             )}
 
             {/* 서브메뉴 모달 */}
