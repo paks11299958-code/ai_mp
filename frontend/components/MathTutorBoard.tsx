@@ -107,7 +107,8 @@ function useTTS() {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text }),
+                // feature(2026-08-08): TTS 사용량을 기능별로 집계하기 위한 표시.
+                body: JSON.stringify({ text, feature: 'math-tts' }),
             });
             if (!res.ok) throw new Error('TTS 실패');
             const blob = await res.blob();

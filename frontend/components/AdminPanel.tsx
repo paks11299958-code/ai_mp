@@ -857,6 +857,13 @@ const BalancesCard: React.FC = () => {
     const solapiLow = data?.solapi?.balance != null && data?.solapi?.lowBalanceThreshold != null
         && data.solapi.balance <= data.solapi.lowBalanceThreshold;
 
+    // Google TTS(음성) 무료한도 소진률 — 80% 넘으면 경고, 100%부터 실제 과금 시작.
+    // 2026-08-08 신설. 임계를 80%로 잡은 이유: 뉴스 TTS만으로 월 40% 안팎을 꾸준히 쓰는데
+    // 쇼츠 신청이 몰리면 남은 구간이 빠르게 준다 — 월말에 갑자기 넘기 전에 미리 보이게.
+    const ttsPct = data?.googleTts?.usedPercent ?? 0;
+    const ttsWarn = ttsPct >= 80;
+    const ttsOver = ttsPct >= 100;
+
     return (
         <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
             <div className="flex items-center justify-between mb-3">
@@ -870,7 +877,7 @@ const BalancesCard: React.FC = () => {
             {loading ? (
                 <p className="text-xs text-gray-500 text-center py-3">불러오는 중...</p>
             ) : (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                     <div className={`rounded-lg p-3 ${solapiLow ? 'bg-red-950/60 border border-red-500/50' : 'bg-gray-900/60'}`}>
                         <p className="text-[11px] text-gray-400 mb-1">솔라피(문자발송)</p>
                         {data?.solapi?.error ? (
@@ -895,6 +902,38 @@ const BalancesCard: React.FC = () => {
                                 ${Number.isFinite(Number(data?.openai?.monthToDateUsd)) ? Number(data?.openai?.monthToDateUsd).toFixed(2) : '-'}
                                 <span className="text-[10px] text-gray-400 font-normal ml-1">이번달 누적</span>
                             </p>
+                        )}
+                    </div>
+                    {/* Google TTS(음성) — 2026-08-08 사장 지시로 신설.
+                        솔라피는 '잔액', OpenAI는 '누적액'인데 여기만 성격이 다르다: 월 100만자가
+                        무료라 한도 안에서는 청구액이 0이다. 그래서 금액이 아니라 **소진률**을
+                        주인공으로 놓고, 정가 환산액은 참고로 작게 붙인다. */}
+                    <div className={`rounded-lg p-3 ${ttsOver ? 'bg-red-950/60 border border-red-500/50'
+                        : ttsWarn ? 'bg-amber-950/50 border border-amber-500/40' : 'bg-gray-900/60'}`}>
+                        <p className="text-[11px] text-gray-400 mb-1">음성(Google TTS)</p>
+                        {data?.googleTts?.error ? (
+                            <p className="text-xs text-gray-500">{data.googleTts.error}</p>
+                        ) : (
+                            <>
+                                <p className={`text-lg font-bold ${ttsOver ? 'text-red-300' : ttsWarn ? 'text-amber-300' : 'text-white'}`}>
+                                    {ttsPct.toFixed(1)}%
+                                    <span className="text-[10px] text-gray-400 font-normal ml-1">
+                                        무료한도 소진
+                                    </span>
+                                </p>
+                                <div className="w-full bg-gray-700 rounded-full h-1 mt-1.5 mb-1">
+                                    <div className={`h-1 rounded-full transition-all ${
+                                        ttsOver ? 'bg-red-400' : ttsWarn ? 'bg-amber-400' : 'bg-green-400'}`}
+                                        style={{ width: `${Math.min(ttsPct, 100)}%` }} />
+                                </div>
+                                <p className="text-[10px] text-gray-500">
+                                    {(data?.googleTts?.monthChars ?? 0).toLocaleString()} / {(data?.googleTts?.freeTierChars ?? 1000000).toLocaleString()}자
+                                    {ttsOver && <span className="text-red-400"> · 정가 ${Number(data?.googleTts?.monthToDateUsd ?? 0).toFixed(2)}</span>}
+                                </p>
+                                {ttsOver
+                                    ? <p className="text-[10px] text-red-400 mt-0.5">⚠️ 무료한도 초과 — 지금부터 과금됩니다</p>
+                                    : ttsWarn && <p className="text-[10px] text-amber-400 mt-0.5">⚠️ 한도 임박, 초과 시 과금돼요</p>}
+                            </>
                         )}
                     </div>
                 </div>
@@ -1819,17 +1858,24 @@ const ProductExtractPanel: React.FC = () => {
 };
 
 // ── AI 사용량 대시보드 ───────────────────────────────────────────
+// ★새 service를 AiUsageLog에 넣을 땐 여기 두 표에도 반드시 등록한다(2026-08-08).
+// 빠뜨리면 에러 없이 회색 막대 + 원문 키로 조용히 표시돼 "왜 이름이 안 나오지"로 끝난다.
 const SERVICE_COLOR: Record<string, string> = {
-    openai:    '#10a37f',
-    anthropic: '#d97706',
-    gemini:    '#4285f4',
+    openai:       '#10a37f',
+    anthropic:    '#d97706',
+    gemini:       '#4285f4',
+    'google-tts': '#a855f7',   // 음성(TTS) — 문자 과금이라 성격이 달라 보라색으로 구분
 };
 const SERVICE_LABEL: Record<string, string> = {
     openai: 'OpenAI', anthropic: 'Anthropic', gemini: 'Gemini',
+    'google-tts': '음성(TTS)',
 };
 const FEATURE_LABEL: Record<string, string> = {
     stock: '주식분석', luxury: '명품감정', 'used-item': '중고시세',
     chat: '채팅', research: '리서치',
+    // TTS 기능별(2026-08-08) — 어느 경로가 문자를 먹는지 구분해서 본다.
+    'news-tts': '음성·뉴스', 'shorts-tts': '음성·쇼츠',
+    'math-tts': '음성·수학', 'tts-etc': '음성·기타',
 };
 
 const AiUsagePanel: React.FC = () => {
@@ -1946,7 +1992,7 @@ const AiUsagePanel: React.FC = () => {
                                 })}
                             </div>
                         )}
-                        <div className="flex gap-4 mt-3 pt-3 border-t border-gray-700">
+                        <div className="flex gap-4 mt-3 pt-3 border-t border-gray-700 flex-wrap">
                             {Object.entries(SERVICE_COLOR).map(([svc, color]) => (
                                 <div key={svc} className="flex items-center gap-1 text-xs text-gray-400">
                                     <span className="w-3 h-3 rounded-sm inline-block" style={{ backgroundColor: color }} />
@@ -1954,6 +2000,13 @@ const AiUsagePanel: React.FC = () => {
                                 </div>
                             ))}
                         </div>
+                        {/* 2026-08-08: TTS는 월 100만자가 무료라 이 화면(비용 기준)에선 금액이
+                            정가 환산으로 잡힌다 — 실제 청구와 다르므로 오해하지 않게 명시한다.
+                            실제로 봐야 할 건 '한도를 얼마나 썼나'이고 그건 서버 모니터에 있다. */}
+                        <p className="text-[11px] text-gray-500 mt-2">
+                            음성(TTS)은 월 100만자까지 무료입니다. 여기 표시되는 금액은 정가 환산이며,
+                            한도 안이면 실제 청구는 0원입니다. 소진률은 <span className="text-gray-400">시스템 → 서버 모니터</span>에서 확인하세요.
+                        </p>
                     </div>
 
                     <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">

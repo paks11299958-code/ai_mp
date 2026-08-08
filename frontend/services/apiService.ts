@@ -1426,6 +1426,11 @@ export const adminApi = {
         get<{
             solapi: { balance?: number; lowBalanceThreshold?: number; error?: string } | null;
             openai: { monthToDateUsd?: number; error?: string } | null;
+            // Google TTS는 '잔액'이 아니라 월 무료한도(100만자) 소진률로 본다(2026-08-08).
+            googleTts: {
+                monthChars?: number; freeTierChars?: number; usedPercent?: number;
+                monthToDateUsd?: number; calls?: number; error?: string;
+            } | null;
         }>('/admin/monitor/balances'),
 
     getLogDates: () =>

@@ -18,14 +18,23 @@ function getPool(): Pool {
     if (!_pool) _pool = new Pool({ connectionString: process.env.DATABASE_URL, max: 1 });
     return _pool;
 }
-async function logTtsUsage(charCount: number, userId: number | null): Promise<void> {
+// ★2026-08-08 수정: 이 함수는 2026-07-22 도입 이후 **단 한 건도 기록에 성공한 적이 없었다**.
+// 원인은 아래 INSERT의 파라미터 번호가 밀려 있었던 것 —
+//   VALUES ($1, $2, $3, $4, 0, $4, $5, $6, NOW())  ← promptTokens와 totalTokens에 같은 $4를
+// 재사용해 놓고 뒤를 $5(costUsd)·$6(userId)으로 이어 붙였다. 자리표는 $6까지인데 값 배열도
+// 6개라 "개수"는 맞아 보이지만, costUsd 자리에 $5=costUsd가 아니라 **밀린 값**이 들어가고
+// userId 자리에는 타입이 안 맞는 값이 들어가 매 호출 INSERT가 예외로 죽었다.
+// 그런데 catch가 조용히 삼키고 호출부도 fire-and-forget(void)이라 **화면에도 로그에도
+// 아무 신호가 없었다** — 쇼츠 16건을 만드는 동안 AiUsageLog의 TTS 행은 0건이었다.
+// 교훈: "기록 코드를 넣었다"≠"기록되고 있다". 넣은 뒤 실제 행이 쌓이는지 봤어야 했다.
+async function logTtsUsage(charCount: number, userId: number | null, feature: string): Promise<void> {
     try {
         const costUsd = charCount * TTS_COST_PER_CHAR;
         const approxTokens = Math.round(charCount / 4);
         await getPool().query(
             `INSERT INTO "AiUsageLog" (service, model, feature, "promptTokens", "completionTokens", "totalTokens", "costUsd", "userId", "createdAt")
-             VALUES ($1, $2, $3, $4, 0, $4, $5, $6, NOW())`,
-            ['google-tts', 'chirp3-hd', 'shorts-tts', approxTokens, costUsd, userId]);
+             VALUES ($1, $2, $3, $4, 0, $5, $6, $7, NOW())`,
+            ['google-tts', 'chirp3-hd', feature, approxTokens, approxTokens, costUsd, userId]);
     } catch (e: any) {
         console.error('[TTS] 사용량 로그 실패(무해):', e.message);
     }
@@ -115,7 +124,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
         });
 
-        void logTtsUsage(plain.length, userId);   // fire-and-forget — 응답 지연 없음
+        // feature는 호출 주체별로 나눠 기록한다(2026-08-08). 전부 'shorts-tts'로 뭉쳐두면
+        // 모니터에서 "어느 기능이 문자를 먹는지"를 못 본다 — 쇼츠·수학·뉴스는 호출 빈도와
+        // 1회 문자수가 완전히 달라서, 한도에 가까워졌을 때 줄일 대상을 고를 수 없다.
+        // 호출부가 안 보내면 'tts-etc'(미분류)로 남겨 조용히 사라지지 않게 한다.
+        const rawFeature = String(req.body?.feature || '').trim();
+        const feature = /^[a-z0-9-]{1,40}$/.test(rawFeature) ? rawFeature : 'tts-etc';
+        void logTtsUsage(plain.length, userId, feature);   // fire-and-forget — 응답 지연 없음
 
         const audioBuffer = Buffer.from(response.audioContent as Uint8Array);
         res.setHeader('Content-Type', 'audio/mpeg');
