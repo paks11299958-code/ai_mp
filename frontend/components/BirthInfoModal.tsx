@@ -21,9 +21,16 @@ const DAYS = Array.from({ length: 31 }, (_, i) => String(i + 1));
 const TIMES = ['모름','자시(子時)','축시(丑時)','인시(寅時)','묘시(卯時)','진시(辰時)','사시(巳時)','오시(午時)','미시(未時)','신시(申時)','유시(酉時)','술시(戌時)','해시(亥時)'];
 const TIME_LABELS = ['모름','자시(子時) 23~01시','축시(丑時) 01~03시','인시(寅時) 03~05시','묘시(卯時) 05~07시','진시(辰時) 07~09시','사시(巳時) 09~11시','오시(午時) 11~13시','미시(未時) 13~15시','신시(申時) 15~17시','유시(酉時) 17~19시','술시(戌時) 19~21시','해시(亥時) 21~23시'];
 
+// ★2026-08-08 사장 지적 "명부등록 생년월일 모달이 너무 어두워서 글씨도 안 보임".
+// background가 rgba(20,14,6,0.95)(거의 검정)인데 color는 #3F3350(어두운 보라)이라
+// **명도 차가 거의 없어 글씨가 배경에 묻혔다**. 모달 본체는 흰색 계열
+// (linear-gradient(170deg,#FFFFFF,#F5F0FB))로 이미 밝은 톤인데 select만 어두운 값이
+// 남아 있었다 — 다크 테마 시절의 잔재로 보인다(색을 밝은 톤으로 바꾸면서 이 상수만 누락).
+// 아래 .birth-select option도 이미 밝은 값(#F5F0FB/#3F3350)이라 **펼친 목록과 닫힌
+// 상태의 색이 서로 달랐다** — 그 불일치 자체가 잔재라는 증거다. 본체·목록과 같은 톤으로 통일.
 const selectStyle: React.CSSProperties = {
-    background: 'rgba(20,14,6,0.95)',
-    border: '1px solid rgba(107,79,160,0.28)',
+    background: '#FFFFFF',
+    border: '1px solid rgba(107,79,160,0.35)',
     color: '#3F3350',
     borderRadius: '8px',
     padding: '10px 10px',
@@ -109,9 +116,13 @@ export const BirthInfoModal: React.FC<Props> = ({ initialData, onComplete, onClo
                         {step !== 'complete' && (
                             <button onClick={onClose}
                                 className="text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
-                                style={{ background: 'rgba(75,85,99,0.4)', color: '#d1d5db', border: '1px solid rgba(107,114,128,0.5)' }}
-                                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,114,128,0.5)')}
-                                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(75,85,99,0.4)')}>
+                                /* '나중에'도 같은 다크 잔재(2026-08-08) — 흐린 회색 배경
+                                   rgba(75,85,99,0.4) 위에 밝은 회색 글씨 #d1d5db라 밝은 모달에선
+                                   대비가 부족했다. 주기능이 아니므로 눈에 덜 띄되 '읽히기는 하는'
+                                   톤으로: 흰 배경 + 진한 회색 글씨. */
+                                style={{ background: '#FFFFFF', color: '#6b5f70', border: '1px solid rgba(107,79,160,0.28)' }}
+                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,79,160,0.08)'; e.currentTarget.style.color = '#3F3350'; }}
+                                onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#6b5f70'; }}>
                                 나중에
                             </button>
                         )}

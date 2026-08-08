@@ -53,10 +53,15 @@ const WheelPicker: React.FC<{
         <div className="flex flex-col items-center gap-1">
             {label && <span className="text-xs tracking-wider" style={{ color: '#92713a' }}>{label}</span>}
             <div className="relative rounded-lg overflow-hidden" style={{ height: containerH, width }}>
+                {/* ★2026-08-08: 휠 위아래 '안개'가 검정(rgba(13,11,8,0.98))이었다. 모달 본체는
+                    흰색 계열(linear-gradient(170deg,#FFFFFF,#F5F0FB))이라 밝은 바탕 위에 검은
+                    띠가 덮여 **선택 항목 앞뒤 연도가 통째로 묻혔다**. 안개의 목적은 '가장자리를
+                    배경색으로 페이드아웃'시키는 것이므로 배경과 같은 흰색이어야 한다.
+                    (생년월일 모달의 어두운 select와 같은 뿌리의 다크 테마 잔재) */}
                 <div className="absolute inset-x-0 top-0 z-10 pointer-events-none"
-                    style={{ height: ITEM_H * PAD, background: 'linear-gradient(to bottom, rgba(13,11,8,0.98), transparent)' }} />
+                    style={{ height: ITEM_H * PAD, background: 'linear-gradient(to bottom, rgba(255,255,255,0.98), transparent)' }} />
                 <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none"
-                    style={{ height: ITEM_H * PAD, background: 'linear-gradient(to top, rgba(13,11,8,0.98), transparent)' }} />
+                    style={{ height: ITEM_H * PAD, background: 'linear-gradient(to top, rgba(255,255,255,0.98), transparent)' }} />
                 <div className="absolute inset-x-2 z-10 pointer-events-none"
                     style={{ top: ITEM_H * PAD, height: ITEM_H, borderTop: '1px solid rgba(180,130,50,0.35)', borderBottom: '1px solid rgba(180,130,50,0.35)' }} />
                 <div
@@ -120,9 +125,10 @@ export const PartnerInfoModal: React.FC<Props> = ({ onComplete, onClose, title }
                     <span className="text-sm tracking-widest font-medium" style={{ color: '#b07d3a' }}>{title ?? '💑 궁합 상대방 정보'}</span>
                     <button onClick={onClose}
                         className="text-xs px-3 py-1.5 rounded-lg transition-colors font-medium"
-                        style={{ background: 'rgba(75,85,99,0.4)', color: '#d1d5db', border: '1px solid rgba(107,114,128,0.5)' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(107,114,128,0.5)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(75,85,99,0.4)')}>
+                        /* 취소 버튼도 같은 다크 잔재 — 밝은 모달에서 대비 부족(2026-08-08) */
+                        style={{ background: '#FFFFFF', color: '#6b5f70', border: '1px solid rgba(107,79,160,0.28)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(107,79,160,0.08)'; e.currentTarget.style.color = '#3F3350'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = '#FFFFFF'; e.currentTarget.style.color = '#6b5f70'; }}>
                         취소
                     </button>
                 </div>
