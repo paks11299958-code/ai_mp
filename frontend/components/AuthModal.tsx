@@ -42,6 +42,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
     const [regVerifyCode, setRegVerifyCode] = useState('');
     const [resendCountdown, setResendCountdown] = useState(0);
     const resendTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // 인증번호 입력창 — 인증 단계로 넘어가면 자동 포커스 + 화면 안으로 스크롤(2026-08-08).
+    // ★input의 autoFocus 속성만으로는 부족하다: 이 입력창은 조건부 렌더로 **나중에 마운트**
+    // 되는데, 모바일 브라우저는 사용자 제스처와 분리된 시점의 autoFocus를 무시하는 경우가
+    // 있고, 포커스가 가더라도 키보드가 올라오며 줄어든 뷰포트 밖에 남으면 여전히 안 보인다.
+    // 그래서 ref로 직접 focus() + scrollIntoView까지 한다.
+    const regCodeRef = useRef<HTMLInputElement | null>(null);
+    const cleanupRef = useRef<number | null>(null);   // 중첩 rAF 취소용
     const [forgotStep, setForgotStep] = useState<ForgotStep>('input');
     const [forgotType, setForgotType] = useState<'email' | 'phone' | null>(null);
     const [verifyCode, setVerifyCode] = useState('');
@@ -53,6 +60,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
     useEffect(() => {
         return () => { if (resendTimerRef.current) clearInterval(resendTimerRef.current); };
     }, []);
+
+    // 인증 단계 진입 시 인증번호 칸으로 자동 포커스(2026-08-08 사장 지시).
+    // 문자를 받고 돌아온 회원이 곧바로 6자리를 칠 수 있어야 한다 — 지금은 포커스가 없어
+    // 직접 눌러야 하는데, 그 입력창이 키보드에 가려져 있으면 누를 수조차 없었다.
+    // rAF 2번은 조건부 렌더로 갓 마운트된 노드가 레이아웃까지 끝난 뒤 실행하기 위한 것
+    // (마운트 직후 즉시 호출하면 scrollIntoView가 옛 위치 기준으로 계산될 수 있다).
+    useEffect(() => {
+        if (!(mode === 'register' && registerStep === 'verify')) return;
+        const raf1 = requestAnimationFrame(() => {
+            const raf2 = requestAnimationFrame(() => {
+                const el = regCodeRef.current;
+                if (!el) return;
+                el.focus({ preventScroll: true });
+                el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            });
+            cleanupRef.current = raf2;
+        });
+        return () => {
+            cancelAnimationFrame(raf1);
+            if (cleanupRef.current) cancelAnimationFrame(cleanupRef.current);
+        };
+    }, [mode, registerStep]);
 
     const startResendTimer = () => {
         setResendCountdown(60);
@@ -341,15 +370,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                     <div>
                         <label className={labelClass} style={labelStyle}>인증번호 (6자리)</label>
                         <input
+                            ref={regCodeRef}
                             autoFocus
                             type="text"
                             inputMode="numeric"
                             maxLength={6}
+                            // 문자로 온 인증번호를 키보드 위 자동완성으로 바로 넣을 수 있게(iOS/안드로이드).
+                            autoComplete="one-time-code"
                             value={regVerifyCode}
                             onChange={e => setRegVerifyCode(e.target.value.replace(/\D/g, ''))}
                             placeholder="123456"
                             required
-                            autoComplete="off"
                             className={inputClass}
                             style={inputStyle}
                             onFocus={inputFocusStyle}
@@ -627,7 +658,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                 >
                     <Icon name="ChevronLeft" size={20} />
                 </button>
-                <div className="flex-1 flex flex-col items-center justify-center px-4 py-4">
+                {/* ★모바일 키보드 대응(2026-08-08 사장 지적 "인증번호 입력창이 가려져 안 보임").
+                    기존 `flex-1 justify-center`는 **스크롤 없이 세로 중앙 정렬**이라, 키보드가
+                    올라와 뷰포트가 844→400px로 줄면 내용이 위아래로 잘리고 **꺼낼 방법이 없었다**
+                    (실측: 카드 높이 629px가 245px 잘림, 래퍼 overflow는 visible).
+                    인증번호 칸은 화면 아래쪽이라 정확히 그 잘리는 구간에 들어간다.
+                    → overflow-y-auto로 스크롤을 열고, justify-center 대신 my-auto를 쓴다.
+                      (justify-center는 내용이 넘칠 때 위쪽이 잘려 스크롤해도 못 올라가는 함정) */}
+                <div className="flex-1 flex flex-col items-center px-4 py-4 overflow-y-auto overscroll-contain">
+                  {/* my-auto 래퍼: 내용이 짧으면 세로 중앙(기존 모습 유지), 넘치면 위부터
+                      스크롤된다. justify-center를 그대로 두면 넘칠 때 위가 잘려 못 올라간다. */}
+                  <div className="w-full flex flex-col items-center my-auto">
                     {referralBanner && (
                         // 배너 분기(2026-07-14): 채널 코드(유튜브 QR 등)면 '환영' 문구,
                         // 진짜 친구 추천코드면 기존 '친구 초대' 문구(양방향 보상 안내).
@@ -654,18 +695,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onSuccess, onClose, onBack
                         )
                     )}
                     {formCard}
+                  </div>
                 </div>
             </div>
         );
     }
 
     return (
+        // ★모바일 키보드 대응(2026-08-08 사장 지적 "인증번호 입력창이 가려져서 안 보임").
+        // 기존: items-center로 화면 중앙 고정 + overflow-hidden. 키보드가 올라오면 뷰포트가
+        // 844→400px 수준으로 줄어드는데 카드 높이는 629px 그대로라 **아래가 245px 잘리고,
+        // 래퍼가 overflow:visible이라 스크롤로 꺼낼 수도 없었다**(실측 재현 확인).
+        // 인증번호 입력창은 카드 아래쪽에 있어 정확히 그 잘리는 구간에 들어간다.
+        //   → overflow-y:auto로 스크롤 가능하게 하고, items-center 대신 items-start +
+        //     my-auto를 써서 "짧으면 가운데, 길면 위부터 스크롤"이 되게 한다
+        //     (items-center는 넘칠 때 위쪽이 잘려 스크롤해도 못 올라가는 알려진 함정).
         <div
-            className="fixed inset-0 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 backdrop-blur-sm flex items-start justify-center z-50 p-4 overflow-y-auto overscroll-contain"
             style={{ background: 'rgba(45,32,23,0.5)' }}
             onClick={onClose ? (e) => { if (e.target === e.currentTarget) onClose(); } : undefined}
         >
-            {formCard}
+            <div className="w-full max-w-sm my-auto">
+                {formCard}
+            </div>
         </div>
     );
 };
