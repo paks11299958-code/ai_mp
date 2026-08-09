@@ -89,6 +89,37 @@
 - 각 보드의 `alert(e.message)`/`setError`는 `INSUFFICIENT_POINTS` 영문 노출을 가드(전역 모달이 뜨므로 중복 알림 억제).
 - 이전엔 채팅만 충전 모달이 떴고 보드 기능들은 에러 텍스트만 떴던 문제 해결.
 
+### ⭐ 부족 **사유** 표시 — "왜 막혔는지"를 말해준다 (2026-08-08, 사장 지시)
+
+**문제**: 모달은 위(2026-06-17)에서 이미 잘 뜨고 있었다. 빠진 건 **사유**였다 —
+화면엔 "포인트 충전 / 잔여 300pt"뿐이라, 회원 입장에선 기능을 눌렀는데 **갑자기 결제창이 뜬 셈**이고
+막힌 이유도 얼마가 모자란지도 알 수 없었다.
+★**서버는 알고 있으면서 버리고 있었다** — `deductMenuPoints`는 차감 시점에 `cost`와 잔액을 둘 다
+쥔 채 `new Error('INSUFFICIENT_POINTS')`만 던졌다.
+
+**서버(shared-api)**
+- `lib/points.ts`의 `insufficientError(cost, balance)`가 `required`/`balance`/`shortfall`을 에러에 얹는다.
+  ★`message`는 `'INSUFFICIENT_POINTS'` 그대로 유지 — **호출부 12곳이 이 문자열로 분기**하므로 바꾸면 조용히 다 깨진다.
+- `lib/menuAccess.ts`의 `respondInsufficientPoints(res, info?, feature?)`가 402 본문에 실어 내려준다(값 전부 optional).
+- 적용된 사전검사 4곳: 관상(`face`)·손금(`palm`)·헤어(`hair`)·프로필(`outfit`).
+  실제 응답: `402 {"error":"포인트가 부족합니다.","required":200,"balance":0,"shortfall":200,"feature":"face"}`
+
+**프론트(ai_mp)**
+- `apiService.throwInsufficientPoints(detail?)`로 402 처리를 단일화하고 `detail`을 전역 이벤트에 실었다.
+  `lib/boardFetch.ts`·`lookalike`도 이걸 쓰게 통일 — ★lookalike는 **본문을 읽기 전에 던져** 서버가 준 정보를 버리고 있었다.
+- `PointModal`에 `insufficient` prop 추가: 값이 오면 제목이 **"포인트가 부족해요"**로 바뀌고 빨간 배너로
+  "얼굴 관상을(를) 시작하지 못했어요 / 200P가 필요한데 0P가 남아 있어요 · **200P 부족**".
+  ★**값이 없으면 문구를 생략**한다(`undefined P`가 뜨면 안 된다) — 직접 '충전하기'를 누른 3곳은 사유를 비워
+  이전 부족 안내가 남지 않게 했다.
+- 기능 키→회원용 이름은 `frontend/lib/featureLabels.ts`(AdminPanel과 **공용**).
+  ★복사본을 두면 새 기능 추가 시 한쪽만 갱신돼 **회원 화면에 원문 키**(`quick-menu`)가 노출된다.
+- 체험(guest) 계정은 기존대로 `GuestUpgradeModal`(정식 전환)로 분기 — 충전 모달을 안 탄다.
+
+**남은 일**: 필요액이 표시되는 건 위 4곳뿐. 웹툰·전자책·홈페이지·쇼츠 등 **12곳은 값 없이
+"포인트가 부족해요"까지만** 뜬다(동작은 정상). 조건문이 여러 줄이라 한 줄 치환이 안 된다 —
+★**정규식 일괄치환 금지**(2026-08-08에 34곳을 한 번에 바꾸려다 조건식 경계를 잘못 잡아 파일 2개가
+구문에러로 깨졌다. tsc가 잡아 git으로 되돌림). 상세 절차는 메모리 `project_todo` 참조.
+
 ---
 
 ## 결제 시스템 (토스페이먼츠 v1)
