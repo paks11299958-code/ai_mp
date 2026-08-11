@@ -77,7 +77,7 @@ export const LearningOnboarding: React.FC = () => {
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
                     <button
                         onClick={() => { window.location.href = '/learning'; }}
-                        className="flex items-center gap-1.5 text-sm text-indigo-300 font-semibold"
+                        className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold"
                     >
                         ← 학습코칭
                     </button>
