@@ -500,12 +500,32 @@ async function checkResources() {
             }
 
             if (checkpoint) {
-                results.site = {
-                    ok: false,
-                    detail: 'Vercel 보안 체크포인트(403) — 이 감시 서버 IP가 차단된 상태. ' +
-                            '사이트 자체 장애가 아닐 수 있으니 다른 경로에서 접속 확인 필요',
-                };
-                console.error('⚠️ [사이트] Vercel 보안 체크포인트 403 — 감시 IP 차단 의심');
+                // ★2026-08-11: 여기서 바로 실패로 두면 **헛알림이 최대 3시간 반복된다**.
+                //   실제로 08-09·08-11 두 번 "사이트 장애"로 보고됐지만 매번 서버1에서는
+                //   HTTP 200 정상이었다(원인은 검증하며 운영 사이트에 반복 접속한 것).
+                //   판별은 사람이 하던 그대로 자동화한다 — **다른 IP(서버1)에서 한 번 더 확인**.
+                //   200이면 '사이트 정상 + 감시 IP만 차단'이므로 ok:true로 통과시키되,
+                //   detail 에 사실을 남겨 조용히 묻히지 않게 한다.
+                //   ★서버1도 실패하면 그때는 진짜 장애일 수 있으므로 ok:false 를 유지한다.
+                const cross = await ssh1(
+                    `curl -s -o /dev/null -w '%{http_code}' --max-time 15 ${TARGET_URL}`);
+                const crossStatus = Number((cross.out || '').trim()) || 0;
+
+                if (cross.ok && crossStatus >= 200 && crossStatus < 400) {
+                    results.site = {
+                        ok: true,
+                        detail: `HTTP ${crossStatus} (서버1 교차확인) — 감시 서버 IP는 Vercel ` +
+                                `보안 체크포인트(403)에 걸려 있으나 **사이트는 정상**. 회원 접속 영향 없음`,
+                    };
+                    console.log(`✅ [사이트] 감시 IP 차단(403)이나 서버1에서 HTTP ${crossStatus} — 정상 판정`);
+                } else {
+                    results.site = {
+                        ok: false,
+                        detail: `Vercel 보안 체크포인트(403) + 서버1 교차확인도 실패` +
+                                `(${crossStatus || cross.err || '응답 없음'}) — 실제 장애 가능성`,
+                    };
+                    console.error('❌ [사이트] 403 + 서버1 교차확인 실패 — 실제 장애 의심');
+                }
             } else if (status >= 400) {
                 throw new Error(`HTTP ${status}`);
             } else {
@@ -518,7 +538,16 @@ async function checkResources() {
         }
 
         // ── Check 2: 로그인 + 페르소나 목록 ──────────────────
-        if (!results.site.ok) {
+        // ★감시 IP가 체크포인트에 걸리면 사이트가 정상이어도 이 브라우저로는 로그인을 못 한다.
+        //   그때 '실패'로 두면 site 는 정상인데 login 만 빨간 헛알림이 남는다(2026-08-11).
+        //   못 한 이유가 '차단'임을 명시하고 ok:true 로 통과시킨다 — 진짜 장애면 위 site 가 잡는다.
+        if (results.site.ok && /보안 체크포인트/.test(results.site.detail || '')) {
+            results.login = {
+                ok: true,
+                detail: '감시 IP 차단으로 점검 생략(사이트는 서버1 교차확인으로 정상)',
+            };
+            console.log('✅ [로그인] 감시 IP 차단으로 점검 생략 — 사이트는 정상 확인됨');
+        } else if (!results.site.ok) {
             results.login = { ok: false, detail: '사이트 접속 실패로 로그인 점검 건너뜀' };
         } else if (!MONITOR_EMAIL || !MONITOR_PASSWORD) {
             results.login = { ok: false, detail: 'MONITOR_EMAIL/MONITOR_PASSWORD 환경변수 미설정' };
