@@ -756,3 +756,61 @@ CREATE INDEX IF NOT EXISTS "LcWeekOutline_goalId_idx" ON "LcWeekOutline"("goalId
   접속 확인 또는 서버1에 Playwright 설치 후 재검증 권장).
 - 웹 푸시·이메일 알림은 9단계(묶음 D) 범위라 이번 검증 대상 아님.
 - 테스트 계정 2개(id 275/276)와 연쇄 데이터는 검증 종료 후 전부 삭제 완료.
+
+## 롤백 지점 (2026-08-11, 묶음 D 착수 직전)
+
+사용자 지시로 두 저장소의 현재 운영 브랜치 시점에 태그 생성. 묶음 D(9~10단계) 진행 중
+문제가 발생하면 이 태그로 되돌린다.
+
+- `shared-api` main: 태그 `pre-learning-d` = 커밋 `15f8c9a`(모듈 생성 워커 동시실행
+  방지 락 수정 포함, 묶음 C 통합검증 완료 시점)
+- `ai_mp` master: 태그 `pre-learning-d` = 커밋 `7017606`(묶음 D 이전 통합검증 결과
+  기록까지 포함)
+- 이 시점 기준 `LcGoal` 실사용 데이터는 **0건**(검증용 테스트 계정 2개는 검증 종료 후
+  삭제 완료). 즉 이 태그로 롤백해도 잃을 실사용자 데이터가 없는 상태.
+
+### 롤백 절차
+
+**1. 코드 롤백(양쪽 저장소 공통 패턴)**
+
+```sh
+# shared-api
+cd ~/shared-api  # 서버1에서 직접, 또는 서버2에서 push 후 자동배포 유도
+git fetch --tags
+git checkout main
+git reset --hard pre-learning-d
+git push origin main --force   # ★force-push — 사용자 승인 필수(아래 참조)
+
+# ai_mp
+cd ~/ai_mp
+git fetch --tags
+git checkout master
+git reset --hard pre-learning-d
+git push origin master --force
+```
+
+- shared-api는 서버1 자동배포(1분 주기)가 push된 main을 감지해 자동으로 pull+tsc+pm2
+  reload한다 — 별도 수동 배포 조치 불필요, push만으로 롤백 반영됨.
+- ai_mp는 push 즉시 Vercel이 자동 빌드하지만, **Promote to Production은 여전히 사용자가
+  직접 클릭**해야 한다(이 프로젝트의 기존 원칙, 자동배포와 별개).
+
+**2. force-push 전 확인 사항**
+
+- `git reset --hard` + `--force` push는 **되돌릴 수 없는 파괴적 작업**이다. 롤백 태그
+  이후에 다른 정상 커밋(묶음 D와 무관한 별도 작업)이 섞여 들어갔다면 그 커밋까지 함께
+  사라진다 — 실행 전 반드시 `git log pre-learning-d..HEAD`로 굴러갈 커밋 목록을 사용자에게
+  보여주고 승인받는다.
+- 대안(더 안전, 기본적으로 이 방식을 우선한다): force-push 대신 `git revert`로 묶음 D
+  커밋들만 역순으로 되돌리는 새 커밋을 쌓는다. 히스토리를 보존하면서 배포는 동일하게
+  되돌아간다. 묶음 D가 다른 작업과 얽히지 않은 독립 커밋들이면 이 방법이 기본값이어야
+  한다.
+
+**3. DB 롤백이 필요한 경우**
+
+- 9단계(Cron+알림)·10단계(주간 리포트)에서 추가하는 신규 테이블/컬럼은 `Lc` 접두사
+  범위 안에서만 발생하며 기존 테이블은 건드리지 않는다(CLAUDE.md 원칙). 문제가 DB
+  스키마 자체에 있다면 새로 추가한 컬럼/테이블만 `DROP`하는 별도 다운 마이그레이션을
+  작성해 실행한다(운영 DB 실행은 항상 사용자 확인 후).
+- 이 시점(태그 생성 시각) 기준 `LcGoal` 실사용 데이터가 0건이므로, 묶음 D 작업 중
+  실사용자가 아직 없다면 데이터 손실 걱정 없이 스키마만 되돌리면 된다. 실사용자가
+  생긴 이후에 롤백이 필요해지면 그 시점에 별도로 백업 여부를 판단한다.
