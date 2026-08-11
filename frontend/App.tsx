@@ -76,6 +76,8 @@ import { LearningPlanConfirm } from './components/learning/LearningPlanConfirm';
 import { LearningDashboard } from './components/learning/LearningDashboard';
 import { LearningTask } from './components/learning/LearningTask';
 import { LearningReview } from './components/learning/LearningReview';
+import { LearningWeeklyReport } from './components/learning/LearningWeeklyReport';
+import { LearningSettings } from './components/learning/LearningSettings';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -3136,6 +3138,8 @@ const IS_LEARNING_PLAN = /^\/learning\/onboarding\/plan$/.test(LEARNING_PATH);
 const IS_LEARNING_DASHBOARD = /^\/learning\/dashboard$/.test(LEARNING_PATH);
 const IS_LEARNING_TASK = /^\/learning\/task\/[^/]+$/.test(LEARNING_PATH);
 const IS_LEARNING_REVIEW = /^\/learning\/review$/.test(LEARNING_PATH);
+const IS_LEARNING_REPORT = /^\/learning\/report\/[^/]+$/.test(LEARNING_PATH);
+const IS_LEARNING_SETTINGS = /^\/learning\/settings$/.test(LEARNING_PATH);
 
 // 📊 주식 정밀분석 공개 공유(?stock=shareId) — 비로그인도 열람 가능(바이럴 유입).
 // ★AppContent 내부의 return 분기(로그인/게스트/화면별로 여러 갈래)보다 여기서 먼저 걸러야
@@ -3155,6 +3159,8 @@ const App: React.FC = () => (
     IS_LEARNING_DASHBOARD ? <LearningDashboard /> :
     IS_LEARNING_TASK ? <LearningTask /> :
     IS_LEARNING_REVIEW ? <LearningReview /> :
+    IS_LEARNING_REPORT ? <LearningWeeklyReport /> :
+    IS_LEARNING_SETTINGS ? <LearningSettings /> :
     IS_LEARNING_ONBOARDING ? <LearningOnboarding /> :
     IS_LEARNING_INDEX ? <LearningLanding /> :
     <PointsProvider>

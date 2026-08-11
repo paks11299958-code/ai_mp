@@ -52,7 +52,9 @@ export const LearningDashboard: React.FC = () => {
                         ← 메인
                     </button>
                     <span className="text-sm font-extrabold">📊 학습 대시보드</span>
-                    <span className="w-16" />
+                    <button onClick={() => { window.location.href = '/learning/settings'; }} className="w-16 text-right text-sm text-indigo-300 font-semibold">
+                        ⚙️ 설정
+                    </button>
                 </div>
             </header>
 
