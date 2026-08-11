@@ -69,15 +69,19 @@
 - [x] 6. 대시보드(`/learning/dashboard`) — 아래 "묶음 C 구현" 섹션 참조
 - [x] 7. 학습 본문 + 퀴즈 + 서버 채점 — 아래 "묶음 C 구현" 섹션 참조
 - [x] 8. 간격 반복 + 오답 노트 — 아래 "묶음 C 구현" 섹션 참조
+- [x] 9. Cron + 알림 — 이메일만 구현, 웹 푸시는 보류(아래 "묶음 D 구현" 섹션 참조)
+- [x] 10. 주간 리포트 — 생성+조회+수락(accepted 플래그만) 구현, 커리큘럼 자동 반영은
+  보류(아래 "묶음 D 구현" 섹션 참조)
 
 ## 진행 중
 
-(없음 — 묶음 C 완료, 사용자 지시대로 9단계 이후는 착수하지 않고 여기서 정지)
+(없음 — 묶음 D(9~10단계) 완료, `feature/learning-coach` 브랜치에만 존재. 사용자
+지시대로 main/master 미머지, 11단계 이후는 착수하지 않고 여기서 정지)
 
-## 다음 할 일 (묶음 D — 사용자 지시 시 착수)
+## 다음 할 일 (묶음 E — 사용자 지시 시 착수)
 
-- 9. Cron + 알림(웹 푸시 + 이메일 폴백)
-- 10. 주간 리포트(6.5, 조정안 수락 시 커리큘럼 반영)
+- 11. 반응형 마감(360px 기준 전체 화면 재점검)
+- 12. 테스트 및 완료 조건 검증(PRD 13장 체크리스트)
 
 ## 묶음 B 사후 수정 (2026-08-11 2차, 사용자 지적 반영)
 
@@ -814,3 +818,90 @@ git push origin master --force
 - 이 시점(태그 생성 시각) 기준 `LcGoal` 실사용 데이터가 0건이므로, 묶음 D 작업 중
   실사용자가 아직 없다면 데이터 손실 걱정 없이 스키마만 되돌리면 된다. 실사용자가
   생긴 이후에 롤백이 필요해지면 그 시점에 별도로 백업 여부를 판단한다.
+
+## 묶음 D 구현 (2026-08-11 9차, 사용자 지시)
+
+사용자 지시("9단계: Cron+알림... 10단계: 주간 리포트... 11단계 이후는 진행하지 마라.
+작업은 feature/learning-coach 브랜치에서만. 머지하지 마라")에 따라 진행. 이후 추가
+지시로 S9(주간 리포트)·S11(설정) 프론트 화면도 포함. **양쪽 저장소 모두
+`feature/learning-coach`에만 커밋·push했고 main/master는 건드리지 않음**
+(shared-api 커밋 `50be6ab`, ai_mp 커밋 `c5fa37f`).
+
+**1. 9단계 — Cron + 알림**
+
+- 착수 전 범위 확인: PRD 10장은 "웹 푸시(Web Push API) + 이메일 폴백"인데, 웹 푸시는
+  `web-push` npm 패키지·VAPID 키 발급(신규 환경변수)·프론트 서비스워커·구독 동의 UI까지
+  필요해 범위가 큼. 사용자 확정으로 **이메일만 우선 구현, 웹 푸시는 보류**.
+- `LcDailyTask.notifiedAt`(신규 컬럼) 추가 — 하루 중복 알림 발송 방지용.
+- `shared-api/routes/aimp/workers/learning-notify.ts`(신규): 매분 호출(기존
+  `internal-cron` 패턴). 현재 KST 시각과 `LcProfile.notifyHour`가 일치하는 사용자 중,
+  오늘 배정된 미완료 학습(`notifiedAt` 없음)이 있는 경우에만 기존 `sendEmail`(브레보)
+  헬퍼로 발송. 발송 후 `notifiedAt` 기록.
+- `internal-cron.ts`에 워커 등록 완료. **서버1 crontab 실제 등록은 미실시** — main
+  머지(배포) 전이라 등록해도 404만 나므로, 실제 배포 시점에 함께 등록 예정
+  (`docs(CLAUDE.md)`에 정리된 순서: DB→shared-api main 머지→프론트 master 머지, 크론
+  등록은 shared-api 배포 직후가 적절).
+
+**2. 10단계 — 주간 리포트**
+
+- `lib/learning/curriculum.ts`에 `generateWeeklyReport()` 추가(PRD 6.5, Sonnet 5,
+  기존 함수들과 동일하게 `output_config.format` JSON 스키마 + `MAX_RETRY=2`). 입력:
+  완료 모듈 수·전체 수·정답률·태그별 정답 현황. 출력: 요약 3문장(`summaryMd`)+취약
+  태그 최대 3개(`weakTags`)+다음 주 조정 제안(`suggestion`).
+- `routes/aimp/workers/learning-weekly-report.ts`(신규): `status='active'` 목표를
+  가진 사용자 전원에 대해 지난 주(KST 월~일) `LcDailyTask`·`LcAttempt`를 집계해
+  리포트 생성. 이미 이번 주 리포트가 있으면 스킵(중복 방지). "매주 일요일 생성"이
+  전제이므로 서버1 crontab에 **일요일 특정 시각 1회 호출**로 등록 예정(기존 `cleanup`
+  라우트가 UTC 21:00 고정 시각으로 등록된 패턴과 동일 — 실제 등록은 배포 시점).
+- `routes/aimp/learning.ts`에 `GET /reports/:weekId`(조회), `POST
+  /reports/:weekId/accept`(조정안 수락) 추가.
+  - **조정안 수락의 실제 커리큘럼 반영은 보류**(사용자 확정) — `suggestion`이 AI가
+    생성한 자유텍스트(예: "네트워크 복습 주차 추가")라, 이를 파싱해 자동으로
+    `LcModule`/`LcWeekOutline`을 변경하는 자동화는 오동작 시 커리큘럼을 깨뜨릴
+    위험이 있다고 판단. 이번 단계는 `accepted=true` 플래그만 기록해 "사용자가
+    수락했다"는 의사를 남기고, 실제 반영 로직은 별도 논의 후 착수하기로 함.
+- `GET/PATCH /settings`(S11 대응) 추가 — `LcProfile.notifyHour`/`studyDays` 조회·수정.
+  알림 수신 방식은 API 파라미터로 받지 않음(항상 이메일 고정, 웹 푸시 보류 결정과 일치).
+
+**3. 프론트 — S9(주간 리포트)·S11(설정)**
+
+사용자 추가 지시("S9(주간 리포트)와 S11(설정) 화면을 이번 묶음에 포함해 구현하라...
+S11에는 알림 시간·학습 요일·알림 수신 방식(웹 푸시/이메일) 설정을 포함하라")에 따라
+프론트도 함께 구현. 웹 푸시 선택지를 어떻게 다룰지는 사용자에게 재확인 —
+**"이메일만 실제 노출, 웹 푸시는 '준비 중' 비활성 배지로 표시"**로 확정.
+
+- `frontend/components/learning/LearningWeeklyReport.tsx`(신규, S9): 완료모듈/
+  정답률 카드, 요약, 취약 태그 배지, 조정 제안, 수락/거절 버튼(`POST
+  /reports/:weekId/accept` 연결). `/learning/report/:weekId` 라우트.
+- `frontend/components/learning/LearningSettings.tsx`(신규, S11): 알림 시간(시간대
+  버튼 목록+끄기), 학습 요일(7개 토글), 알림 수신 방식(이메일=활성 표시, 웹
+  푸시=회색조+"준비 중" 배지, 선택 자체 불가). `/learning/settings` 라우트.
+- `LearningDashboard.tsx` 헤더에 설정 화면 진입 버튼(⚙️) 추가 — 기존에는 설정으로
+  가는 경로가 화면 어디에도 없었음.
+- 기존 다크 톤(`#030712` 계열, `bg-gray-950`/`bg-white/5`/`border-white/10` 등) 그대로
+  재사용, 새 색상 체계 도입 없음. 두 화면 모두 `max-w-2xl` 컨테이너+flex/grid
+  상대단위 구성으로 360px 폭에서 가로 스크롤 없이 동작(다른 학습코칭 화면들과
+  동일한 레이아웃 패턴).
+
+**4. 검증**
+
+- `shared-api`: `npx prisma validate`, `npx prisma generate`, `npx tsc --noEmit`
+  전부 통과(에러 0).
+- `ai_mp/frontend`: `vite build` 통과(2136 모듈), `npm run check`(훅 순서/옵셔널
+  접근/기능키 정합성, 125개 파일) 통과. 커밋 훅에서 타입 체크까지 자동 통과 확인.
+- ★이번에도 프론트 화면의 실제 브라우저 렌더링은 검증하지 못함(서버2 IP가 Vercel
+  봇 체크포인트에 차단된 상태, 앞선 묶음 C 통합검증 때와 동일한 제약 — 이번엔 애초에
+  main/master 미머지라 배포 자체가 없어 운영 URL 검증 대상도 아님). feature 브랜치가
+  실제 배포(머지 승인)될 때 묶음 C 때와 같은 방식(API 레벨 E2E + 가능하면 브라우저
+  검증)으로 재검증 필요.
+
+**미완료 / 다음 세션 확인 필요**
+
+- 서버1 crontab에 `learning-notify`(매분)·`learning-weekly-report`(주 1회, 일요일)
+  등록 — main 머지(배포) 시점에 함께 진행.
+- 웹 푸시 구현은 계속 보류 상태. 착수하려면 VAPID 키 발급·`web-push` 패키지·프론트
+  서비스워커·구독 동의 UI 설계가 먼저 필요(별도 논의 대상).
+- 조정안 수락의 실제 커리큘럼 반영 로직 미구현(accepted 플래그만 기록).
+- 11단계(반응형 마감) 이후는 사용자 지시대로 착수하지 않음.
+- `feature/learning-coach`는 main/master에 6(shared-api)+7(ai_mp)개 커밋만큼 앞서
+  있는 상태로 대기 중 — 사용자가 배포를 승인해야 머지 진행.
