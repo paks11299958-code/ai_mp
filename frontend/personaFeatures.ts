@@ -34,7 +34,10 @@ export type FeatureKey =
     | 'marketing'
     | 'homepage'
     | 'shorts-maker'
-    | 'learn';
+    | 'learn'
+    // ★'learn'(박하진, 사이트 사용법 강의+퀴즈)과 이름이 비슷해 혼동하기 쉽다.
+    // 'learning-coach'는 완전히 다른 기능 — 회원이 임의 주제를 스스로 배우는 AI 학습코칭이다.
+    | 'learning-coach';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -69,6 +72,8 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'shorts-maker', label: '쇼츠 만들기',   icon: 'Sparkles',  color: '#D85C95', bgColor: '#FDE6F0',                  borderColor: '#F4A4C6' },
     { key: 'learn',       label: '학습자료',       icon: 'BookOpen',   color: '#FF6B9D', bgColor: 'rgba(255,107,157,0.12)',   borderColor: '#FFB3D1' },
     { key: 'homepage',    label: '홈페이지 만들기', icon: 'Globe',     color: '#5C6AC4', bgColor: 'rgba(92,106,196,0.12)',    borderColor: '#AEB4E8' },
+    // 'learn'(사이트 사용법 강의)과 다른 기능 — 혼동 방지로 별도 라벨·경로 사용.
+    { key: 'learning-coach', label: 'AI 학습코칭', icon: 'BookOpen',  color: '#6366F1', bgColor: 'rgba(99,102,241,0.12)',    borderColor: '#A5A9F0' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =

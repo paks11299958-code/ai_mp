@@ -70,6 +70,9 @@ import { ConsultPage } from './components/ConsultPage';
 import { LearnPage } from './components/LearnPage';
 import { LearnIndex } from './components/learn/LearnIndex';
 import { LearnPage2 } from './components/learn/LearnPage2';
+import { LearningLanding } from './components/learning/LearningLanding';
+import { LearningOnboarding } from './components/learning/LearningOnboarding';
+import { LearningPlanConfirm } from './components/learning/LearningPlanConfirm';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -451,6 +454,7 @@ const AppContent: React.FC = () => {
         homepage: () => setShowHomepageBoard(true),
         'shorts-maker': () => setShowShortsMakerBoard(true),
         learn: () => { window.location.href = '/learn'; }, // 박하진 학습자료 — 시리즈 목록(1편·2편 선택). 얼리리턴 라우트
+        'learning-coach': () => { window.location.href = '/learning'; }, // AI 학습코칭 — 'learn'과 다른 기능·경로. 얼리리턴 라우트
     };
 
     // 공지사항
@@ -3120,6 +3124,13 @@ const IS_LEARN_INDEX = /^\/learn$/.test(LEARN_PATH);
 const IS_LEARN_1 = /^\/learn\/homepage$/.test(LEARN_PATH);
 const IS_LEARN_2 = /^\/learn\/homepage\/2$/.test(LEARN_PATH);
 
+// 🎯 AI 학습코칭(/learning) — 'learn'(위, 사이트 사용법 강의)과는 다른 기능. 경로도 분리.
+// LEARN_PATH와 같은 뒤 슬래시 제거 규칙을 재사용(루트 '/'가 오분류되지 않도록 별도 변수로 계산).
+const LEARNING_PATH = window.location.pathname.replace(/(.)\/+$/, '$1');
+const IS_LEARNING_INDEX = /^\/learning$/.test(LEARNING_PATH);
+const IS_LEARNING_ONBOARDING = /^\/learning\/onboarding$/.test(LEARNING_PATH);
+const IS_LEARNING_PLAN = /^\/learning\/onboarding\/plan$/.test(LEARNING_PATH);
+
 // 📊 주식 정밀분석 공개 공유(?stock=shareId) — 비로그인도 열람 가능(바이럴 유입).
 // ★AppContent 내부의 return 분기(로그인/게스트/화면별로 여러 갈래)보다 여기서 먼저 걸러야
 //   한다 — 안에 넣었다가 !user(비로그인) 분기로 먼저 빠져나가 렌더가 안 되는 사고가 있었다
@@ -3134,6 +3145,9 @@ const App: React.FC = () => (
     IS_LEARN_INDEX ? <LearnIndex /> :
     IS_LEARN_1 ? <LearnPage /> :
     IS_LEARN_2 ? <LearnPage2 /> :
+    IS_LEARNING_PLAN ? <LearningPlanConfirm /> :
+    IS_LEARNING_ONBOARDING ? <LearningOnboarding /> :
+    IS_LEARNING_INDEX ? <LearningLanding /> :
     <PointsProvider>
         <AppContent />
     </PointsProvider>
