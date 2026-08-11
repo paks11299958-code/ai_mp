@@ -63,16 +63,21 @@
 
 - [x] 5-보완. 묶음 B 사후 수정(사용자 지적, 2026-08-11 2차) — 아래 "묶음 B 사후 수정" 섹션 참조
 - [x] 5-보완2. AI 호출 API 전환(사용자 재결정, 2026-08-11 3차) — 아래 "AI 호출 API 전환" 섹션 참조
+- [x] 5-보완3. 커리큘럼 생성 2단계 분할 구현(사용자 확정 안 B, 2026-08-11 6차) — 아래
+  "묶음 C 구현" 섹션 참조. `LcWeekOutline` 신설, `POST /goals`→개요만/`POST /confirm`→202
+  즉시응답+백그라운드 워커/`GET generation-status`→폴링/`POST retry-generation`
+- [x] 6. 대시보드(`/learning/dashboard`) — 아래 "묶음 C 구현" 섹션 참조
+- [x] 7. 학습 본문 + 퀴즈 + 서버 채점 — 아래 "묶음 C 구현" 섹션 참조
+- [x] 8. 간격 반복 + 오답 노트 — 아래 "묶음 C 구현" 섹션 참조
 
 ## 진행 중
 
-(없음 — 묶음 B + 사후 수정 완료, 사용자 지시대로 여기서 정지)
+(없음 — 묶음 C 완료, 사용자 지시대로 9단계 이후는 착수하지 않고 여기서 정지)
 
-## 다음 할 일 (묶음 C — 사용자 지시 시 착수)
+## 다음 할 일 (묶음 D — 사용자 지시 시 착수)
 
-- 6. 대시보드 (`/learning/dashboard`)
-- 7. 학습 본문 + 퀴즈 + 서버 채점
-- 8. 간격 반복 + 오답 노트
+- 9. Cron + 알림(웹 푸시 + 이메일 폴백)
+- 10. 주간 리포트(6.5, 조정안 수락 시 커리큘럼 반영)
 
 ## 묶음 B 사후 수정 (2026-08-11 2차, 사용자 지적 반영)
 
@@ -527,3 +532,115 @@ CREATE INDEX IF NOT EXISTS "LcWeekOutline_goalId_idx" ON "LcWeekOutline"("goalId
   `LearnQuizRecord` 테이블)를 가리키며, 이번 "AI 학습코칭"과는 이름만 비슷한 완전히 다른 기능입니다.
   묶음 B에서 카드를 등록할 때 반드시 `'learning-coach'` 키를 새로 만들어야 하며, 절대
   `'learn'` 기존 항목을 재사용하거나 덮어쓰면 안 됩니다.
+
+## 묶음 C 구현 (2026-08-11 6~7차, 사용자 확정 반영)
+
+사용자 지시("안 B 채택 + 생성 중 상태 처리 + 원가 787원 통일 + 묶음 C를 2단계 분할 설계
+반영해 구현, 9단계 이후 금지")에 따라 진행. `shared-api` 커밋 `6a63dad`, `ai_mp` 커밋 `ff03d51`.
+
+**1. 커리큘럼 생성 2단계 분할 — 실제 구현(설계에서 실행으로 전환)**
+
+- `shared-api/prisma/schema.prisma`: `LcWeekOutline` 모델 신설(`goalId`, `weekNo`, `title`,
+  `theme`), `LcGoal.status`에 `outline_ready`/`confirmed_generating`/
+  `confirmed_generation_failed` 3개 상태 추가, `LcGoal.planRevised`(수정요청 1회 제한 전용
+  컬럼), `LcModule`에 `generationFailedAt`/`generationError`/`retryCount` 추가(재시도
+  워커용). `learning-coach-ddl.sql`에 전부 반영 후 **운영 DB(서버1 aichat)에 실제 실행
+  완료**(`aichat_user` 계정으로, 재발방지 절차 준수). 11개 테이블 전부 소유자 확인 완료.
+  - DDL 작성 중 컬럼 추가보다 인덱스 생성 구문이 먼저 배치된 순서 버그 발견
+    (`ERROR: column "generationFailedAt" does not exist`) → 실패 지점 진단 후 수동 재실행으로
+    복구, DDL 파일 자체도 순서 수정 + 주석으로 이력 기록.
+- `shared-api/lib/learning/curriculum.ts`: `generateWeekOutlines()`(1단계, 주차 개요만,
+  `maxTokens = min(4000, 300+주×60)`)와 `generateModuleDetail()`(3단계, 주차 1개의 일별
+  모듈 상세, `maxTokens = min(4000, 300+일수×150)`)로 완전 분리.
+- `shared-api/routes/aimp/learning.ts`: `POST /goals`(1단계, `LcGoal`+`weekOutlines` 생성,
+  status=`outline_ready`) / `PATCH /goals/:id/plan`(2단계 수정 1회, `planRevised` 컬럼으로
+  판별) / `POST /goals/:id/confirm`(3단계 착수, status=`confirmed_generating` 전환 후 **즉시
+  202 반환**, 실제 생성은 기다리지 않음) / `GET /goals/:id/generation-status`(신규, 폴링용
+  — totalWeeks/generatedWeeks/progressPercent/hasFailure/failedWeeks) / `POST
+  /goals/:id/retry-generation`(신규, 실패분 재시도).
+- `shared-api/lib/learning/moduleWorker.ts`(신규): `triggerModuleGeneration()` — 상태만
+  세팅하고 반환(no-op). 실제 처리는 서버2 crontab이 아래 워커 엔드포인트를 폴링 호출.
+- `shared-api/routes/aimp/workers/learning-module.ts`(신규): `POST
+  /internal-cron/learning-module-worker` — `confirmed_generating` 상태 목표를 조회해
+  주차 1개씩(`WEEKS_PER_TICK=1`) `generateModuleDetail()` 호출, 성공 시 `LcModule.createMany`,
+  실패 시 `orderNo=0` 실패 마커 생성/갱신(`retryCount` 3회 초과 시
+  `confirmed_generation_failed`). **모든 주차 완료 시에만** `finalizeGoal()`이
+  `LcDailyTask`를 `$transaction`으로 일괄 배정 + status=`active` 전환(부분 완료 상태에서는
+  생성하지 않음 — "빈 task가 먼저 생기면 대시보드 첫인상이 깨진다"는 사용자 지적 반영).
+  `POST /learning-module-worker/clear-failure`(재시도 전 실패 마커 삭제)도 함께 구현.
+  `internal-cron.ts`에 `router.use(learningModuleWorker)` 등록 완료. **서버2 crontab 등록은
+  미완료**(코드만 배포됨, 실제 주기 호출 설정은 다음 세션 확인 필요).
+
+**2. 생성 중 상태 처리 (사용자 지시 3번 — 신규 화면)**
+
+- `ai_mp/frontend/components/learning/LearningGenerationProgress.tsx`(신규): `confirm` 202
+  응답 직후 렌더. `GET generation-status`를 4초 간격으로 폴링, 진행률 바(%) + "N/M주차 완료"
+  안내 + "완료되면 자동으로 대시보드로 이동합니다" 문구로 확정 직후 빈 화면을 방지. 실패
+  상태(`confirmed_generation_failed`)면 스피너 대신 재시도 버튼 노출, 클릭 시
+  `POST retry-generation` 호출 후 폴링 재개.
+- `LearningPlanConfirm.tsx`: 기존 구조(전체 모듈 배열 표시, confirm 동기 완료 응답 전제)를
+  새 구조(`weekOutlines` 배열만 표시, confirm 202 수신 시 `LearningGenerationProgress`로
+  전환)에 맞게 전면 재작성.
+
+**3. 대시보드(6단계, S4)**
+
+- `shared-api/routes/aimp/learning.ts`: `GET /today` 신규 — `LcProfile.streak`,
+  오늘자 `LcDailyTask`(모듈 정보 포함), 복습 대기 수(`LcReviewItem` 중 `dueDate<=오늘`,
+  최대 5개로 클램프), `status=active`인 목표의 진도율(완료 태스크수/전체 모듈수)을 한 번에 반환.
+- `ai_mp/frontend/components/learning/LearningDashboard.tsx`(신규): 연속일/진도율 카드,
+  진도 바, 복습 배지(있을 때만 노출, `/learning/review`로 연결), 오늘의 학습 카드
+  (`/learning/task/:taskId?m=:moduleId`로 이동).
+
+**4. 학습 본문 + 퀴즈 + 서버 채점(7단계, S5~S7, PRD 6.2+6.3)**
+
+- `curriculum.ts`에 `generateModuleContent()` 추가 — PRD 6.3 "6.2와 동일 호출에 통합하여
+  1회로 처리" 요구대로 학습 본문(마크다운)과 4지선다 3~5문항을 **한 번의 API 호출**로 함께
+  생성. 분량은 `minutesPerSession`(15/30/60분)에 따라 600자/1200자/2000자 목표로 프롬프트에
+  명시. 문항 검증: 선택지 정확히 4개, `answer`가 `choices` 안에 포함되는지 확인 후 실패 시
+  재시도(`MAX_RETRY=2`, 기존 패턴 재사용).
+- `GET /modules/:id`: `contentMd`가 이미 있으면 **재생성 없이 캐시 반환**(PRD 11장 비용
+  통제 정책 1번 준수). 없으면 생성 후 `$transaction`으로 `LcModule.update` +
+  `LcQuestion.createMany` 저장.
+- `POST /quiz/:taskId/submit`: 채점은 **서버 문자열 비교만**, AI 호출 없음(PRD 6.3/11장
+  정책 2번). 오답은 `LcReviewItem` 신규 생성(간격 반복 초기값), 이미 있던 복습 문항은
+  정답/오답에 따라 간격 반복 공식 적용. 오늘 첫 완료 시에만 `streak` 갱신(어제 완료 여부로
+  연속 판정).
+- `ai_mp/frontend/components/learning/LearningTask.tsx`(신규): S5(본문)+S6(퀴즈)+S7(결과)를
+  **하나의 컴포넌트 내부 단계 전환**으로 구현(별도 라우트 3개로 쪼개면 새로고침 시
+  sessionStorage 없이는 퀴즈 진행 상태가 유지되지 않는 문제를 피하기 위함). 대시보드가
+  `/learning/task/:taskId?m=:moduleId` 형태로 이동시킴 — `taskId`(퀴즈 제출용,
+  `LcDailyTask.id`)와 `moduleId`(본문 조회용, `LcModule.id`)가 서로 다른 식별자라 둘 다
+  전달 필요(경로 파라미터+쿼리스트링으로 분리).
+
+**5. 간격 반복(SM-2 단순화) + 오답 노트(8단계, S8, PRD 7장)**
+
+- `shared-api/lib/learning/spacedRepetition.ts`(신규): `initReviewItem()`(interval=1,
+  ease=2.5), `applyReview()`(정답: interval=round(interval×ease), ease+=0.1 최대 3.0 /
+  오답: interval=1, ease-=0.2 최소 1.3, interval>60일이면 state='mastered'),
+  `nextDueDate()`. PRD 7장 공식 그대로, **외부 라이브러리 미사용**.
+  `POST /quiz/:taskId/submit`의 채점 로직에서 이 모듈을 호출해 `LcReviewItem`을 갱신하는
+  공용 헬퍼 `scoreAnswers()`로 추출(오늘의 학습 제출과 복습 제출이 동일 로직 공유).
+- `GET /review`: `state='active'` && `dueDate<=오늘`인 항목을 `dueDate` 오름차순 최대 5개
+  (하루 최대 5개 배정, PRD 7장) 반환.
+- `POST /review/:reviewItemId/submit`(신규, 전용 엔드포인트): 처음에는 오답 노트 제출을
+  `POST /quiz/:taskId/submit`에 얹으려 했으나, 복습 문항은 `LcDailyTask`가 없어 taskId가
+  존재하지 않는 문제를 발견 → `scoreAnswers()`를 공용 함수로 뽑아 별도 엔드포인트로 분리.
+  이 엔드포인트가 없으면 오답 노트에서 재응시해도 간격 반복이 갱신되지 않는 결함이 됐을 것.
+- `ai_mp/frontend/components/learning/LearningReview.tsx`(신규): 복습 문항을 카드로 나열,
+  선택지 클릭 시 즉시 정답 표시(비활성화) + `POST /review/:id/submit` 호출로 서버 간격
+  반복 갱신.
+
+**6. 라우트 등록 + 검증**
+
+- `App.tsx`: `IS_LEARNING_DASHBOARD`(`/learning/dashboard`), `IS_LEARNING_TASK`
+  (`/learning/task/:id`), `IS_LEARNING_REVIEW`(`/learning/review`) 3개 추가.
+- `shared-api`: `npx tsc --noEmit` 통과(에러 0). `ai_mp/frontend`: `vite build` 통과(2134
+  모듈), `npm run check`(훅 순서/옵셔널 접근/기능키 정합성, 123개 파일) 통과.
+
+**미완료 / 다음 세션 확인 필요**
+
+- 서버2 crontab에 `learning-module-worker` 엔드포인트 주기 호출 등록 — 코드는 배포됐으나
+  실제 크론 등록 여부 미확인.
+- 실제 운영 환경에서 온보딩→확정→대시보드→학습→퀴즈→오답노트 E2E 왕복 미실시(로컬
+  타입체크/빌드까지만 검증).
+- 9단계(Cron+알림) 이후는 사용자 지시대로 착수하지 않음.
