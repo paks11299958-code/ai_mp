@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useLearnAuth } from '../learn/LearnKit';
 import { loadLearningOnboardingDraft, LEARNING_ONBOARDING_STORAGE_KEY } from './LearningOnboarding';
+import { LearningGenerationProgress } from './LearningGenerationProgress';
 
-// 🗂 커리큘럼 확인 (/learning/onboarding/plan) — S3 (app/learning/PRD.md 5장, 5단계).
+// 🗂 커리큘럼 확인 (/learning/onboarding/plan) — S3 (app/learning/PRD.md 5장).
+// ★2단계 분할(2026-08-11 사용자 확정) — 84모듈 일괄 생성(63초)이 온보딩 이탈을 유발하던
+// 문제를 해소하기 위해, 이 화면은 이제 "주차 개요"만 보여준다(모듈 상세 아님). 사용자가
+// 판단하는 단위(이 흐름이 내 목표에 맞나)와 화면 정보량이 일치하도록 함.
 // 로그인 복귀 지점. 로그인 상태가 되면 sessionStorage draft를 읽어 자동으로 POST /goals를 호출한다.
-// 이미 goal이 생성된 뒤 재진입(새로고침 등)이면 draft 대신 fetch로 받은 goal을 그대로 보여준다.
 
-type Module = { id: string; weekNo: number; orderNo: number; title: string; objective: string };
-type Goal = { id: string; title: string; status: string; modules: Module[] };
+type WeekOutline = { id: string; weekNo: number; title: string; theme: string };
+type Goal = { id: string; title: string; status: string; weekOutlines: WeekOutline[] };
 
 export const LearningPlanConfirm: React.FC = () => {
     const auth = useLearnAuth();
@@ -17,7 +20,7 @@ export const LearningPlanConfirm: React.FC = () => {
     const [revising, setRevising] = useState(false);
     const [feedback, setFeedback] = useState('');
     const [confirming, setConfirming] = useState(false);
-    const [confirmed, setConfirmed] = useState<{ taskCount: number } | null>(null);
+    const [confirmed, setConfirmed] = useState(false);
 
     useEffect(() => {
         if (auth === 'checking') return;
@@ -37,7 +40,7 @@ export const LearningPlanConfirm: React.FC = () => {
             }),
         })
             .then(async r => {
-                if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || '커리큘럼 생성에 실패했습니다.');
+                if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || '커리큘럼 개요 생성에 실패했습니다.');
                 return r.json();
             })
             .then((g: Goal) => {
@@ -75,10 +78,10 @@ export const LearningPlanConfirm: React.FC = () => {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         })
             .then(async r => {
+                // 202 = 확정 성공, 모듈 상세는 백그라운드 생성 시작됨
                 if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || '확정에 실패했습니다.');
-                return r.json();
+                setConfirmed(true);
             })
-            .then(d => setConfirmed(d))
             .catch(e => setError(e.message))
             .finally(() => setConfirming(false));
     };
@@ -86,24 +89,14 @@ export const LearningPlanConfirm: React.FC = () => {
     if (loading || auth === 'checking') {
         return (
             <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">커리큘럼을 만들고 있어요… (최대 30초)</p>
+                <p className="text-sm text-gray-400">커리큘럼 개요를 만들고 있어요… (약 10초)</p>
             </div>
         );
     }
 
-    if (confirmed) {
-        return (
-            <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center px-4 text-center">
-                <p className="text-lg font-extrabold mb-2">✅ 커리큘럼이 확정됐어요</p>
-                <p className="text-sm text-gray-400 mb-6">총 {confirmed.taskCount}일의 학습이 배정됐습니다.</p>
-                <button
-                    onClick={() => { window.location.href = '/learning/dashboard'; }}
-                    className="bg-indigo-500 hover:bg-indigo-400 text-white text-sm font-extrabold px-6 py-3 rounded-xl"
-                >
-                    대시보드로 이동 →
-                </button>
-            </div>
-        );
+    // 확정 완료 — 이제부터는 모듈 상세 백그라운드 생성 진행 상황을 보여준다.
+    if (confirmed && goal) {
+        return <LearningGenerationProgress goalId={goal.id} />;
     }
 
     return (
@@ -129,13 +122,11 @@ export const LearningPlanConfirm: React.FC = () => {
                     <>
                         <h1 className="text-xl font-extrabold mb-6">{goal.title}</h1>
                         <div className="space-y-3 mb-8">
-                            {goal.modules.map(m => (
-                                <div key={m.id} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-                                    <span className="text-xs font-bold text-indigo-300">
-                                        {m.weekNo}주차 {m.orderNo}일차
-                                    </span>
-                                    <h3 className="text-sm font-extrabold mt-1">{m.title}</h3>
-                                    <p className="text-xs text-gray-400 mt-1">{m.objective}</p>
+                            {goal.weekOutlines.map(w => (
+                                <div key={w.id} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                                    <span className="text-xs font-bold text-indigo-300">{w.weekNo}주차</span>
+                                    <h3 className="text-sm font-extrabold mt-1">{w.title}</h3>
+                                    <p className="text-xs text-gray-400 mt-1">{w.theme}</p>
                                 </div>
                             ))}
                         </div>
