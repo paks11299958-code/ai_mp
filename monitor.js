@@ -226,6 +226,25 @@ async function checkTossTrader() {
         parts.push('📝페이퍼실험 체결 아직 0건');
     }
 
+    // ★shared-api 재시작 루프 감지(2026-08-11 신설)
+    //   08-08~11에 자동배포 스크립트가 로컬/원격 방향을 구분하지 못해 **1분마다 재시작**했고,
+    //   재기동 몇 초 사이 요청이 Vercel 502로 떨어져 어드민이 간헐 실패했다.
+    //   그런데 **이 감시는 못 잡았다** — pm2 status 는 재시작 루프 중에도 대부분 'online'이다.
+    //   → 생존이 아니라 **uptime**을 본다. 3시간마다 도는 점검에서 uptime이 5분 미만이면
+    //     방금 재기동한 것이고, 그게 매번이면 루프다(정상 운영이면 uptime은 며칠 단위).
+    //   ★배포 직후 한 번은 정상적으로 짧을 수 있으므로 '경고'로만 싣고 ok 판정은 유지한다
+    //     — 헛알림으로 감시 신뢰를 깎느니, 사람이 보고 판단하게 사실만 노출한다.
+    const api = find('shared-api');
+    if (api) {
+        const upMs = Date.now() - (api.pm2_env?.pm_uptime ?? Date.now());
+        const upMin = Math.floor(upMs / 60000);
+        const restarts = api.pm2_env?.restart_time ?? 0;
+        if (upMin < 5) {
+            parts.push(`⚠️shared-api 방금 재기동(uptime ${upMin}분·누적 ${restarts}회) — ` +
+                       `반복되면 재시작 루프 의심: 서버1에서 git push 누락 확인`);
+        }
+    }
+
     // online 이어도 halt 면 정상이 아니다 — 실제로 매매를 안 하고 있는 상태다.
     // ★페이퍼 체결 수는 판정에 넣지 않는다 — 0건은 '이상'이 아니라 관찰 대기 상태다.
     const ok = liveStatus === 'online' && halt === false;
