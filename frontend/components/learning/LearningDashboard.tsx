@@ -48,11 +48,11 @@ export const LearningDashboard: React.FC = () => {
         <div className="min-h-screen bg-gray-950 text-white">
             <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold">
                         ← 메인
                     </button>
                     <span className="text-sm font-extrabold">📊 학습 대시보드</span>
-                    <button onClick={() => { window.location.href = '/learning/settings'; }} className="w-16 text-right text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/learning/settings'; }} className="w-16 h-full text-right text-sm text-indigo-300 font-semibold">
                         ⚙️ 설정
                     </button>
                 </div>
