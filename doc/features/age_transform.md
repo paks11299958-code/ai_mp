@@ -71,6 +71,8 @@ CREATE TABLE "AgeTransform" (
 - `AgeTransformBoard.tsx` 신규(HairStyleBoard 패턴 복제): 업로드→로딩→슬라이더 결과→저장/취소.
 - personaFeatures.ts: FeatureKey에 `agetransform` 추가 + `NAME_FALLBACK['윤채린']=['hair','agetransform']` + FEATURE_REGISTRY 항목. 기능카드(life 카테고리)도.
 - 단계 로딩 오버레이(헤어 c609bc9 패턴): 4장이라 '10대→30대→50대→70대' 진행.
+- ★**2026-08-12 보완**: 이 화면은 거짓 시간 안내("10초쯤")는 없었지만 다른 문제가 있었다. 단계 진행이 **장당 9초 가정**(`i * 9000`)으로 도는데 운영로그 실측은 **중앙 9.3초·최대 36.9초**다. 마지막 장에서 **진행바가 100%에 닿고 체크리스트도 전부 ✓가 된 뒤에도** 실제 생성이 남아, 회원 눈에는 **멈춘 것처럼** 보였다. → 경과 초 표시 + 40초 초과 시 "실패한 게 아니니 화면을 닫지 마세요" 추가(`ai_mp e8e3470`). 진행바·체크리스트 자체는 원래 설계가 나아서 그대로 유지.
+- ★**429 완화**: 헤어·프로필사진과 **한 GCP 프로젝트 Vertex 한도를 공유**한다. 이 화면은 자체 `for` 루프로 이미 순차 생성하지만 그건 **'이 요청 안에서'만**이라 다른 기능과의 경합에는 무력했다 → 전역 게이트 `runImageGenSerialized()`를 함께 태웠다(`shared-api de5e60a`).
 
 ## 8. 구현 순서
 1. 백엔드 generateAgeTransform + generate/save/list API + DB 테이블
