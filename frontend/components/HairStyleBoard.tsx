@@ -23,6 +23,10 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [analyzing, setAnalyzing] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);   // 0:사진분석 1:헤어합성 2:윤채린진단
+    // 경과 초(2026-08-12) — 프로필사진과 같은 이유로 신설.
+    // 종전엔 "보통 10초쯤"이라 적어놓고 실측(운영로그 122건)은 중앙 14.5초·최대 79초였다.
+    // 안내보다 오래 걸리면 회원은 '실패했다'고 판단하고 화면을 닫는다.
+    const [elapsedSec, setElapsedSec] = useState(0);
     const [result, setResult] = useState<HairMatchResult | null>(null);
     const [resultImage, setResultImage] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -86,6 +90,15 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
     const LOADING_STEPS = ['사진을 분석하고 있어요', '헤어스타일을 합성하는 중이에요', '윤채린이 어울림을 진단하고 있어요'];
 
+    // 생성 중 경과 시간 — 1초씩 올린다(2026-08-12).
+    // ★남은 시간을 역으로 세지 않는다 — 실제 편차가 크서 카운트다운은 0이 됐는데
+    //   안 끝나는 더 나쁜 상황이 된다. 경과만 정직하게 보여준다.
+    useEffect(() => {
+        if (!analyzing) { setElapsedSec(0); return; }
+        const id = setInterval(() => setElapsedSec(s => s + 1), 1000);
+        return () => clearInterval(id);
+    }, [analyzing]);
+
     // 합성 가능 상태 신호등 — 15초마다 폴링(결과 화면일 땐 멈춤)
     useEffect(() => {
         if (result) return;
@@ -136,8 +149,11 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
         if (!requirePoints('hair')) return;
         setAnalyzing(true); setError(null); setLoadingStep(0);
         // 실제론 병렬 처리라 단계 완료 시점을 알 수 없어, 체감용으로 단계 메시지를 순차 진행.
-        const t1 = setTimeout(() => setLoadingStep(1), 2500);
-        const t2 = setTimeout(() => setLoadingStep(2), 8000);
+        // ★전환 시각을 실측에 맞춰 늘렸다(2026-08-12) — 종전 2.5초·8초는 "10초쯤"을 전제로 한
+        //   값이라, 실제 중앙 14.5초·최대 79초 걸릴 때 8초 만에 마지막 단계에 도달해
+        //   **남은 시간 내내 화면이 멈춘 것처럼** 보였다.
+        const t1 = setTimeout(() => setLoadingStep(1), 6000);
+        const t2 = setTimeout(() => setLoadingStep(2), 18000);
         try {
             const { analysis, resultImageUrl } = await hairApi.analyze(base64, mimeType, selected.id, personaId, studioBg);
             setResult(analysis);
@@ -196,7 +212,21 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                 );
                             })}
                         </div>
-                        <div style={{ fontSize: 11.5, color: T.inkMute, marginTop: 16 }}>보통 10초쯤 걸려요 ☕</div>
+                        {/* 실측 기반 안내(2026-08-12) — 운영로그 122건 중앙 14.5초·최대 79초.
+                            ★경과 초를 같이 보여준다: 멈춘 게 아니라는 신호가 있어야 회원이 기다린다. */}
+                        <div style={{ marginTop: 16 }}>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: T.accent, fontVariantNumeric: 'tabular-nums' }}>
+                                {elapsedSec}초
+                            </div>
+                            <div style={{ fontSize: 11.5, color: T.inkMute, marginTop: 4, lineHeight: 1.6 }}>
+                                {elapsedSec < 40
+                                    ? <>보통 30초쯤 걸려요 ☕</>
+                                    : elapsedSec < 75
+                                        ? <>조금 더 걸리고 있어요. 거의 다 됐어요 🙏</>
+                                        : <>오래 걸리는 중이에요. 조금만 더 기다려 주세요<br />
+                                           <span style={{ color: T.accent, fontWeight: 700 }}>실패한 게 아니니 화면을 닫지 마세요</span></>}
+                            </div>
+                        </div>
                     </div>
                     <style>{`@keyframes hair-spin { to { transform: rotate(360deg); } }`}</style>
                 </div>
@@ -389,7 +419,7 @@ export const HairStyleBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             background: (analyzing || hairBusy) ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
                             color: '#fff', fontWeight: 700, fontSize: 15, cursor: (analyzing || hairBusy) ? 'default' : 'pointer',
                         }}>
-                            {analyzing ? '합성 + 진단 중… (10초쯤) 💭' : hairBusy ? '⏳ 합성 대기 중… 잠시만요' : `✨ 합성하고 진단받기${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
+                            {analyzing ? `합성 + 진단 중… ${elapsedSec}초 💭` : hairBusy ? '⏳ 합성 대기 중… 잠시만요' : `✨ 합성하고 진단받기${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
                         </button>
                     </div>
                 )}
