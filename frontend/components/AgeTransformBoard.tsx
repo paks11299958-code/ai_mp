@@ -101,6 +101,10 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
 
     const [generating, setGenerating] = useState(false);
     const [loadingStep, setLoadingStep] = useState(0);
+    // 경과 초(2026-08-12) — 프로필사진·헤어와 같은 조치.
+    // 여기는 거짓 시간 안내는 없었지만 **진행바가 100%에 닿은 뒤 멈춰 보이는** 문제가 있다.
+    // 단계는 장당 9초 가정으로 도는데 실측 최대는 36.9초라, 마지막 장에서 한참 남는다.
+    const [elapsedSec, setElapsedSec] = useState(0);
     const [images, setImages] = useState<Record<string, string> | null>(null);  // 생성 결과(미저장)
     const [selected, setSelected] = useState<string>('');  // 선택된 목표나이 키
     const [compare, setCompare] = useState(50);  // Before/After 슬라이더 위치(%)
@@ -161,6 +165,14 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
             setSavingPhoto(false);
         }
     };
+
+    // 생성 중 경과 시간 — 1초씩 올린다(2026-08-12).
+    // ★진행바가 다 찬 뒤에도 이 숫자가 올라가면 "멈춘 게 아니다"라는 신호가 된다.
+    useEffect(() => {
+        if (!generating) { setElapsedSec(0); return; }
+        const id = setInterval(() => setElapsedSec(s => s + 1), 1000);
+        return () => clearInterval(id);
+    }, [generating]);
 
     // 생성 가능 상태 폴링(헤어와 같은 나노바나나 쿼터 공유)
     useEffect(() => {
@@ -258,7 +270,17 @@ export const AgeTransformBoard: React.FC<Props> = ({ onClose }) => {
                             <div className="absolute -inset-1.5 rounded-full border-[3px] border-[#EADBF5] border-t-[#9B5FA8] animate-spin" />
                         </div>
                         <p className="text-sm font-bold text-[#2D2438] mb-1">{picks[loadingStep] ? `${picks[loadingStep]}세 모습을 그리는 중이에요` : '마무리하는 중이에요'}</p>
-                        <p className="text-xs text-[#9089A1] mb-4">윤채린이 시간을 돌리고 있어요… 🕰️</p>
+                        {/* 경과 초(2026-08-12) — 실측 중앙 9.3초·최대 36.9초.
+                            진행바가 100%에 닿은 뒤에도 남는 시간이 있어 '멈췄나' 오해를 산다. */}
+                        <p className="text-xs text-[#9089A1] mb-1">윤채린이 시간을 돌리고 있어요… 🕰️</p>
+                        <p className="text-lg font-extrabold text-[#9B5FA8] mb-1 tabular-nums">{elapsedSec}초</p>
+                        {elapsedSec >= 40 && (
+                            <p className="text-[11px] text-[#9089A1] mb-3 leading-relaxed">
+                                조금 더 걸리고 있어요. 거의 다 됐어요 🙏<br />
+                                <span className="text-[#9B5FA8] font-bold">실패한 게 아니니 화면을 닫지 마세요</span>
+                            </p>
+                        )}
+                        {elapsedSec < 40 && <div className="mb-3" />}
 
                         {/* 진행바 */}
                         <div className="w-full max-w-[240px] h-2 rounded-full bg-[#F0E9DE] overflow-hidden mb-4">
