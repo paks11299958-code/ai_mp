@@ -23,6 +23,10 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [base64, setBase64] = useState<string | null>(null);
     const [mimeType, setMimeType] = useState('image/jpeg');
     const [analyzing, setAnalyzing] = useState(false);
+    // 경과 초(2026-08-12): 종전엔 "보통 10초쯤"이라고만 적어놓고 실측은 12~109초였다.
+    // 안내보다 오래 걸리면 회원은 '실패했다'고 판단하고 나가버린다(사장 지적).
+    // 숫자가 올라가는 것만 보여도 "돌아가고 있다"는 신호가 되므로 경과를 센다.
+    const [elapsedSec, setElapsedSec] = useState(0);
     const [loadingStep, setLoadingStep] = useState(0);
     const [resultImage, setResultImage] = useState<string | null>(null);
     const [resultName, setResultName] = useState<string>('');
@@ -97,6 +101,21 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
         return () => { alive = false; clearInterval(id); };
     }, [resultImage]);
 
+    // ★전신 컨셉 판정은 styleKey 로 한다(2026-08-12).
+    //   styles API 응답에 framing 필드가 없어서(실측 확인) selected.framing 은 항상 undefined다.
+    //   API를 넓히는 대신 이미 내려오는 styleKey 로 판정한다 — 전신은 베이비뿐이다
+    //   (치비도 전신이었으나 109초로 너무 느려 2026-08-12 숨김 처리).
+    const isFullBodyConcept = !!selected?.styleKey?.startsWith('baby');
+
+    // 생성 중 경과 시간 — 1초씩 올린다(2026-08-12).
+    // ★남은 시간을 '역으로 세지' 않는다 — 실제 소요가 12~109초로 편차가 커서
+    //   카운트다운을 쓰면 0이 됐는데 안 끝나는 더 나쁜 상황이 된다. 경과만 정직하게 보여준다.
+    useEffect(() => {
+        if (!analyzing) { setElapsedSec(0); return; }
+        const id = setInterval(() => setElapsedSec(s => s + 1), 1000);
+        return () => clearInterval(id);
+    }, [analyzing]);
+
     // 혼잡 모달 카운트다운 — 1초씩 줄여 '얼마나 기다리면 되는지'를 눈에 보이게.
     // 0이 되면 모달을 자동으로 닫는다(그 시점엔 폴링이 busy=false 로 바꿔 버튼이 열린다).
     useEffect(() => {
@@ -143,8 +162,12 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
         if (!selected) { setError('컨셉을 선택해 주세요.'); return; }
         if (!requirePoints('outfit')) return;
         setAnalyzing(true); setError(null); setLoadingStep(0);
-        const t1 = setTimeout(() => setLoadingStep(1), 2500);
-        const t2 = setTimeout(() => setLoadingStep(2), 8000);
+        // ★단계 전환 시각을 실측에 맞춰 늘렸다(2026-08-12).
+        //   종전 2.5초·8초는 "10초쯤"을 전제로 한 값이라, 실제 30~60초 걸릴 때
+        //   8초 만에 마지막 단계에 도달해 **남은 시간 내내 화면이 멈춘 것처럼** 보였다.
+        //   실측: 민화 12s / 픽사 26s / 베이비(전신) 34s.
+        const t1 = setTimeout(() => setLoadingStep(1), 6000);
+        const t2 = setTimeout(() => setLoadingStep(2), 18000);
         try {
             const { resultImageUrl, outfitName } = await outfitApi.analyze(base64, mimeType, selected.id);
             setResultImage(resultImageUrl);
@@ -211,7 +234,22 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                                 );
                             })}
                         </div>
-                        <div style={{ fontSize: 11.5, color: T.inkMute, marginTop: 16 }}>보통 10초쯤 걸려요 ☕</div>
+                        {/* 실측 기반 안내(2026-08-12) — 민화 12s / 픽사 26s / 베이비(전신) 34s.
+                            전신 컨셉은 그릴 게 많아 상반신보다 오래 걸린다.
+                            ★경과 초를 같이 보여준다: 멈춘 게 아니라는 신호가 있어야 회원이 기다린다. */}
+                        <div style={{ marginTop: 16 }}>
+                            <div style={{ fontSize: 20, fontWeight: 800, color: T.accent, fontVariantNumeric: 'tabular-nums' }}>
+                                {elapsedSec}초
+                            </div>
+                            <div style={{ fontSize: 11.5, color: T.inkMute, marginTop: 4, lineHeight: 1.6 }}>
+                                {elapsedSec < 40
+                                    ? <>보통 {isFullBodyConcept ? '40초쯤' : '30초쯤'} 걸려요 ☕</>
+                                    : elapsedSec < 75
+                                        ? <>조금 더 걸리고 있어요. 거의 다 됐어요 🙏</>
+                                        : <>오래 걸리는 중이에요. 조금만 더 기다려 주세요<br />
+                                           <span style={{ color: T.accent, fontWeight: 700 }}>실패한 게 아니니 화면을 닫지 마세요</span></>}
+                            </div>
+                        </div>
                     </div>
                     <style>{`@keyframes outfit-spin { to { transform: rotate(360deg); } }`}</style>
                 </div>
@@ -398,7 +436,7 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                             background: (analyzing || busy) ? T.inkMute : `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
                             color: '#fff', fontWeight: 700, fontSize: 15, cursor: (analyzing || busy) ? 'default' : 'pointer',
                         }}>
-                            {analyzing ? '만드는 중… (10초쯤) 💭' : busy ? '⏳ 합성 대기 중… 잠시만요' : `✨ 프로필 사진 만들기${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
+                            {analyzing ? `만드는 중… ${elapsedSec}초 💭` : busy ? '⏳ 합성 대기 중… 잠시만요' : `✨ 프로필 사진 만들기${cost != null ? ` · ${cost.toLocaleString()}pt` : ''}`}
                         </button>
                     </div>
                 )}
