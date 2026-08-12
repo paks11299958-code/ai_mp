@@ -1027,3 +1027,217 @@ ai_mp도 동일. 둘 다 main/master 미머지 유지.
   PRD 문구와의 편차이므로 사용자 확인 필요(현재 상태 유지를 권장하나 승인 필요).
 - 시드 시나리오가 "온보딩~복습적재"까지만 커버 — 주간 리포트까지의 왕복은
   이번에도 실측하지 못함(시드 확장 또는 별도 검증 필요).
+
+## 마감 작업 (2026-08-12, 사용자 지시 4건 — "묶음 F"라는 명명 자체는 사용자가 오기로
+## 정정, 실제로는 PRD 정정+S10 구현+스키마 점검+출시 체크리스트 4건)
+
+**1. PRD 정정 — 소유권 위반 응답 403 → 404**
+
+`app/learning/PRD.md` 13장 완료조건의 "타 사용자 리소스 접근 시 403이 반환된다"를
+"404가 반환된다"로 정정(코드는 변경 없음, 이미 404로 구현·검증되어 있었음).
+
+- **변경 사유**: 403(Forbidden)은 "리소스는 존재하지만 권한이 없다"는 의미라, 응답만
+  보고도 공격자가 "이 ID의 리소스가 실제로 존재한다"는 사실을 알 수 있다. 404(Not
+  Found)는 "권한 없음"과 "존재하지 않음"을 구분하지 않으므로, 타인의 목표/모듈/
+  오늘의 학습 ID를 무작위로 대입해도 존재 여부 자체를 추측할 수 없다 — 이 서비스처럼
+  리소스 ID가 순차적이지 않은 cuid라도, 열거 공격(enumeration) 방어 측면에서 404가
+  구조적으로 더 안전하다.
+- 묶음 E 통합테스트(6개 보안 케이스)가 이미 이 404 동작을 실측 검증 완료한 상태였고,
+  이번 정정은 문서를 실제 구현·검증된 상태에 맞춘 것.
+- `app/learning/PRD.md` 8.1절의 `assertOwnership(resource, userId)` 공용 헬퍼 언급은
+  실제로는 만들어지지 않았고, 각 라우트가 `if (!x || x.userId !== userId) return
+  res.status(404)...` 패턴을 개별 반복하는 방식으로 구현되어 있다(동작은 동일하나
+  공용 헬퍼로 추출되지 않음) — 이번 지시 범위 밖이라 코드는 손대지 않았고, 사실만
+  기록해둔다.
+
+**2. S10 구현 — 전체 커리큘럼 화면(`/learning/curriculum`)**
+
+PRD 5장 화면 정의에 처음부터 있었으나(누락, 신규 기능 아님) 지금까지 구현되지 않았던
+화면. 아래 "S10 구현 상세" 참조.
+
+**3. 스키마 반영 점검 스크립트 + 현재 시점 대조 실행 결과**
+
+아래 "스키마 대조 점검" 참조.
+
+**4. 출시 체크리스트**
+
+아래 "출시 체크리스트" 참조(실행하지 않음, 사용자가 직접 수행할 순서만 기록).
+
+## S10 구현 상세 (전체 커리큘럼, `/learning/curriculum`)
+
+- `shared-api/routes/aimp/learning.ts`: `GET /curriculum` 신규 추가. `status='active'`인
+  목표 1개(사용자당 동시 active 목표는 하나뿐)를 대상으로, 모듈을 주차별로 묶어
+  `{ goal: {id, title, progressPercent}, weeks: [{weekNo, modules: [{id, orderNo,
+  title, completed}]}] }` 형태로 반환. `completed`는 `LcDailyTask.completedAt` 존재
+  여부로 판별. 목표가 없으면 `{goal: null, weeks: []}`.
+- `ai_mp/frontend/components/learning/LearningCurriculum.tsx`(신규): 커리큘럼 제목+
+  전체 진행률 바, 주차별 섹션(주차당 완료수/전체수 배지 + 모듈 목록, 완료는
+  ✅+연한 초록 배경, 미완료는 ⬜). 진행 중인 커리큘럼이 없을 때의 빈 상태 처리.
+  기존 다크 톤(`bg-gray-950`, `bg-white/5`, `border-white/10` 등) 그대로 재사용.
+- `App.tsx`에 `/learning/curriculum` 라우트 등록. `LearningDashboard.tsx`의 진행률
+  바를 클릭하면 이 화면으로 이동하도록 진입점 추가(기존엔 커리큘럼 전체를 볼 경로가
+  화면 어디에도 없었음).
+- 360px 반응형 테스트 2개 추가(12주 60모듈+긴 제목 조합, 빈 상태) — 전부 통과.
+  `responsive.test.tsx` 총 11개로 확장.
+- 검증: `shared-api` `tsc --noEmit` 통과, `ai_mp/frontend` `vite build`+
+  `vitest`(30개)+`npm run check`(127개 파일) 전부 통과.
+
+## 스키마 대조 점검 (2026-08-12)
+
+**스크립트**: `shared-api/scripts/check-learning-schema-sync.ts`(신규). `schema.prisma`
+파일을 정규식으로 직접 파싱해 `Lc*` 모델의 스칼라 필드 목록을 뽑고, 실제 DB
+`information_schema.columns`와 대조한다(컬럼 누락·타입 불일치·DB에만 있는 컬럼 3종
+검사). 읽기 전용(SELECT만) — 스키마·데이터를 변경하지 않는다.
+
+- ★generated Prisma Client(DMMF)가 아니라 스키마 파일 텍스트를 직접 읽는 방식을
+  택함 — 처음에 DMMF 기반으로 만들어 운영 `shared-api`(main 브랜치, feature 브랜치의
+  스키마 변경이 아직 반영 안 된 상태)에서 실행했더니, "아직 배포 안 된 정상적인
+  차이"(예: `notifiedAt`이 스키마에 있는데 DB에 없음 — 이건 그 시점에 정확히
+  **미배포 상태를 정확히 알려준 것**이었으나, 대조 기준이 "무엇과 무엇을 비교하는
+  것인지" 헷갈릴 소지가 있어)까지 대량으로 잡혀 나와 판독이 어려웠음. 스키마 파일
+  경로를 인자로 받게 고쳐, "이 스키마 파일 기준으로 DB와 맞는지"를 명시적으로
+  검증하도록 재작성.
+- 실행 방법: `npx ts-node --transpile-only scripts/check-learning-schema-sync.ts
+  [스키마파일경로]`(기본값 `./prisma/schema.prisma`). 이 개발 컨테이너(서버2)는 운영
+  DB 직접 접속이 타임아웃되므로 서버1에서 실행(이번엔 운영 `shared-api` 디렉터리를
+  건드리지 않도록 `/tmp` 임시 위치에 스크립트+스키마 파일만 두고 `node_modules`는
+  심볼릭 링크로 재사용, 종료 후 삭제).
+
+**현재 시점(2026-08-12) 대조 결과** — feature 브랜치의 `schema.prisma`(main 머지
+전, 이번 세션까지의 최신 상태) 기준:
+
+| 모델 | 결과 |
+|---|---|
+| LcProfile | ✅ 일치 |
+| LcGoal | ✅ 일치 |
+| LcWeekOutline | ✅ 일치 |
+| LcModule | ✅ 일치 |
+| LcDailyTask | ✅ 일치(`notifiedAt` 포함, 지난 세션에 DDL 실행 완료된 상태 확인) |
+| LcQuestion | ❌ **불일치 1건** — `difficulty` 컬럼: 스키마=`Int`, DB=`smallint` |
+| LcAttempt | ✅ 일치 |
+| LcReviewItem | ✅ 일치 |
+| LcWeeklyReport | ✅ 일치 |
+| LcSubscription | ✅ 일치 |
+| LcAiUsageLog | ✅ 일치 |
+
+- **원인**: `learning-coach-ddl.sql`에 `difficulty SMALLINT`(2바이트, 용량 최적화
+  의도로 보임)로 작성됐는데 `schema.prisma`에는 `difficulty Int`(Prisma 기본,
+  PostgreSQL `integer` 4바이트)로 선언되어 있음 — DDL 작성 당시부터 있던 기존 불일치.
+- **위험도**: 낮음. `difficulty` 값은 항상 1~3(PRD 6.3 명시)만 쓰이므로 `smallint`
+  범위(-32768~32767) 안에 안전하게 들어가고, Prisma가 `smallint`를 읽고 쓸 때도
+  JS `number`로 정상 변환된다(실측: 묶음 E 통합테스트의 퀴즈 제출·채점에서 이미
+  `difficulty` 필드를 정상적으로 주고받았음, 오류 없었음). 즉시 조치가 필요한
+  결함은 아니나, "스키마와 DB가 완전히 일치해야 한다"는 원칙에는 어긋남.
+- **조치는 보류** — 사용자 지시 범위가 "점검·보고"까지였고 수정은 지시받지 않음.
+  고치려면 `ALTER TABLE "LcQuestion" ALTER COLUMN difficulty TYPE INTEGER;`(운영 DB
+  변경, 사용자 승인 필요) 또는 스키마를 `Int @db.SmallInt`로 맞추는 두 가지 방향이
+  있음 — 다음 지시 시 선택.
+- 이 스크립트는 저장소에 커밋해 다음 스키마 변경 때마다 재사용 가능(`LcDailyTask.
+  notifiedAt` 같은 반영 누락 사고의 재발 방지용 상시 점검 도구).
+
+## 출시 체크리스트 (실행하지 않음 — 사용자가 직접 수행)
+
+`feature/learning-coach`는 두 저장소 모두 main/master에 병합되지 않은 상태다.
+아래 순서를 지켜야 한다(순서를 바꾸면 존재하지 않는 API를 프론트가 호출하거나,
+스키마 없는 컬럼을 백엔드가 참조해 오류가 난다 — `app/learning/CLAUDE.md` 배포
+절차 절 참조).
+
+### 0단계 — 사전 확인(머지 전)
+
+- [ ] `git log main..feature/learning-coach`(shared-api), `git log
+  master..feature/learning-coach`(ai_mp)로 머지될 커밋 목록을 최종 확인한다.
+- [ ] 스키마 대조 점검 스크립트를 다시 한번 실행해 이 문서 작성 시점 이후 새로
+  생긴 불일치가 없는지 확인한다(위 "스키마 대조 점검" 절의 실행 방법 그대로).
+- [ ] `LcQuestion.difficulty` 타입 불일치(smallint vs Int)를 이번에 고칠지 그대로
+  둘지 결정한다(위험도 낮음, 강제 아님).
+
+### 1단계 — DB 마이그레이션
+
+**이미 실행 완료.** 묶음 C·D·E 통합검증 과정에서 운영 DB(aichat)에 다음이 모두
+반영되어 있다 — 별도 조치 불필요:
+- `Lc*` 11개 테이블 전체(소유권 `aichat_user` 확인 완료)
+- `LcModule`에 `(goalId, weekNo, orderNo)` 유니크 제약
+- `LcDailyTask.notifiedAt` 컬럼
+- **확인 방법**: 위 스키마 대조 스크립트 실행 결과가 "LcQuestion 1건" 외 전부 ✅면
+  DB는 이미 준비된 상태.
+
+### 2단계 — shared-api 배포(main 머지)
+
+- [ ] `cd ~/shared-api`(서버2, 이 컨테이너) → `git checkout main` → `git merge
+  feature/learning-coach`(fast-forward 또는 --no-edit 3-way, 병합될 커밋 목록을
+  먼저 사용자에게 보고하고 승인받는다) → `git push origin main`.
+- [ ] 서버1 자동배포(1분 주기)가 자동으로 pull+tsc+pm2 reload한다 — 수동 SSH 배포
+  불필요.
+- **확인 방법**:
+  - `ssh 10.178.0.2 'tail -20 ~/shared-api-autodeploy.log'`에서 "배포 완료:
+    <머지 커밋 해시>" 로그 확인.
+  - `curl -s -o /dev/null -w "%{http_code}" http://localhost:3020/api/aimp/learning/curriculum`
+    (서버1에서, 무토큰) → `401` 나오면 라우트 정상 반영(인증 게이트까지 도달).
+  - `curl -s -X POST http://localhost:3020/api/aimp/internal-cron/learning-notify`,
+    `.../learning-weekly-report`(서버1 localhost에서, 아직 크론 미등록 상태에서도
+    수동 호출은 가능) → 200 응답 확인.
+- **롤백 방법**: `git reset --hard pre-learning-d`(태그, PROGRESS.md "롤백 지점" 절
+  참조) 후 `git push origin main --force`(파괴적 — 사용자 승인 필수, `git revert`
+  우선 권장). push 즉시 서버1 자동배포가 이전 상태로 되돌린다.
+
+### 3단계 — 프론트 배포(master 머지)
+
+- [ ] `cd ~/ai_mp` → `git checkout master` → `git merge feature/learning-coach` →
+  `git push origin master`. Vercel이 자동 빌드+배포(Production Branch=master).
+- **확인 방법**:
+  - `bash ~/vercel_status.sh`로 최신 배포가 "★운영중 READY"인지 확인(빌드 실패 시
+    이전 배포가 계속 운영 중으로 남으므로 반드시 확인).
+  - 실제 운영 URL(`aichat.dbzone.kr/learning`)에 다른 IP(서버2 IP는 Vercel 봇
+    체크포인트에 차단된 상태이므로 이 컨테이너에서는 검증 불가)에서 접속해 화면
+    렌더링 확인 — **이 항목은 이번 세션까지 한 번도 실측하지 못했음, 배포 직후
+    반드시 사람이 직접 확인 필요**.
+- **롤백 방법**: 2단계와 동일 패턴(`ai_mp` 태그 `pre-learning-d`로 revert/reset).
+  Vercel 배포 히스토리에서 이전 배포를 "Promote to Production"으로 되돌리는 방법도
+  가능(더 빠름, 코드 롤백 없이 즉시 반영).
+
+### 4단계 — 서버1 crontab 등록
+
+아래 3개 워커를 서버1 crontab에 추가한다(기존 `stock-worker` 등과 동일 패턴,
+등록 전 `crontab -l`을 백업 파일로 저장할 것):
+
+```
+# 학습코칭 — 모듈 상세 백그라운드 생성(매분, ★learning-module-worker는 이미 등록됨,
+# 확인만 하고 중복 등록하지 말 것)
+* * * * * curl -sf -m 55 -X POST -o /dev/null http://localhost:3020/api/aimp/internal-cron/learning-module-worker || echo "$(date '+%F %T') learning-module-worker FAIL" >> /home/paks11299958/aimp-cron.log
+
+# 학습코칭 — 일일 알림 이메일(매분 체크, notifyHour 일치 사용자만 실제 발송)
+* * * * * curl -sf -m 55 -X POST -o /dev/null http://localhost:3020/api/aimp/internal-cron/learning-notify || echo "$(date '+%F %T') learning-notify FAIL" >> /home/paks11299958/aimp-cron.log
+
+# 학습코칭 — 주간 리포트 생성(매주 일요일 KST 09:00 = UTC 00:00, 1회)
+0 0 * * 0 curl -sf -m 55 -X POST -o /dev/null http://localhost:3020/api/aimp/internal-cron/learning-weekly-report || echo "$(date '+%F %T') learning-weekly-report FAIL" >> /home/paks11299958/aimp-cron.log
+```
+
+- [ ] `learning-module-worker`가 이미 등록돼 있는지 `crontab -l | grep learning`으로
+  먼저 확인(중복 등록 방지).
+- [ ] `learning-notify`, `learning-weekly-report` 2개만 신규 추가.
+- **확인 방법**: 등록 1분 후 `tail -f ~/aimp-cron.log`에 `FAIL` 로그가 없는지 확인
+  (성공은 로그를 안 남기는 기존 관례). 일요일 실행분은 다음 일요일까지 기다리거나,
+  수동으로 `curl -X POST http://localhost:3020/api/aimp/internal-cron/learning-weekly-report`
+  실행해 즉시 확인 가능.
+- **롤백 방법**: `crontab -e`로 추가한 2줄만 삭제(또는 사전에 백업해둔
+  `crontab -l` 파일로 `crontab <백업파일>` 복원).
+
+### 5단계 — Persona 시드 실행 (★가장 마지막, 되돌리기 어려움)
+
+- **시드 실행 전 반드시 확인**:
+  - [ ] 위 1~4단계가 전부 완료·검증됐는가? (시드는 카드를 **즉시 일반 사용자에게
+    노출**시킨다 — 아직 크론이 안 돌거나 배포가 안 된 상태에서 시드부터 실행하면
+    사용자가 미완성 기능에 진입한다.)
+  - [ ] `/learning`, `/learning/dashboard` 등 핵심 화면을 실제 운영 URL에서 사람이
+    눈으로 직접 확인했는가?(이 세션은 IP 차단으로 못 함 — 반드시 사용자 또는
+    다른 환경에서 확인 필요)
+  - [ ] `shared-api/prisma/seed-learning-coach-persona.js`의 내용(카드 문구·아이콘·
+    색상)이 여전히 적절한지 재확인했는가?(작성된 지 시간이 지났으므로)
+- [ ] `cd ~/shared-api && node prisma/seed-learning-coach-persona.js`(서버1에서
+  운영 DB 대상 직접 실행 — `.env`의 `DATABASE_URL` 확인 후).
+- **확인 방법**: `docker exec -i n8n-docker-db-1 psql -U aichat_user -d aichat -c
+  'SELECT id, "isVisible" FROM "Persona" WHERE id=\'learning-coach\';'`로 행 존재+
+  `isVisible=true` 확인. 실제 메인 페이지에서 카드 노출 확인.
+- **롤백 방법**: `DELETE FROM "Persona" WHERE id='learning-coach';`(운영 DB 직접
+  삭제, 되돌릴 수 없음은 아니나 사용자에게 카드가 노출됐다가 사라지는 경험을 주므로
+  신중히 — 정말 급한 경우가 아니면 `isVisible=false`로 우선 감추는 것을 권장).
