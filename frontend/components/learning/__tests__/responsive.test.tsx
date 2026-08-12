@@ -9,6 +9,7 @@ import { LearningWeeklyReport } from '../LearningWeeklyReport';
 import { LearningSettings } from '../LearningSettings';
 import { LearningPlanConfirm } from '../LearningPlanConfirm';
 import { LearningGenerationProgress } from '../LearningGenerationProgress';
+import { LearningCurriculum } from '../LearningCurriculum';
 
 // 묶음 E(11단계, 2026-08-11) — 360px 폭 반응형 검증.
 // ★운영 URL은 이 세션(서버2) IP가 Vercel 봇 체크포인트에 차단돼 접속 불가하고,
@@ -232,6 +233,41 @@ describe('S3-생성중 진행 화면 — 360px', () => {
         });
         const { container, findByText } = render(<LearningGenerationProgress goalId="goal1" />);
         await findByText(/다시 시도/);
+        assertNoDangerousWidthClasses(container);
+    });
+});
+
+describe('S10 전체 커리큘럼 — 360px (2026-08-12 마감 작업, PRD 5장 누락분 구현)', () => {
+    it('12주 60개 모듈에 긴 제목이 섞여 있어도 고정폭 오버플로우 클래스가 없다', async () => {
+        mockFetchByUrl({
+            '/api/auth/me': { user: { id: 1 } },
+            '/api/aimp/learning/curriculum': {
+                goal: { id: 'g1', title: '정보처리기사 필기 합격을 위한 매우 긴 12주 완성 커리큘럼 제목', progressPercent: 37 },
+                weeks: Array.from({ length: 12 }, (_, w) => ({
+                    weekNo: w + 1,
+                    modules: Array.from({ length: 5 }, (_, d) => ({
+                        id: `m${w}-${d}`,
+                        orderNo: d + 1,
+                        title: d === 0 ? '아주 아주 아주 아주 아주 아주 긴 모듈 제목 테스트용 문자열' : `${w + 1}주 ${d + 1}일차 모듈`,
+                        completed: w === 0,
+                    })),
+                })),
+            },
+        });
+        setPath('/learning/curriculum');
+        const { container, findByText } = render(<LearningCurriculum />);
+        await findByText(/12주차/);
+        assertNoDangerousWidthClasses(container);
+    });
+
+    it('진행 중인 커리큘럼이 없을 때도 정상 렌더링된다', async () => {
+        mockFetchByUrl({
+            '/api/auth/me': { user: { id: 1 } },
+            '/api/aimp/learning/curriculum': { goal: null, weeks: [] },
+        });
+        setPath('/learning/curriculum');
+        const { container, findByText } = render(<LearningCurriculum />);
+        await findByText(/진행 중인 커리큘럼이 없습니다/);
         assertNoDangerousWidthClasses(container);
     });
 });

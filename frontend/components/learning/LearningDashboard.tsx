@@ -81,12 +81,15 @@ export const LearningDashboard: React.FC = () => {
                         </div>
 
                         {data.goal && (
-                            <div className="mb-6">
-                                <p className="text-sm font-bold text-gray-300 mb-1">{data.goal.title}</p>
+                            <button
+                                onClick={() => { window.location.href = '/learning/curriculum'; }}
+                                className="w-full mb-6 text-left"
+                            >
+                                <p className="text-sm font-bold text-gray-300 mb-1">{data.goal.title} <span className="text-xs text-indigo-300 font-normal">전체보기 →</span></p>
                                 <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                     <div className="h-full bg-emerald-500 transition-all" style={{ width: `${data.goal.progressPercent}%` }} />
                                 </div>
-                            </div>
+                            </button>
                         )}
 
                         {data.reviewDueCount > 0 && (
