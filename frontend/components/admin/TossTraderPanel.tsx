@@ -86,6 +86,9 @@ export const TossTraderPanel: React.FC<{ mode?: BotMode }> = ({ mode = 'live' })
     const [scanData, setScanData] = useState<any>(null);      // 발굴 스캔 결과
     const [logs, setLogs] = useState<string[]>([]);
     const [orders, setOrders] = useState<string[]>([]);
+    // 매매 체결 이력(2026-08-12) — 왜 샀고 왜 팔았는지 건별. null=미로드/실패.
+    const [trades, setTrades] = useState<any>(null);
+    const [tradeOpen, setTradeOpen] = useState<string | null>(null);   // 상세 펼친 행(at 값)
     const [error, setError] = useState<string | null>(null);
     const [view, setView] = useState<View>('scan');          // 최상위 탭 — 발굴부터 시작
     const [logTab, setLogTab] = useState<'log' | 'order'>('log'); // 로그 서브탭(실행/주문)
@@ -150,7 +153,7 @@ export const TossTraderPanel: React.FC<{ mode?: BotMode }> = ({ mode = 'live' })
             // ★모드별 소스 분기. 발굴(scan_results)·채원 일기·커스텀 종목은 실봇이
             //   만들어 페이퍼가 읽기만 하는 **공유 자산**이라 양쪽 동일 API를 쓴다
             //   (paths.py 의 base_path 원칙과 같다).
-            const [s, l, o, sel, cu, disc, paper] = await Promise.all([
+            const [s, l, o, sel, cu, disc, paper, tr] = await Promise.all([
                 isPaper ? adminApi.getTossPaperStatus() : adminApi.getTossStatus(),
                 isPaper ? adminApi.getTossPaperLogs(120) : adminApi.getTossLogs(120),
                 isPaper ? adminApi.getTossPaperOrders(80) : adminApi.getTossOrders(80),
@@ -159,11 +162,14 @@ export const TossTraderPanel: React.FC<{ mode?: BotMode }> = ({ mode = 'live' })
                 adminApi.getTossDiscovery().catch(() => null), // 채원 발굴 일기(공유)
                 // 실봇 화면에만 '가상매매 비교' 카드가 있다 — 페이퍼 화면에선 자기 자신이라 불필요
                 isPaper ? Promise.resolve(null) : adminApi.getTossPaperStatus().catch(() => null),
+                // 매매 이력 — 자기 모드 것만(실봇=trades.json, 페이퍼=trades_paper.json).
+                adminApi.getTossTrades(isPaper ? 'paper' : 'live', 100).catch(() => null),
             ]);
             setData(s);
             setPaperData(paper);
             setLogs(l.lines || []);
             setOrders(o.lines || []);
+            setTrades(tr);
             setDiscovery(disc);
             setSelection(sel);
             setCustom(cu);
@@ -762,6 +768,138 @@ export const TossTraderPanel: React.FC<{ mode?: BotMode }> = ({ mode = 'live' })
                                             같은 전략을 실계좌와 가상 계좌가 나란히 굴립니다. 가상은 발굴 추천을 자동 선택하므로,
                                             수익률 차이 = "사장 선택 vs 봇 추천"의 성과 비교이기도 합니다.
                                         </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
+                        {/* ── 📒 매매 내역 (2026-08-12) ──
+                            왜 여기인가: 위 수익률 숫자의 '출처'라서. 사장 지시
+                            "수익률만 있고 세부내용을 알 수가 없다 — 왜 사고 왜 팔았는지
+                            기록해야 추적·학습이 된다". 봇이 trades[_paper].json 에 건별로
+                            적고(toss_trader/trades.py) 여기서 그대로 표로 편다. */}
+                        {(() => {
+                            const rows: any[] = trades?.trades || [];
+                            const sm = trades?.summary;
+                            return (
+                                <div className="bg-gray-800/60 rounded-lg border border-gray-700">
+                                    <div className="px-4 py-2.5 border-b border-gray-700/70 flex items-center justify-between flex-wrap gap-2">
+                                        <span className="text-sm font-semibold text-gray-200">
+                                            📒 매매 내역 {rows.length > 0 && <span className="text-gray-500 font-normal">({trades?.total ?? rows.length}건)</span>}
+                                        </span>
+                                        {sm && rows.length > 0 && (
+                                            <span className="text-[11px] text-gray-400">
+                                                매수 {sm.buyCount} · 매도 {sm.sellCount}
+                                                {sm.closedCount > 0 && <>
+                                                    {' · 승률 '}<b className="text-gray-200">{sm.winRatePct}%</b>
+                                                    <span className="text-gray-500">({sm.winCount}/{sm.closedCount})</span>
+                                                    {' · 실현 '}<b className={pnlColor(sm.realizedSum)}>{signWon(sm.realizedSum)}</b>
+                                                </>}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {rows.length === 0 ? (
+                                        <div className="px-4 py-6 text-center text-xs text-gray-500 leading-relaxed">
+                                            {trades?.reason || '아직 기록된 체결이 없습니다.'}<br />
+                                            <span className="text-gray-600">
+                                                매수·매도가 체결되면 여기에 <b>왜 그렇게 판단했는지</b>(점수·조건)와
+                                                금액·수량·평단·실현손익이 건별로 쌓입니다.
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y divide-gray-700/50">
+                                            {rows.map((t: any) => {
+                                                const isBuy = t.side === 'BUY';
+                                                const open = tradeOpen === t.at;
+                                                return (
+                                                    <div key={t.at + t.symbol + t.side}>
+                                                        {/* 요약 줄 — 누르면 상세(사유·조건) 펼침 */}
+                                                        <button
+                                                            onClick={() => setTradeOpen(open ? null : t.at)}
+                                                            className="w-full text-left px-3 py-2.5 hover:bg-gray-700/30 transition-colors min-h-[44px]"
+                                                        >
+                                                            <div className="flex items-start justify-between gap-2 flex-wrap">
+                                                                <div className="flex items-center gap-2 min-w-0">
+                                                                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 ${isBuy ? 'bg-red-900/50 text-red-300' : 'bg-blue-900/50 text-blue-300'}`}>
+                                                                        {isBuy ? '매수' : '매도'}
+                                                                    </span>
+                                                                    <span className="text-sm text-gray-100 font-medium truncate">{t.label || t.symbol}</span>
+                                                                    <span className="text-[10px] text-gray-500 shrink-0">{String(t.at).slice(5, 16).replace('T', ' ')}</span>
+                                                                </div>
+                                                                <div className="text-right shrink-0">
+                                                                    <div className="text-xs text-gray-300">
+                                                                        {Number(t.quantity).toLocaleString()}주 × {Number(t.price).toLocaleString()}원
+                                                                        {' = '}<b className="text-gray-100">{Number(t.amount).toLocaleString()}원</b>
+                                                                    </div>
+                                                                    {!isBuy && t.realizedPnl != null && (
+                                                                        <div className={`text-xs font-bold ${pnlColor(t.realizedPnl)}`}>
+                                                                            {pnlArrow(t.realizedPnl)} {signWon(t.realizedPnl)}
+                                                                            {t.pnlPct != null && <span className="font-normal"> ({signPct(t.pnlPct)})</span>}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            {/* 사유 한 줄 — 접힌 상태에서도 '왜'가 보이게 */}
+                                                            <div className="text-[11px] text-gray-400 mt-1 truncate">
+                                                                {open ? '' : '💡 '}{t.reason || '-'}
+                                                            </div>
+                                                        </button>
+
+                                                        {open && (
+                                                            <div className="px-3 pb-3 pt-1 bg-gray-900/40 text-[11px] space-y-1.5 leading-relaxed">
+                                                                <div className="text-gray-300">
+                                                                    <b className="text-gray-400">{isBuy ? '매수 사유' : '매도 사유'}</b> — {t.reason || '-'}
+                                                                </div>
+                                                                <div className="text-gray-400 flex flex-wrap gap-x-4 gap-y-1">
+                                                                    <span>체결가 <b className="text-gray-200">{Number(t.price).toLocaleString()}원</b></span>
+                                                                    <span>수량 <b className="text-gray-200">{Number(t.quantity).toLocaleString()}주</b></span>
+                                                                    <span>금액 <b className="text-gray-200">{Number(t.amount).toLocaleString()}원</b></span>
+                                                                    {t.avgPrice != null && <span>평단 <b className="text-gray-200">{Number(t.avgPrice).toLocaleString()}원</b></span>}
+                                                                    {t.score != null && <span>점수 <b className="text-gray-200">{t.score}{t.threshold != null && <span className="text-gray-500">/{t.threshold}</span>}</b></span>}
+                                                                    {t.qtyBefore != null && <span>매도전 보유 <b className="text-gray-200">{t.qtyBefore}주</b></span>}
+                                                                    {t.sellRatio != null && t.sellRatio < 1 && <span className="text-amber-400">부분매도 {Math.round(t.sellRatio * 100)}%</span>}
+                                                                </div>
+                                                                {/* 매도 → 진입 시점 복원: "왜 샀나 → 어떻게 됐나"가 한 화면에 */}
+                                                                {!isBuy && t.entryReason && (
+                                                                    <div className="border-t border-gray-700/50 pt-1.5 text-gray-400">
+                                                                        <b className="text-gray-400">↩ 이 포지션의 진입</b>
+                                                                        {t.entryAt && <span className="text-gray-500"> ({String(t.entryAt).slice(5, 16).replace('T', ' ')}
+                                                                            {t.holdingDays != null && <> · {t.holdingDays}일 보유</>})</span>}
+                                                                        <div className="text-gray-300 mt-0.5">
+                                                                            {t.entryPrice != null && <>매수가 <b>{Number(t.entryPrice).toLocaleString()}원</b>
+                                                                                {t.entryScore != null && <span className="text-gray-500"> (점수 {t.entryScore})</span>} — </>}
+                                                                            {t.entryReason}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {/* 조건별 상세(전략이 남긴 지표) */}
+                                                                {t.detail && Object.keys(t.detail).length > 0 && (
+                                                                    <div className="border-t border-gray-700/50 pt-1.5">
+                                                                        <b className="text-gray-400">당시 조건</b>
+                                                                        <div className="flex flex-wrap gap-1.5 mt-1">
+                                                                            {Object.entries(t.detail).map(([k, v]) => (
+                                                                                <span key={k} className="px-1.5 py-0.5 rounded bg-gray-800 border border-gray-700 text-gray-400">
+                                                                                    {k}: <b className={v === true ? 'text-green-400' : v === false ? 'text-gray-500' : 'text-gray-200'}>
+                                                                                        {typeof v === 'boolean' ? (v ? 'O' : 'X') : String(v)}
+                                                                                    </b>
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                {t.dryRun && (
+                                                                    <div className="text-gray-500 pt-1">※ 가상 체결(실제 주문 아님)</div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                    <div className="px-3 py-2 border-t border-gray-700/50 text-[10px] text-gray-500">
+                                        체결이 확인된 건만 기록합니다(주문 시도는 '로그 &gt; 주문' 탭). 기록 시작: 2026-08-12.
                                     </div>
                                 </div>
                             );
