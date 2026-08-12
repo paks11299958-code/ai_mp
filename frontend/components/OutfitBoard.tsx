@@ -29,6 +29,13 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState(false);
     const [busyRetrySec, setBusyRetrySec] = useState(0);
+    // 혼잡 모달(2026-08-12): '눌렀는데 혼잡'은 사용자가 행동한 결과라 반드시 모달로 알린다.
+    // 종전엔 화면 중간 빨간 글씨라 스크롤 위치에 따라 아예 안 보였고(사장 지적),
+    // 정작 제일 중요한 "포인트 차감 없음"이 가장 안 보이는 자리에 있었다.
+    // ★화면 진입 시의 혼잡(폴링)은 모달을 띄우지 않는다 — 아직 아무것도 안 눌렀는데
+    //   모달이 튀어나오면 사진 고르는 것을 방해한다(그건 버튼 위 배너로 안내).
+    const [busyModal, setBusyModal] = useState(false);
+    const [modalCountdown, setModalCountdown] = useState(0);
     const [shareToast, setShareToast] = useState('');
     const [viewerOpen, setViewerOpen] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -90,6 +97,19 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
         return () => { alive = false; clearInterval(id); };
     }, [resultImage]);
 
+    // 혼잡 모달 카운트다운 — 1초씩 줄여 '얼마나 기다리면 되는지'를 눈에 보이게.
+    // 0이 되면 모달을 자동으로 닫는다(그 시점엔 폴링이 busy=false 로 바꿔 버튼이 열린다).
+    useEffect(() => {
+        if (!busyModal || modalCountdown <= 0) return;
+        const id = setInterval(() => {
+            setModalCountdown(s => {
+                if (s <= 1) { setBusyModal(false); return 0; }
+                return s - 1;
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [busyModal, modalCountdown]);
+
     useEffect(() => {
         setStyles(null); setSelected(null);
         outfitApi.styles(gender).then(setStyles).catch(() => setError('컨셉 목록을 불러오지 못했어요.'));
@@ -130,8 +150,20 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
             setResultImage(resultImageUrl);
             setResultName(outfitName);
         } catch (e: any) {
-            if (e?.code !== 'INSUFFICIENT_POINTS' && e?.message !== 'INSUFFICIENT_POINTS') {
-                setError(e.message || '합성에 실패했어요. 다시 시도해 주세요.');
+            const msg = String(e?.message ?? '');
+            // ★혼잡(429→503)은 '실패'가 아니라 '잠시 후 됨'이라 에러 줄이 아니라 모달로 알린다.
+            //   백엔드가 retryAfterSec 를 함께 주므로(imageGenStatus) 카운트다운에 쓴다.
+            const isBusy = e?.status === 503 || /합성 요청이 많|이용자가 많/.test(msg);
+            if (isBusy) {
+                // ★err.body 가 정본(apiService 가 !res.ok 에서 본문을 body 로 실어 보낸다).
+                const sec = Number(e?.body?.retryAfterSec ?? 0) || 60;
+                setBusy(true);
+                setBusyRetrySec(sec);
+                setModalCountdown(sec);
+                setBusyModal(true);
+                setError(null);   // 배너/모달 중복 표시 방지(사장 지적: 같은 말이 두 번 떴다)
+            } else if (e?.code !== 'INSUFFICIENT_POINTS' && msg !== 'INSUFFICIENT_POINTS') {
+                setError(msg || '합성에 실패했어요. 다시 시도해 주세요.');
             }
         } finally {
             clearTimeout(t1); clearTimeout(t2);
@@ -182,6 +214,53 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
                         <div style={{ fontSize: 11.5, color: T.inkMute, marginTop: 16 }}>보통 10초쯤 걸려요 ☕</div>
                     </div>
                     <style>{`@keyframes outfit-spin { to { transform: rotate(360deg); } }`}</style>
+                </div>
+            )}
+            {/* 혼잡 모달(2026-08-12) — '만들기'를 눌렀는데 혼잡할 때만. 화면 진입 시 혼잡은
+                버튼 위 배너로만 안내한다(사진 고르는 중에 모달이 튀어나오면 방해라서).
+                ★제일 중요한 정보는 "포인트 차감 없음" — 종전엔 그게 가장 안 보이는 자리에 있었다. */}
+            {busyModal && (
+                <div style={{
+                    position: 'fixed', inset: 0, zIndex: 95,
+                    background: 'rgba(45,36,56,0.6)', backdropFilter: 'blur(6px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+                }} onClick={() => setBusyModal(false)}>
+                    <div onClick={e => e.stopPropagation()} style={{
+                        background: T.card, borderRadius: 22, padding: '26px 22px', width: '100%', maxWidth: 340,
+                        boxShadow: '0 24px 64px rgba(0,0,0,0.35)', textAlign: 'center',
+                    }}>
+                        <div style={{ fontSize: 40, marginBottom: 10 }}>⏳</div>
+                        <div style={{ fontSize: 17, fontWeight: 700, color: T.ink, marginBottom: 8 }}>
+                            지금 합성 요청이 많아요
+                        </div>
+                        <div style={{ fontSize: 13, color: T.inkSoft, lineHeight: 1.6, marginBottom: 16 }}>
+                            잠시만 기다렸다가 다시 만들어 주세요.<br />사진과 컨셉은 그대로 남아 있어요.
+                        </div>
+                        {modalCountdown > 0 && (
+                            <div style={{
+                                background: 'rgba(230,162,60,0.14)', border: '1px solid rgba(230,162,60,0.4)',
+                                borderRadius: 12, padding: '10px 12px', marginBottom: 14,
+                            }}>
+                                <span style={{ fontSize: 13, color: '#9A6B1F', fontWeight: 600 }}>
+                                    약 <b style={{ fontSize: 18 }}>{modalCountdown}</b>초 뒤 자동으로 풀려요
+                                </span>
+                            </div>
+                        )}
+                        {/* ★사용자의 첫 걱정은 "돈 나갔나?" — 가장 크고 분명하게 */}
+                        <div style={{
+                            background: 'rgba(76,175,120,0.12)', border: '1px solid rgba(76,175,120,0.35)',
+                            borderRadius: 12, padding: '10px 12px', marginBottom: 18,
+                        }}>
+                            <span style={{ fontSize: 13.5, color: '#2F7A52', fontWeight: 700 }}>
+                                ✅ 포인트는 차감되지 않았어요
+                            </span>
+                        </div>
+                        <button onClick={() => setBusyModal(false)} style={{
+                            width: '100%', padding: '13px', borderRadius: 14, border: 'none',
+                            background: `linear-gradient(135deg, ${T.accent}, ${T.accent2})`,
+                            color: '#fff', fontWeight: 700, fontSize: 15, cursor: 'pointer',
+                        }}>알겠어요</button>
+                    </div>
                 </div>
             )}
             <div className="max-w-md mx-auto px-4 py-5">
@@ -298,8 +377,9 @@ export const OutfitBoard: React.FC<Props> = ({ personaId, onClose }) => {
 
                         {error && <div style={{ fontSize: 13, color: '#D9534F', marginBottom: 10, textAlign: 'center' }}>{error}</div>}
 
-                        {/* 혼잡 능동 안내(2026-07-15): 사진까지 올렸는데 혼잡이면 버튼 위에 크게 안내(풀리면 자동 소멸) */}
-                        {preview && busy && !analyzing && (
+                        {/* 혼잡 능동 안내(2026-07-15): 사진까지 올렸는데 혼잡이면 버튼 위에 크게 안내(풀리면 자동 소멸).
+                            ★모달이 떠 있는 동안엔 숨긴다(2026-08-12) — 같은 말이 두 번 보이던 것을 정리. */}
+                        {preview && busy && !analyzing && !busyModal && (
                             <div style={{
                                 display: 'flex', alignItems: 'flex-start', gap: 8, marginBottom: 10,
                                 padding: '10px 12px', borderRadius: 12, background: 'rgba(230,162,60,0.12)',
