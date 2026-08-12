@@ -1564,6 +1564,24 @@ export const adminApi = {
             heldSymbols?: string[]; selectionUpdatedAt?: string | null;
             updatedAt?: string | null; staleSeconds?: number | null;
         }>('/admin/toss-trader/paper/performance'),
+    // 매매 체결 이력(2026-08-12) — "왜 샀고 왜 팔았는지"를 건별로. 실봇/페이퍼 공용.
+    // ★orders 로그(주문 시도 텍스트)와 별개: 여기는 체결 확인분만 구조화돼 있다.
+    getTossTrades: (mode: 'live' | 'paper' = 'paper', limit = 100) =>
+        get<{
+            available: boolean; mode: string; reason?: string;
+            trades: {
+                at: string; date: string; symbol: string; label: string;
+                side: 'BUY' | 'SELL'; quantity: number; price: number; amount: number;
+                reason: string; avgPrice?: number; score?: number; threshold?: number;
+                detail?: Record<string, any>; mode?: string; dryRun?: boolean;
+                realizedPnl?: number; pnlPct?: number; sellRatio?: number; exitAll?: boolean;
+                qtyBefore?: number; entryAt?: string; entryPrice?: number;
+                entryReason?: string; entryScore?: number; holdingDays?: number;
+            }[];
+            total: number; updatedAt?: string | null;
+            summary?: { buyCount: number; sellCount: number; closedCount: number;
+                        winCount: number; winRatePct: number | null; realizedSum: number };
+        }>(`/admin/toss-trader/trades?mode=${mode}&limit=${limit}`),
     getTossSelection: () =>
         get<{ exists: boolean; selection: { symbols: string[]; halt: boolean; params?: Record<string, Record<string, number>>; updatedAt?: string }; max: number; paramBounds?: Record<string, [number, number]> }>('/admin/toss-trader/selection'),
     saveTossSelection: (payload: { symbols?: string[]; halt?: boolean; params?: Record<string, Record<string, number>>; adminPassword?: string }) =>
