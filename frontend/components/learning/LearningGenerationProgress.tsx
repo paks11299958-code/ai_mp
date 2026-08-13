@@ -70,23 +70,23 @@ export const LearningGenerationProgress: React.FC<{ goalId: string }> = ({ goalI
     const percent = status?.progressPercent ?? 0;
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center px-4">
             <div className="max-w-sm w-full text-center">
                 {!failed ? (
                     <>
                         <div className="w-16 h-16 mx-auto mb-6 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin" />
                         <h1 className="text-lg font-extrabold mb-2">커리큘럼을 준비하고 있어요</h1>
-                        <p className="text-sm text-gray-400 mb-6">
+                        <p className="text-sm text-[#5C5468] mb-6">
                             {status ? `${status.generatedWeeks} / ${status.totalWeeks}주차 완료` : '잠시만 기다려 주세요…'}
                         </p>
-                        <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-2">
+                        <div className="w-full h-2 bg-[#F0E9DE] rounded-full overflow-hidden mb-2">
                             <div
                                 className="h-full bg-indigo-500 transition-all duration-500"
                                 style={{ width: `${percent}%` }}
                             />
                         </div>
-                        <p className="text-xs text-gray-500">{percent}%</p>
-                        <p className="text-xs text-gray-500 mt-6">
+                        <p className="text-xs text-[#9089A1]">{percent}%</p>
+                        <p className="text-xs text-[#9089A1] mt-6">
                             완료되면 자동으로 대시보드로 이동합니다. 이 화면을 벗어나도 생성은 계속됩니다.
                         </p>
                     </>
@@ -96,7 +96,7 @@ export const LearningGenerationProgress: React.FC<{ goalId: string }> = ({ goalI
                             ⚠️
                         </div>
                         <h1 className="text-lg font-extrabold mb-2">일부 생성에 실패했어요</h1>
-                        <p className="text-sm text-gray-400 mb-6">
+                        <p className="text-sm text-[#5C5468] mb-6">
                             {status && status.failedWeeks.length > 0
                                 ? `${status.failedWeeks.join(', ')}주차 생성이 반복 실패했습니다.`
                                 : '커리큘럼 생성 중 문제가 발생했습니다.'}
@@ -112,7 +112,7 @@ export const LearningGenerationProgress: React.FC<{ goalId: string }> = ({ goalI
                 )}
 
                 {error && (
-                    <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">
+                    <div className="mt-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">
                         {error}
                     </div>
                 )}

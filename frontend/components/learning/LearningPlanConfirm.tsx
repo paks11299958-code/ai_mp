@@ -88,8 +88,8 @@ export const LearningPlanConfirm: React.FC = () => {
 
     if (loading || auth === 'checking') {
         return (
-            <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">커리큘럼 개요를 만들고 있어요… (약 10초)</p>
+            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center">
+                <p className="text-sm text-[#5C5468]">커리큘럼 개요를 만들고 있어요… (약 10초)</p>
             </div>
         );
     }
@@ -100,10 +100,10 @@ export const LearningPlanConfirm: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/learning'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/learning'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 학습코칭
                     </button>
                     <span className="text-sm font-extrabold">🗂 커리큘럼 확인</span>
@@ -113,7 +113,7 @@ export const LearningPlanConfirm: React.FC = () => {
 
             <main className="max-w-2xl mx-auto px-4 py-8 pb-24">
                 {error && (
-                    <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">
+                    <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">
                         {error}
                     </div>
                 )}
@@ -123,10 +123,10 @@ export const LearningPlanConfirm: React.FC = () => {
                         <h1 className="text-xl font-extrabold mb-6">{goal.title}</h1>
                         <div className="space-y-3 mb-8">
                             {goal.weekOutlines.map(w => (
-                                <div key={w.id} className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-                                    <span className="text-xs font-bold text-indigo-300">{w.weekNo}주차</span>
+                                <div key={w.id} className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-3">
+                                    <span className="text-xs font-bold text-indigo-700">{w.weekNo}주차</span>
                                     <h3 className="text-sm font-extrabold mt-1">{w.title}</h3>
-                                    <p className="text-xs text-gray-400 mt-1">{w.theme}</p>
+                                    <p className="text-xs text-[#5C5468] mt-1">{w.theme}</p>
                                 </div>
                             ))}
                         </div>
@@ -137,12 +137,12 @@ export const LearningPlanConfirm: React.FC = () => {
                                 onChange={e => setFeedback(e.target.value)}
                                 placeholder="수정하고 싶은 점이 있다면 알려주세요 (1회만 가능)"
                                 rows={2}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 resize-none"
+                                className="w-full bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-sm text-[#2D2438] placeholder-[#9089A1] focus:outline-none focus:border-indigo-400 resize-none"
                             />
                             <button
                                 onClick={submitRevision}
                                 disabled={revising || !feedback.trim()}
-                                className="w-full bg-white/10 hover:bg-white/15 disabled:opacity-40 text-white text-sm font-bold py-2.5 rounded-xl transition-colors"
+                                className="w-full bg-[#F0E9DE] hover:bg-[#EFE6D9] disabled:opacity-40 text-[#2D2438] text-sm font-bold py-2.5 rounded-xl transition-colors"
                             >
                                 {revising ? '수정 중…' : '수정 요청'}
                             </button>

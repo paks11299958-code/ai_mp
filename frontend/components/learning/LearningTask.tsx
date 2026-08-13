@@ -74,26 +74,26 @@ export const LearningTask: React.FC = () => {
 
     if (auth === 'checking' || loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">불러오는 중…</p>
+            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center">
+                <p className="text-sm text-[#5C5468]">불러오는 중…</p>
             </div>
         );
     }
 
     if (error && !moduleData) {
         return (
-            <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center px-4">
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>
+            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center px-4">
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
             </div>
         );
     }
     if (!moduleData) return null;
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 대시보드
                     </button>
                     <span className="text-sm font-extrabold">
@@ -105,14 +105,14 @@ export const LearningTask: React.FC = () => {
 
             <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
                 {error && (
-                    <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>
+                    <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
                 )}
 
                 {phase === 'reading' && (
                     <>
                         <h1 className="text-xl font-extrabold mb-1">{moduleData.title}</h1>
-                        <p className="text-xs text-gray-400 mb-6">{moduleData.objective}</p>
-                        <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap text-gray-200 leading-relaxed mb-8">
+                        <p className="text-xs text-[#5C5468] mb-6">{moduleData.objective}</p>
+                        <div className="prose prose-invert prose-sm max-w-none whitespace-pre-wrap text-[#2D2438] leading-relaxed mb-8">
                             {moduleData.contentMd}
                         </div>
                         <button
@@ -129,7 +129,7 @@ export const LearningTask: React.FC = () => {
                     const isLast = quizIndex === moduleData.questions.length - 1;
                     return (
                         <>
-                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-6">
+                            <div className="w-full h-1.5 bg-[#F0E9DE] rounded-full overflow-hidden mb-6">
                                 <div
                                     className="h-full bg-indigo-500 transition-all"
                                     style={{ width: `${((quizIndex + 1) / moduleData.questions.length) * 100}%` }}
@@ -143,8 +143,8 @@ export const LearningTask: React.FC = () => {
                                         onClick={() => selectChoice(q.id, choice)}
                                         className={`w-full text-left px-4 py-3 rounded-xl border text-sm transition-colors ${
                                             selections[q.id] === choice
-                                                ? 'bg-indigo-500/20 border-indigo-400 text-white'
-                                                : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+                                                ? 'bg-indigo-500/20 border-indigo-400 text-[#2D2438]'
+                                                : 'bg-white border-[#F0E9DE] text-[#5C5468] hover:bg-[#F0E9DE]'
                                         }`}
                                     >
                                         {choice}
@@ -168,15 +168,15 @@ export const LearningTask: React.FC = () => {
                 {phase === 'result' && result && (
                     <>
                         <div className="text-center mb-8">
-                            <div className="text-4xl font-extrabold text-indigo-300 mb-1">{result.score}점</div>
-                            <p className="text-sm text-gray-400">{result.correctCount} / {result.totalCount} 정답</p>
+                            <div className="text-4xl font-extrabold text-indigo-700 mb-1">{result.score}점</div>
+                            <p className="text-sm text-[#5C5468]">{result.correctCount} / {result.totalCount} 정답</p>
                         </div>
                         <div className="space-y-3 mb-8">
                             {result.results.map((r, i) => (
                                 <div key={r.questionId} className={`rounded-xl border px-4 py-3 ${r.isCorrect ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
                                     <p className="text-xs font-bold mb-1">{r.isCorrect ? '✅ 정답' : '❌ 오답'} · {moduleData.questions[i]?.stem}</p>
-                                    <p className="text-xs text-gray-400">정답: {r.answer}</p>
-                                    <p className="text-xs text-gray-500 mt-1">{r.explanation}</p>
+                                    <p className="text-xs text-[#5C5468]">정답: {r.answer}</p>
+                                    <p className="text-xs text-[#9089A1] mt-1">{r.explanation}</p>
                                 </div>
                             ))}
                         </div>

@@ -72,12 +72,12 @@ export const LearningOnboarding: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
                     <button
                         onClick={() => { window.location.href = '/learning'; }}
-                        className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold"
+                        className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold"
                     >
                         ← 학습코칭
                     </button>
@@ -94,7 +94,7 @@ export const LearningOnboarding: React.FC = () => {
                         onChange={e => setDraft(d => ({ ...d, rawInput: e.target.value }))}
                         placeholder="예: 3개월 안에 정보처리기사 필기 합격"
                         rows={3}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-400 resize-none"
+                        className="w-full bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-sm text-[#2D2438] placeholder-[#9089A1] focus:outline-none focus:border-indigo-400 resize-none"
                     />
                 </section>
 
@@ -130,7 +130,7 @@ export const LearningOnboarding: React.FC = () => {
                     ))}
                 </QuestionGroup>
 
-                {error && <p className="text-sm text-red-400">{error}</p>}
+                {error && <p className="text-sm text-red-700">{error}</p>}
 
                 <button
                     onClick={handleSubmit}
@@ -157,7 +157,7 @@ const OptionChip: React.FC<{ active: boolean; onClick: () => void; children: Rea
         className={`px-4 py-2 rounded-full text-sm font-bold border transition-colors ${
             active
                 ? 'bg-indigo-500 border-indigo-500 text-white'
-                : 'bg-white/5 border-white/10 text-gray-300 hover:border-white/25'
+                : 'bg-white border-[#F0E9DE] text-[#5C5468] hover:border-[#D9CFC0]'
         }`}
     >
         {children}

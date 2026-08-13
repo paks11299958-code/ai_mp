@@ -38,21 +38,21 @@ export const LearningDashboard: React.FC = () => {
 
     if (auth === 'checking' || loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">불러오는 중…</p>
+            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center">
+                <p className="text-sm text-[#5C5468]">불러오는 중…</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 메인
                     </button>
                     <span className="text-sm font-extrabold">📊 학습 대시보드</span>
-                    <button onClick={() => { window.location.href = '/learning/settings'; }} className="w-16 h-full text-right text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/learning/settings'; }} className="w-16 h-full text-right text-sm text-indigo-700 font-semibold">
                         ⚙️ 설정
                     </button>
                 </div>
@@ -60,7 +60,7 @@ export const LearningDashboard: React.FC = () => {
 
             <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
                 {error && (
-                    <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">
+                    <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">
                         {error}
                     </div>
                 )}
@@ -68,14 +68,14 @@ export const LearningDashboard: React.FC = () => {
                 {data && (
                     <>
                         <div className="flex items-center gap-4 mb-6">
-                            <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center">
-                                <div className="text-2xl font-extrabold text-indigo-300">🔥 {data.streak}</div>
-                                <div className="text-xs text-gray-400 mt-1">연속 학습일</div>
+                            <div className="flex-1 bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-center">
+                                <div className="text-2xl font-extrabold text-indigo-700">🔥 {data.streak}</div>
+                                <div className="text-xs text-[#5C5468] mt-1">연속 학습일</div>
                             </div>
                             {data.goal && (
-                                <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center">
-                                    <div className="text-2xl font-extrabold text-emerald-300">{data.goal.progressPercent}%</div>
-                                    <div className="text-xs text-gray-400 mt-1">전체 진도</div>
+                                <div className="flex-1 bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-center">
+                                    <div className="text-2xl font-extrabold text-emerald-700">{data.goal.progressPercent}%</div>
+                                    <div className="text-xs text-[#5C5468] mt-1">전체 진도</div>
                                 </div>
                             )}
                         </div>
@@ -85,8 +85,8 @@ export const LearningDashboard: React.FC = () => {
                                 onClick={() => { window.location.href = '/learning/curriculum'; }}
                                 className="w-full mb-6 text-left"
                             >
-                                <p className="text-sm font-bold text-gray-300 mb-1">{data.goal.title} <span className="text-xs text-indigo-300 font-normal">전체보기 →</span></p>
-                                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <p className="text-sm font-bold text-[#5C5468] mb-1">{data.goal.title} <span className="text-xs text-indigo-700 font-normal">전체보기 →</span></p>
+                                <div className="w-full h-2 bg-[#F0E9DE] rounded-full overflow-hidden">
                                     <div className="h-full bg-emerald-500 transition-all" style={{ width: `${data.goal.progressPercent}%` }} />
                                 </div>
                             </button>
@@ -97,8 +97,8 @@ export const LearningDashboard: React.FC = () => {
                                 onClick={() => { window.location.href = '/learning/review'; }}
                                 className="w-full mb-4 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3 flex items-center justify-between text-left hover:bg-amber-500/15 transition-colors"
                             >
-                                <span className="text-sm font-bold text-amber-300">📌 오늘의 복습 {data.reviewDueCount}개</span>
-                                <span className="text-xs text-amber-400">바로가기 →</span>
+                                <span className="text-sm font-bold text-amber-700">📌 오늘의 복습 {data.reviewDueCount}개</span>
+                                <span className="text-xs text-amber-700">바로가기 →</span>
                             </button>
                         )}
 
@@ -107,18 +107,18 @@ export const LearningDashboard: React.FC = () => {
                                 onClick={() => { window.location.href = `/learning/task/${data.todayTask!.id}?m=${data.todayTask!.module.id}`; }}
                                 className="w-full bg-indigo-500/10 border border-indigo-500/30 rounded-xl px-5 py-5 text-left hover:bg-indigo-500/15 transition-colors"
                             >
-                                <span className="text-xs font-bold text-indigo-300">
+                                <span className="text-xs font-bold text-indigo-700">
                                     {data.todayTask.completedAt ? '✅ 오늘 완료' : '오늘의 학습'}
                                 </span>
                                 <h2 className="text-lg font-extrabold mt-1">{data.todayTask.module.title}</h2>
-                                <p className="text-xs text-gray-400 mt-1">
+                                <p className="text-xs text-[#5C5468] mt-1">
                                     {data.todayTask.module.weekNo}주차 {data.todayTask.module.orderNo}일차
                                     {data.todayTask.completedAt && data.todayTask.score !== null ? ` · 점수 ${data.todayTask.score}점` : ''}
                                 </p>
                             </button>
                         ) : (
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-8 text-center">
-                                <p className="text-sm text-gray-400">오늘 배정된 학습이 없습니다.</p>
+                            <div className="bg-white border border-[#F0E9DE] rounded-xl px-5 py-8 text-center">
+                                <p className="text-sm text-[#5C5468]">오늘 배정된 학습이 없습니다.</p>
                             </div>
                         )}
                     </>

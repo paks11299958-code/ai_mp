@@ -66,17 +66,17 @@ export const LearningWeeklyReport: React.FC = () => {
 
     if (auth === 'checking' || loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">불러오는 중…</p>
+            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center">
+                <p className="text-sm text-[#5C5468]">불러오는 중…</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 대시보드
                     </button>
                     <span className="text-sm font-extrabold">📈 주간 리포트</span>
@@ -86,41 +86,41 @@ export const LearningWeeklyReport: React.FC = () => {
 
             <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
                 {error && (
-                    <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>
+                    <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
                 )}
 
                 {report && (
                     <>
-                        <p className="text-xs text-gray-500 mb-4">
+                        <p className="text-xs text-[#9089A1] mb-4">
                             {new Date(report.weekStart).toLocaleDateString('ko-KR')} 주간
                         </p>
 
                         <div className="grid grid-cols-2 gap-3 mb-6">
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center">
-                                <div className="text-xl font-extrabold text-indigo-300">
+                            <div className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-center">
+                                <div className="text-xl font-extrabold text-indigo-700">
                                     {report.metrics.completedCount}/{report.metrics.totalCount}
                                 </div>
-                                <div className="text-xs text-gray-400 mt-1">완료 모듈</div>
+                                <div className="text-xs text-[#5C5468] mt-1">완료 모듈</div>
                             </div>
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-center">
-                                <div className="text-xl font-extrabold text-emerald-300">
+                            <div className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-3 text-center">
+                                <div className="text-xl font-extrabold text-emerald-700">
                                     {Math.round(report.metrics.correctRate * 100)}%
                                 </div>
-                                <div className="text-xs text-gray-400 mt-1">정답률</div>
+                                <div className="text-xs text-[#5C5468] mt-1">정답률</div>
                             </div>
                         </div>
 
-                        <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-4 mb-4">
+                        <div className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-4 mb-4">
                             <h2 className="text-sm font-extrabold mb-2">요약</h2>
-                            <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{report.summaryMd}</p>
+                            <p className="text-sm text-[#5C5468] whitespace-pre-wrap leading-relaxed">{report.summaryMd}</p>
                         </div>
 
                         {report.suggestion.weakTags.length > 0 && (
                             <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-4 mb-4">
-                                <h2 className="text-sm font-extrabold mb-2 text-amber-300">취약 영역</h2>
+                                <h2 className="text-sm font-extrabold mb-2 text-amber-700">취약 영역</h2>
                                 <div className="flex flex-wrap gap-2">
                                     {report.suggestion.weakTags.map(tag => (
-                                        <span key={tag} className="text-xs bg-amber-500/20 text-amber-200 px-2.5 py-1 rounded-full">
+                                        <span key={tag} className="text-xs bg-amber-500/20 text-amber-800 px-2.5 py-1 rounded-full">
                                             {tag}
                                         </span>
                                     ))}
@@ -129,21 +129,21 @@ export const LearningWeeklyReport: React.FC = () => {
                         )}
 
                         {report.suggestion.suggestion && (
-                            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-4 mb-8">
+                            <div className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-4 mb-8">
                                 <h2 className="text-sm font-extrabold mb-2">다음 주 조정 제안</h2>
-                                <p className="text-sm text-gray-300 leading-relaxed">{report.suggestion.suggestion}</p>
+                                <p className="text-sm text-[#5C5468] leading-relaxed">{report.suggestion.suggestion}</p>
                             </div>
                         )}
 
                         {report.accepted ? (
-                            <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3 text-center text-sm font-bold text-emerald-300">
+                            <div className="w-full bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-4 py-3 text-center text-sm font-bold text-emerald-700">
                                 ✅ 조정안을 수락했습니다
                             </div>
                         ) : (
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => { window.location.href = '/learning/dashboard'; }}
-                                    className="flex-1 bg-white/10 hover:bg-white/15 text-white text-sm font-bold py-3 rounded-xl transition-colors"
+                                    className="flex-1 bg-[#F0E9DE] hover:bg-[#EFE6D9] text-[#2D2438] text-sm font-bold py-3 rounded-xl transition-colors"
                                 >
                                     거절
                                 </button>

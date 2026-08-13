@@ -62,17 +62,17 @@ export const LearningSettings: React.FC = () => {
 
     if (auth === 'checking' || loading) {
         return (
-            <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">불러오는 중…</p>
+            <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438] flex items-center justify-center">
+                <p className="text-sm text-[#5C5468]">불러오는 중…</p>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold">
+                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
                         ← 대시보드
                     </button>
                     <span className="text-sm font-extrabold">⚙️ 설정</span>
@@ -82,12 +82,12 @@ export const LearningSettings: React.FC = () => {
 
             <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
                 {error && (
-                    <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-300">{error}</div>
+                    <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
                 )}
 
                 {settings && (
                     <div className="space-y-6">
-                        <section className="bg-white/5 border border-white/10 rounded-xl px-4 py-4">
+                        <section className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-4">
                             <h2 className="text-sm font-extrabold mb-3">알림 시간</h2>
                             <div className="flex flex-wrap gap-2">
                                 {HOUR_OPTIONS.map(h => (
@@ -97,7 +97,7 @@ export const LearningSettings: React.FC = () => {
                                         className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
                                             settings.notifyHour === h
                                                 ? 'bg-indigo-500 text-white'
-                                                : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                                                : 'bg-[#F0E9DE] text-[#5C5468] hover:bg-[#EFE6D9]'
                                         }`}
                                     >
                                         {h}시
@@ -108,7 +108,7 @@ export const LearningSettings: React.FC = () => {
                                     className={`px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
                                         settings.notifyHour === null
                                             ? 'bg-indigo-500 text-white'
-                                            : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                                            : 'bg-[#F0E9DE] text-[#5C5468] hover:bg-[#EFE6D9]'
                                     }`}
                                 >
                                     끄기
@@ -116,7 +116,7 @@ export const LearningSettings: React.FC = () => {
                             </div>
                         </section>
 
-                        <section className="bg-white/5 border border-white/10 rounded-xl px-4 py-4">
+                        <section className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-4">
                             <h2 className="text-sm font-extrabold mb-3">학습 요일</h2>
                             <div className="flex gap-1.5">
                                 {DAY_LABELS.map((label, day) => (
@@ -126,7 +126,7 @@ export const LearningSettings: React.FC = () => {
                                         className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-colors ${
                                             settings.studyDays.includes(day)
                                                 ? 'bg-indigo-500 text-white'
-                                                : 'bg-white/10 text-gray-300 hover:bg-white/15'
+                                                : 'bg-[#F0E9DE] text-[#5C5468] hover:bg-[#EFE6D9]'
                                         }`}
                                     >
                                         {label}
@@ -135,16 +135,16 @@ export const LearningSettings: React.FC = () => {
                             </div>
                         </section>
 
-                        <section className="bg-white/5 border border-white/10 rounded-xl px-4 py-4">
+                        <section className="bg-white border border-[#F0E9DE] rounded-xl px-4 py-4">
                             <h2 className="text-sm font-extrabold mb-3">알림 수신 방식</h2>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-indigo-500/20 border border-indigo-400">
-                                    <span className="text-sm font-bold text-white">이메일</span>
-                                    <span className="text-xs text-indigo-300">사용 중</span>
+                                    <span className="text-sm font-bold text-[#2D2438]">이메일</span>
+                                    <span className="text-xs text-indigo-700">사용 중</span>
                                 </div>
-                                <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white/5 border border-white/10 opacity-60">
-                                    <span className="text-sm font-bold text-gray-400">웹 푸시</span>
-                                    <span className="text-xs text-gray-500">준비 중</span>
+                                <div className="flex items-center justify-between px-3 py-2.5 rounded-lg bg-white border border-[#F0E9DE] opacity-60">
+                                    <span className="text-sm font-bold text-[#5C5468]">웹 푸시</span>
+                                    <span className="text-xs text-[#9089A1]">준비 중</span>
                                 </div>
                             </div>
                         </section>

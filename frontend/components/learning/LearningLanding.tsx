@@ -7,12 +7,12 @@ import React from 'react';
 
 export const LearningLanding: React.FC = () => {
     return (
-        <div className="min-h-screen bg-gray-950 text-white">
-            <header className="sticky top-0 z-10 bg-gray-950/90 backdrop-blur border-b border-white/10">
+        <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
                 <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
                     <button
                         onClick={() => { window.location.href = '/'; }}
-                        className="flex items-center gap-1.5 h-full text-sm text-indigo-300 font-semibold"
+                        className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold"
                     >
                         ← AI 스퀘어
                     </button>
@@ -23,13 +23,13 @@ export const LearningLanding: React.FC = () => {
 
             <main className="max-w-2xl mx-auto px-4 py-10 pb-24">
                 <section className="text-center mb-10">
-                    <span className="inline-block bg-indigo-500/15 text-indigo-300 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
+                    <span className="inline-block bg-indigo-500/15 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
                         지속형 학습 코치
                     </span>
                     <h1 className="text-2xl sm:text-3xl font-extrabold leading-snug">
                         목표를 말씀하시면<br />커리큘럼으로 쪼개드려요
                     </h1>
-                    <p className="mt-3 text-sm text-gray-400 leading-relaxed">
+                    <p className="mt-3 text-sm text-[#5C5468] leading-relaxed">
                         매일 조금씩 배우고, 틀린 문제는 다시 물어봐 드려요.<br className="hidden sm:block" />
                         범용 챗봇과 다르게 오늘 무엇을 할지 스스로 정해줍니다.
                     </p>
@@ -48,7 +48,7 @@ export const LearningLanding: React.FC = () => {
                 >
                     학습 서비스 신청 →
                 </button>
-                <p className="mt-3 text-center text-xs text-gray-500">
+                <p className="mt-3 text-center text-xs text-[#9089A1]">
                     로그인 없이 목표부터 입력해볼 수 있어요.
                 </p>
             </main>
@@ -57,11 +57,11 @@ export const LearningLanding: React.FC = () => {
 };
 
 const FeatureRow: React.FC<{ emoji: string; title: string; desc: string }> = ({ emoji, title, desc }) => (
-    <div className="flex items-start gap-3 bg-gray-950 border border-white/10 rounded-2xl p-4">
+    <div className="flex items-start gap-3 bg-[#F5EFE6] border border-[#F0E9DE] rounded-2xl p-4">
         <span className="flex-shrink-0 text-2xl">{emoji}</span>
         <div className="flex-1 min-w-0">
             <h2 className="text-sm font-extrabold">{title}</h2>
-            <p className="mt-1 text-xs text-gray-400 leading-relaxed">{desc}</p>
+            <p className="mt-1 text-xs text-[#5C5468] leading-relaxed">{desc}</p>
         </div>
     </div>
 );
