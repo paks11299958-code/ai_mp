@@ -1,0 +1,103 @@
+#!/bin/bash
+# ─────────────────────────────────────────────────────────────────────────────
+# 커밋 전 기계적 검증 (2026-08-14)
+#
+# 배경: 코드를 짠 주체가 검사까지 하면 자기 실수를 못 본다. 사람이든 AI든 마찬가지다.
+#       "빌드 통과 ≠ 검증", "코드 넣음 ≠ 효과 있음" 사고가 반복됐다.
+#       그래서 사람의 판단이 아니라 **기계가** 통과 여부를 정한다.
+#
+# 우회: ALLOW_UNVERIFIED_COMMIT=1 을 명시해야만 넘어간다(비상구).
+#       git commit --no-verify 는 이 훅 자체를 건너뛰므로 여기서 막을 수 없다 —
+#       그건 install-hooks.sh 가 심는 pre-push 훅이 뒤에서 다시 잡는다.
+#
+# 이 파일은 git 추적 대상이다. .git/hooks/ 는 백업·클론이 안 되므로
+# 반드시 scripts/hooks/ 에서 관리하고 install-hooks.sh 로 심는다.
+# ─────────────────────────────────────────────────────────────────────────────
+set -uo pipefail
+
+ROOT=$(git rev-parse --show-toplevel)
+cd "$ROOT" || exit 1
+
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$STAGED" ] && exit 0
+
+# ── 비상구 ────────────────────────────────────────────────────────────────────
+if [ "${ALLOW_UNVERIFIED_COMMIT:-}" = "1" ]; then
+    echo "⚠️  ALLOW_UNVERIFIED_COMMIT=1 — 검증을 건너뜁니다."
+    echo "   커밋 메시지에 왜 건너뛰었는지 남겨두세요."
+    # 우회 이력을 남긴다(조용히 넘어가는 걸 방지)
+    echo "$(date '+%F %T') $(git config user.name) bypassed pre-commit" \
+        >> .git/bypass.log 2>/dev/null || true
+    exit 0
+fi
+
+# ── 스테이징된 파일을 종류별로 분류 ───────────────────────────────────────────
+# 자동생성물(prisma client 번들 등)은 사람이 짠 코드가 아니므로 검사에서 제외한다.
+# 넣으면 난독화된 번들에서 오탐이 쏟아져 훅 자체를 꺼버리게 된다.
+EXCLUDE='(^src/generated/|/node_modules/|\.min\.(js|css)$|^frontend/dist/)'
+
+STAGED=$(echo "$STAGED" | grep -vE "$EXCLUDE" || true)
+[ -z "$STAGED" ] && exit 0
+
+FRONT=$(echo "$STAGED" | grep -E '^frontend/.*\.(ts|tsx)$' || true)
+APIJS=$(echo "$STAGED" | grep -E '^(api|src)/.*\.(ts|js|cjs|mjs)$' || true)
+SCRIPTS=$(echo "$STAGED" | grep -E '^scripts/.*\.(cjs|js|mjs)$' || true)
+SCHEMA=$(echo "$STAGED" | grep -E '^prisma/schema\.prisma$' || true)
+
+# 코드가 하나도 없으면(문서·설정만) 통과 — 빠른 경로
+if [ -z "$FRONT$APIJS$SCRIPTS$SCHEMA" ]; then
+    exit 0
+fi
+
+FAILED=0
+step() { echo ""; echo "▶ $1"; }
+fail() { echo "   ❌ $1"; FAILED=1; }
+
+# ── 1. 프론트엔드 ─────────────────────────────────────────────────────────────
+if [ -n "$FRONT" ]; then
+    step "React 안전 검사 ($(echo "$FRONT" | wc -l)개 파일)"
+    node scripts/check-react-safety.cjs || fail "React 안전 검사 실패"
+
+    step "타입 체크 (tsc)"
+    (cd frontend && npx tsc --noEmit) || fail "타입 에러"
+fi
+
+# ── 2. API / 서버 코드 ────────────────────────────────────────────────────────
+if [ -n "$APIJS" ]; then
+    step "API 문법 검사 ($(echo "$APIJS" | wc -l)개 파일)"
+    # 논리·설계 검토는 규칙으로 잡지 않는다 — /code-review 스킬이 맥락을 보고 판단한다.
+    # 여기서는 기계가 확실히 잡을 수 있는 것(문법)만 본다.
+    # .js/.cjs/.mjs 만 검사 (ts 는 node --check 로 못 읽는다)
+    for f in $APIJS; do
+        case "$f" in
+            *.js|*.cjs|*.mjs)
+                node --check "$f" 2>&1 || fail "문법 오류: $f" ;;
+        esac
+    done
+fi
+
+# ── 3. scripts/ ───────────────────────────────────────────────────────────────
+if [ -n "$SCRIPTS" ]; then
+    step "스크립트 문법 검사 ($(echo "$SCRIPTS" | wc -l)개 파일)"
+    for f in $SCRIPTS; do
+        node --check "$f" 2>&1 || fail "문법 오류: $f"
+    done
+fi
+
+# ── 4. Prisma 스키마 ──────────────────────────────────────────────────────────
+if [ -n "$SCHEMA" ]; then
+    step "Prisma 스키마 검증"
+    npx prisma validate || fail "스키마 검증 실패"
+fi
+
+# ── 판정 ──────────────────────────────────────────────────────────────────────
+echo ""
+if [ "$FAILED" -ne 0 ]; then
+    echo "✋ 커밋을 중단했습니다. 위 문제를 고친 뒤 다시 커밋하세요."
+    echo ""
+    echo "   전체 검증을 직접 돌려보려면:  npm run verify"
+    exit 1
+fi
+
+echo "✅ 커밋 전 검증 통과"
+exit 0

@@ -12,7 +12,9 @@
     "frontend": "npm run dev --prefix frontend",
     "check": "node scripts/check-react-safety.cjs",
     "smoke": "node scripts/smoke-test.cjs",
-    "predeploy": "node scripts/check-react-safety.cjs && npm run build --prefix frontend"
+    "predeploy": "node scripts/check-react-safety.cjs && npm run build --prefix frontend",
+    "verify": "node scripts/check-react-safety.cjs && cd frontend && npx tsc --noEmit",
+    "install-hooks": "bash scripts/install-hooks.sh"
   },
   "prisma": {
     "seed": "ts-node prisma/seed.ts"

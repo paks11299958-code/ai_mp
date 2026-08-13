@@ -1,0 +1,60 @@
+#!/bin/bash
+# ─────────────────────────────────────────────────────────────────────────────
+# 푸시 전 최종 방어선 (2026-08-14)
+#
+# 왜 필요한가: pre-commit 훅은 `git commit --no-verify` 로 통째로 건너뛸 수 있다.
+#              훅 안에서는 그걸 막을 방법이 없다(훅이 아예 실행되지 않으므로).
+#              master 푸시는 Vercel 자동배포로 이어지므로, 여기서 한 번 더 잡는다.
+#
+# 검사 대상: 이번에 푸시되는 커밋들이 건드린 파일 전체.
+# 우회: ALLOW_UNVERIFIED_PUSH=1
+# ─────────────────────────────────────────────────────────────────────────────
+set -uo pipefail
+
+ROOT=$(git rev-parse --show-toplevel)
+cd "$ROOT" || exit 1
+
+if [ "${ALLOW_UNVERIFIED_PUSH:-}" = "1" ]; then
+    echo "⚠️  ALLOW_UNVERIFIED_PUSH=1 — 푸시 전 검증을 건너뜁니다."
+    echo "$(date '+%F %T') $(git config user.name) bypassed pre-push" \
+        >> .git/bypass.log 2>/dev/null || true
+    exit 0
+fi
+
+# stdin 으로 <local ref> <local sha> <remote ref> <remote sha> 가 들어온다
+RANGE=""
+while read -r _local_ref local_sha _remote_ref remote_sha; do
+    [ "$local_sha" = "0000000000000000000000000000000000000000" ] && continue
+    if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+        RANGE="$local_sha"            # 새 브랜치 — 최근 커밋만 본다
+        CHANGED=$(git diff --name-only "${local_sha}~1" "$local_sha" 2>/dev/null || true)
+    else
+        RANGE="${remote_sha}..${local_sha}"
+        CHANGED=$(git diff --name-only "$remote_sha" "$local_sha" 2>/dev/null || true)
+    fi
+done
+
+[ -z "${CHANGED:-}" ] && exit 0
+
+CHANGED=$(echo "$CHANGED" | grep -vE '(^src/generated/|/node_modules/|^frontend/dist/)' || true)
+FRONT=$(echo "$CHANGED" | grep -E '^frontend/.*\.(ts|tsx)$' || true)
+
+[ -z "$FRONT" ] && exit 0
+
+echo "▶ 푸시 전 검증 (변경 파일 $(echo "$CHANGED" | wc -l)개)"
+FAILED=0
+
+node scripts/check-react-safety.cjs || FAILED=1
+(cd frontend && npx tsc --noEmit)   || FAILED=1
+
+echo ""
+if [ "$FAILED" -ne 0 ]; then
+    echo "✋ 푸시를 중단했습니다."
+    echo "   master 푸시는 곧바로 운영 배포로 이어집니다. 반드시 고친 뒤 푸시하세요."
+    echo ""
+    echo "   정말 넘겨야 한다면:  ALLOW_UNVERIFIED_PUSH=1 git push"
+    exit 1
+fi
+
+echo "✅ 푸시 전 검증 통과"
+exit 0
