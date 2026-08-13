@@ -86,8 +86,23 @@ SELL을 외치며 거부당했다.
 ## 설정 (★설정처 주의)
 
 - **실제 종목/모드 설정처는 `config.env`가 아니라 `ecosystem.config.js`의 `env`.** config.py 폴백 파서가 "이미 있는 환경변수는 안 덮어씀"이라 pm2 env가 우선.
-- 종목/모드 바꾸려면 **ecosystem.config.js 수정 → `pm2 restart ecosystem.config.js --update-env`** (단순 `restart toss-trader`는 env 갱신 안 됨).
-- 주요 env: `MODE`(DEBUG/LIVE) · `SYMBOLS`(현재 251270 넷마블) · `MARKET_SYMBOL`(069500) · `BUY_THRESHOLD`(80) · `MAX_CONSECUTIVE_LOSSES`(3) · `DAILY_LOSS_LIMIT_PCT`(3) · `MAX_DAILY_MOVE_PCT`(15).
+- 종목/모드 바꾸려면 **ecosystem.config.js 수정 → 아래 절차로 재기동**.
+  ★**`pm2 restart --update-env`로는 반영되지 않는다**(저장된 옛 env를 계속 쓴다 —
+  08-07 페이퍼 임계 변경, 08-13 실봇/페이퍼 임계·원금 변경에서 **두 번 실측**).
+  반드시 `delete` 후 `start`:
+  ```bash
+  PM2='node /home/paks11299958/shared-api/node_modules/pm2/lib/binaries/CLI.js'
+  cd ~/toss_trader
+  $PM2 delete toss-trader && $PM2 start ecosystem.config.js --only toss-trader
+  ```
+  ★**pm2가 PATH에 없다**(`pm2: command not found`) — 위처럼 CLI.js 절대경로로 부른다.
+  ★반영 확인은 `logs/status.json`의 값을 **직접 읽어** 확인할 것("재기동했다"≠"반영됐다").
+- 주요 env: `MODE`(DEBUG/LIVE) · `SYMBOLS`(초기값 251270 — ★기동 배너에만 찍히고 이후
+  **자동선택이 덮어쓴다**) · `MARKET_SYMBOL`(069500) · `BUY_THRESHOLD`(**실봇 70 / 페이퍼 70**,
+  2026-08-13 사장 지시로 통일. 기본값은 config.py의 80) · `MAX_CONSECUTIVE_LOSSES`(3) ·
+  `DAILY_LOSS_LIMIT_PCT`(3) · `MAX_DAILY_MOVE_PCT`(15).
+  페이퍼 전용: `INITIAL_CAPITAL_KRW`(**500만**) · `DAILY_LOSS_LIMIT_KRW`(**50만** = 원금의 10%,
+  ★원금을 바꾸면 **반드시 함께 갱신**) · `STOP_LOSS_PCT`(0.05) · `TAKE_PROFIT_PCT`(0.03).
 
 ## 일일 운영 — 보고·수동조작 (2026-07-30 신설)
 
@@ -301,6 +316,31 @@ nvm이 아니라 `shared-api/node_modules/pm2/bin/pm2`(v7.0.1)를 쓴다. 조치
 코웨이·한국콜마 2종목으로 **수동 고정**(7/15 어드민 지정)이고, 발굴 스캐너 추천은
 LIVE에 자동 반영되지 않는 구조(`auto_select.py`는 PAPER 전용). 아모레퍼시픽은 수동
 재스캔 결과 65점(진입임계 80 미달)으로, 반영되는 구조였어도 매수 대상은 아니었다.
+
+## 📨 체결 즉시 텔레그램 보고 + HALT 알림 모드 분기 (2026-08-13 신설)
+
+사장 지시: **"실봇 페이퍼봇 사고 팔때마다 텔레그램으로 보고해."**
+
+**① 체결 알림 (`notify.trade_alert`)**
+- `trades.record()`가 **유일한 체결 기록 지점**이라 거기 한 곳에 붙여 **실봇·페이퍼가
+  자동으로 함께** 보고된다. row에 사유·점수·실현손익이 이미 다 있어 별도 조회 불필요.
+- 문구: 가상=`🧪 가상매매 🔵 매수`, 실제=`💰 실제매매`. 매도는 **실현손익·손익률·진입가·
+  보유일수**까지 붙어 "왜 샀나 → 어떻게 됐나"가 한 줄로 읽힌다.
+- ★**알림 실패가 매매를 죽이면 안 된다** — `record()` 안에서 **별도 try**로 감싼다.
+  같은 except에 두면 이미 성공한 장부 기록까지 실패로 로그에 남아 추적이 어긋난다.
+  검증: `trade_alert`를 강제로 예외 던지게 바꿔도 **장부 기록 정상**임을 실측.
+- 테스트는 `notify.send`를 가로채 **문자열만 캡처**한다(사장에게 시험 알림이 가면 안 됨).
+
+**② ★HALT 알림이 반대편 봇 재가동을 안내하던 오류 수정**
+- 전엔 제목에 `[PAPER]` 태그만 붙이고 재가동 안내는 **항상 실봇**(`pm2 restart toss-trader`)을
+  가리켰다 → 가상봇이 멈췄는데 안내대로 따라 하면 **실계좌 봇을 재시작**하게 된다.
+- 모드별로 **제목·프로세스명을 모두** 분기:
+  - PAPER → `🧪 가상매매 정지 (모의투자 · 실제 주문 없음)` + `pm2 restart toss-trader-paper`
+  - LIVE  → `🛑 실제매매 정지 (실계좌)` + `pm2 restart toss-trader`
+- 영어 태그 `[PAPER]`는 한글 문구 사이에서 눈에 안 띄어 **한글로 교체**했다.
+
+수정 파일: `toss_trader/notify.py`(trade_alert 신설·halt_alert 분기), `toss_trader/trades.py`
+(record 말미에서 호출). ★둘 다 **git 밖 저장소**라 서버1 직접 수정 + `.bak_*` 백업 보존.
 
 ## 🚨 단위 테스트가 진짜 정지 알림을 보내던 문제 (2026-08-05)
 
