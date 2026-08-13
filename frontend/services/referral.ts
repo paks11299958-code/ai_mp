@@ -72,6 +72,7 @@ const FEATURE_SHARE_LABELS: Record<string, string> = {
     outfit: '프로필 사진', lookalike: '연예인 매칭', marketing: 'AI 마케팅 글쓰기',
     agetransform: '시간여행', tarot: '타로점', homepage: '홈페이지 만들기',
     'shorts-maker': '쇼츠 만들기', learn: '학습자료',
+    'learning-coach': 'AI 학습코칭',
     rebirth: '전생 이야기', palm: '손금 보기', friendship: '우정 궁합',
 };
 
