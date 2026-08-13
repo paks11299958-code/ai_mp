@@ -27,6 +27,30 @@ git push origin main:master
 - `master` → Vercel Production 배포 트리거
 - `main` 단독 푸시 → Preview 배포만 됨 (도메인 반영 안 됨)
 
+### 🔒 커밋·푸시 전 검증이 자동으로 걸린다 (2026-08-14~)
+
+`master` 푸시는 곧바로 운영 배포이므로 **훅이 2중으로 막는다.** 검증에 걸리면
+커밋·푸시가 **실패**한다 — "푸시했는데 배포가 안 됐다" 싶으면 훅 출력부터 볼 것.
+
+| 시점 | 훅 | 검사 |
+|---|---|---|
+| 커밋 | `pre-commit` | frontend(React 안전검사+tsc) · api/src/scripts(문법) · prisma(validate) |
+| 푸시 | `pre-push` | `--no-verify`로 건너뛴 커밋을 여기서 다시 잡는다 |
+
+```bash
+npm run verify          # 수동으로 전체 검증
+npm run install-hooks   # 클론 직후 1회 (.git/hooks는 clone 시 안 따라온다)
+```
+
+**비상구** — 실수로는 못 넘고 의도적으로만. `.git/bypass.log`에 기록된다:
+```bash
+ALLOW_UNVERIFIED_COMMIT=1 git commit ...
+ALLOW_UNVERIFIED_PUSH=1   git push ...
+```
+
+★**`npm run smoke`는 훅에 없다.** 배포 **후** 운영 URL에 대고 돌리는 검사라
+커밋 시점엔 검사할 대상이 없다. 아래 "배포 후 도메인 반영 절차"를 마친 뒤 실행할 것.
+
 ---
 
 ## ⚠️ 커스텀 도메인 반영 방법 (중요)
