@@ -506,3 +506,31 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   taskId를 어디에도 남기지 않아 **"이미 복사했는지" 물어볼 근거조차 없었다.**
   판정은 제목이 아니라 **출처 id**로 한다(제목은 수정 가능하고 서로 다른 원본이 같은 제목일 수 있어 오탐).
   인덱스: `sourceTaskId`, `sourceUserShortsId`. ★2026-08-02 이전 복사분은 NULL이라 과거분 중복은 못 잡는다.
+
+## Lc* 11개 (2026-08-11 신설, 🎓 AI 학습코칭 — **prisma schema 반영**, 운영 DB 실행 완료)
+
+기능 설명은 `doc/features/learning_coach.md`. 소유자 `aichat_user`.
+★기존 `Learn*`(학습자료 코스)과 **다른 기능**이다 — 접두사 `Lc`로 구분.
+
+| 모델 | 키 | 용도 |
+|---|---|---|
+| `LcProfile` | `userId` @id | 수준·**notifyHour**(0~23, KST, null=미설정)·studyDays·streak·timezone |
+| `LcGoal` | id | 목표(title/rawInput)·durationWeeks·daysPerWeek·minutesPerSession·status·**planRevised**(수정요청 1회 사용 여부) |
+| `LcWeekOutline` | id | ★2단계 분할용 — 주차 개요(weekNo/title/theme)만 먼저 생성 |
+| `LcModule` | id | 일별 모듈. `contentMd`(최초 열람 시 1회 생성 후 **캐시**)·status(pending/open/done)·generationFailedAt/Error/retryCount |
+| `LcDailyTask` | id | 날짜별 배정. `completedAt`·`score`·**`notifiedAt`**(일일 알림 중복 발송 방지) |
+| `LcQuestion` | id | 4지선다. `choicesJson`(문자열)·`answer`·`difficulty`(1~3)·`tag`(취약영역 분석용) |
+| `LcAttempt` | id | 풀이 기록. `isReview`로 오늘학습/복습 구분 |
+| `LcReviewItem` | id | 간격반복. `intervalDays`·`ease`·`dueDate`·state(active/mastered) |
+| `LcWeeklyReport` | id | 주간 리포트. metricsJson·summaryMd·suggestionJson·`accepted` |
+| `LcSubscription` | id | 구독 상태 |
+| `LcAiUsageLog` | id | 모델·토큰·원가 기록(`logLearningAiUsage`) — 모델별 단가로 costUsd 계산 |
+
+**주의사항**
+- ★`LcQuestion.difficulty`는 **스키마 Int / DB smallint**로 다르다(2026-08-13 대조 확인).
+  값이 1~3이고 저장 직전 `Math.min(3, Math.max(1, ...))`로 제한돼 **무해**(smallint 상한 32,767).
+  나머지 10개 모델은 완전 일치. 대조는 `shared-api/scripts/check-learning-schema-sync.ts`(읽기 전용).
+- ★`LcDailyTask.notifiedAt`은 **스키마에만 있고 DB에 없어 서버가 죽은 적이 있다**(2026-08-11,
+  통합테스트 중 발견 → DDL 실행으로 해결). 컬럼 추가 시 운영 DB 반영 여부를 반드시 확인할 것.
+- `LcAiUsageLog.model`에 남는 값은 2026-08-13부터 `gemini-2.5-flash`(그 전은 `claude-sonnet-5`).
+  단가표에서 **옛 모델 단가를 지우면 과거 로그가 0원**이 되므로 남겨 둔다.
