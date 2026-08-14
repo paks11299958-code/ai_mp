@@ -347,8 +347,9 @@ RpAiUsageLog                    AI 호출 로그 (예외 없이 전건 기록)
   model         String
   inputTokens   Int
   outputTokens  Int
-  costUsd       Decimal
+  costUsd       Decimal   → 확정: Float
   cacheHit      Boolean
+  environment   String    ★추가(2026-08-14) production | development
   createdAt     DateTime
 ```
 
@@ -364,9 +365,29 @@ RpAiUsageLog                    AI 호출 로그 (예외 없이 전건 기록)
 ```sql
 SELECT "userId", COUNT(*) AS calls, SUM("costUsd") AS cost
 FROM "RpAiUsageLog"
-WHERE "createdAt" >= date_trunc('month', now()) AND "cacheHit" = false
+WHERE "createdAt" >= date_trunc('month', now())
+  AND "cacheHit" = false
+  AND "environment" = 'production'   -- ★개발 검증 호출 제외
 GROUP BY "userId" ORDER BY cost DESC;
 ```
+
+### ★`environment` 컬럼 (2026-08-14 추가)
+
+`RpAiUsageLog.environment` — `production` | `development`, 기본값 `production`.
+
+**왜 필요한가**: 개발용 Gemini 서비스 계정을 **따로 발급하지 않고 운영 키를 그대로 쓰기로**
+결정했다. 그래서 청구는 한 프로젝트에 모이고, 개발 검증 호출과 실사용 호출을 갈라내는
+유일한 수단이 이 컬럼이다. **원가 집계 쿼리는 반드시 `environment = 'production'`을 건다.**
+빠뜨리면 개발 호출이 운영 원가로 잡히고, 원가 추적은 이 기능 존재 이유의 절반이다(1.4).
+
+★**판정을 `NODE_ENV`로만 하면 안 된다.** `shared-api/.env`에 `NODE_ENV=production`이
+**하드코딩**돼 있어 서버2(개발)에서도 그 값을 읽는다. 그대로 쓰면 개발 호출이 전부
+production으로 기록돼 컬럼을 넣은 의미가 사라진다. 전용 변수 **`RP_ENVIRONMENT`를 먼저 보고**,
+없을 때만 `NODE_ENV`로 폴백한다(`lib/reverse-prompt/constants.ts`의 `resolveEnvironment()`).
+개발 검증 시에는 `RP_ENVIRONMENT=development`를 준다.
+
+실측 확인(컨테이너): 운영 2건 + 개발 2건을 넣고 위 쿼리를 돌리면 **2건 / $0.0044**만
+집계되고, 필터를 빼면 4건 / $0.0088로 개발분이 섞인다.
 
 ### 8.1 접근 제어
 

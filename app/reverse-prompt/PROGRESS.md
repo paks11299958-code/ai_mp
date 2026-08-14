@@ -229,11 +229,19 @@ ai_mp 쪽은 Lc*가 하나도 없어 운영 DB를 반영하지 못한다. `gener
 
 다만 그 키는 **운영용**이라 개발 호출이 운영 청구·쿼터에 섞인다.
 **원가 추적은 이 기능 존재 이유의 절반**이므로 섞으면 안 된다.
-→ **개발용 서비스 계정을 별도 발급**하기로 결정(사용자 작업). 발급 전까지 VLM 왕복 검증은 보류.
-→ 그동안 **AI 호출이 필요 없는 전처리 모듈**을 완결한다(해시·리사이즈·EXIF 제거·썸네일).
+**★최종 결정(2026-08-14): 개발용 서비스 계정을 발급하지 않는다.**
+서버2의 **기존 운영 키를 그대로 쓰고**, 대신 `RpAiUsageLog.environment` 컬럼으로
+개발 호출과 운영 호출을 **집계 단계에서 분리**한다. 키를 나누는 대신 데이터를 나누는 방식이라
+발급·관리 부담 없이 원가 추적 목적을 달성한다.
 
-발급 후 할 일: `.env.dev`에 개발용 `GOOGLE_APPLICATION_CREDENTIALS_JSON`을 넣고
-`lib/reverse-prompt/_t2.ts` 방식으로 왕복 1회 → 실측 토큰·원가를 이 문서에 기록.
+- 원가 조회는 **반드시 `WHERE "environment" = 'production'`** (PRD 8장 쿼리에 반영 완료)
+- 판정은 `lib/reverse-prompt/constants.ts`의 `resolveEnvironment()`
+- ★**`NODE_ENV`로만 판정하면 안 된다** — `.env`에 `NODE_ENV=production`이 하드코딩돼
+  있어 서버2에서도 그 값을 읽는다. 전용 변수 **`RP_ENVIRONMENT`를 먼저** 보고 없을 때만 폴백.
+  개발 검증 시 `.env.dev`의 `RP_ENVIRONMENT=development`가 적용된다
+- 실측 확인: `NODE_ENV=production` 상태에서 `RP_ENVIRONMENT=development`를 주면
+  판정이 `development`로 뒤집힌다(함정 통과 확인). 집계 쿼리는 운영 2건만 잡고
+  개발 2건을 제외했다($0.0044 vs 필터 없으면 $0.0088)
 
 ### ★개발용 검증 컨테이너 — 일회성 도구이지 별도 인프라가 아니다
 
