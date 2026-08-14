@@ -186,6 +186,14 @@ DB가 필요한 검증은 별도 인스턴스를 띄우거나 사용자에게 �
   → **모델명은 상수 1곳에만 두어 교체가 한 줄로 끝나게 한다.**
 - ★**단가는 집계 사이트가 아니라 공식 가격표(`ai.google.dev/gemini-api/docs/pricing`)에서
   직접 확인한다.** 원가 수치는 산식이 아니라 실측(`countTokens`·실제 응답 `usageMetadata`)으로 적는다.
+- ★**모델 가용성은 호출 경로별로 다르다. 존재 확인은 반드시 실제 호출 경로에서 할 것.**
+  같은 모델명이라도 **Gemini API(`generativelanguage.googleapis.com`, API 키)** 와
+  **Vertex AI(`aiplatform.googleapis.com`, 서비스 계정)** 의 목록이 다르고,
+  Vertex 안에서도 **리전별로 다르다.** shared-api는 **Vertex**를 쓴다.
+  2026-08-14 실측: `gemini-3.5-flash-lite`는 Gemini API에서 정상 응답했지만
+  Vertex `us-central1`에서는 **404**였고, `global` 엔드포인트에서만 동작했다.
+  → "모델 목록 API에 있다"로 끝내지 말고 **실제 서버를 띄워 그 경로로 1회 호출**해 볼 것.
+  타입체크·단위 테스트로는 절대 잡히지 않는다.
 - ★**개발/운영 판정에 `NODE_ENV`를 단독으로 쓰지 말 것.**
   이 저장소는 `shared-api/.env`에 **`NODE_ENV=production`이 하드코딩**돼 있어
   **서버2(개발)에서도 `production`으로 읽힌다.** 그대로 판정하면 개발 호출이 전부

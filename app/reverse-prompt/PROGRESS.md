@@ -159,16 +159,64 @@ ai_mp 쪽은 Lc*가 하나도 없어 운영 DB를 반영하지 못한다. `gener
 - ★`tsconfig`가 `strict: false`라 판별 유니온 좁힘이 동작하지 않는다(TS2339).
   tsconfig는 기존 파일이라 건드리지 않고, 테스트에서 `in` 연산자로 우회했다
 
+### 완료 (백엔드 핵심 — 실측 검증 끝)
+
+- [x] **`lib/reverse-prompt/store.ts`** — 캐시·사용량로그·일일한도·환불
+- [x] **`routes/aimp/reverse-prompt.ts`** — `POST /analyze`, `GET /quota` + IP rate limit
+- [x] **라우터 등록 1줄** — `routes/aimp/index.ts`(기존 파일 수정은 이 1줄만)
+- [x] **경계값 테스트 15개** — `__tests__/quota-boundary.test.ts`
+
+**★실제 왕복 실측 (개발 컨테이너, `RP_ENVIRONMENT=development`)**
+
+| 검증 항목 | 결과 |
+|---|---|
+| 1회차 왕복 | **HTTP 200 / 3,985ms** — MJ·SD 프롬프트 정상 생성 |
+| **실측 토큰** | 입력 **1,664** / 출력 **306** |
+| **★실측 원가** | **$0.001264/건** (추정 $0.0022 대비 **43% 저렴**) |
+| 2회차(같은 이미지) | **200 / 97ms**, `cached=true`, 결과 동일 |
+| **★AI 실호출 건수** | **1건** (2회 요청) — 로그 테이블로 증명 |
+| 캐시 `hitCount` | 1 |
+| 3회차 | **429 + `requiresLogin:true`** |
+| **VLM 실패 시 환불** | remaining **2→2 유지**, 로그는 1건 남음(`inputTokens=0`) |
+| 5MB 초과 | **413** |
+| gif | **400** |
+| `environment` | 전건 `development` — 운영 원가와 분리 |
+| 회귀 | 유닛 **66개 통과**, `tsc` 0 오류 |
+
+**API 경로 정정**: PRD 초안의 `/api/reverse-prompt/*`는 실제로 **`/api/aimp/reverse-prompt/*`**다
+(`routes/index.ts`가 `/aimp` 하위에 마운트한다). PRD 9장 표를 실제 경로로 수정했다.
+
+**★핸들러 순서 관련 설계 판단**
+- **캐시 조회가 한도 검사보다 앞**(사용자 고정). AI를 안 부른 요청이 횟수를 먹으면 손해다.
+  부작용: 같은 이미지 반복 요청은 한도를 무한 통과한다. AI 원가는 0이라 11장 원가통제엔
+  저촉되지 않지만 11장 8항과는 긴장이 있어, **IP rate limit(10분 30회)**로 받친다(9장 요구).
+- **VLM 실패 시 한도 환불.** 차감을 성공 이후로 미루지 않은 이유는 동시 요청 둘이
+  검사만 통과해 한도가 새기 때문이다. DB 트랜잭션으로 묶지 않은 이유는 VLM이 수 초
+  네트워크 I/O라 그동안 커넥션이 점유돼 풀이 마르기 때문이다.
+- 로그인 사용자는 `RpAiUsageLog`가 카운터라, 실패분(`inputTokens=0`)을 집계에서 제외한다.
+
+**★이번에 잡은 함정 3건** (전부 실제 서버를 띄워서야 드러났다 — 타입체크·단위테스트로는 불가)
+1. **Vertex 리전** — `gemini-3.5-flash-lite`가 `us-central1`에 없어 404.
+   전 리전 실측 결과 **`global`에서만 동작** → `RP_VERTEX_LOCATION='global'`
+2. **KST/UTC 혼동** — `createdAt >= kstToday()`로 짜서 KST 00~09시 로그가 집계에서 빠졌다.
+   로그인 사용자가 한도를 초과해 쓸 수 있는 버그 → `kstDayStartUtc()` 분리
+3. **`.env` source 금지** — 서비스 계정 JSON의 따옴표가 bash에서 제거돼 파싱 실패.
+   한 번 깨진 값이 셸에 남으면 dotenv가 덮어쓰지 않아 재기동해도 계속 깨진다 → `env -i`
+
 ### 남은 것 (묶음 B)
 
-- [ ] 캐시 조회/기록 (`RpAnalysisCache`)
-- [ ] 사용량 로그 (`RpAiUsageLog`) — 성공·실패·캐시적중 전건
-- [ ] 일일 한도 (비로그인 2 / 로그인 20) + 429 `requiresLogin:true`
-- [ ] `POST /api/reverse-prompt/analyze`, `GET /api/reverse-prompt/quota`
-- [ ] 라우터 등록 1줄 (`routes/aimp/index.ts`)
-- [ ] **VLM 왕복 실측** — ★개발용 Gemini 키 발급 후
-- [ ] 캐시 2회차 `cacheHit=true` + AI 호출 0회 증명 (컨테이너에서)
-- [ ] 413 실제 응답 확인
+**★묶음 B 완료.** 위 항목에 더해 아래도 검증했다.
+
+| 검증 항목 | 결과 |
+|---|---|
+| 로그인 `quota` | `limit:20` ✅ |
+| 로그 20건 시드 후 | `used:20, remaining:0` ✅ |
+| **로그인 21회차** | **429**, 메시지가 로그인용으로 다름, **`requiresLogin:false`** ✅ |
+| **실패분 제외** | 실패 로그(`inputTokens=0`) 5건 추가해도 `used` **20 유지** ✅ |
+| 스키마 검증 | 단위 테스트 16개 — 빈 문자열·공백·필드 누락·빈 배열·타입 불일치 전부 거부 ✅ |
+| 원가 계산 | 실측값 재현($0.001264), 옛 모델 단가 보존, 미등록 모델 0 ✅ |
+| 재시도 정책 | `RP_MAX_RETRY=2` (최초 1회 + 재시도 2회) ✅ |
+| **최종 회귀** | **유닛 82개 통과**, `tsc` 0 오류 ✅ |
 
 ---
 

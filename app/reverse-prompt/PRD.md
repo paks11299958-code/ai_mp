@@ -218,6 +218,20 @@
   | `gemini-3.1-flash-lite` | 2026-05-07 | **2027-05-07** | **`gemini-3.5-flash-lite`** |
   | `gemini-2.5-flash` / `2.5-flash-lite` / `2.5-pro` | 2025-06~07 | **미발표** | — |
 
+  - ★**Vertex 경로에서 실제로 호출 가능해야 한다** — 이것이 선정 기준에 추가됐다(2026-08-14).
+    shared-api는 Gemini API가 아니라 **Vertex AI**로 부르는데, **두 경로의 모델 가용성이 다르다.**
+    Gemini API에 존재하는 모델이 Vertex에는 없을 수 있고, Vertex 안에서도 **리전별로 다르다.**
+    전 리전 실측 결과:
+
+    | 모델 | `global` | us-central1 / us-east5 / europe-west4 / asia-northeast3·1 |
+    |---|---|---|
+    | `gemini-3.5-flash-lite` | ✅ | **전부 404** |
+    | `gemini-3.1-flash-lite` | ✅ | 전부 404 |
+    | `gemini-2.5-flash` | ✅ | ✅ (구세대라 리전 배포 완료) |
+
+    → **`location: 'global'` 고정이 필수다**(`RP_VERTEX_LOCATION`). 기존 `getGeminiClient()`는
+    `us-central1` 하드코딩이라 이 모델에서 404가 났고(실측), `lib/gemini.ts`는 기존 파일이라
+    수정하지 않고 이 기능만 별도 Vertex 클라이언트를 쓴다.
   - **구글이 지원 중단 표에서 `gemini-3.1-flash-lite`의 대체 모델로 `gemini-3.5-flash-lite`를
     직접 지정했다.** 3.1을 고르는 것은 구글이 "여기로 옮기라"고 적어둔 길을 역주행하는 것이며,
     **예고된 재마이그레이션**을 사서 하는 셈이다.
@@ -249,7 +263,18 @@
   256px·384px·1024×576·1024×1024·2048px·3000×2000이 **전부 ~1,090토큰**으로 동일했다.
   따라서 11장 4항의 "1024px 리사이즈가 원가를 좌우한다"는 이 모델에는 **해당하지 않는다.**
   리사이즈는 여전히 하되 근거가 바뀐다 → **페이로드 축소(413 회피)·전송 지연·EXIF 제거**.
-  실측 원가는 1건당 약 **$0.0022**(입력 ~1,490 + 출력 ~700 가정). 출력 토큰은 묶음 B에서 실측한다.
+
+  ★**실측 원가(묶음 B 왕복 1건, 2026-08-14)** — 추정이 아니라 실제 `usageMetadata` 값:
+
+  | 항목 | 값 |
+  |---|---|
+  | 입력 토큰 | **1,664** (이미지 + 시스템/사용자 프롬프트) |
+  | 출력 토큰 | **306** (6.1 스키마 전체) |
+  | **1건 원가** | **$0.001264** |
+  | 응답 시간 | 약 4.0초 (캐시 적중 시 0.1초) |
+
+  월 1만 건 기준 약 **$12.6**. 앞서 산식으로 추정한 $0.0022보다 **43% 저렴**하다
+  (출력이 예상 700토큰의 절반 이하였다). 캐시 적중분은 원가가 0이므로 실제로는 더 낮아진다.
 - **호출 방식**: HTTP API. **구독제 CLI를 엔진으로 쓰지 않는다**
 
 ### 6.2 공통 규칙
@@ -402,11 +427,11 @@ production으로 기록돼 컬럼을 넣은 의미가 사라진다. 전용 변�
 
 | Method | 경로 | 인증 | 설명 |
 |---|---|---|---|
-| POST | `/api/reverse-prompt/analyze` | 선택 | 이미지 업로드 → 분석. 비로그인은 일일 한도 검사 |
-| GET | `/api/reverse-prompt/quota` | 선택 | 잔여 횟수 조회 |
-| GET | `/api/reverse-prompt/items` | 필수 | 보관함 목록 (페이지네이션) |
-| GET | `/api/reverse-prompt/items/:id` | 필수 | 보관 항목 상세 |
-| DELETE | `/api/reverse-prompt/items/:id` | 필수 | 보관 항목 삭제 |
+| POST | `/api/aimp/reverse-prompt/analyze` | 선택 | 이미지 업로드 → 분석. 비로그인은 일일 한도 검사 |
+| GET | `/api/aimp/reverse-prompt/quota` | 선택 | 잔여 횟수 조회 |
+| GET | `/api/aimp/reverse-prompt/items` | 필수 | 보관함 목록 (페이지네이션) |
+| GET | `/api/aimp/reverse-prompt/items/:id` | 필수 | 보관 항목 상세 |
+| DELETE | `/api/aimp/reverse-prompt/items/:id` | 필수 | 보관 항목 삭제 |
 
 - 한도 초과 시 **429**를 반환하고 응답 본문에 `requiresLogin: true`를 포함한다
 - 업로드 엔드포인트에 IP 기준 rate limit을 별도로 건다 (한도와 별개의 어뷰징 방어)
