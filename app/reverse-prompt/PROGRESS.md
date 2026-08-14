@@ -125,7 +125,54 @@ ai_mp 쪽은 Lc*가 하나도 없어 운영 DB를 반영하지 못한다. `gener
 
 ---
 
-## 다음 할 일 (묶음 B)
+## 묶음 B — 진행 중
+
+### 완료 (AI 호출 불필요한 부분)
+
+- [x] **sharp 추가** — `shared-api` 0.35.3 (libvips 8.18.3). ai_mp에만 있던 것을 백엔드에도
+- [x] **`lib/reverse-prompt/constants.ts`** — 모델명·단가표·상한·한도 한 곳 집중
+- [x] **`lib/reverse-prompt/prompts.ts`** — 시스템/사용자 프롬프트 + PRD 6.1 responseSchema
+- [x] **`lib/reverse-prompt/image.ts`** — 전처리 전 구간
+- [x] **`lib/reverse-prompt/vlm.ts`** — 1장당 1회 호출 + 스키마 검증 + 재시도 2회 (★미검증)
+- [x] **단위 테스트 16개 통과** — `lib/reverse-prompt/__tests__/image.test.ts`
+
+**실측 검증된 것**
+
+| 항목 | 결과 |
+|---|---|
+| EXIF 제거 | 원본 `exif` 존재 → 결과물 `exif` 없음 ✅ |
+| 리사이즈 | 3000×2000 → **1024×683**(비율 유지), 35KB → 4.4KB |
+| 확대 방지 | 400×300 입력 → 400×300 유지 ✅ |
+| 해시 일관성 | 같은 입력 2회 → 동일 SHA-256, 다른 이미지 → 다른 해시 ✅ |
+| 썸네일 | 128px 이내, 340 bytes |
+| 형식 | png·webp 허용 / **gif 거부** / **mimeType 위조 거부**(실제 바이트 판별) |
+| 5MB 상한 | 초과 차단 ✅, **디코딩 전 판정**(20MB 문자열 50ms 이내) |
+| 회귀 | 전체 유닛 **51개 통과**(학습코칭 포함), `tsc --noEmit` 0 오류 |
+
+**설계 판단**
+- 상한은 **핸들러에서 base64 길이로** 검사. 미들웨어 불가(전역 `express.json`은 수정 금지 대상,
+  라우트별 파서를 덧대도 이미 파싱된 뒤)
+- 해시는 **리사이즈본 기준.** 원본 기준이면 같은 사진을 다른 품질·포맷으로 올릴 때 캐시가 빗나간다
+- `rotate()`를 `resize` 앞에 둔다 — EXIF Orientation을 픽셀에 반영한 뒤 메타를 버려야
+  세로 사진이 눕지 않는다
+- 선언된 `mimeType`을 믿지 않고 sharp가 실제 바이트로 판별(확장자 위조 방어)
+- ★`tsconfig`가 `strict: false`라 판별 유니온 좁힘이 동작하지 않는다(TS2339).
+  tsconfig는 기존 파일이라 건드리지 않고, 테스트에서 `in` 연산자로 우회했다
+
+### 남은 것 (묶음 B)
+
+- [ ] 캐시 조회/기록 (`RpAnalysisCache`)
+- [ ] 사용량 로그 (`RpAiUsageLog`) — 성공·실패·캐시적중 전건
+- [ ] 일일 한도 (비로그인 2 / 로그인 20) + 429 `requiresLogin:true`
+- [ ] `POST /api/reverse-prompt/analyze`, `GET /api/reverse-prompt/quota`
+- [ ] 라우터 등록 1줄 (`routes/aimp/index.ts`)
+- [ ] **VLM 왕복 실측** — ★개발용 Gemini 키 발급 후
+- [ ] 캐시 2회차 `cacheHit=true` + AI 호출 0회 증명 (컨테이너에서)
+- [ ] 413 실제 응답 확인
+
+---
+
+## 다음 할 일 (묶음 C 이후 — 착수 금지)
 
 - shared-api에 `sharp` 추가 (전처리: 리사이즈·EXIF 제거·해시·썸네일)
 - `lib/reverse-prompt/` — VLM 호출 모듈 + 프롬프트 상수 분리 + JSON 스키마 검증·재시도(최대 2회)
@@ -169,9 +216,62 @@ ai_mp 쪽은 Lc*가 하나도 없어 운영 DB를 반영하지 못한다. `gener
 2. ~~VLM 모델~~ → **`gemini-3.5-flash-lite` 단일.** A/B 하지 않는다
 3. ~~코드 위치~~ → **`shared-api/lib/reverse-prompt/` + `frontend/components/reverse-prompt/`** 승인
 4. ~~업로드 상한~~ → **5MB.** PRD 2.1 `sessionStorage` 상한과 일치시킨다
-5. **운영 DB 마이그레이션 실행** — 여전히 **보류**. 묶음 B에서 코드가 붙은 뒤 승인받는다
+5. **운영 DB 마이그레이션 실행** — **묶음 E 직전 단 한 번**, 별도 승인 후 실행한다
 
-### ★남은 블로커 — 개발 DB 없음 (0단계-b, 2026-08-14)
+### ★AI 자격증명 — 개발용 키 발급 대기 (2026-08-14)
+
+`shared-api/.env`에 **`GOOGLE_APPLICATION_CREDENTIALS_JSON`이 이미 설정돼 있다**
+(Vertex 서비스 계정 `aichat-vercel@`, `type: service_account`, 파싱 정상).
+
+★내가 앞서 "서버2에 자격증명이 없어 Gemini를 못 부른다"고 보고한 것은 **오진**이었다.
+실제 원인은 테스트 스크립트가 `dotenv`를 로드하지 않은 것뿐이다
+(`index.ts`는 첫 줄에서 `import 'dotenv/config'` 한다).
+
+다만 그 키는 **운영용**이라 개발 호출이 운영 청구·쿼터에 섞인다.
+**원가 추적은 이 기능 존재 이유의 절반**이므로 섞으면 안 된다.
+→ **개발용 서비스 계정을 별도 발급**하기로 결정(사용자 작업). 발급 전까지 VLM 왕복 검증은 보류.
+→ 그동안 **AI 호출이 필요 없는 전처리 모듈**을 완결한다(해시·리사이즈·EXIF 제거·썸네일).
+
+발급 후 할 일: `.env.dev`에 개발용 `GOOGLE_APPLICATION_CREDENTIALS_JSON`을 넣고
+`lib/reverse-prompt/_t2.ts` 방식으로 왕복 1회 → 실측 토큰·원가를 이 문서에 기록.
+
+### ★개발용 검증 컨테이너 — 일회성 도구이지 별도 인프라가 아니다
+
+**운영 아키텍처는 aichat DB 하나다.** `Rp*` 4개 테이블은 `Lc*` 11개 옆에 같은 DB에 들어간다.
+`RpItem.userId`가 `User` FK이므로 DB를 쪼갤 수 없고, 쪼갤 이유도 없다(회원 전환이 이 기능의
+존재 이유다 — PRD 1.4). **컨테이너는 그 운영 구조와 무관한 개발 중 검증 도구일 뿐이다.**
+
+왜 운영 DB에서 개발하지 않는가 — 묶음 B의 검증 항목이 곧 이유다:
+- 비로그인 3회차 **429**를 보려면 `RpGuestUsage`에 **가짜 방문자 기록**을 쌓아야 한다
+- 로그인 21회차를 보려면 실계정으로 **20번 호출**해야 하고, 그때마다 실제 Gemini가 나가고
+  `RpAiUsageLog`에 **테스트 데이터**가 쌓인다 → 나중 원가 집계에 쓰레기가 섞인다.
+  **원가 추적은 이 기능 존재 이유의 절반이다**(PRD 1.4/11장). 오염시키면 안 된다
+- 지금은 코드가 **작성 중**이다. 미완성 코드를 운영 DB에 붙이는 것이 CLAUDE.md의
+  서버1/서버2 분리가 막으려던 바로 그 상황이다
+
+**운영 반영 계획**
+- 컨테이너는 **묶음 E 완료 후 삭제**한다(`docker compose -f dev-db/docker-compose.yml down -v`)
+- **운영 DB DDL 실행은 묶음 E 직전 단 한 번**, 그때 별도 승인을 받는다
+- 배포 후 운영 검증은 **실계정 1~2회 왕복으로 끝낸다.** 한도·캐시 테스트는 컨테이너에서 한다
+
+**기동 방법**
+```sh
+cd /home/paks11299958/shared-api
+docker compose -f dev-db/docker-compose.yml up -d     # 기동
+docker compose -f dev-db/docker-compose.yml down      # 중지(데이터 유지)
+docker compose -f dev-db/docker-compose.yml down -v   # 삭제(볼륨까지) — 묶음 E 후
+```
+- 컨테이너 `rp-dev-postgres`, PostgreSQL 16, **`127.0.0.1:5432`에만 바인딩**(외부 노출 없음)
+- 접속 정보는 **`shared-api/.env.dev`** — `.gitignore` 등록 완료, **커밋되지 않는다**
+- 서버2 OOM 이력을 감안해 `mem_limit: 512m` 적용
+- ★`pgvector` 확장이 없어 RAG용 3개 테이블은 생성 실패하지만 `User`·`Rp*`는 무관하다
+
+**이 컨테이너에서 이미 잡은 것**(문법 검사로는 못 잡던 것)
+- 손으로 쓴 `reverse-prompt-ddl.sql`이 **에러 없이 실제 실행**됨
+- **재실행 안전**(멱등성) — 두 번째 실행이 전부 NOTICE(skipping), 에러 0건
+- PRD 8장이 요구한 **원가 집계 쿼리가 실제로 동작**함
+
+### ~~남은 블로커 — 개발 DB 없음~~ (해소됨, 아래는 최초 확인 기록)
 
 ```
 서버2 PostgreSQL : inactive, 5432/5433 리스닝 없음
