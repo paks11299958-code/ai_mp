@@ -220,6 +220,47 @@ ai_mp 쪽은 Lc*가 하나도 없어 운영 DB를 반영하지 못한다. `gener
 
 ---
 
+## ★다음 세션 인수인계 (2026-08-14 기준 환경 상태)
+
+**현재 떠 있는 것** — 다음 세션이 그대로 쓸 수 있다.
+
+| 대상 | 상태 | 비고 |
+|---|---|---|
+| `rp-dev-postgres` 컨테이너 | **실행 중**(healthy, 10시간) | 개발 DB. 묶음 E 후 삭제 |
+| 검증 서버 `:3099` | **실행 중** | `shared-api/_devserver.sh` |
+| 개발 DB 데이터 | 로그 28건 / 캐시 2건 / `RpItem` 0건 / 테스트유저 `id=9001` | 전부 검증용 쓰레기 — 지워도 된다 |
+
+**★`_devserver.sh`는 `.gitignore`라 커밋되지 않는다.** 사라졌으면 아래로 다시 만든다:
+
+```bash
+#!/bin/bash
+# ★.env를 source 하지 않는다(함정 6). env -i로 상속을 끊는다.
+exec env -i HOME="$HOME" PATH="$PATH" \
+  PORT=3099 \
+  DATABASE_URL="postgresql://rpdev:rpdevpass@127.0.0.1:5432/aichat_dev" \
+  RP_ENVIRONMENT=development \
+  npx ts-node --transpile-only index.ts
+```
+
+기동: `cd ~/shared-api && setsid ./_devserver.sh > _dev.log 2>&1 < /dev/null &`
+확인: `curl -s localhost:3099/api/health`
+
+**★API 경로는 `/api/aimp/reverse-prompt/*`다**(PRD 초안의 `/api/reverse-prompt/*` 아님).
+`routes/index.ts`가 `/aimp` 하위에 마운트한다.
+
+**로그인 상태로 테스트하려면** — 토큰을 직접 발급한다(`.env`의 `JWT_SECRET` 사용):
+```bash
+node -e "require('dotenv').config();const jwt=require('jsonwebtoken');
+console.log(jwt.sign({userId:9001}, process.env.JWT_SECRET, {expiresIn:'1h'}))"
+```
+
+**한도 초기화**(재검증 시):
+```sql
+TRUNCATE "RpGuestUsage"; TRUNCATE "RpAiUsageLog"; TRUNCATE "RpAnalysisCache" CASCADE;
+```
+
+---
+
 ## 다음 할 일 (묶음 C 이후 — 착수 금지)
 
 - shared-api에 `sharp` 추가 (전처리: 리사이즈·EXIF 제거·해시·썸네일)

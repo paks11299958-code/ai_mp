@@ -174,27 +174,56 @@ DB가 필요한 검증은 별도 인스턴스를 띄우거나 사용자에게 �
 - 모든 데이터 접근에 소유권 검증 헬퍼를 거친다
 - AI 호출은 목적별로 모듈화하고, 프롬프트는 상수 파일로 분리한다. 컴포넌트나 핸들러에 인라인하지 않는다
 - AI는 **HTTP API로 호출한다. 구독제 CLI를 쓰지 않는다** (약관·한도·부하·원가 측정 문제)
-- ★**모델 은퇴 일정은 원문 표를 직접 열어 확인한다. 2차 출처를 믿지 않는다.**
+- ★**[함정 1] 모델 은퇴 일정은 원문 표를 직접 열어 확인한다. 2차 출처를 믿지 않는다.**
   2026-08-14 실제 사례: "gemini-2.5 계열이 2026-10-16 종료"라는 값이 집계 사이트·블로그를
   통해 널리 퍼져 있었고 공식 문서라고 제시되기까지 했으나, **공식 지원 중단 표를 직접 연
   결과 2.5-flash/2.5-flash-lite/2.5-pro 셋 다 "No shutdown date announced"**였다.
   반대로 **`gemini-3.1-flash-lite`는 2027-05-07 종료 + 대체 모델 `3.5-flash-lite`가 표에
   명시**돼 있었다 — 진짜 근거는 원문 표 안에 있었다.
   ★**"공식 문서에 있다"는 주장 자체를 검증 대상으로 삼는다**(사용자·나 양쪽 모두 틀릴 수 있다).
-- ★**종료일이 없어도 모델은 끊길 수 있다.** 2026-07-09 `gemini-2.5-flash`가 종료일 공표 없이
+- ★**[함정 2] 종료일이 없어도 모델은 끊길 수 있다.** 2026-07-09 `gemini-2.5-flash`가 종료일 공표 없이
   `404 NOT_FOUND: "no longer available"`를 반환해 프로덕션이 중단됐다(구글: "config 이슈, 롤백").
   → **모델명은 상수 1곳에만 두어 교체가 한 줄로 끝나게 한다.**
-- ★**단가는 집계 사이트가 아니라 공식 가격표(`ai.google.dev/gemini-api/docs/pricing`)에서
+- ★**[함정 3] 단가는 집계 사이트가 아니라 공식 가격표(`ai.google.dev/gemini-api/docs/pricing`)에서
   직접 확인한다.** 원가 수치는 산식이 아니라 실측(`countTokens`·실제 응답 `usageMetadata`)으로 적는다.
-- ★**모델 가용성은 호출 경로별로 다르다. 존재 확인은 반드시 실제 호출 경로에서 할 것.**
+- ★**[함정 4] Vertex는 모델별로 사용 가능 리전이 다르다.**
   같은 모델명이라도 **Gemini API(`generativelanguage.googleapis.com`, API 키)** 와
   **Vertex AI(`aiplatform.googleapis.com`, 서비스 계정)** 의 목록이 다르고,
   Vertex 안에서도 **리전별로 다르다.** shared-api는 **Vertex**를 쓴다.
-  2026-08-14 실측: `gemini-3.5-flash-lite`는 Gemini API에서 정상 응답했지만
-  Vertex `us-central1`에서는 **404**였고, `global` 엔드포인트에서만 동작했다.
-  → "모델 목록 API에 있다"로 끝내지 말고 **실제 서버를 띄워 그 경로로 1회 호출**해 볼 것.
+
+  2026-08-14 전 리전 실측:
+
+  | 모델 | `global` | us-central1 / us-east5 / europe-west4 / asia-northeast3·1 |
+  |---|---|---|
+  | `gemini-3.5-flash-lite` | ✅ | **전부 404** |
+  | `gemini-3.1-flash-lite` | ✅ | 전부 404 |
+  | `gemini-2.5-flash` | ✅ | ✅ (구세대라 리전 배포 완료) |
+
+  → `gemini-3.5-flash-lite`는 **`global` 엔드포인트에서만 동작**하며,
+  **기존 `getGeminiClient()`는 `us-central1` 하드코딩이라 쓸 수 없다**(실제로 404 → 502).
+  `lib/gemini.ts`는 기존 파일이라 수정하지 않고 이 기능만 별도 Vertex 클라이언트를 쓴다
+  (`RP_VERTEX_LOCATION = 'global'`).
+  ★**모델 가용성은 반드시 실제 호출 경로 + 리전에서 확인할 것.**
+  "모델 목록 API에 있다"로 끝내지 말고 **실제 서버를 띄워 그 경로로 1회 호출**해 볼 것 —
   타입체크·단위 테스트로는 절대 잡히지 않는다.
-- ★**개발/운영 판정에 `NODE_ENV`를 단독으로 쓰지 말 것.**
+- ★**[함정 5] KST 날짜 함수와 시각 비교를 섞지 말 것.**
+  - `kstToday()` — KST 달력일을 UTC 자정으로 "표현"한 값 → **DATE 컬럼**(`usedDate`)용
+  - `kstDayStartUtc()` — KST 00:00의 **실제 UTC 시각** → **TIMESTAMP 비교**(`createdAt`)용
+
+  혼용하면 9시간 어긋나 **KST 00~09시가 집계에서 누락된다.**
+  실제로 `createdAt >= kstToday()`로 짰다가 그 시간대 로그가 빠져
+  **로그인 사용자가 일일 한도를 초과해 쓸 수 있는 버그**가 있었다(2026-08-14 실측 발견).
+  ★서버1·서버2 모두 **UTC로 돈다**(`date` → UTC, Node `getTimezoneOffset()=0`).
+  경계값은 `lib/reverse-prompt/__tests__/quota-boundary.test.ts`가 고정한다
+  (UTC 기준으로 바꿔 넣으면 7개가 깨지는 것까지 확인했다).
+- ★**[함정 6] `.env`를 `source` 하지 말 것.**
+  서비스 계정 JSON처럼 따옴표가 든 값을 bash가 **따옴표를 제거한 채** 읽어
+  `{type:service_account,...}` 꼴로 깨진다(→ "유효한 JSON이 아닙니다" 502).
+  더 나쁜 것은, **한 번 깨진 값이 셸 환경에 남으면 `dotenv`가 기존 환경변수를 덮어쓰지 않아
+  재기동해도 계속 깨진 값을 물고 돈다.** 원인을 못 찾고 헤매기 딱 좋다.
+  → 개발 서버는 **`env -i`로 상속을 끊고** 필요한 변수만 넘긴다(`_devserver.sh` 참조).
+  자격증명은 `index.ts` 첫 줄의 `import 'dotenv/config'`가 `.env`에서 직접 읽게 둔다.
+- ★**[함정 7] 개발/운영 판정에 `NODE_ENV`를 단독으로 쓰지 말 것.**
   이 저장소는 `shared-api/.env`에 **`NODE_ENV=production`이 하드코딩**돼 있어
   **서버2(개발)에서도 `production`으로 읽힌다.** 그대로 판정하면 개발 호출이 전부
   운영으로 기록돼 원가 분리가 무력화된다(2026-08-14 실측 확인).
