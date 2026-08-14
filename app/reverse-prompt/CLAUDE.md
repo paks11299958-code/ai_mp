@@ -186,6 +186,14 @@ DB가 필요한 검증은 별도 인스턴스를 띄우거나 사용자에게 �
   → **모델명은 상수 1곳에만 두어 교체가 한 줄로 끝나게 한다.**
 - ★**단가는 집계 사이트가 아니라 공식 가격표(`ai.google.dev/gemini-api/docs/pricing`)에서
   직접 확인한다.** 원가 수치는 산식이 아니라 실측(`countTokens`·실제 응답 `usageMetadata`)으로 적는다.
+- ★**개발/운영 판정에 `NODE_ENV`를 단독으로 쓰지 말 것.**
+  이 저장소는 `shared-api/.env`에 **`NODE_ENV=production`이 하드코딩**돼 있어
+  **서버2(개발)에서도 `production`으로 읽힌다.** 그대로 판정하면 개발 호출이 전부
+  운영으로 기록돼 원가 분리가 무력화된다(2026-08-14 실측 확인).
+  → 전용 변수 **`RP_ENVIRONMENT`를 먼저 보고** 없을 때만 `NODE_ENV`로 폴백한다
+  (`lib/reverse-prompt/constants.ts`의 `resolveEnvironment()`).
+  ★**`.env`의 `NODE_ENV` 값 자체는 고치지 않는다** — `lib/logger.ts` 등 기존 aichat 코드가
+  이미 참조하고 있어 로그 레벨 등 운영 동작이 바뀐다. 기존 파일 보호 원칙에도 어긋난다.
 - API 키는 서버 사이드 전용. 클라이언트 번들에 포함하지 않는다
 - 업로드 파일은 **디스크에 쓰지 않고 메모리에서 처리한다.** 처리 후 참조를 해제한다
 
