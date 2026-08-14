@@ -39,13 +39,30 @@ aichat.dbzone.kr에 **리버스 프롬프트** 기능을 추가한다. 제품 �
 
 ---
 
+## ★저장소 구성 (2026-08-14 묶음 A 조사로 정정)
+
+**이 프로젝트는 단일 저장소가 아니라 두 저장소다.** 초판은 단일 저장소를 전제했으나 사실과 다르다.
+
+| 저장소 | 경로 | 역할 | 브랜치 |
+|---|---|---|---|
+| **shared-api** | `/home/paks11299958/shared-api` | 백엔드(Express+Prisma), **Prisma 스키마 정본** | `feature/reverse-prompt` (기본: `main`) |
+| **ai_mp** | `/home/paks11299958/ai_mp` | 프론트(Vite+React, Vercel), 기획 문서 | `feature/reverse-prompt` (기본: `master`) |
+
+- 두 저장소에 **각각** 브랜치를 만들고 **각각** 커밋한다. 한쪽만 올리면 배포가 어긋난다.
+- ai_mp에도 `prisma/schema.prisma`가 있지만 **2026-06-17에 멈춘 사본**이다(Lc\* 11개 없음).
+  **정본은 `shared-api/prisma/schema.prisma`** 하나뿐이다. 사본과 `generated/`는 수정하지 않는다.
+- ai_mp의 기본 브랜치는 `master`다(`main` 아님). Vercel Production Branch가 `master`다.
+
 ## 서버 구성
 
 | 서버 | 역할 | 이번 작업에서 |
 |---|---|---|
-| 서버1 | 운영 — shared-api, PostgreSQL | 배포 대상. **직접 건드리기 전 승인** |
-| 서버2 | 개발 | 여기서 작업한다 |
+| 서버1 | 운영 — shared-api, PostgreSQL(10.178.0.2:5432) | 배포 대상. **직접 건드리기 전 승인** |
+| 서버2 | 개발 | 여기서 작업한다. **로컬 PostgreSQL 없음**(2026-08-14 확인) |
 | 서버3 | GPU — ComfyUI | **사용하지 않는다.** MVP 범위 밖 |
+
+★서버2에는 개발용 DB가 없고 `.env`의 `DATABASE_URL`은 **서버1 운영 DB**를 가리킨다.
+DB가 필요한 검증은 별도 인스턴스를 띄우거나 사용자에게 확인받는다. **운영 DB에 직접 붙지 않는다.**
 
 **작업하는 곳(서버2)과 운영 코드·DB의 실체(서버1)가 다르다는 것을 항상 의식한다.**
 서버2에서 잘 돌아간다는 것이 서버1에서 돌아간다는 뜻이 아니다.
@@ -73,8 +90,11 @@ aichat.dbzone.kr에 **리버스 프롬프트** 기능을 추가한다. 제품 �
 - 기존 테이블의 스키마를 변경하지 않는다. **신규 테이블만 추가한다**
 - 신규 테이블·모델은 **`Rp` 접두사**를 붙이고, 0장 조사에서 확인한 기존 명명 규칙을 따른다
 - Prisma 스키마 파일이 여러 벌이면 **정본에만** 추가한다. 사본은 수정하지 않는다. 어느 것이 정본인지 불확실하면 물어본다
-- 신규 백엔드 코드는 `src/reverse-prompt/` 아래에 모은다
-- 신규 프론트 코드는 `src/pages/reverse-prompt/` 아래에 모은다
+- 신규 백엔드 코드는 **`shared-api/lib/reverse-prompt/`** 아래에 모은다
+  (초판의 `src/reverse-prompt/`는 오류 — 이 저장소에 `src/` 디렉터리 자체가 없다)
+- 신규 프론트 코드는 **`frontend/components/reverse-prompt/`** 아래에 모은다
+  (초판의 `src/pages/reverse-prompt/`는 오류. 기존 `frontend/components/learning/` 선례를 따른다)
+- 라우트 핸들러는 `shared-api/routes/aimp/reverse-prompt.ts` (기존 `routes/aimp/*` 관례)
 - **기존 인증을 재사용한다. 새 인증 시스템을 만들지 않는다**
 - 기존 라우팅·디자인 패턴을 따른다. 새 UI 라이브러리나 색상 체계를 도입하지 않는다
 - 기존 공용 유틸을 수정해야 할 것 같으면 멈추고 물어본다
@@ -100,7 +120,12 @@ aichat.dbzone.kr에 **리버스 프롬프트** 기능을 추가한다. 제품 �
 
 ### PROGRESS.md 갱신
 
-각 단계를 마칠 때마다 작업 저장소 루트의 `PROGRESS.md`를 갱신한다.
+각 단계를 마칠 때마다 **`ai_mp/app/reverse-prompt/PROGRESS.md`**를 갱신한다.
+
+★**저장소 루트의 `PROGRESS.md`를 건드리지 않는다.** 그 파일은 **AI 학습코칭 전용 1243줄 문서**로
+이미 존재하며, 덮어쓰면 학습코칭 개발 이력이 통째로 사라진다(초판은 "저장소 루트"라고
+적었으나 오류다). 기획 문서 3종(`CLAUDE.md`/`PRD.md`/`PROGRESS.md`)은 학습코칭이
+`app/learning/`에 두는 선례를 따라 `app/reverse-prompt/`에 모은다.
 
 ```markdown
 # 진행 상황
@@ -150,8 +175,29 @@ aichat.dbzone.kr에 **리버스 프롬프트** 기능을 추가한다. 제품 �
 - AI 호출은 목적별로 모듈화하고, 프롬프트는 상수 파일로 분리한다. 컴포넌트나 핸들러에 인라인하지 않는다
 - AI는 **HTTP API로 호출한다. 구독제 CLI를 쓰지 않는다** (약관·한도·부하·원가 측정 문제)
 - API 키는 서버 사이드 전용. 클라이언트 번들에 포함하지 않는다
-- 업로드 파일은 **디스크에 쓰지 않고 메모리에서 처리한다** (`multer.memoryStorage()` 등). 처리 후 참조를 해제한다
-- 업로드 용량 상한을 미들웨어 레벨에서 건다. 애플리케이션 코드에 도달하기 전에 거른다
+- 업로드 파일은 **디스크에 쓰지 않고 메모리에서 처리한다.** 처리 후 참조를 해제한다
+
+### ★업로드 방식 — multer 아님 (2026-08-14 조사로 정정)
+
+초판은 `multer.memoryStorage()`와 "미들웨어 레벨 용량 상한"을 전제했으나 **둘 다 이 저장소에 없다.**
+
+- **multer가 설치돼 있지 않다.** 이미지는 `multipart/form-data`가 아니라
+  **JSON body의 base64 문자열**로 받는다(`{ imageBase64, mimeType }` — `routes/aimp/outfit.ts` 선례).
+- 용량 상한을 **미들웨어로 걸 수 없다.** `express.json({ limit: '10mb' })`가 `app.ts`에 전역으로
+  걸려 있고, `app.ts`는 기존 파일이라 수정 금지 대상이다. 라우트별 파서를 덧대도 **이미 파싱된 뒤**다.
+- 따라서 상한은 **핸들러 진입 직후 base64 문자열 길이로 검사**한다.
+  원본 크기 ≈ `imageBase64.length × 0.75` (base64는 +33% 팽창). 초과 시 즉시 413.
+- 프론트에서도 **파일 선택 즉시** 같은 상한으로 막아 413을 아예 보지 않게 한다(서버 검사는 그대로 유지).
+- ★Vercel 프록시가 **10MB에서 순수 413**을 던진다(플랫폼 제약, 실측). Express 상한을 올려도
+  그 앞단에서 막히므로 의미가 없다. 실질 상한은 이보다 낮게 잡아야 한다(PRD 7장 = 5MB).
+
+### ★라우팅 — React Router 아님
+
+프론트는 라우터 라이브러리를 쓰지 않는다. `App.tsx` 하단에서
+`window.location.pathname`을 정규식으로 **수동 매칭**해 얼리리턴하는 방식이다
+(`IS_LEARNING_INDEX` 등 학습코칭 선례 참조). 신규 화면도 이 패턴을 따르고,
+`vercel.json`에 `{ "source": "/reverse-prompt", "destination": "/index.html" }` 규칙을
+**catch-all(`/api/:d/...`)보다 앞에** 추가해야 한다(누락 시 화면·API가 조용히 404).
 
 ---
 
