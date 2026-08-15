@@ -79,6 +79,8 @@ import { LearningReview } from './components/learning/LearningReview';
 import { LearningWeeklyReport } from './components/learning/LearningWeeklyReport';
 import { LearningSettings } from './components/learning/LearningSettings';
 import { LearningCurriculum } from './components/learning/LearningCurriculum';
+import { ReversePromptMain } from './components/reverse-prompt/ReversePromptMain';
+import { ReversePromptLibrary } from './components/reverse-prompt/ReversePromptLibrary';
 import { tarotApi } from './services/apiService';
 import { FaceReadingResultCard } from './components/FaceReadingResultCard';
 import { LookalikeModal } from './components/LookalikeModal';
@@ -3143,6 +3145,12 @@ const IS_LEARNING_REPORT = /^\/learning\/report\/[^/]+$/.test(LEARNING_PATH);
 const IS_LEARNING_SETTINGS = /^\/learning\/settings$/.test(LEARNING_PATH);
 const IS_LEARNING_CURRICULUM = /^\/learning\/curriculum$/.test(LEARNING_PATH);
 
+// 🎨 리버스 프롬프트(/reverse-prompt) — app/reverse-prompt/PRD.md
+// LEARNING_PATH와 같은 뒤 슬래시 제거 규칙을 재사용한다.
+const RP_PATH = window.location.pathname.replace(/(.)\/+$/, '$1');
+const IS_RP_LIBRARY = /^\/reverse-prompt\/library$/.test(RP_PATH);
+const IS_RP_INDEX = /^\/reverse-prompt$/.test(RP_PATH);
+
 // 📊 주식 정밀분석 공개 공유(?stock=shareId) — 비로그인도 열람 가능(바이럴 유입).
 // ★AppContent 내부의 return 분기(로그인/게스트/화면별로 여러 갈래)보다 여기서 먼저 걸러야
 //   한다 — 안에 넣었다가 !user(비로그인) 분기로 먼저 빠져나가 렌더가 안 되는 사고가 있었다
@@ -3166,6 +3174,8 @@ const App: React.FC = () => (
     IS_LEARNING_CURRICULUM ? <LearningCurriculum /> :
     IS_LEARNING_ONBOARDING ? <LearningOnboarding /> :
     IS_LEARNING_INDEX ? <LearningLanding /> :
+    IS_RP_LIBRARY ? <ReversePromptLibrary /> :
+    IS_RP_INDEX ? <ReversePromptMain /> :
     <PointsProvider>
         <AppContent />
     </PointsProvider>
