@@ -51,7 +51,12 @@ aichat.dbzone.kr에 **리버스 프롬프트** 기능을 추가한다. 제품 �
 - 두 저장소에 **각각** 브랜치를 만들고 **각각** 커밋한다. 한쪽만 올리면 배포가 어긋난다.
 - ai_mp에도 `prisma/schema.prisma`가 있지만 **2026-06-17에 멈춘 사본**이다(Lc\* 11개 없음).
   **정본은 `shared-api/prisma/schema.prisma`** 하나뿐이다. 사본과 `generated/`는 수정하지 않는다.
-- ai_mp의 기본 브랜치는 `master`다(`main` 아님). Vercel Production Branch가 `master`다.
+- ★**ai_mp에는 `master`와 `main`이 둘 다 있다.** 머지 대상은 **`master`**다.
+  Vercel Production Branch가 `master`이므로, **`main`에 머지하면 배포가 아예 안 된다**
+  (에러 없이 조용히 반영만 안 돼서 원인 찾기가 어렵다).
+  `main`은 2026-05-28에 멈춘 브랜치다(master가 989커밋 앞섬 — 2026-08-16 실측).
+  shared-api는 반대로 **`main`**이 운영 브랜치다. **두 저장소의 이름이 서로 반대**라 헷갈린다.
+  머지 전 `git ls-remote --heads origin`으로 확인할 것.
 
 ## 서버 구성
 

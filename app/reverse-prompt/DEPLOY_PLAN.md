@@ -18,6 +18,45 @@
 
 ---
 
+## 0-1. ★브랜치 주의 — 잘못 머지하면 배포가 안 되거나 의도치 않게 나간다
+
+**`ai_mp`에는 `master`와 `main`이 둘 다 존재한다.** 이름만 보고 고르면 사고가 난다.
+
+| 저장소 | ★머지 대상 | 그 외 브랜치 | 비고 |
+|---|---|---|---|
+| **ai_mp** | **`master`** | `main` ← ★**쓰지 않는다** | **Vercel Production Branch = `master`** |
+| **shared-api** | **`main`** | — | 서버1 pm2가 이 브랜치를 pull |
+
+### 왜 위험한가 (2026-08-16 실측)
+
+```
+ai_mp  master  7124669  2026-08-13  ← 실제 운영 브랜치
+ai_mp  main    445bf8b  2026-05-28  ← 3개월 전에 멈춤
+  main에만 있는 커밋   : 21
+  master에만 있는 커밋 : 989   ← 사실상 버려진 브랜치
+```
+
+- **`ai_mp`의 `main`에 머지하면** → Vercel이 `master`를 보므로 **배포가 아예 안 된다.**
+  머지는 성공하고 아무 에러도 없어서, "왜 반영이 안 되지"로 한참 헤맨다
+- **`shared-api`에서 실수로 `master`를 찾으면** → 그런 브랜치가 없다(`main`뿐)
+- 두 저장소의 기본 브랜치 이름이 **서로 반대**라는 점이 혼동의 근원이다
+
+### 확인 방법
+
+머지 전에 반드시 원격 상태를 눈으로 본다.
+
+```sh
+cd ~/ai_mp        && git ls-remote --heads origin   # master가 최신인지
+cd ~/shared-api   && git ls-remote --heads origin   # main만 있는지
+```
+
+### 참고 — feature 브랜치 푸시는 운영에 영향이 없다
+
+`feature/reverse-prompt`를 원격에 올리면 Vercel이 **Preview 빌드**를 만들지만
+**운영에는 붙지 않는다**(2026-08-16 확인: 푸시로 빌드가 돌았으나 운영 중인 배포는
+8/14자 그대로였다). 백업 목적의 푸시는 안전하다.
+운영 반영은 **`master` 머지 + 사람이 Promote**를 눌러야 일어난다.
+
 ## 1. 운영 DDL 전문
 
 파일: `shared-api/prisma/reverse-prompt-ddl.sql`
@@ -268,7 +307,10 @@ E-1의 14개 항목 중 아래 둘은 다른 항목들과 근거의 성격이 �
 ## 6. 배포 전 체크리스트
 
 **사전**
-- [ ] `feature/reverse-prompt` → `main`(shared-api) / `master`(ai_mp) 머지 승인
+- [ ] 머지 승인 — ★**대상 브랜치를 틀리지 않는다**(0-1절 참조)
+      - `ai_mp` → **`master`** (`main` 아님! Vercel이 `master`를 본다)
+      - `shared-api` → **`main`**
+      - 머지 전 `git ls-remote --heads origin`으로 눈으로 확인
 - [ ] 백업 또는 스냅샷 (권장 — 데이터 손실 경로는 없으나 안전판)
 - [ ] shared-api 재시작 **시점** 확인 — ★실사용자가 적은 시간대.
       **롤백 시 한 번 더 중단**되므로 여유 있는 시간을 고른다
