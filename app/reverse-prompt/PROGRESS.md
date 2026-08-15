@@ -220,6 +220,73 @@ ai_mp 쪽은 Lc*가 하나도 없어 운영 DB를 반영하지 못한다. `gener
 
 ---
 
+## 묶음 C — 완료 (백엔드 보관함)
+
+**파일**: `lib/reverse-prompt/store.ts`(추가), `routes/aimp/reverse-prompt.ts`(추가)
+커밋 `fcad9c1`(shared-api)
+
+### 명세 → 구현 1:1 대조
+
+| 명세 | 구현 | 검증 |
+|---|---|---|
+| `assertOwnership` 헬퍼 | `store.ts: assertOwnership()` | 타인 접근 404 왕복 확인 |
+| 세션 ID는 `requireAuth`에서만 | `routes: requireAuth(req,res)` — body/query의 userId 미사용 | 비로그인 401 |
+| 위반 시 **404**(403 아님) | 세 핸들러 모두 404 | 상세·삭제 각각 404 확인 |
+| `GET /items` 목록 | `store.ts: listItems()` | 3건 정상, 정렬 최신순 |
+| 페이지네이션 기본 20 / 상한 | `RP_ITEMS_PAGE_SIZE=20`, `RP_ITEMS_MAX_SIZE=50` | `size=999999` → **50으로 조임** |
+| `(userId, createdAt DESC)` 인덱스 | `orderBy: { createdAt: 'desc' }` | **EXPLAIN 확인**(아래) |
+| 목록에 전문 미포함 | `select`로 5개 필드만 + 120자 미리보기 | 응답 필드에 `analysisJson`·`midjourney`·`sdNegative` **없음** |
+| `GET /items/:id` 상세, 재생성 금지 | `store.ts: getItemDetail()` — DB 로드만 | **15회 조회에 로그 증가 0** |
+| `DELETE /items/:id` 소유자만 | `store.ts: deleteItem()` — `deleteMany` + 소유자 조건 | 타인 삭제 404, 대상 살아있음 |
+| 캐시는 지우지 않음 | 삭제 로직에 `RpAnalysisCache` 손대지 않음 | 삭제 후 캐시 **1건 유지** |
+| analyze 성공 시 `RpItem` 저장 | `routes: saveItem()` — `userId !== null`일 때만 | 캐시적중·신규 양쪽 경로 모두 적용 |
+| 썸네일 128px 함께 저장 | `saveItem(..., thumbnailBase64, ...)` | — |
+
+### 실제 서버 왕복 검증 결과
+
+| 검증 | 결과 |
+|---|---|
+| 비로그인 목록 | **401** |
+| A가 B의 항목 상세 | **404** (`{"error":"항목을 찾을 수 없어요."}`) |
+| A가 B의 항목 삭제 | **404**, B 항목 `count=1`로 **살아있음** |
+| **재생성 안 함 증명** | 상세 10회 + 목록 5회 = **15회 조회에 `RpAiUsageLog` 증가 0건**, 응답 해시 동일 |
+| 삭제 | `RpItem` 0 / **`RpAnalysisCache` 1 유지** / 재삭제 404 |
+| 페이지네이션 | `size=2` → 1p 2건(hasNext=true), 2p 1건(hasNext=false) |
+| 회귀 | 유닛 **82개 통과**, `tsc` 0 오류 |
+
+### 목록 쿼리 EXPLAIN (803행 기준)
+
+```
+Limit  (cost=0.28..2.02 rows=20) (actual time=0.032..0.041 rows=20)
+  ->  Index Scan Backward using "RpItem_userId_createdAt_idx" on "RpItem"
+        Index Cond: ("userId" = 9001)
+        Buffers: shared hit=3
+Execution Time: 0.102 ms
+```
+
+**인덱스를 탄다.** 803행 중 20건만 읽고 **Sort 노드가 없다**(인덱스 역순 그대로).
+★Prisma가 실제로 보내는 쿼리를 PostgreSQL 로그로 캡처해 **위 EXPLAIN과 동일함을 확인**했다
+(컬럼·WHERE·ORDER BY·LIMIT 일치). 손으로 쓴 SQL만 보고 판단하지 않았다.
+
+### ★위험 요소 — COUNT 쿼리는 Seq Scan이다
+
+Prisma의 `count()`가 별도 쿼리로 나가는데 그쪽은 **Seq Scan**이다.
+
+```
+Aggregate  ->  Seq Scan on "RpItem"  (rows=502)  Rows Removed by Filter: 301
+Execution Time: 0.183 ms
+```
+
+`enable_seqscan=off`로 강제해도 **Bitmap Heap Scan**이 된다 — Prisma가 `SELECT "id"`를 하는데
+`id`가 인덱스에 없어 Index Only Scan이 성립하지 않는다.
+
+현재 규모(8페이지)에선 Seq Scan이 더 빨라 **옵티마이저 판단이 옳고, 지금은 문제가 아니다.**
+다만 한 사용자의 항목이 수만 건이 되면 목록 조회마다 전체 스캔이 된다.
+→ 그때 대응: `total`을 응답에서 빼고 `hasNext`만 주거나(무한 스크롤이면 충분),
+   `@@index([userId, createdAt, id])`로 커버링 인덱스를 만든다. **지금은 하지 않는다**(YAGNI).
+
+---
+
 ## ★다음 세션 인수인계 (2026-08-14 기준 환경 상태)
 
 **현재 떠 있는 것** — 다음 세션이 그대로 쓸 수 있다.
