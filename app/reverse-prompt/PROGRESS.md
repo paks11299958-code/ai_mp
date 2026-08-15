@@ -287,6 +287,75 @@ Execution Time: 0.183 ms
 
 ---
 
+## 묶음 D — 완료 (프론트엔드)
+
+**파일**: `frontend/components/reverse-prompt/{api.ts, parts.tsx, ReversePromptMain.tsx, ReversePromptLibrary.tsx}`
+**기존 파일 수정**: `App.tsx`(import 2줄 + 경로상수 + 분기 2줄), `vercel.json`(3줄) — 라우팅 등록만
+커밋 `63ff4fc`(ai_mp)
+
+### 재사용한 기존 패턴 (새 라이브러리·색상 체계 미도입)
+
+| 대상 | 재사용한 것 |
+|---|---|
+| API 호출 | `services/apiService.ts`의 `get/post/del` — `authHeaders()`가 Bearer 자동 부착 |
+| 로그인 모달 | `components/AuthModal.tsx` (`onSuccess`/`onClose`) |
+| 라우팅 | `pathname` 정규식 매칭 + 삼항 얼리리턴 (learning 선례) |
+| 색상 | `#F5EFE6`/`#2D2438`/`#5C5468`/`#F0E9DE` + indigo (learning과 동일) |
+| 토큰 | `localStorage.token` |
+
+### 명세 → 구현 1:1 대조
+
+| # | 명세 | 구현 |
+|---|---|---|
+| 1 | 드래그앤드롭 + 클릭, 첫 화면 업로드만 | `ReversePromptMain.tsx: onDrop/fileInputRef` — 로그인 유도 요소 **0개 확인** |
+| 2 | 클라이언트에서 크기·형식 차단 | `api.ts: checkFile()` — **/analyze 호출 0건 확인** |
+| 3 | 분석 중 로딩 | `parts.tsx: RpLoading` |
+| 4 | MJ/SD 동시 + 각각 복사 | `parts.tsx: PromptBlock/CopyButton` — 블록 3개, 버튼 3개 |
+| 5 | 캐시 적중 표시 | `ReversePromptMain.tsx` 캐시 배너 |
+| 6 | 잔여 횟수 + 저장 안내 | `parts.tsx: QuotaBadge` + 비로그인 안내 카드 |
+| 7 | 최근 보관 3개 | `ReversePromptMain.tsx` — `items(1, 3)` |
+| 8 | 429 → 모달 | `runAnalyze()` 429 + `requiresLogin` 분기 |
+| 9 | 모달 전 sessionStorage 보관 | `api.ts: savePendingUpload()` — 실패 시 안내 |
+| 10 | 복귀 후 자동 재개 + 정리 | `useEffect` + `onAuthSuccess` |
+| 11 | 모달 닫으면 보관분 정리 | `onAuthClose` → `clearPendingUpload()` |
+| 12 | 보관함 목록 | `ReversePromptLibrary.tsx` |
+| 13 | 펼치면 상세 로드 | `toggle()` → `itemDetail()` |
+| 14 | 삭제는 확인 후 | `remove()` → `window.confirm` |
+| 15 | 페이지네이션 | 이전/다음 버튼 |
+| 16 | 360px 가로 스크롤 없음 | `truncate`/`break-words`/`min-w-0` |
+| 17 | 에러 화면 표시 | `parts.tsx: RpError` |
+| 18 | 실패 시 파일 유지 + 재시도 | `lastUpload` ref + `RpError onRetry` |
+
+### 브라우저 실측 검증 (Playwright, dist를 3099 백엔드에 연결)
+
+| 검증 | 결과 |
+|---|---|
+| 360px / 390px | **가로 스크롤 없음** |
+| 첫 화면 로그인 유도 | **0개** |
+| 5MB 초과 / gif | 화면 메시지 + **`/analyze` 호출 0건**(서버 미도달) |
+| 실제 이미지 | **3.0초**, MJ 1 + SD Positive 1 + SD Negative 1, 복사버튼 3 |
+| 복사 | "복사됨" 피드백 + 클립보드 내용 확인 |
+| 캐시 적중 | `cached:true`, 배너 표시, **잔여 미차감** |
+| 3회차 | **429 `requiresLogin:true`** → sessionStorage 보관(310KB) → 모달 |
+| 로그인 복귀 | **자동 재개 200**, sessionStorage 정리, 잔여 19/20 |
+| 보관함 | 503건 → 10건 페이지네이션, 펼침 시 **상세 API 호출** |
+| 삭제 | 확인창 → 503→502 |
+| **회귀** | `/`, `/learning`, `/learn` **모두 정상 렌더** |
+
+### ★브라우저를 띄워서야 잡은 버그
+
+`apiService`의 `BASE`가 이미 `/api`인데 호출부에서 `/api/aimp/...`를 써
+**`/api/api/...` 404**가 났다. **빌드·타입체크는 통과한다** — 실제 화면을 띄우지 않았으면
+묶음 E까지 못 잡았을 버그다.
+
+### 아직 하지 않은 것
+
+- **메인 진입점 노출 스위치** — 지시대로 켜지 않았다. `/reverse-prompt`로 직접 들어가야 보인다.
+  묶음 E에서 앞 단계가 전부 검증된 뒤에 켠다
+- 운영 DB DDL 실행 — 묶음 E 직전 별도 승인
+
+---
+
 ## ★다음 세션 인수인계 (2026-08-14 기준 환경 상태)
 
 **현재 떠 있는 것** — 다음 세션이 그대로 쓸 수 있다.
