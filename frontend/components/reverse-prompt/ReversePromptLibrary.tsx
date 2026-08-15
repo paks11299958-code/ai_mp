@@ -128,16 +128,21 @@ export const ReversePromptLibrary: React.FC = () => {
                     <RpError message={error} onRetry={() => void load(page)} />
                 )}
 
+                {/* ★빈 상태 — 신규 사용자가 처음 보는 화면이다.
+                    상단에 몰리면 화면이 휑해 보여서 세로 중앙에 놓고, 무엇을 하면 되는지
+                    한 줄 더 설명한다(2026-08-15 빈 상태 확인 중 보완). */}
                 {!loading && !error && items.length === 0 && (
-                    <div className="py-16 text-center">
-                        <div className="text-3xl mb-2">🗂️</div>
-                        <p className="text-sm font-bold">아직 보관한 프롬프트가 없어요</p>
-                        <p className="text-xs text-[#9089A1] mt-1">
-                            이미지를 분석하면 자동으로 여기에 쌓여요.
+                    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+                        <div className="text-4xl mb-3">🗂️</div>
+                        <p className="text-base font-extrabold">아직 보관한 프롬프트가 없어요</p>
+                        <p className="text-xs text-[#5C5468] mt-2 leading-relaxed">
+                            이미지를 올려 분석하면 결과가 자동으로 여기에 쌓여요.
+                            <br />
+                            나중에 다시 꺼내 복사하거나 변형해 쓸 수 있어요.
                         </p>
                         <button
                             onClick={() => { window.location.href = '/reverse-prompt'; }}
-                            className="mt-4 text-xs font-bold px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                            className="mt-5 text-sm font-bold px-5 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700"
                         >
                             이미지 올리러 가기
                         </button>
