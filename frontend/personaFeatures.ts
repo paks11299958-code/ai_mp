@@ -37,7 +37,8 @@ export type FeatureKey =
     | 'learn'
     // ★'learn'(박하진, 사이트 사용법 강의+퀴즈)과 이름이 비슷해 혼동하기 쉽다.
     // 'learning-coach'는 완전히 다른 기능 — 회원이 임의 주제를 스스로 배우는 AI 학습코칭이다.
-    | 'learning-coach';
+    | 'learning-coach'
+    | 'reverse-prompt';
 
 export interface FeatureMeta {
     key: FeatureKey;
@@ -74,6 +75,10 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'homepage',    label: '홈페이지 만들기', icon: 'Globe',     color: '#5C6AC4', bgColor: 'rgba(92,106,196,0.12)',    borderColor: '#AEB4E8' },
     // 'learn'(사이트 사용법 강의)과 다른 기능 — 혼동 방지로 별도 라벨·경로 사용.
     { key: 'learning-coach', label: 'AI 학습코칭', icon: 'BookOpen',  color: '#6366F1', bgColor: 'rgba(99,102,241,0.12)',    borderColor: '#A5A9F0' },
+    // ★라벨 주의: 전자책에 '전자책 그림 프롬프트 뽑기'(ebook_image_prompt)가 이미 있다.
+    //   그건 글 → 그림 프롬프트를 만드는 기능이고, 이쪽은 반대로 **이미지 → 프롬프트**다.
+    //   같은 "프롬프트 뽑기"로 부르면 둘을 구분할 수 없어 '이미지 → 프롬프트'로 붙인다.
+    { key: 'reverse-prompt', label: '이미지 → 프롬프트', icon: 'Sparkles', color: '#8B6020', bgColor: '#FEF6E8',            borderColor: '#E2C9A0' },
 ];
 
 export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
@@ -83,7 +88,7 @@ export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
 const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '서아':   ['news'],
     '윤채원': ['stock', 'hotkeyword'],
-    '이아린': ['used', 'hotkeyword', 'marketing', 'shorts-maker'],
+    '이아린': ['used', 'hotkeyword', 'marketing', 'shorts-maker', 'reverse-prompt'],
     '신은비': ['luxury'],
     '지우':   ['mathtutor', 'club'],
     '박하진': ['homepage', 'learn'],

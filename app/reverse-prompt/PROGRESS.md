@@ -1,7 +1,7 @@
 # 진행 상황 — 리버스 프롬프트 (app/reverse-prompt)
 
-**현재 묶음**: A~E-1 완료 / **E-2a·E-2b·E-2c 완료(백엔드 운영 배포됨)** / E-2d(프론트) 대기
-**브랜치**: `feature/reverse-prompt` (ai_mp, shared-api 양쪽)
+**현재 묶음**: A~E-1 완료 / **E-2 전 단계 완료(a~e) — 운영 배포 + 이아린에 진입점 노출**
+**브랜치**: `feature/reverse-prompt` → 양쪽 운영 브랜치에 머지됨(ai_mp `master`, shared-api `main`)
 **최종 갱신**: 2026-08-18
 
 ---
@@ -98,7 +98,105 @@ PostgreSQL은 DDL이 트랜잭션 가능하므로 마지막 인덱스에서 실�
 **되돌리려면**: `git revert --no-edit -m 1 69fc854` → `git push origin main`
 (autodeploy가 1분 내 자동 반영. DB 테이블은 남겨둔다 — 신규 테이블뿐이라 무해)
 
-**다음**: E-2d(프론트 Vercel `master` 머지 + ★사람이 Promote to Production 클릭)
+---
+
+## ★E-2d 완료 — 프론트 배포됨 (2026-08-18 KST 23:35)
+
+**머지 커밋**: `4a91aae`. 그러나 **실제 올라간 건 PROGRESS.md 문서 1개뿐**이다.
+
+★**프론트 코드는 이미 master에 있었다.** 이 브랜치는 처음부터 master 위에서 선형으로
+작업돼 왔고, 묶음 D(`63ff4fc`)와 `vercel.json` rewrite는 오래전에 master에 들어가 있었다.
+"feature를 master에 머지한다"는 계획은 **이미 끝나 있던 일**이었다.
+
+### ★Promote 클릭 지점이 없었다 — 자동 반영된다
+
+계획과 메모리 양쪽에 "배포 후 사람이 Promote to Production을 눌러야 반영"으로 적혀 있었으나
+**이번 실측은 달랐다.** push 직후 조회에서 Vercel이 **BUILDING 상태의 새 배포를 이미
+`targets.production.id`로 지정**해 두었고, 빌드가 끝나자 운영 번들이 그대로 교체됐다
+(`index-D3LMW52Q.js` → `index-FeWs4254.js`). 사람이 개입할 틈이 없었다.
+
+→ **master 푸시는 자동으로 production에 붙는다.** 이번엔 문서 1줄이라 무해했지만,
+코드 변경이었다면 확인 없이 운영이 바뀌었을 것이다. 다음 배포에서 한 번 더 확인할 것.
+
+### 배포 후 확인 (전부 실렌더)
+
+| 항목 | 결과 |
+|---|---|
+| `/` · `/learning` · `/learn` | ✅ 정상, 콘솔 에러 0 |
+| `/reverse-prompt` | ✅ 화면 뜸 — "🎨 리버스 프롬프트 … **오늘 2/2회 남음**" |
+| `/reverse-prompt/library` | ✅ 메인으로 리다이렉트(비로그인 전용 설계대로) |
+| 메인 진입점 | ✅ **미노출** — 관련 문구 0건, `reverse` 링크 0개 |
+
+`오늘 2/2회 남음`은 프론트가 백엔드 `/quota`를 실제 호출해 받은 값 — **E-2c 백엔드와
+프론트가 운영에서 연결돼 동작한다는 증거**다.
+
+---
+
+## ★E-2e 완료 — 운영 왕복 테스트 전건 통과 (2026-08-18 KST 23:40)
+
+EXIF를 일부러 심은 900x600 JPEG(12KB)로 서버1 로컬(`localhost:3020`)에서 실왕복.
+
+| 검증 | 결과 |
+|---|---|
+| 실제 분석 | ✅ HTTP 200 / **3.58초** / 도형·색·비율 정확 인식(`--ar 3:2` = 실제 900x600) |
+| 캐시 적중(2회차) | ✅ **0.056초**(64배), `cached: true` |
+| 캐시 시 한도 미차감 | ✅ `used`가 1에서 유지 — AI 미호출이므로 차감 안 함 |
+| **`environment`** | ✅ **`production`** — 원가 분리 실동작(서버1에 `RP_ENVIRONMENT` 없어 `NODE_ENV` 폴백) |
+| 로그 전건 기록 | ✅ 2건(실호출 + 캐시히트) 모두 기록 — PRD 6.2 준수 |
+| **실측 원가** | ✅ 입력 1,644 / 출력 308 = **$0.0012632** (E-1 추정 $0.0022보다 저렴) |
+| 게스트 한도 | ✅ `count=1`, visitorKey는 해시(원본 IP 아님) |
+| **원본 이미지 비저장** | ✅ 디스크 이미지 0건, DB `analysisJson` 1,139바이트(JSON뿐) |
+| **EXIF 제거** | ✅ 원본 234바이트 EXIF → 처리 후 **완전 소멸**(실측) |
+
+★E-1에서 비어 있던 증거 2건(원본 비저장·실제 EXIF 이미지)을 여기서 메웠다.
+서버1 테스트 잔여물(`/tmp/rp_*`)은 정리했다.
+
+---
+
+## ★진입점 노출 — 이아린 "이미지 → 프롬프트" (2026-08-18)
+
+### ★코드 4곳만으로는 뜨지 않는다 — DB `features`가 코드 폴백을 무시한다
+
+`getPersonaFeatureKeys()`는 **`features`가 있으면 그것만 신뢰하고 `NAME_FALLBACK`을
+아예 타지 않는다**(`personaFeatures.ts:112`). 이아린은 DB에 `features`가 채워져 있어
+코드의 폴백 배열에 키를 추가해도 **화면에는 아무 변화가 없다.**
+
+→ 운영 DB `Persona.features`에 키를 넣어야 한다(사용자 승인 후 실행):
+
+```sql
+UPDATE "Persona" SET features = '["used","hotkeyword","marketing","shorts-maker","reverse-prompt"]'
+ WHERE id = 'cmon1gg3z000104k2p802tp44' AND name = '이아린';
+-- 결과: UPDATE 1 (단일 트랜잭션, id+name 이중 조건)
+```
+
+**변경 전 값**(되돌릴 때 사용): `["used","hotkeyword","marketing","shorts-maker"]`
+다른 9개 페르소나의 `features`는 변경 전후 동일함을 전수 대조로 확인했다.
+
+★DB를 먼저 바꿔도 **운영 사고는 없다** — `k in FEATURE_BY_KEY` 필터가 미등록 키를
+조용히 걸러내므로, 프론트 배포 전까지는 카드가 뜨지 않을 뿐이다.
+
+### 등록한 곳 — 4곳 (`featureLabels.ts`는 대상 아님)
+
+| 파일 | 내용 |
+|---|---|
+| `frontend/personaFeatures.ts` | `FeatureKey` 유니온 + `FEATURE_REGISTRY` 카드 + `NAME_FALLBACK` |
+| `frontend/App.tsx` | 클릭 → `/reverse-prompt` 이동 바인딩 |
+| `frontend/services/referral.ts` | 공유 라벨 |
+| `frontend/components/MainPageNew.tsx` | 검색 동의어 17개(미드저니·역추출·화풍 등) |
+
+★**`frontend/lib/featureLabels.ts`는 등록하지 않는다.** 그 파일은 주석에 적힌 대로
+**포인트를 차감하는 기능**의 키만 모으는데, 리버스 프롬프트는 포인트 차감이 없다
+(비로그인 2회 무료). 넣으면 어드민 메뉴권한 탭에 단가 없는 항목이 생긴다.
+★메모리엔 "기능 키 등록 4곳 = 카드/진입경로/공유라벨/**검색어**"로 적혀 있는데
+`featureLabels.ts`가 아니라 `MainPageNew.tsx`의 `FEATURE_SYNONYMS`가 그 네 번째다.
+
+### ★라벨을 "프롬프트 뽑기"로 하지 않은 이유
+
+전자책에 **"전자책 그림 프롬프트 뽑기"**(`ebook_image_prompt`)가 이미 있다. 그건
+**글 → 그림 프롬프트**이고 이쪽은 반대로 **이미지 → 프롬프트**라, 같은 이름을 쓰면
+둘을 구분할 수 없다. 방향이 드러나게 **"이미지 → 프롬프트"**로 정했다.
+
+**되돌리려면**: 위 SQL의 features를 변경 전 값으로 UPDATE(즉시 반영, 배포 불필요).
 
 ---
 

@@ -463,6 +463,7 @@ const AppContent: React.FC = () => {
         'shorts-maker': () => setShowShortsMakerBoard(true),
         learn: () => { window.location.href = '/learn'; }, // 박하진 학습자료 — 시리즈 목록(1편·2편 선택). 얼리리턴 라우트
         'learning-coach': () => { window.location.href = '/learning'; }, // AI 학습코칭 — 'learn'과 다른 기능·경로. 얼리리턴 라우트
+        'reverse-prompt': () => { window.location.href = '/reverse-prompt'; }, // 이미지 → MJ/SD 프롬프트. 얼리리턴 라우트
     };
 
     // 공지사항
