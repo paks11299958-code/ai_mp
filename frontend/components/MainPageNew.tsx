@@ -381,6 +381,9 @@ export const FEATURES_GRID = [
     { id: 26, numeral: 'XXVI',latin: 'Rebirth', key: 'rebirth', name: '전생 이야기',   tag: 'AI 전생 풀이',   catch: '내 전생은 누구였을까? 🕉️', category: 'fortune', desc: '도결 선생이 전생의 신분·시대·삶을 이야기처럼 풀고, 지금의 나에게 남긴 업(業)과 기질까지 짚어드려요.', icon: 'moon',   palette: { bg: '#EDE7F6', deep: '#B4A0D8', accent: '#5E4A9E' }, personaName: '도결(道潔) 선생', releasedAt: '2026-07-28' },
     { id: 27, numeral: 'XXVII',latin: 'Palm',   key: 'palm',    name: '손금 보기',     tag: 'AI 손금 분석',   catch: '손바닥에 그려진 내 인생 🖐', category: 'fortune', desc: '손바닥 사진 한 장이면 도결 선생이 생명선·감정선·재물운을 읽어드려요.',                                    icon: 'gwansang', palette: { bg: '#F2ECE2', deep: '#CDB79B', accent: '#8A6742' }, personaName: '도결(道潔) 선생', releasedAt: '2026-07-28' },
     { id: 28, numeral: 'XXVIII',latin: 'Friend',key: 'friendship',name: '우정 궁합',   tag: 'AI 친구 궁합',   catch: '우리, 얼마나 잘 맞는 친구일까? 🤝', category: 'fortune', desc: '나와 친구, 또는 친구 둘 사이의 우정을 도결 선생이 제3자의 눈으로 헤아려드려요.',                        icon: 'people',  palette: { bg: '#E6F0EC', deep: '#A3C8B8', accent: '#3E7A62' }, personaName: '도결(道潔) 선생', releasedAt: '2026-07-28' },
+    // ★이름 주의: 전자책에 '그림 프롬프트 뽑기'가 이미 있다(글→그림). 이쪽은 반대 방향
+    //   (이미지→프롬프트)이라 같은 이름을 쓰면 구분이 안 돼 '이미지 → 프롬프트'로 붙였다.
+    { id: 29, numeral: 'XXIX',latin: 'Reverse',key: 'reverse-prompt',name: '이미지 → 프롬프트', tag: 'AI 프롬프트 역추출', catch: '마음에 든 그림, 어떻게 만들었을까? 🎨', category: 'create', desc: '마음에 드는 이미지를 올리면 Midjourney와 Stable Diffusion 프롬프트를 한 번에 뽑아드려요. 화풍·구도·조명까지 분석해 그대로 따라 만들 수 있어요.', icon: 'sparkles', palette: { bg: '#FEF6E8', deep: '#E2C9A0', accent: '#8B6020' }, personaName: '이아린',  releasedAt: '2026-08-18' },
 ];
 
 // 기능 연관 키워드(동의어) 맵 — 이름/설명에 없는 표현으로도 찾게 함.
