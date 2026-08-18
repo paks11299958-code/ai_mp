@@ -290,21 +290,289 @@ FROM information_schema.columns WHERE table_name='RpAiUsageLog' ORDER BY ordinal
 3-0에서 0건을 확인했으므로 나올 수 없는 메시지다. 나왔다면 조회 시점과 실행 시점 사이에
 무언가 바뀐 것이므로 원인을 먼저 밝힌다.
 
-### 3-2. shared-api 재시작 (서버1)
+### 3-2. shared-api 배포 = ★**머지 시각이 곧 재시작 시각이다** (2026-08-18 전면 재작성)
 
 ★**이 단계가 유일하게 기존 aichat에 영향을 준다.** 아래 4장 참조.
 
-```sh
-cd ~/shared-api && npm run pm2:reload        # ecosystem.config.cjs 기준
-pm2 logs shared-api --lines 30               # 기동 확인
-curl -s localhost:3020/api/health            # {"ok":true,...}
+#### 왜 다시 썼나 — 초판의 "사람이 pm2:reload를 친다"는 실행될 기회가 없다
+
+서버1 crontab에 **자동배포가 1분마다 돌고 있다.**
+
+```
+* * * * * /bin/bash $HOME/shared-api-autodeploy.sh
 ```
 
-**검증**
-```sh
-curl -s localhost:3020/api/aimp/reverse-prompt/quota
-# → {"limit":2,"used":0,"remaining":0또는2,"isLoggedIn":false}
+`origin/main`에 새 커밋이 있으면 **자동으로** pull → (필요시) `npm install` →
+(필요시) `prisma generate` → `npx tsc --noEmit` → `pm2 reload`까지 한다.
+
+→ **`main`에 머지하는 순간 최대 1분 안에 재시작이 일어난다.**
+  **머지 시각을 고르는 것이 곧 중단 시각을 고르는 것이다.** 사람이 reload를 칠 틈은 없다.
+
+★따라서 **트래픽 적은 시간대에 "머지"를 한다.** 머지해 두고 나중에 재시작하는 선택지는 없다.
+
+#### ★선행 조건 — 지금 자동배포가 고장나 있다 (반드시 먼저 해소)
+
 ```
+마지막 성공 배포 : 2026-08-13 23:15  (8f77564)
+그 직후부터 실패  : 2026-08-13 23:19 ~ 현재, pull 실패 6,481회
+원인             : 미추적 파일 scripts/hide-chibi-concept.cjs 가 pull 대상과 충돌
+                   error: untracked working tree files would be overwritten by merge
+결과             : 서버1이 origin/main보다 1커밋 뒤짐 (d031c7f 미반영)
+```
+
+**이 상태로 머지하면 우리 커밋도 똑같이 pull 실패하고 배포가 아예 안 된다.**
+(에러는 로그에만 남고 화면엔 아무 일도 안 일어나므로 "왜 반영이 안 되지"로 헤맨다.)
+
+해소 방법 — 그 파일은 **`origin/main`의 커밋본과 바이트 단위로 동일**함을 확인했다
+(`git show origin/main:... | diff -` → 동일). 즉 지울 때 잃는 내용이 없다.
+
+```sh
+ssh 10.178.0.2 'cd ~/shared-api && rm scripts/hide-chibi-concept.cjs'
+# 다음 1분 안에 autodeploy가 d031c7f를 자동 배포 → 재시작 1회 발생(20~30초)
+```
+
+★**이 해소 작업 자체가 재시작을 유발한다.** 그러므로 이것도 **13:10~13:50 안에서** 한다.
+밀린 커밋(`d031c7f`)은 1회성 스크립트 기록이라 런타임 코드가 아니지만, reload는 똑같이 일어난다.
+
+권장 순서: **①미추적 파일 제거 → 자동배포 정상화 확인(중단 1회) → ②우리 브랜치 머지(중단 2회)**
+두 번을 한 창구에서 끝낸다. ①을 건너뛰면 ②가 조용히 실패한다.
+
+#### 실행 시각 — ★평일 KST 13:10~13:50, 정각 회피
+
+28일 접속 통계 기준(크론 트래픽 제외한 순수 사람 활동):
+
+| 구간 | 28일 합계 | 하루 평균 |
+|---|---|---|
+| KST 13시 | 10건 | 0.36 |
+| KST 14시 | 13건 | 0.46 |
+
+- **정각을 피한다** — 매시 정각에 `learning-notify`(UTC `0 * * * *`)가 돈다
+- **13:00 / 14:00 정각 ±2분을 피해 13:10~13:50에 머지**한다
+- 새벽 04~06시가 사람 활동 0건이라 더 안전하지만, **문제 발생 시 판단할 사람이 깨어 있는 것**이
+  더 중요하다고 보아 낮 시간대를 택했다(사용자 결정)
+
+#### ★이번 배포는 20~30초가 아니라 **35~60초**로 잡는다
+
+`package.json`에 **`sharp`가 추가**되고 `prisma/schema.prisma`도 바뀌므로
+autodeploy가 `npm install` + `prisma generate`를 **둘 다** 수행한다.
+서버1에 sharp는 **아직 설치돼 있지 않다**(`node_modules/sharp` 없음).
+
+실측 사례(2026-08-13, npm install + prisma generate 동반 배포):
+
+```
+12:21:02 새 커밋 감지
+12:21:03 npm install 실행      (약 8초)
+12:21:11 prisma generate 실행  (약 2초)
+12:21:37 배포 완료             ← 감지부터 완료까지 35초
+```
+
+★sharp는 네이티브 바이너리를 받으므로 위 8초보다 오래 걸릴 수 있다.
+**실제 요청이 끊기는 구간은 `pm2 reload` 이후 ts-node 부팅까지의 20~30초**이고,
+`npm install`·`prisma generate`가 도는 동안에는 **기존 프로세스가 그대로 응답한다.**
+
+#### 머지 명령 (★대상 브랜치 주의 — 0-1절)
+
+```sh
+cd ~/shared-api                      # ★shared-api는 main (ai_mp는 master)
+git ls-remote --heads origin         # main만 있는지 눈으로 확인
+git checkout main && git pull origin main
+git merge --no-ff feature/reverse-prompt
+git push origin main                 # ← ★이 순간부터 최대 1분 뒤 재시작
+```
+
+★`git push` 시각을 기록해 둔다. 아래 감시의 기준점이 된다.
+
+---
+
+### 3-2-1. ★머지 직후 감시 — 무엇을 몇 분간 볼 것인가
+
+푸시 후 **최소 10분**은 자리를 지킨다. 아래 3가지를 동시에 본다.
+
+#### 감시 A — autodeploy 로그 (푸시 후 0~2분)
+
+```sh
+ssh 10.178.0.2 'tail -f ~/shared-api-autodeploy.log'
+```
+
+**정상이면 이 순서로 찍힌다:**
+
+```
+새 커밋 감지: 8f77564 → <새 해시>
+package.json 변경 감지 → npm install 실행
+prisma/schema.prisma 변경 감지 → prisma generate 실행
+✔ Generated Prisma Client (v7.8.0) ...
+[PM2] Applying action reloadProcessId on app [shared-api](ids: [ 0 ])
+[PM2] [shared-api](0) ✓
+배포 완료: <새 해시> / "status":"online"
+```
+
+★**`배포 완료`가 안 뜨고 `ERROR:`가 뜨면 reload는 일어나지 않았다**(서버는 구버전 그대로 정상 동작).
+스크립트가 각 단계 실패 시 `exit 1`로 빠지므로 **깨진 코드가 반영되는 경로가 없다.**
+
+| 로그 | 의미 | 조치 |
+|---|---|---|
+| `ERROR: pull 실패` | 미추적 파일 충돌 등 | 선행 조건 미해소. 파일 정리 후 재시도 |
+| `ERROR: npm install 실패` | sharp 빌드 실패 등 | **reload 안 됨.** 원인 확인, 서비스는 무사 |
+| `ERROR: 타입 체크 실패` | tsc 오류 | **reload 안 됨.** 코드 고쳐 재푸시 |
+| `WARN: 로컬이 원격보다 앞섬` | 서버1에서 직접 커밋한 것이 있음 | 배포 중단됨. 수동 확인 |
+| `배포 완료 ... "status":"online"` | ✅ 정상 | 감시 B로 |
+
+#### 감시 B — pm2 상태와 에러 로그 (푸시 후 1~5분)
+
+★**`restart_time`(↺)을 푸시 전에 적어둔다.** 현재 **4976**이다.
+
+```sh
+ssh 10.178.0.2 'cd ~/shared-api && ./node_modules/.bin/pm2 list'
+```
+
+| 관찰 | 판정 |
+|---|---|
+| `↺`가 **1만 증가**하고 `status=online`, `uptime`이 새로 시작 | ✅ 정상 |
+| ★`↺`가 **계속 증가**(2, 3, 4...) | ❌ **크래시 루프.** 즉시 롤백 |
+| `status=errored` / `stopped` | ❌ 즉시 롤백 |
+
+```sh
+# 실시간 에러 로그 — 부팅 실패는 여기 찍힌다
+ssh 10.178.0.2 'cd ~/shared-api && tail -f logs/error-$(date +%F).log'
+```
+
+#### 감시 C — ★기존 API가 살아 있는지 (푸시 후 0~10분)
+
+**신규 기능이 되는지보다 기존 aichat이 무사한지가 먼저다.**
+
+```sh
+# 30초 간격으로 10분간 (운영 도메인 = Vercel 프록시 경유까지 확인)
+for i in $(seq 1 20); do
+  printf "%s health=%s " "$(date +%H:%M:%S)" \
+    "$(curl -s -m 10 -o /dev/null -w '%{http_code}' https://aichat.dbzone.kr/api/health)"
+  printf "personas=%s\n" \
+    "$(curl -s -m 10 -o /dev/null -w '%{http_code}' https://aichat.dbzone.kr/api/aimp/personas)"
+  sleep 30
+done
+```
+
+- 재시작 순간의 **1~2회 502/504는 예상된 것**이다(20~30초 중단)
+- ★**3분이 지나도 200으로 안 돌아오면 롤백**한다
+- 화면으로도 확인: `https://aichat.dbzone.kr` 메인, `/learning`(학습코칭) 실제 렌더
+
+---
+
+### 3-2-2. ★tsc는 통과하는데 런타임에서 죽는 경우 — 어떻게 감지하나
+
+autodeploy의 `npx tsc --noEmit` 게이트는 **문법·타입 오류만** 막는다.
+아래는 **전부 tsc를 통과하고 부팅 시점에 터진다.** 이번 변경에 해당 위험이 실재한다.
+
+| 위험 | 이번 변경에서의 근거 | 터지는 시점 |
+|---|---|---|
+| **`sharp` 네이티브 모듈 로드 실패** | 서버1에 sharp 미설치, 이번에 처음 설치됨. libvips 네이티브 바이너리 의존 | `import` 시점 = **부팅 즉시** |
+| **`routes/aimp/index.ts` import 체인** | 신규 라우터가 `index.ts`에 등록됨 → 하위 import 하나만 터져도 **라우터 전체가 안 올라옴** | 부팅 즉시 |
+| Prisma Client에 `Rp*` 모델 없음 | `prisma generate` 실패 시 `prisma.rpItem` 이 undefined | 첫 요청 시 |
+| 환경변수 누락(`RP_VERTEX_LOCATION` 등) | 상수 파일이 기본값을 갖는지 여부에 달림 | 첫 요청 시 |
+
+★**가장 무서운 것은 두 번째다.** 신규 라우터 하나가 죽으면 `routes/aimp/index.ts`가
+통째로 실패해 **기존 aichat API 전체가 죽는다.** 리버스 프롬프트만 안 되는 게 아니다.
+
+#### 감지 방법 — 3층으로 본다
+
+**1층. 프로세스가 살아 있나** (부팅 실패는 여기서 즉시 드러난다)
+
+```sh
+ssh 10.178.0.2 'cd ~/shared-api && ./node_modules/.bin/pm2 list'
+```
+`autorestart: true`라 죽으면 pm2가 계속 되살린다 → **`↺`가 빠르게 증가하는 것이 크래시 신호**다.
+`status=online`인데 ↺만 오르면 "부팅 → 크래시 → 재부팅"을 반복 중이다.
+
+**2층. 부팅 로그에 예외가 있나**
+
+```sh
+ssh 10.178.0.2 'cd ~/shared-api && tail -50 logs/error-$(date +%F).log'
+ssh 10.178.0.2 'cd ~/shared-api && ./node_modules/.bin/pm2 logs shared-api --lines 50 --nostream'
+```
+찾을 문자열: `Cannot find module`, `sharp`, `libvips`, `ERR_DLOPEN_FAILED`,
+`PrismaClientInitializationError`, `Cannot read properties of undefined`
+
+**3층. ★기존 라우트가 실제로 응답하나** (이게 결정적이다)
+
+프로세스가 online이어도 라우터가 안 붙었을 수 있다. **health만 보면 속는다** —
+`/api/health`는 라우터 등록 실패와 무관하게 응답할 수 있다.
+
+```sh
+# ★기존 기능 라우트를 직접 때려본다
+curl -s -m 10 -o /dev/null -w "personas=%{http_code}\n"  localhost:3020/api/aimp/personas
+curl -s -m 10 -o /dev/null -w "learning=%{http_code}\n"  localhost:3020/api/aimp/learning/quota
+curl -s -m 10 -o /dev/null -w "health=%{http_code}\n"    localhost:3020/api/health
+```
+
+★**`/api/health`는 200인데 `/api/aimp/personas`가 404/500이면 라우터 등록이 실패한 것이다.**
+이 조합이 나오면 **즉시 롤백**한다.
+
+**신규 라우트 확인은 그 다음이다:**
+```sh
+curl -s -m 10 localhost:3020/api/aimp/reverse-prompt/quota
+# → {"limit":2,"used":0,"remaining":2,"isLoggedIn":false}
+```
+★이게 실패해도 **기존 API가 전부 정상이면 롤백하지 않아도 된다** — 진입점을 켜지 않았으므로
+사용자에게 노출되지 않는다. 원인을 보고 다음 판단을 한다.
+
+---
+
+### 3-2-3. ★롤백 — autodeploy 기준으로 다시 씀
+
+#### ★핵심: revert 커밋을 push하면 자동으로 되돌아간다 (스크립트 로직으로 확인)
+
+autodeploy는 "새 기능 커밋"과 "revert 커밋"을 **구분하지 않는다.**
+`origin/main`이 로컬보다 앞서기만 하면 pull + reload 한다.
+
+```sh
+git merge-base --is-ancestor "$REMOTE" "$LOCAL"   # 원격이 로컬의 조상인가?
+#   참  → 로컬이 앞섬 → 배포 안 함(경고만)
+#   거짓 → 원격이 앞섬 → pull + reload   ← revert 커밋도 여기에 해당
+```
+
+revert 커밋은 **원격을 앞서게 만드는 새 커밋**이므로 정상 배포 경로를 탄다.
+따라서 **롤백도 push 한 번이면 자동으로 반영된다.**
+
+```sh
+cd ~/shared-api
+git revert --no-edit -m 1 <머지커밋해시>   # -m 1 = main 쪽을 부모로
+git push origin main                        # ← 최대 1분 뒤 자동 롤백 + 재시작
+```
+
+★**`-m 1`을 빼면 "merge commit이라 어느 부모인지 모른다"며 실패한다.** 머지 커밋 revert의 함정이다.
+
+#### ★롤백도 중단을 한 번 더 일으킨다
+
+| 시점 | 중단 |
+|---|---|
+| 머지 push | 20~30초 (npm install 포함 시 감지~완료 35~60초) |
+| revert push | **20~30초 한 번 더** |
+
+즉 문제가 나면 **총 2회 중단**이다. 13:10~13:50 창구를 잡을 때 이 여유를 감안한다.
+`sharp`는 이미 설치돼 있으므로 롤백 시 `npm install`은 다시 돌지 않는다(더 빠르다).
+
+#### 되돌릴 때 DB는 건드리지 않는다
+
+`Rp*` 4개 테이블은 **그대로 둔다.** 코드가 없으면 아무도 읽지 않는 빈 테이블일 뿐이고,
+다시 배포할 때 재사용된다. DROP은 이 기능을 완전히 접기로 결정했을 때만 한다.
+
+#### 긴급도별 선택지
+
+| 상황 | 조치 | 중단 |
+|---|---|---|
+| 리버스 프롬프트만 실패, 기존 API 정상 | **아무것도 안 한다.** 진입점 미노출이라 사용자 영향 0 | 없음 |
+| 기존 API 일부 이상 | revert push | +20~30초 |
+| ★크래시 루프(↺ 급증) | revert push. 급하면 `pm2 stop shared-api` 후 revert | +20~30초 |
+| 프론트만 문제 | Vercel에서 이전 배포 Promote | **없음** |
+
+★**가장 싼 응급 조치는 여전히 "진입점을 안 켜는 것"이다.** E-2e 전까지는 사용자 유입이 0이므로,
+백엔드에 문제가 있어도 **급히 롤백할 이유가 없다.** 원인을 보고 판단할 시간이 있다.
+
+#### ★하지 말 것
+
+- **서버1에서 직접 코드를 고치지 않는다.** 로컬이 원격보다 앞서면 autodeploy가
+  `WARN: 로컬이 원격보다 앞섬`으로 **배포를 멈춘다**(2026-08-11에 재시작 4,960회 사고를 낸 그 경로).
+  고칠 것이 있으면 서버2에서 고쳐 push한다
+- **`pm2 reload`를 손으로 치지 않는다.** autodeploy와 경합한다
 
 ### 3-3. 프론트 배포 (Vercel)
 
@@ -329,13 +597,17 @@ npm run smoke                                # 운영 렌더 확인
 
 | 항목 | 내용 |
 |---|---|
-| 영향 범위 | **aichat 전체 API** — 채팅·학습코칭·전자책·토스봇 등 모든 기능 |
-| 중단 시간 | `pm2 reload` 기준 **수 초** (ts-node 부팅 포함 20~30초 관측) |
+| 영향 범위 | **aichat 전체 API** — 채팅·학습코칭·전자책 등 모든 기능 (토스봇은 별도 pm2 프로세스라 무관) |
+| 중단 시간 | ts-node 부팅 포함 **20~30초**. ★이번엔 `npm install`(sharp)+`prisma generate`가 붙어 **감지~완료 35~60초** |
 | 증상 | 그 사이 요청은 502 또는 연결 거부 |
-| 크론 충돌 | 서버1 크론이 매분 `learning-module-worker`를 호출한다. 재시작과 겹치면 그 1회가 실패하고 `~/aimp-cron.log`에 FAIL이 남는다. **다음 분에 정상 복구**되므로 무해하나, 로그를 보고 놀라지 않도록 알아둔다 |
-| 권장 시점 | **트래픽이 적은 시간대.** 사용자 확인 필수 |
+| 트리거 | ★**`main` 푸시.** 사람이 reload를 치는 게 아니라 autodeploy가 1분 내 자동 수행(3-2절) |
+| 크론 충돌 | ★매분 도는 워커가 **7종**이다(stock/used-item/luxury/insurance/ebook-image-slot/ebook-cover/learning-module). 재시작과 겹치면 각 1회 실패하고 `~/aimp-cron.log`에 FAIL이 남는다. **다음 분에 정상 복구**되므로 무해하나, 로그를 보고 놀라지 않도록 알아둔다 |
+| 권장 시점 | ★**평일 KST 13:10~13:50, 정각 회피**(28일 통계 근거는 3-2절) |
 
 ★`pm2 reload`는 무중단을 지향하지만 `instances: 1`이라 실질적으로 재시작이다.
+
+★**토스봇은 영향 없다** — `toss-trader`·`toss-trader-paper`가 별도 pm2 프로세스로 돌고
+`shared-api` reload와 무관하다(2026-08-18 `pm2 list` 확인).
 
 ---
 
@@ -343,8 +615,8 @@ npm run smoke                                # 운영 렌더 확인
 
 | 단계 | 롤백 방법 | 가능? | ★추가 중단 |
 |---|---|---|---|
-| **3-1 DDL** | `DROP TABLE "RpItem","RpAnalysisCache","RpGuestUsage","RpAiUsageLog" CASCADE;` | ✅ | 없음 (기존 테이블 무관) |
-| **3-2 재시작** | 이전 커밋 `git checkout` 후 재기동 | ✅ | **20~30초** ★ |
+| **3-1 DDL** | `DROP TABLE "RpItem","RpAnalysisCache","RpGuestUsage","RpAiUsageLog" CASCADE;` ★단 롤백 시 보통 **테이블은 그대로 둔다**(3-2-3 참조) | ✅ | 없음 (기존 테이블 무관) |
+| **3-2 배포** | ★**revert 커밋 push** → autodeploy가 자동 롤백. `git revert -m 1 <머지해시>` (상세 3-2-3) | ✅ | **20~30초** ★ |
 | **3-3 Vercel** | 콘솔에서 이전 배포를 Promote | ✅ | 없음 (프론트만) |
 | **3-4 진입점** | 링크 제거 후 재배포 | ✅ | 없음 (프론트만) |
 
@@ -424,9 +696,16 @@ E-1의 14개 항목 중 아래 둘은 다른 항목들과 근거의 성격이 �
 - [x] 실행 전후 `diff` → **추가 4줄 외 변화 없음**, `User` 73행·20컬럼 유지
 - [x] 보고 → 승인
 
-**E-2c** (재시작)
-- [ ] `npm run pm2:reload` → `/api/health` 확인
-- [ ] `/api/aimp/reverse-prompt/quota` 응답 확인
+**E-2c** (머지 = 재시작) — ★절차 전문은 3-2 / 3-2-1 / 3-2-2 / 3-2-3
+- [ ] ★**선행**: 서버1 미추적 파일 `scripts/hide-chibi-concept.cjs` 제거 →
+      autodeploy 정상화 확인(`배포 완료: d031c7f`). **이것도 재시작 1회를 유발**하므로 창구 안에서
+- [ ] 푸시 전 `pm2 list`의 `↺` 값 기록 (현재 **4976**)
+- [ ] ★**평일 KST 13:10~13:50, 정각 회피**에 `git push origin main`
+- [ ] 감시 A: autodeploy 로그에 `배포 완료 ... "status":"online"` (0~2분)
+- [ ] 감시 B: `↺`가 **1만** 증가, `status=online` (1~5분) — 계속 증가하면 크래시 루프
+- [ ] 감시 C: 운영 도메인 `/api/health` + `/api/aimp/personas` 30초 간격 10분
+- [ ] ★런타임 사망 감지: `/api/health` 200인데 `/api/aimp/personas` 404/500이면 **즉시 롤백**
+- [ ] `/api/aimp/reverse-prompt/quota` 응답 확인 (실패해도 기존 API 정상이면 롤백 불필요)
 - [ ] ★E-1 보완: 요청 처리 중 `/tmp` 스냅샷 비교(원본 미저장 실측)
 - [ ] ★E-1 보완: EXIF 심긴 이미지 실제 업로드 → 결과물 EXIF 부재 확인
 - [ ] 첫 호출이 `environment='production'`으로 기록되는지 확인
