@@ -1,6 +1,6 @@
 # 진행 상황 — 리버스 프롬프트 (app/reverse-prompt)
 
-**현재 묶음**: A~E-1 완료 / **E-2a·E-2b 완료(운영 DDL 적용됨)** / E-2c 이후 대기
+**현재 묶음**: A~E-1 완료 / **E-2a·E-2b·E-2c 완료(백엔드 운영 배포됨)** / E-2d(프론트) 대기
 **브랜치**: `feature/reverse-prompt` (ai_mp, shared-api 양쪽)
 **최종 갱신**: 2026-08-18
 
@@ -32,7 +32,73 @@ PostgreSQL은 DDL이 트랜잭션 가능하므로 마지막 인덱스에서 실�
 **되돌리려면**: `DROP TABLE "RpItem","RpAnalysisCache","RpGuestUsage","RpAiUsageLog" CASCADE;`
 (신규 테이블뿐이라 기존 데이터 손실 경로 없음, 재시작 불필요)
 
-**다음**: E-2c(shared-api 재시작 — ★aichat 전체 20~30초 중단) **별도 승인 대기**
+---
+
+## ★E-2c 완료 — shared-api 백엔드 운영 배포됨 (2026-08-18 KST 23:14)
+
+**머지 커밋**: `69fc854` (`feature/reverse-prompt` → `main`, `--no-ff`, 6커밋 병합, 충돌 0)
+**실제 중단**: 감지 14:14:03 → 완료 14:14:45 (UTC) = **42초**. 계획서 예상(35~60초) 안.
+
+### 선행 조건은 이미 해소돼 있었다
+
+계획서는 "autodeploy가 `scripts/hide-chibi-concept.cjs` 때문에 08-13부터 pull 실패 중
+(6,481회)이므로 `rm` 후 진행"을 전제했다. **실행 시점에는 이미 해결된 상태였다** —
+12:01 이후 누군가 수동으로 정리했고, 해당 파일은 **추적 파일이 되어 커밋에 포함**됐다.
+서버1 `local == origin/main == 1ea0cc6`으로 동기화 확인 후 `rm` 없이 바로 머지했다.
+→ 재시작은 계획의 2회가 아니라 **1회**로 끝났다.
+
+★**계획서의 선행 조건은 실행 직전에 다시 확인해야 한다.** 며칠 전 조사한 장애 상태를
+그대로 믿고 `rm`을 먼저 때렸다면 불필요한 재시작이 한 번 더 발생했을 것이다.
+
+### 배포 전 검증 (push 전에 수행)
+
+`feature` 브랜치가 `origin/main`보다 **2커밋 뒤처져 있었다**(`2443a38`, `1ea0cc6`).
+그래서 feature 브랜치 상태로 돌린 tsc는 **실제 배포될 코드가 아니다.**
+→ 로컬 `main`에 먼저 머지한 뒤 **머지 결과물로 `tsc --noEmit` 재실행(exit 0)** 하고 push했다.
+
+### 배포 로그 (autodeploy 전문)
+
+```
+14:14:02 새 커밋 감지: 1ea0cc6 → 69fc854
+14:14:03 package.json 변경 감지 → npm install 실행     ← sharp 신규
+14:14:12 prisma/schema.prisma 변경 감지 → prisma generate 실행
+         ✔ Generated Prisma Client (v7.8.0) in 1.74s
+         [PM2] Applying action reloadProcessId on app [shared-api]
+14:14:45 배포 완료: 69fc854 / "status":"online"
+```
+
+★DDL은 E-2b에서 이미 적용했으므로 `prisma generate`(클라이언트 재생성)만 돌았다.
+마이그레이션 실행 경로는 없었다.
+
+### 검증 결과 — A·B·C 전부 통과
+
+| 검사 | 기대 | 실측 |
+|---|---|---|
+| A. autodeploy 로그 | 에러 없이 `배포 완료` | ✅ npm install→generate→reload 전부 성공 |
+| B. pm2 `↺` | 4978 → 4979 (정확히 +1) | ✅ **4979**, `status: online` |
+| B. toss-trader 2종 | 영향 없음 | ✅ `↺ 0` 유지 |
+| C. 기존 `/api/health` | 200 | ✅ 200 |
+| C. 기존 `/api/aimp/personas` | 200 | ✅ 200 |
+| C. 신규 `/api/aimp/reverse-prompt/quota` | 배포 전 404 → 후 200 | ✅ **404 → 200** |
+| C. `/reverse-prompt/items` 비로그인 | 401 | ✅ 401 (인증 가드 동작) |
+| 런타임 사망 | `↺` 증가 없음 | ✅ **10분간 4979 고정** |
+| pm2 에러 로그 | 신규 에러 0 | ✅ 최종 기록이 **2026-08-13** — 배포 후 0건 |
+| 분당 크론 워커 | 200 | ✅ learning-module/insurance/stock 전부 200 |
+| 운영 DB | Rp 4개 / 총 101 | ✅ 일치 |
+
+`quota` 응답 본문 = `{"limit":2,"used":0,"remaining":2,"isLoggedIn":false}`
+→ 비로그인 하루 2회 한도가 설계대로 동작한다.
+
+### ★검증 경로 함정 — `aichat.dbzone.kr/api/aimp/*`는 404가 정상
+
+외부 도메인으로 검증하려다 `health`·`personas`까지 전부 404가 나와 장애로 오인할 뻔했다.
+**그 도메인은 `/api/aimp/*`를 프록시하지 않는다**(`work_index.md:3462`에 같은 오판이 기록돼 있다).
+검증은 반드시 **서버1 로컬 `curl localhost:3020`**으로 한다. 포트도 3013이 아니라 **3020**이다.
+
+**되돌리려면**: `git revert --no-edit -m 1 69fc854` → `git push origin main`
+(autodeploy가 1분 내 자동 반영. DB 테이블은 남겨둔다 — 신규 테이블뿐이라 무해)
+
+**다음**: E-2d(프론트 Vercel `master` 머지 + ★사람이 Promote to Production 클릭)
 
 ---
 
