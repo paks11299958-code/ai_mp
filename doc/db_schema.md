@@ -534,3 +534,40 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   통합테스트 중 발견 → DDL 실행으로 해결). 컬럼 추가 시 운영 DB 반영 여부를 반드시 확인할 것.
 - `LcAiUsageLog.model`에 남는 값은 2026-08-13부터 `gemini-2.5-flash`(그 전은 `claude-sonnet-5`).
   단가표에서 **옛 모델 단가를 지우면 과거 로그가 0원**이 되므로 남겨 둔다.
+
+---
+
+## Rp* 4개 (2026-08-18 신설, 🎨 리버스 프롬프트 — **prisma schema 반영**, 운영 DB 실행 완료)
+
+기능 설명은 `doc/features/reverse_prompt.md`. 소유자 `aichat_user`.
+**기존 테이블은 ALTER/DROP 하지 않았다** — `User`는 FK 참조 대상일 뿐이다(97 → 101개).
+
+| 모델 | 키 | 용도 |
+|---|---|---|
+| `RpItem` | id (cuid) | 보관 항목(로그인 전용). `imageHash`·`analysisJson`·`mjPrompt`·`sdPositive`·`sdNegative`. `userId` FK **CASCADE** |
+| `RpAnalysisCache` | **`imageHash` @id** | 해시 기반 분석 캐시 — SHA-256 자체가 PK. `hitCount`·`lastUsedAt` |
+| `RpGuestUsage` | id (cuid) | 비로그인 일일 사용량. `(visitorKey, usedDate)` **UNIQUE** = 한도 검사 인덱스 |
+| `RpAiUsageLog` | id (cuid) | AI 호출 **전건** 기록(실패·캐시히트 포함). `userId` FK **SET NULL**(비로그인 NULL) |
+
+인덱스 7개(UNIQUE 1 포함). PK 자동 4개까지 더하면 조회에는 11개.
+
+**설계 결정**
+- JSON은 jsonb가 아니라 **TEXT에 stringify** — 기존 71개 모델 중 Json 타입 사용처가 0곳이라
+  관례를 따랐다(`choicesJson`·`analysisJson` 선례).
+- `costUsd`는 Decimal이 아니라 **DOUBLE PRECISION** — `LcAiUsageLog` 선례. Decimal 사용처 0곳.
+- id는 cuid 문자열(TEXT), 애플리케이션이 생성. `User.id`만 Int(autoincrement)라 FK도 INTEGER.
+
+**주의사항**
+- ★**`RpAiUsageLog.environment`**(VARCHAR(20), DEFAULT `'production'`)로 개발/운영 원가를
+  가른다. 개발용 서비스 계정을 따로 발급하지 않고 **운영 키를 그대로 쓰기로** 했기 때문에,
+  청구는 한 프로젝트에 모이지만 집계는 이 컬럼으로 분리한다.
+  **원가 조회 시 `environment = 'production'` 조건을 빠뜨리면 개발 검증 호출이 섞인다.**
+  전용 인덱스 `RpAiUsageLog_environment_createdAt_idx`가 선두 컬럼으로 잡혀 있다.
+- ★판정에 `NODE_ENV`를 단독으로 쓰지 않는다 — `.env`에 `NODE_ENV=production`이 하드코딩돼
+  **서버2(개발)에서도 production으로 읽힌다.** `RP_ENVIRONMENT`를 먼저 보고 없을 때만 폴백.
+- ★**서버1 호스트에 `psql`이 없다.** PostgreSQL은 Docker 컨테이너 `n8n-docker-db-1`
+  (pgvector/pg17)이므로 `docker exec -i -e PGPASSWORD=... psql`로 접속한다.
+  `docker exec`는 Unix 소켓이라 `inet_server_addr()`가 비고, 확인하려면 `-h 10.178.0.2`로
+  TCP를 강제해야 한다(그러면 비밀번호가 필요하다).
+- 되돌리려면 `DROP TABLE "RpItem","RpAnalysisCache","RpGuestUsage","RpAiUsageLog" CASCADE;`
+  — 신규 테이블뿐이라 기존 데이터 손실 경로가 없고 재시작도 불필요하다.
