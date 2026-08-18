@@ -103,6 +103,40 @@
 
 ★MCP·플러그인은 자동등재가 없다 — 디스크에서 목록을 읽을 방법이 스킬처럼 단순하지 않다.
 
+## 6-1. ★스킬 설치 안전장치 3중 (2026-08-18 신설)
+
+스킬은 **설치 즉시 에이전트의 판단·행동을 바꾸는 지시문**이다. 그래서 관문을 셋 둔다.
+
+**① 승인 조건** — `~/.claude/skills/find-skills/SKILL.md`
+"찾기까지만, 설치는 감사+승인 후, `-y` 금지" 4단계. `description`에도 넣어 매번 보이게 했다.
+★`npx skills update` 도 같은 규칙 — **업데이트는 새 설치와 위험이 같다**(내용이 통째로 바뀜).
+
+**② 무결성 스냅샷** — `rag/skill_integrity.sh`
+```sh
+./skill_integrity.sh save     # 설치·승인된 갱신 직후 기준 저장
+./skill_integrity.sh check    # 대조(변경/추가/삭제). 이상 시 exit 1
+```
+기준: `~/.claude/skills/_catalog/skill_hashes.txt`. 직전 기준은 `.prev` 로 1세대 보관.
+★산출물(`SKILLS.md`·`skills.html`)·`.bak_*`·`.orig_*` 는 **제외** — 동기화마다 바뀌므로
+넣으면 매번 경보가 떠 결국 무시하게 된다(늑대소년 방지).
+★**설치 직후 반드시 `check`** 로 무엇이 늘었는지 보고, **설치본 해시가 감사본과 같은지**
+대조한다("설치됐다"는 설치 도구의 말이다).
+
+**③ 업데이트 감사(Mode 4)** — `~/.claude/skills/skill-safety-auditor/`
+U1~U6 절차 + 델타 체크 10항목(`allowed-tools` **확대**=CRITICAL 후보 / 새 실행코드·훅·
+`postinstall` 신규 등장 / "prefer" 지시 신규 / 출처 이관).
+★**감사를 통과하지 못한 변경에는 `save` 하지 않는다** — 기준을 갱신하면 검증 안 된 상태가
+새 정답으로 굳어 이후 점검이 영영 통과한다.
+※참조파일 2개(`references/security-checks.md`·`report-format.md`)는 원래 없던 것을
+2026-08-18 감사 5건의 실증으로 작성했다. **오탐 판별법**이 핵심 자산이다.
+
+### ★파일이 그대로여도 지시가 그대로는 아니다
+
+일부 스킬은 SKILL.md 를 **discovery stub** 으로만 두고 실제 지시를 런타임에 받아온다.
+- 예: `agent-browser` — `agent-browser skills get core` 로 CLI가 지시를 내려준다.
+- **해시가 같아도 CLI 버전이 오르면 지시가 바뀐다.** 무결성 스냅샷으로는 못 잡는다.
+- 단 **CLI(`npm i -g agent-browser`)를 설치하지 않으면 이 경로는 비활성**이다(현재 미설치).
+
 ## 7. 교훈
 
 - ★**"차이를 검출한다" ≠ "차이를 고친다".** 드리프트 검사가 있다고 안심하지 말고
