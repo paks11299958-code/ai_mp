@@ -33,6 +33,9 @@ export const ReversePromptLibrary: React.FC = () => {
 
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
+    /** 확대해서 볼 썸네일(base64). null이면 모달 닫힘. */
+    const [zoomSrc, setZoomSrc] = useState<string | null>(null);
+
     const load = useCallback(async (p: number) => {
         setLoading(true);
         setError(null);
@@ -61,6 +64,19 @@ export const ReversePromptLibrary: React.FC = () => {
         }
         void load(1);
     }, [load]);
+
+    // 확대 모달: ESC로 닫고, 열려 있는 동안 뒤 배경 스크롤을 막는다.
+    useEffect(() => {
+        if (!zoomSrc) return;
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoomSrc(null); };
+        window.addEventListener('keydown', onKey);
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            document.body.style.overflow = prev;
+        };
+    }, [zoomSrc]);
 
     // ── 펼치기: 상세를 그때 불러온다 ──────────────────────────────────
     const toggle = useCallback(
@@ -160,35 +176,49 @@ export const ReversePromptLibrary: React.FC = () => {
                                         key={it.id}
                                         className="rounded-2xl bg-white border border-[#F0E9DE] overflow-hidden"
                                     >
-                                        {/* 목록 행 — 썸네일·생성일·미리보기(지시 12번) */}
-                                        <button
-                                            onClick={() => void toggle(it.id)}
-                                            className="w-full flex items-center gap-3 p-3 text-left"
-                                        >
+                                        {/* 목록 행 — 썸네일·생성일·미리보기(지시 12번)
+                                            ★썸네일은 펼치기 버튼 밖에 둔다 — 버튼 안에 버튼을
+                                              중첩하면 HTML이 무효라 브라우저가 DOM을 재구성한다.
+                                              (썸네일=확대, 나머지 영역=펼치기로 역할을 나눈다) */}
+                                        <div className="w-full flex items-center gap-3 p-3">
                                             {it.thumbnail ? (
-                                                <img
-                                                    src={`data:image/jpeg;base64,${it.thumbnail}`}
-                                                    alt=""
-                                                    className="w-14 h-14 rounded-lg object-cover shrink-0 bg-[#F0E9DE]"
-                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setZoomSrc(it.thumbnail)}
+                                                    className="shrink-0 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-[#8B6020]/50"
+                                                    aria-label="이미지 크게 보기"
+                                                    title="크게 보기"
+                                                >
+                                                    <img
+                                                        src={`data:image/jpeg;base64,${it.thumbnail}`}
+                                                        alt=""
+                                                        className="w-14 h-14 object-cover bg-[#F0E9DE] hover:opacity-80 transition-opacity"
+                                                    />
+                                                </button>
                                             ) : (
                                                 <div className="w-14 h-14 rounded-lg bg-[#F0E9DE] shrink-0" />
                                             )}
-                                            <div className="min-w-0 flex-1">
-                                                <p className="text-[13px] text-[#2D2438] line-clamp-2 break-words">
-                                                    {it.mjPreview}
-                                                </p>
-                                                <p className="text-[11px] text-[#9089A1] mt-1">
-                                                    {new Date(it.createdAt).toLocaleString('ko-KR', {
-                                                        year: 'numeric', month: 'short', day: 'numeric',
-                                                        hour: '2-digit', minute: '2-digit',
-                                                    })}
-                                                </p>
-                                            </div>
-                                            <span className="text-[#9089A1] text-xs shrink-0">
-                                                {open ? '▲' : '▼'}
-                                            </span>
-                                        </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => void toggle(it.id)}
+                                                className="min-w-0 flex-1 flex items-center gap-3 text-left"
+                                            >
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="text-[13px] text-[#2D2438] line-clamp-2 break-words">
+                                                        {it.mjPreview}
+                                                    </p>
+                                                    <p className="text-[11px] text-[#9089A1] mt-1">
+                                                        {new Date(it.createdAt).toLocaleString('ko-KR', {
+                                                            year: 'numeric', month: 'short', day: 'numeric',
+                                                            hour: '2-digit', minute: '2-digit',
+                                                        })}
+                                                    </p>
+                                                </div>
+                                                <span className="text-[#9089A1] text-xs shrink-0">
+                                                    {open ? '▲' : '▼'}
+                                                </span>
+                                            </button>
+                                        </div>
 
                                         {/* 펼침 — 여기서 상세를 불러온다 */}
                                         {open && (
@@ -261,6 +291,46 @@ export const ReversePromptLibrary: React.FC = () => {
                     </>
                 )}
             </main>
+
+            {/* 🔍 이미지 확대 모달 — 썸네일 클릭 시.
+                ★보관하는 이미지는 128px 썸네일뿐이다(원본은 정책상 저장하지 않는다).
+                  그래서 확대해도 원본 화질이 아니다 — 어떤 이미지였는지 확인하는 용도다.
+                  흐릿하게 뭉개지는 대신 픽셀이 살아 보이도록 image-rendering을 준다. */}
+            {zoomSrc && (
+                <div
+                    className="fixed inset-0 z-[80] bg-black/80 flex items-center justify-center p-4"
+                    onClick={() => setZoomSrc(null)}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="이미지 크게 보기"
+                >
+                    {/* ★inline-block로 내용(이미지) 크기에 맞춘다. max-w/max-h만 주면
+                        블록이 화면을 거의 덮어, 배경처럼 보이는 여백을 눌러도 stopPropagation에
+                        막혀 모달이 안 닫힌다(2026-08-18 실측으로 발견). */}
+                    <div
+                        className="relative inline-block"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <img
+                            src={`data:image/jpeg;base64,${zoomSrc}`}
+                            alt=""
+                            className="max-w-[92vw] max-h-[78vh] w-auto h-auto rounded-xl shadow-2xl bg-[#F0E9DE]"
+                            style={{ imageRendering: 'auto' }}
+                        />
+                        <p className="mt-2 text-center text-[11px] text-white/70">
+                            보관 썸네일이라 원본보다 화질이 낮아요 · 배경을 누르면 닫혀요
+                        </p>
+                        <button
+                            type="button"
+                            onClick={() => setZoomSrc(null)}
+                            aria-label="닫기"
+                            className="absolute -top-3 -right-3 w-9 h-9 rounded-full bg-white text-[#2D2438] text-lg font-bold shadow-lg flex items-center justify-center"
+                        >
+                            ×
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
