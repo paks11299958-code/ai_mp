@@ -57,10 +57,68 @@ cd ~/shared-api   && git ls-remote --heads origin   # main만 있는지
 8/14자 그대로였다). 백업 목적의 푸시는 안전하다.
 운영 반영은 **`master` 머지 + 사람이 Promote**를 눌러야 일어난다.
 
+## 0-2. ★서버1에 `psql`이 없다 — `docker exec` 방식으로 실행한다 (2026-08-18 실측 정정)
+
+초판은 서버1에서 `psql -U aichat_user -d aichat -f ...`를 직접 실행하는 것으로 적었으나
+**서버1 호스트에 `psql` 바이너리가 없다**(`bash: psql: command not found`).
+
+PostgreSQL은 **Docker 컨테이너 `n8n-docker-db-1`**(pgvector/pgvector:pg17)로 돌고 있다.
+
+```sh
+# 이 컨테이너가 DATABASE_URL의 호스트와 같은지 확인 (근거)
+ssh 10.178.0.2 'docker port n8n-docker-db-1'
+#   5432/tcp -> 10.178.0.2:5432   ← .env의 DATABASE_URL 호스트와 일치
+#   5432/tcp -> 127.0.0.1:5432
+```
+
+★**DDL 파일은 `feature/reverse-prompt`에만 있고 서버1의 `main`에는 없다.**
+머지는 백엔드 배포와 묶인 별도 결정이므로, DB 작업 단계에서는 머지하지 않고
+**서버2의 파일을 stdin으로 흘려넣는다.** 서버1 파일시스템에 아무것도 남지 않는다.
+
+### 조회 (E-2a 등 읽기 전용)
+
+```sh
+ssh 10.178.0.2 'PW=$(grep -m1 "^DATABASE_URL" ~/shared-api/.env | sed -E "s#.*://[^:]+:([^@]+)@.*#\1#"); \
+  docker exec -e PGPASSWORD="$PW" n8n-docker-db-1 \
+    psql -U aichat_user -d aichat -c "조회할 SQL"'
+```
+
+★비밀번호는 `.env`에서 읽어 **`PGPASSWORD` 환경변수로** 넘긴다.
+명령줄에 평문으로 적지 않는다(셸 히스토리·프로세스 목록에 남는다).
+
+### DDL 실행 (E-2b)
+
+```sh
+cat ~/shared-api/prisma/reverse-prompt-ddl.sql \
+| ssh 10.178.0.2 'PW=$(grep -m1 "^DATABASE_URL" ~/shared-api/.env | sed -E "s#.*://[^:]+:([^@]+)@.*#\1#"); \
+    docker exec -i -e PGPASSWORD="$PW" n8n-docker-db-1 \
+      psql -U aichat_user -d aichat \
+           -v ON_ERROR_STOP=1 --single-transaction -e -f -'
+```
+
+| 옵션 | 이유 |
+|---|---|
+| `docker exec -i` | 서버1에 psql이 없어 컨테이너 안에서 실행. `-i`로 stdin 연결 |
+| `-f -` | stdin을 스크립트로 읽는다 |
+| ★`--single-transaction` | **전체를 한 트랜잭션으로 감싼다.** 중간 실패 시 전부 롤백 → 부분 적용이 남지 않는다 |
+| ★`-v ON_ERROR_STOP=1` | 첫 에러에서 즉시 중단. 없으면 에러를 무시하고 계속 진행한다 |
+| `-e` | 실행되는 SQL을 출력에 함께 표시(로그 전문 확보) |
+
+PostgreSQL은 **DDL이 트랜잭션 가능**하므로 마지막 인덱스에서 실패해도 테이블 4개까지 통째로 롤백된다.
+
+★`\dt`·`\d` 같은 psql 메타명령은 `-c`로 넘겨도 동작하지만, 스크립트에서는
+`pg_tables`/`pg_indexes`/`information_schema.columns` 조회가 더 확실하다(아래 3-1 검증 참조).
+
+---
+
 ## 1. 운영 DDL 전문
 
 파일: `shared-api/prisma/reverse-prompt-ddl.sql`
-실행: `psql -U aichat_user -d aichat -f reverse-prompt-ddl.sql` (서버1)
+실행: **0-2절의 `docker exec` 방식**(서버1에 psql 없음)
+
+★**실행문은 테이블 4 + 인덱스 7 = 11개**다. 계획서 초판과 PRD 8장은 인덱스를 6개(PRD는 5개)로
+적었으나 **실측 7개**다 — `environment` 컬럼을 추가하며 `RpAiUsageLog_environment_createdAt_idx`가
+함께 늘었다. PK 자동 인덱스 4개를 더하면 `pg_indexes` 조회에는 **11개**로 보인다.
 
 ```sql
 -- 1. 보관 항목 (로그인 사용자 전용)
@@ -156,10 +214,24 @@ pg_dump -U aichat_user -d aichat -Fc -f ~/aichat_full_$(date +%F).dump
 
 ### 3-0. ★사전 조회 — DDL 실행 **전에** 반드시 한다 (조회만, 변경 아님)
 
-```sql
-SELECT tablename FROM pg_tables
-WHERE schemaname='public' AND tablename LIKE 'Rp%';
+★실행은 **0-2절의 `docker exec` 방식**으로 한다(서버1에 psql 없음).
+
+```sh
+ssh 10.178.0.2 'PW=$(grep -m1 "^DATABASE_URL" ~/shared-api/.env | sed -E "s#.*://[^:]+:([^@]+)@.*#\1#"); \
+  docker exec -e PGPASSWORD="$PW" n8n-docker-db-1 psql -U aichat_user -d aichat \
+    -c "SELECT tablename FROM pg_tables WHERE schemaname='"'"'public'"'"' AND tablename LIKE '"'"'Rp%'"'"';"'
 ```
+
+★**접속한 DB가 운영인지 함께 확인한다.** 조회가 성공했다는 것만으로는 개발 컨테이너에
+붙었을 수도 있다. 아래가 전부 맞아야 운영이다.
+
+```sql
+SELECT (SELECT count(*) FROM "User") AS users,
+       (SELECT count(*) FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'Lc%') AS lc_tables,
+       (SELECT count(*) FROM pg_tables WHERE schemaname='public') AS total_tables;
+```
+
+2026-08-18 실측: **users 73 / Lc\* 11 / 전체 97** — 학습코칭 테이블과 실회원이 있으므로 운영이다.
 
 **0건이어야 한다. 하나라도 나오면 즉시 멈추고 보고한다.**
 
@@ -175,19 +247,44 @@ WHERE schemaname='public' AND tablename LIKE 'Rp%';
 2. 우리 DDL과 다르면 → **DDL을 실행하지 않는다.** 이름 충돌인지 이전 시도의 잔재인지 판단 후 결정
 3. 완전히 같으면 → 이미 적용된 것이므로 3-1을 건너뛰고 3-2로
 
-### 3-1. DDL 실행 (서버1)
+### 3-1. DDL 실행 (서버1) — ★2026-08-18 실행 완료
+
+명령은 **0-2절** 참조(머지 불필요, stdin 전달, 단일 트랜잭션).
+
+**검증** — 실행 전 테이블 목록을 파일로 떠두고 실행 후 `diff`로 비교한다.
+"4개가 늘었다"가 아니라 **"그 4개 외에는 아무것도 변하지 않았다"**를 보여야 한다.
 
 ```sh
-cd ~/shared-api && git pull origin main   # feature 브랜치 머지 후
-psql -U aichat_user -d aichat -f prisma/reverse-prompt-ddl.sql
+# 실행 전
+ssh ... psql ... -At -c "SELECT tablename FROM pg_tables WHERE schemaname='public' ORDER BY 1;" > tables_before.txt
+# 실행 후 동일 조회 → tables_after.txt
+diff tables_before.txt tables_after.txt
 ```
 
-**검증**
 ```sql
-\dt "Rp"*                                    -- 4개 확인
-\d "RpAiUsageLog"                            -- environment 컬럼 확인
-SELECT count(*) FROM "RpItem";               -- 0
+-- 테이블 4개
+SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'Rp%' ORDER BY 1;
+-- 인덱스 11개 (신규 7 + PK 자동 4)
+SELECT indexname, tablename FROM pg_indexes WHERE schemaname='public' AND tablename LIKE 'Rp%' ORDER BY tablename, indexname;
+-- environment 기본값
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns WHERE table_name='RpAiUsageLog' ORDER BY ordinal_position;
 ```
+
+**★실행 결과 (2026-08-18)**
+
+| 항목 | 결과 |
+|---|---|
+| 종료 코드 | **0** |
+| `NOTICE ... skipping` | **0건** (3-0에서 0건 확인한 대로) |
+| 실행문 | `CREATE TABLE` 4 + `CREATE INDEX` 7 = **11개 전부 성공** |
+| 테이블 수 | 97 → **101** |
+| `diff` 결과 | **`RpAiUsageLog`·`RpAnalysisCache`·`RpGuestUsage`·`RpItem` 4줄 추가뿐.** 삭제·변경 0줄 |
+| 인덱스 | **11개**(신규 7 + PK 4) 전부 확인 |
+| `environment` | `character varying` NOT NULL **DEFAULT `'production'::character varying`** ✅ |
+| 행 수 | `RpItem`/`RpAnalysisCache`/`RpGuestUsage`/`RpAiUsageLog` **전부 0** |
+| `User` 테이블 | **73행 / 20컬럼 유지** — 변경 없음 |
+| FK | `RpItem_userId_fkey`·`RpAiUsageLog_userId_fkey` → `User` 정상 생성 |
 
 ★**출력에 `NOTICE ... already exists, skipping`이 하나라도 있으면 멈춘다.**
 3-0에서 0건을 확인했으므로 나올 수 없는 메시지다. 나왔다면 조회 시점과 실행 시점 사이에
@@ -315,15 +412,17 @@ E-1의 14개 항목 중 아래 둘은 다른 항목들과 근거의 성격이 �
 - [ ] shared-api 재시작 **시점** 확인 — ★실사용자가 적은 시간대.
       **롤백 시 한 번 더 중단**되므로 여유 있는 시간을 고른다
 
-**E-2a** (조회만)
-- [ ] `SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename LIKE 'Rp%';`
-      → **0건 확인.** 하나라도 나오면 멈추고 보고
-- [ ] 보고 → 승인
+**E-2a** (조회만) — ★**2026-08-18 완료**
+- [x] `Rp%` 조회 → **0건 확인**
+- [x] 운영 DB 확인 — users 73 / `Lc*` 11 / 전체 97, 컨테이너 포트가 `10.178.0.2:5432`
+- [x] 보고 → 승인
 
-**E-2b** (DDL)
-- [ ] DDL 실행 → `NOTICE ... skipping`이 **없는지** 확인
-- [ ] `\dt "Rp"*` 4개 / `\d "RpAiUsageLog"` environment 컬럼 확인
-- [ ] 보고 → 승인
+**E-2b** (DDL) — ★**2026-08-18 완료**
+- [x] DDL 실행(단일 트랜잭션) → 종료코드 0, `NOTICE ... skipping` **0건**
+- [x] 테이블 4개 / 인덱스 11개(신규 7 + PK 4) 확인
+- [x] `environment` DEFAULT `'production'` 확인
+- [x] 실행 전후 `diff` → **추가 4줄 외 변화 없음**, `User` 73행·20컬럼 유지
+- [x] 보고 → 승인
 
 **E-2c** (재시작)
 - [ ] `npm run pm2:reload` → `/api/health` 확인

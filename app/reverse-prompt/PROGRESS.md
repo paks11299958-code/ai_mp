@@ -1,8 +1,38 @@
 # 진행 상황 — 리버스 프롬프트 (app/reverse-prompt)
 
-**현재 묶음**: A 완료 / B 미착수
+**현재 묶음**: A~E-1 완료 / **E-2a·E-2b 완료(운영 DDL 적용됨)** / E-2c 이후 대기
 **브랜치**: `feature/reverse-prompt` (ai_mp, shared-api 양쪽)
-**최종 갱신**: 2026-08-14
+**최종 갱신**: 2026-08-18
+
+---
+
+## ★E-2a·E-2b 완료 — 운영 DB에 `Rp*` 4개 테이블 생성됨 (2026-08-18)
+
+**E-2a 사전 조회**: `Rp%` **0건** 확인. 운영 DB 확인 근거 = users 73 / `Lc*` 11 / 전체 97,
+`n8n-docker-db-1` 컨테이너 포트가 `.env`의 `DATABASE_URL` 호스트(`10.178.0.2:5432`)와 일치.
+
+**E-2b DDL 실행**: 종료코드 0, `NOTICE ... skipping` **0건**, 11개 실행문 전부 성공.
+테이블 97→101, `diff` 결과 **추가 4줄 외 변화 없음**. `User` 73행·20컬럼 유지.
+`environment` DEFAULT `'production'` 확인. 4개 테이블 전부 0행.
+
+### ★이 단계에서 드러난 계획서 오류 2건 (정정 완료)
+
+| # | 계획서 초판 | 실제 | 조치 |
+|---|---|---|---|
+| 1 | `psql -U aichat_user -d aichat -f ...` | **서버1 호스트에 psql 없음.** PostgreSQL은 Docker 컨테이너 `n8n-docker-db-1`(pgvector/pg17) | `DEPLOY_PLAN.md` **0-2절 신설** — `docker exec -i` + stdin 방식 |
+| 2 | "인덱스 6개"(PRD 8장은 5개) | **7개.** `environment` 추가 시 `RpAiUsageLog_environment_createdAt_idx`가 함께 늘었다 | 계획서 1장에 명시. PK 자동 4개 포함 시 조회에는 11개 |
+
+★**DDL 파일은 `feature/reverse-prompt`에만 있고 서버1의 `main`에는 없다.** 머지는 백엔드
+배포와 묶인 별도 결정이라, DB 단계에서는 머지하지 않고 **서버2 파일을 stdin으로 흘려넣었다.**
+서버1 파일시스템에 아무것도 남기지 않았다.
+
+★**단일 트랜잭션으로 실행했다**(`--single-transaction` + `ON_ERROR_STOP=1`).
+PostgreSQL은 DDL이 트랜잭션 가능하므로 마지막 인덱스에서 실패해도 전부 롤백된다 — 부분 적용 없음.
+
+**되돌리려면**: `DROP TABLE "RpItem","RpAnalysisCache","RpGuestUsage","RpAiUsageLog" CASCADE;`
+(신규 테이블뿐이라 기존 데이터 손실 경로 없음, 재시작 불필요)
+
+**다음**: E-2c(shared-api 재시작 — ★aichat 전체 20~30초 중단) **별도 승인 대기**
 
 ---
 
