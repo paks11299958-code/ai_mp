@@ -175,14 +175,45 @@ UPDATE "Persona" SET features = '["used","hotkeyword","marketing","shorts-maker"
 ★DB를 먼저 바꿔도 **운영 사고는 없다** — `k in FEATURE_BY_KEY` 필터가 미등록 키를
 조용히 걸러내므로, 프론트 배포 전까지는 카드가 뜨지 않을 뿐이다.
 
-### 등록한 곳 — 4곳 (`featureLabels.ts`는 대상 아님)
+### ★내가 낸 실수 — 메인 카드가 안 떴다 (커밋 `cda4b01` → `1026769`로 수정)
+
+4곳을 다 채우고 배포했는데 **화면에 아무것도 안 나왔다.** 원인은
+**메인 화면 카드가 `personaFeatures.ts`의 `FEATURE_REGISTRY`가 아니라
+`MainPageNew.tsx`의 `FEATURES_GRID`에서 렌더**되기 때문이다. 두 레지스트리는 역할이 다르다:
+
+| 레지스트리 | 쓰이는 곳 |
+|---|---|
+| `FEATURE_REGISTRY` (personaFeatures.ts) | **페르소나 채팅 안**의 기능 버튼 |
+| **`FEATURES_GRID`** (MainPageNew.tsx) | **메인 화면 '기능 둘러보기' 카드** ← 이걸 빠뜨렸다 |
+
+★`npm run check`(기능키 정합성)·tsc·빌드가 **전부 통과했다.** 조용히 안 뜬다.
+→ 진입점 작업은 **운영 실렌더로 카드가 보이는지 확인해야 끝난 것**이다.
+
+### 등록한 곳 — 5곳 (`featureLabels.ts`는 대상 아님)
 
 | 파일 | 내용 |
 |---|---|
 | `frontend/personaFeatures.ts` | `FeatureKey` 유니온 + `FEATURE_REGISTRY` 카드 + `NAME_FALLBACK` |
-| `frontend/App.tsx` | 클릭 → `/reverse-prompt` 이동 바인딩 |
+| **`MainPageNew.tsx` `FEATURES_GRID`** | **메인 카드**(id 29 / XXIX / category=create / 이아린) |
+| `frontend/App.tsx` | `featureBoardOpeners`에 `/reverse-prompt` 이동 바인딩 |
 | `frontend/services/referral.ts` | 공유 라벨 |
-| `frontend/components/MainPageNew.tsx` | 검색 동의어 17개(미드저니·역추출·화풍 등) |
+| `MainPageNew.tsx` `FEATURE_SYNONYMS` | 검색 동의어 17개(미드저니·역추출·화풍 등) |
+
+★`FEATURE_ACTIONS`는 `{...featureBoardOpeners}`를 전개하므로 자동 연결되고,
+`FAVORITABLE_KEYS`는 `FEATURES_GRID.map(f=>f.key)`로 파생돼 **별도 등록이 불필요**하다.
+
+### 운영 실렌더 검증 (배포 `1026769` / KST 23:52)
+
+| 항목 | 결과 |
+|---|---|
+| 기능 둘러보기 탭 | ✅ **맨 앞에 노출**(`releasedAt` 최신 정렬 1위) |
+| 기능 카운트 | ✅ 27 → **28** |
+| 검색 "미드저니" | ✅ 검색됨 |
+| 카드 클릭(비회원) | ✅ 체험 500P 모달 — **쇼츠 만들기와 동일 경로**(정상) |
+| 페이지 에러 | ✅ 0건 |
+
+★첫 검사에서 "안 보임"이 나온 건 **초기 화면이 페르소나 탭**이라 기능 카드가 렌더되지
+않은 것이었다. 기능 탭을 열어야 보인다 — 탭 전환 없이 "미노출"로 판정하면 오진이다.
 
 ★**`frontend/lib/featureLabels.ts`는 등록하지 않는다.** 그 파일은 주석에 적힌 대로
 **포인트를 차감하는 기능**의 키만 모으는데, 리버스 프롬프트는 포인트 차감이 없다
