@@ -133,6 +133,10 @@ footer{border-top:1px solid var(--border);padding:56px 0 40px;margin-top:24px}
   text-align:center; font-size:12px; line-height:1.6;
   color:#999; font-variant-numeric:tabular-nums; letter-spacing:.01em;
 }
+.page-date-note{
+  margin-left:7px; font-size:11px; color:#bbb;
+  font-variant-numeric:normal; letter-spacing:0; white-space:nowrap;
+}
 </style>
 </head>
 <body>
@@ -287,7 +291,7 @@ footer{border-top:1px solid var(--border);padding:56px 0 40px;margin-top:24px}
 
 
 <!-- 페이지 맨 아래: 오늘 날짜 (정적 표기) -->
-<div class="page-date"><time datetime="2026-08-19">2026-08-19</time></div>
+<div class="page-date"><time datetime="2026-08-19">2026-08-19</time><span class="page-date-note">· 테스트 완료</span></div>
 
 <!-- 페르소나 임베드 위젯 데모 (doc/features/embed_widget.md) -->
 <script src="https://aichat.dbzone.kr/widget.js" data-persona="유나" async></script>
