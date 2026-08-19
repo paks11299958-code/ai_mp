@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hello-herdr — Ship from a single message</title>
+<meta name="description" content="지시에서 배포까지, 사람이 붙잡고 있는 구간이 없는 원격 개발 파이프라인.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+/* ── omd reference: linear.app (design-lab/.claude/data/references/linear.app/DESIGN.md)
+   primary #5e6ad2 · accent #7170ff / hover #828fff · canvas #08090a · bg #0f1011
+   surface #191a1b / surface-2 #28282c · fg #f7f8f8 · muted #8a8f98
+   display-xl 72/510/-1.584 tracking · radius sm4 md8 lg12 · Inter */
+:root{
+  --primary:#5e6ad2; --accent:#7170ff; --accent-hover:#828fff;
+  --canvas:#08090a; --bg:#0f1011; --surface:#191a1b; --surface-2:#28282c;
+  --fg:#f7f8f8; --text-2:#d0d6e0; --muted:#8a8f98; --quaternary:#62666d;
+  --line:rgba(255,255,255,.08); --line-strong:rgba(255,255,255,.14);
+  --r-sm:4px; --r-md:8px; --r-lg:12px; --r-full:9999px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:Inter,'Pretendard Variable','Noto Sans KR',-apple-system,system-ui,sans-serif;
+  background:var(--canvas); color:var(--fg); line-height:1.6;
+  -webkit-font-smoothing:antialiased; overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.mono{font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,monospace}
+.wrap{width:100%;max-width:1100px;margin:0 auto;padding:0 20px}
+
+header{position:sticky;top:0;z-index:60;background:rgba(8,9,10,.72);backdrop-filter:blur(16px);border-bottom:1px solid var(--line)}
+.nav{height:62px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:16px;letter-spacing:-.02em}
+.logo-mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(150deg,var(--accent),var(--primary));
+  display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700;box-shadow:0 0 22px rgba(113,112,255,.45)}
+.nav-links{display:none;gap:26px;font-size:14px;color:var(--muted);font-weight:500}
+.nav-links a:hover{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:500;transition:.18s ease;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff;border-radius:var(--r-md);padding:9px 15px;font-size:14px}
+.btn-primary:hover{background:var(--accent-hover);box-shadow:0 0 28px rgba(113,112,255,.4)}
+.btn-lg{padding:14px 26px;font-size:16px;border-radius:var(--r-lg)}
+.btn-outline{background:rgba(255,255,255,.04);color:var(--fg);border:1px solid var(--line-strong);
+  border-radius:var(--r-lg);padding:14px 26px;font-size:16px}
+.btn-outline:hover{background:rgba(255,255,255,.08)}
+
+/* hero */
+.hero{position:relative;padding:72px 0 68px;overflow:hidden}
+.glow{position:absolute;pointer-events:none;border-radius:50%;filter:blur(90px)}
+.g1{width:560px;height:400px;background:rgba(94,106,210,.30);top:-160px;left:50%;transform:translateX(-50%)}
+.g2{width:320px;height:300px;background:rgba(113,112,255,.18);bottom:-140px;right:-80px}
+.grid-bg{position:absolute;inset:0;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,#000 30%,transparent 75%);
+  -webkit-mask-image:radial-gradient(ellipse 70% 50% at 50% 0%,#000 30%,transparent 75%)}
+.hero-inner{position:relative;text-align:center}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--line-strong);
+  color:var(--text-2);font-size:12.5px;font-weight:500;padding:6px 13px;border-radius:var(--r-full);margin-bottom:24px}
+.dot{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade80}
+h1{font-size:38px;font-weight:600;line-height:1.06;letter-spacing:-.038em;margin-bottom:20px}
+h1 span{background:linear-gradient(100deg,#fff 20%,#a8b0ff 60%,var(--accent-hover));-webkit-background-clip:text;
+  background-clip:text;-webkit-text-fill-color:transparent}
+.lead{font-size:17px;color:var(--muted);line-height:1.65;max-width:560px;margin:0 auto 32px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:14px}
+.hero-note{font-size:12.5px;color:var(--quaternary)}
+
+/* terminal */
+.term{position:relative;margin-top:52px;background:var(--bg);border:1px solid var(--line-strong);border-radius:var(--r-lg);
+  overflow:hidden;box-shadow:0 40px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.02);text-align:left}
+.term-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.02)}
+.tl{width:10px;height:10px;border-radius:50%;background:var(--surface-2)}
+.term-title{margin-left:8px;font-size:12px;color:var(--quaternary)}
+.term-body{padding:18px 16px;font-size:12.5px;line-height:2}
+.term-body div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-mut{color:var(--quaternary)} .c-acc{color:var(--accent-hover)} .c-ok{color:#4ade80}
+.c-warn{color:#fbbf24} .c-txt{color:var(--text-2)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;margin-top:44px}
+.stat{background:var(--canvas);padding:22px 18px}
+.stat b{display:block;font-size:26px;font-weight:600;letter-spacing:-.03em;margin-bottom:2px}
+.stat span{font-size:12.5px;color:var(--muted)}
+
+section{padding:72px 0;position:relative}
+.sec-label{font-size:12.5px;font-weight:600;color:var(--accent-hover);letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px}
+h2{font-size:30px;font-weight:600;letter-spacing:-.032em;line-height:1.14;margin-bottom:14px}
+.sec-lead{font-size:16px;color:var(--muted);line-height:1.7;max-width:560px;margin-bottom:40px}
+
+.feats{display:grid;gap:16px}
+.feat{background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:26px 24px;transition:.22s}
+.feat:hover{border-color:rgba(113,112,255,.4);transform:translateY(-3px)}
+.ico{width:38px;height:38px;border-radius:10px;background:rgba(113,112,255,.14);border:1px solid rgba(113,112,255,.28);
+  display:grid;place-items:center;margin-bottom:16px}
+.ico svg{width:19px;height:19px;stroke:var(--accent-hover);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.feat h3{font-size:17px;font-weight:600;letter-spacing:-.02em;margin-bottom:7px}
+.feat p{font-size:14px;color:var(--muted);line-height:1.65}
+
+.split{display:grid;gap:32px;align-items:center}
+.split-img{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line-strong)}
+.split-img img{height:280px;width:100%;object-fit:cover;filter:grayscale(.35) contrast(1.08) brightness(.72)}
+.split-img::after{content:"";position:absolute;inset:0;background:linear-gradient(200deg,rgba(94,106,210,.34),transparent 55%)}
+.chk{list-style:none;display:grid;gap:14px;margin-top:24px}
+.chk li{display:flex;gap:12px;font-size:15px;color:var(--text-2);line-height:1.55}
+.chk svg{flex-shrink:0;width:20px;height:20px;stroke:var(--accent-hover);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;margin-top:1px}
+
+.cta{position:relative;border:1px solid var(--line-strong);border-radius:16px;padding:52px 26px;text-align:center;overflow:hidden;
+  background:radial-gradient(ellipse 80% 120% at 50% 0%,rgba(94,106,210,.28),rgba(15,16,17,.9))}
+.cta h2{margin-bottom:12px}
+.cta p{font-size:16px;color:var(--text-2);line-height:1.65;margin-bottom:30px}
+
+footer{border-top:1px solid var(--line);padding:38px 0 48px;margin-top:32px}
+.foot{display:grid;gap:22px}
+.foot p{font-size:12.5px;color:var(--quaternary);line-height:1.8}
+.foot-links{display:flex;flex-wrap:wrap;gap:20px;font-size:13.5px;color:var(--muted);font-weight:500}
+.foot-links a:hover{color:var(--fg)}
+
+@media (min-width:768px){
+  h1{font-size:72px;letter-spacing:-.022em}
+  h2{font-size:44px}
+  .lead{font-size:19px}
+  .hero{padding:120px 0 96px}
+  section{padding:104px 0}
+  .nav-links{display:flex}
+  .term-body{padding:24px 26px;font-size:13.5px}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  .stat{padding:28px 24px}
+  .stat b{font-size:34px}
+  .feats{grid-template-columns:repeat(3,1fr);gap:20px}
+  .split{grid-template-columns:1fr 1fr;gap:60px}
+  .split-img img{height:420px}
+  .cta{padding:88px 48px}
+  .foot{grid-template-columns:1fr auto;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#" class="logo"><span class="logo-mark">H</span>hello-herdr</a>
+    <nav class="nav-links"><a href="#pipeline">Pipeline</a><a href="#verify">Verification</a><a href="#deploy">Deploy</a></nav>
+    <a href="#cta" class="btn btn-primary">시작하기</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <span class="glow g1"></span><span class="glow g2"></span><span class="grid-bg"></span>
+    <div class="wrap hero-inner">
+      <span class="badge"><span class="dot"></span>PIPELINE OPERATIONAL · v1.4.0</span>
+      <h1>한 줄의 지시,<br><span>배포까지 자율 주행.</span></h1>
+      <p class="lead">메시지가 들어오면 Developer가 만들고 Reviewer가 검증하고 통과한 것만 운영에 올라갑니다. 사람이 붙잡고 있어야 하는 구간은 없습니다.</p>
+      <div class="hero-cta">
+        <a href="#cta" class="btn btn-primary btn-lg">파이프라인 실행</a>
+        <a href="#pipeline" class="btn btn-outline">동작 방식 보기</a>
+      </div>
+      <p class="hero-note">평균 왕복 4분 12초 · 잔여 세션 0건</p>
+
+      <div class="term">
+        <div class="term-bar"><span class="tl"></span><span class="tl"></span><span class="tl"></span><span class="term-title mono">herdr — pipeline.log</span></div>
+        <div class="term-body mono">
+          <div><span class="c-mut">10:24:07</span> <span class="c-acc">hermes</span> <span class="c-txt">intake accepted — "sites/hello-herdr/index.html 테스트 페이지"</span></div>
+          <div><span class="c-mut">10:24:09</span> <span class="c-acc">herdr</span>  <span class="c-txt">pane allocated → </span><span class="c-warn">dev#7</span></div>
+          <div><span class="c-mut">10:26:41</span> <span class="c-acc">developer</span> <span class="c-txt">wrote index.html (+312 / −0)</span></div>
+          <div><span class="c-mut">10:27:02</span> <span class="c-acc">reviewer</span> <span class="c-warn">CHANGES — viewport meta 누락, contrast 3.9:1</span></div>
+          <div><span class="c-mut">10:28:15</span> <span class="c-acc">developer</span> <span class="c-txt">patched (round 2/2)</span></div>
+          <div><span class="c-mut">10:28:33</span> <span class="c-acc">reviewer</span> <span class="c-ok">PASS — 8/8 rubric</span></div>
+          <div><span class="c-mut">10:28:41</span> <span class="c-acc">deploy</span>   <span class="c-ok">READY → production · verified live</span></div>
+          <div><span class="c-mut">10:28:42</span> <span class="c-acc">herdr</span>  <span class="c-txt">pane released · telegram notified </span><span class="c-ok">✓</span></div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b>4:12</b><span>평균 왕복 시간</span></div>
+        <div class="stat"><b>98.4%</b><span>검증 통과율</span></div>
+        <div class="stat"><b>2</b><span>최대 재작업 라운드</span></div>
+        <div class="stat"><b>0</b><span>잔여 pane</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="pipeline">
+    <div class="wrap">
+      <p class="sec-label">Pipeline</p>
+      <h2>지시에서 운영까지,<br>끊기는 곳이 없습니다</h2>
+      <p class="sec-lead">각 단계는 독립된 세션에서 실행되고 상태는 한 곳에 기록됩니다. 어디서 멈췄는지 추측할 필요가 없습니다.</p>
+      <div class="feats">
+        <div class="feat">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H5.5L4 17.8z"/><path d="M8 9h8M8 12h5"/></svg></div>
+          <h3>Intake</h3>
+          <p>텔레그램 메시지를 작업 명세로 정규화하고 pane을 배정합니다. 동시 실행 한도와 비용 상한이 함께 걸립니다.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M8 6L3 12l5 6M16 6l5 6-5 6"/></svg></div>
+          <h3>Maker–Checker</h3>
+          <p>Developer와 Reviewer가 서로 다른 세션에서 돕니다. 자기 결과물을 자기가 승인하는 경로가 존재하지 않습니다.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></div>
+          <h3>Ship &amp; Notify</h3>
+          <p>배포 후 운영 산출물에서 이번 변경의 고유 문자열을 확인하고, 열리는 URL을 회신합니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="verify" style="background:var(--bg);border-block:1px solid var(--line)">
+    <div class="wrap split">
+      <div>
+        <p class="sec-label">Verification</p>
+        <h2>"빌드 통과"는<br>검증이 아닙니다</h2>
+        <p class="sec-lead" style="margin-bottom:0">번들 해시 비교나 로컬 빌드 성공은 운영 반영의 근거가 되지 못합니다. 실제로 무엇이 서비스되고 있는지만 봅니다.</p>
+        <ul class="chk">
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>운영 배포 ID와 시각을 API로 직접 조회</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>변경분 고유 문자열을 운영 산출물에서 grep</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>운영 URL 실제 렌더까지 확인 후 완료 처리</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>Promote는 자동 실행하지 않고 사람이 결정</li>
+        </ul>
+      </div>
+      <div class="split-img">
+        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=1000&q=80" alt="어두운 화면 위 코드 스트림">
+      </div>
+    </div>
+  </section>
+
+  <section id="deploy">
+    <div class="wrap split">
+      <div class="split-img">
+        <img src="https://images.unsplash.com/photo-1517180102446-f3ece451e9d8?auto=format&fit=crop&w=1000&q=80" alt="어두운 공간의 서버와 모니터">
+      </div>
+      <div>
+        <p class="sec-label">Deploy</p>
+        <h2>남는 것도,<br>새는 것도 없이</h2>
+        <p class="sec-lead" style="margin-bottom:0">작업이 끝나면 pane을 회수하고 세션 비용을 정산합니다. 완료 알림에는 소요 시간·재작업 라운드·최종 URL이 함께 담깁니다.</p>
+        <ul class="chk">
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>완료 즉시 pane 자동 회수</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>재작업은 최대 2라운드로 상한</li>
+          <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>단계별 텔레그램 실시간 알림</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta">
+    <div class="wrap">
+      <div class="cta">
+        <h2>한 줄이면 충분합니다</h2>
+        <p>이 페이지도 메시지 한 줄에서 시작해 검증을 거쳐 배포됐습니다.</p>
+        <a href="#" class="btn btn-primary btn-lg">hello-herdr 실행하기</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a href="#" class="logo" style="margin-bottom:10px"><span class="logo-mark">H</span>hello-herdr</a>
+      <p>Autonomous remote development pipeline<br>© 2026 hello-herdr. All rights reserved.</p>
+    </div>
+    <nav class="foot-links"><a href="#pipeline">Pipeline</a><a href="#verify">Verification</a><a href="#deploy">Deploy</a><a href="#cta">시작하기</a></nav>
+  </div>
+</footer>
+
+</body>
+</html>

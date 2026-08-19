@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hello-herdr — 말 걸면, 만들어 드려요</title>
+<meta name="description" content="동네 이웃에게 부탁하듯 한마디 남기면, 에이전트가 만들고 검증하고 배포까지 해드려요.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+/* ── omd reference: karrot (design-lab/.claude/data/references/karrot/DESIGN.md) ──
+   primary #ff6600 · primary-hover #e14d00 · brand-tint #fff2ec · body #555d6d
+   hairline #dcdee3 · radius sm8/md12/lg16 · Pretendard Variable
+   warm canvas 확장: cream #fbf5ec (따뜻/자연 스타일 요청 반영) */
+:root{
+  --primary:#ff6600; --primary-hover:#e14d00; --tint:#fff2ec;
+  --canvas:#fbf5ec; --paper:#fffdf9; --fg:#1a1c20; --body:#555d6d;
+  --muted:#868b94; --hairline:#e6ddcf; --success:#079171; --warning:#9b7821;
+  --clay:#c96a3c; --moss:#7d8b5a;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:9999px;
+  --sh:0 2px 10px rgba(90,66,40,.07); --sh-lift:0 12px 30px rgba(90,66,40,.11);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Pretendard Variable',Pretendard,'Noto Sans KR',-apple-system,system-ui,sans-serif;
+  background:var(--canvas); color:var(--fg); line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.wrap{width:100%;max-width:1080px;margin:0 auto;padding:0 20px}
+.serif{font-family:'Gowun Dodum','Pretendard Variable',serif}
+
+header{position:sticky;top:0;z-index:50;background:rgba(251,245,236,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--hairline)}
+.nav{height:64px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:9px;font-weight:700;font-size:17px;letter-spacing:-.01em}
+.logo-mark{width:30px;height:30px;border-radius:14px 14px 14px 6px;background:var(--primary);
+  display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700}
+.nav-links{display:none;gap:26px;font-size:15px;color:var(--body);font-weight:500}
+.nav-links a:hover{color:var(--primary)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:700;transition:.18s ease;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff;border-radius:var(--r-md);padding:11px 17px;font-size:15px}
+.btn-primary:hover{background:var(--primary-hover)}
+.btn-lg{padding:16px 28px;font-size:17px;border-radius:var(--r-lg)}
+.btn-soft{background:var(--tint);color:var(--primary-hover);border-radius:var(--r-lg);padding:16px 28px;font-size:17px}
+.btn-soft:hover{background:#ffe4d6}
+
+/* hero */
+.hero{padding:56px 0 60px;position:relative;overflow:hidden}
+.blob{position:absolute;border-radius:52% 48% 60% 40%/45% 55% 45% 55%;filter:blur(2px);pointer-events:none;opacity:.5}
+.blob-1{width:340px;height:320px;background:#ffe0cd;top:-90px;right:-110px}
+.blob-2{width:230px;height:220px;background:#e8ecd8;bottom:-80px;left:-90px;opacity:.6}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--tint);color:var(--primary-hover);
+  font-size:13px;font-weight:700;padding:8px 14px;border-radius:var(--r-full);margin-bottom:20px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--success)}
+h1{font-size:34px;font-weight:700;line-height:1.36;letter-spacing:-.025em;margin-bottom:16px;position:relative}
+h1 mark{background:linear-gradient(transparent 62%,#ffd9b8 62%);color:inherit;padding:0 2px}
+.lead{font-size:17px;color:var(--body);line-height:1.75;max-width:520px;margin-bottom:28px}
+.hero-cta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.hero-note{font-size:13px;color:var(--muted)}
+.hero-art{position:relative;margin-top:44px}
+.hero-photo{border-radius:120px 24px 120px 24px;height:280px;width:100%;object-fit:cover;box-shadow:var(--sh-lift)}
+.note-card{background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-lg);
+  padding:16px 18px;box-shadow:var(--sh);position:absolute;bottom:-26px;left:16px;right:16px;display:flex;gap:12px;align-items:flex-start}
+.note-ico{width:36px;height:36px;flex-shrink:0;border-radius:12px 12px 12px 4px;background:var(--tint);
+  display:grid;place-items:center;font-size:17px}
+.note-card b{display:block;font-size:14px;margin-bottom:2px}
+.note-card p{font-size:13px;color:var(--body);line-height:1.5}
+
+section{padding:64px 0}
+.sec-label{font-size:13px;font-weight:700;color:var(--primary);letter-spacing:.04em;margin-bottom:10px}
+h2{font-size:26px;font-weight:700;letter-spacing:-.025em;line-height:1.42;margin-bottom:12px}
+.sec-lead{font-size:16px;color:var(--body);line-height:1.75;max-width:540px;margin-bottom:36px}
+
+.talk{display:grid;gap:16px}
+.card{background:var(--paper);border:1px solid var(--hairline);border-radius:24px;padding:26px 24px;transition:.22s}
+.card:hover{transform:translateY(-3px);box-shadow:var(--sh-lift)}
+.card .n{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--primary);margin-bottom:12px}
+.card .n i{width:26px;height:26px;border-radius:50%;background:var(--tint);display:grid;place-items:center;font-style:normal;font-size:13px}
+.card h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.card p{font-size:14.5px;color:var(--body);line-height:1.7}
+
+.split{display:grid;gap:28px;align-items:center}
+.split img{border-radius:24px 90px 24px 90px;height:260px;width:100%;object-fit:cover;box-shadow:var(--sh)}
+.chk{list-style:none;display:grid;gap:12px;margin-top:20px}
+.chk li{display:flex;gap:11px;font-size:15px;color:var(--body);line-height:1.6}
+.chk i{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--tint);color:var(--primary);
+  display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700;margin-top:2px}
+
+.quotes{display:grid;gap:14px}
+.quote{background:var(--paper);border-left:3px solid var(--primary);border-radius:6px 20px 20px 6px;padding:22px 22px}
+.quote p{font-size:15px;color:var(--fg);line-height:1.75;margin-bottom:12px}
+.who{display:flex;align-items:center;gap:10px}
+.who img{width:34px;height:34px;border-radius:50%;object-fit:cover}
+.who b{font-size:13.5px;color:var(--fg)}
+.who span{font-size:12.5px;color:var(--muted)}
+
+.cta-band{background:var(--tint);border-radius:32px;padding:48px 26px;text-align:center;position:relative;overflow:hidden}
+.cta-band h2{margin-bottom:10px}
+.cta-band p{font-size:16px;color:var(--body);line-height:1.7;margin-bottom:26px}
+
+footer{border-top:1px solid var(--hairline);padding:38px 0 46px;margin-top:20px}
+.foot{display:grid;gap:22px}
+.foot p{font-size:13px;color:var(--muted);line-height:1.8}
+.foot-links{display:flex;flex-wrap:wrap;gap:18px;font-size:14px;color:var(--body);font-weight:500}
+.foot-links a:hover{color:var(--primary)}
+
+@media (min-width:768px){
+  h1{font-size:50px} h2{font-size:33px}
+  .lead{font-size:19px}
+  .hero{padding:88px 0 96px}
+  .hero-inner{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+  .hero-art{margin-top:0}
+  .hero-photo{height:420px}
+  section{padding:88px 0}
+  .nav-links{display:flex}
+  .talk{grid-template-columns:repeat(3,1fr);gap:20px}
+  .split{grid-template-columns:1fr 1fr;gap:52px}
+  .split img{height:400px}
+  .quotes{grid-template-columns:repeat(3,1fr);gap:18px}
+  .cta-band{padding:76px 40px}
+  .foot{grid-template-columns:1fr auto;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a href="#" class="logo"><span class="logo-mark">H</span>hello-herdr</a>
+    <nav class="nav-links"><a href="#how">이렇게 돼요</a><a href="#care">꼼꼼함</a><a href="#voice">후기</a></nav>
+    <a href="#cta" class="btn btn-primary">말 걸어보기</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <span class="blob blob-1"></span><span class="blob blob-2"></span>
+    <div class="wrap hero-inner">
+      <div>
+        <span class="badge"><span class="dot"></span>지금 5개 작업이 돌고 있어요</span>
+        <h1>말 한마디 남기면,<br><mark>페이지가 되어 돌아와요</mark></h1>
+        <p class="lead">이웃에게 부탁하듯 편하게 적어주세요. 만드는 에이전트와 살펴보는 에이전트가 번갈아 손보고, 다 되면 열리는 주소를 챗으로 보내드려요.</p>
+        <div class="hero-cta">
+          <a href="#cta" class="btn btn-primary btn-lg">테스트 페이지 만들기</a>
+          <a href="#how" class="btn btn-soft">어떻게 되나요?</a>
+        </div>
+        <p class="hero-note">준비물은 텔레그램 하나 · 평균 4분이면 도착해요</p>
+      </div>
+      <div class="hero-art">
+        <img class="hero-photo" src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=1000&q=80" alt="따뜻한 조명 아래 노트북이 놓인 나무 책상">
+        <div class="note-card">
+          <span class="note-ico">🌾</span>
+          <div>
+            <b>"테스트 페이지 하나 만들어줘"</b>
+            <p>이렇게만 적어도 충분해요. 나머지는 저희가 챙길게요.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="wrap">
+      <p class="sec-label">이렇게 돼요</p>
+      <h2 class="serif">기다리는 동안<br>차 한 잔이면 충분해요</h2>
+      <p class="sec-lead">복잡한 설정도, 중간에 확인할 것도 없어요. 세 번 손이 오가면 끝납니다.</p>
+      <div class="talk">
+        <div class="card">
+          <span class="n"><i>1</i>남기기</span>
+          <h3>편하게 적어주세요</h3>
+          <p>“sites/hello-herdr에 테스트 페이지 만들고 배포해줘” 정도면 돼요. 어려운 말로 다듬지 않아도 알아들어요.</p>
+        </div>
+        <div class="card">
+          <span class="n"><i>2</i>만들기</span>
+          <h3>둘이서 번갈아 손봐요</h3>
+          <p>한 쪽이 만들면 다른 쪽이 살펴봐요. 어설픈 부분이 보이면 다시 돌려보내고, 괜찮아질 때까지 반복해요.</p>
+        </div>
+        <div class="card">
+          <span class="n"><i>3</i>보내드리기</span>
+          <h3>주소로 답장드려요</h3>
+          <p>배포까지 마치고 실제로 열리는지 확인한 뒤에 챗으로 알려드려요. “됐어요” 대신 링크를 드려요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="care" style="background:var(--paper);border-block:1px solid var(--hairline)">
+    <div class="wrap split">
+      <img src="https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?auto=format&fit=crop&w=1000&q=80" alt="자연광이 드는 작업 공간">
+      <div>
+        <p class="sec-label">꼼꼼함</p>
+        <h2 class="serif">빨리 주는 것보다<br>제대로 주는 걸 먼저 봐요</h2>
+        <p class="sec-lead" style="margin-bottom:0">빌드가 통과했다는 말은 아직 아무것도 확인한 게 아니에요. 실제로 열리는 화면까지 보고 나서야 다 됐다고 말해요.</p>
+        <ul class="chk">
+          <li><i>✓</i>만든 쪽과 살펴보는 쪽을 따로 둬요</li>
+          <li><i>✓</i>운영에 올라간 결과물에서 직접 확인해요</li>
+          <li><i>✓</i>작업이 끝나면 자리를 깨끗이 정리해요</li>
+          <li><i>✓</i>어디쯤 왔는지 단계마다 알려드려요</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="voice">
+    <div class="wrap">
+      <p class="sec-label">후기</p>
+      <h2 class="serif">먼저 써본 이웃들의 말</h2>
+      <div class="quotes">
+        <div class="quote">
+          <p>“출근길에 한 줄 보냈는데 사무실 도착하니 링크가 와 있었어요. 이게 되네요.”</p>
+          <div class="who"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80" alt=""><span><b>지연</b><br><span>1인 쇼핑몰</span></span></div>
+        </div>
+        <div class="quote">
+          <p>“고칠 데를 알아서 짚어주니까 제가 다시 볼 일이 거의 없더라고요.”</p>
+          <div class="who"><img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=120&q=80" alt=""><span><b>승호</b><br><span>동네 카페</span></span></div>
+        </div>
+        <div class="quote">
+          <p>“링크가 진짜로 열리는지까지 확인해서 보내주는 게 제일 마음에 들어요.”</p>
+          <div class="who"><img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=120&q=80" alt=""><span><b>민아</b><br><span>공방 운영</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cta">
+    <div class="wrap">
+      <div class="cta-band">
+        <h2 class="serif">오늘 한 줄, 남겨보실래요?</h2>
+        <p>이 페이지도 짧은 메시지 한 줄에서 시작됐어요.</p>
+        <a href="#" class="btn btn-primary btn-lg">hello-herdr 시작하기</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div>
+      <a href="#" class="logo" style="margin-bottom:10px"><span class="logo-mark">H</span>hello-herdr</a>
+      <p>말 한마디로 시작하는 원격 개발 파이프라인<br>© 2026 hello-herdr</p>
+    </div>
+    <nav class="foot-links"><a href="#how">이렇게 돼요</a><a href="#care">꼼꼼함</a><a href="#voice">후기</a><a href="#cta">시작하기</a></nav>
+  </div>
+</footer>
+
+</body>
+</html>
