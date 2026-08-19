@@ -5,5 +5,12 @@
     "style": "밝고 모던 (흰 배경, 깔끔한 레이아웃)",
     "description": "widget-demo 페이지 맨 아래에 오늘 날짜를 작은 글씨로 표기",
     "file": "widget-demo_v1.html"
+  },
+  {
+    "date": "2026-08-19 16:06",
+    "version": "v3",
+    "style": "고급스럽고 강렬한 (다크/딥컬러 배경, 임팩트 강조)",
+    "description": "widget-demo 페이지 하단 날짜 옆에 '테스트 완료' 문구를 작은 글씨로 추가",
+    "file": "widget-demo_v3.html"
   }
 ]

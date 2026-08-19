@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>widget-demo — VERIFIED. 날짜 옆의 증거 한 줄</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;700&family=Noto+Sans+KR:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── omd reference: Linear / Vercel 계열 딥 다크 + gold accent — bg #08090c, surface #12141a, radius 14 ── */
+:root{
+  --bg:#08090c; --surface:#12141a; --surface-2:#171a22; --line:#242833; --line-2:#2f3442;
+  --fg:#f4f5f7; --fg-2:#a8adba; --fg-3:#6e7484;
+  --gold:#d9b46a; --gold-2:#f0d49a; --violet:#7c6cff; --cyan:#4fd1c5; --lime:#c9f24d;
+  --r-sm:8px; --r-md:14px; --r-lg:20px; --r-xl:28px; --r-full:9999px;
+  --sh-deep:0 24px 64px rgba(0,0,0,.6);
+  --glow:0 0 0 1px rgba(217,180,106,.28), 0 12px 40px rgba(217,180,106,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Sans KR','Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);
+  color:var(--fg);line-height:1.66;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.serif{font-family:'Noto Serif KR',serif;font-weight:700}
+.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;
+  font-family:inherit;font-weight:600;transition:transform .16s ease,box-shadow .2s ease,background .2s ease}
+.btn:hover{transform:translateY(-2px)}
+.btn-gold{background:linear-gradient(180deg,var(--gold-2),var(--gold));color:#1a1508;border-radius:var(--r-md);
+  height:54px;padding:0 28px;font-size:16px;font-weight:700;box-shadow:0 10px 30px rgba(217,180,106,.24)}
+.btn-line{background:rgba(255,255,255,.03);color:var(--fg);border:1px solid var(--line-2);border-radius:var(--r-md);
+  height:54px;padding:0 26px;font-size:16px}
+.btn-line:hover{border-color:var(--gold);color:var(--gold-2)}
+.btn-sm{height:42px;padding:0 18px;font-size:14px;border-radius:10px}
+
+/* header */
+header{position:sticky;top:0;z-index:50;background:rgba(8,9,12,.72);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.01em}
+.logo .mark{width:28px;height:28px;border-radius:9px;background:linear-gradient(140deg,var(--gold-2),var(--gold));
+  display:grid;place-items:center;color:#171205;font-size:13px;font-weight:800}
+.nav-links{display:flex;gap:30px;font-size:14px;color:var(--fg-3);font-weight:500}
+.nav-links a:hover{color:var(--fg)}
+@media(max-width:760px){.nav-links{display:none}}
+
+/* hero */
+.hero{position:relative;padding:112px 0 96px;overflow:hidden;text-align:center}
+.hero::before{content:"";position:absolute;top:-260px;left:50%;transform:translateX(-50%);width:900px;height:640px;
+  background:radial-gradient(closest-side,rgba(124,108,255,.20),transparent 72%);pointer-events:none}
+.hero::after{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:1px;height:220px;
+  background:linear-gradient(180deg,rgba(217,180,106,.7),transparent)}
+.hero-in{position:relative;z-index:1;max-width:760px;margin:0 auto}
+.pill{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(217,180,106,.32);
+  background:rgba(217,180,106,.07);color:var(--gold-2);font-size:12.5px;font-weight:600;letter-spacing:.06em;
+  padding:9px 16px;border-radius:var(--r-full)}
+.pill .k{width:6px;height:6px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold)}
+h1{font-size:clamp(34px,7vw,62px);line-height:1.28;letter-spacing:-.03em;margin:26px 0 20px}
+h1 .grad{background:linear-gradient(100deg,var(--gold-2),var(--gold) 42%,#9c7f3f);-webkit-background-clip:text;
+  background-clip:text;color:transparent}
+.lead{font-size:17.5px;color:var(--fg-2);max-width:600px;margin:0 auto}
+.cta-row{display:flex;gap:12px;margin-top:36px;justify-content:center;flex-wrap:wrap}
+.metrics{display:flex;gap:0;justify-content:center;margin-top:56px;border:1px solid var(--line);
+  border-radius:var(--r-lg);background:linear-gradient(180deg,rgba(255,255,255,.03),transparent);overflow:hidden}
+.metrics div{flex:1;padding:22px 16px;border-right:1px solid var(--line)}
+.metrics div:last-child{border-right:0}
+.metrics b{display:block;font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--gold-2);font-variant-numeric:tabular-nums}
+.metrics span{font-size:12.5px;color:var(--fg-3)}
+@media(max-width:700px){.hero{padding:72px 0 64px}.metrics{flex-direction:column}.metrics div{border-right:0;border-bottom:1px solid var(--line)}}
+
+/* terminal mock */
+.term{max-width:820px;margin:56px auto 0;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:var(--r-lg);box-shadow:var(--sh-deep);overflow:hidden;text-align:left}
+.term-bar{display:flex;align-items:center;gap:7px;padding:13px 16px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.term-bar i{width:10px;height:10px;border-radius:50%;background:#2f3442;display:block}
+.term-bar span{margin-left:10px;font-size:12px;color:var(--fg-3)}
+.term-body{padding:24px 22px;font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:13px;line-height:2}
+.term-body .c{color:var(--fg-3)}
+.term-body .ok{color:var(--cyan)}
+.term-body .g{color:var(--gold-2)}
+.term-body .v{color:var(--violet)}
+.term-foot{border-top:1px solid var(--line);padding:16px 22px;display:flex;justify-content:space-between;
+  align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--fg-3)}
+.chip-done{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(217,180,106,.34);
+  background:rgba(217,180,106,.10);color:var(--gold-2);font-size:11px;font-weight:700;letter-spacing:.04em;
+  padding:4px 10px;border-radius:var(--r-full)}
+
+/* sections */
+section{padding:96px 0}
+.sec-head{max-width:640px;margin-bottom:52px}
+.eyebrow{font-size:12px;font-weight:700;color:var(--gold);letter-spacing:.16em;margin-bottom:14px}
+h2{font-size:clamp(26px,4.4vw,38px);letter-spacing:-.025em;line-height:1.4}
+.sec-head p{margin-top:16px;color:var(--fg-2);font-size:16px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+  border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 26px;transition:border-color .22s ease,transform .22s ease}
+.card:hover{border-color:rgba(217,180,106,.42);transform:translateY(-4px)}
+.card .ic{width:44px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:rgba(217,180,106,.08);
+  display:grid;place-items:center;margin-bottom:20px}
+.card h3{font-size:18px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+.card p{font-size:14.5px;color:var(--fg-2)}
+.card .idx{position:absolute;top:24px;right:26px;font-size:12px;color:var(--fg-3)}
+@media(max-width:880px){.cards{grid-template-columns:1fr}section{padding:64px 0}}
+
+/* proof band */
+.proof{background:linear-gradient(180deg,#0b0d12,#08090c);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.proof-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.gates{list-style:none}
+.gates li{display:flex;gap:14px;align-items:flex-start;padding:18px 0;border-bottom:1px solid var(--line)}
+.gates li:last-child{border-bottom:0}
+.gates .n{flex:none;width:26px;height:26px;border-radius:50%;border:1px solid rgba(217,180,106,.4);
+  color:var(--gold-2);font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:2px}
+.gates strong{display:block;font-size:16px;font-weight:700;margin-bottom:4px}
+.gates span{font-size:14px;color:var(--fg-2)}
+.proof-visual{position:relative;border-radius:var(--r-xl);overflow:hidden;border:1px solid var(--line-2);box-shadow:var(--sh-deep)}
+.proof-visual img{width:100%;height:400px;object-fit:cover;display:block;filter:grayscale(.35) contrast(1.06) brightness(.72)}
+.proof-visual .ov{position:absolute;inset:auto 0 0 0;padding:24px;
+  background:linear-gradient(180deg,transparent,rgba(8,9,12,.92));display:flex;justify-content:space-between;
+  align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--fg-3)}
+@media(max-width:880px){.proof-grid{grid-template-columns:1fr;gap:34px}.proof-visual img{height:280px}}
+
+/* pricing */
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.tier{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:30px 26px}
+.tier.hot{border-color:rgba(217,180,106,.45);box-shadow:var(--glow);background:linear-gradient(180deg,rgba(217,180,106,.07),var(--surface))}
+.tier h3{font-size:15px;font-weight:700;color:var(--fg-2);letter-spacing:.04em;margin-bottom:14px}
+.tier .price{font-size:34px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.tier .price small{font-size:14px;color:var(--fg-3);font-weight:500}
+.tier ul{list-style:none;margin:22px 0 26px}
+.tier li{font-size:14px;color:var(--fg-2);padding:7px 0;display:flex;gap:9px;align-items:center}
+.tier li::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--gold);flex:none}
+.tier .btn{width:100%}
+@media(max-width:880px){.tiers{grid-template-columns:1fr}}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:64px 0 36px;background:#06070a}
+.f-grid{display:flex;justify-content:space-between;gap:34px;flex-wrap:wrap}
+.f-col h4{font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--fg-3);margin-bottom:14px}
+.f-col a{display:block;font-size:14px;color:var(--fg-2);padding:5px 0}
+.f-col a:hover{color:var(--gold-2)}
+.f-bot{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;
+  align-items:center;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--fg-3)}
+
+/* ★ 페이지 맨 아래: 날짜 + 테스트 완료 */
+.page-date{background:#06070a;padding:0 24px 46px;text-align:center;font-size:12px;line-height:1.7;
+  color:var(--fg-3);letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.page-date .sep{width:16px;height:1px;background:var(--line-2);display:inline-block}
+.page-date .done{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--gold-2);
+  border:1px solid rgba(217,180,106,.3);background:rgba(217,180,106,.08);padding:3px 10px;border-radius:var(--r-full)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="mark">w</span> widget-demo</div>
+    <nav class="nav-links">
+      <a href="#features">기능</a><a href="#proof">검증</a><a href="#pricing">요금</a><a href="#start">시작</a>
+    </nav>
+    <a class="btn btn-gold btn-sm" href="#start">지금 적용</a>
+  </div>
+</header>
+
+<div class="wrap hero">
+  <div class="hero-in">
+    <div class="pill"><span class="k"></span> VERIFIED BUILD · 2026.08.19</div>
+    <h1 class="serif">마지막 한 줄이<br><span class="grad">신뢰를 결정합니다</span></h1>
+    <p class="lead">페이지 하단의 날짜 옆에 '테스트 완료' 한 마디. 12px 회색 캡션이지만, 이 페이지가 검증된 상태로 배포됐다는 가장 짧고 강한 증거입니다.</p>
+    <div class="cta-row">
+      <a class="btn btn-gold" href="#start">1분 만에 적용</a>
+      <a class="btn btn-line" href="#proof">검증 파이프라인 보기</a>
+    </div>
+    <div class="metrics">
+      <div><b>1.2KB</b><span>gzip 번들</span></div>
+      <div><b>0</b><span>런타임 의존성</span></div>
+      <div><b>38ms</b><span>평균 렌더</span></div>
+      <div><b>3,400+</b><span>적용 페이지</span></div>
+    </div>
+  </div>
+
+  <div class="term">
+    <div class="term-bar"><i></i><i></i><i></i><span>widget-demo · verify --release</span></div>
+    <div class="term-body mono">
+<span class="c">$</span> widget-demo verify --release v1.4.0
+<span class="ok">✓</span> render        하단 캡션 DOM 확인          <span class="c">12ms</span>
+<span class="ok">✓</span> datetime      표기 · datetime 속성 일치    <span class="c">3ms</span>
+<span class="ok">✓</span> a11y          대비 4.8:1 / 캡션 role 확인   <span class="c">21ms</span>
+<span class="g">→</span> label         <span class="v">"테스트 완료"</span> 라벨 활성화
+    </div>
+    <div class="term-foot">
+      <span class="mono">2026-08-19</span>
+      <span class="chip-done">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        테스트 완료
+      </span>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">CAPABILITIES</div>
+      <h2 class="serif">작은 글씨를, 가장 엄격하게</h2>
+      <p>보이는 건 한 줄이지만 그 뒤에는 시간대 보정, 정합성 대조, 접근성 검사가 매 배포마다 돌아갑니다.</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="idx mono">01</span>
+        <div class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#d9b46a" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.2 2"/></svg></div>
+        <h3>시간대 자동 보정</h3>
+        <p>방문자의 로컬 시간을 기준으로 렌더합니다. 자정 경계에서도 하루가 어긋나지 않습니다.</p>
+      </div>
+      <div class="card">
+        <span class="idx mono">02</span>
+        <div class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#d9b46a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5.2c0 4.6 3.3 8.3 8 9.3 4.7-1 8-4.7 8-9.3V6.5z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></div>
+        <h3>검증된 라벨만</h3>
+        <p>세 개의 게이트를 모두 통과한 배포에만 '테스트 완료'가 붙습니다. 실패하면 라벨은 조용히 사라집니다.</p>
+      </div>
+      <div class="card">
+        <span class="idx mono">03</span>
+        <div class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#d9b46a" stroke-width="1.8" stroke-linecap="round"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>성능에 무해</h3>
+        <p>defer 로드에 DOM 조작 1회. 자리를 먼저 잡고 채우기 때문에 CLS는 0에 머무릅니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="proof" id="proof">
+  <div class="wrap proof-grid">
+    <div>
+      <div class="eyebrow">THE PIPELINE</div>
+      <h2 class="serif">라벨 하나에 게이트 셋</h2>
+      <p style="margin:16px 0 26px;color:var(--fg-2);font-size:16px">'테스트 완료'는 사람이 손으로 적는 문구가 아닙니다. 배포 파이프라인이 통과시킨 결과만 화면에 남습니다.</p>
+      <ul class="gates">
+        <li><span class="n">1</span><div><strong>렌더 검증</strong><span>실제 브라우저에서 하단 캡션이 그려졌는지 확인합니다.</span></div></li>
+        <li><span class="n">2</span><div><strong>날짜 정합성</strong><span>표기 문자열과 datetime 속성이 같은 날을 가리키는지 대조합니다.</span></div></li>
+        <li><span class="n">3</span><div><strong>접근성 통과</strong><span>대비 4.5:1 이상, 스크린리더에서 캡션으로 읽히는지 검사합니다.</span></div></li>
+      </ul>
+    </div>
+    <div class="proof-visual">
+      <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1200&q=70" alt="어두운 배경의 네트워크 이미지">
+      <div class="ov">
+        <span class="mono">last verified · 2026-08-19</span>
+        <span class="chip-done">테스트 완료</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="eyebrow">PRICING</div>
+      <h2 class="serif">한 줄에 매기는 값</h2>
+      <p>월 1만 뷰까지는 무료입니다. 검증 파이프라인과 감사 로그가 필요해지는 순간부터 유료입니다.</p>
+    </div>
+    <div class="tiers">
+      <div class="tier">
+        <h3>FREE</h3>
+        <div class="price">₩0<small> / 월</small></div>
+        <ul><li>월 1만 뷰</li><li>날짜 자동 표기</li><li>기본 캡션 스타일</li></ul>
+        <a class="btn btn-line" href="#start">무료로 시작</a>
+      </div>
+      <div class="tier hot">
+        <h3>VERIFIED</h3>
+        <div class="price">₩9,000<small> / 월</small></div>
+        <ul><li>월 50만 뷰</li><li>'테스트 완료' 라벨</li><li>3단계 검증 게이트</li><li>배포 기록 30일 보관</li></ul>
+        <a class="btn btn-gold" href="#start">지금 적용</a>
+      </div>
+      <div class="tier">
+        <h3>ENTERPRISE</h3>
+        <div class="price">문의<small></small></div>
+        <ul><li>무제한 뷰</li><li>감사 로그 · SSO</li><li>전용 CDN 도메인</li></ul>
+        <a class="btn btn-line" href="#start">상담 요청</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer id="start">
+  <div class="wrap">
+    <div class="f-grid">
+      <div class="f-col" style="max-width:290px">
+        <div class="logo" style="margin-bottom:14px"><span class="mark">w</span> widget-demo</div>
+        <p style="font-size:14px;color:var(--fg-2)">페이지의 마지막 한 줄을 증거로 만드는 초경량 날짜 위젯.</p>
+      </div>
+      <div class="f-col"><h4>PRODUCT</h4><a href="#features">기능</a><a href="#proof">검증</a><a href="#pricing">요금</a></div>
+      <div class="f-col"><h4>DOCS</h4><a href="#">빠른 시작</a><a href="#">데이터 속성</a><a href="#">변경 이력</a></div>
+      <div class="f-col"><h4>SUPPORT</h4><a href="#">문의하기</a><a href="#">상태 페이지</a><a href="#">개인정보 처리방침</a></div>
+    </div>
+    <div class="f-bot">
+      <span>© 2026 widget-demo. All rights reserved.</span>
+      <span class="mono">2026년 8월 19일 수요일</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ★ 페이지 맨 아래: 날짜 + 테스트 완료 -->
+<div class="page-date">
+  <time class="mono" datetime="2026-08-19">2026-08-19</time>
+  <span class="sep" aria-hidden="true"></span>
+  <span class="done">테스트 완료</span>
+</div>
+
+</body>
+</html>
