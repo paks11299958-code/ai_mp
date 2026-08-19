@@ -12,5 +12,12 @@
     "style": "고급스럽고 강렬한 (다크/딥컬러 배경, 임팩트 강조)",
     "description": "widget-demo 페이지 하단 날짜 옆에 '테스트 완료' 문구를 작은 글씨로 추가",
     "file": "widget-demo_v3.html"
+  },
+  {
+    "date": "2026-08-19 16:59",
+    "version": "v3",
+    "style": "고급스럽고 강렬한 (다크/딥컬러 배경, 임팩트 강조)",
+    "description": "widget-demo 페이지 하단 문구 텍스트 교체",
+    "file": "widget-demo_v3.html"
   }
 ]
