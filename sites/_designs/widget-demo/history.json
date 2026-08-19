@@ -19,5 +19,12 @@
     "style": "고급스럽고 강렬한 (다크/딥컬러 배경, 임팩트 강조)",
     "description": "widget-demo 페이지 하단 문구 텍스트 교체",
     "file": "widget-demo_v3.html"
+  },
+  {
+    "date": "2026-08-19 17:19",
+    "version": "v2",
+    "style": "따뜻하고 자연스러운 (베이지/크림 배경, 유기적 느낌)",
+    "description": "widget-demo 하단 문구를 '3차 검증'으로 교체",
+    "file": "widget-demo_v2.html"
   }
 ]

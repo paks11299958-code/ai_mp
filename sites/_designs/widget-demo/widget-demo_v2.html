@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>widget-demo — 하단 문구 '3차 검증' 적용</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== omd reference: Starbucks — green #00704A / deep-forest #1e3932 / cream #ede9e1 / bg-gray #f2f0eb / warm-white #f1f8f4 / latte #d4e9e2 / gold #cba258 / radius 4·16·20·full ===== */
+:root{
+  --green:#00704A; --green-accent:#00a862; --forest:#1e3932; --gold:#cba258; --berry:#c44d58;
+  --cream:#ede9e1; --bg:#f2f0eb; --warm-white:#f1f8f4; --latte:#d4e9e2; --white:#fafafa;
+  --ink:#1e1e1e; --body:#4a4a4a; --secondary:#6b6b6b; --border:#d4d4d4; --light:#e8e8e8;
+  --r-sm:4px; --r-md:16px; --r-lg:20px; --r-full:9999px;
+  --sh-subtle:0 2px 8px rgba(30,57,50,.08); --sh-std:0 4px 16px rgba(30,57,50,.12); --sh-elev:0 6px 20px rgba(30,57,50,.25);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;
+  background:var(--bg);color:var(--ink);font-size:16px;line-height:1.63;-webkit-font-smoothing:antialiased}
+.serif{font-family:'Gowun Batang',serif}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace;font-feature-settings:'tnum' 1}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+/* nav */
+header{position:sticky;top:0;z-index:50;background:rgba(242,240,235,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--cream)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+.brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--forest)}
+.mark{width:28px;height:28px;flex:none;border-radius:50%;border:2px solid var(--green);position:relative;background:var(--warm-white)}
+.mark:after{content:"";position:absolute;left:7px;top:9px;width:10px;height:5px;border-left:2.2px solid var(--green);border-bottom:2.2px solid var(--green);transform:rotate(-45deg)}
+.nav-links{display:flex;gap:28px;font-size:15px;font-weight:600;color:var(--body)}
+.nav-links a:hover{color:var(--green)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;font-family:inherit;
+  border-radius:var(--r-full);font-weight:600;letter-spacing:.02em;transition:.18s;white-space:nowrap}
+.btn-primary{background:var(--green);color:#fff;padding:15px 28px;font-size:15px}
+.btn-primary:hover{background:var(--forest)}
+.btn-outline{background:transparent;color:var(--green);border:1px solid var(--green);padding:14px 27px;font-size:15px}
+.btn-outline:hover{background:var(--latte)}
+.btn-gold{background:var(--gold);color:var(--forest);padding:15px 28px;font-size:15px;font-weight:700}
+.btn-gold:hover{filter:brightness(1.05)}
+.btn-light{background:var(--white);color:var(--green);padding:15px 28px;font-size:15px}
+.btn-sm{padding:10px 18px;font-size:14px}
+@media(max-width:820px){.nav-links{display:none}}
+
+/* hero */
+.hero{padding:74px 0 84px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:52px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:8px;background:var(--latte);color:var(--green);
+  border-radius:var(--r-full);padding:6px 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:20px}
+h1{font-size:clamp(34px,6.2vw,54px);font-weight:700;line-height:1.18;letter-spacing:-.02em;color:var(--forest)}
+h1 .hand{font-family:'Gowun Batang',serif;font-weight:700;color:var(--green);position:relative;white-space:nowrap}
+h1 .hand:after{content:"";position:absolute;left:-2%;right:-2%;bottom:.08em;height:.34em;background:rgba(203,162,88,.34);border-radius:var(--r-full);z-index:-1}
+.lead{margin-top:20px;max-width:460px;color:var(--body);font-size:clamp(15px,2.1vw,17px);line-height:1.75}
+.cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+.hero-photo{position:relative}
+.hero-photo img{width:100%;height:440px;object-fit:cover;border-radius:200px 200px 24px 24px;box-shadow:var(--sh-std)}
+.float{position:absolute;left:-14px;bottom:34px;background:var(--white);border-radius:var(--r-md);padding:14px 18px;box-shadow:var(--sh-std)}
+.float .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--secondary);font-weight:700}
+.float .v{font-size:18px;font-weight:700;color:var(--forest);margin-top:3px}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr;gap:36px}.hero-photo img{height:300px;border-radius:140px 140px 20px 20px}}
+
+/* sections */
+section{padding:88px 0}
+.sec-head{max-width:600px;margin-bottom:40px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--green);margin-bottom:14px}
+h2{font-size:clamp(25px,4.2vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.3;color:var(--forest)}
+.sec-head p{margin-top:14px;color:var(--body);font-size:17px;line-height:1.75}
+
+.beans{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.bean{background:var(--white);border:1px solid var(--light);border-radius:var(--r-lg);padding:30px 26px;transition:.2s}
+.bean:hover{box-shadow:var(--sh-std);transform:translateY(-3px)}
+.bean .no{width:38px;height:38px;border-radius:50%;background:var(--warm-white);color:var(--green);border:1px solid var(--latte);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;margin-bottom:16px}
+.bean h3{font-size:19px;font-weight:700;color:var(--forest);margin-bottom:8px;letter-spacing:-.01em}
+.bean p{font-size:15px;color:var(--body);line-height:1.7}
+.done{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;font-weight:700;color:var(--green);
+  background:var(--latte);border-radius:var(--r-full);padding:4px 12px}
+@media(max-width:860px){.beans{grid-template-columns:1fr}}
+
+.story{background:var(--warm-white);border-radius:var(--r-lg);padding:44px 40px}
+.story-grid{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:26px}
+.card{background:var(--white);border-radius:var(--r-md);padding:26px;border:1px solid var(--light)}
+.card.now{border-color:rgba(0,112,74,.32);background:linear-gradient(180deg,#fff,var(--warm-white))}
+.label{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  border-radius:var(--r-full);padding:4px 12px;margin-bottom:16px;background:var(--cream);color:var(--secondary)}
+.card.now .label{background:var(--green);color:#fff}
+.line{font-size:20px;letter-spacing:-.01em;color:var(--forest)}
+.line.old{color:#a8a49c;text-decoration:line-through}
+.card p.d{margin-top:14px;font-size:14.5px;color:var(--body);line-height:1.75}
+@media(max-width:760px){.story{padding:30px 22px}.story-grid{grid-template-columns:1fr}}
+
+.quote{text-align:center;max-width:720px;margin:0 auto}
+.quote blockquote{font-family:'Gowun Batang',serif;font-size:clamp(21px,3.6vw,30px);line-height:1.6;color:var(--forest)}
+.quote .by{margin-top:20px;font-size:14px;color:var(--secondary)}
+
+.final{background:var(--forest);color:#fff;border-radius:var(--r-lg);padding:64px 30px;text-align:center;margin-bottom:88px;
+  background-image:radial-gradient(circle at 20% 10%,rgba(0,168,98,.25),transparent 46%),radial-gradient(circle at 84% 84%,rgba(203,162,88,.22),transparent 44%)}
+.final h2{color:#fff}
+.final p{margin:14px auto 28px;max-width:460px;color:rgba(255,255,255,.78)}
+
+/* footer */
+footer{background:var(--cream);padding:56px 0 0;border-top:1px solid #ddd7cb}
+.f-top{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;padding-bottom:36px}
+.f-brand p{margin-top:12px;font-size:14px;color:var(--secondary);max-width:250px;line-height:1.7}
+.f-cols{display:flex;gap:56px;flex-wrap:wrap}
+.f-col h5{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--forest);margin-bottom:13px}
+.f-col a{display:block;font-size:14px;color:var(--body);margin-bottom:9px}
+.f-col a:hover{color:var(--green)}
+.f-bottom{border-top:1px solid #ddd7cb;padding:20px 0 42px;display:flex;justify-content:space-between;align-items:center;
+  gap:12px;flex-wrap:wrap;font-size:13px;color:var(--secondary)}
+/* ★ 교체된 하단 문구 — '3차 검증' */
+.stamp{display:inline-flex;align-items:center;gap:10px;background:var(--warm-white);border:1px solid var(--latte);
+  border-radius:var(--r-full);padding:7px 16px}
+.stamp .seed{width:7px;height:7px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--green);display:block}
+.stamp .date{font-size:12px;color:var(--secondary)}
+.stamp .msg{font-size:12px;font-weight:700;color:var(--green);letter-spacing:.01em}
+@media(max-width:640px){.f-bottom{flex-direction:column;align-items:flex-start}.final{padding:48px 20px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#"><span class="mark"></span>widget&#8209;demo</a>
+    <nav class="nav-links">
+      <a href="#gates">검증 단계</a>
+      <a href="#change">바뀐 한 줄</a>
+      <a href="#voice">쓰는 말</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#start">문구 교체</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <span class="pill">2026.08.19 · footer update</span>
+        <h1>맨 아래 한 줄에,<br><span class="hand">3차 검증</span>이<br>적혀 있습니다</h1>
+        <p class="lead">'테스트 완료' 대신 지금 몇 번째 관문까지 지나왔는지를 적기로 했습니다. 짧지만, 읽는 사람에게는 가장 정직한 문장입니다.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#start">문구 교체하기</a>
+          <a class="btn btn-outline" href="#change">바뀐 한 줄 보기</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img alt="따뜻한 작업 책상" src="https://images.unsplash.com/photo-1497935586351-b67a49e012bf?auto=format&fit=crop&w=1200&q=80">
+        <div class="float">
+          <div class="k">현재 단계</div>
+          <div class="v">3차 검증 통과</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GATES -->
+  <section id="gates" style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">Three gates</div>
+        <h2>천천히, 세 번에 걸쳐<br>확인했습니다</h2>
+        <p>한 번에 끝내지 않았습니다. 각 단계가 끝날 때마다 하단 문구의 숫자가 한 칸씩 올라갑니다.</p>
+      </div>
+      <div class="beans">
+        <div class="bean">
+          <div class="no">1</div>
+          <h3>빌드 검증</h3>
+          <p>번들이 만들어지는지, 링크가 끊기지 않았는지. 가장 기본적인 확인부터 시작합니다.</p>
+          <span class="done">통과</span>
+        </div>
+        <div class="bean">
+          <div class="no">2</div>
+          <h3>기능 검증</h3>
+          <p>주요 화면을 실제로 눌러 보며 이전에 잘 되던 것이 여전히 잘 되는지 확인합니다.</p>
+          <span class="done">통과</span>
+        </div>
+        <div class="bean">
+          <div class="no">3</div>
+          <h3>운영 반영 검증</h3>
+          <p>진짜 주소에 접속해 눈으로 봅니다. 빌드가 통과했다는 말은 아직 검증이 아닙니다.</p>
+          <span class="done">통과</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHANGE -->
+  <section id="change" style="padding-top:0">
+    <div class="wrap">
+      <div class="story">
+        <div class="eyebrow">Before &amp; after</div>
+        <h2 style="font-size:clamp(23px,3.6vw,32px)">문장 하나만 갈아 끼웠습니다</h2>
+        <div class="story-grid">
+          <div class="card">
+            <span class="label">이전</span>
+            <p class="line old mono">2026-08-19 · 테스트 완료</p>
+            <p class="d">배포 로그에서 그대로 가져온 말투였습니다. 내부에서는 정확했지만, 방문자에게는 아무것도 알려주지 못했습니다.</p>
+          </div>
+          <div class="card now">
+            <span class="label">지금</span>
+            <p class="line mono">2026-08-19 · 3차 검증</p>
+            <p class="d">같은 날짜, 같은 자리. 문장만 지금의 상태를 그대로 말하도록 바꿨습니다. 다음 단계가 끝나면 숫자가 올라갑니다.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VOICE -->
+  <section id="voice" style="padding-top:0">
+    <div class="wrap quote">
+      <blockquote>“끝났다”는 말보다<br>“어디까지 왔다”는 말이<br>더 오래 신뢰를 남깁니다.</blockquote>
+      <p class="by">widget-demo 문구 가이드 · 2026.08</p>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <div class="wrap">
+    <div class="final" id="start">
+      <h2>맨 아래 한 줄,<br>지금 바꿔 두세요</h2>
+      <p>widget-demo에 적용된 '3차 검증'을 그대로 가져가거나, 우리 팀의 말로 다시 쓸 수 있습니다.</p>
+      <a class="btn btn-gold" href="#">문구 교체 시작하기</a>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <div class="f-brand">
+        <a class="brand" href="#"><span class="mark"></span>widget&#8209;demo</a>
+        <p>페이지의 마지막 한 줄까지 손으로 고르는 배포 도구.</p>
+      </div>
+      <div class="f-cols">
+        <div class="f-col"><h5>제품</h5><a href="#gates">검증 단계</a><a href="#change">바뀐 한 줄</a><a href="#voice">쓰는 말</a></div>
+        <div class="f-col"><h5>자료</h5><a href="#">문서</a><a href="#">변경 기록</a><a href="#">상태 페이지</a></div>
+        <div class="f-col"><h5>회사</h5><a href="#">소개</a><a href="#">문의</a><a href="#">약관</a></div>
+      </div>
+    </div>
+    <div class="f-bottom">
+      <span>© 2026 widget-demo. All rights reserved.</span>
+      <!-- ★ 교체된 하단 문구 -->
+      <span class="stamp">
+        <span class="seed"></span>
+        <time class="date mono" datetime="2026-08-19">2026-08-19</time>
+        <span class="msg">3차 검증</span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
