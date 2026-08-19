@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>widget-demo — 하단 문구 교체</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+/* ===== omd reference: Karrot (SEED Design) — carrot-600 #ff6600 / carrot-700 #e14d00 / tint #fff2ec / radius 8·12·16 ===== */
+:root{
+  --carrot:#ff6600; --carrot-700:#e14d00; --carrot-400:#ffb999; --carrot-tint:#fff2ec;
+  --cream:#faf5ec; --cream-2:#f4ece0; --paper:#fffdf9;
+  --fg:#1a1c20; --body:#555d6d; --muted:#868b94; --hairline:#e6ddcf;
+  --success:#079171; --warning:#9b7821;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-full:9999px;
+  --s1:0px 1px 4px rgba(88,60,30,.08);
+  --s2:0px 2px 10px rgba(88,60,30,.10);
+  --s3:0px 4px 16px rgba(88,60,30,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{
+  font-family:'Pretendard Variable',Pretendard,-apple-system,system-ui,sans-serif;
+  background:var(--cream); color:var(--fg);
+  font-size:16px;line-height:1.6;letter-spacing:-0.005em;-webkit-font-smoothing:antialiased;
+}
+.serif{font-family:'Gowun Batang',serif}
+.mono{font-family:'IBM Plex Mono',ui-monospace,Menlo,monospace}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+a{color:inherit;text-decoration:none}
+
+/* ---------- nav ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(250,245,236,.86);backdrop-filter:blur(12px);border-bottom:1px solid var(--hairline)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px}
+.seed{width:26px;height:26px;flex:none;border-radius:14px 14px 14px 4px;background:var(--carrot);transform:rotate(-8deg)}
+.nav-links{display:flex;gap:30px;font-size:14px;font-weight:600;color:var(--body)}
+.nav-links a:hover{color:var(--carrot-700)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;font-family:inherit;font-weight:700;transition:.16s}
+.btn-primary{background:var(--carrot);color:#fff;border-radius:var(--r-md);height:52px;padding:0 24px;font-size:16px;box-shadow:var(--s2)}
+.btn-primary:hover{background:var(--carrot-700)}
+.btn-sm{height:40px;padding:0 16px;font-size:14px;border-radius:var(--r-sm);box-shadow:none}
+.btn-outline{background:transparent;color:var(--fg);border:1px solid var(--hairline);border-radius:var(--r-md);height:52px;padding:0 24px;font-size:16px}
+.btn-outline:hover{background:#fff}
+@media(max-width:760px){.nav-links{display:none}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:82px 0 64px;overflow:hidden}
+.blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;z-index:0}
+.blob.a{width:280px;height:280px;background:#ffe3d1;top:-70px;right:-60px}
+.blob.b{width:200px;height:200px;background:#eef0d9;bottom:20px;left:-80px}
+.hero-in{position:relative;z-index:1;display:grid;grid-template-columns:1.02fr .98fr;gap:52px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:8px;background:var(--carrot-tint);color:var(--carrot-700);border-radius:var(--r-full);height:32px;padding:0 14px;font-size:13px;font-weight:700;margin-bottom:20px}
+h1{font-size:clamp(30px,5vw,46px);font-weight:700;line-height:1.32;letter-spacing:-0.03em}
+h1 em{font-style:normal;color:var(--carrot-700);position:relative}
+h1 em::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:10px;background:#ffd9c0;border-radius:6px;z-index:-1}
+.lead{margin-top:20px;color:var(--body);font-size:17px;line-height:1.75;max-width:440px}
+.cta{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+.hint{margin-top:16px;font-size:13px;color:var(--muted)}
+
+/* note card (hero right) */
+.note-card{background:var(--paper);border:1px solid var(--hairline);border-radius:20px;box-shadow:var(--s3);padding:24px;transform:rotate(-1.2deg)}
+.note-head{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:18px}
+.note-head b{color:var(--carrot-700)}
+.line-sk{height:11px;border-radius:6px;background:var(--cream-2);margin-bottom:10px}
+.line-sk.w1{width:70%}.line-sk.w2{width:92%}.line-sk.w3{width:56%}
+.thumb{height:120px;border-radius:var(--r-md);margin:16px 0 18px;background-size:cover;background-position:center}
+.note-foot{border-top:1px dashed var(--hairline);padding-top:16px;display:flex;flex-direction:column;gap:8px}
+.old{font-size:12px;color:#b9b1a4;text-decoration:line-through}
+.new{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--carrot-700);background:var(--carrot-tint);border-radius:var(--r-full);padding:7px 12px;align-self:flex-start}
+.new .sprout{width:7px;height:7px;border-radius:50%;background:var(--carrot);animation:breathe 2.4s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.45;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+@media(max-width:860px){.hero-in{grid-template-columns:1fr;gap:36px}.note-card{transform:none}}
+
+/* ---------- sections ---------- */
+section{padding:78px 0}
+.sec-head{max-width:580px;margin-bottom:38px}
+.eyebrow{font-size:13px;font-weight:700;color:var(--carrot-700);margin-bottom:12px;letter-spacing:.02em}
+h2{font-size:clamp(23px,3.3vw,33px);font-weight:700;line-height:1.4;letter-spacing:-0.025em}
+.sec-head p{margin-top:14px;color:var(--body);font-size:16px}
+
+.band{background:var(--paper);border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:26px;box-shadow:var(--s1)}
+.card.old-card{background:var(--cream-2);box-shadow:none}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:var(--r-full);padding:5px 11px;margin-bottom:16px}
+.tag.a{background:#eae3d6;color:var(--muted)}
+.tag.b{background:var(--carrot-tint);color:var(--carrot-700)}
+.quote{font-size:19px;line-height:1.6;letter-spacing:-0.02em}
+.quote.dim{color:var(--muted)}
+.card p.why{margin-top:14px;font-size:14px;color:var(--body);line-height:1.7}
+@media(max-width:760px){.two{grid-template-columns:1fr}}
+
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.feat{background:var(--cream);border:1px solid var(--hairline);border-radius:var(--r-lg);padding:26px 22px}
+.band .feat{background:var(--cream)}
+.ico{width:44px;height:44px;border-radius:16px 16px 16px 6px;background:var(--carrot-tint);color:var(--carrot-700);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.feat h3{font-size:17px;font-weight:700;margin-bottom:8px}
+.feat p{font-size:14px;color:var(--body);line-height:1.7}
+@media(max-width:860px){.three{grid-template-columns:1fr}}
+
+.story{display:grid;grid-template-columns:.95fr 1.05fr;gap:44px;align-items:center}
+.story img{width:100%;height:360px;object-fit:cover;border-radius:24px;box-shadow:var(--s3)}
+.timeline{list-style:none}
+.timeline li{position:relative;padding:0 0 26px 30px;border-left:2px dashed var(--hairline)}
+.timeline li:last-child{border-left-color:transparent;padding-bottom:0}
+.timeline li::before{content:"";position:absolute;left:-7px;top:2px;width:12px;height:12px;border-radius:50%;background:var(--carrot);border:3px solid var(--cream)}
+.timeline h4{font-size:16px;font-weight:700;margin-bottom:6px}
+.timeline p{font-size:14px;color:var(--body)}
+@media(max-width:860px){.story{grid-template-columns:1fr;gap:30px}.story img{height:230px}}
+
+.cta-band{background:var(--carrot-tint);border-radius:24px;padding:46px 40px;text-align:center;border:1px solid #f6d9c6}
+.cta-band h2{margin-bottom:12px}
+.cta-band p{color:var(--body);max-width:460px;margin:0 auto 26px}
+@media(max-width:640px){.cta-band{padding:34px 22px}}
+
+/* ---------- footer ---------- */
+footer{background:var(--cream-2);border-top:1px solid var(--hairline);padding:54px 0 0;margin-top:78px}
+.f-top{display:flex;justify-content:space-between;gap:32px;flex-wrap:wrap;padding-bottom:34px}
+.f-brand p{margin-top:12px;font-size:14px;color:var(--body);max-width:260px}
+.f-cols{display:flex;gap:52px;flex-wrap:wrap}
+.f-col h5{font-size:13px;font-weight:700;margin-bottom:12px}
+.f-col a{display:block;font-size:14px;color:var(--body);margin-bottom:9px}
+.f-col a:hover{color:var(--carrot-700)}
+.f-bottom{border-top:1px solid var(--hairline);padding:20px 0 36px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+/* ★ 교체된 하단 문구 */
+.stamp{display:inline-flex;align-items:center;gap:9px;background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-full);padding:7px 14px}
+.stamp .leaf{width:7px;height:7px;border-radius:50%;background:var(--success)}
+.stamp .date{font-size:12px;color:var(--muted)}
+.stamp .msg{font-size:12px;font-weight:700;color:var(--carrot-700)}
+@media(max-width:640px){.f-bottom{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#"><span class="seed"></span>widget&#8209;demo</a>
+    <nav class="nav-links">
+      <a href="#compare">바뀐 문장</a>
+      <a href="#care">안전장치</a>
+      <a href="#how">적용 과정</a>
+    </nav>
+    <a class="btn btn-primary btn-sm" href="#how">문구 바꾸기</a>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <div class="hero">
+    <span class="blob a"></span><span class="blob b"></span>
+    <div class="wrap hero-in">
+      <div>
+        <span class="chip">🌱 하단 문구 교체 · 오늘 반영</span>
+        <h1 class="serif">맨 아래 한 줄이<br><em>말투를 바꾸면</em><br>페이지가 달라집니다</h1>
+        <p class="lead">'테스트 완료'라는 내부 용어 대신, 찾아온 사람에게 건네는 문장으로. widget-demo의 하단 문구를 부드럽게 갈아 끼웠습니다.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#how">새 문구 적용하기</a>
+          <a class="btn btn-outline" href="#compare">뭐가 달라졌나요</a>
+        </div>
+        <p class="hint">문장 길이 40자까지 · 되돌리기 30일 보관</p>
+      </div>
+
+      <div class="note-card">
+        <div class="note-head"><b>미리보기</b> · widget-demo / home</div>
+        <div class="line-sk w1"></div>
+        <div class="line-sk w2"></div>
+        <div class="line-sk w3"></div>
+        <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1490818387583-1baba5e638af?auto=format&fit=crop&w=900&q=80')"></div>
+        <div class="line-sk w2"></div>
+        <div class="note-foot">
+          <span class="old mono">2026-08-19 · 테스트 완료</span>
+          <span class="new"><span class="sprout"></span><span class="mono">2026-08-19</span> 오늘도 잘 지내고 있어요</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARE -->
+  <section id="compare">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">BEFORE &amp; AFTER</div>
+        <h2 class="serif">같은 사실, 다른 온도</h2>
+        <p>페이지가 검증됐다는 사실은 그대로입니다. 그 사실을 전하는 문장만 바꿨어요.</p>
+      </div>
+      <div class="two">
+        <div class="card old-card">
+          <span class="tag a">이전 문구</span>
+          <p class="quote dim mono">2026-08-19 · 테스트 완료</p>
+          <p class="why">배포 담당자에게는 익숙하지만, 처음 온 사람에게는 무엇이 완료됐다는 건지 알 수 없는 말이었습니다.</p>
+        </div>
+        <div class="card">
+          <span class="tag b">새 문구</span>
+          <p class="quote serif">2026-08-19 · 오늘도 잘 지내고 있어요</p>
+          <p class="why">사람이 쓰는 말로 상태를 알립니다. 톤은 언제든 설정에서 바꿀 수 있고, 이전 문장은 기록에 남습니다.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARE -->
+  <section id="care" class="band">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="eyebrow">부드럽게, 그러나 안전하게</div>
+        <h2 class="serif">바꾼 뒤에도 아무것도 흔들리지 않게</h2>
+      </div>
+      <div class="three">
+        <div class="feat">
+          <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h10M4 17h7"/></svg></div>
+          <h3>문장만 갈아 끼우기</h3>
+          <p>구조와 클래스는 그대로 둔 채 텍스트만 교체합니다. 레이아웃이 밀릴 일이 없습니다.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <h3>날짜는 계속 살아 있게</h3>
+          <p>옆에 붙은 날짜는 렌더 시점 값을 그대로 씁니다. 문구를 바꿔도 멈추지 않습니다.</p>
+        </div>
+        <div class="feat">
+          <div class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 4v4h4"/></svg></div>
+          <h3>언제든 되돌리기</h3>
+          <p>직전 문구는 30일간 보관됩니다. 마음에 들지 않으면 한 번 눌러 되돌리세요.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW -->
+  <section id="how">
+    <div class="wrap story">
+      <img alt="문구를 다듬는 자리" src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1100&q=80">
+      <div>
+        <div class="sec-head" style="margin-bottom:26px">
+          <div class="eyebrow">HOW IT GOES</div>
+          <h2 class="serif">문장 하나 고르는 데<br>3분이면 충분합니다</h2>
+        </div>
+        <ul class="timeline">
+          <li><h4>하단 문구를 고릅니다</h4><p>미리보기에서 맨 아래 한 줄을 누르면 바로 편집됩니다.</p></li>
+          <li><h4>새 문장을 씁니다</h4><p>40자까지. 길이가 넘거나 어색한 표현은 그 자리에서 알려드려요.</p></li>
+          <li><h4>저장하면 바로 반영</h4><p>배포 없이 곧장 화면에 올라가고, 이전 문장은 기록으로 남습니다.</p></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="wrap" style="margin-top:64px">
+      <div class="cta-band">
+        <h2 class="serif">하단 문구, 이제 당신 말투로</h2>
+        <p>widget-demo에 적용된 문장을 그대로 가져가거나, 새로 써보세요.</p>
+        <a class="btn btn-primary" href="#">문구 교체 시작하기</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="f-top">
+      <div class="f-brand">
+        <a class="brand" href="#"><span class="seed"></span>widget&#8209;demo</a>
+        <p>페이지 맨 아래 한 줄까지 다정하게 관리합니다.</p>
+      </div>
+      <div class="f-cols">
+        <div class="f-col"><h5>제품</h5><a href="#compare">바뀐 문장</a><a href="#care">안전장치</a><a href="#how">적용 과정</a></div>
+        <div class="f-col"><h5>도움말</h5><a href="#">가이드</a><a href="#">변경 기록</a><a href="#">문의하기</a></div>
+        <div class="f-col"><h5>회사</h5><a href="#">소개</a><a href="#">이용약관</a><a href="#">개인정보</a></div>
+      </div>
+    </div>
+    <div class="f-bottom">
+      <span>© 2026 widget-demo. 오늘도 조용히 잘 돌아가는 중.</span>
+      <!-- ★ 교체된 하단 문구 -->
+      <span class="stamp">
+        <span class="leaf"></span>
+        <time class="date mono" datetime="2026-08-19">2026-08-19</time>
+        <span class="msg">오늘도 잘 지내고 있어요</span>
+      </span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
