@@ -1434,6 +1434,19 @@ export interface DevDesignRow {
 }
 
 /** 개발AI 콘솔 — 프로젝트 목록 행 (2026-08-20) */
+/** 승인 대기 1건 — 파이프라인이 계획을 내고 결재를 기다리는 상태. */
+export interface DevApprovalRow {
+    /** 예: PLAN-APPROVAL, DEV-001 */
+    taskId: string;
+    /** 무엇을 승인하는지(계획 전문) */
+    description: string;
+    command: string;
+    requestedAt: string | null;
+    timeoutSec: number;
+    /** 남은 시간(초). 0이면 곧 자동 거부된다 */
+    remainSec: number | null;
+}
+
 export interface DevProjectRow {
     id: string;
     title: string;
@@ -1694,6 +1707,10 @@ export const adminApi = {
     // 3단계 — 승인/반려. 텔레그램 버튼과 같은 결재 큐에 결정을 쓴다.
     approveDevProject: (id: string, taskId: string, decision: 'approved' | 'rejected') =>
         post<{ ok: boolean; taskId: string; decision: string }>('/admin/devai/approve', { id, taskId, decision }),
+    // 승인 대기 목록 — ★이게 없으면 어드민에서 시작한 사람은 무엇을 승인해야 할지 모른다.
+    //   (예전엔 텔레그램 메시지로만 나가서 화면엔 아무것도 안 떴다)
+    listDevApprovals: () =>
+        get<{ approvals: DevApprovalRow[] }>('/admin/devai/approvals'),
     // 4단계 — 디자인 시안 목록/선택. 생성·확정은 design_preview.py 가 맡는다.
     listDevDesigns: () =>
         get<{ designs: DevDesignRow[] }>('/admin/devai/designs'),

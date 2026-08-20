@@ -17,7 +17,9 @@
  */
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { adminApi } from '../../services/apiService';
-import type { DevProjectRow, DevProjectDetail, DevProjectVersionRow, DevDesignRow } from '../../services/apiService';
+import type {
+    DevProjectRow, DevProjectDetail, DevProjectVersionRow, DevDesignRow, DevApprovalRow,
+} from '../../services/apiService';
 import { Icon } from '../Icons';
 import {
     BRIEF_SECTIONS, parseBrief, stringifyBrief, hasAnyBrief,
@@ -86,6 +88,8 @@ export const DevAiPanel: React.FC = () => {
     // 3단계 — 자동 갱신 / 승인
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [approveTaskId, setApproveTaskId] = useState('');
+    // 승인 대기 — ★시간 제한이 있어 화면 맨 위에 띄운다(못 보면 자동 거부된다).
+    const [approvals, setApprovals] = useState<DevApprovalRow[]>([]);
     // 4단계 — 디자인 시안
     const [designs, setDesigns] = useState<DevDesignRow[]>([]);
     const [showDesigns, setShowDesigns] = useState(false);
@@ -107,6 +111,17 @@ export const DevAiPanel: React.FC = () => {
     }, []);
 
     useEffect(() => { void load(); }, [load]);
+
+    /**
+     * 승인 대기 폴링.
+     * ★프로젝트를 고르지 않아도 **항상** 돈다 — 승인 요청은 아무 때나 오고,
+     *   놓치면 자동 거부된다. 남은 시간 표시도 갱신해야 하므로 10초 간격.
+     */
+    useEffect(() => {
+        void loadApprovals();
+        const t = setInterval(() => { void loadApprovals(); }, 10000);
+        return () => clearInterval(t);
+    }, [loadApprovals]);
 
     const open = async (id: string) => {
         try {
@@ -178,6 +193,30 @@ export const DevAiPanel: React.FC = () => {
             setDesigns(d.designs);
         } catch (e: any) { setErr(e?.message || '시안 목록을 불러오지 못했습니다.'); }
     }, []);
+
+    /** 승인 대기 목록 — ★조용히 실패시킨다. 파이프라인이 안 돌 때도 화면은 살아야 한다. */
+    const loadApprovals = useCallback(async () => {
+        try {
+            const d = await adminApi.listDevApprovals();
+            setApprovals(d.approvals);
+        } catch { /* 목록을 못 읽어도 나머지 화면은 그대로 쓴다 */ }
+    }, []);
+
+    /** 승인/반려 — 텔레그램 버튼과 **같은 결재 큐**에 쓴다. */
+    const decideApproval = async (taskId: string, decision: 'approved' | 'rejected') => {
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            // 프로젝트 id 는 이벤트 기록용이라 없으면 빈 문자열로 보낸다(결재 자체는 성립).
+            await adminApi.approveDevProject(selected?.id ?? '', taskId, decision);
+            setMsg(decision === 'approved'
+                ? `승인했습니다 — ${taskId}. 개발이 이어서 진행됩니다.`
+                : `반려했습니다 — ${taskId}.`);
+            await loadApprovals();
+            if (selected) await refreshQuiet(selected.id);
+        } catch (e: any) {
+            setErr(e?.message || '승인 처리에 실패했습니다.');
+        } finally { setBusy(false); }
+    };
 
     const chooseDesign = async (projectName: string, version: string) => {
         if (!window.confirm(`'${projectName}' 디자인을 ${version} 으로 확정할까요?\n선택한 시안이 보관되고 나머지는 정리됩니다.`)) return;
@@ -342,6 +381,53 @@ export const DevAiPanel: React.FC = () => {
 
             {err && <div className="text-xs text-red-300 bg-red-900/30 border border-red-800 rounded-lg px-3 py-2">{err}</div>}
             {msg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-800 rounded-lg px-3 py-2">{msg}</div>}
+
+            {/* ── ★승인 대기 ──────────────────────────────────────
+                파이프라인이 계획을 내면 여기 뜬다. 맨 위에 두는 이유는 **시간 제한이
+                있기 때문**이다 — 예전엔 텔레그램으로만 나가서, 어드민에서 시작한
+                사람이 못 보고 5분 뒤 자동 거부를 맞았다(2026-08-20 실사고). */}
+            {approvals.length > 0 && (
+                <div className="rounded-xl border-2 border-orange-700 bg-orange-950/30 p-3 space-y-3">
+                    <div className="flex items-center gap-2">
+                        <Icon name="Bell" size={15} />
+                        <span className="text-sm font-semibold text-orange-200">
+                            승인이 필요합니다 ({approvals.length}건)
+                        </span>
+                    </div>
+                    {approvals.map(a => (
+                        <div key={a.taskId} className="bg-gray-900/70 border border-orange-900/50 rounded-lg p-3 space-y-2">
+                            <div className="flex items-center justify-between gap-2 flex-wrap">
+                                <code className="text-[11px] text-orange-300">{a.taskId}</code>
+                                {a.remainSec !== null && (
+                                    <span className={`text-[10px] px-2 py-0.5 rounded ${a.remainSec < 300
+                                        ? 'bg-red-900/60 text-red-300' : 'bg-gray-800 text-gray-400'}`}>
+                                        {a.remainSec > 0
+                                            ? `${Math.floor(a.remainSec / 60)}분 ${a.remainSec % 60}초 남음`
+                                            : '시간 초과 — 곧 자동 거부됩니다'}
+                                    </span>
+                                )}
+                            </div>
+                            <pre className="text-[11px] text-gray-300 whitespace-pre-wrap leading-relaxed
+                                max-h-64 overflow-y-auto bg-gray-950/60 rounded p-2 border border-gray-800">
+                                {a.description}
+                            </pre>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => void decideApproval(a.taskId, 'approved')} disabled={busy}
+                                    className="text-xs px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white">
+                                    ✅ 승인
+                                </button>
+                                <button onClick={() => void decideApproval(a.taskId, 'rejected')} disabled={busy}
+                                    className="text-xs px-4 py-2 rounded-lg bg-gray-800 hover:bg-red-900/60 text-gray-300 border border-gray-700">
+                                    ❌ 반려
+                                </button>
+                                <span className="text-[10px] text-gray-600 ml-auto">
+                                    텔레그램 버튼과 같은 결재입니다 — 어느 쪽으로 눌러도 됩니다
+                                </span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* ── 디자인 시안 (4단계) ── */}
             <div className="bg-gray-800/50 border border-gray-700 rounded-xl">
@@ -629,11 +715,13 @@ export const DevAiPanel: React.FC = () => {
                                         </a>
                                     </div>
 
-                                    {/* 승인/반려 + 자동갱신 (3단계) */}
+                                    {/* 수동 결재(보조) + 자동갱신 (3단계)
+                                        ★평소에는 화면 맨 위 '승인이 필요합니다' 카드로 누른다.
+                                          여기는 대기 목록이 안 뜰 때를 위한 수동 입력 경로다. */}
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        <span className="text-[11px] text-gray-400 shrink-0">결재</span>
+                                        <span className="text-[11px] text-gray-400 shrink-0">수동 결재</span>
                                         <input value={approveTaskId} onChange={e => setApproveTaskId(e.target.value)}
-                                            placeholder="항목 ID (예: PLAN-APPROVAL, DEV-001)"
+                                            placeholder="항목 ID 직접 입력 (예: PLAN-APPROVAL)"
                                             className={`${inputCls} flex-1 min-w-[180px] font-mono text-xs`} />
                                         <button onClick={() => approve('approved')} disabled={busy}
                                             className="text-xs px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">
@@ -654,7 +742,7 @@ export const DevAiPanel: React.FC = () => {
                                         </label>
                                     </div>
                                     <p className="text-[10px] text-gray-600 -mt-1">
-                                        텔레그램 버튼과 같은 결재 큐를 씁니다. 진행 중이면 5초마다 자동으로 갱신됩니다.
+                                        승인 요청이 오면 화면 맨 위에 자동으로 뜹니다(10초마다 확인). 여기는 보조 경로입니다.
                                     </p>
 
                                     {/* 묶음 진행 */}
