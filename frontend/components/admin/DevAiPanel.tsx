@@ -9,7 +9,10 @@
  *
  * 2단계(2026-08-20): 파이프라인 연결 + 진행·결과 동기화 + 명세서 내보내기.
  *   ★sync 는 허드 상태파일을 읽기만 한다 — 파이프라인이 죽어도 어드민은 산다.
- * 3~4단계(실시간 작업 모니터링·승인 / 디자인 선택)는 아직이다.
+ * 3단계(2026-08-20): 진행 중이면 5초마다 자동 갱신 + 승인/반려 버튼.
+ *   ★파이프라인이 devai_events.py 로 이벤트를 DB에 직접 적으므로 실시간이다.
+ *   승인은 텔레그램 버튼과 같은 결재 큐를 쓴다.
+ * 4단계(디자인 선택)는 아직이다.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../services/apiService';
@@ -74,6 +77,9 @@ export const DevAiPanel: React.FC = () => {
     // 2단계 — 파이프라인 연결 / 결과
     const [linkId, setLinkId] = useState('');
     const [batches, setBatches] = useState<{ name: string; title: string; status: string; commit: string | null }[]>([]);
+    // 3단계 — 자동 갱신 / 승인
+    const [autoRefresh, setAutoRefresh] = useState(true);
+    const [approveTaskId, setApproveTaskId] = useState('');
 
     const load = useCallback(async () => {
         try {
@@ -108,6 +114,34 @@ export const DevAiPanel: React.FC = () => {
         } catch (e: any) {
             setErr(e?.message || '프로젝트를 불러오지 못했습니다.');
         } finally { setBusy(false); }
+    };
+
+    /** 폴링용 — 편집 중인 입력을 덮지 않도록 프로젝트 데이터만 갱신한다. */
+    const refreshQuiet = useCallback(async (id: string) => {
+        try {
+            const d = await adminApi.getDevProject(id);
+            setSelected(d.project);
+        } catch { /* 폴링 실패는 조용히 넘긴다 — 다음 주기에 다시 시도 */ }
+    }, []);
+
+    // 진행 중일 때만 5초 폴링. 끝났거나 작성중이면 돌지 않는다.
+    const isLive = !!selected && ['planned', 'awaiting_approval', 'running', 'review'].includes(selected.status);
+    useEffect(() => {
+        if (!autoRefresh || !isLive || !selected) return;
+        const t = setInterval(() => { void refreshQuiet(selected.id); }, 5000);
+        return () => clearInterval(t);
+    }, [autoRefresh, isLive, selected?.id, refreshQuiet]);
+
+    const approve = async (decision: 'approved' | 'rejected') => {
+        if (!selected || !approveTaskId.trim()) { setErr('결재 항목 ID를 입력하세요(예: DEV-001).'); return; }
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            await adminApi.approveDevProject(selected.id, approveTaskId.trim(), decision);
+            setMsg(`${decision === 'approved' ? '승인' : '반려'}했습니다 — ${approveTaskId.trim()}`);
+            setApproveTaskId('');
+            await load(); await refreshQuiet(selected.id);
+        } catch (e: any) { setErr(e?.message || '결재에 실패했습니다.'); }
+        finally { setBusy(false); }
     };
 
     const startCreate = () => {
@@ -315,6 +349,34 @@ export const DevAiPanel: React.FC = () => {
                                             명세서 .md
                                         </a>
                                     </div>
+
+                                    {/* 승인/반려 + 자동갱신 (3단계) */}
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[11px] text-gray-400 shrink-0">결재</span>
+                                        <input value={approveTaskId} onChange={e => setApproveTaskId(e.target.value)}
+                                            placeholder="항목 ID (예: PLAN-APPROVAL, DEV-001)"
+                                            className={`${inputCls} flex-1 min-w-[180px] font-mono text-xs`} />
+                                        <button onClick={() => approve('approved')} disabled={busy}
+                                            className="text-xs px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">
+                                            승인
+                                        </button>
+                                        <button onClick={() => approve('rejected')} disabled={busy}
+                                            className="text-xs px-3 py-2 rounded-lg bg-gray-800 hover:bg-red-900/60 text-gray-400 hover:text-red-300 border border-gray-700">
+                                            반려
+                                        </button>
+                                        <label className="flex items-center gap-1.5 text-[11px] text-gray-500 ml-auto cursor-pointer">
+                                            <input type="checkbox" checked={autoRefresh}
+                                                onChange={e => setAutoRefresh(e.target.checked)}
+                                                className="accent-blue-500" />
+                                            자동갱신
+                                            {isLive && autoRefresh && (
+                                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                            )}
+                                        </label>
+                                    </div>
+                                    <p className="text-[10px] text-gray-600 -mt-1">
+                                        텔레그램 버튼과 같은 결재 큐를 씁니다. 진행 중이면 5초마다 자동으로 갱신됩니다.
+                                    </p>
 
                                     {/* 묶음 진행 */}
                                     {batches.length > 0 && (

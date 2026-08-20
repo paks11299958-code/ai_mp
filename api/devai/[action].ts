@@ -14,10 +14,14 @@
  *   ★sync 는 rag/state/projects/<ID>.json 을 **읽기만** 한다. 파이프라인 쪽을 고치지
  *     않으므로 허드가 죽어도 어드민은 산다(허드가 dev_agent 를 대체하지 않은 것과 같은 원칙).
  *
- * 남은 단계: 3)작업 모니터링+승인 4)디자인 선택 5)텔레그램 축소
+ * 3단계: approve(승인/반려) — rag/state/approvals/<taskId>.json 에 결정을 쓴다.
+ *   ★텔레그램 버튼과 **같은 큐**(approval_queue.py)를 쓰므로 어느 쪽으로 눌러도 동작한다.
+ *   진행 이벤트는 파이프라인이 devai_events.py 로 DB에 직접 적는다(실시간).
+ *
+ * 남은 단계: 4)디자인 선택 5)텔레그램 축소
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { requireAuth } from '../_lib/auth.js';
@@ -50,6 +54,8 @@ const str = (v: any, max = 20000): string => String(v ?? '').slice(0, max);
 
 /** 허드 4단계 상태 파일 위치. 파이프라인이 여기에 묶음 진행을 적는다. */
 const HERDR_STATE_DIR = '/home/paks11299958/rag/state/projects';
+/** 승인 결정 큐. approval_queue.py 가 여기를 폴링한다(텔레그램 버튼과 같은 경로). */
+const APPROVAL_DIR = '/home/paks11299958/rag/state/approvals';
 
 /**
  * 허드 프로젝트 상태 파일을 읽는다. 없거나 깨졌으면 null.
@@ -347,6 +353,50 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json({ project: updated });
             }
 
+            // ── 승인/반려 (3단계) ───────────────────────────────────
+            //   파이프라인은 rag/state/approvals/<taskId>.json 을 폴링해 결정을 읽는다
+            //   (approval_queue.py). 어드민은 그 파일을 쓰는 것으로 승인을 대신한다.
+            //   ★텔레그램 버튼과 같은 큐를 쓰므로 어느 쪽으로 눌러도 동작한다.
+            case 'approve': {
+                if (req.method !== 'POST') return res.status(405).json({ error: 'POST 로 호출하세요.' });
+                const id = str(req.body?.id, 200);
+                const taskId = str(req.body?.taskId, 100).trim();
+                const decision = str(req.body?.decision, 20).trim();
+                if (!id || !taskId) return res.status(400).json({ error: 'id 와 taskId 가 필요합니다.' });
+                if (!['approved', 'rejected'].includes(decision)) {
+                    return res.status(400).json({ error: "decision 은 'approved' 또는 'rejected' 여야 합니다." });
+                }
+                if (!/^[A-Za-z0-9_-]+$/.test(taskId)) {
+                    return res.status(400).json({ error: 'taskId 형식이 올바르지 않습니다.' });
+                }
+                const p = await prisma.devProject.findUnique({ where: { id } });
+                if (!p) return res.status(404).json({ error: '프로젝트를 찾을 수 없습니다.' });
+
+                try {
+                    mkdirSync(APPROVAL_DIR, { recursive: true });
+                    // approval_queue.record 와 같은 페이로드 + 원자적 쓰기(임시파일 → rename)
+                    const payload = JSON.stringify({ task_id: taskId, decision, ts: Date.now() / 1000 });
+                    const tmp = `${APPROVAL_DIR}/.${taskId}.${process.pid}.tmp`;
+                    writeFileSync(tmp, payload, 'utf8');
+                    renameSync(tmp, `${APPROVAL_DIR}/${taskId}.json`);
+                } catch (e: any) {
+                    return res.status(500).json({ error: `결정 기록에 실패했습니다: ${e?.message ?? String(e)}` });
+                }
+
+                await prisma.devProjectEvent.create({
+                    data: {
+                        projectId: id, actor: 'user', phase: 'approval',
+                        message: `${decision === 'approved' ? '승인' : '반려'} — ${taskId}`,
+                        meta: JSON.stringify({ taskId, decision }),
+                    },
+                });
+                await prisma.devProject.update({
+                    where: { id },
+                    data: { status: decision === 'approved' ? 'running' : 'canceled' },
+                });
+                return res.status(200).json({ ok: true, taskId, decision });
+            }
+
             // ── 명세서 다운로드 (마크다운) ──────────────────────────
             case 'export': {
                 const id = str(req.query.id ?? req.body?.id, 200);
@@ -377,7 +427,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             default:
                 return res.status(400).json({
                     error: `알 수 없는 action 입니다: ${action || '(없음)'}`,
-                    allowed: ['list', 'get', 'create', 'update', 'delete', 'sync', 'link', 'export'],
+                    allowed: ['list', 'get', 'create', 'update', 'delete', 'sync', 'link', 'approve', 'export'],
                 });
         }
     } catch (e: any) {
