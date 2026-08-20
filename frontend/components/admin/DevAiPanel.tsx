@@ -258,7 +258,7 @@ export const DevAiPanel: React.FC = () => {
         [versions, diffWith]);
 
     return (
-        <div className="space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {/* 헤더 */}
             <div className="flex items-center justify-between flex-wrap gap-2">
                 <div>
