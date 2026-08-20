@@ -571,3 +571,52 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
   TCP를 강제해야 한다(그러면 비밀번호가 필요하다).
 - 되돌리려면 `DROP TABLE "RpItem","RpAnalysisCache","RpGuestUsage","RpAiUsageLog" CASCADE;`
   — 신규 테이블뿐이라 기존 데이터 손실 경로가 없고 재시작도 불필요하다.
+
+---
+
+## Inverse* 6개 (2026-08-20 신설, 📈 인버스 ETF 1호가 스캘핑 — **prisma schema 반영**, 운영 DB 실행 완료)
+
+어드민 → 운영 → `인버스 자동매매` 탭. **시뮬레이션 전용**이며 증권사 주문 API를 호출하지 않는다.
+
+| 모델 | 역할 |
+|---|---|
+| `InverseTraderConfig` | 종목·주문수량·마감버퍼·최대보유·일일최대손실 + **손절 3컬럼** |
+| `InverseTraderSession` | 세션 상태(IDLE/RUNNING/FORCE_SETTLEMENT/STOPPED/EMERGENCY_STOP) |
+| `InverseOrder` | 주문 원장. 후속주문은 `parentOrderId` 로 추적 |
+| `InverseFill` | 체결 내역 |
+| `InversePosition` | 보유수량·평균단가·실현/평가손익 |
+| `InverseDailyStat` | 일자별 매매횟수·당일손익·정산성공여부 |
+
+**손절 3컬럼**(`InverseTraderConfig`, 2026-08-20 추가):
+`stopLossPct`(기본 2) · `maxAddBuys`(기본 10) · `noAddBuyBelowPct`(기본 3). 0이면 각 기능 끔.
+백테스트에서 확인된 이 전략의 최대 약점이 **손절 부재**였다(급락 시나리오 -14.2억).
+
+실행: `node scripts/create-inverse-trader-tables.cjs` → `node scripts/add-inverse-stoploss-columns.cjs`
+★둘 다 `IF NOT EXISTS` 만 쓰고 **DROP 문이 없다** — 여러 번 돌려도 안전하고 기존 데이터에 영향 없다.
+
+---
+
+## DevProject* 5개 (2026-08-20 신설, 🛠 개발AI 콘솔 — **prisma schema 반영**, 운영 DB 실행 완료)
+
+어드민 → 운영 → `개발AI 콘솔` 탭. 텔레그램으로 한 줄씩 지시하던 허드 개발 파이프라인을
+어드민 작업대로 옮긴 것.
+
+| 모델 | 역할 |
+|---|---|
+| `DevProject` | 프로젝트 1건. `status`(draft→queued→planned→awaiting_approval→running→review→done/failed/canceled), `herdrProjectId`(허드 상태파일과 연결), `workdir` |
+| **`DevProjectVersion`** | **명세 버전 — '비포/애프터'의 실체.** features·specBody·refUrls·note |
+| `DevProjectFile` | 첨부(kind: spec/image/design/result). ★이미지는 `sites/devai/<projectId>/img/` 에 두고 URL 서빙 |
+| `DevProjectEvent` | 진행 이벤트(actor: system/developer/reviewer/user, phase: plan/approval/batch_start/batch_done/review/commit/deploy/error) |
+| `DevProjectResult` | 배포URL·요약·커밋목록·디자인소스 |
+
+★**명세 수정은 UPDATE 가 아니라 INSERT** 다(`DevProjectVersion` 에 새 행). 덮어쓰면 무엇을
+왜 바꿨는지가 사라진다. 내용이 같으면 버전을 안 늘린다(빈 버전 적체 방지).
+★`DevProjectEvent` 는 어드민이 사후 복원하는 게 아니라 **파이프라인이 직접 쓴다**
+(`rag/devai_events.py`) — 그래서 화면이 실시간이다.
+★동시 실행은 **1건 제한**(사장 결정) — pane 안 claude 가 400MB~3.2GB인데 서버2는 3.9GB다.
+
+실행: `node scripts/create-devai-tables.cjs` (`CREATE TABLE IF NOT EXISTS` 만, DROP 없음)
+
+★**마이그레이션 실행 시 주의**: 이 컨테이너에서 `.env.local` 의 외부 IP(34.50.27.95)로는
+`SocketTimeout` 이 난다. **내부 IP `10.178.0.2` 로 바꿔 실행**할 것(`.env.local` 자체는
+수정하지 않고 `DATABASE_URL=...` 환경변수로만 덮는다).
