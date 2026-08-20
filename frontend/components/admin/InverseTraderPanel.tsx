@@ -60,10 +60,14 @@ interface ConfigForm {
     closeBufferMin: string;
     maxPositionQty: string;
     dailyLossLimit: string;
+    stopLossPct: string;
+    maxAddBuys: string;
+    noAddBuyBelowPct: string;
 }
 
 const emptyForm: ConfigForm = {
     symbol: '', symbolName: '', defaultQty: '', closeBufferMin: '', maxPositionQty: '', dailyLossLimit: '',
+    stopLossPct: '', maxAddBuys: '', noAddBuyBelowPct: '',
 };
 
 const Card: React.FC<{ title: string; icon: string; children: React.ReactNode; right?: React.ReactNode }> = ({ title, icon, children, right }) => (
@@ -120,6 +124,9 @@ export const InverseTraderPanel: React.FC = () => {
                 closeBufferMin: String(d.config.closeBufferMin ?? ''),
                 maxPositionQty: String(d.config.maxPositionQty ?? ''),
                 dailyLossLimit: String(d.config.dailyLossLimit ?? ''),
+                stopLossPct: String(d.config.stopLossPct ?? ''),
+                maxAddBuys: String(d.config.maxAddBuys ?? ''),
+                noAddBuyBelowPct: String(d.config.noAddBuyBelowPct ?? ''),
             });
         }
     }, []);
@@ -181,6 +188,9 @@ export const InverseTraderPanel: React.FC = () => {
                 closeBufferMin: Number(form.closeBufferMin),
                 maxPositionQty: Number(form.maxPositionQty),
                 dailyLossLimit: Number(form.dailyLossLimit),
+                stopLossPct: Number(form.stopLossPct),
+                maxAddBuys: Number(form.maxAddBuys),
+                noAddBuyBelowPct: Number(form.noAddBuyBelowPct),
             });
             markDirty(false);
             setMsg('설정을 저장했습니다.');
@@ -454,6 +464,21 @@ export const InverseTraderPanel: React.FC = () => {
                     <label className="block">
                         <span className="text-[11px] text-gray-500">일일 최대손실(원, 양수)</span>
                         <input type="number" min={0} value={form.dailyLossLimit} onChange={setField('dailyLossLimit')}
+                            className="mt-1 w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-blue-500 outline-none" />
+                    </label>
+                    <label className="block">
+                        <span className="text-[11px] text-gray-500">손절 하락률(%, 0=사용안함)</span>
+                        <input type="number" min={0} step="0.1" value={form.stopLossPct} onChange={setField('stopLossPct')}
+                            className="mt-1 w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-blue-500 outline-none" />
+                    </label>
+                    <label className="block">
+                        <span className="text-[11px] text-gray-500">최대 추가매수 횟수(0=무제한)</span>
+                        <input type="number" min={0} value={form.maxAddBuys} onChange={setField('maxAddBuys')}
+                            className="mt-1 w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-blue-500 outline-none" />
+                    </label>
+                    <label className="block">
+                        <span className="text-[11px] text-gray-500">물타기 중단 하락률(%, 0=사용안함)</span>
+                        <input type="number" min={0} step="0.1" value={form.noAddBuyBelowPct} onChange={setField('noAddBuyBelowPct')}
                             className="mt-1 w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-blue-500 outline-none" />
                     </label>
                 </div>

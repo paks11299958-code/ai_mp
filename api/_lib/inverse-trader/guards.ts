@@ -210,6 +210,99 @@ export function isDailyLossBreached(params: DailyLossParams): boolean {
     return total <= -Math.abs(dailyLossLimit);
 }
 
+// ── 4-2) 손절 가드 (2026-08-20 신설) ──────────────────────────────────────
+//
+// ★백테스트에서 확인된 이 전략의 최대 약점을 막기 위한 가드다.
+//   손절이 없으면 하락장에서 매수만 계속 체결되며 물량이 깔리고, 장 마감 강제청산이
+//   그 손실을 통째로 확정한다(급락 시나리오 -14.2억). 당일정산은 오버나이트 리스크만
+//   막을 뿐 **손절 시점을 시장이 정하게** 만든다.
+//   특히 KODEX 200선물인버스2X(78원대·2배 레버리지)는 하루 -11%가 실제로 나오는 종목이라
+//   손절 없이는 원금이 빠르게 녹는다.
+
+export interface StopLossParams {
+    /** 평균매수단가(원). 보유가 없으면 0 */
+    avgPrice: number;
+    /** 현재가(원) */
+    currentPrice: number;
+    /** 보유수량(주). 0 이면 판정하지 않는다 */
+    positionQty: number;
+    /** 손절 발동 하락률(%, 양수). 예: 2 → 평단 대비 -2%에서 손절 */
+    stopLossPct: number;
+}
+
+export interface StopLossDecision {
+    /** 손절해야 하는가 */
+    triggered: boolean;
+    /** 평단 대비 등락률(%). 손실이면 음수 */
+    changePct: number;
+    reason?: string;
+}
+
+/**
+ * 손절 판정. 평단 대비 현재가가 stopLossPct 이상 하락했으면 발동한다.
+ * 발동 시 호출자는 신규 매수를 멈추고 보유를 청산해야 한다(강제정산과 같은 경로).
+ */
+export function evaluateStopLoss(params: StopLossParams): StopLossDecision {
+    const { avgPrice, currentPrice, positionQty, stopLossPct } = params;
+    if (positionQty <= 0 || avgPrice <= 0 || !(stopLossPct > 0)) {
+        return { triggered: false, changePct: 0 };
+    }
+    const changePct = ((currentPrice - avgPrice) / avgPrice) * 100;
+    if (changePct <= -Math.abs(stopLossPct)) {
+        return {
+            triggered: true,
+            changePct,
+            reason:
+                `손절 발동: 평단 ${avgPrice}원 대비 현재가 ${currentPrice}원 ` +
+                `(${changePct.toFixed(2)}%, 기준 -${stopLossPct}%) — 보유 ${positionQty}주 청산`,
+        };
+    }
+    return { triggered: false, changePct };
+}
+
+export interface AddBuyGuardParams {
+    /** 이 세션에서 지금까지 체결된 매수 횟수 */
+    buyFillCount: number;
+    /** 허용할 최대 추가매수 횟수. 0 이하면 제한 없음 */
+    maxAddBuys: number;
+    /** 세션 시작가(첫 매수 기준가, 원) */
+    entryPrice: number;
+    /** 현재가(원) */
+    currentPrice: number;
+    /** 이 하락률(%, 양수)을 넘어서면 신규 매수를 멈춘다. 0 이하면 제한 없음 */
+    noAddBuyBelowPct: number;
+}
+
+/**
+ * 추가매수(물타기) 차단 판정.
+ * ★이 전략은 매수가 체결될 때마다 "체결가 -1호가"에 또 매수를 건다. 하락 추세에서는
+ *   그게 무한히 아래로 깔리는 구조가 된다. 횟수와 낙폭 두 가지로 막는다.
+ */
+export function evaluateAddBuyGuard(params: AddBuyGuardParams): GuardDecision {
+    const { buyFillCount, maxAddBuys, entryPrice, currentPrice, noAddBuyBelowPct } = params;
+
+    if (maxAddBuys > 0 && buyFillCount >= maxAddBuys) {
+        return {
+            allowed: false,
+            allowedQty: 0,
+            reason: `추가매수 횟수 상한 도달(${buyFillCount}/${maxAddBuys}회) — 신규 매수 중단`,
+        };
+    }
+    if (noAddBuyBelowPct > 0 && entryPrice > 0) {
+        const changePct = ((currentPrice - entryPrice) / entryPrice) * 100;
+        if (changePct <= -Math.abs(noAddBuyBelowPct)) {
+            return {
+                allowed: false,
+                allowedQty: 0,
+                reason:
+                    `진입가 대비 ${changePct.toFixed(2)}% 하락(기준 -${noAddBuyBelowPct}%) — ` +
+                    `물타기 중단`,
+            };
+        }
+    }
+    return { allowed: true, allowedQty: 0 };
+}
+
 /** 세션 누적 손익(포지션 테이블 기준). */
 export interface SessionPnl {
     realizedPnl: number;

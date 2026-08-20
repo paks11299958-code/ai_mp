@@ -44526,6 +44526,9 @@ export namespace Prisma {
     closeBufferMin: number | null
     maxPositionQty: number | null
     dailyLossLimit: number | null
+    stopLossPct: number | null
+    maxAddBuys: number | null
+    noAddBuyBelowPct: number | null
   }
 
   export type InverseTraderConfigSumAggregateOutputType = {
@@ -44534,6 +44537,9 @@ export namespace Prisma {
     closeBufferMin: number | null
     maxPositionQty: number | null
     dailyLossLimit: number | null
+    stopLossPct: number | null
+    maxAddBuys: number | null
+    noAddBuyBelowPct: number | null
   }
 
   export type InverseTraderConfigMinAggregateOutputType = {
@@ -44544,6 +44550,9 @@ export namespace Prisma {
     closeBufferMin: number | null
     maxPositionQty: number | null
     dailyLossLimit: number | null
+    stopLossPct: number | null
+    maxAddBuys: number | null
+    noAddBuyBelowPct: number | null
     tradingMode: string | null
     enabled: boolean | null
     createdAt: Date | null
@@ -44558,6 +44567,9 @@ export namespace Prisma {
     closeBufferMin: number | null
     maxPositionQty: number | null
     dailyLossLimit: number | null
+    stopLossPct: number | null
+    maxAddBuys: number | null
+    noAddBuyBelowPct: number | null
     tradingMode: string | null
     enabled: boolean | null
     createdAt: Date | null
@@ -44572,6 +44584,9 @@ export namespace Prisma {
     closeBufferMin: number
     maxPositionQty: number
     dailyLossLimit: number
+    stopLossPct: number
+    maxAddBuys: number
+    noAddBuyBelowPct: number
     tradingMode: number
     enabled: number
     createdAt: number
@@ -44586,6 +44601,9 @@ export namespace Prisma {
     closeBufferMin?: true
     maxPositionQty?: true
     dailyLossLimit?: true
+    stopLossPct?: true
+    maxAddBuys?: true
+    noAddBuyBelowPct?: true
   }
 
   export type InverseTraderConfigSumAggregateInputType = {
@@ -44594,6 +44612,9 @@ export namespace Prisma {
     closeBufferMin?: true
     maxPositionQty?: true
     dailyLossLimit?: true
+    stopLossPct?: true
+    maxAddBuys?: true
+    noAddBuyBelowPct?: true
   }
 
   export type InverseTraderConfigMinAggregateInputType = {
@@ -44604,6 +44625,9 @@ export namespace Prisma {
     closeBufferMin?: true
     maxPositionQty?: true
     dailyLossLimit?: true
+    stopLossPct?: true
+    maxAddBuys?: true
+    noAddBuyBelowPct?: true
     tradingMode?: true
     enabled?: true
     createdAt?: true
@@ -44618,6 +44642,9 @@ export namespace Prisma {
     closeBufferMin?: true
     maxPositionQty?: true
     dailyLossLimit?: true
+    stopLossPct?: true
+    maxAddBuys?: true
+    noAddBuyBelowPct?: true
     tradingMode?: true
     enabled?: true
     createdAt?: true
@@ -44632,6 +44659,9 @@ export namespace Prisma {
     closeBufferMin?: true
     maxPositionQty?: true
     dailyLossLimit?: true
+    stopLossPct?: true
+    maxAddBuys?: true
+    noAddBuyBelowPct?: true
     tradingMode?: true
     enabled?: true
     createdAt?: true
@@ -44733,6 +44763,9 @@ export namespace Prisma {
     closeBufferMin: number
     maxPositionQty: number
     dailyLossLimit: number
+    stopLossPct: number
+    maxAddBuys: number
+    noAddBuyBelowPct: number
     tradingMode: string
     enabled: boolean
     createdAt: Date
@@ -44766,6 +44799,9 @@ export namespace Prisma {
     closeBufferMin?: boolean
     maxPositionQty?: boolean
     dailyLossLimit?: boolean
+    stopLossPct?: boolean
+    maxAddBuys?: boolean
+    noAddBuyBelowPct?: boolean
     tradingMode?: boolean
     enabled?: boolean
     createdAt?: boolean
@@ -44780,6 +44816,9 @@ export namespace Prisma {
     closeBufferMin?: boolean
     maxPositionQty?: boolean
     dailyLossLimit?: boolean
+    stopLossPct?: boolean
+    maxAddBuys?: boolean
+    noAddBuyBelowPct?: boolean
     tradingMode?: boolean
     enabled?: boolean
     createdAt?: boolean
@@ -44794,6 +44833,9 @@ export namespace Prisma {
     closeBufferMin?: boolean
     maxPositionQty?: boolean
     dailyLossLimit?: boolean
+    stopLossPct?: boolean
+    maxAddBuys?: boolean
+    noAddBuyBelowPct?: boolean
     tradingMode?: boolean
     enabled?: boolean
     createdAt?: boolean
@@ -44808,13 +44850,16 @@ export namespace Prisma {
     closeBufferMin?: boolean
     maxPositionQty?: boolean
     dailyLossLimit?: boolean
+    stopLossPct?: boolean
+    maxAddBuys?: boolean
+    noAddBuyBelowPct?: boolean
     tradingMode?: boolean
     enabled?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
-  export type InverseTraderConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "symbol" | "symbolName" | "defaultQty" | "closeBufferMin" | "maxPositionQty" | "dailyLossLimit" | "tradingMode" | "enabled" | "createdAt" | "updatedAt", ExtArgs["result"]["inverseTraderConfig"]>
+  export type InverseTraderConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "symbol" | "symbolName" | "defaultQty" | "closeBufferMin" | "maxPositionQty" | "dailyLossLimit" | "stopLossPct" | "maxAddBuys" | "noAddBuyBelowPct" | "tradingMode" | "enabled" | "createdAt" | "updatedAt", ExtArgs["result"]["inverseTraderConfig"]>
 
   export type $InverseTraderConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "InverseTraderConfig"
@@ -44827,6 +44872,21 @@ export namespace Prisma {
       closeBufferMin: number
       maxPositionQty: number
       dailyLossLimit: number
+      /**
+       * 손절 발동 하락률(%, 양수). 0이면 손절 안 함.
+       * ★백테스트에서 이 전략의 최대 약점이 '손절 부재'로 확인됐다(급락 시나리오에서
+       * 물량이 깔린 채 마감 강제청산으로 손실이 확정). 특히 KODEX 200선물인버스2X는
+       * 2배 레버리지라 하루 -12%가 실제로 나온다.
+       */
+      stopLossPct: number
+      /**
+       * 허용할 최대 추가매수(물타기) 횟수. 0이면 제한 없음.
+       */
+      maxAddBuys: number
+      /**
+       * 진입가 대비 이 하락률(%)을 넘으면 신규 매수를 멈춘다. 0이면 제한 없음.
+       */
+      noAddBuyBelowPct: number
       tradingMode: string
       enabled: boolean
       createdAt: Date
@@ -45261,6 +45321,9 @@ export namespace Prisma {
     readonly closeBufferMin: FieldRef<"InverseTraderConfig", 'Int'>
     readonly maxPositionQty: FieldRef<"InverseTraderConfig", 'Int'>
     readonly dailyLossLimit: FieldRef<"InverseTraderConfig", 'Float'>
+    readonly stopLossPct: FieldRef<"InverseTraderConfig", 'Float'>
+    readonly maxAddBuys: FieldRef<"InverseTraderConfig", 'Int'>
+    readonly noAddBuyBelowPct: FieldRef<"InverseTraderConfig", 'Float'>
     readonly tradingMode: FieldRef<"InverseTraderConfig", 'String'>
     readonly enabled: FieldRef<"InverseTraderConfig", 'Boolean'>
     readonly createdAt: FieldRef<"InverseTraderConfig", 'DateTime'>
@@ -51697,6 +51760,9 @@ export namespace Prisma {
     closeBufferMin: 'closeBufferMin',
     maxPositionQty: 'maxPositionQty',
     dailyLossLimit: 'dailyLossLimit',
+    stopLossPct: 'stopLossPct',
+    maxAddBuys: 'maxAddBuys',
+    noAddBuyBelowPct: 'noAddBuyBelowPct',
     tradingMode: 'tradingMode',
     enabled: 'enabled',
     createdAt: 'createdAt',
@@ -54616,6 +54682,9 @@ export namespace Prisma {
     closeBufferMin?: IntFilter<"InverseTraderConfig"> | number
     maxPositionQty?: IntFilter<"InverseTraderConfig"> | number
     dailyLossLimit?: FloatFilter<"InverseTraderConfig"> | number
+    stopLossPct?: FloatFilter<"InverseTraderConfig"> | number
+    maxAddBuys?: IntFilter<"InverseTraderConfig"> | number
+    noAddBuyBelowPct?: FloatFilter<"InverseTraderConfig"> | number
     tradingMode?: StringFilter<"InverseTraderConfig"> | string
     enabled?: BoolFilter<"InverseTraderConfig"> | boolean
     createdAt?: DateTimeFilter<"InverseTraderConfig"> | Date | string
@@ -54630,6 +54699,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
     tradingMode?: SortOrder
     enabled?: SortOrder
     createdAt?: SortOrder
@@ -54647,6 +54719,9 @@ export namespace Prisma {
     closeBufferMin?: IntFilter<"InverseTraderConfig"> | number
     maxPositionQty?: IntFilter<"InverseTraderConfig"> | number
     dailyLossLimit?: FloatFilter<"InverseTraderConfig"> | number
+    stopLossPct?: FloatFilter<"InverseTraderConfig"> | number
+    maxAddBuys?: IntFilter<"InverseTraderConfig"> | number
+    noAddBuyBelowPct?: FloatFilter<"InverseTraderConfig"> | number
     tradingMode?: StringFilter<"InverseTraderConfig"> | string
     enabled?: BoolFilter<"InverseTraderConfig"> | boolean
     createdAt?: DateTimeFilter<"InverseTraderConfig"> | Date | string
@@ -54661,6 +54736,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
     tradingMode?: SortOrder
     enabled?: SortOrder
     createdAt?: SortOrder
@@ -54683,6 +54761,9 @@ export namespace Prisma {
     closeBufferMin?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
     maxPositionQty?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
     dailyLossLimit?: FloatWithAggregatesFilter<"InverseTraderConfig"> | number
+    stopLossPct?: FloatWithAggregatesFilter<"InverseTraderConfig"> | number
+    maxAddBuys?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
+    noAddBuyBelowPct?: FloatWithAggregatesFilter<"InverseTraderConfig"> | number
     tradingMode?: StringWithAggregatesFilter<"InverseTraderConfig"> | string
     enabled?: BoolWithAggregatesFilter<"InverseTraderConfig"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"InverseTraderConfig"> | Date | string
@@ -57982,6 +58063,9 @@ export namespace Prisma {
     closeBufferMin?: number
     maxPositionQty?: number
     dailyLossLimit?: number
+    stopLossPct?: number
+    maxAddBuys?: number
+    noAddBuyBelowPct?: number
     tradingMode?: string
     enabled?: boolean
     createdAt?: Date | string
@@ -57996,6 +58080,9 @@ export namespace Prisma {
     closeBufferMin?: number
     maxPositionQty?: number
     dailyLossLimit?: number
+    stopLossPct?: number
+    maxAddBuys?: number
+    noAddBuyBelowPct?: number
     tradingMode?: string
     enabled?: boolean
     createdAt?: Date | string
@@ -58009,6 +58096,9 @@ export namespace Prisma {
     closeBufferMin?: IntFieldUpdateOperationsInput | number
     maxPositionQty?: IntFieldUpdateOperationsInput | number
     dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    stopLossPct?: FloatFieldUpdateOperationsInput | number
+    maxAddBuys?: IntFieldUpdateOperationsInput | number
+    noAddBuyBelowPct?: FloatFieldUpdateOperationsInput | number
     tradingMode?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58023,6 +58113,9 @@ export namespace Prisma {
     closeBufferMin?: IntFieldUpdateOperationsInput | number
     maxPositionQty?: IntFieldUpdateOperationsInput | number
     dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    stopLossPct?: FloatFieldUpdateOperationsInput | number
+    maxAddBuys?: IntFieldUpdateOperationsInput | number
+    noAddBuyBelowPct?: FloatFieldUpdateOperationsInput | number
     tradingMode?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58037,6 +58130,9 @@ export namespace Prisma {
     closeBufferMin?: number
     maxPositionQty?: number
     dailyLossLimit?: number
+    stopLossPct?: number
+    maxAddBuys?: number
+    noAddBuyBelowPct?: number
     tradingMode?: string
     enabled?: boolean
     createdAt?: Date | string
@@ -58050,6 +58146,9 @@ export namespace Prisma {
     closeBufferMin?: IntFieldUpdateOperationsInput | number
     maxPositionQty?: IntFieldUpdateOperationsInput | number
     dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    stopLossPct?: FloatFieldUpdateOperationsInput | number
+    maxAddBuys?: IntFieldUpdateOperationsInput | number
+    noAddBuyBelowPct?: FloatFieldUpdateOperationsInput | number
     tradingMode?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58064,6 +58163,9 @@ export namespace Prisma {
     closeBufferMin?: IntFieldUpdateOperationsInput | number
     maxPositionQty?: IntFieldUpdateOperationsInput | number
     dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    stopLossPct?: FloatFieldUpdateOperationsInput | number
+    maxAddBuys?: IntFieldUpdateOperationsInput | number
+    noAddBuyBelowPct?: FloatFieldUpdateOperationsInput | number
     tradingMode?: StringFieldUpdateOperationsInput | string
     enabled?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -60645,6 +60747,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
     tradingMode?: SortOrder
     enabled?: SortOrder
     createdAt?: SortOrder
@@ -60657,6 +60762,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
   }
 
   export type InverseTraderConfigMaxOrderByAggregateInput = {
@@ -60667,6 +60775,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
     tradingMode?: SortOrder
     enabled?: SortOrder
     createdAt?: SortOrder
@@ -60681,6 +60792,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
     tradingMode?: SortOrder
     enabled?: SortOrder
     createdAt?: SortOrder
@@ -60693,6 +60807,9 @@ export namespace Prisma {
     closeBufferMin?: SortOrder
     maxPositionQty?: SortOrder
     dailyLossLimit?: SortOrder
+    stopLossPct?: SortOrder
+    maxAddBuys?: SortOrder
+    noAddBuyBelowPct?: SortOrder
   }
 
   export type InverseOrderCountOrderByAggregateInput = {

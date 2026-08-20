@@ -34,6 +34,8 @@ import {
     resolveTradingMode,
 } from './constants.js';
 import { getDefaultQuoteFeed, type QuoteFeed } from './quote-feed.js';
+// 가격대별 호가단위 조회 — strategy.ts 는 simulation-broker 를 참조하지 않으므로 순환 없음.
+import { ETF_TICK_BANDS, getTickSize } from './strategy.js';
 
 export interface SimulationBrokerOptions {
     /** 시세 소스. 기본은 프로세스 공용 가상 호가 생성기 */
@@ -63,6 +65,8 @@ export class SimulationBroker implements Broker {
     private readonly rng: () => number;
     private readonly queueFillProb: number;
     private readonly tick: number;
+    /** 명시적으로 지정된 호가단위(테스트용). 없으면 가격대별 밴드로 조회한다. */
+    private readonly tickOverride: number | null;
     private readonly orders = new Map<string, InternalOrder>();
     private seq = 0;
 
@@ -73,6 +77,7 @@ export class SimulationBroker implements Broker {
         this.rng = createRng(options.seed ?? 424242);
         this.queueFillProb = options.queueFillProb ?? 0.35;
         this.tick = options.tick ?? TICK_SIZE;
+        this.tickOverride = options.tick ?? null;
     }
 
     /** 현재 1호가 조회(가상 호가 생성기). */
@@ -93,9 +98,14 @@ export class SimulationBroker implements Broker {
         if (!Number.isInteger(price) || price <= 0) {
             throw new InvalidOrderError(`지정가가 올바르지 않습니다: ${price}`);
         }
-        if (price % this.tick !== 0) {
+        // ★호가단위는 가격대별로 다르다(2,000원 미만 1원 / 이상 5원).
+        //   고정 tick 하나로 검증하면 저가 ETF 주문이 전부 거부된다 — KODEX
+        //   200선물인버스2X(77원대)로 돌렸을 때 실제로 전량 거부됐다(2026-08-20).
+        //   options.tick 을 명시적으로 준 경우에만 그 값을 쓰고, 기본은 밴드 조회.
+        const effTick = this.tickOverride ?? getTickSize(price, ETF_TICK_BANDS);
+        if (price % effTick !== 0) {
             throw new InvalidOrderError(
-                `지정가가 호가단위(${this.tick}원)에 맞지 않습니다: ${price}`
+                `지정가가 호가단위(${effTick}원)에 맞지 않습니다: ${price}`
             );
         }
 

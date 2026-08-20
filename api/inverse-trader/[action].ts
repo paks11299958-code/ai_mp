@@ -134,6 +134,10 @@ export function validateConfigInput(
     data.closeBufferMin = posInt('closeBufferMin', current.closeBufferMin, 1, 180);
     data.maxPositionQty = posInt('maxPositionQty', current.maxPositionQty, 1, 1_000_000_000);
     data.dailyLossLimit = num('dailyLossLimit', current.dailyLossLimit, 0, 1_000_000_000);
+    // 손절·물타기 제한 (2026-08-20 신설). 0은 '사용 안 함'이라 하한을 0으로 둔다.
+    data.stopLossPct = num('stopLossPct', current.stopLossPct ?? 2, 0, 100);
+    data.maxAddBuys = posInt('maxAddBuys', current.maxAddBuys ?? 10, 0, 1_000);
+    data.noAddBuyBelowPct = num('noAddBuyBelowPct', current.noAddBuyBelowPct ?? 3, 0, 100);
     data.enabled = input.enabled === undefined ? !!current.enabled : !!input.enabled;
 
     if (data.defaultQty > data.maxPositionQty) {

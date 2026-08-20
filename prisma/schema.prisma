@@ -530,6 +530,17 @@ model InverseTraderConfig {
   closeBufferMin Int      @default(10) // 마감 전 강제정산 버퍼(분)
   maxPositionQty Int      @default(3000000) // 최대 보유수량(주)
   dailyLossLimit Float    @default(500000) // 일일 최대 손실액(원). 초과 시 정지
+
+  /// 손절 발동 하락률(%, 양수). 0이면 손절 안 함.
+  /// ★백테스트에서 이 전략의 최대 약점이 '손절 부재'로 확인됐다(급락 시나리오에서
+  ///   물량이 깔린 채 마감 강제청산으로 손실이 확정). 특히 KODEX 200선물인버스2X는
+  ///   2배 레버리지라 하루 -12%가 실제로 나온다.
+  stopLossPct        Float @default(2)
+  /// 허용할 최대 추가매수(물타기) 횟수. 0이면 제한 없음.
+  maxAddBuys         Int   @default(10)
+  /// 진입가 대비 이 하락률(%)을 넘으면 신규 매수를 멈춘다. 0이면 제한 없음.
+  noAddBuyBelowPct   Float @default(3)
+
   tradingMode    String   @default("SIMULATION") // 'SIMULATION' 고정 (LIVE 금지)
   enabled        Boolean  @default(false)
   createdAt      DateTime @default(now())
