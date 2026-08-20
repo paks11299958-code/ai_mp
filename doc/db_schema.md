@@ -603,8 +603,8 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 
 | 모델 | 역할 |
 |---|---|
-| `DevProject` | 프로젝트 1건. `status`(draft→queued→planned→awaiting_approval→running→review→done/failed/canceled), `herdrProjectId`(허드 상태파일과 연결), `workdir` |
-| **`DevProjectVersion`** | **명세 버전 — '비포/애프터'의 실체.** features·specBody·refUrls·note |
+| `DevProject` | 프로젝트 1건. `status`(draft→queued→planned→awaiting_approval→running→review→done/failed/canceled), `herdrProjectId`(허드 상태파일과 연결), `workdir`, **`useReview`**(허드 메이커-체커 사용 여부, 기본 false) |
+| **`DevProjectVersion`** | **명세 버전 — '비포/애프터'의 실체.** features·specBody·refUrls·**`brief`**(홈페이지 요구사항 JSON)·note |
 | `DevProjectFile` | 첨부(kind: spec/image/design/result). ★이미지는 `sites/devai/<projectId>/img/` 에 두고 URL 서빙 |
 | `DevProjectEvent` | 진행 이벤트(actor: system/developer/reviewer/user, phase: plan/approval/batch_start/batch_done/review/commit/deploy/error) |
 | `DevProjectResult` | 배포URL·요약·커밋목록·디자인소스 |
@@ -613,6 +613,20 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 왜 바꿨는지가 사라진다. 내용이 같으면 버전을 안 늘린다(빈 버전 적체 방지).
 ★`DevProjectEvent` 는 어드민이 사후 복원하는 게 아니라 **파이프라인이 직접 쓴다**
 (`rag/devai_events.py`) — 그래서 화면이 실시간이다.
+
+### 2026-08-20 추가 칼럼 (raw SQL, `ADD COLUMN IF NOT EXISTS`)
+
+| 칼럼 | 스크립트 | 왜 |
+|---|---|---|
+| `DevProjectVersion.brief` (TEXT, 기본 `{}`) | `scripts/add-devai-brief-column.cjs` | 홈페이지 요구사항 19필드. ★칼럼 15개로 쪼개지 않았다 — 항목이 늘어날 자리이고, **버전마다 통째로 스냅샷**돼야 비포/애프터가 성립한다 |
+| `DevProject.useReview` (BOOLEAN, 기본 false) | `scripts/add-devai-review-column.cjs` | 허드 메이커-체커를 **건별로** 켠다. 단일 홈페이지엔 낭비(비용 2배·pane 2개), 로직 있는 개발엔 필요 |
+
+★`brief` 의 연락처 6항목(주소·전화·이메일·영업시간·사업자번호·SNS)은 비어 있으면
+**비운 채로 둔다.** 프롬프트에 `(미입력)` 으로 명시해 보내야 AI 가 안 지어낸다 —
+아무 말도 안 하면 그럴듯한 값을 만든다(2026-08-20 실사고: 가짜 전화가 시안 3장에 박혔다).
+
+★두 칼럼 모두 **서버1 `shared-api/prisma/schema.prisma` 에도 반영 후 `generate`** 해야 한다.
+운영 API 가 서버1로 옮겨져서, 한쪽만 하면 저장은 되는데 읽히지 않는다.
 ★동시 실행은 **1건 제한**(사장 결정) — pane 안 claude 가 400MB~3.2GB인데 서버2는 3.9GB다.
 
 실행: `node scripts/create-devai-tables.cjs` (`CREATE TABLE IF NOT EXISTS` 만, DROP 없음)
