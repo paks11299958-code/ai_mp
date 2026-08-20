@@ -77,6 +77,26 @@ export interface InverseTraderConfigRow {
     updatedAt: Date;
 }
 
+export interface InverseDailyStatRow {
+    id: number;
+    /** 영업일(@db.Date). KST 달력일을 UTC 자정으로 표현한 값을 넣는다 */
+    date: Date;
+    sessionId: string | null;
+    buyQty: number;
+    buyAmount: number;
+    sellQty: number;
+    sellAmount: number;
+    realizedPnl: number;
+    fillCount: number;
+    /** 마감 강제정산 성공 여부 */
+    forceSettled: boolean;
+    /** 마감 시 잔여수량(주). 강제정산 실패 시 0이 아니다 */
+    closingQty: number;
+    note: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 // ── 델리게이트 인터페이스 ──────────────────────────────────────────────────
 // where/data 는 Prisma 의 실제 입력 타입을 그대로 받기 위해 느슨하게 둔다.
 // (엄격히 좁히면 실제 PrismaClient 를 넘길 때 구조적 호환이 깨진다)
@@ -105,12 +125,27 @@ export interface PositionDelegate {
 }
 
 export interface SessionDelegate {
+    create(args: { data: Args }): Promise<InverseTraderSessionRow>;
     update(args: { where: Args; data: Args }): Promise<InverseTraderSessionRow>;
+    updateMany(args: { where: Args; data: Args }): Promise<{ count: number }>;
     findUnique(args: { where: Args }): Promise<InverseTraderSessionRow | null>;
+    findFirst(args?: { where?: Args; orderBy?: Args }): Promise<InverseTraderSessionRow | null>;
+    findMany(args?: { where?: Args; orderBy?: Args; take?: number }): Promise<InverseTraderSessionRow[]>;
 }
 
 export interface ConfigDelegate {
+    create(args: { data: Args }): Promise<InverseTraderConfigRow>;
+    update(args: { where: Args; data: Args }): Promise<InverseTraderConfigRow>;
     findFirst(args?: { where?: Args; orderBy?: Args }): Promise<InverseTraderConfigRow | null>;
+    findUnique(args: { where: Args }): Promise<InverseTraderConfigRow | null>;
+}
+
+/** 일자별 집계. 강제정산 성공여부/잔여수량이 여기에 남는다. */
+export interface DailyStatDelegate {
+    upsert(args: { where: Args; create: Args; update: Args }): Promise<InverseDailyStatRow>;
+    findUnique(args: { where: Args }): Promise<InverseDailyStatRow | null>;
+    findFirst(args?: { where?: Args; orderBy?: Args }): Promise<InverseDailyStatRow | null>;
+    findMany(args?: { where?: Args; orderBy?: Args; take?: number }): Promise<InverseDailyStatRow[]>;
 }
 
 /**
@@ -122,7 +157,8 @@ export interface InverseTraderDb {
     inverseFill: FillDelegate;
     inversePosition: PositionDelegate;
     inverseTraderSession: SessionDelegate;
-    inverseTraderConfig?: ConfigDelegate;
+    inverseTraderConfig: ConfigDelegate;
+    inverseDailyStat: DailyStatDelegate;
     /** 세션ID 단위로 주문·체결·포지션 쓰기를 한 트랜잭션으로 묶는다. */
     $transaction?<T>(fn: (tx: any) => Promise<T>): Promise<T>;
 }
