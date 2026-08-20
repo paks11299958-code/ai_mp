@@ -1421,6 +1421,39 @@ export const pointsApi = {
  * 서버(api/inverse-trader/engine.ts 의 StatusSnapshot)를 JSON 으로 받은 형태 —
  * Date 는 전부 ISO 문자열로 온다.
  */
+/** 개발AI 콘솔 — 프로젝트 목록 행 (2026-08-20) */
+export interface DevProjectRow {
+    id: string;
+    title: string;
+    /** draft | queued | planned | awaiting_approval | running | review | done | failed | canceled */
+    status: string;
+    herdrProjectId: string | null;
+    workdir: string;
+    latestVersion: number;
+    counts: { versions: number; files: number; events: number };
+    createdAt: string;
+    updatedAt: string;
+}
+
+/** 명세 버전 — 비포/애프터의 실체. 수정할 때마다 새 행이 쌓인다. */
+export interface DevProjectVersionRow {
+    id: number;
+    version: number;
+    features: string;
+    specBody: string;
+    /** JSON 배열 문자열 */
+    refUrls: string;
+    note: string | null;
+    createdAt: string;
+}
+
+export interface DevProjectDetail extends Omit<DevProjectRow, 'latestVersion' | 'counts'> {
+    versions: DevProjectVersionRow[];
+    files?: { id: number; kind: string; fileName: string; url: string; size: number }[];
+    events?: { id: number; actor: string; phase: string; message: string; meta: string | null; at: string }[];
+    result?: { deployUrl: string | null; summary: string | null; commits: string; designSourceUrl: string | null } | null;
+}
+
 export interface InverseTraderSnapshot {
     ok: boolean;
     tradingMode: 'SIMULATION';
@@ -1613,6 +1646,18 @@ export const adminApi = {
         get<{ reports: { reportDate: string; revenueKrw: number; chargeCount: number; aiCostUsd: number; newUsers: number; dau: number; chatCount: number; pointSpent: number; topFeatures: { name: string; count: number }[]; errorCount: number; tossPnlKrw: number | null; reportMd: string | null }[] }>(`/biz/daily-reports?days=${days}`),
     bizDirectives: () =>
         get<{ directives: { id: number; createdDate: string; source: string; title: string; detail: string | null; assignee: string | null; status: string; devRequestId: number | null; resultNote: string | null; effectNote: string | null }[] }>('/biz/directives'),
+    // ── 개발AI 콘솔 (2026-08-20, 1단계: 프로젝트·명세 버전) ──
+    // ★정적 경로 + query 호출. 이유는 api/devai/index.ts 주석 참고.
+    listDevProjects: () =>
+        get<{ projects: DevProjectRow[]; concurrency: { running: number; max: number; canStart: boolean } }>('/devai?action=list'),
+    getDevProject: (id: string) =>
+        get<{ project: DevProjectDetail }>(`/devai?action=get&id=${encodeURIComponent(id)}`),
+    createDevProject: (body: Record<string, unknown>) =>
+        post<{ project: DevProjectDetail }>('/devai?action=create', body),
+    updateDevProject: (body: Record<string, unknown>) =>
+        post<{ project: DevProjectDetail; versionAdded: boolean }>('/devai?action=update', body),
+    deleteDevProject: (id: string) =>
+        post<{ deleted: boolean; id: string }>('/devai?action=delete', { id }),
     // ── 인버스 ETF 1호가 스캘핑 — 가상매매 전용(2026-08-20) ──
     // ★정적 경로 + query 로 호출한다. vercel.json 끝의 catch-all rewrite(`/api/:d/:s1`)가
     //   `/api/inverse-trader/status` 같은 하위 경로를 router.ts(404)로 보내기 때문이다.

@@ -629,3 +629,114 @@ model InverseTraderSession {
 
   @@index([status, startedAt])
 }
+
+// ─────────────────────────────────────────────────────────────────
+// 개발AI 콘솔 (2026-08-20 신설)
+//
+// 텔레그램으로 한 줄씩 지시하던 허드 개발 파이프라인을, 어드민에서 명세를 쓰고
+// 진행을 보고 결과를 받는 작업대로 옮긴다. 텔레그램은 알림 전용으로 축소한다.
+//
+// ★동시 실행은 1건으로 제한한다(사장 결정 2026-08-20). pane 안 claude 하나가
+//   400MB~3.2GB를 먹는데 서버2는 3.9GB다. 대기는 큐(status=queued)로 둔다.
+// ─────────────────────────────────────────────────────────────────
+
+/// 개발 프로젝트 1건. 허드 파이프라인의 projectId(p180458 등)와 연결된다.
+model DevProject {
+  id          String  @id @default(cuid())
+  title       String
+  /// draft(작성중) → queued(대기) → planned(계획됨) → awaiting_approval(승인대기)
+  /// → running(개발중) → review(검증중) → done / failed / canceled
+  status      String  @default("draft")
+  /// 허드 파이프라인이 부여한 프로젝트 ID(rag/state/projects/<ID>.json). 착수 전엔 null.
+  herdrProjectId String?
+  /// 작업 저장소 경로. 기본은 ai_mp.
+  workdir     String  @default("/home/paks11299958/ai_mp")
+
+  versions    DevProjectVersion[]
+  files       DevProjectFile[]
+  events      DevProjectEvent[]
+  result      DevProjectResult?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, updatedAt])
+}
+
+/// 명세 버전 — '비포/애프터'의 실체.
+/// ★수정 시 UPDATE 가 아니라 INSERT 한다. 덮어쓰면 무엇을 왜 바꿨는지가 사라진다.
+model DevProjectVersion {
+  id          Int      @id @default(autoincrement())
+  projectId   String
+  project     DevProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// 1부터 증가
+  version     Int
+  /// 만들 기능 목록(여러 줄)
+  features    String   @default("")
+  /// 명세 본문(마크다운)
+  specBody    String   @default("")
+  /// 참조 사이트 URL 목록(JSON 배열 문자열)
+  refUrls     String   @default("[]")
+  /// 이 버전에서 무엇을 왜 바꿨는지
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@unique([projectId, version])
+  @@index([projectId, version])
+}
+
+/// 첨부 파일 — MVP 명세서 / 참조 이미지 / 디자인 소스.
+/// ★이미지는 sites 방식으로 저장한다(사장 결정 2026-08-20):
+///   저장소 안 sites/devai/<projectId>/img/ 에 두고 URL로 서빙한다.
+///   외부 스토리지를 쓰지 않으므로 배포와 함께 그대로 따라간다.
+model DevProjectFile {
+  id          Int      @id @default(autoincrement())
+  projectId   String
+  project     DevProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// spec(명세서) | image(참조 이미지) | design(디자인 소스) | result(결과물)
+  kind        String
+  fileName    String
+  /// 브라우저에서 접근할 경로. 예: /sites/devai/<projectId>/img/hero.png
+  url         String
+  /// 바이트
+  size        Int      @default(0)
+  mimeType    String?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId, kind])
+}
+
+/// 진행 이벤트 — '작업' 탭 화면의 원천.
+/// ★허드 pane 화면을 그대로 중계하지 않는다. read_output 은 TUI 스냅샷이라
+///   잘리거나 비어서 나온다(실측). 파이프라인이 여기에 구조화해서 적는다.
+model DevProjectEvent {
+  id          Int      @id @default(autoincrement())
+  projectId   String
+  project     DevProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// system | developer | reviewer | user
+  actor       String   @default("system")
+  /// plan | approval | batch_start | batch_done | review | commit | deploy | error
+  phase       String
+  message     String
+  /// 부가 정보(커밋해시·묶음명·pane ID 등) JSON 문자열
+  meta        String?
+  at          DateTime @default(now())
+
+  @@index([projectId, at])
+}
+
+/// 완료 결과 — '완료' 탭에서 보여준다.
+model DevProjectResult {
+  id          Int      @id @default(autoincrement())
+  projectId   String   @unique
+  project     DevProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  deployUrl   String?
+  /// 사이트 내용 요약
+  summary     String?
+  /// 커밋 해시 목록(JSON 배열 문자열)
+  commits     String   @default("[]")
+  /// 디자인 소스 묶음(zip) 경로
+  designSourceUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

@@ -213,6 +213,37 @@ export type InverseDailyStat = $Result.DefaultSelection<Prisma.$InverseDailyStat
  * 자동매매 세션(구동 단위). 어드민 상태 표시의 기준.
  */
 export type InverseTraderSession = $Result.DefaultSelection<Prisma.$InverseTraderSessionPayload>
+/**
+ * Model DevProject
+ * 개발 프로젝트 1건. 허드 파이프라인의 projectId(p180458 등)와 연결된다.
+ */
+export type DevProject = $Result.DefaultSelection<Prisma.$DevProjectPayload>
+/**
+ * Model DevProjectVersion
+ * 명세 버전 — '비포/애프터'의 실체.
+ * ★수정 시 UPDATE 가 아니라 INSERT 한다. 덮어쓰면 무엇을 왜 바꿨는지가 사라진다.
+ */
+export type DevProjectVersion = $Result.DefaultSelection<Prisma.$DevProjectVersionPayload>
+/**
+ * Model DevProjectFile
+ * 첨부 파일 — MVP 명세서 / 참조 이미지 / 디자인 소스.
+ * ★이미지는 sites 방식으로 저장한다(사장 결정 2026-08-20):
+ * 저장소 안 sites/devai/<projectId>/img/ 에 두고 URL로 서빙한다.
+ * 외부 스토리지를 쓰지 않으므로 배포와 함께 그대로 따라간다.
+ */
+export type DevProjectFile = $Result.DefaultSelection<Prisma.$DevProjectFilePayload>
+/**
+ * Model DevProjectEvent
+ * 진행 이벤트 — '작업' 탭 화면의 원천.
+ * ★허드 pane 화면을 그대로 중계하지 않는다. read_output 은 TUI 스냅샷이라
+ * 잘리거나 비어서 나온다(실측). 파이프라인이 여기에 구조화해서 적는다.
+ */
+export type DevProjectEvent = $Result.DefaultSelection<Prisma.$DevProjectEventPayload>
+/**
+ * Model DevProjectResult
+ * 완료 결과 — '완료' 탭에서 보여준다.
+ */
+export type DevProjectResult = $Result.DefaultSelection<Prisma.$DevProjectResultPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -734,6 +765,56 @@ export class PrismaClient<
     * ```
     */
   get inverseTraderSession(): Prisma.InverseTraderSessionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.devProject`: Exposes CRUD operations for the **DevProject** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DevProjects
+    * const devProjects = await prisma.devProject.findMany()
+    * ```
+    */
+  get devProject(): Prisma.DevProjectDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.devProjectVersion`: Exposes CRUD operations for the **DevProjectVersion** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DevProjectVersions
+    * const devProjectVersions = await prisma.devProjectVersion.findMany()
+    * ```
+    */
+  get devProjectVersion(): Prisma.DevProjectVersionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.devProjectFile`: Exposes CRUD operations for the **DevProjectFile** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DevProjectFiles
+    * const devProjectFiles = await prisma.devProjectFile.findMany()
+    * ```
+    */
+  get devProjectFile(): Prisma.DevProjectFileDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.devProjectEvent`: Exposes CRUD operations for the **DevProjectEvent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DevProjectEvents
+    * const devProjectEvents = await prisma.devProjectEvent.findMany()
+    * ```
+    */
+  get devProjectEvent(): Prisma.DevProjectEventDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.devProjectResult`: Exposes CRUD operations for the **DevProjectResult** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DevProjectResults
+    * const devProjectResults = await prisma.devProjectResult.findMany()
+    * ```
+    */
+  get devProjectResult(): Prisma.DevProjectResultDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1207,7 +1288,12 @@ export namespace Prisma {
     InverseFill: 'InverseFill',
     InversePosition: 'InversePosition',
     InverseDailyStat: 'InverseDailyStat',
-    InverseTraderSession: 'InverseTraderSession'
+    InverseTraderSession: 'InverseTraderSession',
+    DevProject: 'DevProject',
+    DevProjectVersion: 'DevProjectVersion',
+    DevProjectFile: 'DevProjectFile',
+    DevProjectEvent: 'DevProjectEvent',
+    DevProjectResult: 'DevProjectResult'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1223,7 +1309,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse" | "aiUsageLog" | "hairStyle" | "inverseTraderConfig" | "inverseOrder" | "inverseFill" | "inversePosition" | "inverseDailyStat" | "inverseTraderSession"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse" | "aiUsageLog" | "hairStyle" | "inverseTraderConfig" | "inverseOrder" | "inverseFill" | "inversePosition" | "inverseDailyStat" | "inverseTraderSession" | "devProject" | "devProjectVersion" | "devProjectFile" | "devProjectEvent" | "devProjectResult"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -4187,6 +4273,376 @@ export namespace Prisma {
           }
         }
       }
+      DevProject: {
+        payload: Prisma.$DevProjectPayload<ExtArgs>
+        fields: Prisma.DevProjectFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DevProjectFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DevProjectFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>
+          }
+          findFirst: {
+            args: Prisma.DevProjectFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DevProjectFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>
+          }
+          findMany: {
+            args: Prisma.DevProjectFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>[]
+          }
+          create: {
+            args: Prisma.DevProjectCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>
+          }
+          createMany: {
+            args: Prisma.DevProjectCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DevProjectCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>[]
+          }
+          delete: {
+            args: Prisma.DevProjectDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>
+          }
+          update: {
+            args: Prisma.DevProjectUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>
+          }
+          deleteMany: {
+            args: Prisma.DevProjectDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DevProjectUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DevProjectUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>[]
+          }
+          upsert: {
+            args: Prisma.DevProjectUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectPayload>
+          }
+          aggregate: {
+            args: Prisma.DevProjectAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDevProject>
+          }
+          groupBy: {
+            args: Prisma.DevProjectGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DevProjectCountArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectCountAggregateOutputType> | number
+          }
+        }
+      }
+      DevProjectVersion: {
+        payload: Prisma.$DevProjectVersionPayload<ExtArgs>
+        fields: Prisma.DevProjectVersionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DevProjectVersionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DevProjectVersionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>
+          }
+          findFirst: {
+            args: Prisma.DevProjectVersionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DevProjectVersionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>
+          }
+          findMany: {
+            args: Prisma.DevProjectVersionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>[]
+          }
+          create: {
+            args: Prisma.DevProjectVersionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>
+          }
+          createMany: {
+            args: Prisma.DevProjectVersionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DevProjectVersionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>[]
+          }
+          delete: {
+            args: Prisma.DevProjectVersionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>
+          }
+          update: {
+            args: Prisma.DevProjectVersionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>
+          }
+          deleteMany: {
+            args: Prisma.DevProjectVersionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DevProjectVersionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DevProjectVersionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>[]
+          }
+          upsert: {
+            args: Prisma.DevProjectVersionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectVersionPayload>
+          }
+          aggregate: {
+            args: Prisma.DevProjectVersionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDevProjectVersion>
+          }
+          groupBy: {
+            args: Prisma.DevProjectVersionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectVersionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DevProjectVersionCountArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectVersionCountAggregateOutputType> | number
+          }
+        }
+      }
+      DevProjectFile: {
+        payload: Prisma.$DevProjectFilePayload<ExtArgs>
+        fields: Prisma.DevProjectFileFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DevProjectFileFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DevProjectFileFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>
+          }
+          findFirst: {
+            args: Prisma.DevProjectFileFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DevProjectFileFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>
+          }
+          findMany: {
+            args: Prisma.DevProjectFileFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>[]
+          }
+          create: {
+            args: Prisma.DevProjectFileCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>
+          }
+          createMany: {
+            args: Prisma.DevProjectFileCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DevProjectFileCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>[]
+          }
+          delete: {
+            args: Prisma.DevProjectFileDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>
+          }
+          update: {
+            args: Prisma.DevProjectFileUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>
+          }
+          deleteMany: {
+            args: Prisma.DevProjectFileDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DevProjectFileUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DevProjectFileUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>[]
+          }
+          upsert: {
+            args: Prisma.DevProjectFileUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectFilePayload>
+          }
+          aggregate: {
+            args: Prisma.DevProjectFileAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDevProjectFile>
+          }
+          groupBy: {
+            args: Prisma.DevProjectFileGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectFileGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DevProjectFileCountArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectFileCountAggregateOutputType> | number
+          }
+        }
+      }
+      DevProjectEvent: {
+        payload: Prisma.$DevProjectEventPayload<ExtArgs>
+        fields: Prisma.DevProjectEventFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DevProjectEventFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DevProjectEventFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>
+          }
+          findFirst: {
+            args: Prisma.DevProjectEventFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DevProjectEventFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>
+          }
+          findMany: {
+            args: Prisma.DevProjectEventFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>[]
+          }
+          create: {
+            args: Prisma.DevProjectEventCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>
+          }
+          createMany: {
+            args: Prisma.DevProjectEventCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DevProjectEventCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>[]
+          }
+          delete: {
+            args: Prisma.DevProjectEventDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>
+          }
+          update: {
+            args: Prisma.DevProjectEventUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>
+          }
+          deleteMany: {
+            args: Prisma.DevProjectEventDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DevProjectEventUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DevProjectEventUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>[]
+          }
+          upsert: {
+            args: Prisma.DevProjectEventUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectEventPayload>
+          }
+          aggregate: {
+            args: Prisma.DevProjectEventAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDevProjectEvent>
+          }
+          groupBy: {
+            args: Prisma.DevProjectEventGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectEventGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DevProjectEventCountArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectEventCountAggregateOutputType> | number
+          }
+        }
+      }
+      DevProjectResult: {
+        payload: Prisma.$DevProjectResultPayload<ExtArgs>
+        fields: Prisma.DevProjectResultFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DevProjectResultFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DevProjectResultFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>
+          }
+          findFirst: {
+            args: Prisma.DevProjectResultFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DevProjectResultFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>
+          }
+          findMany: {
+            args: Prisma.DevProjectResultFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>[]
+          }
+          create: {
+            args: Prisma.DevProjectResultCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>
+          }
+          createMany: {
+            args: Prisma.DevProjectResultCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DevProjectResultCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>[]
+          }
+          delete: {
+            args: Prisma.DevProjectResultDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>
+          }
+          update: {
+            args: Prisma.DevProjectResultUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>
+          }
+          deleteMany: {
+            args: Prisma.DevProjectResultDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DevProjectResultUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.DevProjectResultUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>[]
+          }
+          upsert: {
+            args: Prisma.DevProjectResultUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DevProjectResultPayload>
+          }
+          aggregate: {
+            args: Prisma.DevProjectResultAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDevProjectResult>
+          }
+          groupBy: {
+            args: Prisma.DevProjectResultGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectResultGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DevProjectResultCountArgs<ExtArgs>
+            result: $Utils.Optional<DevProjectResultCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -4335,6 +4791,11 @@ export namespace Prisma {
     inversePosition?: InversePositionOmit
     inverseDailyStat?: InverseDailyStatOmit
     inverseTraderSession?: InverseTraderSessionOmit
+    devProject?: DevProjectOmit
+    devProjectVersion?: DevProjectVersionOmit
+    devProjectFile?: DevProjectFileOmit
+    devProjectEvent?: DevProjectEventOmit
+    devProjectResult?: DevProjectResultOmit
   }
 
   /* Types for Logging */
@@ -4831,6 +5292,55 @@ export namespace Prisma {
    */
   export type PartnerPostCountOutputTypeCountRepliesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PartnerReplyWhereInput
+  }
+
+
+  /**
+   * Count Type DevProjectCountOutputType
+   */
+
+  export type DevProjectCountOutputType = {
+    versions: number
+    files: number
+    events: number
+  }
+
+  export type DevProjectCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    versions?: boolean | DevProjectCountOutputTypeCountVersionsArgs
+    files?: boolean | DevProjectCountOutputTypeCountFilesArgs
+    events?: boolean | DevProjectCountOutputTypeCountEventsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * DevProjectCountOutputType without action
+   */
+  export type DevProjectCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectCountOutputType
+     */
+    select?: DevProjectCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectCountOutputType without action
+   */
+  export type DevProjectCountOutputTypeCountVersionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectVersionWhereInput
+  }
+
+  /**
+   * DevProjectCountOutputType without action
+   */
+  export type DevProjectCountOutputTypeCountFilesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectFileWhereInput
+  }
+
+  /**
+   * DevProjectCountOutputType without action
+   */
+  export type DevProjectCountOutputTypeCountEventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectEventWhereInput
   }
 
 
@@ -51224,6 +51734,5777 @@ export namespace Prisma {
 
 
   /**
+   * Model DevProject
+   */
+
+  export type AggregateDevProject = {
+    _count: DevProjectCountAggregateOutputType | null
+    _min: DevProjectMinAggregateOutputType | null
+    _max: DevProjectMaxAggregateOutputType | null
+  }
+
+  export type DevProjectMinAggregateOutputType = {
+    id: string | null
+    title: string | null
+    status: string | null
+    herdrProjectId: string | null
+    workdir: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DevProjectMaxAggregateOutputType = {
+    id: string | null
+    title: string | null
+    status: string | null
+    herdrProjectId: string | null
+    workdir: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DevProjectCountAggregateOutputType = {
+    id: number
+    title: number
+    status: number
+    herdrProjectId: number
+    workdir: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DevProjectMinAggregateInputType = {
+    id?: true
+    title?: true
+    status?: true
+    herdrProjectId?: true
+    workdir?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DevProjectMaxAggregateInputType = {
+    id?: true
+    title?: true
+    status?: true
+    herdrProjectId?: true
+    workdir?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DevProjectCountAggregateInputType = {
+    id?: true
+    title?: true
+    status?: true
+    herdrProjectId?: true
+    workdir?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DevProjectAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProject to aggregate.
+     */
+    where?: DevProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjects to fetch.
+     */
+    orderBy?: DevProjectOrderByWithRelationInput | DevProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DevProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DevProjects
+    **/
+    _count?: true | DevProjectCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DevProjectMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DevProjectMaxAggregateInputType
+  }
+
+  export type GetDevProjectAggregateType<T extends DevProjectAggregateArgs> = {
+        [P in keyof T & keyof AggregateDevProject]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDevProject[P]>
+      : GetScalarType<T[P], AggregateDevProject[P]>
+  }
+
+
+
+
+  export type DevProjectGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectWhereInput
+    orderBy?: DevProjectOrderByWithAggregationInput | DevProjectOrderByWithAggregationInput[]
+    by: DevProjectScalarFieldEnum[] | DevProjectScalarFieldEnum
+    having?: DevProjectScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DevProjectCountAggregateInputType | true
+    _min?: DevProjectMinAggregateInputType
+    _max?: DevProjectMaxAggregateInputType
+  }
+
+  export type DevProjectGroupByOutputType = {
+    id: string
+    title: string
+    status: string
+    herdrProjectId: string | null
+    workdir: string
+    createdAt: Date
+    updatedAt: Date
+    _count: DevProjectCountAggregateOutputType | null
+    _min: DevProjectMinAggregateOutputType | null
+    _max: DevProjectMaxAggregateOutputType | null
+  }
+
+  type GetDevProjectGroupByPayload<T extends DevProjectGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DevProjectGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DevProjectGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DevProjectGroupByOutputType[P]>
+            : GetScalarType<T[P], DevProjectGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DevProjectSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    status?: boolean
+    herdrProjectId?: boolean
+    workdir?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    versions?: boolean | DevProject$versionsArgs<ExtArgs>
+    files?: boolean | DevProject$filesArgs<ExtArgs>
+    events?: boolean | DevProject$eventsArgs<ExtArgs>
+    result?: boolean | DevProject$resultArgs<ExtArgs>
+    _count?: boolean | DevProjectCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProject"]>
+
+  export type DevProjectSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    status?: boolean
+    herdrProjectId?: boolean
+    workdir?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["devProject"]>
+
+  export type DevProjectSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    title?: boolean
+    status?: boolean
+    herdrProjectId?: boolean
+    workdir?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["devProject"]>
+
+  export type DevProjectSelectScalar = {
+    id?: boolean
+    title?: boolean
+    status?: boolean
+    herdrProjectId?: boolean
+    workdir?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DevProjectOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "status" | "herdrProjectId" | "workdir" | "createdAt" | "updatedAt", ExtArgs["result"]["devProject"]>
+  export type DevProjectInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    versions?: boolean | DevProject$versionsArgs<ExtArgs>
+    files?: boolean | DevProject$filesArgs<ExtArgs>
+    events?: boolean | DevProject$eventsArgs<ExtArgs>
+    result?: boolean | DevProject$resultArgs<ExtArgs>
+    _count?: boolean | DevProjectCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type DevProjectIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+  export type DevProjectIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
+
+  export type $DevProjectPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DevProject"
+    objects: {
+      versions: Prisma.$DevProjectVersionPayload<ExtArgs>[]
+      files: Prisma.$DevProjectFilePayload<ExtArgs>[]
+      events: Prisma.$DevProjectEventPayload<ExtArgs>[]
+      result: Prisma.$DevProjectResultPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      title: string
+      /**
+       * draft(작성중) → queued(대기) → planned(계획됨) → awaiting_approval(승인대기)
+       * → running(개발중) → review(검증중) → done / failed / canceled
+       */
+      status: string
+      /**
+       * 허드 파이프라인이 부여한 프로젝트 ID(rag/state/projects/<ID>.json). 착수 전엔 null.
+       */
+      herdrProjectId: string | null
+      /**
+       * 작업 저장소 경로. 기본은 ai_mp.
+       */
+      workdir: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["devProject"]>
+    composites: {}
+  }
+
+  type DevProjectGetPayload<S extends boolean | null | undefined | DevProjectDefaultArgs> = $Result.GetResult<Prisma.$DevProjectPayload, S>
+
+  type DevProjectCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DevProjectFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DevProjectCountAggregateInputType | true
+    }
+
+  export interface DevProjectDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DevProject'], meta: { name: 'DevProject' } }
+    /**
+     * Find zero or one DevProject that matches the filter.
+     * @param {DevProjectFindUniqueArgs} args - Arguments to find a DevProject
+     * @example
+     * // Get one DevProject
+     * const devProject = await prisma.devProject.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DevProjectFindUniqueArgs>(args: SelectSubset<T, DevProjectFindUniqueArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DevProject that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DevProjectFindUniqueOrThrowArgs} args - Arguments to find a DevProject
+     * @example
+     * // Get one DevProject
+     * const devProject = await prisma.devProject.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DevProjectFindUniqueOrThrowArgs>(args: SelectSubset<T, DevProjectFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProject that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFindFirstArgs} args - Arguments to find a DevProject
+     * @example
+     * // Get one DevProject
+     * const devProject = await prisma.devProject.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DevProjectFindFirstArgs>(args?: SelectSubset<T, DevProjectFindFirstArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProject that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFindFirstOrThrowArgs} args - Arguments to find a DevProject
+     * @example
+     * // Get one DevProject
+     * const devProject = await prisma.devProject.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DevProjectFindFirstOrThrowArgs>(args?: SelectSubset<T, DevProjectFindFirstOrThrowArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DevProjects that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DevProjects
+     * const devProjects = await prisma.devProject.findMany()
+     * 
+     * // Get first 10 DevProjects
+     * const devProjects = await prisma.devProject.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const devProjectWithIdOnly = await prisma.devProject.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DevProjectFindManyArgs>(args?: SelectSubset<T, DevProjectFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DevProject.
+     * @param {DevProjectCreateArgs} args - Arguments to create a DevProject.
+     * @example
+     * // Create one DevProject
+     * const DevProject = await prisma.devProject.create({
+     *   data: {
+     *     // ... data to create a DevProject
+     *   }
+     * })
+     * 
+     */
+    create<T extends DevProjectCreateArgs>(args: SelectSubset<T, DevProjectCreateArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DevProjects.
+     * @param {DevProjectCreateManyArgs} args - Arguments to create many DevProjects.
+     * @example
+     * // Create many DevProjects
+     * const devProject = await prisma.devProject.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DevProjectCreateManyArgs>(args?: SelectSubset<T, DevProjectCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DevProjects and returns the data saved in the database.
+     * @param {DevProjectCreateManyAndReturnArgs} args - Arguments to create many DevProjects.
+     * @example
+     * // Create many DevProjects
+     * const devProject = await prisma.devProject.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DevProjects and only return the `id`
+     * const devProjectWithIdOnly = await prisma.devProject.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DevProjectCreateManyAndReturnArgs>(args?: SelectSubset<T, DevProjectCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DevProject.
+     * @param {DevProjectDeleteArgs} args - Arguments to delete one DevProject.
+     * @example
+     * // Delete one DevProject
+     * const DevProject = await prisma.devProject.delete({
+     *   where: {
+     *     // ... filter to delete one DevProject
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DevProjectDeleteArgs>(args: SelectSubset<T, DevProjectDeleteArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DevProject.
+     * @param {DevProjectUpdateArgs} args - Arguments to update one DevProject.
+     * @example
+     * // Update one DevProject
+     * const devProject = await prisma.devProject.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DevProjectUpdateArgs>(args: SelectSubset<T, DevProjectUpdateArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DevProjects.
+     * @param {DevProjectDeleteManyArgs} args - Arguments to filter DevProjects to delete.
+     * @example
+     * // Delete a few DevProjects
+     * const { count } = await prisma.devProject.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DevProjectDeleteManyArgs>(args?: SelectSubset<T, DevProjectDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjects.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DevProjects
+     * const devProject = await prisma.devProject.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DevProjectUpdateManyArgs>(args: SelectSubset<T, DevProjectUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjects and returns the data updated in the database.
+     * @param {DevProjectUpdateManyAndReturnArgs} args - Arguments to update many DevProjects.
+     * @example
+     * // Update many DevProjects
+     * const devProject = await prisma.devProject.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DevProjects and only return the `id`
+     * const devProjectWithIdOnly = await prisma.devProject.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DevProjectUpdateManyAndReturnArgs>(args: SelectSubset<T, DevProjectUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DevProject.
+     * @param {DevProjectUpsertArgs} args - Arguments to update or create a DevProject.
+     * @example
+     * // Update or create a DevProject
+     * const devProject = await prisma.devProject.upsert({
+     *   create: {
+     *     // ... data to create a DevProject
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DevProject we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DevProjectUpsertArgs>(args: SelectSubset<T, DevProjectUpsertArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DevProjects.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectCountArgs} args - Arguments to filter DevProjects to count.
+     * @example
+     * // Count the number of DevProjects
+     * const count = await prisma.devProject.count({
+     *   where: {
+     *     // ... the filter for the DevProjects we want to count
+     *   }
+     * })
+    **/
+    count<T extends DevProjectCountArgs>(
+      args?: Subset<T, DevProjectCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DevProjectCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DevProject.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DevProjectAggregateArgs>(args: Subset<T, DevProjectAggregateArgs>): Prisma.PrismaPromise<GetDevProjectAggregateType<T>>
+
+    /**
+     * Group by DevProject.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DevProjectGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DevProjectGroupByArgs['orderBy'] }
+        : { orderBy?: DevProjectGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DevProjectGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDevProjectGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DevProject model
+   */
+  readonly fields: DevProjectFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DevProject.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DevProjectClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    versions<T extends DevProject$versionsArgs<ExtArgs> = {}>(args?: Subset<T, DevProject$versionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    files<T extends DevProject$filesArgs<ExtArgs> = {}>(args?: Subset<T, DevProject$filesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    events<T extends DevProject$eventsArgs<ExtArgs> = {}>(args?: Subset<T, DevProject$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    result<T extends DevProject$resultArgs<ExtArgs> = {}>(args?: Subset<T, DevProject$resultArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DevProject model
+   */
+  interface DevProjectFieldRefs {
+    readonly id: FieldRef<"DevProject", 'String'>
+    readonly title: FieldRef<"DevProject", 'String'>
+    readonly status: FieldRef<"DevProject", 'String'>
+    readonly herdrProjectId: FieldRef<"DevProject", 'String'>
+    readonly workdir: FieldRef<"DevProject", 'String'>
+    readonly createdAt: FieldRef<"DevProject", 'DateTime'>
+    readonly updatedAt: FieldRef<"DevProject", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DevProject findUnique
+   */
+  export type DevProjectFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProject to fetch.
+     */
+    where: DevProjectWhereUniqueInput
+  }
+
+  /**
+   * DevProject findUniqueOrThrow
+   */
+  export type DevProjectFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProject to fetch.
+     */
+    where: DevProjectWhereUniqueInput
+  }
+
+  /**
+   * DevProject findFirst
+   */
+  export type DevProjectFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProject to fetch.
+     */
+    where?: DevProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjects to fetch.
+     */
+    orderBy?: DevProjectOrderByWithRelationInput | DevProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjects.
+     */
+    cursor?: DevProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjects.
+     */
+    distinct?: DevProjectScalarFieldEnum | DevProjectScalarFieldEnum[]
+  }
+
+  /**
+   * DevProject findFirstOrThrow
+   */
+  export type DevProjectFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProject to fetch.
+     */
+    where?: DevProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjects to fetch.
+     */
+    orderBy?: DevProjectOrderByWithRelationInput | DevProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjects.
+     */
+    cursor?: DevProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjects.
+     */
+    distinct?: DevProjectScalarFieldEnum | DevProjectScalarFieldEnum[]
+  }
+
+  /**
+   * DevProject findMany
+   */
+  export type DevProjectFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjects to fetch.
+     */
+    where?: DevProjectWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjects to fetch.
+     */
+    orderBy?: DevProjectOrderByWithRelationInput | DevProjectOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DevProjects.
+     */
+    cursor?: DevProjectWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjects from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjects.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjects.
+     */
+    distinct?: DevProjectScalarFieldEnum | DevProjectScalarFieldEnum[]
+  }
+
+  /**
+   * DevProject create
+   */
+  export type DevProjectCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DevProject.
+     */
+    data: XOR<DevProjectCreateInput, DevProjectUncheckedCreateInput>
+  }
+
+  /**
+   * DevProject createMany
+   */
+  export type DevProjectCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DevProjects.
+     */
+    data: DevProjectCreateManyInput | DevProjectCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DevProject createManyAndReturn
+   */
+  export type DevProjectCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * The data used to create many DevProjects.
+     */
+    data: DevProjectCreateManyInput | DevProjectCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DevProject update
+   */
+  export type DevProjectUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DevProject.
+     */
+    data: XOR<DevProjectUpdateInput, DevProjectUncheckedUpdateInput>
+    /**
+     * Choose, which DevProject to update.
+     */
+    where: DevProjectWhereUniqueInput
+  }
+
+  /**
+   * DevProject updateMany
+   */
+  export type DevProjectUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DevProjects.
+     */
+    data: XOR<DevProjectUpdateManyMutationInput, DevProjectUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjects to update
+     */
+    where?: DevProjectWhereInput
+    /**
+     * Limit how many DevProjects to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProject updateManyAndReturn
+   */
+  export type DevProjectUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * The data used to update DevProjects.
+     */
+    data: XOR<DevProjectUpdateManyMutationInput, DevProjectUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjects to update
+     */
+    where?: DevProjectWhereInput
+    /**
+     * Limit how many DevProjects to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProject upsert
+   */
+  export type DevProjectUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DevProject to update in case it exists.
+     */
+    where: DevProjectWhereUniqueInput
+    /**
+     * In case the DevProject found by the `where` argument doesn't exist, create a new DevProject with this data.
+     */
+    create: XOR<DevProjectCreateInput, DevProjectUncheckedCreateInput>
+    /**
+     * In case the DevProject was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DevProjectUpdateInput, DevProjectUncheckedUpdateInput>
+  }
+
+  /**
+   * DevProject delete
+   */
+  export type DevProjectDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+    /**
+     * Filter which DevProject to delete.
+     */
+    where: DevProjectWhereUniqueInput
+  }
+
+  /**
+   * DevProject deleteMany
+   */
+  export type DevProjectDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjects to delete
+     */
+    where?: DevProjectWhereInput
+    /**
+     * Limit how many DevProjects to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProject.versions
+   */
+  export type DevProject$versionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    where?: DevProjectVersionWhereInput
+    orderBy?: DevProjectVersionOrderByWithRelationInput | DevProjectVersionOrderByWithRelationInput[]
+    cursor?: DevProjectVersionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DevProjectVersionScalarFieldEnum | DevProjectVersionScalarFieldEnum[]
+  }
+
+  /**
+   * DevProject.files
+   */
+  export type DevProject$filesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    where?: DevProjectFileWhereInput
+    orderBy?: DevProjectFileOrderByWithRelationInput | DevProjectFileOrderByWithRelationInput[]
+    cursor?: DevProjectFileWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DevProjectFileScalarFieldEnum | DevProjectFileScalarFieldEnum[]
+  }
+
+  /**
+   * DevProject.events
+   */
+  export type DevProject$eventsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    where?: DevProjectEventWhereInput
+    orderBy?: DevProjectEventOrderByWithRelationInput | DevProjectEventOrderByWithRelationInput[]
+    cursor?: DevProjectEventWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DevProjectEventScalarFieldEnum | DevProjectEventScalarFieldEnum[]
+  }
+
+  /**
+   * DevProject.result
+   */
+  export type DevProject$resultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    where?: DevProjectResultWhereInput
+  }
+
+  /**
+   * DevProject without action
+   */
+  export type DevProjectDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProject
+     */
+    select?: DevProjectSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProject
+     */
+    omit?: DevProjectOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DevProjectVersion
+   */
+
+  export type AggregateDevProjectVersion = {
+    _count: DevProjectVersionCountAggregateOutputType | null
+    _avg: DevProjectVersionAvgAggregateOutputType | null
+    _sum: DevProjectVersionSumAggregateOutputType | null
+    _min: DevProjectVersionMinAggregateOutputType | null
+    _max: DevProjectVersionMaxAggregateOutputType | null
+  }
+
+  export type DevProjectVersionAvgAggregateOutputType = {
+    id: number | null
+    version: number | null
+  }
+
+  export type DevProjectVersionSumAggregateOutputType = {
+    id: number | null
+    version: number | null
+  }
+
+  export type DevProjectVersionMinAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    version: number | null
+    features: string | null
+    specBody: string | null
+    refUrls: string | null
+    note: string | null
+    createdAt: Date | null
+  }
+
+  export type DevProjectVersionMaxAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    version: number | null
+    features: string | null
+    specBody: string | null
+    refUrls: string | null
+    note: string | null
+    createdAt: Date | null
+  }
+
+  export type DevProjectVersionCountAggregateOutputType = {
+    id: number
+    projectId: number
+    version: number
+    features: number
+    specBody: number
+    refUrls: number
+    note: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type DevProjectVersionAvgAggregateInputType = {
+    id?: true
+    version?: true
+  }
+
+  export type DevProjectVersionSumAggregateInputType = {
+    id?: true
+    version?: true
+  }
+
+  export type DevProjectVersionMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    version?: true
+    features?: true
+    specBody?: true
+    refUrls?: true
+    note?: true
+    createdAt?: true
+  }
+
+  export type DevProjectVersionMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    version?: true
+    features?: true
+    specBody?: true
+    refUrls?: true
+    note?: true
+    createdAt?: true
+  }
+
+  export type DevProjectVersionCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    version?: true
+    features?: true
+    specBody?: true
+    refUrls?: true
+    note?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type DevProjectVersionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectVersion to aggregate.
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectVersions to fetch.
+     */
+    orderBy?: DevProjectVersionOrderByWithRelationInput | DevProjectVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DevProjectVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DevProjectVersions
+    **/
+    _count?: true | DevProjectVersionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DevProjectVersionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DevProjectVersionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DevProjectVersionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DevProjectVersionMaxAggregateInputType
+  }
+
+  export type GetDevProjectVersionAggregateType<T extends DevProjectVersionAggregateArgs> = {
+        [P in keyof T & keyof AggregateDevProjectVersion]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDevProjectVersion[P]>
+      : GetScalarType<T[P], AggregateDevProjectVersion[P]>
+  }
+
+
+
+
+  export type DevProjectVersionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectVersionWhereInput
+    orderBy?: DevProjectVersionOrderByWithAggregationInput | DevProjectVersionOrderByWithAggregationInput[]
+    by: DevProjectVersionScalarFieldEnum[] | DevProjectVersionScalarFieldEnum
+    having?: DevProjectVersionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DevProjectVersionCountAggregateInputType | true
+    _avg?: DevProjectVersionAvgAggregateInputType
+    _sum?: DevProjectVersionSumAggregateInputType
+    _min?: DevProjectVersionMinAggregateInputType
+    _max?: DevProjectVersionMaxAggregateInputType
+  }
+
+  export type DevProjectVersionGroupByOutputType = {
+    id: number
+    projectId: string
+    version: number
+    features: string
+    specBody: string
+    refUrls: string
+    note: string | null
+    createdAt: Date
+    _count: DevProjectVersionCountAggregateOutputType | null
+    _avg: DevProjectVersionAvgAggregateOutputType | null
+    _sum: DevProjectVersionSumAggregateOutputType | null
+    _min: DevProjectVersionMinAggregateOutputType | null
+    _max: DevProjectVersionMaxAggregateOutputType | null
+  }
+
+  type GetDevProjectVersionGroupByPayload<T extends DevProjectVersionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DevProjectVersionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DevProjectVersionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DevProjectVersionGroupByOutputType[P]>
+            : GetScalarType<T[P], DevProjectVersionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DevProjectVersionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    version?: boolean
+    features?: boolean
+    specBody?: boolean
+    refUrls?: boolean
+    note?: boolean
+    createdAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectVersion"]>
+
+  export type DevProjectVersionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    version?: boolean
+    features?: boolean
+    specBody?: boolean
+    refUrls?: boolean
+    note?: boolean
+    createdAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectVersion"]>
+
+  export type DevProjectVersionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    version?: boolean
+    features?: boolean
+    specBody?: boolean
+    refUrls?: boolean
+    note?: boolean
+    createdAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectVersion"]>
+
+  export type DevProjectVersionSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    version?: boolean
+    features?: boolean
+    specBody?: boolean
+    refUrls?: boolean
+    note?: boolean
+    createdAt?: boolean
+  }
+
+  export type DevProjectVersionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "version" | "features" | "specBody" | "refUrls" | "note" | "createdAt", ExtArgs["result"]["devProjectVersion"]>
+  export type DevProjectVersionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectVersionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectVersionIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $DevProjectVersionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DevProjectVersion"
+    objects: {
+      project: Prisma.$DevProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      projectId: string
+      /**
+       * 1부터 증가
+       */
+      version: number
+      /**
+       * 만들 기능 목록(여러 줄)
+       */
+      features: string
+      /**
+       * 명세 본문(마크다운)
+       */
+      specBody: string
+      /**
+       * 참조 사이트 URL 목록(JSON 배열 문자열)
+       */
+      refUrls: string
+      /**
+       * 이 버전에서 무엇을 왜 바꿨는지
+       */
+      note: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["devProjectVersion"]>
+    composites: {}
+  }
+
+  type DevProjectVersionGetPayload<S extends boolean | null | undefined | DevProjectVersionDefaultArgs> = $Result.GetResult<Prisma.$DevProjectVersionPayload, S>
+
+  type DevProjectVersionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DevProjectVersionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DevProjectVersionCountAggregateInputType | true
+    }
+
+  export interface DevProjectVersionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DevProjectVersion'], meta: { name: 'DevProjectVersion' } }
+    /**
+     * Find zero or one DevProjectVersion that matches the filter.
+     * @param {DevProjectVersionFindUniqueArgs} args - Arguments to find a DevProjectVersion
+     * @example
+     * // Get one DevProjectVersion
+     * const devProjectVersion = await prisma.devProjectVersion.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DevProjectVersionFindUniqueArgs>(args: SelectSubset<T, DevProjectVersionFindUniqueArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DevProjectVersion that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DevProjectVersionFindUniqueOrThrowArgs} args - Arguments to find a DevProjectVersion
+     * @example
+     * // Get one DevProjectVersion
+     * const devProjectVersion = await prisma.devProjectVersion.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DevProjectVersionFindUniqueOrThrowArgs>(args: SelectSubset<T, DevProjectVersionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectVersion that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionFindFirstArgs} args - Arguments to find a DevProjectVersion
+     * @example
+     * // Get one DevProjectVersion
+     * const devProjectVersion = await prisma.devProjectVersion.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DevProjectVersionFindFirstArgs>(args?: SelectSubset<T, DevProjectVersionFindFirstArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectVersion that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionFindFirstOrThrowArgs} args - Arguments to find a DevProjectVersion
+     * @example
+     * // Get one DevProjectVersion
+     * const devProjectVersion = await prisma.devProjectVersion.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DevProjectVersionFindFirstOrThrowArgs>(args?: SelectSubset<T, DevProjectVersionFindFirstOrThrowArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DevProjectVersions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DevProjectVersions
+     * const devProjectVersions = await prisma.devProjectVersion.findMany()
+     * 
+     * // Get first 10 DevProjectVersions
+     * const devProjectVersions = await prisma.devProjectVersion.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const devProjectVersionWithIdOnly = await prisma.devProjectVersion.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DevProjectVersionFindManyArgs>(args?: SelectSubset<T, DevProjectVersionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DevProjectVersion.
+     * @param {DevProjectVersionCreateArgs} args - Arguments to create a DevProjectVersion.
+     * @example
+     * // Create one DevProjectVersion
+     * const DevProjectVersion = await prisma.devProjectVersion.create({
+     *   data: {
+     *     // ... data to create a DevProjectVersion
+     *   }
+     * })
+     * 
+     */
+    create<T extends DevProjectVersionCreateArgs>(args: SelectSubset<T, DevProjectVersionCreateArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DevProjectVersions.
+     * @param {DevProjectVersionCreateManyArgs} args - Arguments to create many DevProjectVersions.
+     * @example
+     * // Create many DevProjectVersions
+     * const devProjectVersion = await prisma.devProjectVersion.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DevProjectVersionCreateManyArgs>(args?: SelectSubset<T, DevProjectVersionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DevProjectVersions and returns the data saved in the database.
+     * @param {DevProjectVersionCreateManyAndReturnArgs} args - Arguments to create many DevProjectVersions.
+     * @example
+     * // Create many DevProjectVersions
+     * const devProjectVersion = await prisma.devProjectVersion.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DevProjectVersions and only return the `id`
+     * const devProjectVersionWithIdOnly = await prisma.devProjectVersion.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DevProjectVersionCreateManyAndReturnArgs>(args?: SelectSubset<T, DevProjectVersionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DevProjectVersion.
+     * @param {DevProjectVersionDeleteArgs} args - Arguments to delete one DevProjectVersion.
+     * @example
+     * // Delete one DevProjectVersion
+     * const DevProjectVersion = await prisma.devProjectVersion.delete({
+     *   where: {
+     *     // ... filter to delete one DevProjectVersion
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DevProjectVersionDeleteArgs>(args: SelectSubset<T, DevProjectVersionDeleteArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DevProjectVersion.
+     * @param {DevProjectVersionUpdateArgs} args - Arguments to update one DevProjectVersion.
+     * @example
+     * // Update one DevProjectVersion
+     * const devProjectVersion = await prisma.devProjectVersion.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DevProjectVersionUpdateArgs>(args: SelectSubset<T, DevProjectVersionUpdateArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DevProjectVersions.
+     * @param {DevProjectVersionDeleteManyArgs} args - Arguments to filter DevProjectVersions to delete.
+     * @example
+     * // Delete a few DevProjectVersions
+     * const { count } = await prisma.devProjectVersion.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DevProjectVersionDeleteManyArgs>(args?: SelectSubset<T, DevProjectVersionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DevProjectVersions
+     * const devProjectVersion = await prisma.devProjectVersion.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DevProjectVersionUpdateManyArgs>(args: SelectSubset<T, DevProjectVersionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectVersions and returns the data updated in the database.
+     * @param {DevProjectVersionUpdateManyAndReturnArgs} args - Arguments to update many DevProjectVersions.
+     * @example
+     * // Update many DevProjectVersions
+     * const devProjectVersion = await prisma.devProjectVersion.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DevProjectVersions and only return the `id`
+     * const devProjectVersionWithIdOnly = await prisma.devProjectVersion.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DevProjectVersionUpdateManyAndReturnArgs>(args: SelectSubset<T, DevProjectVersionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DevProjectVersion.
+     * @param {DevProjectVersionUpsertArgs} args - Arguments to update or create a DevProjectVersion.
+     * @example
+     * // Update or create a DevProjectVersion
+     * const devProjectVersion = await prisma.devProjectVersion.upsert({
+     *   create: {
+     *     // ... data to create a DevProjectVersion
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DevProjectVersion we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DevProjectVersionUpsertArgs>(args: SelectSubset<T, DevProjectVersionUpsertArgs<ExtArgs>>): Prisma__DevProjectVersionClient<$Result.GetResult<Prisma.$DevProjectVersionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DevProjectVersions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionCountArgs} args - Arguments to filter DevProjectVersions to count.
+     * @example
+     * // Count the number of DevProjectVersions
+     * const count = await prisma.devProjectVersion.count({
+     *   where: {
+     *     // ... the filter for the DevProjectVersions we want to count
+     *   }
+     * })
+    **/
+    count<T extends DevProjectVersionCountArgs>(
+      args?: Subset<T, DevProjectVersionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DevProjectVersionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DevProjectVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DevProjectVersionAggregateArgs>(args: Subset<T, DevProjectVersionAggregateArgs>): Prisma.PrismaPromise<GetDevProjectVersionAggregateType<T>>
+
+    /**
+     * Group by DevProjectVersion.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectVersionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DevProjectVersionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DevProjectVersionGroupByArgs['orderBy'] }
+        : { orderBy?: DevProjectVersionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DevProjectVersionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDevProjectVersionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DevProjectVersion model
+   */
+  readonly fields: DevProjectVersionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DevProjectVersion.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DevProjectVersionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends DevProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DevProjectDefaultArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DevProjectVersion model
+   */
+  interface DevProjectVersionFieldRefs {
+    readonly id: FieldRef<"DevProjectVersion", 'Int'>
+    readonly projectId: FieldRef<"DevProjectVersion", 'String'>
+    readonly version: FieldRef<"DevProjectVersion", 'Int'>
+    readonly features: FieldRef<"DevProjectVersion", 'String'>
+    readonly specBody: FieldRef<"DevProjectVersion", 'String'>
+    readonly refUrls: FieldRef<"DevProjectVersion", 'String'>
+    readonly note: FieldRef<"DevProjectVersion", 'String'>
+    readonly createdAt: FieldRef<"DevProjectVersion", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DevProjectVersion findUnique
+   */
+  export type DevProjectVersionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectVersion to fetch.
+     */
+    where: DevProjectVersionWhereUniqueInput
+  }
+
+  /**
+   * DevProjectVersion findUniqueOrThrow
+   */
+  export type DevProjectVersionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectVersion to fetch.
+     */
+    where: DevProjectVersionWhereUniqueInput
+  }
+
+  /**
+   * DevProjectVersion findFirst
+   */
+  export type DevProjectVersionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectVersion to fetch.
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectVersions to fetch.
+     */
+    orderBy?: DevProjectVersionOrderByWithRelationInput | DevProjectVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectVersions.
+     */
+    cursor?: DevProjectVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectVersions.
+     */
+    distinct?: DevProjectVersionScalarFieldEnum | DevProjectVersionScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectVersion findFirstOrThrow
+   */
+  export type DevProjectVersionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectVersion to fetch.
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectVersions to fetch.
+     */
+    orderBy?: DevProjectVersionOrderByWithRelationInput | DevProjectVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectVersions.
+     */
+    cursor?: DevProjectVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectVersions.
+     */
+    distinct?: DevProjectVersionScalarFieldEnum | DevProjectVersionScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectVersion findMany
+   */
+  export type DevProjectVersionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectVersions to fetch.
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectVersions to fetch.
+     */
+    orderBy?: DevProjectVersionOrderByWithRelationInput | DevProjectVersionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DevProjectVersions.
+     */
+    cursor?: DevProjectVersionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectVersions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectVersions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectVersions.
+     */
+    distinct?: DevProjectVersionScalarFieldEnum | DevProjectVersionScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectVersion create
+   */
+  export type DevProjectVersionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DevProjectVersion.
+     */
+    data: XOR<DevProjectVersionCreateInput, DevProjectVersionUncheckedCreateInput>
+  }
+
+  /**
+   * DevProjectVersion createMany
+   */
+  export type DevProjectVersionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DevProjectVersions.
+     */
+    data: DevProjectVersionCreateManyInput | DevProjectVersionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DevProjectVersion createManyAndReturn
+   */
+  export type DevProjectVersionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * The data used to create many DevProjectVersions.
+     */
+    data: DevProjectVersionCreateManyInput | DevProjectVersionCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectVersion update
+   */
+  export type DevProjectVersionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DevProjectVersion.
+     */
+    data: XOR<DevProjectVersionUpdateInput, DevProjectVersionUncheckedUpdateInput>
+    /**
+     * Choose, which DevProjectVersion to update.
+     */
+    where: DevProjectVersionWhereUniqueInput
+  }
+
+  /**
+   * DevProjectVersion updateMany
+   */
+  export type DevProjectVersionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DevProjectVersions.
+     */
+    data: XOR<DevProjectVersionUpdateManyMutationInput, DevProjectVersionUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectVersions to update
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * Limit how many DevProjectVersions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectVersion updateManyAndReturn
+   */
+  export type DevProjectVersionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * The data used to update DevProjectVersions.
+     */
+    data: XOR<DevProjectVersionUpdateManyMutationInput, DevProjectVersionUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectVersions to update
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * Limit how many DevProjectVersions to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectVersion upsert
+   */
+  export type DevProjectVersionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DevProjectVersion to update in case it exists.
+     */
+    where: DevProjectVersionWhereUniqueInput
+    /**
+     * In case the DevProjectVersion found by the `where` argument doesn't exist, create a new DevProjectVersion with this data.
+     */
+    create: XOR<DevProjectVersionCreateInput, DevProjectVersionUncheckedCreateInput>
+    /**
+     * In case the DevProjectVersion was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DevProjectVersionUpdateInput, DevProjectVersionUncheckedUpdateInput>
+  }
+
+  /**
+   * DevProjectVersion delete
+   */
+  export type DevProjectVersionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+    /**
+     * Filter which DevProjectVersion to delete.
+     */
+    where: DevProjectVersionWhereUniqueInput
+  }
+
+  /**
+   * DevProjectVersion deleteMany
+   */
+  export type DevProjectVersionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectVersions to delete
+     */
+    where?: DevProjectVersionWhereInput
+    /**
+     * Limit how many DevProjectVersions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectVersion without action
+   */
+  export type DevProjectVersionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectVersion
+     */
+    select?: DevProjectVersionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectVersion
+     */
+    omit?: DevProjectVersionOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectVersionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DevProjectFile
+   */
+
+  export type AggregateDevProjectFile = {
+    _count: DevProjectFileCountAggregateOutputType | null
+    _avg: DevProjectFileAvgAggregateOutputType | null
+    _sum: DevProjectFileSumAggregateOutputType | null
+    _min: DevProjectFileMinAggregateOutputType | null
+    _max: DevProjectFileMaxAggregateOutputType | null
+  }
+
+  export type DevProjectFileAvgAggregateOutputType = {
+    id: number | null
+    size: number | null
+  }
+
+  export type DevProjectFileSumAggregateOutputType = {
+    id: number | null
+    size: number | null
+  }
+
+  export type DevProjectFileMinAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    kind: string | null
+    fileName: string | null
+    url: string | null
+    size: number | null
+    mimeType: string | null
+    createdAt: Date | null
+  }
+
+  export type DevProjectFileMaxAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    kind: string | null
+    fileName: string | null
+    url: string | null
+    size: number | null
+    mimeType: string | null
+    createdAt: Date | null
+  }
+
+  export type DevProjectFileCountAggregateOutputType = {
+    id: number
+    projectId: number
+    kind: number
+    fileName: number
+    url: number
+    size: number
+    mimeType: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type DevProjectFileAvgAggregateInputType = {
+    id?: true
+    size?: true
+  }
+
+  export type DevProjectFileSumAggregateInputType = {
+    id?: true
+    size?: true
+  }
+
+  export type DevProjectFileMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    kind?: true
+    fileName?: true
+    url?: true
+    size?: true
+    mimeType?: true
+    createdAt?: true
+  }
+
+  export type DevProjectFileMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    kind?: true
+    fileName?: true
+    url?: true
+    size?: true
+    mimeType?: true
+    createdAt?: true
+  }
+
+  export type DevProjectFileCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    kind?: true
+    fileName?: true
+    url?: true
+    size?: true
+    mimeType?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type DevProjectFileAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectFile to aggregate.
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectFiles to fetch.
+     */
+    orderBy?: DevProjectFileOrderByWithRelationInput | DevProjectFileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DevProjectFileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectFiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectFiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DevProjectFiles
+    **/
+    _count?: true | DevProjectFileCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DevProjectFileAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DevProjectFileSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DevProjectFileMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DevProjectFileMaxAggregateInputType
+  }
+
+  export type GetDevProjectFileAggregateType<T extends DevProjectFileAggregateArgs> = {
+        [P in keyof T & keyof AggregateDevProjectFile]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDevProjectFile[P]>
+      : GetScalarType<T[P], AggregateDevProjectFile[P]>
+  }
+
+
+
+
+  export type DevProjectFileGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectFileWhereInput
+    orderBy?: DevProjectFileOrderByWithAggregationInput | DevProjectFileOrderByWithAggregationInput[]
+    by: DevProjectFileScalarFieldEnum[] | DevProjectFileScalarFieldEnum
+    having?: DevProjectFileScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DevProjectFileCountAggregateInputType | true
+    _avg?: DevProjectFileAvgAggregateInputType
+    _sum?: DevProjectFileSumAggregateInputType
+    _min?: DevProjectFileMinAggregateInputType
+    _max?: DevProjectFileMaxAggregateInputType
+  }
+
+  export type DevProjectFileGroupByOutputType = {
+    id: number
+    projectId: string
+    kind: string
+    fileName: string
+    url: string
+    size: number
+    mimeType: string | null
+    createdAt: Date
+    _count: DevProjectFileCountAggregateOutputType | null
+    _avg: DevProjectFileAvgAggregateOutputType | null
+    _sum: DevProjectFileSumAggregateOutputType | null
+    _min: DevProjectFileMinAggregateOutputType | null
+    _max: DevProjectFileMaxAggregateOutputType | null
+  }
+
+  type GetDevProjectFileGroupByPayload<T extends DevProjectFileGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DevProjectFileGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DevProjectFileGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DevProjectFileGroupByOutputType[P]>
+            : GetScalarType<T[P], DevProjectFileGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DevProjectFileSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    kind?: boolean
+    fileName?: boolean
+    url?: boolean
+    size?: boolean
+    mimeType?: boolean
+    createdAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectFile"]>
+
+  export type DevProjectFileSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    kind?: boolean
+    fileName?: boolean
+    url?: boolean
+    size?: boolean
+    mimeType?: boolean
+    createdAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectFile"]>
+
+  export type DevProjectFileSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    kind?: boolean
+    fileName?: boolean
+    url?: boolean
+    size?: boolean
+    mimeType?: boolean
+    createdAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectFile"]>
+
+  export type DevProjectFileSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    kind?: boolean
+    fileName?: boolean
+    url?: boolean
+    size?: boolean
+    mimeType?: boolean
+    createdAt?: boolean
+  }
+
+  export type DevProjectFileOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "kind" | "fileName" | "url" | "size" | "mimeType" | "createdAt", ExtArgs["result"]["devProjectFile"]>
+  export type DevProjectFileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectFileIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectFileIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $DevProjectFilePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DevProjectFile"
+    objects: {
+      project: Prisma.$DevProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      projectId: string
+      /**
+       * spec(명세서) | image(참조 이미지) | design(디자인 소스) | result(결과물)
+       */
+      kind: string
+      fileName: string
+      /**
+       * 브라우저에서 접근할 경로. 예: /sites/devai/<projectId>/img/hero.png
+       */
+      url: string
+      /**
+       * 바이트
+       */
+      size: number
+      mimeType: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["devProjectFile"]>
+    composites: {}
+  }
+
+  type DevProjectFileGetPayload<S extends boolean | null | undefined | DevProjectFileDefaultArgs> = $Result.GetResult<Prisma.$DevProjectFilePayload, S>
+
+  type DevProjectFileCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DevProjectFileFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DevProjectFileCountAggregateInputType | true
+    }
+
+  export interface DevProjectFileDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DevProjectFile'], meta: { name: 'DevProjectFile' } }
+    /**
+     * Find zero or one DevProjectFile that matches the filter.
+     * @param {DevProjectFileFindUniqueArgs} args - Arguments to find a DevProjectFile
+     * @example
+     * // Get one DevProjectFile
+     * const devProjectFile = await prisma.devProjectFile.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DevProjectFileFindUniqueArgs>(args: SelectSubset<T, DevProjectFileFindUniqueArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DevProjectFile that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DevProjectFileFindUniqueOrThrowArgs} args - Arguments to find a DevProjectFile
+     * @example
+     * // Get one DevProjectFile
+     * const devProjectFile = await prisma.devProjectFile.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DevProjectFileFindUniqueOrThrowArgs>(args: SelectSubset<T, DevProjectFileFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectFile that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileFindFirstArgs} args - Arguments to find a DevProjectFile
+     * @example
+     * // Get one DevProjectFile
+     * const devProjectFile = await prisma.devProjectFile.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DevProjectFileFindFirstArgs>(args?: SelectSubset<T, DevProjectFileFindFirstArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectFile that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileFindFirstOrThrowArgs} args - Arguments to find a DevProjectFile
+     * @example
+     * // Get one DevProjectFile
+     * const devProjectFile = await prisma.devProjectFile.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DevProjectFileFindFirstOrThrowArgs>(args?: SelectSubset<T, DevProjectFileFindFirstOrThrowArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DevProjectFiles that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DevProjectFiles
+     * const devProjectFiles = await prisma.devProjectFile.findMany()
+     * 
+     * // Get first 10 DevProjectFiles
+     * const devProjectFiles = await prisma.devProjectFile.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const devProjectFileWithIdOnly = await prisma.devProjectFile.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DevProjectFileFindManyArgs>(args?: SelectSubset<T, DevProjectFileFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DevProjectFile.
+     * @param {DevProjectFileCreateArgs} args - Arguments to create a DevProjectFile.
+     * @example
+     * // Create one DevProjectFile
+     * const DevProjectFile = await prisma.devProjectFile.create({
+     *   data: {
+     *     // ... data to create a DevProjectFile
+     *   }
+     * })
+     * 
+     */
+    create<T extends DevProjectFileCreateArgs>(args: SelectSubset<T, DevProjectFileCreateArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DevProjectFiles.
+     * @param {DevProjectFileCreateManyArgs} args - Arguments to create many DevProjectFiles.
+     * @example
+     * // Create many DevProjectFiles
+     * const devProjectFile = await prisma.devProjectFile.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DevProjectFileCreateManyArgs>(args?: SelectSubset<T, DevProjectFileCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DevProjectFiles and returns the data saved in the database.
+     * @param {DevProjectFileCreateManyAndReturnArgs} args - Arguments to create many DevProjectFiles.
+     * @example
+     * // Create many DevProjectFiles
+     * const devProjectFile = await prisma.devProjectFile.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DevProjectFiles and only return the `id`
+     * const devProjectFileWithIdOnly = await prisma.devProjectFile.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DevProjectFileCreateManyAndReturnArgs>(args?: SelectSubset<T, DevProjectFileCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DevProjectFile.
+     * @param {DevProjectFileDeleteArgs} args - Arguments to delete one DevProjectFile.
+     * @example
+     * // Delete one DevProjectFile
+     * const DevProjectFile = await prisma.devProjectFile.delete({
+     *   where: {
+     *     // ... filter to delete one DevProjectFile
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DevProjectFileDeleteArgs>(args: SelectSubset<T, DevProjectFileDeleteArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DevProjectFile.
+     * @param {DevProjectFileUpdateArgs} args - Arguments to update one DevProjectFile.
+     * @example
+     * // Update one DevProjectFile
+     * const devProjectFile = await prisma.devProjectFile.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DevProjectFileUpdateArgs>(args: SelectSubset<T, DevProjectFileUpdateArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DevProjectFiles.
+     * @param {DevProjectFileDeleteManyArgs} args - Arguments to filter DevProjectFiles to delete.
+     * @example
+     * // Delete a few DevProjectFiles
+     * const { count } = await prisma.devProjectFile.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DevProjectFileDeleteManyArgs>(args?: SelectSubset<T, DevProjectFileDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectFiles.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DevProjectFiles
+     * const devProjectFile = await prisma.devProjectFile.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DevProjectFileUpdateManyArgs>(args: SelectSubset<T, DevProjectFileUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectFiles and returns the data updated in the database.
+     * @param {DevProjectFileUpdateManyAndReturnArgs} args - Arguments to update many DevProjectFiles.
+     * @example
+     * // Update many DevProjectFiles
+     * const devProjectFile = await prisma.devProjectFile.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DevProjectFiles and only return the `id`
+     * const devProjectFileWithIdOnly = await prisma.devProjectFile.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DevProjectFileUpdateManyAndReturnArgs>(args: SelectSubset<T, DevProjectFileUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DevProjectFile.
+     * @param {DevProjectFileUpsertArgs} args - Arguments to update or create a DevProjectFile.
+     * @example
+     * // Update or create a DevProjectFile
+     * const devProjectFile = await prisma.devProjectFile.upsert({
+     *   create: {
+     *     // ... data to create a DevProjectFile
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DevProjectFile we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DevProjectFileUpsertArgs>(args: SelectSubset<T, DevProjectFileUpsertArgs<ExtArgs>>): Prisma__DevProjectFileClient<$Result.GetResult<Prisma.$DevProjectFilePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DevProjectFiles.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileCountArgs} args - Arguments to filter DevProjectFiles to count.
+     * @example
+     * // Count the number of DevProjectFiles
+     * const count = await prisma.devProjectFile.count({
+     *   where: {
+     *     // ... the filter for the DevProjectFiles we want to count
+     *   }
+     * })
+    **/
+    count<T extends DevProjectFileCountArgs>(
+      args?: Subset<T, DevProjectFileCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DevProjectFileCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DevProjectFile.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DevProjectFileAggregateArgs>(args: Subset<T, DevProjectFileAggregateArgs>): Prisma.PrismaPromise<GetDevProjectFileAggregateType<T>>
+
+    /**
+     * Group by DevProjectFile.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectFileGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DevProjectFileGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DevProjectFileGroupByArgs['orderBy'] }
+        : { orderBy?: DevProjectFileGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DevProjectFileGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDevProjectFileGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DevProjectFile model
+   */
+  readonly fields: DevProjectFileFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DevProjectFile.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DevProjectFileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends DevProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DevProjectDefaultArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DevProjectFile model
+   */
+  interface DevProjectFileFieldRefs {
+    readonly id: FieldRef<"DevProjectFile", 'Int'>
+    readonly projectId: FieldRef<"DevProjectFile", 'String'>
+    readonly kind: FieldRef<"DevProjectFile", 'String'>
+    readonly fileName: FieldRef<"DevProjectFile", 'String'>
+    readonly url: FieldRef<"DevProjectFile", 'String'>
+    readonly size: FieldRef<"DevProjectFile", 'Int'>
+    readonly mimeType: FieldRef<"DevProjectFile", 'String'>
+    readonly createdAt: FieldRef<"DevProjectFile", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DevProjectFile findUnique
+   */
+  export type DevProjectFileFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectFile to fetch.
+     */
+    where: DevProjectFileWhereUniqueInput
+  }
+
+  /**
+   * DevProjectFile findUniqueOrThrow
+   */
+  export type DevProjectFileFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectFile to fetch.
+     */
+    where: DevProjectFileWhereUniqueInput
+  }
+
+  /**
+   * DevProjectFile findFirst
+   */
+  export type DevProjectFileFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectFile to fetch.
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectFiles to fetch.
+     */
+    orderBy?: DevProjectFileOrderByWithRelationInput | DevProjectFileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectFiles.
+     */
+    cursor?: DevProjectFileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectFiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectFiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectFiles.
+     */
+    distinct?: DevProjectFileScalarFieldEnum | DevProjectFileScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectFile findFirstOrThrow
+   */
+  export type DevProjectFileFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectFile to fetch.
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectFiles to fetch.
+     */
+    orderBy?: DevProjectFileOrderByWithRelationInput | DevProjectFileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectFiles.
+     */
+    cursor?: DevProjectFileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectFiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectFiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectFiles.
+     */
+    distinct?: DevProjectFileScalarFieldEnum | DevProjectFileScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectFile findMany
+   */
+  export type DevProjectFileFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectFiles to fetch.
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectFiles to fetch.
+     */
+    orderBy?: DevProjectFileOrderByWithRelationInput | DevProjectFileOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DevProjectFiles.
+     */
+    cursor?: DevProjectFileWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectFiles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectFiles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectFiles.
+     */
+    distinct?: DevProjectFileScalarFieldEnum | DevProjectFileScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectFile create
+   */
+  export type DevProjectFileCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DevProjectFile.
+     */
+    data: XOR<DevProjectFileCreateInput, DevProjectFileUncheckedCreateInput>
+  }
+
+  /**
+   * DevProjectFile createMany
+   */
+  export type DevProjectFileCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DevProjectFiles.
+     */
+    data: DevProjectFileCreateManyInput | DevProjectFileCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DevProjectFile createManyAndReturn
+   */
+  export type DevProjectFileCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * The data used to create many DevProjectFiles.
+     */
+    data: DevProjectFileCreateManyInput | DevProjectFileCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectFile update
+   */
+  export type DevProjectFileUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DevProjectFile.
+     */
+    data: XOR<DevProjectFileUpdateInput, DevProjectFileUncheckedUpdateInput>
+    /**
+     * Choose, which DevProjectFile to update.
+     */
+    where: DevProjectFileWhereUniqueInput
+  }
+
+  /**
+   * DevProjectFile updateMany
+   */
+  export type DevProjectFileUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DevProjectFiles.
+     */
+    data: XOR<DevProjectFileUpdateManyMutationInput, DevProjectFileUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectFiles to update
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * Limit how many DevProjectFiles to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectFile updateManyAndReturn
+   */
+  export type DevProjectFileUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * The data used to update DevProjectFiles.
+     */
+    data: XOR<DevProjectFileUpdateManyMutationInput, DevProjectFileUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectFiles to update
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * Limit how many DevProjectFiles to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectFile upsert
+   */
+  export type DevProjectFileUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DevProjectFile to update in case it exists.
+     */
+    where: DevProjectFileWhereUniqueInput
+    /**
+     * In case the DevProjectFile found by the `where` argument doesn't exist, create a new DevProjectFile with this data.
+     */
+    create: XOR<DevProjectFileCreateInput, DevProjectFileUncheckedCreateInput>
+    /**
+     * In case the DevProjectFile was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DevProjectFileUpdateInput, DevProjectFileUncheckedUpdateInput>
+  }
+
+  /**
+   * DevProjectFile delete
+   */
+  export type DevProjectFileDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+    /**
+     * Filter which DevProjectFile to delete.
+     */
+    where: DevProjectFileWhereUniqueInput
+  }
+
+  /**
+   * DevProjectFile deleteMany
+   */
+  export type DevProjectFileDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectFiles to delete
+     */
+    where?: DevProjectFileWhereInput
+    /**
+     * Limit how many DevProjectFiles to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectFile without action
+   */
+  export type DevProjectFileDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectFile
+     */
+    select?: DevProjectFileSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectFile
+     */
+    omit?: DevProjectFileOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectFileInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DevProjectEvent
+   */
+
+  export type AggregateDevProjectEvent = {
+    _count: DevProjectEventCountAggregateOutputType | null
+    _avg: DevProjectEventAvgAggregateOutputType | null
+    _sum: DevProjectEventSumAggregateOutputType | null
+    _min: DevProjectEventMinAggregateOutputType | null
+    _max: DevProjectEventMaxAggregateOutputType | null
+  }
+
+  export type DevProjectEventAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type DevProjectEventSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type DevProjectEventMinAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    actor: string | null
+    phase: string | null
+    message: string | null
+    meta: string | null
+    at: Date | null
+  }
+
+  export type DevProjectEventMaxAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    actor: string | null
+    phase: string | null
+    message: string | null
+    meta: string | null
+    at: Date | null
+  }
+
+  export type DevProjectEventCountAggregateOutputType = {
+    id: number
+    projectId: number
+    actor: number
+    phase: number
+    message: number
+    meta: number
+    at: number
+    _all: number
+  }
+
+
+  export type DevProjectEventAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type DevProjectEventSumAggregateInputType = {
+    id?: true
+  }
+
+  export type DevProjectEventMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    actor?: true
+    phase?: true
+    message?: true
+    meta?: true
+    at?: true
+  }
+
+  export type DevProjectEventMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    actor?: true
+    phase?: true
+    message?: true
+    meta?: true
+    at?: true
+  }
+
+  export type DevProjectEventCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    actor?: true
+    phase?: true
+    message?: true
+    meta?: true
+    at?: true
+    _all?: true
+  }
+
+  export type DevProjectEventAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectEvent to aggregate.
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectEvents to fetch.
+     */
+    orderBy?: DevProjectEventOrderByWithRelationInput | DevProjectEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DevProjectEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DevProjectEvents
+    **/
+    _count?: true | DevProjectEventCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DevProjectEventAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DevProjectEventSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DevProjectEventMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DevProjectEventMaxAggregateInputType
+  }
+
+  export type GetDevProjectEventAggregateType<T extends DevProjectEventAggregateArgs> = {
+        [P in keyof T & keyof AggregateDevProjectEvent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDevProjectEvent[P]>
+      : GetScalarType<T[P], AggregateDevProjectEvent[P]>
+  }
+
+
+
+
+  export type DevProjectEventGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectEventWhereInput
+    orderBy?: DevProjectEventOrderByWithAggregationInput | DevProjectEventOrderByWithAggregationInput[]
+    by: DevProjectEventScalarFieldEnum[] | DevProjectEventScalarFieldEnum
+    having?: DevProjectEventScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DevProjectEventCountAggregateInputType | true
+    _avg?: DevProjectEventAvgAggregateInputType
+    _sum?: DevProjectEventSumAggregateInputType
+    _min?: DevProjectEventMinAggregateInputType
+    _max?: DevProjectEventMaxAggregateInputType
+  }
+
+  export type DevProjectEventGroupByOutputType = {
+    id: number
+    projectId: string
+    actor: string
+    phase: string
+    message: string
+    meta: string | null
+    at: Date
+    _count: DevProjectEventCountAggregateOutputType | null
+    _avg: DevProjectEventAvgAggregateOutputType | null
+    _sum: DevProjectEventSumAggregateOutputType | null
+    _min: DevProjectEventMinAggregateOutputType | null
+    _max: DevProjectEventMaxAggregateOutputType | null
+  }
+
+  type GetDevProjectEventGroupByPayload<T extends DevProjectEventGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DevProjectEventGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DevProjectEventGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DevProjectEventGroupByOutputType[P]>
+            : GetScalarType<T[P], DevProjectEventGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DevProjectEventSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    actor?: boolean
+    phase?: boolean
+    message?: boolean
+    meta?: boolean
+    at?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectEvent"]>
+
+  export type DevProjectEventSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    actor?: boolean
+    phase?: boolean
+    message?: boolean
+    meta?: boolean
+    at?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectEvent"]>
+
+  export type DevProjectEventSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    actor?: boolean
+    phase?: boolean
+    message?: boolean
+    meta?: boolean
+    at?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectEvent"]>
+
+  export type DevProjectEventSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    actor?: boolean
+    phase?: boolean
+    message?: boolean
+    meta?: boolean
+    at?: boolean
+  }
+
+  export type DevProjectEventOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "actor" | "phase" | "message" | "meta" | "at", ExtArgs["result"]["devProjectEvent"]>
+  export type DevProjectEventInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectEventIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectEventIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $DevProjectEventPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DevProjectEvent"
+    objects: {
+      project: Prisma.$DevProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      projectId: string
+      /**
+       * system | developer | reviewer | user
+       */
+      actor: string
+      /**
+       * plan | approval | batch_start | batch_done | review | commit | deploy | error
+       */
+      phase: string
+      message: string
+      /**
+       * 부가 정보(커밋해시·묶음명·pane ID 등) JSON 문자열
+       */
+      meta: string | null
+      at: Date
+    }, ExtArgs["result"]["devProjectEvent"]>
+    composites: {}
+  }
+
+  type DevProjectEventGetPayload<S extends boolean | null | undefined | DevProjectEventDefaultArgs> = $Result.GetResult<Prisma.$DevProjectEventPayload, S>
+
+  type DevProjectEventCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DevProjectEventFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DevProjectEventCountAggregateInputType | true
+    }
+
+  export interface DevProjectEventDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DevProjectEvent'], meta: { name: 'DevProjectEvent' } }
+    /**
+     * Find zero or one DevProjectEvent that matches the filter.
+     * @param {DevProjectEventFindUniqueArgs} args - Arguments to find a DevProjectEvent
+     * @example
+     * // Get one DevProjectEvent
+     * const devProjectEvent = await prisma.devProjectEvent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DevProjectEventFindUniqueArgs>(args: SelectSubset<T, DevProjectEventFindUniqueArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DevProjectEvent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DevProjectEventFindUniqueOrThrowArgs} args - Arguments to find a DevProjectEvent
+     * @example
+     * // Get one DevProjectEvent
+     * const devProjectEvent = await prisma.devProjectEvent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DevProjectEventFindUniqueOrThrowArgs>(args: SelectSubset<T, DevProjectEventFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectEvent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventFindFirstArgs} args - Arguments to find a DevProjectEvent
+     * @example
+     * // Get one DevProjectEvent
+     * const devProjectEvent = await prisma.devProjectEvent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DevProjectEventFindFirstArgs>(args?: SelectSubset<T, DevProjectEventFindFirstArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectEvent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventFindFirstOrThrowArgs} args - Arguments to find a DevProjectEvent
+     * @example
+     * // Get one DevProjectEvent
+     * const devProjectEvent = await prisma.devProjectEvent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DevProjectEventFindFirstOrThrowArgs>(args?: SelectSubset<T, DevProjectEventFindFirstOrThrowArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DevProjectEvents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DevProjectEvents
+     * const devProjectEvents = await prisma.devProjectEvent.findMany()
+     * 
+     * // Get first 10 DevProjectEvents
+     * const devProjectEvents = await prisma.devProjectEvent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const devProjectEventWithIdOnly = await prisma.devProjectEvent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DevProjectEventFindManyArgs>(args?: SelectSubset<T, DevProjectEventFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DevProjectEvent.
+     * @param {DevProjectEventCreateArgs} args - Arguments to create a DevProjectEvent.
+     * @example
+     * // Create one DevProjectEvent
+     * const DevProjectEvent = await prisma.devProjectEvent.create({
+     *   data: {
+     *     // ... data to create a DevProjectEvent
+     *   }
+     * })
+     * 
+     */
+    create<T extends DevProjectEventCreateArgs>(args: SelectSubset<T, DevProjectEventCreateArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DevProjectEvents.
+     * @param {DevProjectEventCreateManyArgs} args - Arguments to create many DevProjectEvents.
+     * @example
+     * // Create many DevProjectEvents
+     * const devProjectEvent = await prisma.devProjectEvent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DevProjectEventCreateManyArgs>(args?: SelectSubset<T, DevProjectEventCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DevProjectEvents and returns the data saved in the database.
+     * @param {DevProjectEventCreateManyAndReturnArgs} args - Arguments to create many DevProjectEvents.
+     * @example
+     * // Create many DevProjectEvents
+     * const devProjectEvent = await prisma.devProjectEvent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DevProjectEvents and only return the `id`
+     * const devProjectEventWithIdOnly = await prisma.devProjectEvent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DevProjectEventCreateManyAndReturnArgs>(args?: SelectSubset<T, DevProjectEventCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DevProjectEvent.
+     * @param {DevProjectEventDeleteArgs} args - Arguments to delete one DevProjectEvent.
+     * @example
+     * // Delete one DevProjectEvent
+     * const DevProjectEvent = await prisma.devProjectEvent.delete({
+     *   where: {
+     *     // ... filter to delete one DevProjectEvent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DevProjectEventDeleteArgs>(args: SelectSubset<T, DevProjectEventDeleteArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DevProjectEvent.
+     * @param {DevProjectEventUpdateArgs} args - Arguments to update one DevProjectEvent.
+     * @example
+     * // Update one DevProjectEvent
+     * const devProjectEvent = await prisma.devProjectEvent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DevProjectEventUpdateArgs>(args: SelectSubset<T, DevProjectEventUpdateArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DevProjectEvents.
+     * @param {DevProjectEventDeleteManyArgs} args - Arguments to filter DevProjectEvents to delete.
+     * @example
+     * // Delete a few DevProjectEvents
+     * const { count } = await prisma.devProjectEvent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DevProjectEventDeleteManyArgs>(args?: SelectSubset<T, DevProjectEventDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DevProjectEvents
+     * const devProjectEvent = await prisma.devProjectEvent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DevProjectEventUpdateManyArgs>(args: SelectSubset<T, DevProjectEventUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectEvents and returns the data updated in the database.
+     * @param {DevProjectEventUpdateManyAndReturnArgs} args - Arguments to update many DevProjectEvents.
+     * @example
+     * // Update many DevProjectEvents
+     * const devProjectEvent = await prisma.devProjectEvent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DevProjectEvents and only return the `id`
+     * const devProjectEventWithIdOnly = await prisma.devProjectEvent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DevProjectEventUpdateManyAndReturnArgs>(args: SelectSubset<T, DevProjectEventUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DevProjectEvent.
+     * @param {DevProjectEventUpsertArgs} args - Arguments to update or create a DevProjectEvent.
+     * @example
+     * // Update or create a DevProjectEvent
+     * const devProjectEvent = await prisma.devProjectEvent.upsert({
+     *   create: {
+     *     // ... data to create a DevProjectEvent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DevProjectEvent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DevProjectEventUpsertArgs>(args: SelectSubset<T, DevProjectEventUpsertArgs<ExtArgs>>): Prisma__DevProjectEventClient<$Result.GetResult<Prisma.$DevProjectEventPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DevProjectEvents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventCountArgs} args - Arguments to filter DevProjectEvents to count.
+     * @example
+     * // Count the number of DevProjectEvents
+     * const count = await prisma.devProjectEvent.count({
+     *   where: {
+     *     // ... the filter for the DevProjectEvents we want to count
+     *   }
+     * })
+    **/
+    count<T extends DevProjectEventCountArgs>(
+      args?: Subset<T, DevProjectEventCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DevProjectEventCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DevProjectEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DevProjectEventAggregateArgs>(args: Subset<T, DevProjectEventAggregateArgs>): Prisma.PrismaPromise<GetDevProjectEventAggregateType<T>>
+
+    /**
+     * Group by DevProjectEvent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectEventGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DevProjectEventGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DevProjectEventGroupByArgs['orderBy'] }
+        : { orderBy?: DevProjectEventGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DevProjectEventGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDevProjectEventGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DevProjectEvent model
+   */
+  readonly fields: DevProjectEventFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DevProjectEvent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DevProjectEventClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends DevProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DevProjectDefaultArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DevProjectEvent model
+   */
+  interface DevProjectEventFieldRefs {
+    readonly id: FieldRef<"DevProjectEvent", 'Int'>
+    readonly projectId: FieldRef<"DevProjectEvent", 'String'>
+    readonly actor: FieldRef<"DevProjectEvent", 'String'>
+    readonly phase: FieldRef<"DevProjectEvent", 'String'>
+    readonly message: FieldRef<"DevProjectEvent", 'String'>
+    readonly meta: FieldRef<"DevProjectEvent", 'String'>
+    readonly at: FieldRef<"DevProjectEvent", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DevProjectEvent findUnique
+   */
+  export type DevProjectEventFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectEvent to fetch.
+     */
+    where: DevProjectEventWhereUniqueInput
+  }
+
+  /**
+   * DevProjectEvent findUniqueOrThrow
+   */
+  export type DevProjectEventFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectEvent to fetch.
+     */
+    where: DevProjectEventWhereUniqueInput
+  }
+
+  /**
+   * DevProjectEvent findFirst
+   */
+  export type DevProjectEventFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectEvent to fetch.
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectEvents to fetch.
+     */
+    orderBy?: DevProjectEventOrderByWithRelationInput | DevProjectEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectEvents.
+     */
+    cursor?: DevProjectEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectEvents.
+     */
+    distinct?: DevProjectEventScalarFieldEnum | DevProjectEventScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectEvent findFirstOrThrow
+   */
+  export type DevProjectEventFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectEvent to fetch.
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectEvents to fetch.
+     */
+    orderBy?: DevProjectEventOrderByWithRelationInput | DevProjectEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectEvents.
+     */
+    cursor?: DevProjectEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectEvents.
+     */
+    distinct?: DevProjectEventScalarFieldEnum | DevProjectEventScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectEvent findMany
+   */
+  export type DevProjectEventFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectEvents to fetch.
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectEvents to fetch.
+     */
+    orderBy?: DevProjectEventOrderByWithRelationInput | DevProjectEventOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DevProjectEvents.
+     */
+    cursor?: DevProjectEventWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectEvents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectEvents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectEvents.
+     */
+    distinct?: DevProjectEventScalarFieldEnum | DevProjectEventScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectEvent create
+   */
+  export type DevProjectEventCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DevProjectEvent.
+     */
+    data: XOR<DevProjectEventCreateInput, DevProjectEventUncheckedCreateInput>
+  }
+
+  /**
+   * DevProjectEvent createMany
+   */
+  export type DevProjectEventCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DevProjectEvents.
+     */
+    data: DevProjectEventCreateManyInput | DevProjectEventCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DevProjectEvent createManyAndReturn
+   */
+  export type DevProjectEventCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * The data used to create many DevProjectEvents.
+     */
+    data: DevProjectEventCreateManyInput | DevProjectEventCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectEvent update
+   */
+  export type DevProjectEventUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DevProjectEvent.
+     */
+    data: XOR<DevProjectEventUpdateInput, DevProjectEventUncheckedUpdateInput>
+    /**
+     * Choose, which DevProjectEvent to update.
+     */
+    where: DevProjectEventWhereUniqueInput
+  }
+
+  /**
+   * DevProjectEvent updateMany
+   */
+  export type DevProjectEventUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DevProjectEvents.
+     */
+    data: XOR<DevProjectEventUpdateManyMutationInput, DevProjectEventUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectEvents to update
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * Limit how many DevProjectEvents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectEvent updateManyAndReturn
+   */
+  export type DevProjectEventUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * The data used to update DevProjectEvents.
+     */
+    data: XOR<DevProjectEventUpdateManyMutationInput, DevProjectEventUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectEvents to update
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * Limit how many DevProjectEvents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectEvent upsert
+   */
+  export type DevProjectEventUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DevProjectEvent to update in case it exists.
+     */
+    where: DevProjectEventWhereUniqueInput
+    /**
+     * In case the DevProjectEvent found by the `where` argument doesn't exist, create a new DevProjectEvent with this data.
+     */
+    create: XOR<DevProjectEventCreateInput, DevProjectEventUncheckedCreateInput>
+    /**
+     * In case the DevProjectEvent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DevProjectEventUpdateInput, DevProjectEventUncheckedUpdateInput>
+  }
+
+  /**
+   * DevProjectEvent delete
+   */
+  export type DevProjectEventDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+    /**
+     * Filter which DevProjectEvent to delete.
+     */
+    where: DevProjectEventWhereUniqueInput
+  }
+
+  /**
+   * DevProjectEvent deleteMany
+   */
+  export type DevProjectEventDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectEvents to delete
+     */
+    where?: DevProjectEventWhereInput
+    /**
+     * Limit how many DevProjectEvents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectEvent without action
+   */
+  export type DevProjectEventDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectEvent
+     */
+    select?: DevProjectEventSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectEvent
+     */
+    omit?: DevProjectEventOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectEventInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model DevProjectResult
+   */
+
+  export type AggregateDevProjectResult = {
+    _count: DevProjectResultCountAggregateOutputType | null
+    _avg: DevProjectResultAvgAggregateOutputType | null
+    _sum: DevProjectResultSumAggregateOutputType | null
+    _min: DevProjectResultMinAggregateOutputType | null
+    _max: DevProjectResultMaxAggregateOutputType | null
+  }
+
+  export type DevProjectResultAvgAggregateOutputType = {
+    id: number | null
+  }
+
+  export type DevProjectResultSumAggregateOutputType = {
+    id: number | null
+  }
+
+  export type DevProjectResultMinAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    deployUrl: string | null
+    summary: string | null
+    commits: string | null
+    designSourceUrl: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DevProjectResultMaxAggregateOutputType = {
+    id: number | null
+    projectId: string | null
+    deployUrl: string | null
+    summary: string | null
+    commits: string | null
+    designSourceUrl: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type DevProjectResultCountAggregateOutputType = {
+    id: number
+    projectId: number
+    deployUrl: number
+    summary: number
+    commits: number
+    designSourceUrl: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type DevProjectResultAvgAggregateInputType = {
+    id?: true
+  }
+
+  export type DevProjectResultSumAggregateInputType = {
+    id?: true
+  }
+
+  export type DevProjectResultMinAggregateInputType = {
+    id?: true
+    projectId?: true
+    deployUrl?: true
+    summary?: true
+    commits?: true
+    designSourceUrl?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DevProjectResultMaxAggregateInputType = {
+    id?: true
+    projectId?: true
+    deployUrl?: true
+    summary?: true
+    commits?: true
+    designSourceUrl?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type DevProjectResultCountAggregateInputType = {
+    id?: true
+    projectId?: true
+    deployUrl?: true
+    summary?: true
+    commits?: true
+    designSourceUrl?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type DevProjectResultAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectResult to aggregate.
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectResults to fetch.
+     */
+    orderBy?: DevProjectResultOrderByWithRelationInput | DevProjectResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DevProjectResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DevProjectResults
+    **/
+    _count?: true | DevProjectResultCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: DevProjectResultAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DevProjectResultSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DevProjectResultMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DevProjectResultMaxAggregateInputType
+  }
+
+  export type GetDevProjectResultAggregateType<T extends DevProjectResultAggregateArgs> = {
+        [P in keyof T & keyof AggregateDevProjectResult]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDevProjectResult[P]>
+      : GetScalarType<T[P], AggregateDevProjectResult[P]>
+  }
+
+
+
+
+  export type DevProjectResultGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DevProjectResultWhereInput
+    orderBy?: DevProjectResultOrderByWithAggregationInput | DevProjectResultOrderByWithAggregationInput[]
+    by: DevProjectResultScalarFieldEnum[] | DevProjectResultScalarFieldEnum
+    having?: DevProjectResultScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DevProjectResultCountAggregateInputType | true
+    _avg?: DevProjectResultAvgAggregateInputType
+    _sum?: DevProjectResultSumAggregateInputType
+    _min?: DevProjectResultMinAggregateInputType
+    _max?: DevProjectResultMaxAggregateInputType
+  }
+
+  export type DevProjectResultGroupByOutputType = {
+    id: number
+    projectId: string
+    deployUrl: string | null
+    summary: string | null
+    commits: string
+    designSourceUrl: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: DevProjectResultCountAggregateOutputType | null
+    _avg: DevProjectResultAvgAggregateOutputType | null
+    _sum: DevProjectResultSumAggregateOutputType | null
+    _min: DevProjectResultMinAggregateOutputType | null
+    _max: DevProjectResultMaxAggregateOutputType | null
+  }
+
+  type GetDevProjectResultGroupByPayload<T extends DevProjectResultGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DevProjectResultGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DevProjectResultGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DevProjectResultGroupByOutputType[P]>
+            : GetScalarType<T[P], DevProjectResultGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DevProjectResultSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    deployUrl?: boolean
+    summary?: boolean
+    commits?: boolean
+    designSourceUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectResult"]>
+
+  export type DevProjectResultSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    deployUrl?: boolean
+    summary?: boolean
+    commits?: boolean
+    designSourceUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectResult"]>
+
+  export type DevProjectResultSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    projectId?: boolean
+    deployUrl?: boolean
+    summary?: boolean
+    commits?: boolean
+    designSourceUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["devProjectResult"]>
+
+  export type DevProjectResultSelectScalar = {
+    id?: boolean
+    projectId?: boolean
+    deployUrl?: boolean
+    summary?: boolean
+    commits?: boolean
+    designSourceUrl?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type DevProjectResultOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "projectId" | "deployUrl" | "summary" | "commits" | "designSourceUrl" | "createdAt" | "updatedAt", ExtArgs["result"]["devProjectResult"]>
+  export type DevProjectResultInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectResultIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+  export type DevProjectResultIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    project?: boolean | DevProjectDefaultArgs<ExtArgs>
+  }
+
+  export type $DevProjectResultPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DevProjectResult"
+    objects: {
+      project: Prisma.$DevProjectPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      projectId: string
+      deployUrl: string | null
+      /**
+       * 사이트 내용 요약
+       */
+      summary: string | null
+      /**
+       * 커밋 해시 목록(JSON 배열 문자열)
+       */
+      commits: string
+      /**
+       * 디자인 소스 묶음(zip) 경로
+       */
+      designSourceUrl: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["devProjectResult"]>
+    composites: {}
+  }
+
+  type DevProjectResultGetPayload<S extends boolean | null | undefined | DevProjectResultDefaultArgs> = $Result.GetResult<Prisma.$DevProjectResultPayload, S>
+
+  type DevProjectResultCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<DevProjectResultFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: DevProjectResultCountAggregateInputType | true
+    }
+
+  export interface DevProjectResultDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DevProjectResult'], meta: { name: 'DevProjectResult' } }
+    /**
+     * Find zero or one DevProjectResult that matches the filter.
+     * @param {DevProjectResultFindUniqueArgs} args - Arguments to find a DevProjectResult
+     * @example
+     * // Get one DevProjectResult
+     * const devProjectResult = await prisma.devProjectResult.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DevProjectResultFindUniqueArgs>(args: SelectSubset<T, DevProjectResultFindUniqueArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one DevProjectResult that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {DevProjectResultFindUniqueOrThrowArgs} args - Arguments to find a DevProjectResult
+     * @example
+     * // Get one DevProjectResult
+     * const devProjectResult = await prisma.devProjectResult.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DevProjectResultFindUniqueOrThrowArgs>(args: SelectSubset<T, DevProjectResultFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectResult that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultFindFirstArgs} args - Arguments to find a DevProjectResult
+     * @example
+     * // Get one DevProjectResult
+     * const devProjectResult = await prisma.devProjectResult.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DevProjectResultFindFirstArgs>(args?: SelectSubset<T, DevProjectResultFindFirstArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first DevProjectResult that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultFindFirstOrThrowArgs} args - Arguments to find a DevProjectResult
+     * @example
+     * // Get one DevProjectResult
+     * const devProjectResult = await prisma.devProjectResult.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DevProjectResultFindFirstOrThrowArgs>(args?: SelectSubset<T, DevProjectResultFindFirstOrThrowArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more DevProjectResults that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DevProjectResults
+     * const devProjectResults = await prisma.devProjectResult.findMany()
+     * 
+     * // Get first 10 DevProjectResults
+     * const devProjectResults = await prisma.devProjectResult.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const devProjectResultWithIdOnly = await prisma.devProjectResult.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DevProjectResultFindManyArgs>(args?: SelectSubset<T, DevProjectResultFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a DevProjectResult.
+     * @param {DevProjectResultCreateArgs} args - Arguments to create a DevProjectResult.
+     * @example
+     * // Create one DevProjectResult
+     * const DevProjectResult = await prisma.devProjectResult.create({
+     *   data: {
+     *     // ... data to create a DevProjectResult
+     *   }
+     * })
+     * 
+     */
+    create<T extends DevProjectResultCreateArgs>(args: SelectSubset<T, DevProjectResultCreateArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many DevProjectResults.
+     * @param {DevProjectResultCreateManyArgs} args - Arguments to create many DevProjectResults.
+     * @example
+     * // Create many DevProjectResults
+     * const devProjectResult = await prisma.devProjectResult.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DevProjectResultCreateManyArgs>(args?: SelectSubset<T, DevProjectResultCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DevProjectResults and returns the data saved in the database.
+     * @param {DevProjectResultCreateManyAndReturnArgs} args - Arguments to create many DevProjectResults.
+     * @example
+     * // Create many DevProjectResults
+     * const devProjectResult = await prisma.devProjectResult.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DevProjectResults and only return the `id`
+     * const devProjectResultWithIdOnly = await prisma.devProjectResult.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DevProjectResultCreateManyAndReturnArgs>(args?: SelectSubset<T, DevProjectResultCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a DevProjectResult.
+     * @param {DevProjectResultDeleteArgs} args - Arguments to delete one DevProjectResult.
+     * @example
+     * // Delete one DevProjectResult
+     * const DevProjectResult = await prisma.devProjectResult.delete({
+     *   where: {
+     *     // ... filter to delete one DevProjectResult
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DevProjectResultDeleteArgs>(args: SelectSubset<T, DevProjectResultDeleteArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one DevProjectResult.
+     * @param {DevProjectResultUpdateArgs} args - Arguments to update one DevProjectResult.
+     * @example
+     * // Update one DevProjectResult
+     * const devProjectResult = await prisma.devProjectResult.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DevProjectResultUpdateArgs>(args: SelectSubset<T, DevProjectResultUpdateArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more DevProjectResults.
+     * @param {DevProjectResultDeleteManyArgs} args - Arguments to filter DevProjectResults to delete.
+     * @example
+     * // Delete a few DevProjectResults
+     * const { count } = await prisma.devProjectResult.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DevProjectResultDeleteManyArgs>(args?: SelectSubset<T, DevProjectResultDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectResults.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DevProjectResults
+     * const devProjectResult = await prisma.devProjectResult.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DevProjectResultUpdateManyArgs>(args: SelectSubset<T, DevProjectResultUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DevProjectResults and returns the data updated in the database.
+     * @param {DevProjectResultUpdateManyAndReturnArgs} args - Arguments to update many DevProjectResults.
+     * @example
+     * // Update many DevProjectResults
+     * const devProjectResult = await prisma.devProjectResult.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more DevProjectResults and only return the `id`
+     * const devProjectResultWithIdOnly = await prisma.devProjectResult.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends DevProjectResultUpdateManyAndReturnArgs>(args: SelectSubset<T, DevProjectResultUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one DevProjectResult.
+     * @param {DevProjectResultUpsertArgs} args - Arguments to update or create a DevProjectResult.
+     * @example
+     * // Update or create a DevProjectResult
+     * const devProjectResult = await prisma.devProjectResult.upsert({
+     *   create: {
+     *     // ... data to create a DevProjectResult
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DevProjectResult we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DevProjectResultUpsertArgs>(args: SelectSubset<T, DevProjectResultUpsertArgs<ExtArgs>>): Prisma__DevProjectResultClient<$Result.GetResult<Prisma.$DevProjectResultPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of DevProjectResults.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultCountArgs} args - Arguments to filter DevProjectResults to count.
+     * @example
+     * // Count the number of DevProjectResults
+     * const count = await prisma.devProjectResult.count({
+     *   where: {
+     *     // ... the filter for the DevProjectResults we want to count
+     *   }
+     * })
+    **/
+    count<T extends DevProjectResultCountArgs>(
+      args?: Subset<T, DevProjectResultCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DevProjectResultCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DevProjectResult.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DevProjectResultAggregateArgs>(args: Subset<T, DevProjectResultAggregateArgs>): Prisma.PrismaPromise<GetDevProjectResultAggregateType<T>>
+
+    /**
+     * Group by DevProjectResult.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DevProjectResultGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DevProjectResultGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DevProjectResultGroupByArgs['orderBy'] }
+        : { orderBy?: DevProjectResultGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DevProjectResultGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDevProjectResultGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DevProjectResult model
+   */
+  readonly fields: DevProjectResultFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DevProjectResult.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DevProjectResultClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    project<T extends DevProjectDefaultArgs<ExtArgs> = {}>(args?: Subset<T, DevProjectDefaultArgs<ExtArgs>>): Prisma__DevProjectClient<$Result.GetResult<Prisma.$DevProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DevProjectResult model
+   */
+  interface DevProjectResultFieldRefs {
+    readonly id: FieldRef<"DevProjectResult", 'Int'>
+    readonly projectId: FieldRef<"DevProjectResult", 'String'>
+    readonly deployUrl: FieldRef<"DevProjectResult", 'String'>
+    readonly summary: FieldRef<"DevProjectResult", 'String'>
+    readonly commits: FieldRef<"DevProjectResult", 'String'>
+    readonly designSourceUrl: FieldRef<"DevProjectResult", 'String'>
+    readonly createdAt: FieldRef<"DevProjectResult", 'DateTime'>
+    readonly updatedAt: FieldRef<"DevProjectResult", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DevProjectResult findUnique
+   */
+  export type DevProjectResultFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectResult to fetch.
+     */
+    where: DevProjectResultWhereUniqueInput
+  }
+
+  /**
+   * DevProjectResult findUniqueOrThrow
+   */
+  export type DevProjectResultFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectResult to fetch.
+     */
+    where: DevProjectResultWhereUniqueInput
+  }
+
+  /**
+   * DevProjectResult findFirst
+   */
+  export type DevProjectResultFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectResult to fetch.
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectResults to fetch.
+     */
+    orderBy?: DevProjectResultOrderByWithRelationInput | DevProjectResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectResults.
+     */
+    cursor?: DevProjectResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectResults.
+     */
+    distinct?: DevProjectResultScalarFieldEnum | DevProjectResultScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectResult findFirstOrThrow
+   */
+  export type DevProjectResultFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectResult to fetch.
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectResults to fetch.
+     */
+    orderBy?: DevProjectResultOrderByWithRelationInput | DevProjectResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DevProjectResults.
+     */
+    cursor?: DevProjectResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectResults.
+     */
+    distinct?: DevProjectResultScalarFieldEnum | DevProjectResultScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectResult findMany
+   */
+  export type DevProjectResultFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * Filter, which DevProjectResults to fetch.
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DevProjectResults to fetch.
+     */
+    orderBy?: DevProjectResultOrderByWithRelationInput | DevProjectResultOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DevProjectResults.
+     */
+    cursor?: DevProjectResultWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DevProjectResults from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DevProjectResults.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DevProjectResults.
+     */
+    distinct?: DevProjectResultScalarFieldEnum | DevProjectResultScalarFieldEnum[]
+  }
+
+  /**
+   * DevProjectResult create
+   */
+  export type DevProjectResultCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DevProjectResult.
+     */
+    data: XOR<DevProjectResultCreateInput, DevProjectResultUncheckedCreateInput>
+  }
+
+  /**
+   * DevProjectResult createMany
+   */
+  export type DevProjectResultCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DevProjectResults.
+     */
+    data: DevProjectResultCreateManyInput | DevProjectResultCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DevProjectResult createManyAndReturn
+   */
+  export type DevProjectResultCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * The data used to create many DevProjectResults.
+     */
+    data: DevProjectResultCreateManyInput | DevProjectResultCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectResult update
+   */
+  export type DevProjectResultUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DevProjectResult.
+     */
+    data: XOR<DevProjectResultUpdateInput, DevProjectResultUncheckedUpdateInput>
+    /**
+     * Choose, which DevProjectResult to update.
+     */
+    where: DevProjectResultWhereUniqueInput
+  }
+
+  /**
+   * DevProjectResult updateMany
+   */
+  export type DevProjectResultUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DevProjectResults.
+     */
+    data: XOR<DevProjectResultUpdateManyMutationInput, DevProjectResultUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectResults to update
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * Limit how many DevProjectResults to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectResult updateManyAndReturn
+   */
+  export type DevProjectResultUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * The data used to update DevProjectResults.
+     */
+    data: XOR<DevProjectResultUpdateManyMutationInput, DevProjectResultUncheckedUpdateManyInput>
+    /**
+     * Filter which DevProjectResults to update
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * Limit how many DevProjectResults to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DevProjectResult upsert
+   */
+  export type DevProjectResultUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DevProjectResult to update in case it exists.
+     */
+    where: DevProjectResultWhereUniqueInput
+    /**
+     * In case the DevProjectResult found by the `where` argument doesn't exist, create a new DevProjectResult with this data.
+     */
+    create: XOR<DevProjectResultCreateInput, DevProjectResultUncheckedCreateInput>
+    /**
+     * In case the DevProjectResult was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DevProjectResultUpdateInput, DevProjectResultUncheckedUpdateInput>
+  }
+
+  /**
+   * DevProjectResult delete
+   */
+  export type DevProjectResultDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+    /**
+     * Filter which DevProjectResult to delete.
+     */
+    where: DevProjectResultWhereUniqueInput
+  }
+
+  /**
+   * DevProjectResult deleteMany
+   */
+  export type DevProjectResultDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DevProjectResults to delete
+     */
+    where?: DevProjectResultWhereInput
+    /**
+     * Limit how many DevProjectResults to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * DevProjectResult without action
+   */
+  export type DevProjectResultDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DevProjectResult
+     */
+    select?: DevProjectResultSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the DevProjectResult
+     */
+    omit?: DevProjectResultOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DevProjectResultInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -51849,6 +58130,74 @@ export namespace Prisma {
   };
 
   export type InverseTraderSessionScalarFieldEnum = (typeof InverseTraderSessionScalarFieldEnum)[keyof typeof InverseTraderSessionScalarFieldEnum]
+
+
+  export const DevProjectScalarFieldEnum: {
+    id: 'id',
+    title: 'title',
+    status: 'status',
+    herdrProjectId: 'herdrProjectId',
+    workdir: 'workdir',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DevProjectScalarFieldEnum = (typeof DevProjectScalarFieldEnum)[keyof typeof DevProjectScalarFieldEnum]
+
+
+  export const DevProjectVersionScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    version: 'version',
+    features: 'features',
+    specBody: 'specBody',
+    refUrls: 'refUrls',
+    note: 'note',
+    createdAt: 'createdAt'
+  };
+
+  export type DevProjectVersionScalarFieldEnum = (typeof DevProjectVersionScalarFieldEnum)[keyof typeof DevProjectVersionScalarFieldEnum]
+
+
+  export const DevProjectFileScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    kind: 'kind',
+    fileName: 'fileName',
+    url: 'url',
+    size: 'size',
+    mimeType: 'mimeType',
+    createdAt: 'createdAt'
+  };
+
+  export type DevProjectFileScalarFieldEnum = (typeof DevProjectFileScalarFieldEnum)[keyof typeof DevProjectFileScalarFieldEnum]
+
+
+  export const DevProjectEventScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    actor: 'actor',
+    phase: 'phase',
+    message: 'message',
+    meta: 'meta',
+    at: 'at'
+  };
+
+  export type DevProjectEventScalarFieldEnum = (typeof DevProjectEventScalarFieldEnum)[keyof typeof DevProjectEventScalarFieldEnum]
+
+
+  export const DevProjectResultScalarFieldEnum: {
+    id: 'id',
+    projectId: 'projectId',
+    deployUrl: 'deployUrl',
+    summary: 'summary',
+    commits: 'commits',
+    designSourceUrl: 'designSourceUrl',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type DevProjectResultScalarFieldEnum = (typeof DevProjectResultScalarFieldEnum)[keyof typeof DevProjectResultScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -55157,6 +61506,364 @@ export namespace Prisma {
     lastError?: StringNullableWithAggregatesFilter<"InverseTraderSession"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"InverseTraderSession"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"InverseTraderSession"> | Date | string
+  }
+
+  export type DevProjectWhereInput = {
+    AND?: DevProjectWhereInput | DevProjectWhereInput[]
+    OR?: DevProjectWhereInput[]
+    NOT?: DevProjectWhereInput | DevProjectWhereInput[]
+    id?: StringFilter<"DevProject"> | string
+    title?: StringFilter<"DevProject"> | string
+    status?: StringFilter<"DevProject"> | string
+    herdrProjectId?: StringNullableFilter<"DevProject"> | string | null
+    workdir?: StringFilter<"DevProject"> | string
+    createdAt?: DateTimeFilter<"DevProject"> | Date | string
+    updatedAt?: DateTimeFilter<"DevProject"> | Date | string
+    versions?: DevProjectVersionListRelationFilter
+    files?: DevProjectFileListRelationFilter
+    events?: DevProjectEventListRelationFilter
+    result?: XOR<DevProjectResultNullableScalarRelationFilter, DevProjectResultWhereInput> | null
+  }
+
+  export type DevProjectOrderByWithRelationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    status?: SortOrder
+    herdrProjectId?: SortOrderInput | SortOrder
+    workdir?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    versions?: DevProjectVersionOrderByRelationAggregateInput
+    files?: DevProjectFileOrderByRelationAggregateInput
+    events?: DevProjectEventOrderByRelationAggregateInput
+    result?: DevProjectResultOrderByWithRelationInput
+  }
+
+  export type DevProjectWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: DevProjectWhereInput | DevProjectWhereInput[]
+    OR?: DevProjectWhereInput[]
+    NOT?: DevProjectWhereInput | DevProjectWhereInput[]
+    title?: StringFilter<"DevProject"> | string
+    status?: StringFilter<"DevProject"> | string
+    herdrProjectId?: StringNullableFilter<"DevProject"> | string | null
+    workdir?: StringFilter<"DevProject"> | string
+    createdAt?: DateTimeFilter<"DevProject"> | Date | string
+    updatedAt?: DateTimeFilter<"DevProject"> | Date | string
+    versions?: DevProjectVersionListRelationFilter
+    files?: DevProjectFileListRelationFilter
+    events?: DevProjectEventListRelationFilter
+    result?: XOR<DevProjectResultNullableScalarRelationFilter, DevProjectResultWhereInput> | null
+  }, "id">
+
+  export type DevProjectOrderByWithAggregationInput = {
+    id?: SortOrder
+    title?: SortOrder
+    status?: SortOrder
+    herdrProjectId?: SortOrderInput | SortOrder
+    workdir?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DevProjectCountOrderByAggregateInput
+    _max?: DevProjectMaxOrderByAggregateInput
+    _min?: DevProjectMinOrderByAggregateInput
+  }
+
+  export type DevProjectScalarWhereWithAggregatesInput = {
+    AND?: DevProjectScalarWhereWithAggregatesInput | DevProjectScalarWhereWithAggregatesInput[]
+    OR?: DevProjectScalarWhereWithAggregatesInput[]
+    NOT?: DevProjectScalarWhereWithAggregatesInput | DevProjectScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DevProject"> | string
+    title?: StringWithAggregatesFilter<"DevProject"> | string
+    status?: StringWithAggregatesFilter<"DevProject"> | string
+    herdrProjectId?: StringNullableWithAggregatesFilter<"DevProject"> | string | null
+    workdir?: StringWithAggregatesFilter<"DevProject"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"DevProject"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DevProject"> | Date | string
+  }
+
+  export type DevProjectVersionWhereInput = {
+    AND?: DevProjectVersionWhereInput | DevProjectVersionWhereInput[]
+    OR?: DevProjectVersionWhereInput[]
+    NOT?: DevProjectVersionWhereInput | DevProjectVersionWhereInput[]
+    id?: IntFilter<"DevProjectVersion"> | number
+    projectId?: StringFilter<"DevProjectVersion"> | string
+    version?: IntFilter<"DevProjectVersion"> | number
+    features?: StringFilter<"DevProjectVersion"> | string
+    specBody?: StringFilter<"DevProjectVersion"> | string
+    refUrls?: StringFilter<"DevProjectVersion"> | string
+    note?: StringNullableFilter<"DevProjectVersion"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectVersion"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }
+
+  export type DevProjectVersionOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    version?: SortOrder
+    features?: SortOrder
+    specBody?: SortOrder
+    refUrls?: SortOrder
+    note?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    project?: DevProjectOrderByWithRelationInput
+  }
+
+  export type DevProjectVersionWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    projectId_version?: DevProjectVersionProjectIdVersionCompoundUniqueInput
+    AND?: DevProjectVersionWhereInput | DevProjectVersionWhereInput[]
+    OR?: DevProjectVersionWhereInput[]
+    NOT?: DevProjectVersionWhereInput | DevProjectVersionWhereInput[]
+    projectId?: StringFilter<"DevProjectVersion"> | string
+    version?: IntFilter<"DevProjectVersion"> | number
+    features?: StringFilter<"DevProjectVersion"> | string
+    specBody?: StringFilter<"DevProjectVersion"> | string
+    refUrls?: StringFilter<"DevProjectVersion"> | string
+    note?: StringNullableFilter<"DevProjectVersion"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectVersion"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }, "id" | "projectId_version">
+
+  export type DevProjectVersionOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    version?: SortOrder
+    features?: SortOrder
+    specBody?: SortOrder
+    refUrls?: SortOrder
+    note?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: DevProjectVersionCountOrderByAggregateInput
+    _avg?: DevProjectVersionAvgOrderByAggregateInput
+    _max?: DevProjectVersionMaxOrderByAggregateInput
+    _min?: DevProjectVersionMinOrderByAggregateInput
+    _sum?: DevProjectVersionSumOrderByAggregateInput
+  }
+
+  export type DevProjectVersionScalarWhereWithAggregatesInput = {
+    AND?: DevProjectVersionScalarWhereWithAggregatesInput | DevProjectVersionScalarWhereWithAggregatesInput[]
+    OR?: DevProjectVersionScalarWhereWithAggregatesInput[]
+    NOT?: DevProjectVersionScalarWhereWithAggregatesInput | DevProjectVersionScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"DevProjectVersion"> | number
+    projectId?: StringWithAggregatesFilter<"DevProjectVersion"> | string
+    version?: IntWithAggregatesFilter<"DevProjectVersion"> | number
+    features?: StringWithAggregatesFilter<"DevProjectVersion"> | string
+    specBody?: StringWithAggregatesFilter<"DevProjectVersion"> | string
+    refUrls?: StringWithAggregatesFilter<"DevProjectVersion"> | string
+    note?: StringNullableWithAggregatesFilter<"DevProjectVersion"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DevProjectVersion"> | Date | string
+  }
+
+  export type DevProjectFileWhereInput = {
+    AND?: DevProjectFileWhereInput | DevProjectFileWhereInput[]
+    OR?: DevProjectFileWhereInput[]
+    NOT?: DevProjectFileWhereInput | DevProjectFileWhereInput[]
+    id?: IntFilter<"DevProjectFile"> | number
+    projectId?: StringFilter<"DevProjectFile"> | string
+    kind?: StringFilter<"DevProjectFile"> | string
+    fileName?: StringFilter<"DevProjectFile"> | string
+    url?: StringFilter<"DevProjectFile"> | string
+    size?: IntFilter<"DevProjectFile"> | number
+    mimeType?: StringNullableFilter<"DevProjectFile"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectFile"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }
+
+  export type DevProjectFileOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    kind?: SortOrder
+    fileName?: SortOrder
+    url?: SortOrder
+    size?: SortOrder
+    mimeType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    project?: DevProjectOrderByWithRelationInput
+  }
+
+  export type DevProjectFileWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: DevProjectFileWhereInput | DevProjectFileWhereInput[]
+    OR?: DevProjectFileWhereInput[]
+    NOT?: DevProjectFileWhereInput | DevProjectFileWhereInput[]
+    projectId?: StringFilter<"DevProjectFile"> | string
+    kind?: StringFilter<"DevProjectFile"> | string
+    fileName?: StringFilter<"DevProjectFile"> | string
+    url?: StringFilter<"DevProjectFile"> | string
+    size?: IntFilter<"DevProjectFile"> | number
+    mimeType?: StringNullableFilter<"DevProjectFile"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectFile"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }, "id">
+
+  export type DevProjectFileOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    kind?: SortOrder
+    fileName?: SortOrder
+    url?: SortOrder
+    size?: SortOrder
+    mimeType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: DevProjectFileCountOrderByAggregateInput
+    _avg?: DevProjectFileAvgOrderByAggregateInput
+    _max?: DevProjectFileMaxOrderByAggregateInput
+    _min?: DevProjectFileMinOrderByAggregateInput
+    _sum?: DevProjectFileSumOrderByAggregateInput
+  }
+
+  export type DevProjectFileScalarWhereWithAggregatesInput = {
+    AND?: DevProjectFileScalarWhereWithAggregatesInput | DevProjectFileScalarWhereWithAggregatesInput[]
+    OR?: DevProjectFileScalarWhereWithAggregatesInput[]
+    NOT?: DevProjectFileScalarWhereWithAggregatesInput | DevProjectFileScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"DevProjectFile"> | number
+    projectId?: StringWithAggregatesFilter<"DevProjectFile"> | string
+    kind?: StringWithAggregatesFilter<"DevProjectFile"> | string
+    fileName?: StringWithAggregatesFilter<"DevProjectFile"> | string
+    url?: StringWithAggregatesFilter<"DevProjectFile"> | string
+    size?: IntWithAggregatesFilter<"DevProjectFile"> | number
+    mimeType?: StringNullableWithAggregatesFilter<"DevProjectFile"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DevProjectFile"> | Date | string
+  }
+
+  export type DevProjectEventWhereInput = {
+    AND?: DevProjectEventWhereInput | DevProjectEventWhereInput[]
+    OR?: DevProjectEventWhereInput[]
+    NOT?: DevProjectEventWhereInput | DevProjectEventWhereInput[]
+    id?: IntFilter<"DevProjectEvent"> | number
+    projectId?: StringFilter<"DevProjectEvent"> | string
+    actor?: StringFilter<"DevProjectEvent"> | string
+    phase?: StringFilter<"DevProjectEvent"> | string
+    message?: StringFilter<"DevProjectEvent"> | string
+    meta?: StringNullableFilter<"DevProjectEvent"> | string | null
+    at?: DateTimeFilter<"DevProjectEvent"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }
+
+  export type DevProjectEventOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    actor?: SortOrder
+    phase?: SortOrder
+    message?: SortOrder
+    meta?: SortOrderInput | SortOrder
+    at?: SortOrder
+    project?: DevProjectOrderByWithRelationInput
+  }
+
+  export type DevProjectEventWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: DevProjectEventWhereInput | DevProjectEventWhereInput[]
+    OR?: DevProjectEventWhereInput[]
+    NOT?: DevProjectEventWhereInput | DevProjectEventWhereInput[]
+    projectId?: StringFilter<"DevProjectEvent"> | string
+    actor?: StringFilter<"DevProjectEvent"> | string
+    phase?: StringFilter<"DevProjectEvent"> | string
+    message?: StringFilter<"DevProjectEvent"> | string
+    meta?: StringNullableFilter<"DevProjectEvent"> | string | null
+    at?: DateTimeFilter<"DevProjectEvent"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }, "id">
+
+  export type DevProjectEventOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    actor?: SortOrder
+    phase?: SortOrder
+    message?: SortOrder
+    meta?: SortOrderInput | SortOrder
+    at?: SortOrder
+    _count?: DevProjectEventCountOrderByAggregateInput
+    _avg?: DevProjectEventAvgOrderByAggregateInput
+    _max?: DevProjectEventMaxOrderByAggregateInput
+    _min?: DevProjectEventMinOrderByAggregateInput
+    _sum?: DevProjectEventSumOrderByAggregateInput
+  }
+
+  export type DevProjectEventScalarWhereWithAggregatesInput = {
+    AND?: DevProjectEventScalarWhereWithAggregatesInput | DevProjectEventScalarWhereWithAggregatesInput[]
+    OR?: DevProjectEventScalarWhereWithAggregatesInput[]
+    NOT?: DevProjectEventScalarWhereWithAggregatesInput | DevProjectEventScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"DevProjectEvent"> | number
+    projectId?: StringWithAggregatesFilter<"DevProjectEvent"> | string
+    actor?: StringWithAggregatesFilter<"DevProjectEvent"> | string
+    phase?: StringWithAggregatesFilter<"DevProjectEvent"> | string
+    message?: StringWithAggregatesFilter<"DevProjectEvent"> | string
+    meta?: StringNullableWithAggregatesFilter<"DevProjectEvent"> | string | null
+    at?: DateTimeWithAggregatesFilter<"DevProjectEvent"> | Date | string
+  }
+
+  export type DevProjectResultWhereInput = {
+    AND?: DevProjectResultWhereInput | DevProjectResultWhereInput[]
+    OR?: DevProjectResultWhereInput[]
+    NOT?: DevProjectResultWhereInput | DevProjectResultWhereInput[]
+    id?: IntFilter<"DevProjectResult"> | number
+    projectId?: StringFilter<"DevProjectResult"> | string
+    deployUrl?: StringNullableFilter<"DevProjectResult"> | string | null
+    summary?: StringNullableFilter<"DevProjectResult"> | string | null
+    commits?: StringFilter<"DevProjectResult"> | string
+    designSourceUrl?: StringNullableFilter<"DevProjectResult"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectResult"> | Date | string
+    updatedAt?: DateTimeFilter<"DevProjectResult"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }
+
+  export type DevProjectResultOrderByWithRelationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    deployUrl?: SortOrderInput | SortOrder
+    summary?: SortOrderInput | SortOrder
+    commits?: SortOrder
+    designSourceUrl?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    project?: DevProjectOrderByWithRelationInput
+  }
+
+  export type DevProjectResultWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    projectId?: string
+    AND?: DevProjectResultWhereInput | DevProjectResultWhereInput[]
+    OR?: DevProjectResultWhereInput[]
+    NOT?: DevProjectResultWhereInput | DevProjectResultWhereInput[]
+    deployUrl?: StringNullableFilter<"DevProjectResult"> | string | null
+    summary?: StringNullableFilter<"DevProjectResult"> | string | null
+    commits?: StringFilter<"DevProjectResult"> | string
+    designSourceUrl?: StringNullableFilter<"DevProjectResult"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectResult"> | Date | string
+    updatedAt?: DateTimeFilter<"DevProjectResult"> | Date | string
+    project?: XOR<DevProjectScalarRelationFilter, DevProjectWhereInput>
+  }, "id" | "projectId">
+
+  export type DevProjectResultOrderByWithAggregationInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    deployUrl?: SortOrderInput | SortOrder
+    summary?: SortOrderInput | SortOrder
+    commits?: SortOrder
+    designSourceUrl?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: DevProjectResultCountOrderByAggregateInput
+    _avg?: DevProjectResultAvgOrderByAggregateInput
+    _max?: DevProjectResultMaxOrderByAggregateInput
+    _min?: DevProjectResultMinOrderByAggregateInput
+    _sum?: DevProjectResultSumOrderByAggregateInput
+  }
+
+  export type DevProjectResultScalarWhereWithAggregatesInput = {
+    AND?: DevProjectResultScalarWhereWithAggregatesInput | DevProjectResultScalarWhereWithAggregatesInput[]
+    OR?: DevProjectResultScalarWhereWithAggregatesInput[]
+    NOT?: DevProjectResultScalarWhereWithAggregatesInput | DevProjectResultScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"DevProjectResult"> | number
+    projectId?: StringWithAggregatesFilter<"DevProjectResult"> | string
+    deployUrl?: StringNullableWithAggregatesFilter<"DevProjectResult"> | string | null
+    summary?: StringNullableWithAggregatesFilter<"DevProjectResult"> | string | null
+    commits?: StringWithAggregatesFilter<"DevProjectResult"> | string
+    designSourceUrl?: StringNullableWithAggregatesFilter<"DevProjectResult"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DevProjectResult"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DevProjectResult"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -58608,6 +65315,377 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type DevProjectCreateInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
+    files?: DevProjectFileCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectUncheckedCreateInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
+    files?: DevProjectFileUncheckedCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventUncheckedCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultUncheckedCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
+    files?: DevProjectFileUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
+    files?: DevProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUncheckedUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUncheckedUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectCreateManyInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DevProjectUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectVersionCreateInput = {
+    version: number
+    features?: string
+    specBody?: string
+    refUrls?: string
+    note?: string | null
+    createdAt?: Date | string
+    project: DevProjectCreateNestedOneWithoutVersionsInput
+  }
+
+  export type DevProjectVersionUncheckedCreateInput = {
+    id?: number
+    projectId: string
+    version: number
+    features?: string
+    specBody?: string
+    refUrls?: string
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectVersionUpdateInput = {
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: DevProjectUpdateOneRequiredWithoutVersionsNestedInput
+  }
+
+  export type DevProjectVersionUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectVersionCreateManyInput = {
+    id?: number
+    projectId: string
+    version: number
+    features?: string
+    specBody?: string
+    refUrls?: string
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectVersionUpdateManyMutationInput = {
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectVersionUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectFileCreateInput = {
+    kind: string
+    fileName: string
+    url: string
+    size?: number
+    mimeType?: string | null
+    createdAt?: Date | string
+    project: DevProjectCreateNestedOneWithoutFilesInput
+  }
+
+  export type DevProjectFileUncheckedCreateInput = {
+    id?: number
+    projectId: string
+    kind: string
+    fileName: string
+    url: string
+    size?: number
+    mimeType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectFileUpdateInput = {
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: DevProjectUpdateOneRequiredWithoutFilesNestedInput
+  }
+
+  export type DevProjectFileUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectFileCreateManyInput = {
+    id?: number
+    projectId: string
+    kind: string
+    fileName: string
+    url: string
+    size?: number
+    mimeType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectFileUpdateManyMutationInput = {
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectFileUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectEventCreateInput = {
+    actor?: string
+    phase: string
+    message: string
+    meta?: string | null
+    at?: Date | string
+    project: DevProjectCreateNestedOneWithoutEventsInput
+  }
+
+  export type DevProjectEventUncheckedCreateInput = {
+    id?: number
+    projectId: string
+    actor?: string
+    phase: string
+    message: string
+    meta?: string | null
+    at?: Date | string
+  }
+
+  export type DevProjectEventUpdateInput = {
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: DevProjectUpdateOneRequiredWithoutEventsNestedInput
+  }
+
+  export type DevProjectEventUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectEventCreateManyInput = {
+    id?: number
+    projectId: string
+    actor?: string
+    phase: string
+    message: string
+    meta?: string | null
+    at?: Date | string
+  }
+
+  export type DevProjectEventUpdateManyMutationInput = {
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectEventUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectResultCreateInput = {
+    deployUrl?: string | null
+    summary?: string | null
+    commits?: string
+    designSourceUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    project: DevProjectCreateNestedOneWithoutResultInput
+  }
+
+  export type DevProjectResultUncheckedCreateInput = {
+    id?: number
+    projectId: string
+    deployUrl?: string | null
+    summary?: string | null
+    commits?: string
+    designSourceUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DevProjectResultUpdateInput = {
+    deployUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    commits?: StringFieldUpdateOperationsInput | string
+    designSourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    project?: DevProjectUpdateOneRequiredWithoutResultNestedInput
+  }
+
+  export type DevProjectResultUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    deployUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    commits?: StringFieldUpdateOperationsInput | string
+    designSourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectResultCreateManyInput = {
+    id?: number
+    projectId: string
+    deployUrl?: string | null
+    summary?: string | null
+    commits?: string
+    designSourceUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DevProjectResultUpdateManyMutationInput = {
+    deployUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    commits?: StringFieldUpdateOperationsInput | string
+    designSourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectResultUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    projectId?: StringFieldUpdateOperationsInput | string
+    deployUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    commits?: StringFieldUpdateOperationsInput | string
+    designSourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -61079,6 +68157,246 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type DevProjectVersionListRelationFilter = {
+    every?: DevProjectVersionWhereInput
+    some?: DevProjectVersionWhereInput
+    none?: DevProjectVersionWhereInput
+  }
+
+  export type DevProjectFileListRelationFilter = {
+    every?: DevProjectFileWhereInput
+    some?: DevProjectFileWhereInput
+    none?: DevProjectFileWhereInput
+  }
+
+  export type DevProjectEventListRelationFilter = {
+    every?: DevProjectEventWhereInput
+    some?: DevProjectEventWhereInput
+    none?: DevProjectEventWhereInput
+  }
+
+  export type DevProjectResultNullableScalarRelationFilter = {
+    is?: DevProjectResultWhereInput | null
+    isNot?: DevProjectResultWhereInput | null
+  }
+
+  export type DevProjectVersionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DevProjectFileOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DevProjectEventOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type DevProjectCountOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    status?: SortOrder
+    herdrProjectId?: SortOrder
+    workdir?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DevProjectMaxOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    status?: SortOrder
+    herdrProjectId?: SortOrder
+    workdir?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DevProjectMinOrderByAggregateInput = {
+    id?: SortOrder
+    title?: SortOrder
+    status?: SortOrder
+    herdrProjectId?: SortOrder
+    workdir?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DevProjectScalarRelationFilter = {
+    is?: DevProjectWhereInput
+    isNot?: DevProjectWhereInput
+  }
+
+  export type DevProjectVersionProjectIdVersionCompoundUniqueInput = {
+    projectId: string
+    version: number
+  }
+
+  export type DevProjectVersionCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    version?: SortOrder
+    features?: SortOrder
+    specBody?: SortOrder
+    refUrls?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DevProjectVersionAvgOrderByAggregateInput = {
+    id?: SortOrder
+    version?: SortOrder
+  }
+
+  export type DevProjectVersionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    version?: SortOrder
+    features?: SortOrder
+    specBody?: SortOrder
+    refUrls?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DevProjectVersionMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    version?: SortOrder
+    features?: SortOrder
+    specBody?: SortOrder
+    refUrls?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DevProjectVersionSumOrderByAggregateInput = {
+    id?: SortOrder
+    version?: SortOrder
+  }
+
+  export type DevProjectFileCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    kind?: SortOrder
+    fileName?: SortOrder
+    url?: SortOrder
+    size?: SortOrder
+    mimeType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DevProjectFileAvgOrderByAggregateInput = {
+    id?: SortOrder
+    size?: SortOrder
+  }
+
+  export type DevProjectFileMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    kind?: SortOrder
+    fileName?: SortOrder
+    url?: SortOrder
+    size?: SortOrder
+    mimeType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DevProjectFileMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    kind?: SortOrder
+    fileName?: SortOrder
+    url?: SortOrder
+    size?: SortOrder
+    mimeType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type DevProjectFileSumOrderByAggregateInput = {
+    id?: SortOrder
+    size?: SortOrder
+  }
+
+  export type DevProjectEventCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    actor?: SortOrder
+    phase?: SortOrder
+    message?: SortOrder
+    meta?: SortOrder
+    at?: SortOrder
+  }
+
+  export type DevProjectEventAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type DevProjectEventMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    actor?: SortOrder
+    phase?: SortOrder
+    message?: SortOrder
+    meta?: SortOrder
+    at?: SortOrder
+  }
+
+  export type DevProjectEventMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    actor?: SortOrder
+    phase?: SortOrder
+    message?: SortOrder
+    meta?: SortOrder
+    at?: SortOrder
+  }
+
+  export type DevProjectEventSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type DevProjectResultCountOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    deployUrl?: SortOrder
+    summary?: SortOrder
+    commits?: SortOrder
+    designSourceUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DevProjectResultAvgOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
+  export type DevProjectResultMaxOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    deployUrl?: SortOrder
+    summary?: SortOrder
+    commits?: SortOrder
+    designSourceUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DevProjectResultMinOrderByAggregateInput = {
+    id?: SortOrder
+    projectId?: SortOrder
+    deployUrl?: SortOrder
+    summary?: SortOrder
+    commits?: SortOrder
+    designSourceUrl?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type DevProjectResultSumOrderByAggregateInput = {
+    id?: SortOrder
+  }
+
   export type PersonaCreateNestedManyWithoutUserInput = {
     create?: XOR<PersonaCreateWithoutUserInput, PersonaUncheckedCreateWithoutUserInput> | PersonaCreateWithoutUserInput[] | PersonaUncheckedCreateWithoutUserInput[]
     connectOrCreate?: PersonaCreateOrConnectWithoutUserInput | PersonaCreateOrConnectWithoutUserInput[]
@@ -62863,6 +70181,220 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type DevProjectVersionCreateNestedManyWithoutProjectInput = {
+    create?: XOR<DevProjectVersionCreateWithoutProjectInput, DevProjectVersionUncheckedCreateWithoutProjectInput> | DevProjectVersionCreateWithoutProjectInput[] | DevProjectVersionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectVersionCreateOrConnectWithoutProjectInput | DevProjectVersionCreateOrConnectWithoutProjectInput[]
+    createMany?: DevProjectVersionCreateManyProjectInputEnvelope
+    connect?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+  }
+
+  export type DevProjectFileCreateNestedManyWithoutProjectInput = {
+    create?: XOR<DevProjectFileCreateWithoutProjectInput, DevProjectFileUncheckedCreateWithoutProjectInput> | DevProjectFileCreateWithoutProjectInput[] | DevProjectFileUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectFileCreateOrConnectWithoutProjectInput | DevProjectFileCreateOrConnectWithoutProjectInput[]
+    createMany?: DevProjectFileCreateManyProjectInputEnvelope
+    connect?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+  }
+
+  export type DevProjectEventCreateNestedManyWithoutProjectInput = {
+    create?: XOR<DevProjectEventCreateWithoutProjectInput, DevProjectEventUncheckedCreateWithoutProjectInput> | DevProjectEventCreateWithoutProjectInput[] | DevProjectEventUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectEventCreateOrConnectWithoutProjectInput | DevProjectEventCreateOrConnectWithoutProjectInput[]
+    createMany?: DevProjectEventCreateManyProjectInputEnvelope
+    connect?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+  }
+
+  export type DevProjectResultCreateNestedOneWithoutProjectInput = {
+    create?: XOR<DevProjectResultCreateWithoutProjectInput, DevProjectResultUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: DevProjectResultCreateOrConnectWithoutProjectInput
+    connect?: DevProjectResultWhereUniqueInput
+  }
+
+  export type DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<DevProjectVersionCreateWithoutProjectInput, DevProjectVersionUncheckedCreateWithoutProjectInput> | DevProjectVersionCreateWithoutProjectInput[] | DevProjectVersionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectVersionCreateOrConnectWithoutProjectInput | DevProjectVersionCreateOrConnectWithoutProjectInput[]
+    createMany?: DevProjectVersionCreateManyProjectInputEnvelope
+    connect?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+  }
+
+  export type DevProjectFileUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<DevProjectFileCreateWithoutProjectInput, DevProjectFileUncheckedCreateWithoutProjectInput> | DevProjectFileCreateWithoutProjectInput[] | DevProjectFileUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectFileCreateOrConnectWithoutProjectInput | DevProjectFileCreateOrConnectWithoutProjectInput[]
+    createMany?: DevProjectFileCreateManyProjectInputEnvelope
+    connect?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+  }
+
+  export type DevProjectEventUncheckedCreateNestedManyWithoutProjectInput = {
+    create?: XOR<DevProjectEventCreateWithoutProjectInput, DevProjectEventUncheckedCreateWithoutProjectInput> | DevProjectEventCreateWithoutProjectInput[] | DevProjectEventUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectEventCreateOrConnectWithoutProjectInput | DevProjectEventCreateOrConnectWithoutProjectInput[]
+    createMany?: DevProjectEventCreateManyProjectInputEnvelope
+    connect?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+  }
+
+  export type DevProjectResultUncheckedCreateNestedOneWithoutProjectInput = {
+    create?: XOR<DevProjectResultCreateWithoutProjectInput, DevProjectResultUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: DevProjectResultCreateOrConnectWithoutProjectInput
+    connect?: DevProjectResultWhereUniqueInput
+  }
+
+  export type DevProjectVersionUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<DevProjectVersionCreateWithoutProjectInput, DevProjectVersionUncheckedCreateWithoutProjectInput> | DevProjectVersionCreateWithoutProjectInput[] | DevProjectVersionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectVersionCreateOrConnectWithoutProjectInput | DevProjectVersionCreateOrConnectWithoutProjectInput[]
+    upsert?: DevProjectVersionUpsertWithWhereUniqueWithoutProjectInput | DevProjectVersionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: DevProjectVersionCreateManyProjectInputEnvelope
+    set?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    disconnect?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    delete?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    connect?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    update?: DevProjectVersionUpdateWithWhereUniqueWithoutProjectInput | DevProjectVersionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: DevProjectVersionUpdateManyWithWhereWithoutProjectInput | DevProjectVersionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: DevProjectVersionScalarWhereInput | DevProjectVersionScalarWhereInput[]
+  }
+
+  export type DevProjectFileUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<DevProjectFileCreateWithoutProjectInput, DevProjectFileUncheckedCreateWithoutProjectInput> | DevProjectFileCreateWithoutProjectInput[] | DevProjectFileUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectFileCreateOrConnectWithoutProjectInput | DevProjectFileCreateOrConnectWithoutProjectInput[]
+    upsert?: DevProjectFileUpsertWithWhereUniqueWithoutProjectInput | DevProjectFileUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: DevProjectFileCreateManyProjectInputEnvelope
+    set?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    disconnect?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    delete?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    connect?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    update?: DevProjectFileUpdateWithWhereUniqueWithoutProjectInput | DevProjectFileUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: DevProjectFileUpdateManyWithWhereWithoutProjectInput | DevProjectFileUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: DevProjectFileScalarWhereInput | DevProjectFileScalarWhereInput[]
+  }
+
+  export type DevProjectEventUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<DevProjectEventCreateWithoutProjectInput, DevProjectEventUncheckedCreateWithoutProjectInput> | DevProjectEventCreateWithoutProjectInput[] | DevProjectEventUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectEventCreateOrConnectWithoutProjectInput | DevProjectEventCreateOrConnectWithoutProjectInput[]
+    upsert?: DevProjectEventUpsertWithWhereUniqueWithoutProjectInput | DevProjectEventUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: DevProjectEventCreateManyProjectInputEnvelope
+    set?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    disconnect?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    delete?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    connect?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    update?: DevProjectEventUpdateWithWhereUniqueWithoutProjectInput | DevProjectEventUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: DevProjectEventUpdateManyWithWhereWithoutProjectInput | DevProjectEventUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: DevProjectEventScalarWhereInput | DevProjectEventScalarWhereInput[]
+  }
+
+  export type DevProjectResultUpdateOneWithoutProjectNestedInput = {
+    create?: XOR<DevProjectResultCreateWithoutProjectInput, DevProjectResultUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: DevProjectResultCreateOrConnectWithoutProjectInput
+    upsert?: DevProjectResultUpsertWithoutProjectInput
+    disconnect?: DevProjectResultWhereInput | boolean
+    delete?: DevProjectResultWhereInput | boolean
+    connect?: DevProjectResultWhereUniqueInput
+    update?: XOR<XOR<DevProjectResultUpdateToOneWithWhereWithoutProjectInput, DevProjectResultUpdateWithoutProjectInput>, DevProjectResultUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<DevProjectVersionCreateWithoutProjectInput, DevProjectVersionUncheckedCreateWithoutProjectInput> | DevProjectVersionCreateWithoutProjectInput[] | DevProjectVersionUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectVersionCreateOrConnectWithoutProjectInput | DevProjectVersionCreateOrConnectWithoutProjectInput[]
+    upsert?: DevProjectVersionUpsertWithWhereUniqueWithoutProjectInput | DevProjectVersionUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: DevProjectVersionCreateManyProjectInputEnvelope
+    set?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    disconnect?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    delete?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    connect?: DevProjectVersionWhereUniqueInput | DevProjectVersionWhereUniqueInput[]
+    update?: DevProjectVersionUpdateWithWhereUniqueWithoutProjectInput | DevProjectVersionUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: DevProjectVersionUpdateManyWithWhereWithoutProjectInput | DevProjectVersionUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: DevProjectVersionScalarWhereInput | DevProjectVersionScalarWhereInput[]
+  }
+
+  export type DevProjectFileUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<DevProjectFileCreateWithoutProjectInput, DevProjectFileUncheckedCreateWithoutProjectInput> | DevProjectFileCreateWithoutProjectInput[] | DevProjectFileUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectFileCreateOrConnectWithoutProjectInput | DevProjectFileCreateOrConnectWithoutProjectInput[]
+    upsert?: DevProjectFileUpsertWithWhereUniqueWithoutProjectInput | DevProjectFileUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: DevProjectFileCreateManyProjectInputEnvelope
+    set?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    disconnect?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    delete?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    connect?: DevProjectFileWhereUniqueInput | DevProjectFileWhereUniqueInput[]
+    update?: DevProjectFileUpdateWithWhereUniqueWithoutProjectInput | DevProjectFileUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: DevProjectFileUpdateManyWithWhereWithoutProjectInput | DevProjectFileUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: DevProjectFileScalarWhereInput | DevProjectFileScalarWhereInput[]
+  }
+
+  export type DevProjectEventUncheckedUpdateManyWithoutProjectNestedInput = {
+    create?: XOR<DevProjectEventCreateWithoutProjectInput, DevProjectEventUncheckedCreateWithoutProjectInput> | DevProjectEventCreateWithoutProjectInput[] | DevProjectEventUncheckedCreateWithoutProjectInput[]
+    connectOrCreate?: DevProjectEventCreateOrConnectWithoutProjectInput | DevProjectEventCreateOrConnectWithoutProjectInput[]
+    upsert?: DevProjectEventUpsertWithWhereUniqueWithoutProjectInput | DevProjectEventUpsertWithWhereUniqueWithoutProjectInput[]
+    createMany?: DevProjectEventCreateManyProjectInputEnvelope
+    set?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    disconnect?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    delete?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    connect?: DevProjectEventWhereUniqueInput | DevProjectEventWhereUniqueInput[]
+    update?: DevProjectEventUpdateWithWhereUniqueWithoutProjectInput | DevProjectEventUpdateWithWhereUniqueWithoutProjectInput[]
+    updateMany?: DevProjectEventUpdateManyWithWhereWithoutProjectInput | DevProjectEventUpdateManyWithWhereWithoutProjectInput[]
+    deleteMany?: DevProjectEventScalarWhereInput | DevProjectEventScalarWhereInput[]
+  }
+
+  export type DevProjectResultUncheckedUpdateOneWithoutProjectNestedInput = {
+    create?: XOR<DevProjectResultCreateWithoutProjectInput, DevProjectResultUncheckedCreateWithoutProjectInput>
+    connectOrCreate?: DevProjectResultCreateOrConnectWithoutProjectInput
+    upsert?: DevProjectResultUpsertWithoutProjectInput
+    disconnect?: DevProjectResultWhereInput | boolean
+    delete?: DevProjectResultWhereInput | boolean
+    connect?: DevProjectResultWhereUniqueInput
+    update?: XOR<XOR<DevProjectResultUpdateToOneWithWhereWithoutProjectInput, DevProjectResultUpdateWithoutProjectInput>, DevProjectResultUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type DevProjectCreateNestedOneWithoutVersionsInput = {
+    create?: XOR<DevProjectCreateWithoutVersionsInput, DevProjectUncheckedCreateWithoutVersionsInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutVersionsInput
+    connect?: DevProjectWhereUniqueInput
+  }
+
+  export type DevProjectUpdateOneRequiredWithoutVersionsNestedInput = {
+    create?: XOR<DevProjectCreateWithoutVersionsInput, DevProjectUncheckedCreateWithoutVersionsInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutVersionsInput
+    upsert?: DevProjectUpsertWithoutVersionsInput
+    connect?: DevProjectWhereUniqueInput
+    update?: XOR<XOR<DevProjectUpdateToOneWithWhereWithoutVersionsInput, DevProjectUpdateWithoutVersionsInput>, DevProjectUncheckedUpdateWithoutVersionsInput>
+  }
+
+  export type DevProjectCreateNestedOneWithoutFilesInput = {
+    create?: XOR<DevProjectCreateWithoutFilesInput, DevProjectUncheckedCreateWithoutFilesInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutFilesInput
+    connect?: DevProjectWhereUniqueInput
+  }
+
+  export type DevProjectUpdateOneRequiredWithoutFilesNestedInput = {
+    create?: XOR<DevProjectCreateWithoutFilesInput, DevProjectUncheckedCreateWithoutFilesInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutFilesInput
+    upsert?: DevProjectUpsertWithoutFilesInput
+    connect?: DevProjectWhereUniqueInput
+    update?: XOR<XOR<DevProjectUpdateToOneWithWhereWithoutFilesInput, DevProjectUpdateWithoutFilesInput>, DevProjectUncheckedUpdateWithoutFilesInput>
+  }
+
+  export type DevProjectCreateNestedOneWithoutEventsInput = {
+    create?: XOR<DevProjectCreateWithoutEventsInput, DevProjectUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutEventsInput
+    connect?: DevProjectWhereUniqueInput
+  }
+
+  export type DevProjectUpdateOneRequiredWithoutEventsNestedInput = {
+    create?: XOR<DevProjectCreateWithoutEventsInput, DevProjectUncheckedCreateWithoutEventsInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutEventsInput
+    upsert?: DevProjectUpsertWithoutEventsInput
+    connect?: DevProjectWhereUniqueInput
+    update?: XOR<XOR<DevProjectUpdateToOneWithWhereWithoutEventsInput, DevProjectUpdateWithoutEventsInput>, DevProjectUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type DevProjectCreateNestedOneWithoutResultInput = {
+    create?: XOR<DevProjectCreateWithoutResultInput, DevProjectUncheckedCreateWithoutResultInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutResultInput
+    connect?: DevProjectWhereUniqueInput
+  }
+
+  export type DevProjectUpdateOneRequiredWithoutResultNestedInput = {
+    create?: XOR<DevProjectCreateWithoutResultInput, DevProjectUncheckedCreateWithoutResultInput>
+    connectOrCreate?: DevProjectCreateOrConnectWithoutResultInput
+    upsert?: DevProjectUpsertWithoutResultInput
+    connect?: DevProjectWhereUniqueInput
+    update?: XOR<XOR<DevProjectUpdateToOneWithWhereWithoutResultInput, DevProjectUpdateWithoutResultInput>, DevProjectUncheckedUpdateWithoutResultInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -68757,6 +76289,506 @@ export namespace Prisma {
     luxuryVerifications?: LuxuryVerificationUncheckedUpdateManyWithoutUserNestedInput
   }
 
+  export type DevProjectVersionCreateWithoutProjectInput = {
+    version: number
+    features?: string
+    specBody?: string
+    refUrls?: string
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectVersionUncheckedCreateWithoutProjectInput = {
+    id?: number
+    version: number
+    features?: string
+    specBody?: string
+    refUrls?: string
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectVersionCreateOrConnectWithoutProjectInput = {
+    where: DevProjectVersionWhereUniqueInput
+    create: XOR<DevProjectVersionCreateWithoutProjectInput, DevProjectVersionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectVersionCreateManyProjectInputEnvelope = {
+    data: DevProjectVersionCreateManyProjectInput | DevProjectVersionCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DevProjectFileCreateWithoutProjectInput = {
+    kind: string
+    fileName: string
+    url: string
+    size?: number
+    mimeType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectFileUncheckedCreateWithoutProjectInput = {
+    id?: number
+    kind: string
+    fileName: string
+    url: string
+    size?: number
+    mimeType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectFileCreateOrConnectWithoutProjectInput = {
+    where: DevProjectFileWhereUniqueInput
+    create: XOR<DevProjectFileCreateWithoutProjectInput, DevProjectFileUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectFileCreateManyProjectInputEnvelope = {
+    data: DevProjectFileCreateManyProjectInput | DevProjectFileCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DevProjectEventCreateWithoutProjectInput = {
+    actor?: string
+    phase: string
+    message: string
+    meta?: string | null
+    at?: Date | string
+  }
+
+  export type DevProjectEventUncheckedCreateWithoutProjectInput = {
+    id?: number
+    actor?: string
+    phase: string
+    message: string
+    meta?: string | null
+    at?: Date | string
+  }
+
+  export type DevProjectEventCreateOrConnectWithoutProjectInput = {
+    where: DevProjectEventWhereUniqueInput
+    create: XOR<DevProjectEventCreateWithoutProjectInput, DevProjectEventUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectEventCreateManyProjectInputEnvelope = {
+    data: DevProjectEventCreateManyProjectInput | DevProjectEventCreateManyProjectInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type DevProjectResultCreateWithoutProjectInput = {
+    deployUrl?: string | null
+    summary?: string | null
+    commits?: string
+    designSourceUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DevProjectResultUncheckedCreateWithoutProjectInput = {
+    id?: number
+    deployUrl?: string | null
+    summary?: string | null
+    commits?: string
+    designSourceUrl?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type DevProjectResultCreateOrConnectWithoutProjectInput = {
+    where: DevProjectResultWhereUniqueInput
+    create: XOR<DevProjectResultCreateWithoutProjectInput, DevProjectResultUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectVersionUpsertWithWhereUniqueWithoutProjectInput = {
+    where: DevProjectVersionWhereUniqueInput
+    update: XOR<DevProjectVersionUpdateWithoutProjectInput, DevProjectVersionUncheckedUpdateWithoutProjectInput>
+    create: XOR<DevProjectVersionCreateWithoutProjectInput, DevProjectVersionUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectVersionUpdateWithWhereUniqueWithoutProjectInput = {
+    where: DevProjectVersionWhereUniqueInput
+    data: XOR<DevProjectVersionUpdateWithoutProjectInput, DevProjectVersionUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type DevProjectVersionUpdateManyWithWhereWithoutProjectInput = {
+    where: DevProjectVersionScalarWhereInput
+    data: XOR<DevProjectVersionUpdateManyMutationInput, DevProjectVersionUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type DevProjectVersionScalarWhereInput = {
+    AND?: DevProjectVersionScalarWhereInput | DevProjectVersionScalarWhereInput[]
+    OR?: DevProjectVersionScalarWhereInput[]
+    NOT?: DevProjectVersionScalarWhereInput | DevProjectVersionScalarWhereInput[]
+    id?: IntFilter<"DevProjectVersion"> | number
+    projectId?: StringFilter<"DevProjectVersion"> | string
+    version?: IntFilter<"DevProjectVersion"> | number
+    features?: StringFilter<"DevProjectVersion"> | string
+    specBody?: StringFilter<"DevProjectVersion"> | string
+    refUrls?: StringFilter<"DevProjectVersion"> | string
+    note?: StringNullableFilter<"DevProjectVersion"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectVersion"> | Date | string
+  }
+
+  export type DevProjectFileUpsertWithWhereUniqueWithoutProjectInput = {
+    where: DevProjectFileWhereUniqueInput
+    update: XOR<DevProjectFileUpdateWithoutProjectInput, DevProjectFileUncheckedUpdateWithoutProjectInput>
+    create: XOR<DevProjectFileCreateWithoutProjectInput, DevProjectFileUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectFileUpdateWithWhereUniqueWithoutProjectInput = {
+    where: DevProjectFileWhereUniqueInput
+    data: XOR<DevProjectFileUpdateWithoutProjectInput, DevProjectFileUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type DevProjectFileUpdateManyWithWhereWithoutProjectInput = {
+    where: DevProjectFileScalarWhereInput
+    data: XOR<DevProjectFileUpdateManyMutationInput, DevProjectFileUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type DevProjectFileScalarWhereInput = {
+    AND?: DevProjectFileScalarWhereInput | DevProjectFileScalarWhereInput[]
+    OR?: DevProjectFileScalarWhereInput[]
+    NOT?: DevProjectFileScalarWhereInput | DevProjectFileScalarWhereInput[]
+    id?: IntFilter<"DevProjectFile"> | number
+    projectId?: StringFilter<"DevProjectFile"> | string
+    kind?: StringFilter<"DevProjectFile"> | string
+    fileName?: StringFilter<"DevProjectFile"> | string
+    url?: StringFilter<"DevProjectFile"> | string
+    size?: IntFilter<"DevProjectFile"> | number
+    mimeType?: StringNullableFilter<"DevProjectFile"> | string | null
+    createdAt?: DateTimeFilter<"DevProjectFile"> | Date | string
+  }
+
+  export type DevProjectEventUpsertWithWhereUniqueWithoutProjectInput = {
+    where: DevProjectEventWhereUniqueInput
+    update: XOR<DevProjectEventUpdateWithoutProjectInput, DevProjectEventUncheckedUpdateWithoutProjectInput>
+    create: XOR<DevProjectEventCreateWithoutProjectInput, DevProjectEventUncheckedCreateWithoutProjectInput>
+  }
+
+  export type DevProjectEventUpdateWithWhereUniqueWithoutProjectInput = {
+    where: DevProjectEventWhereUniqueInput
+    data: XOR<DevProjectEventUpdateWithoutProjectInput, DevProjectEventUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type DevProjectEventUpdateManyWithWhereWithoutProjectInput = {
+    where: DevProjectEventScalarWhereInput
+    data: XOR<DevProjectEventUpdateManyMutationInput, DevProjectEventUncheckedUpdateManyWithoutProjectInput>
+  }
+
+  export type DevProjectEventScalarWhereInput = {
+    AND?: DevProjectEventScalarWhereInput | DevProjectEventScalarWhereInput[]
+    OR?: DevProjectEventScalarWhereInput[]
+    NOT?: DevProjectEventScalarWhereInput | DevProjectEventScalarWhereInput[]
+    id?: IntFilter<"DevProjectEvent"> | number
+    projectId?: StringFilter<"DevProjectEvent"> | string
+    actor?: StringFilter<"DevProjectEvent"> | string
+    phase?: StringFilter<"DevProjectEvent"> | string
+    message?: StringFilter<"DevProjectEvent"> | string
+    meta?: StringNullableFilter<"DevProjectEvent"> | string | null
+    at?: DateTimeFilter<"DevProjectEvent"> | Date | string
+  }
+
+  export type DevProjectResultUpsertWithoutProjectInput = {
+    update: XOR<DevProjectResultUpdateWithoutProjectInput, DevProjectResultUncheckedUpdateWithoutProjectInput>
+    create: XOR<DevProjectResultCreateWithoutProjectInput, DevProjectResultUncheckedCreateWithoutProjectInput>
+    where?: DevProjectResultWhereInput
+  }
+
+  export type DevProjectResultUpdateToOneWithWhereWithoutProjectInput = {
+    where?: DevProjectResultWhereInput
+    data: XOR<DevProjectResultUpdateWithoutProjectInput, DevProjectResultUncheckedUpdateWithoutProjectInput>
+  }
+
+  export type DevProjectResultUpdateWithoutProjectInput = {
+    deployUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    commits?: StringFieldUpdateOperationsInput | string
+    designSourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectResultUncheckedUpdateWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    deployUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    summary?: NullableStringFieldUpdateOperationsInput | string | null
+    commits?: StringFieldUpdateOperationsInput | string
+    designSourceUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectCreateWithoutVersionsInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    files?: DevProjectFileCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectUncheckedCreateWithoutVersionsInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    files?: DevProjectFileUncheckedCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventUncheckedCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultUncheckedCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectCreateOrConnectWithoutVersionsInput = {
+    where: DevProjectWhereUniqueInput
+    create: XOR<DevProjectCreateWithoutVersionsInput, DevProjectUncheckedCreateWithoutVersionsInput>
+  }
+
+  export type DevProjectUpsertWithoutVersionsInput = {
+    update: XOR<DevProjectUpdateWithoutVersionsInput, DevProjectUncheckedUpdateWithoutVersionsInput>
+    create: XOR<DevProjectCreateWithoutVersionsInput, DevProjectUncheckedCreateWithoutVersionsInput>
+    where?: DevProjectWhereInput
+  }
+
+  export type DevProjectUpdateToOneWithWhereWithoutVersionsInput = {
+    where?: DevProjectWhereInput
+    data: XOR<DevProjectUpdateWithoutVersionsInput, DevProjectUncheckedUpdateWithoutVersionsInput>
+  }
+
+  export type DevProjectUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    files?: DevProjectFileUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectUncheckedUpdateWithoutVersionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    files?: DevProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUncheckedUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUncheckedUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectCreateWithoutFilesInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectUncheckedCreateWithoutFilesInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventUncheckedCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultUncheckedCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectCreateOrConnectWithoutFilesInput = {
+    where: DevProjectWhereUniqueInput
+    create: XOR<DevProjectCreateWithoutFilesInput, DevProjectUncheckedCreateWithoutFilesInput>
+  }
+
+  export type DevProjectUpsertWithoutFilesInput = {
+    update: XOR<DevProjectUpdateWithoutFilesInput, DevProjectUncheckedUpdateWithoutFilesInput>
+    create: XOR<DevProjectCreateWithoutFilesInput, DevProjectUncheckedCreateWithoutFilesInput>
+    where?: DevProjectWhereInput
+  }
+
+  export type DevProjectUpdateToOneWithWhereWithoutFilesInput = {
+    where?: DevProjectWhereInput
+    data: XOR<DevProjectUpdateWithoutFilesInput, DevProjectUncheckedUpdateWithoutFilesInput>
+  }
+
+  export type DevProjectUpdateWithoutFilesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectUncheckedUpdateWithoutFilesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUncheckedUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUncheckedUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectCreateWithoutEventsInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
+    files?: DevProjectFileCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectUncheckedCreateWithoutEventsInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
+    files?: DevProjectFileUncheckedCreateNestedManyWithoutProjectInput
+    result?: DevProjectResultUncheckedCreateNestedOneWithoutProjectInput
+  }
+
+  export type DevProjectCreateOrConnectWithoutEventsInput = {
+    where: DevProjectWhereUniqueInput
+    create: XOR<DevProjectCreateWithoutEventsInput, DevProjectUncheckedCreateWithoutEventsInput>
+  }
+
+  export type DevProjectUpsertWithoutEventsInput = {
+    update: XOR<DevProjectUpdateWithoutEventsInput, DevProjectUncheckedUpdateWithoutEventsInput>
+    create: XOR<DevProjectCreateWithoutEventsInput, DevProjectUncheckedCreateWithoutEventsInput>
+    where?: DevProjectWhereInput
+  }
+
+  export type DevProjectUpdateToOneWithWhereWithoutEventsInput = {
+    where?: DevProjectWhereInput
+    data: XOR<DevProjectUpdateWithoutEventsInput, DevProjectUncheckedUpdateWithoutEventsInput>
+  }
+
+  export type DevProjectUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
+    files?: DevProjectFileUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectUncheckedUpdateWithoutEventsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
+    files?: DevProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+    result?: DevProjectResultUncheckedUpdateOneWithoutProjectNestedInput
+  }
+
+  export type DevProjectCreateWithoutResultInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionCreateNestedManyWithoutProjectInput
+    files?: DevProjectFileCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventCreateNestedManyWithoutProjectInput
+  }
+
+  export type DevProjectUncheckedCreateWithoutResultInput = {
+    id?: string
+    title: string
+    status?: string
+    herdrProjectId?: string | null
+    workdir?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    versions?: DevProjectVersionUncheckedCreateNestedManyWithoutProjectInput
+    files?: DevProjectFileUncheckedCreateNestedManyWithoutProjectInput
+    events?: DevProjectEventUncheckedCreateNestedManyWithoutProjectInput
+  }
+
+  export type DevProjectCreateOrConnectWithoutResultInput = {
+    where: DevProjectWhereUniqueInput
+    create: XOR<DevProjectCreateWithoutResultInput, DevProjectUncheckedCreateWithoutResultInput>
+  }
+
+  export type DevProjectUpsertWithoutResultInput = {
+    update: XOR<DevProjectUpdateWithoutResultInput, DevProjectUncheckedUpdateWithoutResultInput>
+    create: XOR<DevProjectCreateWithoutResultInput, DevProjectUncheckedCreateWithoutResultInput>
+    where?: DevProjectWhereInput
+  }
+
+  export type DevProjectUpdateToOneWithWhereWithoutResultInput = {
+    where?: DevProjectWhereInput
+    data: XOR<DevProjectUpdateWithoutResultInput, DevProjectUncheckedUpdateWithoutResultInput>
+  }
+
+  export type DevProjectUpdateWithoutResultInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUpdateManyWithoutProjectNestedInput
+    files?: DevProjectFileUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUpdateManyWithoutProjectNestedInput
+  }
+
+  export type DevProjectUncheckedUpdateWithoutResultInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    title?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    herdrProjectId?: NullableStringFieldUpdateOperationsInput | string | null
+    workdir?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    versions?: DevProjectVersionUncheckedUpdateManyWithoutProjectNestedInput
+    files?: DevProjectFileUncheckedUpdateManyWithoutProjectNestedInput
+    events?: DevProjectEventUncheckedUpdateManyWithoutProjectNestedInput
+  }
+
   export type PersonaCreateManyUserInput = {
     id?: string
     name: string
@@ -70153,6 +78185,119 @@ export namespace Prisma {
     isAdminReply?: BoolFieldUpdateOperationsInput | boolean
     content?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectVersionCreateManyProjectInput = {
+    id?: number
+    version: number
+    features?: string
+    specBody?: string
+    refUrls?: string
+    note?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectFileCreateManyProjectInput = {
+    id?: number
+    kind: string
+    fileName: string
+    url: string
+    size?: number
+    mimeType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type DevProjectEventCreateManyProjectInput = {
+    id?: number
+    actor?: string
+    phase: string
+    message: string
+    meta?: string | null
+    at?: Date | string
+  }
+
+  export type DevProjectVersionUpdateWithoutProjectInput = {
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectVersionUncheckedUpdateWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectVersionUncheckedUpdateManyWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    version?: IntFieldUpdateOperationsInput | number
+    features?: StringFieldUpdateOperationsInput | string
+    specBody?: StringFieldUpdateOperationsInput | string
+    refUrls?: StringFieldUpdateOperationsInput | string
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectFileUpdateWithoutProjectInput = {
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectFileUncheckedUpdateWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectFileUncheckedUpdateManyWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    kind?: StringFieldUpdateOperationsInput | string
+    fileName?: StringFieldUpdateOperationsInput | string
+    url?: StringFieldUpdateOperationsInput | string
+    size?: IntFieldUpdateOperationsInput | number
+    mimeType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectEventUpdateWithoutProjectInput = {
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectEventUncheckedUpdateWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DevProjectEventUncheckedUpdateManyWithoutProjectInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    actor?: StringFieldUpdateOperationsInput | string
+    phase?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    meta?: NullableStringFieldUpdateOperationsInput | string | null
+    at?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

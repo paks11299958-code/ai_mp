@@ -614,6 +614,59 @@ exports.Prisma.InverseTraderSessionScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.DevProjectScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  status: 'status',
+  herdrProjectId: 'herdrProjectId',
+  workdir: 'workdir',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.DevProjectVersionScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  version: 'version',
+  features: 'features',
+  specBody: 'specBody',
+  refUrls: 'refUrls',
+  note: 'note',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DevProjectFileScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  kind: 'kind',
+  fileName: 'fileName',
+  url: 'url',
+  size: 'size',
+  mimeType: 'mimeType',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.DevProjectEventScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  actor: 'actor',
+  phase: 'phase',
+  message: 'message',
+  meta: 'meta',
+  at: 'at'
+};
+
+exports.Prisma.DevProjectResultScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  deployUrl: 'deployUrl',
+  summary: 'summary',
+  commits: 'commits',
+  designSourceUrl: 'designSourceUrl',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -670,7 +723,12 @@ exports.Prisma.ModelName = {
   InverseFill: 'InverseFill',
   InversePosition: 'InversePosition',
   InverseDailyStat: 'InverseDailyStat',
-  InverseTraderSession: 'InverseTraderSession'
+  InverseTraderSession: 'InverseTraderSession',
+  DevProject: 'DevProject',
+  DevProjectVersion: 'DevProjectVersion',
+  DevProjectFile: 'DevProjectFile',
+  DevProjectEvent: 'DevProjectEvent',
+  DevProjectResult: 'DevProjectResult'
 };
 
 /**
