@@ -92,6 +92,8 @@ export const DevAiPanel: React.FC = () => {
     const [approvals, setApprovals] = useState<DevApprovalRow[]>([]);
     // 4단계 — 디자인 시안
     const [designs, setDesigns] = useState<DevDesignRow[]>([]);
+    // 확정 완료돼 목록에서 숨긴 시안 수 — '왜 안 보이지?' 를 막기 위해 숫자만 알려준다.
+    const [hiddenApproved, setHiddenApproved] = useState(0);
     const [showDesigns, setShowDesigns] = useState(false);
     // 참조 이미지 업로드
     const fileRef = useRef<HTMLInputElement>(null);
@@ -199,6 +201,7 @@ export const DevAiPanel: React.FC = () => {
         try {
             const d = await adminApi.listDevDesigns();
             setDesigns(d.designs);
+            setHiddenApproved(d.hiddenApproved ?? 0);
         } catch (e: any) { setErr(e?.message || '시안 목록을 불러오지 못했습니다.'); }
     }, []);
 
@@ -451,7 +454,10 @@ export const DevAiPanel: React.FC = () => {
                 {showDesigns && (
                     <div className="px-4 pb-4 space-y-3 border-t border-gray-700 pt-3">
                         {designs.length === 0 && (
-                            <p className="text-xs text-gray-600 py-4 text-center">대기 중인 시안이 없습니다.</p>
+                            <p className="text-xs text-gray-600 py-4 text-center">
+                                대기 중인 시안이 없습니다.
+                                {hiddenApproved > 0 && ` (확정 완료 ${hiddenApproved}건은 숨김)`}
+                            </p>
                         )}
                         {designs.map(d => (
                             <div key={d.projectName} className="bg-gray-900/60 border border-gray-800 rounded-lg p-3">
@@ -483,10 +489,20 @@ export const DevAiPanel: React.FC = () => {
                                                 </div>
                                                 <p className="text-[10px] text-gray-500 leading-snug min-h-[28px]">{v.label}</p>
                                                 <div className="flex gap-1.5">
-                                                    <a href={v.url} target="_blank" rel="noreferrer"
-                                                        className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300">
-                                                        미리보기
-                                                    </a>
+                                                    {/* ★파일이 정리된 시안은 링크를 막는다 — 404 가 나면
+                                                        Vercel SPA fallback 때문에 **메인 페이지가 대신 뜬다**.
+                                                        빈 화면보다 더 헷갈린다(2026-08-20 사장 지적). */}
+                                                    {v.exists === false ? (
+                                                        <span title="시안 파일이 정리되어 미리보기를 볼 수 없습니다"
+                                                            className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-900 text-gray-600 border border-gray-800 cursor-not-allowed">
+                                                            미리보기 없음
+                                                        </span>
+                                                    ) : (
+                                                        <a href={v.url} target="_blank" rel="noreferrer"
+                                                            className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300">
+                                                            미리보기
+                                                        </a>
+                                                    )}
                                                     {d.status !== 'approved' && (
                                                         <button onClick={() => chooseDesign(d.projectName, v.version)} disabled={busy}
                                                             className="flex-1 text-[10px] px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">

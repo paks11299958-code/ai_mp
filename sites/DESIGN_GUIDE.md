@@ -284,6 +284,8 @@ hamburger.addEventListener('click', () => {
 | (아직 없음) | | | | | |
 | 2026-06-16 | review-solver | 쇼핑 리뷰 AI 요약 '리뷰 해결사' | v1 | 밝고 모던 (흰 배경, 깔끔한 레이아웃) |
 | 2026-08-19 | widget-demo | widget-demo 페이지 맨 아래 | v1 | 밝고 모던 (흰 배경, 깔끔한 레이아웃) |
+| 2026-08-20 | ai-companion | 상호명 'AI Companion' / 슬로건… | v1 | 밝고 모던 (흰 배경, 깔끔한 레이아웃) |
+| 2026-08-20 | ai-companion | 상호명 'AI Companion' / 슬로건… | v3 | 고급스럽고 강렬한 (다크/딥컬러 배경, 임팩트 강조) |
 
 ---
 

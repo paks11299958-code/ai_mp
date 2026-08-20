@@ -1430,7 +1430,8 @@ export interface DevDesignRow {
     status: string;
     selectedVersion: string | null;
     createdAt: string | null;
-    versions: { version: string; label: string; url: string }[];
+    /** exists=false 면 시안 파일이 정리돼 미리보기가 404 다(메인 페이지로 폴백된다) */
+    versions: { version: string; label: string; url: string; exists?: boolean }[];
 }
 
 /** 개발AI 콘솔 — 프로젝트 목록 행 (2026-08-20) */
@@ -1713,7 +1714,7 @@ export const adminApi = {
         get<{ approvals: DevApprovalRow[] }>('/admin/devai/approvals'),
     // 4단계 — 디자인 시안 목록/선택. 생성·확정은 design_preview.py 가 맡는다.
     listDevDesigns: () =>
-        get<{ designs: DevDesignRow[] }>('/admin/devai/designs'),
+        get<{ designs: DevDesignRow[]; hiddenApproved?: number }>('/admin/devai/designs'),
     // 5단계 — 어드민에서 개발 착수(텔레그램 /hermes 와 같은 경로를 탄다)
     startDevProject: (id: string) =>
         post<{ started: boolean; id: string; message: string }>('/admin/devai/start', { id }),
