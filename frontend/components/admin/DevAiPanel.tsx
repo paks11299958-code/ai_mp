@@ -15,7 +15,7 @@
  * 4단계(2026-08-20): 디자인 시안 목록·선택.
  *   ★시안 생성·확정은 design_preview.py 가 이미 한다 — 여기서는 보여주고 고를 뿐이다.
  */
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { adminApi } from '../../services/apiService';
 import type { DevProjectRow, DevProjectDetail, DevProjectVersionRow, DevDesignRow } from '../../services/apiService';
 import { Icon } from '../Icons';
@@ -84,6 +84,9 @@ export const DevAiPanel: React.FC = () => {
     // 4단계 — 디자인 시안
     const [designs, setDesigns] = useState<DevDesignRow[]>([]);
     const [showDesigns, setShowDesigns] = useState(false);
+    // 참조 이미지 업로드
+    const fileRef = useRef<HTMLInputElement>(null);
+    const [uploading, setUploading] = useState(false);
 
     const load = useCallback(async () => {
         try {
@@ -251,7 +254,50 @@ export const DevAiPanel: React.FC = () => {
         } finally { setBusy(false); }
     };
 
+    /** 참조 이미지 업로드. ★프로젝트가 저장된 뒤에만 가능하다(저장 경로가 id 기준). */
+    const pickImages = async (files: FileList | null) => {
+        if (!files?.length || !selected) return;
+        setErr(''); setUploading(true);
+        try {
+            // 쿼터·순서 꼬임을 피해 한 장씩 순차로 올린다.
+            for (const f of Array.from(files)) {
+                if (f.size > 5 * 1024 * 1024) {
+                    setErr(`'${f.name}' 은 5MB를 넘어 건너뜁니다.`);
+                    continue;
+                }
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                    const r = new FileReader();
+                    r.onload = () => resolve(String(r.result));
+                    r.onerror = () => reject(new Error('파일을 읽지 못했습니다.'));
+                    r.readAsDataURL(f);
+                });
+                await adminApi.uploadDevImage(selected.id, dataUrl);
+            }
+            const d = await adminApi.getDevProject(selected.id);
+            setSelected(d.project);
+            setMsg('참조 이미지를 올렸습니다.');
+        } catch (e: any) {
+            setErr(e?.message || '이미지 업로드에 실패했습니다.');
+        } finally {
+            setUploading(false);
+            if (fileRef.current) fileRef.current.value = '';   // 같은 파일 재선택 허용
+        }
+    };
+
+    const removeImage = async (fileId: number) => {
+        if (!selected) return;
+        try {
+            setUploading(true); setErr('');
+            await adminApi.deleteDevImage(fileId);
+            const d = await adminApi.getDevProject(selected.id);
+            setSelected(d.project);
+        } catch (e: any) {
+            setErr(e?.message || '이미지 삭제에 실패했습니다.');
+        } finally { setUploading(false); }
+    };
+
     const versions = selected?.versions ?? [];
+    const refImages = (selected?.files ?? []).filter(f => f.kind === 'image');
     const current = versions[0];
     const compare: DevProjectVersionRow | undefined = useMemo(
         () => versions.find(v => v.version === diffWith),
@@ -408,6 +454,47 @@ export const DevAiPanel: React.FC = () => {
                                     rows={2} placeholder={'https://toss.im\nhttps://daangn.com'} className={`${inputCls} font-mono text-xs`} />
                             </Field>
 
+                            {/* 참조 이미지 — 저장된 뒤에만 올릴 수 있다(저장 경로가 프로젝트 id 기준). */}
+                            <Field label="참조 이미지"
+                                hint={mode === 'create'
+                                    ? '먼저 [만들기]로 저장한 뒤 올릴 수 있습니다'
+                                    : '로고·스크린샷·분위기 참고 · PNG/JPG/WEBP · 5MB 이하'}>
+                                {mode === 'edit' && selected ? (
+                                    <div className="space-y-2">
+                                        <input ref={fileRef} type="file" multiple accept="image/png,image/jpeg,image/webp,image/gif"
+                                            className="hidden" onChange={e => void pickImages(e.target.files)} />
+                                        <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading || busy}
+                                            className="text-xs px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-gray-300 border border-gray-700">
+                                            {uploading ? '올리는 중...' : '＋ 이미지 선택'}
+                                        </button>
+                                        {refImages.length > 0 && (
+                                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                                                {refImages.map(f => (
+                                                    <div key={f.id} className="relative group rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+                                                        <a href={f.url} target="_blank" rel="noreferrer">
+                                                            <img src={f.url} alt={f.fileName} className="w-full h-16 object-cover" />
+                                                        </a>
+                                                        <button type="button" onClick={() => void removeImage(f.id)} disabled={uploading}
+                                                            title="삭제"
+                                                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded bg-black/70 text-gray-300
+                                                                hover:bg-red-900 hover:text-red-200 text-[11px] leading-none">
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <p className="text-[10px] text-gray-600">
+                                            올린 이미지는 명세와 함께 개발AI에게 전달됩니다({refImages.length}/20장).
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-[11px] text-gray-600 py-2">
+                                        프로젝트를 만든 뒤 참조 이미지를 올릴 수 있습니다.
+                                    </p>
+                                )}
+                            </Field>
+
                             <Field label="명세 본문" hint="마크다운">
                                 <textarea value={form.specBody} onChange={e => setForm(f => ({ ...f, specBody: e.target.value }))}
                                     rows={10} placeholder={'## 목표\n\n## 화면\n\n## 데이터\n\n## 안 할 것'}
@@ -438,7 +525,7 @@ export const DevAiPanel: React.FC = () => {
                                     </button>
                                 )}
                                 <span className="text-[10px] text-gray-600 ml-auto">
-                                    첨부·이미지 업로드는 다음 단계에서 붙습니다
+                                    명세서(.md) 첨부는 다음 단계에서 붙습니다
                                 </span>
                             </div>
 

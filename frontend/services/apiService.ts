@@ -1459,9 +1459,21 @@ export interface DevProjectVersionRow {
     createdAt: string;
 }
 
+/** 첨부 파일 — kind: spec | image(참조 이미지) | design | result */
+export interface DevProjectFileRow {
+    id: number;
+    kind: string;
+    fileName: string;
+    /** 브라우저에서 접근할 경로. 예: /sites/devai/<id>/img/ref-....png */
+    url: string;
+    size: number;
+    mimeType?: string | null;
+    createdAt?: string;
+}
+
 export interface DevProjectDetail extends Omit<DevProjectRow, 'latestVersion' | 'counts'> {
     versions: DevProjectVersionRow[];
-    files?: { id: number; kind: string; fileName: string; url: string; size: number }[];
+    files?: DevProjectFileRow[];
     events?: { id: number; actor: string; phase: string; message: string; meta: string | null; at: string }[];
     result?: { deployUrl: string | null; summary: string | null; commits: string; designSourceUrl: string | null } | null;
 }
@@ -1685,6 +1697,11 @@ export const adminApi = {
     // 5단계 — 어드민에서 개발 착수(텔레그램 /hermes 와 같은 경로를 탄다)
     startDevProject: (id: string) =>
         post<{ started: boolean; id: string; message: string }>('/devai?action=start', { id }),
+    // 참조 이미지 — 저장소 안 sites/devai/<id>/img/ 에 저장되고 명세·지시문에 경로가 실린다.
+    uploadDevImage: (id: string, dataUrl: string) =>
+        post<{ file: DevProjectFileRow }>('/devai?action=upload-image', { id, dataUrl }),
+    deleteDevImage: (fileId: number) =>
+        post<{ deleted: boolean; fileId: number }>('/devai?action=delete-image', { fileId }),
     chooseDevDesign: (projectName: string, version: string, id?: string) =>
         post<{ ok: boolean; projectName: string; version: string; message: string }>(
             '/devai?action=choose-design', { projectName, version, id }),

@@ -27,7 +27,7 @@
  *     이게 있어야 텔레그램을 알림 전용으로 줄일 수 있다.
  */
 
-import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync, mkdirSync, unlinkSync } from 'node:fs';
 import { execFileSync, spawn } from 'node:child_process';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { requireAuth } from '../_lib/auth.js';
@@ -122,6 +122,41 @@ function detectSiteUrl(workdir: string, commits: string[]): string | null {
         } catch { /* 커밋이 없거나 git 실패 — 다음 커밋으로 */ }
     }
     return null;
+}
+
+/** 참조 이미지 저장 위치. ★사장 결정(2026-08-20): 외부 스토리지를 쓰지 않고
+ *  저장소 안 sites/devai/<projectId>/img/ 에 둬서 배포와 함께 따라가게 한다. */
+const DEVAI_IMG_ROOT = '/home/paks11299958/ai_mp/sites/devai';
+
+/** 참조 이미지 허용 형식 — data URL 의 MIME 과 저장 확장자 대응. */
+const IMAGE_EXT: Record<string, string> = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/webp': 'webp',
+    'image/gif': 'gif',
+};
+
+/** 참조 이미지 1건 최대 크기(바이트). 저장소에 그대로 커밋되므로 크게 두지 않는다. */
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+/** 프로젝트당 참조 이미지 최대 장수. */
+const MAX_IMAGES_PER_PROJECT = 20;
+
+/**
+ * data URL 을 파싱해 { mime, buf } 로 돌려준다. 형식이 아니거나 허용 MIME 이
+ * 아니면 null. ★확장자는 파일명이 아니라 **MIME 에서** 정한다 — 업로드한 쪽이
+ * 준 파일명을 그대로 믿고 경로에 쓰면 안 된다.
+ */
+function parseDataUrl(input: string): { mime: string; buf: Buffer } | null {
+    const m = /^data:([a-z]+\/[a-z0-9.+-]+);base64,(.+)$/i.exec(input.trim());
+    if (!m) return null;
+    const mime = m[1].toLowerCase();
+    if (!IMAGE_EXT[mime]) return null;
+    try {
+        const buf = Buffer.from(m[2], 'base64');
+        return buf.length ? { mime, buf } : null;
+    } catch {
+        return null;
+    }
 }
 
 /** 참조 URL 배열 정규화. 문자열(줄바꿈 구분)도 배열도 받는다. */
@@ -552,12 +587,99 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             }
 
             // ── 명세서 다운로드 (마크다운) ──────────────────────────
+            // ── 참조 이미지 업로드 ────────────────────────────────
+            //   저장 위치는 sites/devai/<projectId>/img/ (schema.prisma 주석의 결정).
+            //   ★DB에는 경로만 남기고 실체는 저장소에 둔다 — 배포와 함께 따라간다.
+            case 'upload-image': {
+                if (req.method !== 'POST') return res.status(405).json({ error: 'POST 로 호출하세요.' });
+                const b = req.body ?? {};
+                const id = str(b.id, 200);
+                if (!id) return res.status(400).json({ error: 'id 가 필요합니다.' });
+
+                const p = await prisma.devProject.findUnique({ where: { id } });
+                if (!p) return res.status(404).json({ error: '프로젝트를 찾을 수 없습니다.' });
+                // 경로에 쓰이는 값이므로 형식을 확인한다(cuid 는 영숫자다).
+                if (!/^[A-Za-z0-9_-]+$/.test(p.id)) {
+                    return res.status(400).json({ error: '프로젝트 ID 형식이 올바르지 않습니다.' });
+                }
+
+                const parsed = parseDataUrl(str(b.dataUrl, 12_000_000));
+                if (!parsed) {
+                    return res.status(400).json({
+                        error: 'PNG·JPG·WEBP·GIF 이미지만 올릴 수 있습니다.',
+                    });
+                }
+                if (parsed.buf.length > MAX_IMAGE_BYTES) {
+                    return res.status(400).json({
+                        error: `이미지는 ${Math.round(MAX_IMAGE_BYTES / 1024 / 1024)}MB 이하만 올릴 수 있습니다.`,
+                    });
+                }
+
+                const already = await prisma.devProjectFile.count({
+                    where: { projectId: p.id, kind: 'image' },
+                });
+                if (already >= MAX_IMAGES_PER_PROJECT) {
+                    return res.status(400).json({
+                        error: `참조 이미지는 프로젝트당 ${MAX_IMAGES_PER_PROJECT}장까지입니다.`,
+                    });
+                }
+
+                // 파일명은 서버가 정한다(올린 쪽 파일명을 경로에 쓰지 않는다).
+                const ext = IMAGE_EXT[parsed.mime];
+                const fileName = `ref-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+                const dir = `${DEVAI_IMG_ROOT}/${p.id}/img`;
+                try {
+                    mkdirSync(dir, { recursive: true });
+                    writeFileSync(`${dir}/${fileName}`, parsed.buf);
+                } catch (e: any) {
+                    return res.status(500).json({ error: `이미지 저장에 실패했습니다: ${e?.message ?? String(e)}` });
+                }
+
+                const file = await prisma.devProjectFile.create({
+                    data: {
+                        projectId: p.id,
+                        kind: 'image',
+                        fileName,
+                        // 올린 쪽이 붙인 설명(캡션)은 파일명이 아니라 여기 남긴다.
+                        url: `/sites/devai/${p.id}/img/${fileName}`,
+                        size: parsed.buf.length,
+                        mimeType: parsed.mime,
+                    },
+                });
+                return res.status(200).json({ file });
+            }
+
+            // ── 참조 이미지 삭제 ──────────────────────────────────
+            case 'delete-image': {
+                if (req.method !== 'POST') return res.status(405).json({ error: 'POST 로 호출하세요.' });
+                const fileId = Number(req.body?.fileId);
+                if (!Number.isInteger(fileId)) {
+                    return res.status(400).json({ error: 'fileId 가 필요합니다.' });
+                }
+                const f = await prisma.devProjectFile.findUnique({ where: { id: fileId } });
+                if (!f) return res.status(404).json({ error: '파일을 찾을 수 없습니다.' });
+
+                // 실제 파일은 지워지지 않아도 목록에서 빠지면 화면상 목적은 달성된다.
+                // 경로가 예상 형식일 때만 unlink 한다(엉뚱한 파일 삭제 방지).
+                if (/^[A-Za-z0-9_-]+$/.test(f.projectId) && /^[A-Za-z0-9_.-]+$/.test(f.fileName)) {
+                    try {
+                        unlinkSync(`${DEVAI_IMG_ROOT}/${f.projectId}/img/${f.fileName}`);
+                    } catch { /* 이미 없으면 그대로 진행 */ }
+                }
+                await prisma.devProjectFile.delete({ where: { id: fileId } });
+                return res.status(200).json({ deleted: true, fileId });
+            }
+
             case 'export': {
                 const id = str(req.query.id ?? req.body?.id, 200);
                 if (!id) return res.status(400).json({ error: 'id 가 필요합니다.' });
                 const p = await prisma.devProject.findUnique({
                     where: { id },
-                    include: { versions: { orderBy: { version: 'desc' }, take: 1 }, result: true },
+                    include: {
+                        versions: { orderBy: { version: 'desc' }, take: 1 },
+                        files: { where: { kind: 'image' }, orderBy: { createdAt: 'asc' } },
+                        result: true,
+                    },
                 });
                 if (!p) return res.status(404).json({ error: '프로젝트를 찾을 수 없습니다.' });
                 const v = p.versions[0];
@@ -569,6 +691,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     `> 프로젝트 \`${p.id}\` · v${v?.version ?? 0} · ${new Date(p.updatedAt).toLocaleString('ko-KR')}`, '',
                     '## 기능', '', (v?.features || '(없음)'), '',
                     ...(urls.length ? ['## 참조 사이트', '', ...urls.map(u => `- ${u}`), ''] : []),
+                    // ★참조 이미지는 저장소 안 실제 경로로 적는다 — 개발 에이전트가 열어 볼 수 있어야 한다.
+                    ...(p.files.length ? ['## 참조 이미지', '',
+                        ...p.files.map(f => `- \`sites/devai/${p.id}/img/${f.fileName}\``), ''] : []),
                     '## 명세', '', (v?.specBody || '(없음)'), '',
                     ...(p.result?.deployUrl ? ['## 결과', '', `- 배포: ${p.result.deployUrl}`, ''] : []),
                 ].join('\n');
@@ -582,7 +707,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(400).json({
                     error: `알 수 없는 action 입니다: ${action || '(없음)'}`,
                     allowed: ['list', 'get', 'create', 'update', 'delete', 'sync', 'link', 'approve',
-                              'start', 'designs', 'choose-design', 'export'],
+                              'start', 'designs', 'choose-design', 'export',
+                              'upload-image', 'delete-image'],
                 });
         }
     } catch (e: any) {
