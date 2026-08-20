@@ -1682,6 +1682,9 @@ export const adminApi = {
     // 4단계 — 디자인 시안 목록/선택. 생성·확정은 design_preview.py 가 맡는다.
     listDevDesigns: () =>
         get<{ designs: DevDesignRow[] }>('/devai?action=designs'),
+    // 5단계 — 어드민에서 개발 착수(텔레그램 /hermes 와 같은 경로를 탄다)
+    startDevProject: (id: string) =>
+        post<{ started: boolean; id: string; message: string }>('/devai?action=start', { id }),
     chooseDevDesign: (projectName: string, version: string, id?: string) =>
         post<{ ok: boolean; projectName: string; version: string; message: string }>(
             '/devai?action=choose-design', { projectName, version, id }),

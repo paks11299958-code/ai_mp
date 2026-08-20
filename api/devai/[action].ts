@@ -22,11 +22,13 @@
  *   ★시안 생성·확정은 design_preview.py 가 이미 한다 — 어드민은 대기 파일을 읽고
  *     approve_design() 을 부를 뿐이다(보관·DESIGN_GUIDE 이력·커밋까지 그쪽이 맡는다).
  *
- * 남은 단계: 5)텔레그램 축소
+ * 5단계: start(개발 착수) — rag/devai_start.py 가 hermes.run() 을 그대로 부른다.
+ *   ★텔레그램 `/hermes` 와 **같은 함수**를 타므로 어느 쪽에서 시작하든 동작이 같다.
+ *     이게 있어야 텔레그램을 알림 전용으로 줄일 수 있다.
  */
 
 import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { requireAuth } from '../_lib/auth.js';
 import { getPrisma } from '../_lib/inverse-trader/prisma.js';
@@ -420,6 +422,59 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json({ ok: true, taskId, decision });
             }
 
+            // ── 개발 시작 (5단계) ───────────────────────────────────
+            //   지금까지 착수는 텔레그램 `/hermes` 하나뿐이었다. 어드민에서도 시작할 수
+            //   있어야 텔레그램을 알림 전용으로 줄일 수 있다.
+            //   ★rag/devai_start.py 가 hermes.run() 을 **그대로** 부른다 — 계획·승인·
+            //     묶음 실행 경로가 텔레그램과 동일하다. 파이프라인을 고치지 않는다.
+            case 'start': {
+                if (req.method !== 'POST') return res.status(405).json({ error: 'POST 로 호출하세요.' });
+                const id = str(req.body?.id, 200);
+                if (!id) return res.status(400).json({ error: 'id 가 필요합니다.' });
+
+                const p = await prisma.devProject.findUnique({
+                    where: { id },
+                    include: { versions: { orderBy: { version: 'desc' }, take: 1 } },
+                });
+                if (!p) return res.status(404).json({ error: '프로젝트를 찾을 수 없습니다.' });
+                if (RUNNING_STATUSES.includes(p.status)) {
+                    return res.status(400).json({ error: `이미 진행 중입니다(상태: ${p.status}).` });
+                }
+                const v = p.versions[0];
+                if (!v || (!v.specBody.trim() && !v.features.trim())) {
+                    return res.status(400).json({ error: '명세가 비어 있습니다. 기능이나 명세 본문을 먼저 채우세요.' });
+                }
+
+                // ★동시 실행 1건 제한(사장 결정). pane 안 claude 가 최대 3.2GB인데 서버2는 3.9GB다.
+                const running = await prisma.devProject.count({
+                    where: { status: { in: RUNNING_STATUSES } },
+                });
+                if (running >= MAX_CONCURRENT_RUNNING) {
+                    return res.status(409).json({
+                        error: `이미 ${running}건이 진행 중입니다(동시 실행 상한 ${MAX_CONCURRENT_RUNNING}건). ` +
+                               `끝나면 다시 시작하세요.`,
+                    });
+                }
+
+                // 백그라운드로 띄우고 바로 응답한다 — 개발은 수십 분 걸린다.
+                try {
+                    const child = spawn(
+                        '/home/paks11299958/rag-env/bin/python',
+                        ['/home/paks11299958/rag/devai_start.py', id],
+                        { cwd: '/home/paks11299958/rag', detached: true, stdio: 'ignore' },
+                    );
+                    child.unref();
+                } catch (e: any) {
+                    return res.status(500).json({ error: `개발 시작에 실패했습니다: ${e?.message ?? String(e)}` });
+                }
+
+                await prisma.devProject.update({ where: { id }, data: { status: 'planned' } });
+                return res.status(200).json({
+                    started: true, id,
+                    message: '개발을 시작했습니다. 계획이 나오면 승인해 주세요(진행은 자동 갱신됩니다).',
+                });
+            }
+
             // ── 디자인 시안 목록 (4단계) ────────────────────────────
             //   design_preview.py 가 Opus로 HTML 시안 3개를 만들어
             //   sites/_preview/ 에 두고 logs/design_pending.json 에 대기 상태를 적는다.
@@ -527,7 +582,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(400).json({
                     error: `알 수 없는 action 입니다: ${action || '(없음)'}`,
                     allowed: ['list', 'get', 'create', 'update', 'delete', 'sync', 'link', 'approve',
-                              'designs', 'choose-design', 'export'],
+                              'start', 'designs', 'choose-design', 'export'],
                 });
         }
     } catch (e: any) {

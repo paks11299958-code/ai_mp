@@ -148,6 +148,19 @@ export const DevAiPanel: React.FC = () => {
         finally { setBusy(false); }
     };
 
+    const startDev = async () => {
+        if (!selected) return;
+        if (!concurrency.canStart) { setErr(`이미 ${concurrency.running}건이 진행 중입니다(상한 ${concurrency.max}건).`); return; }
+        if (!window.confirm(`'${selected.title}' 개발을 시작할까요?\n최신 명세(v${selected.versions[0]?.version ?? 0})로 계획을 세웁니다.`)) return;
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            const d = await adminApi.startDevProject(selected.id);
+            setMsg(d.message);
+            await load(); await refreshQuiet(selected.id);
+        } catch (e: any) { setErr(e?.message || '개발 시작에 실패했습니다.'); }
+        finally { setBusy(false); }
+    };
+
     const loadDesigns = useCallback(async () => {
         try {
             const d = await adminApi.listDevDesigns();
@@ -411,6 +424,13 @@ export const DevAiPanel: React.FC = () => {
                                     className="text-xs px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">
                                     {busy ? '저장 중...' : mode === 'create' ? '만들기' : '저장(새 버전)'}
                                 </button>
+                                {mode === 'edit' && (
+                                    <button onClick={startDev} disabled={busy || !concurrency.canStart || isLive}
+                                        title={isLive ? '이미 진행 중입니다' : !concurrency.canStart ? '다른 프로젝트가 진행 중입니다' : ''}
+                                        className="text-xs px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white">
+                                        ▶ 개발 시작
+                                    </button>
+                                )}
                                 {mode === 'edit' && (
                                     <button onClick={remove} disabled={busy}
                                         className="text-xs px-3 py-2 rounded-lg bg-gray-800 hover:bg-red-900/60 text-gray-400 hover:text-red-300 border border-gray-700">
