@@ -178,6 +178,41 @@ export type GolfCourse = $Result.DefaultSelection<Prisma.$GolfCoursePayload>
  * 
  */
 export type AiUsageLog = $Result.DefaultSelection<Prisma.$AiUsageLogPayload>
+/**
+ * Model HairStyle
+ * 
+ */
+export type HairStyle = $Result.DefaultSelection<Prisma.$HairStylePayload>
+/**
+ * Model InverseTraderConfig
+ * 자동매매 설정(종목·수량·리스크 한도). 어드민에서 관리.
+ */
+export type InverseTraderConfig = $Result.DefaultSelection<Prisma.$InverseTraderConfigPayload>
+/**
+ * Model InverseOrder
+ * 주문 원장. 부모 체결로 파생된 후속주문은 parentOrderId로 추적한다.
+ */
+export type InverseOrder = $Result.DefaultSelection<Prisma.$InverseOrderPayload>
+/**
+ * Model InverseFill
+ * 체결 내역. 시뮬레이션 브로커가 반환하는 체결 객체와 같은 형태.
+ */
+export type InverseFill = $Result.DefaultSelection<Prisma.$InverseFillPayload>
+/**
+ * Model InversePosition
+ * 세션×종목 보유 포지션(현재 상태 스냅샷).
+ */
+export type InversePosition = $Result.DefaultSelection<Prisma.$InversePositionPayload>
+/**
+ * Model InverseDailyStat
+ * 일자별 집계(어드민 손익 화면 원천).
+ */
+export type InverseDailyStat = $Result.DefaultSelection<Prisma.$InverseDailyStatPayload>
+/**
+ * Model InverseTraderSession
+ * 자동매매 세션(구동 단위). 어드민 상태 표시의 기준.
+ */
+export type InverseTraderSession = $Result.DefaultSelection<Prisma.$InverseTraderSessionPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -629,6 +664,76 @@ export class PrismaClient<
     * ```
     */
   get aiUsageLog(): Prisma.AiUsageLogDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.hairStyle`: Exposes CRUD operations for the **HairStyle** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more HairStyles
+    * const hairStyles = await prisma.hairStyle.findMany()
+    * ```
+    */
+  get hairStyle(): Prisma.HairStyleDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.inverseTraderConfig`: Exposes CRUD operations for the **InverseTraderConfig** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InverseTraderConfigs
+    * const inverseTraderConfigs = await prisma.inverseTraderConfig.findMany()
+    * ```
+    */
+  get inverseTraderConfig(): Prisma.InverseTraderConfigDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.inverseOrder`: Exposes CRUD operations for the **InverseOrder** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InverseOrders
+    * const inverseOrders = await prisma.inverseOrder.findMany()
+    * ```
+    */
+  get inverseOrder(): Prisma.InverseOrderDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.inverseFill`: Exposes CRUD operations for the **InverseFill** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InverseFills
+    * const inverseFills = await prisma.inverseFill.findMany()
+    * ```
+    */
+  get inverseFill(): Prisma.InverseFillDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.inversePosition`: Exposes CRUD operations for the **InversePosition** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InversePositions
+    * const inversePositions = await prisma.inversePosition.findMany()
+    * ```
+    */
+  get inversePosition(): Prisma.InversePositionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.inverseDailyStat`: Exposes CRUD operations for the **InverseDailyStat** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InverseDailyStats
+    * const inverseDailyStats = await prisma.inverseDailyStat.findMany()
+    * ```
+    */
+  get inverseDailyStat(): Prisma.InverseDailyStatDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.inverseTraderSession`: Exposes CRUD operations for the **InverseTraderSession** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InverseTraderSessions
+    * const inverseTraderSessions = await prisma.inverseTraderSession.findMany()
+    * ```
+    */
+  get inverseTraderSession(): Prisma.InverseTraderSessionDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -1095,7 +1200,14 @@ export namespace Prisma {
     MenuUsageLog: 'MenuUsageLog',
     GolfBookingSchedule: 'GolfBookingSchedule',
     GolfCourse: 'GolfCourse',
-    AiUsageLog: 'AiUsageLog'
+    AiUsageLog: 'AiUsageLog',
+    HairStyle: 'HairStyle',
+    InverseTraderConfig: 'InverseTraderConfig',
+    InverseOrder: 'InverseOrder',
+    InverseFill: 'InverseFill',
+    InversePosition: 'InversePosition',
+    InverseDailyStat: 'InverseDailyStat',
+    InverseTraderSession: 'InverseTraderSession'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1111,7 +1223,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse" | "aiUsageLog"
+      modelProps: "user" | "userPersonaXp" | "userMemory" | "category" | "persona" | "personaImage" | "personaVideo" | "chatSession" | "message" | "conversationSummary" | "appConfig" | "personaKnowledge" | "personaTriggerVideo" | "boardPost" | "userSwingAnalysis" | "boardReply" | "announcement" | "pointTransaction" | "star" | "pendingVerification" | "partnerPost" | "partnerReply" | "corpCode" | "stockAnalysis" | "stockReportChunk" | "luxuryVerification" | "usedItemListing" | "naverShoppingCategory" | "menuLimit" | "menuUsageLog" | "golfBookingSchedule" | "golfCourse" | "aiUsageLog" | "hairStyle" | "inverseTraderConfig" | "inverseOrder" | "inverseFill" | "inversePosition" | "inverseDailyStat" | "inverseTraderSession"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3557,6 +3669,524 @@ export namespace Prisma {
           }
         }
       }
+      HairStyle: {
+        payload: Prisma.$HairStylePayload<ExtArgs>
+        fields: Prisma.HairStyleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.HairStyleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.HairStyleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>
+          }
+          findFirst: {
+            args: Prisma.HairStyleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.HairStyleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>
+          }
+          findMany: {
+            args: Prisma.HairStyleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>[]
+          }
+          create: {
+            args: Prisma.HairStyleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>
+          }
+          createMany: {
+            args: Prisma.HairStyleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.HairStyleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>[]
+          }
+          delete: {
+            args: Prisma.HairStyleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>
+          }
+          update: {
+            args: Prisma.HairStyleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>
+          }
+          deleteMany: {
+            args: Prisma.HairStyleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.HairStyleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.HairStyleUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>[]
+          }
+          upsert: {
+            args: Prisma.HairStyleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$HairStylePayload>
+          }
+          aggregate: {
+            args: Prisma.HairStyleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateHairStyle>
+          }
+          groupBy: {
+            args: Prisma.HairStyleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<HairStyleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.HairStyleCountArgs<ExtArgs>
+            result: $Utils.Optional<HairStyleCountAggregateOutputType> | number
+          }
+        }
+      }
+      InverseTraderConfig: {
+        payload: Prisma.$InverseTraderConfigPayload<ExtArgs>
+        fields: Prisma.InverseTraderConfigFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InverseTraderConfigFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InverseTraderConfigFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>
+          }
+          findFirst: {
+            args: Prisma.InverseTraderConfigFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InverseTraderConfigFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>
+          }
+          findMany: {
+            args: Prisma.InverseTraderConfigFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>[]
+          }
+          create: {
+            args: Prisma.InverseTraderConfigCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>
+          }
+          createMany: {
+            args: Prisma.InverseTraderConfigCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InverseTraderConfigCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>[]
+          }
+          delete: {
+            args: Prisma.InverseTraderConfigDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>
+          }
+          update: {
+            args: Prisma.InverseTraderConfigUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>
+          }
+          deleteMany: {
+            args: Prisma.InverseTraderConfigDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InverseTraderConfigUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InverseTraderConfigUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>[]
+          }
+          upsert: {
+            args: Prisma.InverseTraderConfigUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderConfigPayload>
+          }
+          aggregate: {
+            args: Prisma.InverseTraderConfigAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInverseTraderConfig>
+          }
+          groupBy: {
+            args: Prisma.InverseTraderConfigGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InverseTraderConfigGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InverseTraderConfigCountArgs<ExtArgs>
+            result: $Utils.Optional<InverseTraderConfigCountAggregateOutputType> | number
+          }
+        }
+      }
+      InverseOrder: {
+        payload: Prisma.$InverseOrderPayload<ExtArgs>
+        fields: Prisma.InverseOrderFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InverseOrderFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InverseOrderFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>
+          }
+          findFirst: {
+            args: Prisma.InverseOrderFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InverseOrderFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>
+          }
+          findMany: {
+            args: Prisma.InverseOrderFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>[]
+          }
+          create: {
+            args: Prisma.InverseOrderCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>
+          }
+          createMany: {
+            args: Prisma.InverseOrderCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InverseOrderCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>[]
+          }
+          delete: {
+            args: Prisma.InverseOrderDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>
+          }
+          update: {
+            args: Prisma.InverseOrderUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>
+          }
+          deleteMany: {
+            args: Prisma.InverseOrderDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InverseOrderUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InverseOrderUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>[]
+          }
+          upsert: {
+            args: Prisma.InverseOrderUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseOrderPayload>
+          }
+          aggregate: {
+            args: Prisma.InverseOrderAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInverseOrder>
+          }
+          groupBy: {
+            args: Prisma.InverseOrderGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InverseOrderGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InverseOrderCountArgs<ExtArgs>
+            result: $Utils.Optional<InverseOrderCountAggregateOutputType> | number
+          }
+        }
+      }
+      InverseFill: {
+        payload: Prisma.$InverseFillPayload<ExtArgs>
+        fields: Prisma.InverseFillFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InverseFillFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InverseFillFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>
+          }
+          findFirst: {
+            args: Prisma.InverseFillFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InverseFillFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>
+          }
+          findMany: {
+            args: Prisma.InverseFillFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>[]
+          }
+          create: {
+            args: Prisma.InverseFillCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>
+          }
+          createMany: {
+            args: Prisma.InverseFillCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InverseFillCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>[]
+          }
+          delete: {
+            args: Prisma.InverseFillDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>
+          }
+          update: {
+            args: Prisma.InverseFillUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>
+          }
+          deleteMany: {
+            args: Prisma.InverseFillDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InverseFillUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InverseFillUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>[]
+          }
+          upsert: {
+            args: Prisma.InverseFillUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseFillPayload>
+          }
+          aggregate: {
+            args: Prisma.InverseFillAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInverseFill>
+          }
+          groupBy: {
+            args: Prisma.InverseFillGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InverseFillGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InverseFillCountArgs<ExtArgs>
+            result: $Utils.Optional<InverseFillCountAggregateOutputType> | number
+          }
+        }
+      }
+      InversePosition: {
+        payload: Prisma.$InversePositionPayload<ExtArgs>
+        fields: Prisma.InversePositionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InversePositionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InversePositionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>
+          }
+          findFirst: {
+            args: Prisma.InversePositionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InversePositionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>
+          }
+          findMany: {
+            args: Prisma.InversePositionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>[]
+          }
+          create: {
+            args: Prisma.InversePositionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>
+          }
+          createMany: {
+            args: Prisma.InversePositionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InversePositionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>[]
+          }
+          delete: {
+            args: Prisma.InversePositionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>
+          }
+          update: {
+            args: Prisma.InversePositionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>
+          }
+          deleteMany: {
+            args: Prisma.InversePositionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InversePositionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InversePositionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>[]
+          }
+          upsert: {
+            args: Prisma.InversePositionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InversePositionPayload>
+          }
+          aggregate: {
+            args: Prisma.InversePositionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInversePosition>
+          }
+          groupBy: {
+            args: Prisma.InversePositionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InversePositionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InversePositionCountArgs<ExtArgs>
+            result: $Utils.Optional<InversePositionCountAggregateOutputType> | number
+          }
+        }
+      }
+      InverseDailyStat: {
+        payload: Prisma.$InverseDailyStatPayload<ExtArgs>
+        fields: Prisma.InverseDailyStatFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InverseDailyStatFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InverseDailyStatFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>
+          }
+          findFirst: {
+            args: Prisma.InverseDailyStatFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InverseDailyStatFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>
+          }
+          findMany: {
+            args: Prisma.InverseDailyStatFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>[]
+          }
+          create: {
+            args: Prisma.InverseDailyStatCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>
+          }
+          createMany: {
+            args: Prisma.InverseDailyStatCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InverseDailyStatCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>[]
+          }
+          delete: {
+            args: Prisma.InverseDailyStatDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>
+          }
+          update: {
+            args: Prisma.InverseDailyStatUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>
+          }
+          deleteMany: {
+            args: Prisma.InverseDailyStatDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InverseDailyStatUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InverseDailyStatUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>[]
+          }
+          upsert: {
+            args: Prisma.InverseDailyStatUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseDailyStatPayload>
+          }
+          aggregate: {
+            args: Prisma.InverseDailyStatAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInverseDailyStat>
+          }
+          groupBy: {
+            args: Prisma.InverseDailyStatGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InverseDailyStatGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InverseDailyStatCountArgs<ExtArgs>
+            result: $Utils.Optional<InverseDailyStatCountAggregateOutputType> | number
+          }
+        }
+      }
+      InverseTraderSession: {
+        payload: Prisma.$InverseTraderSessionPayload<ExtArgs>
+        fields: Prisma.InverseTraderSessionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InverseTraderSessionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InverseTraderSessionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>
+          }
+          findFirst: {
+            args: Prisma.InverseTraderSessionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InverseTraderSessionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>
+          }
+          findMany: {
+            args: Prisma.InverseTraderSessionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>[]
+          }
+          create: {
+            args: Prisma.InverseTraderSessionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>
+          }
+          createMany: {
+            args: Prisma.InverseTraderSessionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InverseTraderSessionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>[]
+          }
+          delete: {
+            args: Prisma.InverseTraderSessionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>
+          }
+          update: {
+            args: Prisma.InverseTraderSessionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>
+          }
+          deleteMany: {
+            args: Prisma.InverseTraderSessionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InverseTraderSessionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.InverseTraderSessionUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>[]
+          }
+          upsert: {
+            args: Prisma.InverseTraderSessionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InverseTraderSessionPayload>
+          }
+          aggregate: {
+            args: Prisma.InverseTraderSessionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInverseTraderSession>
+          }
+          groupBy: {
+            args: Prisma.InverseTraderSessionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InverseTraderSessionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InverseTraderSessionCountArgs<ExtArgs>
+            result: $Utils.Optional<InverseTraderSessionCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3698,6 +4328,13 @@ export namespace Prisma {
     golfBookingSchedule?: GolfBookingScheduleOmit
     golfCourse?: GolfCourseOmit
     aiUsageLog?: AiUsageLogOmit
+    hairStyle?: HairStyleOmit
+    inverseTraderConfig?: InverseTraderConfigOmit
+    inverseOrder?: InverseOrderOmit
+    inverseFill?: InverseFillOmit
+    inversePosition?: InversePositionOmit
+    inverseDailyStat?: InverseDailyStatOmit
+    inverseTraderSession?: InverseTraderSessionOmit
   }
 
   /* Types for Logging */
@@ -24331,6 +24968,7 @@ export namespace Prisma {
     amount: number | null
     type: string | null
     description: string | null
+    orderId: string | null
     personaId: string | null
     balanceAfter: number | null
     createdAt: Date | null
@@ -24342,6 +24980,7 @@ export namespace Prisma {
     amount: number | null
     type: string | null
     description: string | null
+    orderId: string | null
     personaId: string | null
     balanceAfter: number | null
     createdAt: Date | null
@@ -24353,6 +24992,7 @@ export namespace Prisma {
     amount: number
     type: number
     description: number
+    orderId: number
     personaId: number
     balanceAfter: number
     createdAt: number
@@ -24380,6 +25020,7 @@ export namespace Prisma {
     amount?: true
     type?: true
     description?: true
+    orderId?: true
     personaId?: true
     balanceAfter?: true
     createdAt?: true
@@ -24391,6 +25032,7 @@ export namespace Prisma {
     amount?: true
     type?: true
     description?: true
+    orderId?: true
     personaId?: true
     balanceAfter?: true
     createdAt?: true
@@ -24402,6 +25044,7 @@ export namespace Prisma {
     amount?: true
     type?: true
     description?: true
+    orderId?: true
     personaId?: true
     balanceAfter?: true
     createdAt?: true
@@ -24500,6 +25143,7 @@ export namespace Prisma {
     amount: number
     type: string
     description: string | null
+    orderId: string | null
     personaId: string | null
     balanceAfter: number
     createdAt: Date
@@ -24530,6 +25174,7 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     description?: boolean
+    orderId?: boolean
     personaId?: boolean
     balanceAfter?: boolean
     createdAt?: boolean
@@ -24543,6 +25188,7 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     description?: boolean
+    orderId?: boolean
     personaId?: boolean
     balanceAfter?: boolean
     createdAt?: boolean
@@ -24556,6 +25202,7 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     description?: boolean
+    orderId?: boolean
     personaId?: boolean
     balanceAfter?: boolean
     createdAt?: boolean
@@ -24569,12 +25216,13 @@ export namespace Prisma {
     amount?: boolean
     type?: boolean
     description?: boolean
+    orderId?: boolean
     personaId?: boolean
     balanceAfter?: boolean
     createdAt?: boolean
   }
 
-  export type PointTransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "amount" | "type" | "description" | "personaId" | "balanceAfter" | "createdAt", ExtArgs["result"]["pointTransaction"]>
+  export type PointTransactionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "amount" | "type" | "description" | "orderId" | "personaId" | "balanceAfter" | "createdAt", ExtArgs["result"]["pointTransaction"]>
   export type PointTransactionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     persona?: boolean | PointTransaction$personaArgs<ExtArgs>
@@ -24600,6 +25248,7 @@ export namespace Prisma {
       amount: number
       type: string
       description: string | null
+      orderId: string | null
       personaId: string | null
       balanceAfter: number
       createdAt: Date
@@ -25033,6 +25682,7 @@ export namespace Prisma {
     readonly amount: FieldRef<"PointTransaction", 'Int'>
     readonly type: FieldRef<"PointTransaction", 'String'>
     readonly description: FieldRef<"PointTransaction", 'String'>
+    readonly orderId: FieldRef<"PointTransaction", 'String'>
     readonly personaId: FieldRef<"PointTransaction", 'String'>
     readonly balanceAfter: FieldRef<"PointTransaction", 'Int'>
     readonly createdAt: FieldRef<"PointTransaction", 'DateTime'>
@@ -42756,6 +43406,7761 @@ export namespace Prisma {
 
 
   /**
+   * Model HairStyle
+   */
+
+  export type AggregateHairStyle = {
+    _count: HairStyleCountAggregateOutputType | null
+    _avg: HairStyleAvgAggregateOutputType | null
+    _sum: HairStyleSumAggregateOutputType | null
+    _min: HairStyleMinAggregateOutputType | null
+    _max: HairStyleMaxAggregateOutputType | null
+  }
+
+  export type HairStyleAvgAggregateOutputType = {
+    id: number | null
+    order: number | null
+  }
+
+  export type HairStyleSumAggregateOutputType = {
+    id: number | null
+    order: number | null
+  }
+
+  export type HairStyleMinAggregateOutputType = {
+    id: number | null
+    styleKey: string | null
+    name: string | null
+    gender: string | null
+    imageUrl: string | null
+    promptEn: string | null
+    description: string | null
+    order: number | null
+    isVisible: boolean | null
+    createdAt: Date | null
+  }
+
+  export type HairStyleMaxAggregateOutputType = {
+    id: number | null
+    styleKey: string | null
+    name: string | null
+    gender: string | null
+    imageUrl: string | null
+    promptEn: string | null
+    description: string | null
+    order: number | null
+    isVisible: boolean | null
+    createdAt: Date | null
+  }
+
+  export type HairStyleCountAggregateOutputType = {
+    id: number
+    styleKey: number
+    name: number
+    gender: number
+    imageUrl: number
+    promptEn: number
+    description: number
+    order: number
+    isVisible: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type HairStyleAvgAggregateInputType = {
+    id?: true
+    order?: true
+  }
+
+  export type HairStyleSumAggregateInputType = {
+    id?: true
+    order?: true
+  }
+
+  export type HairStyleMinAggregateInputType = {
+    id?: true
+    styleKey?: true
+    name?: true
+    gender?: true
+    imageUrl?: true
+    promptEn?: true
+    description?: true
+    order?: true
+    isVisible?: true
+    createdAt?: true
+  }
+
+  export type HairStyleMaxAggregateInputType = {
+    id?: true
+    styleKey?: true
+    name?: true
+    gender?: true
+    imageUrl?: true
+    promptEn?: true
+    description?: true
+    order?: true
+    isVisible?: true
+    createdAt?: true
+  }
+
+  export type HairStyleCountAggregateInputType = {
+    id?: true
+    styleKey?: true
+    name?: true
+    gender?: true
+    imageUrl?: true
+    promptEn?: true
+    description?: true
+    order?: true
+    isVisible?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type HairStyleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which HairStyle to aggregate.
+     */
+    where?: HairStyleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HairStyles to fetch.
+     */
+    orderBy?: HairStyleOrderByWithRelationInput | HairStyleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: HairStyleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HairStyles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HairStyles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned HairStyles
+    **/
+    _count?: true | HairStyleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: HairStyleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: HairStyleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: HairStyleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: HairStyleMaxAggregateInputType
+  }
+
+  export type GetHairStyleAggregateType<T extends HairStyleAggregateArgs> = {
+        [P in keyof T & keyof AggregateHairStyle]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateHairStyle[P]>
+      : GetScalarType<T[P], AggregateHairStyle[P]>
+  }
+
+
+
+
+  export type HairStyleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: HairStyleWhereInput
+    orderBy?: HairStyleOrderByWithAggregationInput | HairStyleOrderByWithAggregationInput[]
+    by: HairStyleScalarFieldEnum[] | HairStyleScalarFieldEnum
+    having?: HairStyleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: HairStyleCountAggregateInputType | true
+    _avg?: HairStyleAvgAggregateInputType
+    _sum?: HairStyleSumAggregateInputType
+    _min?: HairStyleMinAggregateInputType
+    _max?: HairStyleMaxAggregateInputType
+  }
+
+  export type HairStyleGroupByOutputType = {
+    id: number
+    styleKey: string
+    name: string
+    gender: string
+    imageUrl: string
+    promptEn: string | null
+    description: string | null
+    order: number
+    isVisible: boolean
+    createdAt: Date
+    _count: HairStyleCountAggregateOutputType | null
+    _avg: HairStyleAvgAggregateOutputType | null
+    _sum: HairStyleSumAggregateOutputType | null
+    _min: HairStyleMinAggregateOutputType | null
+    _max: HairStyleMaxAggregateOutputType | null
+  }
+
+  type GetHairStyleGroupByPayload<T extends HairStyleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<HairStyleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof HairStyleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], HairStyleGroupByOutputType[P]>
+            : GetScalarType<T[P], HairStyleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type HairStyleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    styleKey?: boolean
+    name?: boolean
+    gender?: boolean
+    imageUrl?: boolean
+    promptEn?: boolean
+    description?: boolean
+    order?: boolean
+    isVisible?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["hairStyle"]>
+
+  export type HairStyleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    styleKey?: boolean
+    name?: boolean
+    gender?: boolean
+    imageUrl?: boolean
+    promptEn?: boolean
+    description?: boolean
+    order?: boolean
+    isVisible?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["hairStyle"]>
+
+  export type HairStyleSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    styleKey?: boolean
+    name?: boolean
+    gender?: boolean
+    imageUrl?: boolean
+    promptEn?: boolean
+    description?: boolean
+    order?: boolean
+    isVisible?: boolean
+    createdAt?: boolean
+  }, ExtArgs["result"]["hairStyle"]>
+
+  export type HairStyleSelectScalar = {
+    id?: boolean
+    styleKey?: boolean
+    name?: boolean
+    gender?: boolean
+    imageUrl?: boolean
+    promptEn?: boolean
+    description?: boolean
+    order?: boolean
+    isVisible?: boolean
+    createdAt?: boolean
+  }
+
+  export type HairStyleOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "styleKey" | "name" | "gender" | "imageUrl" | "promptEn" | "description" | "order" | "isVisible" | "createdAt", ExtArgs["result"]["hairStyle"]>
+
+  export type $HairStylePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "HairStyle"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      styleKey: string
+      name: string
+      gender: string
+      imageUrl: string
+      promptEn: string | null
+      description: string | null
+      order: number
+      isVisible: boolean
+      createdAt: Date
+    }, ExtArgs["result"]["hairStyle"]>
+    composites: {}
+  }
+
+  type HairStyleGetPayload<S extends boolean | null | undefined | HairStyleDefaultArgs> = $Result.GetResult<Prisma.$HairStylePayload, S>
+
+  type HairStyleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<HairStyleFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: HairStyleCountAggregateInputType | true
+    }
+
+  export interface HairStyleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['HairStyle'], meta: { name: 'HairStyle' } }
+    /**
+     * Find zero or one HairStyle that matches the filter.
+     * @param {HairStyleFindUniqueArgs} args - Arguments to find a HairStyle
+     * @example
+     * // Get one HairStyle
+     * const hairStyle = await prisma.hairStyle.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends HairStyleFindUniqueArgs>(args: SelectSubset<T, HairStyleFindUniqueArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one HairStyle that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {HairStyleFindUniqueOrThrowArgs} args - Arguments to find a HairStyle
+     * @example
+     * // Get one HairStyle
+     * const hairStyle = await prisma.hairStyle.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends HairStyleFindUniqueOrThrowArgs>(args: SelectSubset<T, HairStyleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first HairStyle that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleFindFirstArgs} args - Arguments to find a HairStyle
+     * @example
+     * // Get one HairStyle
+     * const hairStyle = await prisma.hairStyle.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends HairStyleFindFirstArgs>(args?: SelectSubset<T, HairStyleFindFirstArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first HairStyle that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleFindFirstOrThrowArgs} args - Arguments to find a HairStyle
+     * @example
+     * // Get one HairStyle
+     * const hairStyle = await prisma.hairStyle.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends HairStyleFindFirstOrThrowArgs>(args?: SelectSubset<T, HairStyleFindFirstOrThrowArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more HairStyles that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all HairStyles
+     * const hairStyles = await prisma.hairStyle.findMany()
+     * 
+     * // Get first 10 HairStyles
+     * const hairStyles = await prisma.hairStyle.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const hairStyleWithIdOnly = await prisma.hairStyle.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends HairStyleFindManyArgs>(args?: SelectSubset<T, HairStyleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a HairStyle.
+     * @param {HairStyleCreateArgs} args - Arguments to create a HairStyle.
+     * @example
+     * // Create one HairStyle
+     * const HairStyle = await prisma.hairStyle.create({
+     *   data: {
+     *     // ... data to create a HairStyle
+     *   }
+     * })
+     * 
+     */
+    create<T extends HairStyleCreateArgs>(args: SelectSubset<T, HairStyleCreateArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many HairStyles.
+     * @param {HairStyleCreateManyArgs} args - Arguments to create many HairStyles.
+     * @example
+     * // Create many HairStyles
+     * const hairStyle = await prisma.hairStyle.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends HairStyleCreateManyArgs>(args?: SelectSubset<T, HairStyleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many HairStyles and returns the data saved in the database.
+     * @param {HairStyleCreateManyAndReturnArgs} args - Arguments to create many HairStyles.
+     * @example
+     * // Create many HairStyles
+     * const hairStyle = await prisma.hairStyle.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many HairStyles and only return the `id`
+     * const hairStyleWithIdOnly = await prisma.hairStyle.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends HairStyleCreateManyAndReturnArgs>(args?: SelectSubset<T, HairStyleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a HairStyle.
+     * @param {HairStyleDeleteArgs} args - Arguments to delete one HairStyle.
+     * @example
+     * // Delete one HairStyle
+     * const HairStyle = await prisma.hairStyle.delete({
+     *   where: {
+     *     // ... filter to delete one HairStyle
+     *   }
+     * })
+     * 
+     */
+    delete<T extends HairStyleDeleteArgs>(args: SelectSubset<T, HairStyleDeleteArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one HairStyle.
+     * @param {HairStyleUpdateArgs} args - Arguments to update one HairStyle.
+     * @example
+     * // Update one HairStyle
+     * const hairStyle = await prisma.hairStyle.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends HairStyleUpdateArgs>(args: SelectSubset<T, HairStyleUpdateArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more HairStyles.
+     * @param {HairStyleDeleteManyArgs} args - Arguments to filter HairStyles to delete.
+     * @example
+     * // Delete a few HairStyles
+     * const { count } = await prisma.hairStyle.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends HairStyleDeleteManyArgs>(args?: SelectSubset<T, HairStyleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more HairStyles.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many HairStyles
+     * const hairStyle = await prisma.hairStyle.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends HairStyleUpdateManyArgs>(args: SelectSubset<T, HairStyleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more HairStyles and returns the data updated in the database.
+     * @param {HairStyleUpdateManyAndReturnArgs} args - Arguments to update many HairStyles.
+     * @example
+     * // Update many HairStyles
+     * const hairStyle = await prisma.hairStyle.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more HairStyles and only return the `id`
+     * const hairStyleWithIdOnly = await prisma.hairStyle.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends HairStyleUpdateManyAndReturnArgs>(args: SelectSubset<T, HairStyleUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one HairStyle.
+     * @param {HairStyleUpsertArgs} args - Arguments to update or create a HairStyle.
+     * @example
+     * // Update or create a HairStyle
+     * const hairStyle = await prisma.hairStyle.upsert({
+     *   create: {
+     *     // ... data to create a HairStyle
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the HairStyle we want to update
+     *   }
+     * })
+     */
+    upsert<T extends HairStyleUpsertArgs>(args: SelectSubset<T, HairStyleUpsertArgs<ExtArgs>>): Prisma__HairStyleClient<$Result.GetResult<Prisma.$HairStylePayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of HairStyles.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleCountArgs} args - Arguments to filter HairStyles to count.
+     * @example
+     * // Count the number of HairStyles
+     * const count = await prisma.hairStyle.count({
+     *   where: {
+     *     // ... the filter for the HairStyles we want to count
+     *   }
+     * })
+    **/
+    count<T extends HairStyleCountArgs>(
+      args?: Subset<T, HairStyleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], HairStyleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a HairStyle.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends HairStyleAggregateArgs>(args: Subset<T, HairStyleAggregateArgs>): Prisma.PrismaPromise<GetHairStyleAggregateType<T>>
+
+    /**
+     * Group by HairStyle.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {HairStyleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends HairStyleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: HairStyleGroupByArgs['orderBy'] }
+        : { orderBy?: HairStyleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, HairStyleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetHairStyleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the HairStyle model
+   */
+  readonly fields: HairStyleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for HairStyle.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__HairStyleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the HairStyle model
+   */
+  interface HairStyleFieldRefs {
+    readonly id: FieldRef<"HairStyle", 'Int'>
+    readonly styleKey: FieldRef<"HairStyle", 'String'>
+    readonly name: FieldRef<"HairStyle", 'String'>
+    readonly gender: FieldRef<"HairStyle", 'String'>
+    readonly imageUrl: FieldRef<"HairStyle", 'String'>
+    readonly promptEn: FieldRef<"HairStyle", 'String'>
+    readonly description: FieldRef<"HairStyle", 'String'>
+    readonly order: FieldRef<"HairStyle", 'Int'>
+    readonly isVisible: FieldRef<"HairStyle", 'Boolean'>
+    readonly createdAt: FieldRef<"HairStyle", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * HairStyle findUnique
+   */
+  export type HairStyleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * Filter, which HairStyle to fetch.
+     */
+    where: HairStyleWhereUniqueInput
+  }
+
+  /**
+   * HairStyle findUniqueOrThrow
+   */
+  export type HairStyleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * Filter, which HairStyle to fetch.
+     */
+    where: HairStyleWhereUniqueInput
+  }
+
+  /**
+   * HairStyle findFirst
+   */
+  export type HairStyleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * Filter, which HairStyle to fetch.
+     */
+    where?: HairStyleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HairStyles to fetch.
+     */
+    orderBy?: HairStyleOrderByWithRelationInput | HairStyleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for HairStyles.
+     */
+    cursor?: HairStyleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HairStyles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HairStyles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of HairStyles.
+     */
+    distinct?: HairStyleScalarFieldEnum | HairStyleScalarFieldEnum[]
+  }
+
+  /**
+   * HairStyle findFirstOrThrow
+   */
+  export type HairStyleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * Filter, which HairStyle to fetch.
+     */
+    where?: HairStyleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HairStyles to fetch.
+     */
+    orderBy?: HairStyleOrderByWithRelationInput | HairStyleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for HairStyles.
+     */
+    cursor?: HairStyleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HairStyles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HairStyles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of HairStyles.
+     */
+    distinct?: HairStyleScalarFieldEnum | HairStyleScalarFieldEnum[]
+  }
+
+  /**
+   * HairStyle findMany
+   */
+  export type HairStyleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * Filter, which HairStyles to fetch.
+     */
+    where?: HairStyleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of HairStyles to fetch.
+     */
+    orderBy?: HairStyleOrderByWithRelationInput | HairStyleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing HairStyles.
+     */
+    cursor?: HairStyleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` HairStyles from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` HairStyles.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of HairStyles.
+     */
+    distinct?: HairStyleScalarFieldEnum | HairStyleScalarFieldEnum[]
+  }
+
+  /**
+   * HairStyle create
+   */
+  export type HairStyleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * The data needed to create a HairStyle.
+     */
+    data: XOR<HairStyleCreateInput, HairStyleUncheckedCreateInput>
+  }
+
+  /**
+   * HairStyle createMany
+   */
+  export type HairStyleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many HairStyles.
+     */
+    data: HairStyleCreateManyInput | HairStyleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * HairStyle createManyAndReturn
+   */
+  export type HairStyleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * The data used to create many HairStyles.
+     */
+    data: HairStyleCreateManyInput | HairStyleCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * HairStyle update
+   */
+  export type HairStyleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * The data needed to update a HairStyle.
+     */
+    data: XOR<HairStyleUpdateInput, HairStyleUncheckedUpdateInput>
+    /**
+     * Choose, which HairStyle to update.
+     */
+    where: HairStyleWhereUniqueInput
+  }
+
+  /**
+   * HairStyle updateMany
+   */
+  export type HairStyleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update HairStyles.
+     */
+    data: XOR<HairStyleUpdateManyMutationInput, HairStyleUncheckedUpdateManyInput>
+    /**
+     * Filter which HairStyles to update
+     */
+    where?: HairStyleWhereInput
+    /**
+     * Limit how many HairStyles to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * HairStyle updateManyAndReturn
+   */
+  export type HairStyleUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * The data used to update HairStyles.
+     */
+    data: XOR<HairStyleUpdateManyMutationInput, HairStyleUncheckedUpdateManyInput>
+    /**
+     * Filter which HairStyles to update
+     */
+    where?: HairStyleWhereInput
+    /**
+     * Limit how many HairStyles to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * HairStyle upsert
+   */
+  export type HairStyleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * The filter to search for the HairStyle to update in case it exists.
+     */
+    where: HairStyleWhereUniqueInput
+    /**
+     * In case the HairStyle found by the `where` argument doesn't exist, create a new HairStyle with this data.
+     */
+    create: XOR<HairStyleCreateInput, HairStyleUncheckedCreateInput>
+    /**
+     * In case the HairStyle was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<HairStyleUpdateInput, HairStyleUncheckedUpdateInput>
+  }
+
+  /**
+   * HairStyle delete
+   */
+  export type HairStyleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+    /**
+     * Filter which HairStyle to delete.
+     */
+    where: HairStyleWhereUniqueInput
+  }
+
+  /**
+   * HairStyle deleteMany
+   */
+  export type HairStyleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which HairStyles to delete
+     */
+    where?: HairStyleWhereInput
+    /**
+     * Limit how many HairStyles to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * HairStyle without action
+   */
+  export type HairStyleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the HairStyle
+     */
+    select?: HairStyleSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the HairStyle
+     */
+    omit?: HairStyleOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InverseTraderConfig
+   */
+
+  export type AggregateInverseTraderConfig = {
+    _count: InverseTraderConfigCountAggregateOutputType | null
+    _avg: InverseTraderConfigAvgAggregateOutputType | null
+    _sum: InverseTraderConfigSumAggregateOutputType | null
+    _min: InverseTraderConfigMinAggregateOutputType | null
+    _max: InverseTraderConfigMaxAggregateOutputType | null
+  }
+
+  export type InverseTraderConfigAvgAggregateOutputType = {
+    id: number | null
+    defaultQty: number | null
+    closeBufferMin: number | null
+    maxPositionQty: number | null
+    dailyLossLimit: number | null
+  }
+
+  export type InverseTraderConfigSumAggregateOutputType = {
+    id: number | null
+    defaultQty: number | null
+    closeBufferMin: number | null
+    maxPositionQty: number | null
+    dailyLossLimit: number | null
+  }
+
+  export type InverseTraderConfigMinAggregateOutputType = {
+    id: number | null
+    symbol: string | null
+    symbolName: string | null
+    defaultQty: number | null
+    closeBufferMin: number | null
+    maxPositionQty: number | null
+    dailyLossLimit: number | null
+    tradingMode: string | null
+    enabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseTraderConfigMaxAggregateOutputType = {
+    id: number | null
+    symbol: string | null
+    symbolName: string | null
+    defaultQty: number | null
+    closeBufferMin: number | null
+    maxPositionQty: number | null
+    dailyLossLimit: number | null
+    tradingMode: string | null
+    enabled: boolean | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseTraderConfigCountAggregateOutputType = {
+    id: number
+    symbol: number
+    symbolName: number
+    defaultQty: number
+    closeBufferMin: number
+    maxPositionQty: number
+    dailyLossLimit: number
+    tradingMode: number
+    enabled: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type InverseTraderConfigAvgAggregateInputType = {
+    id?: true
+    defaultQty?: true
+    closeBufferMin?: true
+    maxPositionQty?: true
+    dailyLossLimit?: true
+  }
+
+  export type InverseTraderConfigSumAggregateInputType = {
+    id?: true
+    defaultQty?: true
+    closeBufferMin?: true
+    maxPositionQty?: true
+    dailyLossLimit?: true
+  }
+
+  export type InverseTraderConfigMinAggregateInputType = {
+    id?: true
+    symbol?: true
+    symbolName?: true
+    defaultQty?: true
+    closeBufferMin?: true
+    maxPositionQty?: true
+    dailyLossLimit?: true
+    tradingMode?: true
+    enabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseTraderConfigMaxAggregateInputType = {
+    id?: true
+    symbol?: true
+    symbolName?: true
+    defaultQty?: true
+    closeBufferMin?: true
+    maxPositionQty?: true
+    dailyLossLimit?: true
+    tradingMode?: true
+    enabled?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseTraderConfigCountAggregateInputType = {
+    id?: true
+    symbol?: true
+    symbolName?: true
+    defaultQty?: true
+    closeBufferMin?: true
+    maxPositionQty?: true
+    dailyLossLimit?: true
+    tradingMode?: true
+    enabled?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type InverseTraderConfigAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseTraderConfig to aggregate.
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderConfigs to fetch.
+     */
+    orderBy?: InverseTraderConfigOrderByWithRelationInput | InverseTraderConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InverseTraderConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InverseTraderConfigs
+    **/
+    _count?: true | InverseTraderConfigCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: InverseTraderConfigAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: InverseTraderConfigSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InverseTraderConfigMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InverseTraderConfigMaxAggregateInputType
+  }
+
+  export type GetInverseTraderConfigAggregateType<T extends InverseTraderConfigAggregateArgs> = {
+        [P in keyof T & keyof AggregateInverseTraderConfig]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInverseTraderConfig[P]>
+      : GetScalarType<T[P], AggregateInverseTraderConfig[P]>
+  }
+
+
+
+
+  export type InverseTraderConfigGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InverseTraderConfigWhereInput
+    orderBy?: InverseTraderConfigOrderByWithAggregationInput | InverseTraderConfigOrderByWithAggregationInput[]
+    by: InverseTraderConfigScalarFieldEnum[] | InverseTraderConfigScalarFieldEnum
+    having?: InverseTraderConfigScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InverseTraderConfigCountAggregateInputType | true
+    _avg?: InverseTraderConfigAvgAggregateInputType
+    _sum?: InverseTraderConfigSumAggregateInputType
+    _min?: InverseTraderConfigMinAggregateInputType
+    _max?: InverseTraderConfigMaxAggregateInputType
+  }
+
+  export type InverseTraderConfigGroupByOutputType = {
+    id: number
+    symbol: string
+    symbolName: string
+    defaultQty: number
+    closeBufferMin: number
+    maxPositionQty: number
+    dailyLossLimit: number
+    tradingMode: string
+    enabled: boolean
+    createdAt: Date
+    updatedAt: Date
+    _count: InverseTraderConfigCountAggregateOutputType | null
+    _avg: InverseTraderConfigAvgAggregateOutputType | null
+    _sum: InverseTraderConfigSumAggregateOutputType | null
+    _min: InverseTraderConfigMinAggregateOutputType | null
+    _max: InverseTraderConfigMaxAggregateOutputType | null
+  }
+
+  type GetInverseTraderConfigGroupByPayload<T extends InverseTraderConfigGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InverseTraderConfigGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InverseTraderConfigGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InverseTraderConfigGroupByOutputType[P]>
+            : GetScalarType<T[P], InverseTraderConfigGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InverseTraderConfigSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    symbol?: boolean
+    symbolName?: boolean
+    defaultQty?: boolean
+    closeBufferMin?: boolean
+    maxPositionQty?: boolean
+    dailyLossLimit?: boolean
+    tradingMode?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseTraderConfig"]>
+
+  export type InverseTraderConfigSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    symbol?: boolean
+    symbolName?: boolean
+    defaultQty?: boolean
+    closeBufferMin?: boolean
+    maxPositionQty?: boolean
+    dailyLossLimit?: boolean
+    tradingMode?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseTraderConfig"]>
+
+  export type InverseTraderConfigSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    symbol?: boolean
+    symbolName?: boolean
+    defaultQty?: boolean
+    closeBufferMin?: boolean
+    maxPositionQty?: boolean
+    dailyLossLimit?: boolean
+    tradingMode?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseTraderConfig"]>
+
+  export type InverseTraderConfigSelectScalar = {
+    id?: boolean
+    symbol?: boolean
+    symbolName?: boolean
+    defaultQty?: boolean
+    closeBufferMin?: boolean
+    maxPositionQty?: boolean
+    dailyLossLimit?: boolean
+    tradingMode?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type InverseTraderConfigOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "symbol" | "symbolName" | "defaultQty" | "closeBufferMin" | "maxPositionQty" | "dailyLossLimit" | "tradingMode" | "enabled" | "createdAt" | "updatedAt", ExtArgs["result"]["inverseTraderConfig"]>
+
+  export type $InverseTraderConfigPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InverseTraderConfig"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      symbol: string
+      symbolName: string
+      defaultQty: number
+      closeBufferMin: number
+      maxPositionQty: number
+      dailyLossLimit: number
+      tradingMode: string
+      enabled: boolean
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["inverseTraderConfig"]>
+    composites: {}
+  }
+
+  type InverseTraderConfigGetPayload<S extends boolean | null | undefined | InverseTraderConfigDefaultArgs> = $Result.GetResult<Prisma.$InverseTraderConfigPayload, S>
+
+  type InverseTraderConfigCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InverseTraderConfigFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InverseTraderConfigCountAggregateInputType | true
+    }
+
+  export interface InverseTraderConfigDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InverseTraderConfig'], meta: { name: 'InverseTraderConfig' } }
+    /**
+     * Find zero or one InverseTraderConfig that matches the filter.
+     * @param {InverseTraderConfigFindUniqueArgs} args - Arguments to find a InverseTraderConfig
+     * @example
+     * // Get one InverseTraderConfig
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InverseTraderConfigFindUniqueArgs>(args: SelectSubset<T, InverseTraderConfigFindUniqueArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one InverseTraderConfig that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InverseTraderConfigFindUniqueOrThrowArgs} args - Arguments to find a InverseTraderConfig
+     * @example
+     * // Get one InverseTraderConfig
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InverseTraderConfigFindUniqueOrThrowArgs>(args: SelectSubset<T, InverseTraderConfigFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseTraderConfig that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigFindFirstArgs} args - Arguments to find a InverseTraderConfig
+     * @example
+     * // Get one InverseTraderConfig
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InverseTraderConfigFindFirstArgs>(args?: SelectSubset<T, InverseTraderConfigFindFirstArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseTraderConfig that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigFindFirstOrThrowArgs} args - Arguments to find a InverseTraderConfig
+     * @example
+     * // Get one InverseTraderConfig
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InverseTraderConfigFindFirstOrThrowArgs>(args?: SelectSubset<T, InverseTraderConfigFindFirstOrThrowArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more InverseTraderConfigs that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InverseTraderConfigs
+     * const inverseTraderConfigs = await prisma.inverseTraderConfig.findMany()
+     * 
+     * // Get first 10 InverseTraderConfigs
+     * const inverseTraderConfigs = await prisma.inverseTraderConfig.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inverseTraderConfigWithIdOnly = await prisma.inverseTraderConfig.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InverseTraderConfigFindManyArgs>(args?: SelectSubset<T, InverseTraderConfigFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a InverseTraderConfig.
+     * @param {InverseTraderConfigCreateArgs} args - Arguments to create a InverseTraderConfig.
+     * @example
+     * // Create one InverseTraderConfig
+     * const InverseTraderConfig = await prisma.inverseTraderConfig.create({
+     *   data: {
+     *     // ... data to create a InverseTraderConfig
+     *   }
+     * })
+     * 
+     */
+    create<T extends InverseTraderConfigCreateArgs>(args: SelectSubset<T, InverseTraderConfigCreateArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many InverseTraderConfigs.
+     * @param {InverseTraderConfigCreateManyArgs} args - Arguments to create many InverseTraderConfigs.
+     * @example
+     * // Create many InverseTraderConfigs
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InverseTraderConfigCreateManyArgs>(args?: SelectSubset<T, InverseTraderConfigCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InverseTraderConfigs and returns the data saved in the database.
+     * @param {InverseTraderConfigCreateManyAndReturnArgs} args - Arguments to create many InverseTraderConfigs.
+     * @example
+     * // Create many InverseTraderConfigs
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InverseTraderConfigs and only return the `id`
+     * const inverseTraderConfigWithIdOnly = await prisma.inverseTraderConfig.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InverseTraderConfigCreateManyAndReturnArgs>(args?: SelectSubset<T, InverseTraderConfigCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a InverseTraderConfig.
+     * @param {InverseTraderConfigDeleteArgs} args - Arguments to delete one InverseTraderConfig.
+     * @example
+     * // Delete one InverseTraderConfig
+     * const InverseTraderConfig = await prisma.inverseTraderConfig.delete({
+     *   where: {
+     *     // ... filter to delete one InverseTraderConfig
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InverseTraderConfigDeleteArgs>(args: SelectSubset<T, InverseTraderConfigDeleteArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one InverseTraderConfig.
+     * @param {InverseTraderConfigUpdateArgs} args - Arguments to update one InverseTraderConfig.
+     * @example
+     * // Update one InverseTraderConfig
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InverseTraderConfigUpdateArgs>(args: SelectSubset<T, InverseTraderConfigUpdateArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more InverseTraderConfigs.
+     * @param {InverseTraderConfigDeleteManyArgs} args - Arguments to filter InverseTraderConfigs to delete.
+     * @example
+     * // Delete a few InverseTraderConfigs
+     * const { count } = await prisma.inverseTraderConfig.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InverseTraderConfigDeleteManyArgs>(args?: SelectSubset<T, InverseTraderConfigDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseTraderConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InverseTraderConfigs
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InverseTraderConfigUpdateManyArgs>(args: SelectSubset<T, InverseTraderConfigUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseTraderConfigs and returns the data updated in the database.
+     * @param {InverseTraderConfigUpdateManyAndReturnArgs} args - Arguments to update many InverseTraderConfigs.
+     * @example
+     * // Update many InverseTraderConfigs
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more InverseTraderConfigs and only return the `id`
+     * const inverseTraderConfigWithIdOnly = await prisma.inverseTraderConfig.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InverseTraderConfigUpdateManyAndReturnArgs>(args: SelectSubset<T, InverseTraderConfigUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one InverseTraderConfig.
+     * @param {InverseTraderConfigUpsertArgs} args - Arguments to update or create a InverseTraderConfig.
+     * @example
+     * // Update or create a InverseTraderConfig
+     * const inverseTraderConfig = await prisma.inverseTraderConfig.upsert({
+     *   create: {
+     *     // ... data to create a InverseTraderConfig
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InverseTraderConfig we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InverseTraderConfigUpsertArgs>(args: SelectSubset<T, InverseTraderConfigUpsertArgs<ExtArgs>>): Prisma__InverseTraderConfigClient<$Result.GetResult<Prisma.$InverseTraderConfigPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of InverseTraderConfigs.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigCountArgs} args - Arguments to filter InverseTraderConfigs to count.
+     * @example
+     * // Count the number of InverseTraderConfigs
+     * const count = await prisma.inverseTraderConfig.count({
+     *   where: {
+     *     // ... the filter for the InverseTraderConfigs we want to count
+     *   }
+     * })
+    **/
+    count<T extends InverseTraderConfigCountArgs>(
+      args?: Subset<T, InverseTraderConfigCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InverseTraderConfigCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InverseTraderConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InverseTraderConfigAggregateArgs>(args: Subset<T, InverseTraderConfigAggregateArgs>): Prisma.PrismaPromise<GetInverseTraderConfigAggregateType<T>>
+
+    /**
+     * Group by InverseTraderConfig.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderConfigGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InverseTraderConfigGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InverseTraderConfigGroupByArgs['orderBy'] }
+        : { orderBy?: InverseTraderConfigGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InverseTraderConfigGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInverseTraderConfigGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InverseTraderConfig model
+   */
+  readonly fields: InverseTraderConfigFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InverseTraderConfig.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InverseTraderConfigClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InverseTraderConfig model
+   */
+  interface InverseTraderConfigFieldRefs {
+    readonly id: FieldRef<"InverseTraderConfig", 'Int'>
+    readonly symbol: FieldRef<"InverseTraderConfig", 'String'>
+    readonly symbolName: FieldRef<"InverseTraderConfig", 'String'>
+    readonly defaultQty: FieldRef<"InverseTraderConfig", 'Int'>
+    readonly closeBufferMin: FieldRef<"InverseTraderConfig", 'Int'>
+    readonly maxPositionQty: FieldRef<"InverseTraderConfig", 'Int'>
+    readonly dailyLossLimit: FieldRef<"InverseTraderConfig", 'Float'>
+    readonly tradingMode: FieldRef<"InverseTraderConfig", 'String'>
+    readonly enabled: FieldRef<"InverseTraderConfig", 'Boolean'>
+    readonly createdAt: FieldRef<"InverseTraderConfig", 'DateTime'>
+    readonly updatedAt: FieldRef<"InverseTraderConfig", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InverseTraderConfig findUnique
+   */
+  export type InverseTraderConfigFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderConfig to fetch.
+     */
+    where: InverseTraderConfigWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderConfig findUniqueOrThrow
+   */
+  export type InverseTraderConfigFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderConfig to fetch.
+     */
+    where: InverseTraderConfigWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderConfig findFirst
+   */
+  export type InverseTraderConfigFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderConfig to fetch.
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderConfigs to fetch.
+     */
+    orderBy?: InverseTraderConfigOrderByWithRelationInput | InverseTraderConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseTraderConfigs.
+     */
+    cursor?: InverseTraderConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseTraderConfigs.
+     */
+    distinct?: InverseTraderConfigScalarFieldEnum | InverseTraderConfigScalarFieldEnum[]
+  }
+
+  /**
+   * InverseTraderConfig findFirstOrThrow
+   */
+  export type InverseTraderConfigFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderConfig to fetch.
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderConfigs to fetch.
+     */
+    orderBy?: InverseTraderConfigOrderByWithRelationInput | InverseTraderConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseTraderConfigs.
+     */
+    cursor?: InverseTraderConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseTraderConfigs.
+     */
+    distinct?: InverseTraderConfigScalarFieldEnum | InverseTraderConfigScalarFieldEnum[]
+  }
+
+  /**
+   * InverseTraderConfig findMany
+   */
+  export type InverseTraderConfigFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderConfigs to fetch.
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderConfigs to fetch.
+     */
+    orderBy?: InverseTraderConfigOrderByWithRelationInput | InverseTraderConfigOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InverseTraderConfigs.
+     */
+    cursor?: InverseTraderConfigWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderConfigs from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderConfigs.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseTraderConfigs.
+     */
+    distinct?: InverseTraderConfigScalarFieldEnum | InverseTraderConfigScalarFieldEnum[]
+  }
+
+  /**
+   * InverseTraderConfig create
+   */
+  export type InverseTraderConfigCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * The data needed to create a InverseTraderConfig.
+     */
+    data: XOR<InverseTraderConfigCreateInput, InverseTraderConfigUncheckedCreateInput>
+  }
+
+  /**
+   * InverseTraderConfig createMany
+   */
+  export type InverseTraderConfigCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InverseTraderConfigs.
+     */
+    data: InverseTraderConfigCreateManyInput | InverseTraderConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseTraderConfig createManyAndReturn
+   */
+  export type InverseTraderConfigCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * The data used to create many InverseTraderConfigs.
+     */
+    data: InverseTraderConfigCreateManyInput | InverseTraderConfigCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseTraderConfig update
+   */
+  export type InverseTraderConfigUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * The data needed to update a InverseTraderConfig.
+     */
+    data: XOR<InverseTraderConfigUpdateInput, InverseTraderConfigUncheckedUpdateInput>
+    /**
+     * Choose, which InverseTraderConfig to update.
+     */
+    where: InverseTraderConfigWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderConfig updateMany
+   */
+  export type InverseTraderConfigUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InverseTraderConfigs.
+     */
+    data: XOR<InverseTraderConfigUpdateManyMutationInput, InverseTraderConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseTraderConfigs to update
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * Limit how many InverseTraderConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseTraderConfig updateManyAndReturn
+   */
+  export type InverseTraderConfigUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * The data used to update InverseTraderConfigs.
+     */
+    data: XOR<InverseTraderConfigUpdateManyMutationInput, InverseTraderConfigUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseTraderConfigs to update
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * Limit how many InverseTraderConfigs to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseTraderConfig upsert
+   */
+  export type InverseTraderConfigUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * The filter to search for the InverseTraderConfig to update in case it exists.
+     */
+    where: InverseTraderConfigWhereUniqueInput
+    /**
+     * In case the InverseTraderConfig found by the `where` argument doesn't exist, create a new InverseTraderConfig with this data.
+     */
+    create: XOR<InverseTraderConfigCreateInput, InverseTraderConfigUncheckedCreateInput>
+    /**
+     * In case the InverseTraderConfig was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InverseTraderConfigUpdateInput, InverseTraderConfigUncheckedUpdateInput>
+  }
+
+  /**
+   * InverseTraderConfig delete
+   */
+  export type InverseTraderConfigDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+    /**
+     * Filter which InverseTraderConfig to delete.
+     */
+    where: InverseTraderConfigWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderConfig deleteMany
+   */
+  export type InverseTraderConfigDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseTraderConfigs to delete
+     */
+    where?: InverseTraderConfigWhereInput
+    /**
+     * Limit how many InverseTraderConfigs to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseTraderConfig without action
+   */
+  export type InverseTraderConfigDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderConfig
+     */
+    select?: InverseTraderConfigSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderConfig
+     */
+    omit?: InverseTraderConfigOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InverseOrder
+   */
+
+  export type AggregateInverseOrder = {
+    _count: InverseOrderCountAggregateOutputType | null
+    _avg: InverseOrderAvgAggregateOutputType | null
+    _sum: InverseOrderSumAggregateOutputType | null
+    _min: InverseOrderMinAggregateOutputType | null
+    _max: InverseOrderMaxAggregateOutputType | null
+  }
+
+  export type InverseOrderAvgAggregateOutputType = {
+    id: number | null
+    limitPrice: number | null
+    orderQty: number | null
+    filledQty: number | null
+    remainingQty: number | null
+    parentOrderId: number | null
+  }
+
+  export type InverseOrderSumAggregateOutputType = {
+    id: number | null
+    limitPrice: number | null
+    orderQty: number | null
+    filledQty: number | null
+    remainingQty: number | null
+    parentOrderId: number | null
+  }
+
+  export type InverseOrderMinAggregateOutputType = {
+    id: number | null
+    sessionId: string | null
+    symbol: string | null
+    side: string | null
+    limitPrice: number | null
+    orderQty: number | null
+    filledQty: number | null
+    remainingQty: number | null
+    status: string | null
+    parentOrderId: number | null
+    brokerOrderId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseOrderMaxAggregateOutputType = {
+    id: number | null
+    sessionId: string | null
+    symbol: string | null
+    side: string | null
+    limitPrice: number | null
+    orderQty: number | null
+    filledQty: number | null
+    remainingQty: number | null
+    status: string | null
+    parentOrderId: number | null
+    brokerOrderId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseOrderCountAggregateOutputType = {
+    id: number
+    sessionId: number
+    symbol: number
+    side: number
+    limitPrice: number
+    orderQty: number
+    filledQty: number
+    remainingQty: number
+    status: number
+    parentOrderId: number
+    brokerOrderId: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type InverseOrderAvgAggregateInputType = {
+    id?: true
+    limitPrice?: true
+    orderQty?: true
+    filledQty?: true
+    remainingQty?: true
+    parentOrderId?: true
+  }
+
+  export type InverseOrderSumAggregateInputType = {
+    id?: true
+    limitPrice?: true
+    orderQty?: true
+    filledQty?: true
+    remainingQty?: true
+    parentOrderId?: true
+  }
+
+  export type InverseOrderMinAggregateInputType = {
+    id?: true
+    sessionId?: true
+    symbol?: true
+    side?: true
+    limitPrice?: true
+    orderQty?: true
+    filledQty?: true
+    remainingQty?: true
+    status?: true
+    parentOrderId?: true
+    brokerOrderId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseOrderMaxAggregateInputType = {
+    id?: true
+    sessionId?: true
+    symbol?: true
+    side?: true
+    limitPrice?: true
+    orderQty?: true
+    filledQty?: true
+    remainingQty?: true
+    status?: true
+    parentOrderId?: true
+    brokerOrderId?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseOrderCountAggregateInputType = {
+    id?: true
+    sessionId?: true
+    symbol?: true
+    side?: true
+    limitPrice?: true
+    orderQty?: true
+    filledQty?: true
+    remainingQty?: true
+    status?: true
+    parentOrderId?: true
+    brokerOrderId?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type InverseOrderAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseOrder to aggregate.
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseOrders to fetch.
+     */
+    orderBy?: InverseOrderOrderByWithRelationInput | InverseOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InverseOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InverseOrders
+    **/
+    _count?: true | InverseOrderCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: InverseOrderAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: InverseOrderSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InverseOrderMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InverseOrderMaxAggregateInputType
+  }
+
+  export type GetInverseOrderAggregateType<T extends InverseOrderAggregateArgs> = {
+        [P in keyof T & keyof AggregateInverseOrder]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInverseOrder[P]>
+      : GetScalarType<T[P], AggregateInverseOrder[P]>
+  }
+
+
+
+
+  export type InverseOrderGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InverseOrderWhereInput
+    orderBy?: InverseOrderOrderByWithAggregationInput | InverseOrderOrderByWithAggregationInput[]
+    by: InverseOrderScalarFieldEnum[] | InverseOrderScalarFieldEnum
+    having?: InverseOrderScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InverseOrderCountAggregateInputType | true
+    _avg?: InverseOrderAvgAggregateInputType
+    _sum?: InverseOrderSumAggregateInputType
+    _min?: InverseOrderMinAggregateInputType
+    _max?: InverseOrderMaxAggregateInputType
+  }
+
+  export type InverseOrderGroupByOutputType = {
+    id: number
+    sessionId: string
+    symbol: string
+    side: string
+    limitPrice: number
+    orderQty: number
+    filledQty: number
+    remainingQty: number
+    status: string
+    parentOrderId: number | null
+    brokerOrderId: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: InverseOrderCountAggregateOutputType | null
+    _avg: InverseOrderAvgAggregateOutputType | null
+    _sum: InverseOrderSumAggregateOutputType | null
+    _min: InverseOrderMinAggregateOutputType | null
+    _max: InverseOrderMaxAggregateOutputType | null
+  }
+
+  type GetInverseOrderGroupByPayload<T extends InverseOrderGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InverseOrderGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InverseOrderGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InverseOrderGroupByOutputType[P]>
+            : GetScalarType<T[P], InverseOrderGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InverseOrderSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    side?: boolean
+    limitPrice?: boolean
+    orderQty?: boolean
+    filledQty?: boolean
+    remainingQty?: boolean
+    status?: boolean
+    parentOrderId?: boolean
+    brokerOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseOrder"]>
+
+  export type InverseOrderSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    side?: boolean
+    limitPrice?: boolean
+    orderQty?: boolean
+    filledQty?: boolean
+    remainingQty?: boolean
+    status?: boolean
+    parentOrderId?: boolean
+    brokerOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseOrder"]>
+
+  export type InverseOrderSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    side?: boolean
+    limitPrice?: boolean
+    orderQty?: boolean
+    filledQty?: boolean
+    remainingQty?: boolean
+    status?: boolean
+    parentOrderId?: boolean
+    brokerOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseOrder"]>
+
+  export type InverseOrderSelectScalar = {
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    side?: boolean
+    limitPrice?: boolean
+    orderQty?: boolean
+    filledQty?: boolean
+    remainingQty?: boolean
+    status?: boolean
+    parentOrderId?: boolean
+    brokerOrderId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type InverseOrderOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionId" | "symbol" | "side" | "limitPrice" | "orderQty" | "filledQty" | "remainingQty" | "status" | "parentOrderId" | "brokerOrderId" | "createdAt" | "updatedAt", ExtArgs["result"]["inverseOrder"]>
+
+  export type $InverseOrderPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InverseOrder"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      sessionId: string
+      symbol: string
+      side: string
+      limitPrice: number
+      orderQty: number
+      filledQty: number
+      remainingQty: number
+      status: string
+      parentOrderId: number | null
+      brokerOrderId: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["inverseOrder"]>
+    composites: {}
+  }
+
+  type InverseOrderGetPayload<S extends boolean | null | undefined | InverseOrderDefaultArgs> = $Result.GetResult<Prisma.$InverseOrderPayload, S>
+
+  type InverseOrderCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InverseOrderFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InverseOrderCountAggregateInputType | true
+    }
+
+  export interface InverseOrderDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InverseOrder'], meta: { name: 'InverseOrder' } }
+    /**
+     * Find zero or one InverseOrder that matches the filter.
+     * @param {InverseOrderFindUniqueArgs} args - Arguments to find a InverseOrder
+     * @example
+     * // Get one InverseOrder
+     * const inverseOrder = await prisma.inverseOrder.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InverseOrderFindUniqueArgs>(args: SelectSubset<T, InverseOrderFindUniqueArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one InverseOrder that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InverseOrderFindUniqueOrThrowArgs} args - Arguments to find a InverseOrder
+     * @example
+     * // Get one InverseOrder
+     * const inverseOrder = await prisma.inverseOrder.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InverseOrderFindUniqueOrThrowArgs>(args: SelectSubset<T, InverseOrderFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseOrder that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderFindFirstArgs} args - Arguments to find a InverseOrder
+     * @example
+     * // Get one InverseOrder
+     * const inverseOrder = await prisma.inverseOrder.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InverseOrderFindFirstArgs>(args?: SelectSubset<T, InverseOrderFindFirstArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseOrder that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderFindFirstOrThrowArgs} args - Arguments to find a InverseOrder
+     * @example
+     * // Get one InverseOrder
+     * const inverseOrder = await prisma.inverseOrder.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InverseOrderFindFirstOrThrowArgs>(args?: SelectSubset<T, InverseOrderFindFirstOrThrowArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more InverseOrders that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InverseOrders
+     * const inverseOrders = await prisma.inverseOrder.findMany()
+     * 
+     * // Get first 10 InverseOrders
+     * const inverseOrders = await prisma.inverseOrder.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inverseOrderWithIdOnly = await prisma.inverseOrder.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InverseOrderFindManyArgs>(args?: SelectSubset<T, InverseOrderFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a InverseOrder.
+     * @param {InverseOrderCreateArgs} args - Arguments to create a InverseOrder.
+     * @example
+     * // Create one InverseOrder
+     * const InverseOrder = await prisma.inverseOrder.create({
+     *   data: {
+     *     // ... data to create a InverseOrder
+     *   }
+     * })
+     * 
+     */
+    create<T extends InverseOrderCreateArgs>(args: SelectSubset<T, InverseOrderCreateArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many InverseOrders.
+     * @param {InverseOrderCreateManyArgs} args - Arguments to create many InverseOrders.
+     * @example
+     * // Create many InverseOrders
+     * const inverseOrder = await prisma.inverseOrder.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InverseOrderCreateManyArgs>(args?: SelectSubset<T, InverseOrderCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InverseOrders and returns the data saved in the database.
+     * @param {InverseOrderCreateManyAndReturnArgs} args - Arguments to create many InverseOrders.
+     * @example
+     * // Create many InverseOrders
+     * const inverseOrder = await prisma.inverseOrder.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InverseOrders and only return the `id`
+     * const inverseOrderWithIdOnly = await prisma.inverseOrder.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InverseOrderCreateManyAndReturnArgs>(args?: SelectSubset<T, InverseOrderCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a InverseOrder.
+     * @param {InverseOrderDeleteArgs} args - Arguments to delete one InverseOrder.
+     * @example
+     * // Delete one InverseOrder
+     * const InverseOrder = await prisma.inverseOrder.delete({
+     *   where: {
+     *     // ... filter to delete one InverseOrder
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InverseOrderDeleteArgs>(args: SelectSubset<T, InverseOrderDeleteArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one InverseOrder.
+     * @param {InverseOrderUpdateArgs} args - Arguments to update one InverseOrder.
+     * @example
+     * // Update one InverseOrder
+     * const inverseOrder = await prisma.inverseOrder.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InverseOrderUpdateArgs>(args: SelectSubset<T, InverseOrderUpdateArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more InverseOrders.
+     * @param {InverseOrderDeleteManyArgs} args - Arguments to filter InverseOrders to delete.
+     * @example
+     * // Delete a few InverseOrders
+     * const { count } = await prisma.inverseOrder.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InverseOrderDeleteManyArgs>(args?: SelectSubset<T, InverseOrderDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InverseOrders
+     * const inverseOrder = await prisma.inverseOrder.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InverseOrderUpdateManyArgs>(args: SelectSubset<T, InverseOrderUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseOrders and returns the data updated in the database.
+     * @param {InverseOrderUpdateManyAndReturnArgs} args - Arguments to update many InverseOrders.
+     * @example
+     * // Update many InverseOrders
+     * const inverseOrder = await prisma.inverseOrder.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more InverseOrders and only return the `id`
+     * const inverseOrderWithIdOnly = await prisma.inverseOrder.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InverseOrderUpdateManyAndReturnArgs>(args: SelectSubset<T, InverseOrderUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one InverseOrder.
+     * @param {InverseOrderUpsertArgs} args - Arguments to update or create a InverseOrder.
+     * @example
+     * // Update or create a InverseOrder
+     * const inverseOrder = await prisma.inverseOrder.upsert({
+     *   create: {
+     *     // ... data to create a InverseOrder
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InverseOrder we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InverseOrderUpsertArgs>(args: SelectSubset<T, InverseOrderUpsertArgs<ExtArgs>>): Prisma__InverseOrderClient<$Result.GetResult<Prisma.$InverseOrderPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of InverseOrders.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderCountArgs} args - Arguments to filter InverseOrders to count.
+     * @example
+     * // Count the number of InverseOrders
+     * const count = await prisma.inverseOrder.count({
+     *   where: {
+     *     // ... the filter for the InverseOrders we want to count
+     *   }
+     * })
+    **/
+    count<T extends InverseOrderCountArgs>(
+      args?: Subset<T, InverseOrderCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InverseOrderCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InverseOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InverseOrderAggregateArgs>(args: Subset<T, InverseOrderAggregateArgs>): Prisma.PrismaPromise<GetInverseOrderAggregateType<T>>
+
+    /**
+     * Group by InverseOrder.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseOrderGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InverseOrderGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InverseOrderGroupByArgs['orderBy'] }
+        : { orderBy?: InverseOrderGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InverseOrderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInverseOrderGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InverseOrder model
+   */
+  readonly fields: InverseOrderFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InverseOrder.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InverseOrderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InverseOrder model
+   */
+  interface InverseOrderFieldRefs {
+    readonly id: FieldRef<"InverseOrder", 'Int'>
+    readonly sessionId: FieldRef<"InverseOrder", 'String'>
+    readonly symbol: FieldRef<"InverseOrder", 'String'>
+    readonly side: FieldRef<"InverseOrder", 'String'>
+    readonly limitPrice: FieldRef<"InverseOrder", 'Int'>
+    readonly orderQty: FieldRef<"InverseOrder", 'Int'>
+    readonly filledQty: FieldRef<"InverseOrder", 'Int'>
+    readonly remainingQty: FieldRef<"InverseOrder", 'Int'>
+    readonly status: FieldRef<"InverseOrder", 'String'>
+    readonly parentOrderId: FieldRef<"InverseOrder", 'Int'>
+    readonly brokerOrderId: FieldRef<"InverseOrder", 'String'>
+    readonly createdAt: FieldRef<"InverseOrder", 'DateTime'>
+    readonly updatedAt: FieldRef<"InverseOrder", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InverseOrder findUnique
+   */
+  export type InverseOrderFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseOrder to fetch.
+     */
+    where: InverseOrderWhereUniqueInput
+  }
+
+  /**
+   * InverseOrder findUniqueOrThrow
+   */
+  export type InverseOrderFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseOrder to fetch.
+     */
+    where: InverseOrderWhereUniqueInput
+  }
+
+  /**
+   * InverseOrder findFirst
+   */
+  export type InverseOrderFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseOrder to fetch.
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseOrders to fetch.
+     */
+    orderBy?: InverseOrderOrderByWithRelationInput | InverseOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseOrders.
+     */
+    cursor?: InverseOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseOrders.
+     */
+    distinct?: InverseOrderScalarFieldEnum | InverseOrderScalarFieldEnum[]
+  }
+
+  /**
+   * InverseOrder findFirstOrThrow
+   */
+  export type InverseOrderFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseOrder to fetch.
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseOrders to fetch.
+     */
+    orderBy?: InverseOrderOrderByWithRelationInput | InverseOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseOrders.
+     */
+    cursor?: InverseOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseOrders.
+     */
+    distinct?: InverseOrderScalarFieldEnum | InverseOrderScalarFieldEnum[]
+  }
+
+  /**
+   * InverseOrder findMany
+   */
+  export type InverseOrderFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseOrders to fetch.
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseOrders to fetch.
+     */
+    orderBy?: InverseOrderOrderByWithRelationInput | InverseOrderOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InverseOrders.
+     */
+    cursor?: InverseOrderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseOrders from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseOrders.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseOrders.
+     */
+    distinct?: InverseOrderScalarFieldEnum | InverseOrderScalarFieldEnum[]
+  }
+
+  /**
+   * InverseOrder create
+   */
+  export type InverseOrderCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * The data needed to create a InverseOrder.
+     */
+    data: XOR<InverseOrderCreateInput, InverseOrderUncheckedCreateInput>
+  }
+
+  /**
+   * InverseOrder createMany
+   */
+  export type InverseOrderCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InverseOrders.
+     */
+    data: InverseOrderCreateManyInput | InverseOrderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseOrder createManyAndReturn
+   */
+  export type InverseOrderCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * The data used to create many InverseOrders.
+     */
+    data: InverseOrderCreateManyInput | InverseOrderCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseOrder update
+   */
+  export type InverseOrderUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * The data needed to update a InverseOrder.
+     */
+    data: XOR<InverseOrderUpdateInput, InverseOrderUncheckedUpdateInput>
+    /**
+     * Choose, which InverseOrder to update.
+     */
+    where: InverseOrderWhereUniqueInput
+  }
+
+  /**
+   * InverseOrder updateMany
+   */
+  export type InverseOrderUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InverseOrders.
+     */
+    data: XOR<InverseOrderUpdateManyMutationInput, InverseOrderUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseOrders to update
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * Limit how many InverseOrders to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseOrder updateManyAndReturn
+   */
+  export type InverseOrderUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * The data used to update InverseOrders.
+     */
+    data: XOR<InverseOrderUpdateManyMutationInput, InverseOrderUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseOrders to update
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * Limit how many InverseOrders to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseOrder upsert
+   */
+  export type InverseOrderUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * The filter to search for the InverseOrder to update in case it exists.
+     */
+    where: InverseOrderWhereUniqueInput
+    /**
+     * In case the InverseOrder found by the `where` argument doesn't exist, create a new InverseOrder with this data.
+     */
+    create: XOR<InverseOrderCreateInput, InverseOrderUncheckedCreateInput>
+    /**
+     * In case the InverseOrder was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InverseOrderUpdateInput, InverseOrderUncheckedUpdateInput>
+  }
+
+  /**
+   * InverseOrder delete
+   */
+  export type InverseOrderDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+    /**
+     * Filter which InverseOrder to delete.
+     */
+    where: InverseOrderWhereUniqueInput
+  }
+
+  /**
+   * InverseOrder deleteMany
+   */
+  export type InverseOrderDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseOrders to delete
+     */
+    where?: InverseOrderWhereInput
+    /**
+     * Limit how many InverseOrders to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseOrder without action
+   */
+  export type InverseOrderDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseOrder
+     */
+    select?: InverseOrderSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseOrder
+     */
+    omit?: InverseOrderOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InverseFill
+   */
+
+  export type AggregateInverseFill = {
+    _count: InverseFillCountAggregateOutputType | null
+    _avg: InverseFillAvgAggregateOutputType | null
+    _sum: InverseFillSumAggregateOutputType | null
+    _min: InverseFillMinAggregateOutputType | null
+    _max: InverseFillMaxAggregateOutputType | null
+  }
+
+  export type InverseFillAvgAggregateOutputType = {
+    id: number | null
+    orderId: number | null
+    fillPrice: number | null
+    fillQty: number | null
+  }
+
+  export type InverseFillSumAggregateOutputType = {
+    id: number | null
+    orderId: number | null
+    fillPrice: number | null
+    fillQty: number | null
+  }
+
+  export type InverseFillMinAggregateOutputType = {
+    id: number | null
+    orderId: number | null
+    symbol: string | null
+    side: string | null
+    fillPrice: number | null
+    fillQty: number | null
+    filledAt: Date | null
+  }
+
+  export type InverseFillMaxAggregateOutputType = {
+    id: number | null
+    orderId: number | null
+    symbol: string | null
+    side: string | null
+    fillPrice: number | null
+    fillQty: number | null
+    filledAt: Date | null
+  }
+
+  export type InverseFillCountAggregateOutputType = {
+    id: number
+    orderId: number
+    symbol: number
+    side: number
+    fillPrice: number
+    fillQty: number
+    filledAt: number
+    _all: number
+  }
+
+
+  export type InverseFillAvgAggregateInputType = {
+    id?: true
+    orderId?: true
+    fillPrice?: true
+    fillQty?: true
+  }
+
+  export type InverseFillSumAggregateInputType = {
+    id?: true
+    orderId?: true
+    fillPrice?: true
+    fillQty?: true
+  }
+
+  export type InverseFillMinAggregateInputType = {
+    id?: true
+    orderId?: true
+    symbol?: true
+    side?: true
+    fillPrice?: true
+    fillQty?: true
+    filledAt?: true
+  }
+
+  export type InverseFillMaxAggregateInputType = {
+    id?: true
+    orderId?: true
+    symbol?: true
+    side?: true
+    fillPrice?: true
+    fillQty?: true
+    filledAt?: true
+  }
+
+  export type InverseFillCountAggregateInputType = {
+    id?: true
+    orderId?: true
+    symbol?: true
+    side?: true
+    fillPrice?: true
+    fillQty?: true
+    filledAt?: true
+    _all?: true
+  }
+
+  export type InverseFillAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseFill to aggregate.
+     */
+    where?: InverseFillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseFills to fetch.
+     */
+    orderBy?: InverseFillOrderByWithRelationInput | InverseFillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InverseFillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseFills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseFills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InverseFills
+    **/
+    _count?: true | InverseFillCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: InverseFillAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: InverseFillSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InverseFillMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InverseFillMaxAggregateInputType
+  }
+
+  export type GetInverseFillAggregateType<T extends InverseFillAggregateArgs> = {
+        [P in keyof T & keyof AggregateInverseFill]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInverseFill[P]>
+      : GetScalarType<T[P], AggregateInverseFill[P]>
+  }
+
+
+
+
+  export type InverseFillGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InverseFillWhereInput
+    orderBy?: InverseFillOrderByWithAggregationInput | InverseFillOrderByWithAggregationInput[]
+    by: InverseFillScalarFieldEnum[] | InverseFillScalarFieldEnum
+    having?: InverseFillScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InverseFillCountAggregateInputType | true
+    _avg?: InverseFillAvgAggregateInputType
+    _sum?: InverseFillSumAggregateInputType
+    _min?: InverseFillMinAggregateInputType
+    _max?: InverseFillMaxAggregateInputType
+  }
+
+  export type InverseFillGroupByOutputType = {
+    id: number
+    orderId: number
+    symbol: string
+    side: string
+    fillPrice: number
+    fillQty: number
+    filledAt: Date
+    _count: InverseFillCountAggregateOutputType | null
+    _avg: InverseFillAvgAggregateOutputType | null
+    _sum: InverseFillSumAggregateOutputType | null
+    _min: InverseFillMinAggregateOutputType | null
+    _max: InverseFillMaxAggregateOutputType | null
+  }
+
+  type GetInverseFillGroupByPayload<T extends InverseFillGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InverseFillGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InverseFillGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InverseFillGroupByOutputType[P]>
+            : GetScalarType<T[P], InverseFillGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InverseFillSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    symbol?: boolean
+    side?: boolean
+    fillPrice?: boolean
+    fillQty?: boolean
+    filledAt?: boolean
+  }, ExtArgs["result"]["inverseFill"]>
+
+  export type InverseFillSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    symbol?: boolean
+    side?: boolean
+    fillPrice?: boolean
+    fillQty?: boolean
+    filledAt?: boolean
+  }, ExtArgs["result"]["inverseFill"]>
+
+  export type InverseFillSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    orderId?: boolean
+    symbol?: boolean
+    side?: boolean
+    fillPrice?: boolean
+    fillQty?: boolean
+    filledAt?: boolean
+  }, ExtArgs["result"]["inverseFill"]>
+
+  export type InverseFillSelectScalar = {
+    id?: boolean
+    orderId?: boolean
+    symbol?: boolean
+    side?: boolean
+    fillPrice?: boolean
+    fillQty?: boolean
+    filledAt?: boolean
+  }
+
+  export type InverseFillOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "orderId" | "symbol" | "side" | "fillPrice" | "fillQty" | "filledAt", ExtArgs["result"]["inverseFill"]>
+
+  export type $InverseFillPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InverseFill"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      orderId: number
+      symbol: string
+      side: string
+      fillPrice: number
+      fillQty: number
+      filledAt: Date
+    }, ExtArgs["result"]["inverseFill"]>
+    composites: {}
+  }
+
+  type InverseFillGetPayload<S extends boolean | null | undefined | InverseFillDefaultArgs> = $Result.GetResult<Prisma.$InverseFillPayload, S>
+
+  type InverseFillCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InverseFillFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InverseFillCountAggregateInputType | true
+    }
+
+  export interface InverseFillDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InverseFill'], meta: { name: 'InverseFill' } }
+    /**
+     * Find zero or one InverseFill that matches the filter.
+     * @param {InverseFillFindUniqueArgs} args - Arguments to find a InverseFill
+     * @example
+     * // Get one InverseFill
+     * const inverseFill = await prisma.inverseFill.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InverseFillFindUniqueArgs>(args: SelectSubset<T, InverseFillFindUniqueArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one InverseFill that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InverseFillFindUniqueOrThrowArgs} args - Arguments to find a InverseFill
+     * @example
+     * // Get one InverseFill
+     * const inverseFill = await prisma.inverseFill.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InverseFillFindUniqueOrThrowArgs>(args: SelectSubset<T, InverseFillFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseFill that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillFindFirstArgs} args - Arguments to find a InverseFill
+     * @example
+     * // Get one InverseFill
+     * const inverseFill = await prisma.inverseFill.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InverseFillFindFirstArgs>(args?: SelectSubset<T, InverseFillFindFirstArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseFill that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillFindFirstOrThrowArgs} args - Arguments to find a InverseFill
+     * @example
+     * // Get one InverseFill
+     * const inverseFill = await prisma.inverseFill.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InverseFillFindFirstOrThrowArgs>(args?: SelectSubset<T, InverseFillFindFirstOrThrowArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more InverseFills that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InverseFills
+     * const inverseFills = await prisma.inverseFill.findMany()
+     * 
+     * // Get first 10 InverseFills
+     * const inverseFills = await prisma.inverseFill.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inverseFillWithIdOnly = await prisma.inverseFill.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InverseFillFindManyArgs>(args?: SelectSubset<T, InverseFillFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a InverseFill.
+     * @param {InverseFillCreateArgs} args - Arguments to create a InverseFill.
+     * @example
+     * // Create one InverseFill
+     * const InverseFill = await prisma.inverseFill.create({
+     *   data: {
+     *     // ... data to create a InverseFill
+     *   }
+     * })
+     * 
+     */
+    create<T extends InverseFillCreateArgs>(args: SelectSubset<T, InverseFillCreateArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many InverseFills.
+     * @param {InverseFillCreateManyArgs} args - Arguments to create many InverseFills.
+     * @example
+     * // Create many InverseFills
+     * const inverseFill = await prisma.inverseFill.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InverseFillCreateManyArgs>(args?: SelectSubset<T, InverseFillCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InverseFills and returns the data saved in the database.
+     * @param {InverseFillCreateManyAndReturnArgs} args - Arguments to create many InverseFills.
+     * @example
+     * // Create many InverseFills
+     * const inverseFill = await prisma.inverseFill.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InverseFills and only return the `id`
+     * const inverseFillWithIdOnly = await prisma.inverseFill.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InverseFillCreateManyAndReturnArgs>(args?: SelectSubset<T, InverseFillCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a InverseFill.
+     * @param {InverseFillDeleteArgs} args - Arguments to delete one InverseFill.
+     * @example
+     * // Delete one InverseFill
+     * const InverseFill = await prisma.inverseFill.delete({
+     *   where: {
+     *     // ... filter to delete one InverseFill
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InverseFillDeleteArgs>(args: SelectSubset<T, InverseFillDeleteArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one InverseFill.
+     * @param {InverseFillUpdateArgs} args - Arguments to update one InverseFill.
+     * @example
+     * // Update one InverseFill
+     * const inverseFill = await prisma.inverseFill.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InverseFillUpdateArgs>(args: SelectSubset<T, InverseFillUpdateArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more InverseFills.
+     * @param {InverseFillDeleteManyArgs} args - Arguments to filter InverseFills to delete.
+     * @example
+     * // Delete a few InverseFills
+     * const { count } = await prisma.inverseFill.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InverseFillDeleteManyArgs>(args?: SelectSubset<T, InverseFillDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseFills.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InverseFills
+     * const inverseFill = await prisma.inverseFill.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InverseFillUpdateManyArgs>(args: SelectSubset<T, InverseFillUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseFills and returns the data updated in the database.
+     * @param {InverseFillUpdateManyAndReturnArgs} args - Arguments to update many InverseFills.
+     * @example
+     * // Update many InverseFills
+     * const inverseFill = await prisma.inverseFill.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more InverseFills and only return the `id`
+     * const inverseFillWithIdOnly = await prisma.inverseFill.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InverseFillUpdateManyAndReturnArgs>(args: SelectSubset<T, InverseFillUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one InverseFill.
+     * @param {InverseFillUpsertArgs} args - Arguments to update or create a InverseFill.
+     * @example
+     * // Update or create a InverseFill
+     * const inverseFill = await prisma.inverseFill.upsert({
+     *   create: {
+     *     // ... data to create a InverseFill
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InverseFill we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InverseFillUpsertArgs>(args: SelectSubset<T, InverseFillUpsertArgs<ExtArgs>>): Prisma__InverseFillClient<$Result.GetResult<Prisma.$InverseFillPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of InverseFills.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillCountArgs} args - Arguments to filter InverseFills to count.
+     * @example
+     * // Count the number of InverseFills
+     * const count = await prisma.inverseFill.count({
+     *   where: {
+     *     // ... the filter for the InverseFills we want to count
+     *   }
+     * })
+    **/
+    count<T extends InverseFillCountArgs>(
+      args?: Subset<T, InverseFillCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InverseFillCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InverseFill.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InverseFillAggregateArgs>(args: Subset<T, InverseFillAggregateArgs>): Prisma.PrismaPromise<GetInverseFillAggregateType<T>>
+
+    /**
+     * Group by InverseFill.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseFillGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InverseFillGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InverseFillGroupByArgs['orderBy'] }
+        : { orderBy?: InverseFillGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InverseFillGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInverseFillGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InverseFill model
+   */
+  readonly fields: InverseFillFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InverseFill.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InverseFillClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InverseFill model
+   */
+  interface InverseFillFieldRefs {
+    readonly id: FieldRef<"InverseFill", 'Int'>
+    readonly orderId: FieldRef<"InverseFill", 'Int'>
+    readonly symbol: FieldRef<"InverseFill", 'String'>
+    readonly side: FieldRef<"InverseFill", 'String'>
+    readonly fillPrice: FieldRef<"InverseFill", 'Int'>
+    readonly fillQty: FieldRef<"InverseFill", 'Int'>
+    readonly filledAt: FieldRef<"InverseFill", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InverseFill findUnique
+   */
+  export type InverseFillFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseFill to fetch.
+     */
+    where: InverseFillWhereUniqueInput
+  }
+
+  /**
+   * InverseFill findUniqueOrThrow
+   */
+  export type InverseFillFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseFill to fetch.
+     */
+    where: InverseFillWhereUniqueInput
+  }
+
+  /**
+   * InverseFill findFirst
+   */
+  export type InverseFillFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseFill to fetch.
+     */
+    where?: InverseFillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseFills to fetch.
+     */
+    orderBy?: InverseFillOrderByWithRelationInput | InverseFillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseFills.
+     */
+    cursor?: InverseFillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseFills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseFills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseFills.
+     */
+    distinct?: InverseFillScalarFieldEnum | InverseFillScalarFieldEnum[]
+  }
+
+  /**
+   * InverseFill findFirstOrThrow
+   */
+  export type InverseFillFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseFill to fetch.
+     */
+    where?: InverseFillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseFills to fetch.
+     */
+    orderBy?: InverseFillOrderByWithRelationInput | InverseFillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseFills.
+     */
+    cursor?: InverseFillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseFills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseFills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseFills.
+     */
+    distinct?: InverseFillScalarFieldEnum | InverseFillScalarFieldEnum[]
+  }
+
+  /**
+   * InverseFill findMany
+   */
+  export type InverseFillFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseFills to fetch.
+     */
+    where?: InverseFillWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseFills to fetch.
+     */
+    orderBy?: InverseFillOrderByWithRelationInput | InverseFillOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InverseFills.
+     */
+    cursor?: InverseFillWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseFills from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseFills.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseFills.
+     */
+    distinct?: InverseFillScalarFieldEnum | InverseFillScalarFieldEnum[]
+  }
+
+  /**
+   * InverseFill create
+   */
+  export type InverseFillCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * The data needed to create a InverseFill.
+     */
+    data: XOR<InverseFillCreateInput, InverseFillUncheckedCreateInput>
+  }
+
+  /**
+   * InverseFill createMany
+   */
+  export type InverseFillCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InverseFills.
+     */
+    data: InverseFillCreateManyInput | InverseFillCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseFill createManyAndReturn
+   */
+  export type InverseFillCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * The data used to create many InverseFills.
+     */
+    data: InverseFillCreateManyInput | InverseFillCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseFill update
+   */
+  export type InverseFillUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * The data needed to update a InverseFill.
+     */
+    data: XOR<InverseFillUpdateInput, InverseFillUncheckedUpdateInput>
+    /**
+     * Choose, which InverseFill to update.
+     */
+    where: InverseFillWhereUniqueInput
+  }
+
+  /**
+   * InverseFill updateMany
+   */
+  export type InverseFillUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InverseFills.
+     */
+    data: XOR<InverseFillUpdateManyMutationInput, InverseFillUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseFills to update
+     */
+    where?: InverseFillWhereInput
+    /**
+     * Limit how many InverseFills to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseFill updateManyAndReturn
+   */
+  export type InverseFillUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * The data used to update InverseFills.
+     */
+    data: XOR<InverseFillUpdateManyMutationInput, InverseFillUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseFills to update
+     */
+    where?: InverseFillWhereInput
+    /**
+     * Limit how many InverseFills to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseFill upsert
+   */
+  export type InverseFillUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * The filter to search for the InverseFill to update in case it exists.
+     */
+    where: InverseFillWhereUniqueInput
+    /**
+     * In case the InverseFill found by the `where` argument doesn't exist, create a new InverseFill with this data.
+     */
+    create: XOR<InverseFillCreateInput, InverseFillUncheckedCreateInput>
+    /**
+     * In case the InverseFill was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InverseFillUpdateInput, InverseFillUncheckedUpdateInput>
+  }
+
+  /**
+   * InverseFill delete
+   */
+  export type InverseFillDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+    /**
+     * Filter which InverseFill to delete.
+     */
+    where: InverseFillWhereUniqueInput
+  }
+
+  /**
+   * InverseFill deleteMany
+   */
+  export type InverseFillDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseFills to delete
+     */
+    where?: InverseFillWhereInput
+    /**
+     * Limit how many InverseFills to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseFill without action
+   */
+  export type InverseFillDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseFill
+     */
+    select?: InverseFillSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseFill
+     */
+    omit?: InverseFillOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InversePosition
+   */
+
+  export type AggregateInversePosition = {
+    _count: InversePositionCountAggregateOutputType | null
+    _avg: InversePositionAvgAggregateOutputType | null
+    _sum: InversePositionSumAggregateOutputType | null
+    _min: InversePositionMinAggregateOutputType | null
+    _max: InversePositionMaxAggregateOutputType | null
+  }
+
+  export type InversePositionAvgAggregateOutputType = {
+    id: number | null
+    qty: number | null
+    avgPrice: number | null
+    realizedPnl: number | null
+    unrealizedPnl: number | null
+  }
+
+  export type InversePositionSumAggregateOutputType = {
+    id: number | null
+    qty: number | null
+    avgPrice: number | null
+    realizedPnl: number | null
+    unrealizedPnl: number | null
+  }
+
+  export type InversePositionMinAggregateOutputType = {
+    id: number | null
+    sessionId: string | null
+    symbol: string | null
+    qty: number | null
+    avgPrice: number | null
+    realizedPnl: number | null
+    unrealizedPnl: number | null
+    updatedAt: Date | null
+  }
+
+  export type InversePositionMaxAggregateOutputType = {
+    id: number | null
+    sessionId: string | null
+    symbol: string | null
+    qty: number | null
+    avgPrice: number | null
+    realizedPnl: number | null
+    unrealizedPnl: number | null
+    updatedAt: Date | null
+  }
+
+  export type InversePositionCountAggregateOutputType = {
+    id: number
+    sessionId: number
+    symbol: number
+    qty: number
+    avgPrice: number
+    realizedPnl: number
+    unrealizedPnl: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type InversePositionAvgAggregateInputType = {
+    id?: true
+    qty?: true
+    avgPrice?: true
+    realizedPnl?: true
+    unrealizedPnl?: true
+  }
+
+  export type InversePositionSumAggregateInputType = {
+    id?: true
+    qty?: true
+    avgPrice?: true
+    realizedPnl?: true
+    unrealizedPnl?: true
+  }
+
+  export type InversePositionMinAggregateInputType = {
+    id?: true
+    sessionId?: true
+    symbol?: true
+    qty?: true
+    avgPrice?: true
+    realizedPnl?: true
+    unrealizedPnl?: true
+    updatedAt?: true
+  }
+
+  export type InversePositionMaxAggregateInputType = {
+    id?: true
+    sessionId?: true
+    symbol?: true
+    qty?: true
+    avgPrice?: true
+    realizedPnl?: true
+    unrealizedPnl?: true
+    updatedAt?: true
+  }
+
+  export type InversePositionCountAggregateInputType = {
+    id?: true
+    sessionId?: true
+    symbol?: true
+    qty?: true
+    avgPrice?: true
+    realizedPnl?: true
+    unrealizedPnl?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type InversePositionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InversePosition to aggregate.
+     */
+    where?: InversePositionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InversePositions to fetch.
+     */
+    orderBy?: InversePositionOrderByWithRelationInput | InversePositionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InversePositionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InversePositions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InversePositions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InversePositions
+    **/
+    _count?: true | InversePositionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: InversePositionAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: InversePositionSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InversePositionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InversePositionMaxAggregateInputType
+  }
+
+  export type GetInversePositionAggregateType<T extends InversePositionAggregateArgs> = {
+        [P in keyof T & keyof AggregateInversePosition]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInversePosition[P]>
+      : GetScalarType<T[P], AggregateInversePosition[P]>
+  }
+
+
+
+
+  export type InversePositionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InversePositionWhereInput
+    orderBy?: InversePositionOrderByWithAggregationInput | InversePositionOrderByWithAggregationInput[]
+    by: InversePositionScalarFieldEnum[] | InversePositionScalarFieldEnum
+    having?: InversePositionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InversePositionCountAggregateInputType | true
+    _avg?: InversePositionAvgAggregateInputType
+    _sum?: InversePositionSumAggregateInputType
+    _min?: InversePositionMinAggregateInputType
+    _max?: InversePositionMaxAggregateInputType
+  }
+
+  export type InversePositionGroupByOutputType = {
+    id: number
+    sessionId: string
+    symbol: string
+    qty: number
+    avgPrice: number
+    realizedPnl: number
+    unrealizedPnl: number
+    updatedAt: Date
+    _count: InversePositionCountAggregateOutputType | null
+    _avg: InversePositionAvgAggregateOutputType | null
+    _sum: InversePositionSumAggregateOutputType | null
+    _min: InversePositionMinAggregateOutputType | null
+    _max: InversePositionMaxAggregateOutputType | null
+  }
+
+  type GetInversePositionGroupByPayload<T extends InversePositionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InversePositionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InversePositionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InversePositionGroupByOutputType[P]>
+            : GetScalarType<T[P], InversePositionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InversePositionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    qty?: boolean
+    avgPrice?: boolean
+    realizedPnl?: boolean
+    unrealizedPnl?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inversePosition"]>
+
+  export type InversePositionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    qty?: boolean
+    avgPrice?: boolean
+    realizedPnl?: boolean
+    unrealizedPnl?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inversePosition"]>
+
+  export type InversePositionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    qty?: boolean
+    avgPrice?: boolean
+    realizedPnl?: boolean
+    unrealizedPnl?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inversePosition"]>
+
+  export type InversePositionSelectScalar = {
+    id?: boolean
+    sessionId?: boolean
+    symbol?: boolean
+    qty?: boolean
+    avgPrice?: boolean
+    realizedPnl?: boolean
+    unrealizedPnl?: boolean
+    updatedAt?: boolean
+  }
+
+  export type InversePositionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionId" | "symbol" | "qty" | "avgPrice" | "realizedPnl" | "unrealizedPnl" | "updatedAt", ExtArgs["result"]["inversePosition"]>
+
+  export type $InversePositionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InversePosition"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      sessionId: string
+      symbol: string
+      qty: number
+      avgPrice: number
+      realizedPnl: number
+      unrealizedPnl: number
+      updatedAt: Date
+    }, ExtArgs["result"]["inversePosition"]>
+    composites: {}
+  }
+
+  type InversePositionGetPayload<S extends boolean | null | undefined | InversePositionDefaultArgs> = $Result.GetResult<Prisma.$InversePositionPayload, S>
+
+  type InversePositionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InversePositionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InversePositionCountAggregateInputType | true
+    }
+
+  export interface InversePositionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InversePosition'], meta: { name: 'InversePosition' } }
+    /**
+     * Find zero or one InversePosition that matches the filter.
+     * @param {InversePositionFindUniqueArgs} args - Arguments to find a InversePosition
+     * @example
+     * // Get one InversePosition
+     * const inversePosition = await prisma.inversePosition.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InversePositionFindUniqueArgs>(args: SelectSubset<T, InversePositionFindUniqueArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one InversePosition that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InversePositionFindUniqueOrThrowArgs} args - Arguments to find a InversePosition
+     * @example
+     * // Get one InversePosition
+     * const inversePosition = await prisma.inversePosition.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InversePositionFindUniqueOrThrowArgs>(args: SelectSubset<T, InversePositionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InversePosition that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionFindFirstArgs} args - Arguments to find a InversePosition
+     * @example
+     * // Get one InversePosition
+     * const inversePosition = await prisma.inversePosition.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InversePositionFindFirstArgs>(args?: SelectSubset<T, InversePositionFindFirstArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InversePosition that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionFindFirstOrThrowArgs} args - Arguments to find a InversePosition
+     * @example
+     * // Get one InversePosition
+     * const inversePosition = await prisma.inversePosition.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InversePositionFindFirstOrThrowArgs>(args?: SelectSubset<T, InversePositionFindFirstOrThrowArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more InversePositions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InversePositions
+     * const inversePositions = await prisma.inversePosition.findMany()
+     * 
+     * // Get first 10 InversePositions
+     * const inversePositions = await prisma.inversePosition.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inversePositionWithIdOnly = await prisma.inversePosition.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InversePositionFindManyArgs>(args?: SelectSubset<T, InversePositionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a InversePosition.
+     * @param {InversePositionCreateArgs} args - Arguments to create a InversePosition.
+     * @example
+     * // Create one InversePosition
+     * const InversePosition = await prisma.inversePosition.create({
+     *   data: {
+     *     // ... data to create a InversePosition
+     *   }
+     * })
+     * 
+     */
+    create<T extends InversePositionCreateArgs>(args: SelectSubset<T, InversePositionCreateArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many InversePositions.
+     * @param {InversePositionCreateManyArgs} args - Arguments to create many InversePositions.
+     * @example
+     * // Create many InversePositions
+     * const inversePosition = await prisma.inversePosition.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InversePositionCreateManyArgs>(args?: SelectSubset<T, InversePositionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InversePositions and returns the data saved in the database.
+     * @param {InversePositionCreateManyAndReturnArgs} args - Arguments to create many InversePositions.
+     * @example
+     * // Create many InversePositions
+     * const inversePosition = await prisma.inversePosition.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InversePositions and only return the `id`
+     * const inversePositionWithIdOnly = await prisma.inversePosition.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InversePositionCreateManyAndReturnArgs>(args?: SelectSubset<T, InversePositionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a InversePosition.
+     * @param {InversePositionDeleteArgs} args - Arguments to delete one InversePosition.
+     * @example
+     * // Delete one InversePosition
+     * const InversePosition = await prisma.inversePosition.delete({
+     *   where: {
+     *     // ... filter to delete one InversePosition
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InversePositionDeleteArgs>(args: SelectSubset<T, InversePositionDeleteArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one InversePosition.
+     * @param {InversePositionUpdateArgs} args - Arguments to update one InversePosition.
+     * @example
+     * // Update one InversePosition
+     * const inversePosition = await prisma.inversePosition.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InversePositionUpdateArgs>(args: SelectSubset<T, InversePositionUpdateArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more InversePositions.
+     * @param {InversePositionDeleteManyArgs} args - Arguments to filter InversePositions to delete.
+     * @example
+     * // Delete a few InversePositions
+     * const { count } = await prisma.inversePosition.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InversePositionDeleteManyArgs>(args?: SelectSubset<T, InversePositionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InversePositions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InversePositions
+     * const inversePosition = await prisma.inversePosition.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InversePositionUpdateManyArgs>(args: SelectSubset<T, InversePositionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InversePositions and returns the data updated in the database.
+     * @param {InversePositionUpdateManyAndReturnArgs} args - Arguments to update many InversePositions.
+     * @example
+     * // Update many InversePositions
+     * const inversePosition = await prisma.inversePosition.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more InversePositions and only return the `id`
+     * const inversePositionWithIdOnly = await prisma.inversePosition.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InversePositionUpdateManyAndReturnArgs>(args: SelectSubset<T, InversePositionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one InversePosition.
+     * @param {InversePositionUpsertArgs} args - Arguments to update or create a InversePosition.
+     * @example
+     * // Update or create a InversePosition
+     * const inversePosition = await prisma.inversePosition.upsert({
+     *   create: {
+     *     // ... data to create a InversePosition
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InversePosition we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InversePositionUpsertArgs>(args: SelectSubset<T, InversePositionUpsertArgs<ExtArgs>>): Prisma__InversePositionClient<$Result.GetResult<Prisma.$InversePositionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of InversePositions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionCountArgs} args - Arguments to filter InversePositions to count.
+     * @example
+     * // Count the number of InversePositions
+     * const count = await prisma.inversePosition.count({
+     *   where: {
+     *     // ... the filter for the InversePositions we want to count
+     *   }
+     * })
+    **/
+    count<T extends InversePositionCountArgs>(
+      args?: Subset<T, InversePositionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InversePositionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InversePosition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InversePositionAggregateArgs>(args: Subset<T, InversePositionAggregateArgs>): Prisma.PrismaPromise<GetInversePositionAggregateType<T>>
+
+    /**
+     * Group by InversePosition.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InversePositionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InversePositionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InversePositionGroupByArgs['orderBy'] }
+        : { orderBy?: InversePositionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InversePositionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInversePositionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InversePosition model
+   */
+  readonly fields: InversePositionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InversePosition.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InversePositionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InversePosition model
+   */
+  interface InversePositionFieldRefs {
+    readonly id: FieldRef<"InversePosition", 'Int'>
+    readonly sessionId: FieldRef<"InversePosition", 'String'>
+    readonly symbol: FieldRef<"InversePosition", 'String'>
+    readonly qty: FieldRef<"InversePosition", 'Int'>
+    readonly avgPrice: FieldRef<"InversePosition", 'Float'>
+    readonly realizedPnl: FieldRef<"InversePosition", 'Float'>
+    readonly unrealizedPnl: FieldRef<"InversePosition", 'Float'>
+    readonly updatedAt: FieldRef<"InversePosition", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InversePosition findUnique
+   */
+  export type InversePositionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * Filter, which InversePosition to fetch.
+     */
+    where: InversePositionWhereUniqueInput
+  }
+
+  /**
+   * InversePosition findUniqueOrThrow
+   */
+  export type InversePositionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * Filter, which InversePosition to fetch.
+     */
+    where: InversePositionWhereUniqueInput
+  }
+
+  /**
+   * InversePosition findFirst
+   */
+  export type InversePositionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * Filter, which InversePosition to fetch.
+     */
+    where?: InversePositionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InversePositions to fetch.
+     */
+    orderBy?: InversePositionOrderByWithRelationInput | InversePositionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InversePositions.
+     */
+    cursor?: InversePositionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InversePositions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InversePositions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InversePositions.
+     */
+    distinct?: InversePositionScalarFieldEnum | InversePositionScalarFieldEnum[]
+  }
+
+  /**
+   * InversePosition findFirstOrThrow
+   */
+  export type InversePositionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * Filter, which InversePosition to fetch.
+     */
+    where?: InversePositionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InversePositions to fetch.
+     */
+    orderBy?: InversePositionOrderByWithRelationInput | InversePositionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InversePositions.
+     */
+    cursor?: InversePositionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InversePositions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InversePositions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InversePositions.
+     */
+    distinct?: InversePositionScalarFieldEnum | InversePositionScalarFieldEnum[]
+  }
+
+  /**
+   * InversePosition findMany
+   */
+  export type InversePositionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * Filter, which InversePositions to fetch.
+     */
+    where?: InversePositionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InversePositions to fetch.
+     */
+    orderBy?: InversePositionOrderByWithRelationInput | InversePositionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InversePositions.
+     */
+    cursor?: InversePositionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InversePositions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InversePositions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InversePositions.
+     */
+    distinct?: InversePositionScalarFieldEnum | InversePositionScalarFieldEnum[]
+  }
+
+  /**
+   * InversePosition create
+   */
+  export type InversePositionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * The data needed to create a InversePosition.
+     */
+    data: XOR<InversePositionCreateInput, InversePositionUncheckedCreateInput>
+  }
+
+  /**
+   * InversePosition createMany
+   */
+  export type InversePositionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InversePositions.
+     */
+    data: InversePositionCreateManyInput | InversePositionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InversePosition createManyAndReturn
+   */
+  export type InversePositionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * The data used to create many InversePositions.
+     */
+    data: InversePositionCreateManyInput | InversePositionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InversePosition update
+   */
+  export type InversePositionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * The data needed to update a InversePosition.
+     */
+    data: XOR<InversePositionUpdateInput, InversePositionUncheckedUpdateInput>
+    /**
+     * Choose, which InversePosition to update.
+     */
+    where: InversePositionWhereUniqueInput
+  }
+
+  /**
+   * InversePosition updateMany
+   */
+  export type InversePositionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InversePositions.
+     */
+    data: XOR<InversePositionUpdateManyMutationInput, InversePositionUncheckedUpdateManyInput>
+    /**
+     * Filter which InversePositions to update
+     */
+    where?: InversePositionWhereInput
+    /**
+     * Limit how many InversePositions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InversePosition updateManyAndReturn
+   */
+  export type InversePositionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * The data used to update InversePositions.
+     */
+    data: XOR<InversePositionUpdateManyMutationInput, InversePositionUncheckedUpdateManyInput>
+    /**
+     * Filter which InversePositions to update
+     */
+    where?: InversePositionWhereInput
+    /**
+     * Limit how many InversePositions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InversePosition upsert
+   */
+  export type InversePositionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * The filter to search for the InversePosition to update in case it exists.
+     */
+    where: InversePositionWhereUniqueInput
+    /**
+     * In case the InversePosition found by the `where` argument doesn't exist, create a new InversePosition with this data.
+     */
+    create: XOR<InversePositionCreateInput, InversePositionUncheckedCreateInput>
+    /**
+     * In case the InversePosition was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InversePositionUpdateInput, InversePositionUncheckedUpdateInput>
+  }
+
+  /**
+   * InversePosition delete
+   */
+  export type InversePositionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+    /**
+     * Filter which InversePosition to delete.
+     */
+    where: InversePositionWhereUniqueInput
+  }
+
+  /**
+   * InversePosition deleteMany
+   */
+  export type InversePositionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InversePositions to delete
+     */
+    where?: InversePositionWhereInput
+    /**
+     * Limit how many InversePositions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * InversePosition without action
+   */
+  export type InversePositionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InversePosition
+     */
+    select?: InversePositionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InversePosition
+     */
+    omit?: InversePositionOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InverseDailyStat
+   */
+
+  export type AggregateInverseDailyStat = {
+    _count: InverseDailyStatCountAggregateOutputType | null
+    _avg: InverseDailyStatAvgAggregateOutputType | null
+    _sum: InverseDailyStatSumAggregateOutputType | null
+    _min: InverseDailyStatMinAggregateOutputType | null
+    _max: InverseDailyStatMaxAggregateOutputType | null
+  }
+
+  export type InverseDailyStatAvgAggregateOutputType = {
+    id: number | null
+    buyQty: number | null
+    buyAmount: number | null
+    sellQty: number | null
+    sellAmount: number | null
+    realizedPnl: number | null
+    fillCount: number | null
+    closingQty: number | null
+  }
+
+  export type InverseDailyStatSumAggregateOutputType = {
+    id: number | null
+    buyQty: number | null
+    buyAmount: number | null
+    sellQty: number | null
+    sellAmount: number | null
+    realizedPnl: number | null
+    fillCount: number | null
+    closingQty: number | null
+  }
+
+  export type InverseDailyStatMinAggregateOutputType = {
+    id: number | null
+    date: Date | null
+    sessionId: string | null
+    buyQty: number | null
+    buyAmount: number | null
+    sellQty: number | null
+    sellAmount: number | null
+    realizedPnl: number | null
+    fillCount: number | null
+    forceSettled: boolean | null
+    closingQty: number | null
+    note: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseDailyStatMaxAggregateOutputType = {
+    id: number | null
+    date: Date | null
+    sessionId: string | null
+    buyQty: number | null
+    buyAmount: number | null
+    sellQty: number | null
+    sellAmount: number | null
+    realizedPnl: number | null
+    fillCount: number | null
+    forceSettled: boolean | null
+    closingQty: number | null
+    note: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseDailyStatCountAggregateOutputType = {
+    id: number
+    date: number
+    sessionId: number
+    buyQty: number
+    buyAmount: number
+    sellQty: number
+    sellAmount: number
+    realizedPnl: number
+    fillCount: number
+    forceSettled: number
+    closingQty: number
+    note: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type InverseDailyStatAvgAggregateInputType = {
+    id?: true
+    buyQty?: true
+    buyAmount?: true
+    sellQty?: true
+    sellAmount?: true
+    realizedPnl?: true
+    fillCount?: true
+    closingQty?: true
+  }
+
+  export type InverseDailyStatSumAggregateInputType = {
+    id?: true
+    buyQty?: true
+    buyAmount?: true
+    sellQty?: true
+    sellAmount?: true
+    realizedPnl?: true
+    fillCount?: true
+    closingQty?: true
+  }
+
+  export type InverseDailyStatMinAggregateInputType = {
+    id?: true
+    date?: true
+    sessionId?: true
+    buyQty?: true
+    buyAmount?: true
+    sellQty?: true
+    sellAmount?: true
+    realizedPnl?: true
+    fillCount?: true
+    forceSettled?: true
+    closingQty?: true
+    note?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseDailyStatMaxAggregateInputType = {
+    id?: true
+    date?: true
+    sessionId?: true
+    buyQty?: true
+    buyAmount?: true
+    sellQty?: true
+    sellAmount?: true
+    realizedPnl?: true
+    fillCount?: true
+    forceSettled?: true
+    closingQty?: true
+    note?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseDailyStatCountAggregateInputType = {
+    id?: true
+    date?: true
+    sessionId?: true
+    buyQty?: true
+    buyAmount?: true
+    sellQty?: true
+    sellAmount?: true
+    realizedPnl?: true
+    fillCount?: true
+    forceSettled?: true
+    closingQty?: true
+    note?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type InverseDailyStatAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseDailyStat to aggregate.
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseDailyStats to fetch.
+     */
+    orderBy?: InverseDailyStatOrderByWithRelationInput | InverseDailyStatOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InverseDailyStatWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseDailyStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseDailyStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InverseDailyStats
+    **/
+    _count?: true | InverseDailyStatCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: InverseDailyStatAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: InverseDailyStatSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InverseDailyStatMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InverseDailyStatMaxAggregateInputType
+  }
+
+  export type GetInverseDailyStatAggregateType<T extends InverseDailyStatAggregateArgs> = {
+        [P in keyof T & keyof AggregateInverseDailyStat]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInverseDailyStat[P]>
+      : GetScalarType<T[P], AggregateInverseDailyStat[P]>
+  }
+
+
+
+
+  export type InverseDailyStatGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InverseDailyStatWhereInput
+    orderBy?: InverseDailyStatOrderByWithAggregationInput | InverseDailyStatOrderByWithAggregationInput[]
+    by: InverseDailyStatScalarFieldEnum[] | InverseDailyStatScalarFieldEnum
+    having?: InverseDailyStatScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InverseDailyStatCountAggregateInputType | true
+    _avg?: InverseDailyStatAvgAggregateInputType
+    _sum?: InverseDailyStatSumAggregateInputType
+    _min?: InverseDailyStatMinAggregateInputType
+    _max?: InverseDailyStatMaxAggregateInputType
+  }
+
+  export type InverseDailyStatGroupByOutputType = {
+    id: number
+    date: Date
+    sessionId: string | null
+    buyQty: number
+    buyAmount: number
+    sellQty: number
+    sellAmount: number
+    realizedPnl: number
+    fillCount: number
+    forceSettled: boolean
+    closingQty: number
+    note: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: InverseDailyStatCountAggregateOutputType | null
+    _avg: InverseDailyStatAvgAggregateOutputType | null
+    _sum: InverseDailyStatSumAggregateOutputType | null
+    _min: InverseDailyStatMinAggregateOutputType | null
+    _max: InverseDailyStatMaxAggregateOutputType | null
+  }
+
+  type GetInverseDailyStatGroupByPayload<T extends InverseDailyStatGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InverseDailyStatGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InverseDailyStatGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InverseDailyStatGroupByOutputType[P]>
+            : GetScalarType<T[P], InverseDailyStatGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InverseDailyStatSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    date?: boolean
+    sessionId?: boolean
+    buyQty?: boolean
+    buyAmount?: boolean
+    sellQty?: boolean
+    sellAmount?: boolean
+    realizedPnl?: boolean
+    fillCount?: boolean
+    forceSettled?: boolean
+    closingQty?: boolean
+    note?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseDailyStat"]>
+
+  export type InverseDailyStatSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    date?: boolean
+    sessionId?: boolean
+    buyQty?: boolean
+    buyAmount?: boolean
+    sellQty?: boolean
+    sellAmount?: boolean
+    realizedPnl?: boolean
+    fillCount?: boolean
+    forceSettled?: boolean
+    closingQty?: boolean
+    note?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseDailyStat"]>
+
+  export type InverseDailyStatSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    date?: boolean
+    sessionId?: boolean
+    buyQty?: boolean
+    buyAmount?: boolean
+    sellQty?: boolean
+    sellAmount?: boolean
+    realizedPnl?: boolean
+    fillCount?: boolean
+    forceSettled?: boolean
+    closingQty?: boolean
+    note?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseDailyStat"]>
+
+  export type InverseDailyStatSelectScalar = {
+    id?: boolean
+    date?: boolean
+    sessionId?: boolean
+    buyQty?: boolean
+    buyAmount?: boolean
+    sellQty?: boolean
+    sellAmount?: boolean
+    realizedPnl?: boolean
+    fillCount?: boolean
+    forceSettled?: boolean
+    closingQty?: boolean
+    note?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type InverseDailyStatOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "date" | "sessionId" | "buyQty" | "buyAmount" | "sellQty" | "sellAmount" | "realizedPnl" | "fillCount" | "forceSettled" | "closingQty" | "note" | "createdAt" | "updatedAt", ExtArgs["result"]["inverseDailyStat"]>
+
+  export type $InverseDailyStatPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InverseDailyStat"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      date: Date
+      sessionId: string | null
+      buyQty: number
+      buyAmount: number
+      sellQty: number
+      sellAmount: number
+      realizedPnl: number
+      fillCount: number
+      forceSettled: boolean
+      closingQty: number
+      note: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["inverseDailyStat"]>
+    composites: {}
+  }
+
+  type InverseDailyStatGetPayload<S extends boolean | null | undefined | InverseDailyStatDefaultArgs> = $Result.GetResult<Prisma.$InverseDailyStatPayload, S>
+
+  type InverseDailyStatCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InverseDailyStatFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InverseDailyStatCountAggregateInputType | true
+    }
+
+  export interface InverseDailyStatDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InverseDailyStat'], meta: { name: 'InverseDailyStat' } }
+    /**
+     * Find zero or one InverseDailyStat that matches the filter.
+     * @param {InverseDailyStatFindUniqueArgs} args - Arguments to find a InverseDailyStat
+     * @example
+     * // Get one InverseDailyStat
+     * const inverseDailyStat = await prisma.inverseDailyStat.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InverseDailyStatFindUniqueArgs>(args: SelectSubset<T, InverseDailyStatFindUniqueArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one InverseDailyStat that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InverseDailyStatFindUniqueOrThrowArgs} args - Arguments to find a InverseDailyStat
+     * @example
+     * // Get one InverseDailyStat
+     * const inverseDailyStat = await prisma.inverseDailyStat.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InverseDailyStatFindUniqueOrThrowArgs>(args: SelectSubset<T, InverseDailyStatFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseDailyStat that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatFindFirstArgs} args - Arguments to find a InverseDailyStat
+     * @example
+     * // Get one InverseDailyStat
+     * const inverseDailyStat = await prisma.inverseDailyStat.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InverseDailyStatFindFirstArgs>(args?: SelectSubset<T, InverseDailyStatFindFirstArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseDailyStat that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatFindFirstOrThrowArgs} args - Arguments to find a InverseDailyStat
+     * @example
+     * // Get one InverseDailyStat
+     * const inverseDailyStat = await prisma.inverseDailyStat.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InverseDailyStatFindFirstOrThrowArgs>(args?: SelectSubset<T, InverseDailyStatFindFirstOrThrowArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more InverseDailyStats that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InverseDailyStats
+     * const inverseDailyStats = await prisma.inverseDailyStat.findMany()
+     * 
+     * // Get first 10 InverseDailyStats
+     * const inverseDailyStats = await prisma.inverseDailyStat.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inverseDailyStatWithIdOnly = await prisma.inverseDailyStat.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InverseDailyStatFindManyArgs>(args?: SelectSubset<T, InverseDailyStatFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a InverseDailyStat.
+     * @param {InverseDailyStatCreateArgs} args - Arguments to create a InverseDailyStat.
+     * @example
+     * // Create one InverseDailyStat
+     * const InverseDailyStat = await prisma.inverseDailyStat.create({
+     *   data: {
+     *     // ... data to create a InverseDailyStat
+     *   }
+     * })
+     * 
+     */
+    create<T extends InverseDailyStatCreateArgs>(args: SelectSubset<T, InverseDailyStatCreateArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many InverseDailyStats.
+     * @param {InverseDailyStatCreateManyArgs} args - Arguments to create many InverseDailyStats.
+     * @example
+     * // Create many InverseDailyStats
+     * const inverseDailyStat = await prisma.inverseDailyStat.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InverseDailyStatCreateManyArgs>(args?: SelectSubset<T, InverseDailyStatCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InverseDailyStats and returns the data saved in the database.
+     * @param {InverseDailyStatCreateManyAndReturnArgs} args - Arguments to create many InverseDailyStats.
+     * @example
+     * // Create many InverseDailyStats
+     * const inverseDailyStat = await prisma.inverseDailyStat.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InverseDailyStats and only return the `id`
+     * const inverseDailyStatWithIdOnly = await prisma.inverseDailyStat.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InverseDailyStatCreateManyAndReturnArgs>(args?: SelectSubset<T, InverseDailyStatCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a InverseDailyStat.
+     * @param {InverseDailyStatDeleteArgs} args - Arguments to delete one InverseDailyStat.
+     * @example
+     * // Delete one InverseDailyStat
+     * const InverseDailyStat = await prisma.inverseDailyStat.delete({
+     *   where: {
+     *     // ... filter to delete one InverseDailyStat
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InverseDailyStatDeleteArgs>(args: SelectSubset<T, InverseDailyStatDeleteArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one InverseDailyStat.
+     * @param {InverseDailyStatUpdateArgs} args - Arguments to update one InverseDailyStat.
+     * @example
+     * // Update one InverseDailyStat
+     * const inverseDailyStat = await prisma.inverseDailyStat.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InverseDailyStatUpdateArgs>(args: SelectSubset<T, InverseDailyStatUpdateArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more InverseDailyStats.
+     * @param {InverseDailyStatDeleteManyArgs} args - Arguments to filter InverseDailyStats to delete.
+     * @example
+     * // Delete a few InverseDailyStats
+     * const { count } = await prisma.inverseDailyStat.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InverseDailyStatDeleteManyArgs>(args?: SelectSubset<T, InverseDailyStatDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseDailyStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InverseDailyStats
+     * const inverseDailyStat = await prisma.inverseDailyStat.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InverseDailyStatUpdateManyArgs>(args: SelectSubset<T, InverseDailyStatUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseDailyStats and returns the data updated in the database.
+     * @param {InverseDailyStatUpdateManyAndReturnArgs} args - Arguments to update many InverseDailyStats.
+     * @example
+     * // Update many InverseDailyStats
+     * const inverseDailyStat = await prisma.inverseDailyStat.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more InverseDailyStats and only return the `id`
+     * const inverseDailyStatWithIdOnly = await prisma.inverseDailyStat.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InverseDailyStatUpdateManyAndReturnArgs>(args: SelectSubset<T, InverseDailyStatUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one InverseDailyStat.
+     * @param {InverseDailyStatUpsertArgs} args - Arguments to update or create a InverseDailyStat.
+     * @example
+     * // Update or create a InverseDailyStat
+     * const inverseDailyStat = await prisma.inverseDailyStat.upsert({
+     *   create: {
+     *     // ... data to create a InverseDailyStat
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InverseDailyStat we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InverseDailyStatUpsertArgs>(args: SelectSubset<T, InverseDailyStatUpsertArgs<ExtArgs>>): Prisma__InverseDailyStatClient<$Result.GetResult<Prisma.$InverseDailyStatPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of InverseDailyStats.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatCountArgs} args - Arguments to filter InverseDailyStats to count.
+     * @example
+     * // Count the number of InverseDailyStats
+     * const count = await prisma.inverseDailyStat.count({
+     *   where: {
+     *     // ... the filter for the InverseDailyStats we want to count
+     *   }
+     * })
+    **/
+    count<T extends InverseDailyStatCountArgs>(
+      args?: Subset<T, InverseDailyStatCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InverseDailyStatCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InverseDailyStat.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InverseDailyStatAggregateArgs>(args: Subset<T, InverseDailyStatAggregateArgs>): Prisma.PrismaPromise<GetInverseDailyStatAggregateType<T>>
+
+    /**
+     * Group by InverseDailyStat.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseDailyStatGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InverseDailyStatGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InverseDailyStatGroupByArgs['orderBy'] }
+        : { orderBy?: InverseDailyStatGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InverseDailyStatGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInverseDailyStatGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InverseDailyStat model
+   */
+  readonly fields: InverseDailyStatFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InverseDailyStat.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InverseDailyStatClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InverseDailyStat model
+   */
+  interface InverseDailyStatFieldRefs {
+    readonly id: FieldRef<"InverseDailyStat", 'Int'>
+    readonly date: FieldRef<"InverseDailyStat", 'DateTime'>
+    readonly sessionId: FieldRef<"InverseDailyStat", 'String'>
+    readonly buyQty: FieldRef<"InverseDailyStat", 'Float'>
+    readonly buyAmount: FieldRef<"InverseDailyStat", 'Float'>
+    readonly sellQty: FieldRef<"InverseDailyStat", 'Float'>
+    readonly sellAmount: FieldRef<"InverseDailyStat", 'Float'>
+    readonly realizedPnl: FieldRef<"InverseDailyStat", 'Float'>
+    readonly fillCount: FieldRef<"InverseDailyStat", 'Int'>
+    readonly forceSettled: FieldRef<"InverseDailyStat", 'Boolean'>
+    readonly closingQty: FieldRef<"InverseDailyStat", 'Int'>
+    readonly note: FieldRef<"InverseDailyStat", 'String'>
+    readonly createdAt: FieldRef<"InverseDailyStat", 'DateTime'>
+    readonly updatedAt: FieldRef<"InverseDailyStat", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InverseDailyStat findUnique
+   */
+  export type InverseDailyStatFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseDailyStat to fetch.
+     */
+    where: InverseDailyStatWhereUniqueInput
+  }
+
+  /**
+   * InverseDailyStat findUniqueOrThrow
+   */
+  export type InverseDailyStatFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseDailyStat to fetch.
+     */
+    where: InverseDailyStatWhereUniqueInput
+  }
+
+  /**
+   * InverseDailyStat findFirst
+   */
+  export type InverseDailyStatFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseDailyStat to fetch.
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseDailyStats to fetch.
+     */
+    orderBy?: InverseDailyStatOrderByWithRelationInput | InverseDailyStatOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseDailyStats.
+     */
+    cursor?: InverseDailyStatWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseDailyStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseDailyStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseDailyStats.
+     */
+    distinct?: InverseDailyStatScalarFieldEnum | InverseDailyStatScalarFieldEnum[]
+  }
+
+  /**
+   * InverseDailyStat findFirstOrThrow
+   */
+  export type InverseDailyStatFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseDailyStat to fetch.
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseDailyStats to fetch.
+     */
+    orderBy?: InverseDailyStatOrderByWithRelationInput | InverseDailyStatOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseDailyStats.
+     */
+    cursor?: InverseDailyStatWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseDailyStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseDailyStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseDailyStats.
+     */
+    distinct?: InverseDailyStatScalarFieldEnum | InverseDailyStatScalarFieldEnum[]
+  }
+
+  /**
+   * InverseDailyStat findMany
+   */
+  export type InverseDailyStatFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseDailyStats to fetch.
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseDailyStats to fetch.
+     */
+    orderBy?: InverseDailyStatOrderByWithRelationInput | InverseDailyStatOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InverseDailyStats.
+     */
+    cursor?: InverseDailyStatWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseDailyStats from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseDailyStats.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseDailyStats.
+     */
+    distinct?: InverseDailyStatScalarFieldEnum | InverseDailyStatScalarFieldEnum[]
+  }
+
+  /**
+   * InverseDailyStat create
+   */
+  export type InverseDailyStatCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * The data needed to create a InverseDailyStat.
+     */
+    data: XOR<InverseDailyStatCreateInput, InverseDailyStatUncheckedCreateInput>
+  }
+
+  /**
+   * InverseDailyStat createMany
+   */
+  export type InverseDailyStatCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InverseDailyStats.
+     */
+    data: InverseDailyStatCreateManyInput | InverseDailyStatCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseDailyStat createManyAndReturn
+   */
+  export type InverseDailyStatCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * The data used to create many InverseDailyStats.
+     */
+    data: InverseDailyStatCreateManyInput | InverseDailyStatCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseDailyStat update
+   */
+  export type InverseDailyStatUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * The data needed to update a InverseDailyStat.
+     */
+    data: XOR<InverseDailyStatUpdateInput, InverseDailyStatUncheckedUpdateInput>
+    /**
+     * Choose, which InverseDailyStat to update.
+     */
+    where: InverseDailyStatWhereUniqueInput
+  }
+
+  /**
+   * InverseDailyStat updateMany
+   */
+  export type InverseDailyStatUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InverseDailyStats.
+     */
+    data: XOR<InverseDailyStatUpdateManyMutationInput, InverseDailyStatUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseDailyStats to update
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * Limit how many InverseDailyStats to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseDailyStat updateManyAndReturn
+   */
+  export type InverseDailyStatUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * The data used to update InverseDailyStats.
+     */
+    data: XOR<InverseDailyStatUpdateManyMutationInput, InverseDailyStatUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseDailyStats to update
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * Limit how many InverseDailyStats to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseDailyStat upsert
+   */
+  export type InverseDailyStatUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * The filter to search for the InverseDailyStat to update in case it exists.
+     */
+    where: InverseDailyStatWhereUniqueInput
+    /**
+     * In case the InverseDailyStat found by the `where` argument doesn't exist, create a new InverseDailyStat with this data.
+     */
+    create: XOR<InverseDailyStatCreateInput, InverseDailyStatUncheckedCreateInput>
+    /**
+     * In case the InverseDailyStat was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InverseDailyStatUpdateInput, InverseDailyStatUncheckedUpdateInput>
+  }
+
+  /**
+   * InverseDailyStat delete
+   */
+  export type InverseDailyStatDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+    /**
+     * Filter which InverseDailyStat to delete.
+     */
+    where: InverseDailyStatWhereUniqueInput
+  }
+
+  /**
+   * InverseDailyStat deleteMany
+   */
+  export type InverseDailyStatDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseDailyStats to delete
+     */
+    where?: InverseDailyStatWhereInput
+    /**
+     * Limit how many InverseDailyStats to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseDailyStat without action
+   */
+  export type InverseDailyStatDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseDailyStat
+     */
+    select?: InverseDailyStatSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseDailyStat
+     */
+    omit?: InverseDailyStatOmit<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InverseTraderSession
+   */
+
+  export type AggregateInverseTraderSession = {
+    _count: InverseTraderSessionCountAggregateOutputType | null
+    _min: InverseTraderSessionMinAggregateOutputType | null
+    _max: InverseTraderSessionMaxAggregateOutputType | null
+  }
+
+  export type InverseTraderSessionMinAggregateOutputType = {
+    id: string | null
+    status: string | null
+    startedAt: Date | null
+    endedAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseTraderSessionMaxAggregateOutputType = {
+    id: string | null
+    status: string | null
+    startedAt: Date | null
+    endedAt: Date | null
+    lastError: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type InverseTraderSessionCountAggregateOutputType = {
+    id: number
+    status: number
+    startedAt: number
+    endedAt: number
+    lastError: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type InverseTraderSessionMinAggregateInputType = {
+    id?: true
+    status?: true
+    startedAt?: true
+    endedAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseTraderSessionMaxAggregateInputType = {
+    id?: true
+    status?: true
+    startedAt?: true
+    endedAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type InverseTraderSessionCountAggregateInputType = {
+    id?: true
+    status?: true
+    startedAt?: true
+    endedAt?: true
+    lastError?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type InverseTraderSessionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseTraderSession to aggregate.
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderSessions to fetch.
+     */
+    orderBy?: InverseTraderSessionOrderByWithRelationInput | InverseTraderSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InverseTraderSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InverseTraderSessions
+    **/
+    _count?: true | InverseTraderSessionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InverseTraderSessionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InverseTraderSessionMaxAggregateInputType
+  }
+
+  export type GetInverseTraderSessionAggregateType<T extends InverseTraderSessionAggregateArgs> = {
+        [P in keyof T & keyof AggregateInverseTraderSession]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInverseTraderSession[P]>
+      : GetScalarType<T[P], AggregateInverseTraderSession[P]>
+  }
+
+
+
+
+  export type InverseTraderSessionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InverseTraderSessionWhereInput
+    orderBy?: InverseTraderSessionOrderByWithAggregationInput | InverseTraderSessionOrderByWithAggregationInput[]
+    by: InverseTraderSessionScalarFieldEnum[] | InverseTraderSessionScalarFieldEnum
+    having?: InverseTraderSessionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InverseTraderSessionCountAggregateInputType | true
+    _min?: InverseTraderSessionMinAggregateInputType
+    _max?: InverseTraderSessionMaxAggregateInputType
+  }
+
+  export type InverseTraderSessionGroupByOutputType = {
+    id: string
+    status: string
+    startedAt: Date | null
+    endedAt: Date | null
+    lastError: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: InverseTraderSessionCountAggregateOutputType | null
+    _min: InverseTraderSessionMinAggregateOutputType | null
+    _max: InverseTraderSessionMaxAggregateOutputType | null
+  }
+
+  type GetInverseTraderSessionGroupByPayload<T extends InverseTraderSessionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InverseTraderSessionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InverseTraderSessionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InverseTraderSessionGroupByOutputType[P]>
+            : GetScalarType<T[P], InverseTraderSessionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InverseTraderSessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    status?: boolean
+    startedAt?: boolean
+    endedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseTraderSession"]>
+
+  export type InverseTraderSessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    status?: boolean
+    startedAt?: boolean
+    endedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseTraderSession"]>
+
+  export type InverseTraderSessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    status?: boolean
+    startedAt?: boolean
+    endedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }, ExtArgs["result"]["inverseTraderSession"]>
+
+  export type InverseTraderSessionSelectScalar = {
+    id?: boolean
+    status?: boolean
+    startedAt?: boolean
+    endedAt?: boolean
+    lastError?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type InverseTraderSessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "status" | "startedAt" | "endedAt" | "lastError" | "createdAt" | "updatedAt", ExtArgs["result"]["inverseTraderSession"]>
+
+  export type $InverseTraderSessionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InverseTraderSession"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      status: string
+      startedAt: Date | null
+      endedAt: Date | null
+      lastError: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["inverseTraderSession"]>
+    composites: {}
+  }
+
+  type InverseTraderSessionGetPayload<S extends boolean | null | undefined | InverseTraderSessionDefaultArgs> = $Result.GetResult<Prisma.$InverseTraderSessionPayload, S>
+
+  type InverseTraderSessionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<InverseTraderSessionFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: InverseTraderSessionCountAggregateInputType | true
+    }
+
+  export interface InverseTraderSessionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InverseTraderSession'], meta: { name: 'InverseTraderSession' } }
+    /**
+     * Find zero or one InverseTraderSession that matches the filter.
+     * @param {InverseTraderSessionFindUniqueArgs} args - Arguments to find a InverseTraderSession
+     * @example
+     * // Get one InverseTraderSession
+     * const inverseTraderSession = await prisma.inverseTraderSession.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InverseTraderSessionFindUniqueArgs>(args: SelectSubset<T, InverseTraderSessionFindUniqueArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one InverseTraderSession that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {InverseTraderSessionFindUniqueOrThrowArgs} args - Arguments to find a InverseTraderSession
+     * @example
+     * // Get one InverseTraderSession
+     * const inverseTraderSession = await prisma.inverseTraderSession.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InverseTraderSessionFindUniqueOrThrowArgs>(args: SelectSubset<T, InverseTraderSessionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseTraderSession that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionFindFirstArgs} args - Arguments to find a InverseTraderSession
+     * @example
+     * // Get one InverseTraderSession
+     * const inverseTraderSession = await prisma.inverseTraderSession.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InverseTraderSessionFindFirstArgs>(args?: SelectSubset<T, InverseTraderSessionFindFirstArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first InverseTraderSession that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionFindFirstOrThrowArgs} args - Arguments to find a InverseTraderSession
+     * @example
+     * // Get one InverseTraderSession
+     * const inverseTraderSession = await prisma.inverseTraderSession.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InverseTraderSessionFindFirstOrThrowArgs>(args?: SelectSubset<T, InverseTraderSessionFindFirstOrThrowArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more InverseTraderSessions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InverseTraderSessions
+     * const inverseTraderSessions = await prisma.inverseTraderSession.findMany()
+     * 
+     * // Get first 10 InverseTraderSessions
+     * const inverseTraderSessions = await prisma.inverseTraderSession.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const inverseTraderSessionWithIdOnly = await prisma.inverseTraderSession.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InverseTraderSessionFindManyArgs>(args?: SelectSubset<T, InverseTraderSessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a InverseTraderSession.
+     * @param {InverseTraderSessionCreateArgs} args - Arguments to create a InverseTraderSession.
+     * @example
+     * // Create one InverseTraderSession
+     * const InverseTraderSession = await prisma.inverseTraderSession.create({
+     *   data: {
+     *     // ... data to create a InverseTraderSession
+     *   }
+     * })
+     * 
+     */
+    create<T extends InverseTraderSessionCreateArgs>(args: SelectSubset<T, InverseTraderSessionCreateArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many InverseTraderSessions.
+     * @param {InverseTraderSessionCreateManyArgs} args - Arguments to create many InverseTraderSessions.
+     * @example
+     * // Create many InverseTraderSessions
+     * const inverseTraderSession = await prisma.inverseTraderSession.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InverseTraderSessionCreateManyArgs>(args?: SelectSubset<T, InverseTraderSessionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InverseTraderSessions and returns the data saved in the database.
+     * @param {InverseTraderSessionCreateManyAndReturnArgs} args - Arguments to create many InverseTraderSessions.
+     * @example
+     * // Create many InverseTraderSessions
+     * const inverseTraderSession = await prisma.inverseTraderSession.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InverseTraderSessions and only return the `id`
+     * const inverseTraderSessionWithIdOnly = await prisma.inverseTraderSession.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InverseTraderSessionCreateManyAndReturnArgs>(args?: SelectSubset<T, InverseTraderSessionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a InverseTraderSession.
+     * @param {InverseTraderSessionDeleteArgs} args - Arguments to delete one InverseTraderSession.
+     * @example
+     * // Delete one InverseTraderSession
+     * const InverseTraderSession = await prisma.inverseTraderSession.delete({
+     *   where: {
+     *     // ... filter to delete one InverseTraderSession
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InverseTraderSessionDeleteArgs>(args: SelectSubset<T, InverseTraderSessionDeleteArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one InverseTraderSession.
+     * @param {InverseTraderSessionUpdateArgs} args - Arguments to update one InverseTraderSession.
+     * @example
+     * // Update one InverseTraderSession
+     * const inverseTraderSession = await prisma.inverseTraderSession.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InverseTraderSessionUpdateArgs>(args: SelectSubset<T, InverseTraderSessionUpdateArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more InverseTraderSessions.
+     * @param {InverseTraderSessionDeleteManyArgs} args - Arguments to filter InverseTraderSessions to delete.
+     * @example
+     * // Delete a few InverseTraderSessions
+     * const { count } = await prisma.inverseTraderSession.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InverseTraderSessionDeleteManyArgs>(args?: SelectSubset<T, InverseTraderSessionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseTraderSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InverseTraderSessions
+     * const inverseTraderSession = await prisma.inverseTraderSession.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InverseTraderSessionUpdateManyArgs>(args: SelectSubset<T, InverseTraderSessionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InverseTraderSessions and returns the data updated in the database.
+     * @param {InverseTraderSessionUpdateManyAndReturnArgs} args - Arguments to update many InverseTraderSessions.
+     * @example
+     * // Update many InverseTraderSessions
+     * const inverseTraderSession = await prisma.inverseTraderSession.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more InverseTraderSessions and only return the `id`
+     * const inverseTraderSessionWithIdOnly = await prisma.inverseTraderSession.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends InverseTraderSessionUpdateManyAndReturnArgs>(args: SelectSubset<T, InverseTraderSessionUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one InverseTraderSession.
+     * @param {InverseTraderSessionUpsertArgs} args - Arguments to update or create a InverseTraderSession.
+     * @example
+     * // Update or create a InverseTraderSession
+     * const inverseTraderSession = await prisma.inverseTraderSession.upsert({
+     *   create: {
+     *     // ... data to create a InverseTraderSession
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InverseTraderSession we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InverseTraderSessionUpsertArgs>(args: SelectSubset<T, InverseTraderSessionUpsertArgs<ExtArgs>>): Prisma__InverseTraderSessionClient<$Result.GetResult<Prisma.$InverseTraderSessionPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of InverseTraderSessions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionCountArgs} args - Arguments to filter InverseTraderSessions to count.
+     * @example
+     * // Count the number of InverseTraderSessions
+     * const count = await prisma.inverseTraderSession.count({
+     *   where: {
+     *     // ... the filter for the InverseTraderSessions we want to count
+     *   }
+     * })
+    **/
+    count<T extends InverseTraderSessionCountArgs>(
+      args?: Subset<T, InverseTraderSessionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InverseTraderSessionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InverseTraderSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InverseTraderSessionAggregateArgs>(args: Subset<T, InverseTraderSessionAggregateArgs>): Prisma.PrismaPromise<GetInverseTraderSessionAggregateType<T>>
+
+    /**
+     * Group by InverseTraderSession.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InverseTraderSessionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InverseTraderSessionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InverseTraderSessionGroupByArgs['orderBy'] }
+        : { orderBy?: InverseTraderSessionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InverseTraderSessionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInverseTraderSessionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InverseTraderSession model
+   */
+  readonly fields: InverseTraderSessionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InverseTraderSession.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InverseTraderSessionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InverseTraderSession model
+   */
+  interface InverseTraderSessionFieldRefs {
+    readonly id: FieldRef<"InverseTraderSession", 'String'>
+    readonly status: FieldRef<"InverseTraderSession", 'String'>
+    readonly startedAt: FieldRef<"InverseTraderSession", 'DateTime'>
+    readonly endedAt: FieldRef<"InverseTraderSession", 'DateTime'>
+    readonly lastError: FieldRef<"InverseTraderSession", 'String'>
+    readonly createdAt: FieldRef<"InverseTraderSession", 'DateTime'>
+    readonly updatedAt: FieldRef<"InverseTraderSession", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InverseTraderSession findUnique
+   */
+  export type InverseTraderSessionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderSession to fetch.
+     */
+    where: InverseTraderSessionWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderSession findUniqueOrThrow
+   */
+  export type InverseTraderSessionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderSession to fetch.
+     */
+    where: InverseTraderSessionWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderSession findFirst
+   */
+  export type InverseTraderSessionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderSession to fetch.
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderSessions to fetch.
+     */
+    orderBy?: InverseTraderSessionOrderByWithRelationInput | InverseTraderSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseTraderSessions.
+     */
+    cursor?: InverseTraderSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseTraderSessions.
+     */
+    distinct?: InverseTraderSessionScalarFieldEnum | InverseTraderSessionScalarFieldEnum[]
+  }
+
+  /**
+   * InverseTraderSession findFirstOrThrow
+   */
+  export type InverseTraderSessionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderSession to fetch.
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderSessions to fetch.
+     */
+    orderBy?: InverseTraderSessionOrderByWithRelationInput | InverseTraderSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InverseTraderSessions.
+     */
+    cursor?: InverseTraderSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseTraderSessions.
+     */
+    distinct?: InverseTraderSessionScalarFieldEnum | InverseTraderSessionScalarFieldEnum[]
+  }
+
+  /**
+   * InverseTraderSession findMany
+   */
+  export type InverseTraderSessionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * Filter, which InverseTraderSessions to fetch.
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InverseTraderSessions to fetch.
+     */
+    orderBy?: InverseTraderSessionOrderByWithRelationInput | InverseTraderSessionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InverseTraderSessions.
+     */
+    cursor?: InverseTraderSessionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InverseTraderSessions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InverseTraderSessions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InverseTraderSessions.
+     */
+    distinct?: InverseTraderSessionScalarFieldEnum | InverseTraderSessionScalarFieldEnum[]
+  }
+
+  /**
+   * InverseTraderSession create
+   */
+  export type InverseTraderSessionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * The data needed to create a InverseTraderSession.
+     */
+    data: XOR<InverseTraderSessionCreateInput, InverseTraderSessionUncheckedCreateInput>
+  }
+
+  /**
+   * InverseTraderSession createMany
+   */
+  export type InverseTraderSessionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InverseTraderSessions.
+     */
+    data: InverseTraderSessionCreateManyInput | InverseTraderSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseTraderSession createManyAndReturn
+   */
+  export type InverseTraderSessionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * The data used to create many InverseTraderSessions.
+     */
+    data: InverseTraderSessionCreateManyInput | InverseTraderSessionCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InverseTraderSession update
+   */
+  export type InverseTraderSessionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * The data needed to update a InverseTraderSession.
+     */
+    data: XOR<InverseTraderSessionUpdateInput, InverseTraderSessionUncheckedUpdateInput>
+    /**
+     * Choose, which InverseTraderSession to update.
+     */
+    where: InverseTraderSessionWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderSession updateMany
+   */
+  export type InverseTraderSessionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InverseTraderSessions.
+     */
+    data: XOR<InverseTraderSessionUpdateManyMutationInput, InverseTraderSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseTraderSessions to update
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * Limit how many InverseTraderSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseTraderSession updateManyAndReturn
+   */
+  export type InverseTraderSessionUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * The data used to update InverseTraderSessions.
+     */
+    data: XOR<InverseTraderSessionUpdateManyMutationInput, InverseTraderSessionUncheckedUpdateManyInput>
+    /**
+     * Filter which InverseTraderSessions to update
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * Limit how many InverseTraderSessions to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseTraderSession upsert
+   */
+  export type InverseTraderSessionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * The filter to search for the InverseTraderSession to update in case it exists.
+     */
+    where: InverseTraderSessionWhereUniqueInput
+    /**
+     * In case the InverseTraderSession found by the `where` argument doesn't exist, create a new InverseTraderSession with this data.
+     */
+    create: XOR<InverseTraderSessionCreateInput, InverseTraderSessionUncheckedCreateInput>
+    /**
+     * In case the InverseTraderSession was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InverseTraderSessionUpdateInput, InverseTraderSessionUncheckedUpdateInput>
+  }
+
+  /**
+   * InverseTraderSession delete
+   */
+  export type InverseTraderSessionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+    /**
+     * Filter which InverseTraderSession to delete.
+     */
+    where: InverseTraderSessionWhereUniqueInput
+  }
+
+  /**
+   * InverseTraderSession deleteMany
+   */
+  export type InverseTraderSessionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InverseTraderSessions to delete
+     */
+    where?: InverseTraderSessionWhereInput
+    /**
+     * Limit how many InverseTraderSessions to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * InverseTraderSession without action
+   */
+  export type InverseTraderSessionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InverseTraderSession
+     */
+    select?: InverseTraderSessionSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the InverseTraderSession
+     */
+    omit?: InverseTraderSessionOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -43004,6 +51409,7 @@ export namespace Prisma {
     amount: 'amount',
     type: 'type',
     description: 'description',
+    orderId: 'orderId',
     personaId: 'personaId',
     balanceAfter: 'balanceAfter',
     createdAt: 'createdAt'
@@ -43265,6 +51671,118 @@ export namespace Prisma {
   };
 
   export type AiUsageLogScalarFieldEnum = (typeof AiUsageLogScalarFieldEnum)[keyof typeof AiUsageLogScalarFieldEnum]
+
+
+  export const HairStyleScalarFieldEnum: {
+    id: 'id',
+    styleKey: 'styleKey',
+    name: 'name',
+    gender: 'gender',
+    imageUrl: 'imageUrl',
+    promptEn: 'promptEn',
+    description: 'description',
+    order: 'order',
+    isVisible: 'isVisible',
+    createdAt: 'createdAt'
+  };
+
+  export type HairStyleScalarFieldEnum = (typeof HairStyleScalarFieldEnum)[keyof typeof HairStyleScalarFieldEnum]
+
+
+  export const InverseTraderConfigScalarFieldEnum: {
+    id: 'id',
+    symbol: 'symbol',
+    symbolName: 'symbolName',
+    defaultQty: 'defaultQty',
+    closeBufferMin: 'closeBufferMin',
+    maxPositionQty: 'maxPositionQty',
+    dailyLossLimit: 'dailyLossLimit',
+    tradingMode: 'tradingMode',
+    enabled: 'enabled',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type InverseTraderConfigScalarFieldEnum = (typeof InverseTraderConfigScalarFieldEnum)[keyof typeof InverseTraderConfigScalarFieldEnum]
+
+
+  export const InverseOrderScalarFieldEnum: {
+    id: 'id',
+    sessionId: 'sessionId',
+    symbol: 'symbol',
+    side: 'side',
+    limitPrice: 'limitPrice',
+    orderQty: 'orderQty',
+    filledQty: 'filledQty',
+    remainingQty: 'remainingQty',
+    status: 'status',
+    parentOrderId: 'parentOrderId',
+    brokerOrderId: 'brokerOrderId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type InverseOrderScalarFieldEnum = (typeof InverseOrderScalarFieldEnum)[keyof typeof InverseOrderScalarFieldEnum]
+
+
+  export const InverseFillScalarFieldEnum: {
+    id: 'id',
+    orderId: 'orderId',
+    symbol: 'symbol',
+    side: 'side',
+    fillPrice: 'fillPrice',
+    fillQty: 'fillQty',
+    filledAt: 'filledAt'
+  };
+
+  export type InverseFillScalarFieldEnum = (typeof InverseFillScalarFieldEnum)[keyof typeof InverseFillScalarFieldEnum]
+
+
+  export const InversePositionScalarFieldEnum: {
+    id: 'id',
+    sessionId: 'sessionId',
+    symbol: 'symbol',
+    qty: 'qty',
+    avgPrice: 'avgPrice',
+    realizedPnl: 'realizedPnl',
+    unrealizedPnl: 'unrealizedPnl',
+    updatedAt: 'updatedAt'
+  };
+
+  export type InversePositionScalarFieldEnum = (typeof InversePositionScalarFieldEnum)[keyof typeof InversePositionScalarFieldEnum]
+
+
+  export const InverseDailyStatScalarFieldEnum: {
+    id: 'id',
+    date: 'date',
+    sessionId: 'sessionId',
+    buyQty: 'buyQty',
+    buyAmount: 'buyAmount',
+    sellQty: 'sellQty',
+    sellAmount: 'sellAmount',
+    realizedPnl: 'realizedPnl',
+    fillCount: 'fillCount',
+    forceSettled: 'forceSettled',
+    closingQty: 'closingQty',
+    note: 'note',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type InverseDailyStatScalarFieldEnum = (typeof InverseDailyStatScalarFieldEnum)[keyof typeof InverseDailyStatScalarFieldEnum]
+
+
+  export const InverseTraderSessionScalarFieldEnum: {
+    id: 'id',
+    status: 'status',
+    startedAt: 'startedAt',
+    endedAt: 'endedAt',
+    lastError: 'lastError',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type InverseTraderSessionScalarFieldEnum = (typeof InverseTraderSessionScalarFieldEnum)[keyof typeof InverseTraderSessionScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -44648,6 +53166,7 @@ export namespace Prisma {
     amount?: IntFilter<"PointTransaction"> | number
     type?: StringFilter<"PointTransaction"> | string
     description?: StringNullableFilter<"PointTransaction"> | string | null
+    orderId?: StringNullableFilter<"PointTransaction"> | string | null
     personaId?: StringNullableFilter<"PointTransaction"> | string | null
     balanceAfter?: IntFilter<"PointTransaction"> | number
     createdAt?: DateTimeFilter<"PointTransaction"> | Date | string
@@ -44661,6 +53180,7 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     description?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
     personaId?: SortOrderInput | SortOrder
     balanceAfter?: SortOrder
     createdAt?: SortOrder
@@ -44670,6 +53190,7 @@ export namespace Prisma {
 
   export type PointTransactionWhereUniqueInput = Prisma.AtLeast<{
     id?: number
+    orderId?: string
     AND?: PointTransactionWhereInput | PointTransactionWhereInput[]
     OR?: PointTransactionWhereInput[]
     NOT?: PointTransactionWhereInput | PointTransactionWhereInput[]
@@ -44682,7 +53203,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PointTransaction"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     persona?: XOR<PersonaNullableScalarRelationFilter, PersonaWhereInput> | null
-  }, "id">
+  }, "id" | "orderId">
 
   export type PointTransactionOrderByWithAggregationInput = {
     id?: SortOrder
@@ -44690,6 +53211,7 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     description?: SortOrderInput | SortOrder
+    orderId?: SortOrderInput | SortOrder
     personaId?: SortOrderInput | SortOrder
     balanceAfter?: SortOrder
     createdAt?: SortOrder
@@ -44709,6 +53231,7 @@ export namespace Prisma {
     amount?: IntWithAggregatesFilter<"PointTransaction"> | number
     type?: StringWithAggregatesFilter<"PointTransaction"> | string
     description?: StringNullableWithAggregatesFilter<"PointTransaction"> | string | null
+    orderId?: StringNullableWithAggregatesFilter<"PointTransaction"> | string | null
     personaId?: StringNullableWithAggregatesFilter<"PointTransaction"> | string | null
     balanceAfter?: IntWithAggregatesFilter<"PointTransaction"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PointTransaction"> | Date | string
@@ -46001,6 +54524,558 @@ export namespace Prisma {
     costUsd?: FloatWithAggregatesFilter<"AiUsageLog"> | number
     userId?: IntNullableWithAggregatesFilter<"AiUsageLog"> | number | null
     createdAt?: DateTimeWithAggregatesFilter<"AiUsageLog"> | Date | string
+  }
+
+  export type HairStyleWhereInput = {
+    AND?: HairStyleWhereInput | HairStyleWhereInput[]
+    OR?: HairStyleWhereInput[]
+    NOT?: HairStyleWhereInput | HairStyleWhereInput[]
+    id?: IntFilter<"HairStyle"> | number
+    styleKey?: StringFilter<"HairStyle"> | string
+    name?: StringFilter<"HairStyle"> | string
+    gender?: StringFilter<"HairStyle"> | string
+    imageUrl?: StringFilter<"HairStyle"> | string
+    promptEn?: StringNullableFilter<"HairStyle"> | string | null
+    description?: StringNullableFilter<"HairStyle"> | string | null
+    order?: IntFilter<"HairStyle"> | number
+    isVisible?: BoolFilter<"HairStyle"> | boolean
+    createdAt?: DateTimeFilter<"HairStyle"> | Date | string
+  }
+
+  export type HairStyleOrderByWithRelationInput = {
+    id?: SortOrder
+    styleKey?: SortOrder
+    name?: SortOrder
+    gender?: SortOrder
+    imageUrl?: SortOrder
+    promptEn?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    order?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type HairStyleWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    styleKey?: string
+    AND?: HairStyleWhereInput | HairStyleWhereInput[]
+    OR?: HairStyleWhereInput[]
+    NOT?: HairStyleWhereInput | HairStyleWhereInput[]
+    name?: StringFilter<"HairStyle"> | string
+    gender?: StringFilter<"HairStyle"> | string
+    imageUrl?: StringFilter<"HairStyle"> | string
+    promptEn?: StringNullableFilter<"HairStyle"> | string | null
+    description?: StringNullableFilter<"HairStyle"> | string | null
+    order?: IntFilter<"HairStyle"> | number
+    isVisible?: BoolFilter<"HairStyle"> | boolean
+    createdAt?: DateTimeFilter<"HairStyle"> | Date | string
+  }, "id" | "styleKey">
+
+  export type HairStyleOrderByWithAggregationInput = {
+    id?: SortOrder
+    styleKey?: SortOrder
+    name?: SortOrder
+    gender?: SortOrder
+    imageUrl?: SortOrder
+    promptEn?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    order?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+    _count?: HairStyleCountOrderByAggregateInput
+    _avg?: HairStyleAvgOrderByAggregateInput
+    _max?: HairStyleMaxOrderByAggregateInput
+    _min?: HairStyleMinOrderByAggregateInput
+    _sum?: HairStyleSumOrderByAggregateInput
+  }
+
+  export type HairStyleScalarWhereWithAggregatesInput = {
+    AND?: HairStyleScalarWhereWithAggregatesInput | HairStyleScalarWhereWithAggregatesInput[]
+    OR?: HairStyleScalarWhereWithAggregatesInput[]
+    NOT?: HairStyleScalarWhereWithAggregatesInput | HairStyleScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"HairStyle"> | number
+    styleKey?: StringWithAggregatesFilter<"HairStyle"> | string
+    name?: StringWithAggregatesFilter<"HairStyle"> | string
+    gender?: StringWithAggregatesFilter<"HairStyle"> | string
+    imageUrl?: StringWithAggregatesFilter<"HairStyle"> | string
+    promptEn?: StringNullableWithAggregatesFilter<"HairStyle"> | string | null
+    description?: StringNullableWithAggregatesFilter<"HairStyle"> | string | null
+    order?: IntWithAggregatesFilter<"HairStyle"> | number
+    isVisible?: BoolWithAggregatesFilter<"HairStyle"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"HairStyle"> | Date | string
+  }
+
+  export type InverseTraderConfigWhereInput = {
+    AND?: InverseTraderConfigWhereInput | InverseTraderConfigWhereInput[]
+    OR?: InverseTraderConfigWhereInput[]
+    NOT?: InverseTraderConfigWhereInput | InverseTraderConfigWhereInput[]
+    id?: IntFilter<"InverseTraderConfig"> | number
+    symbol?: StringFilter<"InverseTraderConfig"> | string
+    symbolName?: StringFilter<"InverseTraderConfig"> | string
+    defaultQty?: IntFilter<"InverseTraderConfig"> | number
+    closeBufferMin?: IntFilter<"InverseTraderConfig"> | number
+    maxPositionQty?: IntFilter<"InverseTraderConfig"> | number
+    dailyLossLimit?: FloatFilter<"InverseTraderConfig"> | number
+    tradingMode?: StringFilter<"InverseTraderConfig"> | string
+    enabled?: BoolFilter<"InverseTraderConfig"> | boolean
+    createdAt?: DateTimeFilter<"InverseTraderConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseTraderConfig"> | Date | string
+  }
+
+  export type InverseTraderConfigOrderByWithRelationInput = {
+    id?: SortOrder
+    symbol?: SortOrder
+    symbolName?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+    tradingMode?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderConfigWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: InverseTraderConfigWhereInput | InverseTraderConfigWhereInput[]
+    OR?: InverseTraderConfigWhereInput[]
+    NOT?: InverseTraderConfigWhereInput | InverseTraderConfigWhereInput[]
+    symbol?: StringFilter<"InverseTraderConfig"> | string
+    symbolName?: StringFilter<"InverseTraderConfig"> | string
+    defaultQty?: IntFilter<"InverseTraderConfig"> | number
+    closeBufferMin?: IntFilter<"InverseTraderConfig"> | number
+    maxPositionQty?: IntFilter<"InverseTraderConfig"> | number
+    dailyLossLimit?: FloatFilter<"InverseTraderConfig"> | number
+    tradingMode?: StringFilter<"InverseTraderConfig"> | string
+    enabled?: BoolFilter<"InverseTraderConfig"> | boolean
+    createdAt?: DateTimeFilter<"InverseTraderConfig"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseTraderConfig"> | Date | string
+  }, "id">
+
+  export type InverseTraderConfigOrderByWithAggregationInput = {
+    id?: SortOrder
+    symbol?: SortOrder
+    symbolName?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+    tradingMode?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: InverseTraderConfigCountOrderByAggregateInput
+    _avg?: InverseTraderConfigAvgOrderByAggregateInput
+    _max?: InverseTraderConfigMaxOrderByAggregateInput
+    _min?: InverseTraderConfigMinOrderByAggregateInput
+    _sum?: InverseTraderConfigSumOrderByAggregateInput
+  }
+
+  export type InverseTraderConfigScalarWhereWithAggregatesInput = {
+    AND?: InverseTraderConfigScalarWhereWithAggregatesInput | InverseTraderConfigScalarWhereWithAggregatesInput[]
+    OR?: InverseTraderConfigScalarWhereWithAggregatesInput[]
+    NOT?: InverseTraderConfigScalarWhereWithAggregatesInput | InverseTraderConfigScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
+    symbol?: StringWithAggregatesFilter<"InverseTraderConfig"> | string
+    symbolName?: StringWithAggregatesFilter<"InverseTraderConfig"> | string
+    defaultQty?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
+    closeBufferMin?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
+    maxPositionQty?: IntWithAggregatesFilter<"InverseTraderConfig"> | number
+    dailyLossLimit?: FloatWithAggregatesFilter<"InverseTraderConfig"> | number
+    tradingMode?: StringWithAggregatesFilter<"InverseTraderConfig"> | string
+    enabled?: BoolWithAggregatesFilter<"InverseTraderConfig"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"InverseTraderConfig"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"InverseTraderConfig"> | Date | string
+  }
+
+  export type InverseOrderWhereInput = {
+    AND?: InverseOrderWhereInput | InverseOrderWhereInput[]
+    OR?: InverseOrderWhereInput[]
+    NOT?: InverseOrderWhereInput | InverseOrderWhereInput[]
+    id?: IntFilter<"InverseOrder"> | number
+    sessionId?: StringFilter<"InverseOrder"> | string
+    symbol?: StringFilter<"InverseOrder"> | string
+    side?: StringFilter<"InverseOrder"> | string
+    limitPrice?: IntFilter<"InverseOrder"> | number
+    orderQty?: IntFilter<"InverseOrder"> | number
+    filledQty?: IntFilter<"InverseOrder"> | number
+    remainingQty?: IntFilter<"InverseOrder"> | number
+    status?: StringFilter<"InverseOrder"> | string
+    parentOrderId?: IntNullableFilter<"InverseOrder"> | number | null
+    brokerOrderId?: StringNullableFilter<"InverseOrder"> | string | null
+    createdAt?: DateTimeFilter<"InverseOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseOrder"> | Date | string
+  }
+
+  export type InverseOrderOrderByWithRelationInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    status?: SortOrder
+    parentOrderId?: SortOrderInput | SortOrder
+    brokerOrderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseOrderWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: InverseOrderWhereInput | InverseOrderWhereInput[]
+    OR?: InverseOrderWhereInput[]
+    NOT?: InverseOrderWhereInput | InverseOrderWhereInput[]
+    sessionId?: StringFilter<"InverseOrder"> | string
+    symbol?: StringFilter<"InverseOrder"> | string
+    side?: StringFilter<"InverseOrder"> | string
+    limitPrice?: IntFilter<"InverseOrder"> | number
+    orderQty?: IntFilter<"InverseOrder"> | number
+    filledQty?: IntFilter<"InverseOrder"> | number
+    remainingQty?: IntFilter<"InverseOrder"> | number
+    status?: StringFilter<"InverseOrder"> | string
+    parentOrderId?: IntNullableFilter<"InverseOrder"> | number | null
+    brokerOrderId?: StringNullableFilter<"InverseOrder"> | string | null
+    createdAt?: DateTimeFilter<"InverseOrder"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseOrder"> | Date | string
+  }, "id">
+
+  export type InverseOrderOrderByWithAggregationInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    status?: SortOrder
+    parentOrderId?: SortOrderInput | SortOrder
+    brokerOrderId?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: InverseOrderCountOrderByAggregateInput
+    _avg?: InverseOrderAvgOrderByAggregateInput
+    _max?: InverseOrderMaxOrderByAggregateInput
+    _min?: InverseOrderMinOrderByAggregateInput
+    _sum?: InverseOrderSumOrderByAggregateInput
+  }
+
+  export type InverseOrderScalarWhereWithAggregatesInput = {
+    AND?: InverseOrderScalarWhereWithAggregatesInput | InverseOrderScalarWhereWithAggregatesInput[]
+    OR?: InverseOrderScalarWhereWithAggregatesInput[]
+    NOT?: InverseOrderScalarWhereWithAggregatesInput | InverseOrderScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"InverseOrder"> | number
+    sessionId?: StringWithAggregatesFilter<"InverseOrder"> | string
+    symbol?: StringWithAggregatesFilter<"InverseOrder"> | string
+    side?: StringWithAggregatesFilter<"InverseOrder"> | string
+    limitPrice?: IntWithAggregatesFilter<"InverseOrder"> | number
+    orderQty?: IntWithAggregatesFilter<"InverseOrder"> | number
+    filledQty?: IntWithAggregatesFilter<"InverseOrder"> | number
+    remainingQty?: IntWithAggregatesFilter<"InverseOrder"> | number
+    status?: StringWithAggregatesFilter<"InverseOrder"> | string
+    parentOrderId?: IntNullableWithAggregatesFilter<"InverseOrder"> | number | null
+    brokerOrderId?: StringNullableWithAggregatesFilter<"InverseOrder"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"InverseOrder"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"InverseOrder"> | Date | string
+  }
+
+  export type InverseFillWhereInput = {
+    AND?: InverseFillWhereInput | InverseFillWhereInput[]
+    OR?: InverseFillWhereInput[]
+    NOT?: InverseFillWhereInput | InverseFillWhereInput[]
+    id?: IntFilter<"InverseFill"> | number
+    orderId?: IntFilter<"InverseFill"> | number
+    symbol?: StringFilter<"InverseFill"> | string
+    side?: StringFilter<"InverseFill"> | string
+    fillPrice?: IntFilter<"InverseFill"> | number
+    fillQty?: IntFilter<"InverseFill"> | number
+    filledAt?: DateTimeFilter<"InverseFill"> | Date | string
+  }
+
+  export type InverseFillOrderByWithRelationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+    filledAt?: SortOrder
+  }
+
+  export type InverseFillWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: InverseFillWhereInput | InverseFillWhereInput[]
+    OR?: InverseFillWhereInput[]
+    NOT?: InverseFillWhereInput | InverseFillWhereInput[]
+    orderId?: IntFilter<"InverseFill"> | number
+    symbol?: StringFilter<"InverseFill"> | string
+    side?: StringFilter<"InverseFill"> | string
+    fillPrice?: IntFilter<"InverseFill"> | number
+    fillQty?: IntFilter<"InverseFill"> | number
+    filledAt?: DateTimeFilter<"InverseFill"> | Date | string
+  }, "id">
+
+  export type InverseFillOrderByWithAggregationInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+    filledAt?: SortOrder
+    _count?: InverseFillCountOrderByAggregateInput
+    _avg?: InverseFillAvgOrderByAggregateInput
+    _max?: InverseFillMaxOrderByAggregateInput
+    _min?: InverseFillMinOrderByAggregateInput
+    _sum?: InverseFillSumOrderByAggregateInput
+  }
+
+  export type InverseFillScalarWhereWithAggregatesInput = {
+    AND?: InverseFillScalarWhereWithAggregatesInput | InverseFillScalarWhereWithAggregatesInput[]
+    OR?: InverseFillScalarWhereWithAggregatesInput[]
+    NOT?: InverseFillScalarWhereWithAggregatesInput | InverseFillScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"InverseFill"> | number
+    orderId?: IntWithAggregatesFilter<"InverseFill"> | number
+    symbol?: StringWithAggregatesFilter<"InverseFill"> | string
+    side?: StringWithAggregatesFilter<"InverseFill"> | string
+    fillPrice?: IntWithAggregatesFilter<"InverseFill"> | number
+    fillQty?: IntWithAggregatesFilter<"InverseFill"> | number
+    filledAt?: DateTimeWithAggregatesFilter<"InverseFill"> | Date | string
+  }
+
+  export type InversePositionWhereInput = {
+    AND?: InversePositionWhereInput | InversePositionWhereInput[]
+    OR?: InversePositionWhereInput[]
+    NOT?: InversePositionWhereInput | InversePositionWhereInput[]
+    id?: IntFilter<"InversePosition"> | number
+    sessionId?: StringFilter<"InversePosition"> | string
+    symbol?: StringFilter<"InversePosition"> | string
+    qty?: IntFilter<"InversePosition"> | number
+    avgPrice?: FloatFilter<"InversePosition"> | number
+    realizedPnl?: FloatFilter<"InversePosition"> | number
+    unrealizedPnl?: FloatFilter<"InversePosition"> | number
+    updatedAt?: DateTimeFilter<"InversePosition"> | Date | string
+  }
+
+  export type InversePositionOrderByWithRelationInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InversePositionWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    sessionId_symbol?: InversePositionSessionIdSymbolCompoundUniqueInput
+    AND?: InversePositionWhereInput | InversePositionWhereInput[]
+    OR?: InversePositionWhereInput[]
+    NOT?: InversePositionWhereInput | InversePositionWhereInput[]
+    sessionId?: StringFilter<"InversePosition"> | string
+    symbol?: StringFilter<"InversePosition"> | string
+    qty?: IntFilter<"InversePosition"> | number
+    avgPrice?: FloatFilter<"InversePosition"> | number
+    realizedPnl?: FloatFilter<"InversePosition"> | number
+    unrealizedPnl?: FloatFilter<"InversePosition"> | number
+    updatedAt?: DateTimeFilter<"InversePosition"> | Date | string
+  }, "id" | "sessionId_symbol">
+
+  export type InversePositionOrderByWithAggregationInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+    updatedAt?: SortOrder
+    _count?: InversePositionCountOrderByAggregateInput
+    _avg?: InversePositionAvgOrderByAggregateInput
+    _max?: InversePositionMaxOrderByAggregateInput
+    _min?: InversePositionMinOrderByAggregateInput
+    _sum?: InversePositionSumOrderByAggregateInput
+  }
+
+  export type InversePositionScalarWhereWithAggregatesInput = {
+    AND?: InversePositionScalarWhereWithAggregatesInput | InversePositionScalarWhereWithAggregatesInput[]
+    OR?: InversePositionScalarWhereWithAggregatesInput[]
+    NOT?: InversePositionScalarWhereWithAggregatesInput | InversePositionScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"InversePosition"> | number
+    sessionId?: StringWithAggregatesFilter<"InversePosition"> | string
+    symbol?: StringWithAggregatesFilter<"InversePosition"> | string
+    qty?: IntWithAggregatesFilter<"InversePosition"> | number
+    avgPrice?: FloatWithAggregatesFilter<"InversePosition"> | number
+    realizedPnl?: FloatWithAggregatesFilter<"InversePosition"> | number
+    unrealizedPnl?: FloatWithAggregatesFilter<"InversePosition"> | number
+    updatedAt?: DateTimeWithAggregatesFilter<"InversePosition"> | Date | string
+  }
+
+  export type InverseDailyStatWhereInput = {
+    AND?: InverseDailyStatWhereInput | InverseDailyStatWhereInput[]
+    OR?: InverseDailyStatWhereInput[]
+    NOT?: InverseDailyStatWhereInput | InverseDailyStatWhereInput[]
+    id?: IntFilter<"InverseDailyStat"> | number
+    date?: DateTimeFilter<"InverseDailyStat"> | Date | string
+    sessionId?: StringNullableFilter<"InverseDailyStat"> | string | null
+    buyQty?: FloatFilter<"InverseDailyStat"> | number
+    buyAmount?: FloatFilter<"InverseDailyStat"> | number
+    sellQty?: FloatFilter<"InverseDailyStat"> | number
+    sellAmount?: FloatFilter<"InverseDailyStat"> | number
+    realizedPnl?: FloatFilter<"InverseDailyStat"> | number
+    fillCount?: IntFilter<"InverseDailyStat"> | number
+    forceSettled?: BoolFilter<"InverseDailyStat"> | boolean
+    closingQty?: IntFilter<"InverseDailyStat"> | number
+    note?: StringNullableFilter<"InverseDailyStat"> | string | null
+    createdAt?: DateTimeFilter<"InverseDailyStat"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseDailyStat"> | Date | string
+  }
+
+  export type InverseDailyStatOrderByWithRelationInput = {
+    id?: SortOrder
+    date?: SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    forceSettled?: SortOrder
+    closingQty?: SortOrder
+    note?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseDailyStatWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    date?: Date | string
+    AND?: InverseDailyStatWhereInput | InverseDailyStatWhereInput[]
+    OR?: InverseDailyStatWhereInput[]
+    NOT?: InverseDailyStatWhereInput | InverseDailyStatWhereInput[]
+    sessionId?: StringNullableFilter<"InverseDailyStat"> | string | null
+    buyQty?: FloatFilter<"InverseDailyStat"> | number
+    buyAmount?: FloatFilter<"InverseDailyStat"> | number
+    sellQty?: FloatFilter<"InverseDailyStat"> | number
+    sellAmount?: FloatFilter<"InverseDailyStat"> | number
+    realizedPnl?: FloatFilter<"InverseDailyStat"> | number
+    fillCount?: IntFilter<"InverseDailyStat"> | number
+    forceSettled?: BoolFilter<"InverseDailyStat"> | boolean
+    closingQty?: IntFilter<"InverseDailyStat"> | number
+    note?: StringNullableFilter<"InverseDailyStat"> | string | null
+    createdAt?: DateTimeFilter<"InverseDailyStat"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseDailyStat"> | Date | string
+  }, "id" | "date">
+
+  export type InverseDailyStatOrderByWithAggregationInput = {
+    id?: SortOrder
+    date?: SortOrder
+    sessionId?: SortOrderInput | SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    forceSettled?: SortOrder
+    closingQty?: SortOrder
+    note?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: InverseDailyStatCountOrderByAggregateInput
+    _avg?: InverseDailyStatAvgOrderByAggregateInput
+    _max?: InverseDailyStatMaxOrderByAggregateInput
+    _min?: InverseDailyStatMinOrderByAggregateInput
+    _sum?: InverseDailyStatSumOrderByAggregateInput
+  }
+
+  export type InverseDailyStatScalarWhereWithAggregatesInput = {
+    AND?: InverseDailyStatScalarWhereWithAggregatesInput | InverseDailyStatScalarWhereWithAggregatesInput[]
+    OR?: InverseDailyStatScalarWhereWithAggregatesInput[]
+    NOT?: InverseDailyStatScalarWhereWithAggregatesInput | InverseDailyStatScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"InverseDailyStat"> | number
+    date?: DateTimeWithAggregatesFilter<"InverseDailyStat"> | Date | string
+    sessionId?: StringNullableWithAggregatesFilter<"InverseDailyStat"> | string | null
+    buyQty?: FloatWithAggregatesFilter<"InverseDailyStat"> | number
+    buyAmount?: FloatWithAggregatesFilter<"InverseDailyStat"> | number
+    sellQty?: FloatWithAggregatesFilter<"InverseDailyStat"> | number
+    sellAmount?: FloatWithAggregatesFilter<"InverseDailyStat"> | number
+    realizedPnl?: FloatWithAggregatesFilter<"InverseDailyStat"> | number
+    fillCount?: IntWithAggregatesFilter<"InverseDailyStat"> | number
+    forceSettled?: BoolWithAggregatesFilter<"InverseDailyStat"> | boolean
+    closingQty?: IntWithAggregatesFilter<"InverseDailyStat"> | number
+    note?: StringNullableWithAggregatesFilter<"InverseDailyStat"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"InverseDailyStat"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"InverseDailyStat"> | Date | string
+  }
+
+  export type InverseTraderSessionWhereInput = {
+    AND?: InverseTraderSessionWhereInput | InverseTraderSessionWhereInput[]
+    OR?: InverseTraderSessionWhereInput[]
+    NOT?: InverseTraderSessionWhereInput | InverseTraderSessionWhereInput[]
+    id?: StringFilter<"InverseTraderSession"> | string
+    status?: StringFilter<"InverseTraderSession"> | string
+    startedAt?: DateTimeNullableFilter<"InverseTraderSession"> | Date | string | null
+    endedAt?: DateTimeNullableFilter<"InverseTraderSession"> | Date | string | null
+    lastError?: StringNullableFilter<"InverseTraderSession"> | string | null
+    createdAt?: DateTimeFilter<"InverseTraderSession"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseTraderSession"> | Date | string
+  }
+
+  export type InverseTraderSessionOrderByWithRelationInput = {
+    id?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    endedAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderSessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: InverseTraderSessionWhereInput | InverseTraderSessionWhereInput[]
+    OR?: InverseTraderSessionWhereInput[]
+    NOT?: InverseTraderSessionWhereInput | InverseTraderSessionWhereInput[]
+    status?: StringFilter<"InverseTraderSession"> | string
+    startedAt?: DateTimeNullableFilter<"InverseTraderSession"> | Date | string | null
+    endedAt?: DateTimeNullableFilter<"InverseTraderSession"> | Date | string | null
+    lastError?: StringNullableFilter<"InverseTraderSession"> | string | null
+    createdAt?: DateTimeFilter<"InverseTraderSession"> | Date | string
+    updatedAt?: DateTimeFilter<"InverseTraderSession"> | Date | string
+  }, "id">
+
+  export type InverseTraderSessionOrderByWithAggregationInput = {
+    id?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    endedAt?: SortOrderInput | SortOrder
+    lastError?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: InverseTraderSessionCountOrderByAggregateInput
+    _max?: InverseTraderSessionMaxOrderByAggregateInput
+    _min?: InverseTraderSessionMinOrderByAggregateInput
+  }
+
+  export type InverseTraderSessionScalarWhereWithAggregatesInput = {
+    AND?: InverseTraderSessionScalarWhereWithAggregatesInput | InverseTraderSessionScalarWhereWithAggregatesInput[]
+    OR?: InverseTraderSessionScalarWhereWithAggregatesInput[]
+    NOT?: InverseTraderSessionScalarWhereWithAggregatesInput | InverseTraderSessionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"InverseTraderSession"> | string
+    status?: StringWithAggregatesFilter<"InverseTraderSession"> | string
+    startedAt?: DateTimeNullableWithAggregatesFilter<"InverseTraderSession"> | Date | string | null
+    endedAt?: DateTimeNullableWithAggregatesFilter<"InverseTraderSession"> | Date | string | null
+    lastError?: StringNullableWithAggregatesFilter<"InverseTraderSession"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"InverseTraderSession"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"InverseTraderSession"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -47311,6 +56386,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     balanceAfter: number
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutPointTransactionsInput
@@ -47323,6 +56399,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     personaId?: string | null
     balanceAfter: number
     createdAt?: Date | string
@@ -47332,6 +56409,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutPointTransactionsNestedInput
@@ -47344,6 +56422,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     personaId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -47355,6 +56434,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     personaId?: string | null
     balanceAfter: number
     createdAt?: Date | string
@@ -47364,6 +56444,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -47374,6 +56455,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     personaId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48805,6 +57887,625 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type HairStyleCreateInput = {
+    styleKey: string
+    name: string
+    gender: string
+    imageUrl: string
+    promptEn?: string | null
+    description?: string | null
+    order?: number
+    isVisible?: boolean
+    createdAt?: Date | string
+  }
+
+  export type HairStyleUncheckedCreateInput = {
+    id?: number
+    styleKey: string
+    name: string
+    gender: string
+    imageUrl: string
+    promptEn?: string | null
+    description?: string | null
+    order?: number
+    isVisible?: boolean
+    createdAt?: Date | string
+  }
+
+  export type HairStyleUpdateInput = {
+    styleKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    gender?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    promptEn?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HairStyleUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    styleKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    gender?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    promptEn?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HairStyleCreateManyInput = {
+    id?: number
+    styleKey: string
+    name: string
+    gender: string
+    imageUrl: string
+    promptEn?: string | null
+    description?: string | null
+    order?: number
+    isVisible?: boolean
+    createdAt?: Date | string
+  }
+
+  export type HairStyleUpdateManyMutationInput = {
+    styleKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    gender?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    promptEn?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type HairStyleUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    styleKey?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    gender?: StringFieldUpdateOperationsInput | string
+    imageUrl?: StringFieldUpdateOperationsInput | string
+    promptEn?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    order?: IntFieldUpdateOperationsInput | number
+    isVisible?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderConfigCreateInput = {
+    symbol: string
+    symbolName: string
+    defaultQty?: number
+    closeBufferMin?: number
+    maxPositionQty?: number
+    dailyLossLimit?: number
+    tradingMode?: string
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseTraderConfigUncheckedCreateInput = {
+    id?: number
+    symbol: string
+    symbolName: string
+    defaultQty?: number
+    closeBufferMin?: number
+    maxPositionQty?: number
+    dailyLossLimit?: number
+    tradingMode?: string
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseTraderConfigUpdateInput = {
+    symbol?: StringFieldUpdateOperationsInput | string
+    symbolName?: StringFieldUpdateOperationsInput | string
+    defaultQty?: IntFieldUpdateOperationsInput | number
+    closeBufferMin?: IntFieldUpdateOperationsInput | number
+    maxPositionQty?: IntFieldUpdateOperationsInput | number
+    dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    tradingMode?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderConfigUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    symbol?: StringFieldUpdateOperationsInput | string
+    symbolName?: StringFieldUpdateOperationsInput | string
+    defaultQty?: IntFieldUpdateOperationsInput | number
+    closeBufferMin?: IntFieldUpdateOperationsInput | number
+    maxPositionQty?: IntFieldUpdateOperationsInput | number
+    dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    tradingMode?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderConfigCreateManyInput = {
+    id?: number
+    symbol: string
+    symbolName: string
+    defaultQty?: number
+    closeBufferMin?: number
+    maxPositionQty?: number
+    dailyLossLimit?: number
+    tradingMode?: string
+    enabled?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseTraderConfigUpdateManyMutationInput = {
+    symbol?: StringFieldUpdateOperationsInput | string
+    symbolName?: StringFieldUpdateOperationsInput | string
+    defaultQty?: IntFieldUpdateOperationsInput | number
+    closeBufferMin?: IntFieldUpdateOperationsInput | number
+    maxPositionQty?: IntFieldUpdateOperationsInput | number
+    dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    tradingMode?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderConfigUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    symbol?: StringFieldUpdateOperationsInput | string
+    symbolName?: StringFieldUpdateOperationsInput | string
+    defaultQty?: IntFieldUpdateOperationsInput | number
+    closeBufferMin?: IntFieldUpdateOperationsInput | number
+    maxPositionQty?: IntFieldUpdateOperationsInput | number
+    dailyLossLimit?: FloatFieldUpdateOperationsInput | number
+    tradingMode?: StringFieldUpdateOperationsInput | string
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseOrderCreateInput = {
+    sessionId: string
+    symbol: string
+    side: string
+    limitPrice: number
+    orderQty: number
+    filledQty?: number
+    remainingQty: number
+    status?: string
+    parentOrderId?: number | null
+    brokerOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseOrderUncheckedCreateInput = {
+    id?: number
+    sessionId: string
+    symbol: string
+    side: string
+    limitPrice: number
+    orderQty: number
+    filledQty?: number
+    remainingQty: number
+    status?: string
+    parentOrderId?: number | null
+    brokerOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseOrderUpdateInput = {
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    limitPrice?: IntFieldUpdateOperationsInput | number
+    orderQty?: IntFieldUpdateOperationsInput | number
+    filledQty?: IntFieldUpdateOperationsInput | number
+    remainingQty?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    parentOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    brokerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseOrderUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    limitPrice?: IntFieldUpdateOperationsInput | number
+    orderQty?: IntFieldUpdateOperationsInput | number
+    filledQty?: IntFieldUpdateOperationsInput | number
+    remainingQty?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    parentOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    brokerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseOrderCreateManyInput = {
+    id?: number
+    sessionId: string
+    symbol: string
+    side: string
+    limitPrice: number
+    orderQty: number
+    filledQty?: number
+    remainingQty: number
+    status?: string
+    parentOrderId?: number | null
+    brokerOrderId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseOrderUpdateManyMutationInput = {
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    limitPrice?: IntFieldUpdateOperationsInput | number
+    orderQty?: IntFieldUpdateOperationsInput | number
+    filledQty?: IntFieldUpdateOperationsInput | number
+    remainingQty?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    parentOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    brokerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseOrderUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    limitPrice?: IntFieldUpdateOperationsInput | number
+    orderQty?: IntFieldUpdateOperationsInput | number
+    filledQty?: IntFieldUpdateOperationsInput | number
+    remainingQty?: IntFieldUpdateOperationsInput | number
+    status?: StringFieldUpdateOperationsInput | string
+    parentOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    brokerOrderId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseFillCreateInput = {
+    orderId: number
+    symbol: string
+    side: string
+    fillPrice: number
+    fillQty: number
+    filledAt?: Date | string
+  }
+
+  export type InverseFillUncheckedCreateInput = {
+    id?: number
+    orderId: number
+    symbol: string
+    side: string
+    fillPrice: number
+    fillQty: number
+    filledAt?: Date | string
+  }
+
+  export type InverseFillUpdateInput = {
+    orderId?: IntFieldUpdateOperationsInput | number
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    fillPrice?: IntFieldUpdateOperationsInput | number
+    fillQty?: IntFieldUpdateOperationsInput | number
+    filledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseFillUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    orderId?: IntFieldUpdateOperationsInput | number
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    fillPrice?: IntFieldUpdateOperationsInput | number
+    fillQty?: IntFieldUpdateOperationsInput | number
+    filledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseFillCreateManyInput = {
+    id?: number
+    orderId: number
+    symbol: string
+    side: string
+    fillPrice: number
+    fillQty: number
+    filledAt?: Date | string
+  }
+
+  export type InverseFillUpdateManyMutationInput = {
+    orderId?: IntFieldUpdateOperationsInput | number
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    fillPrice?: IntFieldUpdateOperationsInput | number
+    fillQty?: IntFieldUpdateOperationsInput | number
+    filledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseFillUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    orderId?: IntFieldUpdateOperationsInput | number
+    symbol?: StringFieldUpdateOperationsInput | string
+    side?: StringFieldUpdateOperationsInput | string
+    fillPrice?: IntFieldUpdateOperationsInput | number
+    fillQty?: IntFieldUpdateOperationsInput | number
+    filledAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InversePositionCreateInput = {
+    sessionId: string
+    symbol: string
+    qty?: number
+    avgPrice?: number
+    realizedPnl?: number
+    unrealizedPnl?: number
+    updatedAt?: Date | string
+  }
+
+  export type InversePositionUncheckedCreateInput = {
+    id?: number
+    sessionId: string
+    symbol: string
+    qty?: number
+    avgPrice?: number
+    realizedPnl?: number
+    unrealizedPnl?: number
+    updatedAt?: Date | string
+  }
+
+  export type InversePositionUpdateInput = {
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    qty?: IntFieldUpdateOperationsInput | number
+    avgPrice?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    unrealizedPnl?: FloatFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InversePositionUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    qty?: IntFieldUpdateOperationsInput | number
+    avgPrice?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    unrealizedPnl?: FloatFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InversePositionCreateManyInput = {
+    id?: number
+    sessionId: string
+    symbol: string
+    qty?: number
+    avgPrice?: number
+    realizedPnl?: number
+    unrealizedPnl?: number
+    updatedAt?: Date | string
+  }
+
+  export type InversePositionUpdateManyMutationInput = {
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    qty?: IntFieldUpdateOperationsInput | number
+    avgPrice?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    unrealizedPnl?: FloatFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InversePositionUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    sessionId?: StringFieldUpdateOperationsInput | string
+    symbol?: StringFieldUpdateOperationsInput | string
+    qty?: IntFieldUpdateOperationsInput | number
+    avgPrice?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    unrealizedPnl?: FloatFieldUpdateOperationsInput | number
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseDailyStatCreateInput = {
+    date: Date | string
+    sessionId?: string | null
+    buyQty?: number
+    buyAmount?: number
+    sellQty?: number
+    sellAmount?: number
+    realizedPnl?: number
+    fillCount?: number
+    forceSettled?: boolean
+    closingQty?: number
+    note?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseDailyStatUncheckedCreateInput = {
+    id?: number
+    date: Date | string
+    sessionId?: string | null
+    buyQty?: number
+    buyAmount?: number
+    sellQty?: number
+    sellAmount?: number
+    realizedPnl?: number
+    fillCount?: number
+    forceSettled?: boolean
+    closingQty?: number
+    note?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseDailyStatUpdateInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    buyQty?: FloatFieldUpdateOperationsInput | number
+    buyAmount?: FloatFieldUpdateOperationsInput | number
+    sellQty?: FloatFieldUpdateOperationsInput | number
+    sellAmount?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    fillCount?: IntFieldUpdateOperationsInput | number
+    forceSettled?: BoolFieldUpdateOperationsInput | boolean
+    closingQty?: IntFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseDailyStatUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    buyQty?: FloatFieldUpdateOperationsInput | number
+    buyAmount?: FloatFieldUpdateOperationsInput | number
+    sellQty?: FloatFieldUpdateOperationsInput | number
+    sellAmount?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    fillCount?: IntFieldUpdateOperationsInput | number
+    forceSettled?: BoolFieldUpdateOperationsInput | boolean
+    closingQty?: IntFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseDailyStatCreateManyInput = {
+    id?: number
+    date: Date | string
+    sessionId?: string | null
+    buyQty?: number
+    buyAmount?: number
+    sellQty?: number
+    sellAmount?: number
+    realizedPnl?: number
+    fillCount?: number
+    forceSettled?: boolean
+    closingQty?: number
+    note?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseDailyStatUpdateManyMutationInput = {
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    buyQty?: FloatFieldUpdateOperationsInput | number
+    buyAmount?: FloatFieldUpdateOperationsInput | number
+    sellQty?: FloatFieldUpdateOperationsInput | number
+    sellAmount?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    fillCount?: IntFieldUpdateOperationsInput | number
+    forceSettled?: BoolFieldUpdateOperationsInput | boolean
+    closingQty?: IntFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseDailyStatUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    sessionId?: NullableStringFieldUpdateOperationsInput | string | null
+    buyQty?: FloatFieldUpdateOperationsInput | number
+    buyAmount?: FloatFieldUpdateOperationsInput | number
+    sellQty?: FloatFieldUpdateOperationsInput | number
+    sellAmount?: FloatFieldUpdateOperationsInput | number
+    realizedPnl?: FloatFieldUpdateOperationsInput | number
+    fillCount?: IntFieldUpdateOperationsInput | number
+    forceSettled?: BoolFieldUpdateOperationsInput | boolean
+    closingQty?: IntFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderSessionCreateInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string | null
+    endedAt?: Date | string | null
+    lastError?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseTraderSessionUncheckedCreateInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string | null
+    endedAt?: Date | string | null
+    lastError?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseTraderSessionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderSessionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderSessionCreateManyInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string | null
+    endedAt?: Date | string | null
+    lastError?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type InverseTraderSessionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InverseTraderSessionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    endedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastError?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type IntFilter<$PrismaModel = never> = {
     equals?: number | IntFieldRefInput<$PrismaModel>
     in?: number[] | ListIntFieldRefInput<$PrismaModel>
@@ -49963,6 +59664,7 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     description?: SortOrder
+    orderId?: SortOrder
     personaId?: SortOrder
     balanceAfter?: SortOrder
     createdAt?: SortOrder
@@ -49981,6 +59683,7 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     description?: SortOrder
+    orderId?: SortOrder
     personaId?: SortOrder
     balanceAfter?: SortOrder
     createdAt?: SortOrder
@@ -49992,6 +59695,7 @@ export namespace Prisma {
     amount?: SortOrder
     type?: SortOrder
     description?: SortOrder
+    orderId?: SortOrder
     personaId?: SortOrder
     balanceAfter?: SortOrder
     createdAt?: SortOrder
@@ -50882,6 +60586,380 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type HairStyleCountOrderByAggregateInput = {
+    id?: SortOrder
+    styleKey?: SortOrder
+    name?: SortOrder
+    gender?: SortOrder
+    imageUrl?: SortOrder
+    promptEn?: SortOrder
+    description?: SortOrder
+    order?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type HairStyleAvgOrderByAggregateInput = {
+    id?: SortOrder
+    order?: SortOrder
+  }
+
+  export type HairStyleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    styleKey?: SortOrder
+    name?: SortOrder
+    gender?: SortOrder
+    imageUrl?: SortOrder
+    promptEn?: SortOrder
+    description?: SortOrder
+    order?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type HairStyleMinOrderByAggregateInput = {
+    id?: SortOrder
+    styleKey?: SortOrder
+    name?: SortOrder
+    gender?: SortOrder
+    imageUrl?: SortOrder
+    promptEn?: SortOrder
+    description?: SortOrder
+    order?: SortOrder
+    isVisible?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type HairStyleSumOrderByAggregateInput = {
+    id?: SortOrder
+    order?: SortOrder
+  }
+
+  export type InverseTraderConfigCountOrderByAggregateInput = {
+    id?: SortOrder
+    symbol?: SortOrder
+    symbolName?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+    tradingMode?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderConfigAvgOrderByAggregateInput = {
+    id?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+  }
+
+  export type InverseTraderConfigMaxOrderByAggregateInput = {
+    id?: SortOrder
+    symbol?: SortOrder
+    symbolName?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+    tradingMode?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderConfigMinOrderByAggregateInput = {
+    id?: SortOrder
+    symbol?: SortOrder
+    symbolName?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+    tradingMode?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderConfigSumOrderByAggregateInput = {
+    id?: SortOrder
+    defaultQty?: SortOrder
+    closeBufferMin?: SortOrder
+    maxPositionQty?: SortOrder
+    dailyLossLimit?: SortOrder
+  }
+
+  export type InverseOrderCountOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    status?: SortOrder
+    parentOrderId?: SortOrder
+    brokerOrderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseOrderAvgOrderByAggregateInput = {
+    id?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    parentOrderId?: SortOrder
+  }
+
+  export type InverseOrderMaxOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    status?: SortOrder
+    parentOrderId?: SortOrder
+    brokerOrderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseOrderMinOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    status?: SortOrder
+    parentOrderId?: SortOrder
+    brokerOrderId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseOrderSumOrderByAggregateInput = {
+    id?: SortOrder
+    limitPrice?: SortOrder
+    orderQty?: SortOrder
+    filledQty?: SortOrder
+    remainingQty?: SortOrder
+    parentOrderId?: SortOrder
+  }
+
+  export type InverseFillCountOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+    filledAt?: SortOrder
+  }
+
+  export type InverseFillAvgOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+  }
+
+  export type InverseFillMaxOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+    filledAt?: SortOrder
+  }
+
+  export type InverseFillMinOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    symbol?: SortOrder
+    side?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+    filledAt?: SortOrder
+  }
+
+  export type InverseFillSumOrderByAggregateInput = {
+    id?: SortOrder
+    orderId?: SortOrder
+    fillPrice?: SortOrder
+    fillQty?: SortOrder
+  }
+
+  export type InversePositionSessionIdSymbolCompoundUniqueInput = {
+    sessionId: string
+    symbol: string
+  }
+
+  export type InversePositionCountOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InversePositionAvgOrderByAggregateInput = {
+    id?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+  }
+
+  export type InversePositionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InversePositionMinOrderByAggregateInput = {
+    id?: SortOrder
+    sessionId?: SortOrder
+    symbol?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InversePositionSumOrderByAggregateInput = {
+    id?: SortOrder
+    qty?: SortOrder
+    avgPrice?: SortOrder
+    realizedPnl?: SortOrder
+    unrealizedPnl?: SortOrder
+  }
+
+  export type InverseDailyStatCountOrderByAggregateInput = {
+    id?: SortOrder
+    date?: SortOrder
+    sessionId?: SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    forceSettled?: SortOrder
+    closingQty?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseDailyStatAvgOrderByAggregateInput = {
+    id?: SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    closingQty?: SortOrder
+  }
+
+  export type InverseDailyStatMaxOrderByAggregateInput = {
+    id?: SortOrder
+    date?: SortOrder
+    sessionId?: SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    forceSettled?: SortOrder
+    closingQty?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseDailyStatMinOrderByAggregateInput = {
+    id?: SortOrder
+    date?: SortOrder
+    sessionId?: SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    forceSettled?: SortOrder
+    closingQty?: SortOrder
+    note?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseDailyStatSumOrderByAggregateInput = {
+    id?: SortOrder
+    buyQty?: SortOrder
+    buyAmount?: SortOrder
+    sellQty?: SortOrder
+    sellAmount?: SortOrder
+    realizedPnl?: SortOrder
+    fillCount?: SortOrder
+    closingQty?: SortOrder
+  }
+
+  export type InverseTraderSessionCountOrderByAggregateInput = {
+    id?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    endedAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderSessionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    endedAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type InverseTraderSessionMinOrderByAggregateInput = {
+    id?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    endedAt?: SortOrder
+    lastError?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type PersonaCreateNestedManyWithoutUserInput = {
@@ -53142,6 +63220,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     balanceAfter: number
     createdAt?: Date | string
     persona?: PersonaCreateNestedOneWithoutPointTransactionsInput
@@ -53152,6 +63231,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     personaId?: string | null
     balanceAfter: number
     createdAt?: Date | string
@@ -53689,6 +63769,7 @@ export namespace Prisma {
     amount?: IntFilter<"PointTransaction"> | number
     type?: StringFilter<"PointTransaction"> | string
     description?: StringNullableFilter<"PointTransaction"> | string | null
+    orderId?: StringNullableFilter<"PointTransaction"> | string | null
     personaId?: StringNullableFilter<"PointTransaction"> | string | null
     balanceAfter?: IntFilter<"PointTransaction"> | number
     createdAt?: DateTimeFilter<"PointTransaction"> | Date | string
@@ -54788,6 +64869,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     balanceAfter: number
     createdAt?: Date | string
     user: UserCreateNestedOneWithoutPointTransactionsInput
@@ -54799,6 +64881,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     balanceAfter: number
     createdAt?: Date | string
   }
@@ -58634,6 +68717,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     personaId?: string | null
     balanceAfter: number
     createdAt?: Date | string
@@ -58990,6 +69074,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     persona?: PersonaUpdateOneWithoutPointTransactionsNestedInput
@@ -59000,6 +69085,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     personaId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -59010,6 +69096,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     personaId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -59544,6 +69631,7 @@ export namespace Prisma {
     amount: number
     type: string
     description?: string | null
+    orderId?: string | null
     balanceAfter: number
     createdAt?: Date | string
   }
@@ -59798,6 +69886,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutPointTransactionsNestedInput
@@ -59809,6 +69898,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -59819,6 +69909,7 @@ export namespace Prisma {
     amount?: IntFieldUpdateOperationsInput | number
     type?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
     balanceAfter?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

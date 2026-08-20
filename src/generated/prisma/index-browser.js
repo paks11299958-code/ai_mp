@@ -304,6 +304,7 @@ exports.Prisma.PointTransactionScalarFieldEnum = {
   amount: 'amount',
   type: 'type',
   description: 'description',
+  orderId: 'orderId',
   personaId: 'personaId',
   balanceAfter: 'balanceAfter',
   createdAt: 'createdAt'
@@ -519,6 +520,97 @@ exports.Prisma.AiUsageLogScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.HairStyleScalarFieldEnum = {
+  id: 'id',
+  styleKey: 'styleKey',
+  name: 'name',
+  gender: 'gender',
+  imageUrl: 'imageUrl',
+  promptEn: 'promptEn',
+  description: 'description',
+  order: 'order',
+  isVisible: 'isVisible',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.InverseTraderConfigScalarFieldEnum = {
+  id: 'id',
+  symbol: 'symbol',
+  symbolName: 'symbolName',
+  defaultQty: 'defaultQty',
+  closeBufferMin: 'closeBufferMin',
+  maxPositionQty: 'maxPositionQty',
+  dailyLossLimit: 'dailyLossLimit',
+  tradingMode: 'tradingMode',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InverseOrderScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  symbol: 'symbol',
+  side: 'side',
+  limitPrice: 'limitPrice',
+  orderQty: 'orderQty',
+  filledQty: 'filledQty',
+  remainingQty: 'remainingQty',
+  status: 'status',
+  parentOrderId: 'parentOrderId',
+  brokerOrderId: 'brokerOrderId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InverseFillScalarFieldEnum = {
+  id: 'id',
+  orderId: 'orderId',
+  symbol: 'symbol',
+  side: 'side',
+  fillPrice: 'fillPrice',
+  fillQty: 'fillQty',
+  filledAt: 'filledAt'
+};
+
+exports.Prisma.InversePositionScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  symbol: 'symbol',
+  qty: 'qty',
+  avgPrice: 'avgPrice',
+  realizedPnl: 'realizedPnl',
+  unrealizedPnl: 'unrealizedPnl',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InverseDailyStatScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  sessionId: 'sessionId',
+  buyQty: 'buyQty',
+  buyAmount: 'buyAmount',
+  sellQty: 'sellQty',
+  sellAmount: 'sellAmount',
+  realizedPnl: 'realizedPnl',
+  fillCount: 'fillCount',
+  forceSettled: 'forceSettled',
+  closingQty: 'closingQty',
+  note: 'note',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.InverseTraderSessionScalarFieldEnum = {
+  id: 'id',
+  status: 'status',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  lastError: 'lastError',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -568,7 +660,14 @@ exports.Prisma.ModelName = {
   MenuUsageLog: 'MenuUsageLog',
   GolfBookingSchedule: 'GolfBookingSchedule',
   GolfCourse: 'GolfCourse',
-  AiUsageLog: 'AiUsageLog'
+  AiUsageLog: 'AiUsageLog',
+  HairStyle: 'HairStyle',
+  InverseTraderConfig: 'InverseTraderConfig',
+  InverseOrder: 'InverseOrder',
+  InverseFill: 'InverseFill',
+  InversePosition: 'InversePosition',
+  InverseDailyStat: 'InverseDailyStat',
+  InverseTraderSession: 'InverseTraderSession'
 };
 
 /**

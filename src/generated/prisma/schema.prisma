@@ -245,6 +245,7 @@ model PointTransaction {
   amount       Int
   type         String
   description  String?
+  orderId      String?  @unique // 충전(CHARGE) 결제 orderId — 중복 결제 DB 레벨 차단
   personaId    String?
   balanceAfter Int
   createdAt    DateTime @default(now())
@@ -496,4 +497,126 @@ model AiUsageLog {
 
   @@index([service, createdAt])
   @@index([createdAt])
+}
+
+// 윤채린 헤어스타일 견본 (Imagen 생성, 어드민 관리). gender: 'male' | 'female'
+model HairStyle {
+  id          Int      @id @default(autoincrement())
+  styleKey    String   @unique // f_bob, m_twoblock 등
+  name        String // 단발 보브, 투블럭
+  gender      String // 'male' | 'female'
+  imageUrl    String
+  promptEn    String? // 생성에 쓴 영문 헤어 설명(어울림 분석 참고용)
+  description String?
+  order       Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@index([gender, order])
+}
+
+// ─────────────────────────────────────────────────────────────
+// 인버스 ETF 1호가 스캘핑 자동매매 (SIMULATION 전용)
+// 모든 모델은 Inverse 접두사로 기존 모델과 이름 충돌을 피한다.
+// 금액/손익은 Float(원), 수량·가격은 Int(원 단위 정수, 호가단위 5원).
+// ※ 일일집계(InverseDailyStat)의 누적 수량은 Int32(21.4억) 상한을 넘길 수 있어
+//   Float으로 둔다. 기본주문수량 100만주 기준 하루 2,148회 매수면 Int는 오버플로.
+// ─────────────────────────────────────────────────────────────
+
+/// 자동매매 설정(종목·수량·리스크 한도). 어드민에서 관리.
+model InverseTraderConfig {
+  id             Int      @id @default(autoincrement())
+  symbol         String // 종목코드 (예: 252670)
+  symbolName     String // 종목명 (예: KODEX 200선물인버스2X)
+  defaultQty     Int      @default(1000000) // 기본 주문수량(주)
+  closeBufferMin Int      @default(10) // 마감 전 강제정산 버퍼(분)
+  maxPositionQty Int      @default(3000000) // 최대 보유수량(주)
+  dailyLossLimit Float    @default(500000) // 일일 최대 손실액(원). 초과 시 정지
+  tradingMode    String   @default("SIMULATION") // 'SIMULATION' 고정 (LIVE 금지)
+  enabled        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([symbol])
+}
+
+/// 주문 원장. 부모 체결로 파생된 후속주문은 parentOrderId로 추적한다.
+model InverseOrder {
+  id            Int      @id @default(autoincrement())
+  sessionId     String // InverseTraderSession.id
+  symbol        String
+  side          String // 'BUY' | 'SELL'
+  limitPrice    Int // 지정가(원)
+  orderQty      Int // 주문수량
+  filledQty     Int      @default(0) // 누적 체결수량
+  remainingQty  Int // 잔량 (orderQty - filledQty)
+  status        String   @default("PENDING") // PENDING | PARTIAL | FILLED | CANCELED
+  parentOrderId Int? // 원인주문ID(이 주문을 낳은 체결의 주문)
+  brokerOrderId String? // 브로커(시뮬레이터)가 발급한 주문번호
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([sessionId, createdAt])
+  @@index([symbol])
+}
+
+/// 체결 내역. 시뮬레이션 브로커가 반환하는 체결 객체와 같은 형태.
+model InverseFill {
+  id        Int      @id @default(autoincrement())
+  orderId   Int // InverseOrder.id
+  symbol    String
+  side      String // 'BUY' | 'SELL'
+  fillPrice Int // 체결가(원)
+  fillQty   Int // 체결수량
+  filledAt  DateTime @default(now()) // 체결시각
+
+  @@index([orderId])
+  @@index([symbol, filledAt])
+}
+
+/// 세션×종목 보유 포지션(현재 상태 스냅샷).
+model InversePosition {
+  id            Int      @id @default(autoincrement())
+  sessionId     String
+  symbol        String
+  qty           Int      @default(0) // 보유수량
+  avgPrice      Float    @default(0) // 평균단가(원)
+  realizedPnl   Float    @default(0) // 실현손익(원)
+  unrealizedPnl Float    @default(0) // 평가손익(원)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([sessionId, symbol])
+}
+
+/// 일자별 집계(어드민 손익 화면 원천).
+model InverseDailyStat {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @unique @db.Date // 영업일
+  sessionId    String?
+  buyQty       Float    @default(0) // 총매수 수량(누적 오버플로 방지로 Float)
+  buyAmount    Float    @default(0) // 총매수 금액(원)
+  sellQty      Float    @default(0) // 총매도 수량(누적 오버플로 방지로 Float)
+  sellAmount   Float    @default(0) // 총매도 금액(원)
+  realizedPnl  Float    @default(0) // 실현손익(원)
+  fillCount    Int      @default(0) // 체결건수
+  forceSettled Boolean  @default(false) // 마감 강제정산 성공 여부
+  closingQty   Int      @default(0) // 마감 시 잔여수량
+  note         String? // 비고
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+/// 자동매매 세션(구동 단위). 어드민 상태 표시의 기준.
+model InverseTraderSession {
+  id        String    @id @default(cuid())
+  status    String    @default("IDLE") // IDLE | RUNNING | FORCE_SETTLEMENT | STOPPED | EMERGENCY_STOP
+  startedAt DateTime?
+  endedAt   DateTime?
+  lastError String? // 마지막 에러 메시지
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([status, startedAt])
 }
