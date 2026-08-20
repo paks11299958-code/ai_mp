@@ -1671,40 +1671,41 @@ export const adminApi = {
     bizDirectives: () =>
         get<{ directives: { id: number; createdDate: string; source: string; title: string; detail: string | null; assignee: string | null; status: string; devRequestId: number | null; resultNote: string | null; effectNote: string | null }[] }>('/biz/directives'),
     // ── 개발AI 콘솔 (2026-08-20, 1단계: 프로젝트·명세 버전) ──
-    // ★정적 경로 + query 호출. 이유는 api/devai/index.ts 주석 참고.
+    // ★2026-08-20 서버1(shared-api)로 이전 — /api/admin/* 은 vercel.json rewrite 로
+    //   서버1을 탄다. Vercel 서버리스는 VPC 밖이라 DB 에 못 붙어 타임아웃 났다.
     listDevProjects: () =>
-        get<{ projects: DevProjectRow[]; concurrency: { running: number; max: number; canStart: boolean } }>('/devai?action=list'),
+        get<{ projects: DevProjectRow[]; concurrency: { running: number; max: number; canStart: boolean } }>('/admin/devai/list'),
     getDevProject: (id: string) =>
         get<{ project: DevProjectDetail }>(`/devai?action=get&id=${encodeURIComponent(id)}`),
     createDevProject: (body: Record<string, unknown>) =>
-        post<{ project: DevProjectDetail }>('/devai?action=create', body),
+        post<{ project: DevProjectDetail }>('/admin/devai/create', body),
     updateDevProject: (body: Record<string, unknown>) =>
-        post<{ project: DevProjectDetail; versionAdded: boolean }>('/devai?action=update', body),
+        post<{ project: DevProjectDetail; versionAdded: boolean }>('/admin/devai/update', body),
     deleteDevProject: (id: string) =>
-        post<{ deleted: boolean; id: string }>('/devai?action=delete', { id }),
+        post<{ deleted: boolean; id: string }>('/admin/devai/delete', { id }),
     // 2단계 — 파이프라인 연결 / 진행·결과 동기화 / 명세서 내보내기
     linkDevProject: (id: string, herdrProjectId: string) =>
-        post<{ project: DevProjectDetail }>('/devai?action=link', { id, herdrProjectId }),
+        post<{ project: DevProjectDetail }>('/admin/devai/link', { id, herdrProjectId }),
     syncDevProject: (id: string) =>
-        post<{ project: DevProjectDetail; eventsAdded: number; batches: { name: string; title: string; status: string; commit: string | null }[] }>('/devai?action=sync', { id }),
-    devProjectExportUrl: (id: string) => `/api/devai?action=export&id=${encodeURIComponent(id)}`,
+        post<{ project: DevProjectDetail; eventsAdded: number; batches: { name: string; title: string; status: string; commit: string | null }[] }>('/admin/devai/sync', { id }),
+    devProjectExportUrl: (id: string) => `/api/admin/devai/export?id=${encodeURIComponent(id)}`,
     // 3단계 — 승인/반려. 텔레그램 버튼과 같은 결재 큐에 결정을 쓴다.
     approveDevProject: (id: string, taskId: string, decision: 'approved' | 'rejected') =>
-        post<{ ok: boolean; taskId: string; decision: string }>('/devai?action=approve', { id, taskId, decision }),
+        post<{ ok: boolean; taskId: string; decision: string }>('/admin/devai/approve', { id, taskId, decision }),
     // 4단계 — 디자인 시안 목록/선택. 생성·확정은 design_preview.py 가 맡는다.
     listDevDesigns: () =>
-        get<{ designs: DevDesignRow[] }>('/devai?action=designs'),
+        get<{ designs: DevDesignRow[] }>('/admin/devai/designs'),
     // 5단계 — 어드민에서 개발 착수(텔레그램 /hermes 와 같은 경로를 탄다)
     startDevProject: (id: string) =>
-        post<{ started: boolean; id: string; message: string }>('/devai?action=start', { id }),
+        post<{ started: boolean; id: string; message: string }>('/admin/devai/start', { id }),
     // 참조 이미지 — 저장소 안 sites/devai/<id>/img/ 에 저장되고 명세·지시문에 경로가 실린다.
     uploadDevImage: (id: string, dataUrl: string) =>
-        post<{ file: DevProjectFileRow }>('/devai?action=upload-image', { id, dataUrl }),
+        post<{ file: DevProjectFileRow }>('/admin/devai/upload-image', { id, dataUrl }),
     deleteDevImage: (fileId: number) =>
-        post<{ deleted: boolean; fileId: number }>('/devai?action=delete-image', { fileId }),
+        post<{ deleted: boolean; fileId: number }>('/admin/devai/delete-image', { fileId }),
     chooseDevDesign: (projectName: string, version: string, id?: string) =>
         post<{ ok: boolean; projectName: string; version: string; message: string }>(
-            '/devai?action=choose-design', { projectName, version, id }),
+            '/admin/devai/choose-design', { projectName, version, id }),
     // ── 인버스 ETF 1호가 스캘핑 — 가상매매 전용(2026-08-20) ──
     // ★정적 경로 + query 로 호출한다. vercel.json 끝의 catch-all rewrite(`/api/:d/:s1`)가
     //   `/api/inverse-trader/status` 같은 하위 경로를 router.ts(404)로 보내기 때문이다.

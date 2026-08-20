@@ -36,7 +36,8 @@
 
 | 위치 | 파일 |
 |---|---|
-| API | `api/devai/[action].ts` (+ 정적 진입점 `api/devai/index.ts`) |
+| API | **서버1** `shared-api/routes/aimp/admin-devai.ts` (`admin.ts` 에서 `/devai` 로 마운트) |
+| 서버2 브리지 | **서버2** `rag/devai_ctl.sh` (파일·파이프라인 전용 고정 스크립트) |
 | 화면 | `frontend/components/admin/DevAiPanel.tsx` |
 | 등록 | `frontend/components/AdminPanel.tsx` (import·GROUPS·mainView 3곳) |
 | 파이프라인 기록 | `rag/devai_events.py` |
@@ -51,11 +52,56 @@ link / sync / export                         2단계
 approve                                      3단계
 designs / choose-design                      4단계
 start                                        5단계
+upload-image / delete-image                  참조 이미지
 ```
 
-★**정적 경로 + 쿼리스트링**으로 부른다(`/api/devai?action=list`). `vercel.json` 끝의
-catch-all rewrite(`/api/:d/:s1`)가 `/api/devai/list` 같은 동적 세그먼트를 `router.ts`(404)로
-보내기 때문. 인버스 탭과 같은 이유·같은 방식이다.
+프런트는 `/api/admin/devai/<action>` 으로 부른다. `vercel.json` 의
+`/api/admin/:path*` rewrite 가 서버1(`:3020/api/aimp/admin/*`)로 보내고,
+`admin.ts` 의 **전역 ADMIN 인증**을 그대로 상속한다.
+
+### ★왜 Vercel 서버리스에서 서버1로 옮겼나 (2026-08-20)
+
+처음엔 `api/devai/[action].ts` 로 Vercel 서버리스에서 돌렸다. 그런데 어드민 화면에
+이 에러가 떴다:
+
+```
+권한 확인에 실패했습니다: Invalid `prisma.user.findUnique()` invocation:
+Operation has timed out
+```
+
+**권한 문제가 아니라 네트워크 문제였다.** 실측:
+
+| 경로 | 결과 |
+|---|---|
+| 외부IP `34.50.27.95:5432` | 차단/타임아웃 |
+| 내부IP `10.178.0.2:5432` | 열림 |
+
+다른 API 는 전부 `vercel.json` rewrite 로 서버1(VPC 안)을 타는데 `devai` 와
+`inverse-trader` 만 rewrite 가 없어 **Vercel 서버리스로 직접 실행**됐다. Vercel 은
+VPC 밖이라 Postgres 에 못 붙는다. `requireAuth`(JWT, DB 불필요)는 통과한 뒤 바로
+다음 줄 `user.findUnique()` 에서 멈추기 때문에, **비로그인은 401 이 0.5초에 오는데
+로그인 상태에서만 타임아웃**이 나서 권한 문제처럼 보였다.
+
+→ DB 작업은 서버1로 옮기고, `api/devai/*` 는 **삭제**했다(살려두면 같은 함정에 다시 빠진다).
+
+### ★DB 는 서버1, 파일·파이프라인은 서버2
+
+`~/rag`(허드 상태·결재 큐·시안·`devai_start.py`)와 `~/ai_mp/sites` 는 **서버2에만** 있다
+(서버1엔 `~/rag` 자체가 없다 — 실측). 그래서 파일이 얽힌 동작은 서버1이 SSH 로
+**고정 스크립트** `~/rag/devai_ctl.sh` 만 부른다.
+
+★임의 명령을 실행할 수 있게 하면 어드민 API 하나가 뚫렸을 때 서버2 전체가 넘어간다.
+허용 동작을 `herdr-state / design-pending / approve / choose-design / start /
+img-put / img-del / site-url` 로 못 박고, 프로젝트 ID·파일명은 정규식으로 검증한다
+(`ai_studio_ctl.sh` 와 같은 원칙).
+
+### 참조 이미지
+
+`sites/devai/<projectId>/img/` 에 **저장소 동봉**한다(외부 스토리지 안 씀 — 배포와 함께
+따라간다). DB(`DevProjectFile`)에는 경로만 남긴다.
+
+★업로드로 끝내면 안 된다 — `devai_start.build_goal()` 이 이미지 경로를 지시문에 실어야
+개발AI 가 `Read` 로 열어 본다. **DB 에만 있으면 에이전트는 존재조차 모른다.**
 
 ## ★설계 원칙 (손댈 때 깨지 말 것)
 
