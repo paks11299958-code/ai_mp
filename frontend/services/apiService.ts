@@ -1714,7 +1714,11 @@ export const adminApi = {
         get<{ approvals: DevApprovalRow[] }>('/admin/devai/approvals'),
     // 4단계 — 디자인 시안 목록/선택. 생성·확정은 design_preview.py 가 맡는다.
     listDevDesigns: () =>
-        get<{ designs: DevDesignRow[]; hiddenApproved?: number }>('/admin/devai/designs'),
+        get<{ designs: DevDesignRow[]; waitingCount?: number }>('/admin/devai/designs'),
+    /** 시안 삭제 — version 을 주면 1장만, 없으면 그 제목의 시안 전부. */
+    deleteDevDesign: (projectName: string, version?: string) =>
+        post<{ deleted: boolean; projectName: string; version: string | null }>(
+            '/admin/devai/delete-design', { projectName, version }),
     // 5단계 — 어드민에서 개발 착수(텔레그램 /hermes 와 같은 경로를 탄다)
     startDevProject: (id: string) =>
         post<{ started: boolean; id: string; message: string }>('/admin/devai/start', { id }),

@@ -92,8 +92,8 @@ export const DevAiPanel: React.FC = () => {
     const [approvals, setApprovals] = useState<DevApprovalRow[]>([]);
     // 4단계 — 디자인 시안
     const [designs, setDesigns] = useState<DevDesignRow[]>([]);
-    // 확정 완료돼 목록에서 숨긴 시안 수 — '왜 안 보이지?' 를 막기 위해 숫자만 알려준다.
-    const [hiddenApproved, setHiddenApproved] = useState(0);
+    // 펼쳐 둔 시안 제목(목차). 한 번에 하나만 펼쳐 화면이 길어지지 않게 한다.
+    const [openDesign, setOpenDesign] = useState<string | null>(null);
     const [showDesigns, setShowDesigns] = useState(false);
     // 참조 이미지 업로드
     const fileRef = useRef<HTMLInputElement>(null);
@@ -201,7 +201,6 @@ export const DevAiPanel: React.FC = () => {
         try {
             const d = await adminApi.listDevDesigns();
             setDesigns(d.designs);
-            setHiddenApproved(d.hiddenApproved ?? 0);
         } catch (e: any) { setErr(e?.message || '시안 목록을 불러오지 못했습니다.'); }
     }, []);
 
@@ -218,6 +217,21 @@ export const DevAiPanel: React.FC = () => {
             if (selected) await refreshQuiet(selected.id);
         } catch (e: any) {
             setErr(e?.message || '승인 처리에 실패했습니다.');
+        } finally { setBusy(false); }
+    };
+
+    /** 시안 삭제. version 을 주면 1장만, 없으면 그 제목 전부.
+     *  ★되돌릴 수 없으므로 반드시 확인을 받는다. */
+    const removeDesign = async (projectName: string, version?: string) => {
+        const what = version ? `'${projectName}' 의 ${version} 시안` : `'${projectName}' 의 시안 전체`;
+        if (!window.confirm(`${what}를 삭제할까요?\n파일까지 지워지며 되돌릴 수 없습니다.`)) return;
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            await adminApi.deleteDevDesign(projectName, version);
+            setMsg(`${what}를 삭제했습니다.`);
+            await loadDesigns();
+        } catch (e: any) {
+            setErr(e?.message || '시안 삭제에 실패했습니다.');
         } finally { setBusy(false); }
     };
 
@@ -455,67 +469,91 @@ export const DevAiPanel: React.FC = () => {
                     <div className="px-4 pb-4 space-y-3 border-t border-gray-700 pt-3">
                         {designs.length === 0 && (
                             <p className="text-xs text-gray-600 py-4 text-center">
-                                대기 중인 시안이 없습니다.
-                                {hiddenApproved > 0 && ` (확정 완료 ${hiddenApproved}건은 숨김)`}
+                                시안이 없습니다.
                             </p>
                         )}
-                        {designs.map(d => (
-                            <div key={d.projectName} className="bg-gray-900/60 border border-gray-800 rounded-lg p-3">
-                                <div className="flex items-center justify-between gap-2 mb-2">
-                                    <span className="text-xs text-gray-200 truncate">{d.projectName}</span>
-                                    {d.status === 'approved' ? (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-900/60 text-teal-300 shrink-0">
-                                            {d.selectedVersion} 확정
-                                        </span>
-                                    ) : (
-                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300 shrink-0">
-                                            선택 대기
-                                        </span>
-                                    )}
+                        {/* ★목차 방식 — 제목만 나열하고, 누르면 그 제목의 시안 3장이 펼쳐진다.
+                            전부 펼쳐 두면 6개 프로젝트 × 3장 = 18장이 쏟아져 지금 골라야 할 게
+                            묻힌다(사장 지적 2026-08-20). 확정된 것도 지우지 않고 남긴다. */}
+                        {designs.map(d => {
+                            const isOpen = openDesign === d.projectName;
+                            return (
+                            <div key={d.projectName} className="bg-gray-900/60 border border-gray-800 rounded-lg">
+                                {/* 목차 줄 */}
+                                <div className="flex items-center gap-2 px-3 py-2">
+                                    <button onClick={() => setOpenDesign(isOpen ? null : d.projectName)}
+                                        className="flex-1 flex items-center gap-2 text-left min-w-0">
+                                        <span className="text-[10px] text-gray-600 shrink-0">{isOpen ? '▼' : '▶'}</span>
+                                        <span className="text-xs text-gray-200 truncate">{d.projectName}</span>
+                                        {d.status === 'approved' ? (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-900/60 text-teal-300 shrink-0">
+                                                ✓ {d.selectedVersion} 선택됨
+                                            </span>
+                                        ) : (
+                                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300 shrink-0">
+                                                선택 대기
+                                            </span>
+                                        )}
+                                    </button>
+                                    <button onClick={() => void removeDesign(d.projectName)} disabled={busy}
+                                        title="이 제목의 시안을 모두 삭제"
+                                        className="text-[10px] px-2 py-1 rounded text-gray-600 hover:text-red-300 hover:bg-red-900/30 shrink-0">
+                                        제목 삭제
+                                    </button>
                                 </div>
-                                {d.description && (
-                                    <p className="text-[10px] text-gray-500 mb-2 line-clamp-2">{d.description}</p>
+
+                                {isOpen && (
+                                    <div className="px-3 pb-3 border-t border-gray-800 pt-2.5">
+                                        {d.description && (
+                                            <p className="text-[10px] text-gray-500 mb-2">{d.description}</p>
+                                        )}
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                            {d.versions.map(v => {
+                                                const isPicked = d.selectedVersion === v.version;
+                                                return (
+                                                    <div key={v.version}
+                                                        className={`rounded-lg border p-2 flex flex-col gap-1.5
+                                                            ${isPicked ? 'border-teal-700 bg-teal-900/20' : 'border-gray-800 bg-gray-900'}`}>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[11px] font-mono text-gray-300">{v.version}</span>
+                                                            <div className="flex items-center gap-1.5">
+                                                                {isPicked && <span className="text-[10px] text-teal-400">선택됨</span>}
+                                                                <button onClick={() => void removeDesign(d.projectName, v.version)} disabled={busy}
+                                                                    title="이 시안 1장만 삭제"
+                                                                    className="text-[10px] text-gray-700 hover:text-red-300">×</button>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-500 leading-snug min-h-[28px]">{v.label}</p>
+                                                        <div className="flex gap-1.5">
+                                                            {/* ★파일이 없으면 링크를 막는다 — 404 면 Vercel SPA 폴백으로
+                                                                **메인 페이지가 대신 뜬다**(빈 화면보다 헷갈린다). */}
+                                                            {v.exists === false ? (
+                                                                <span title="시안 파일이 없어 미리보기를 볼 수 없습니다"
+                                                                    className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-900 text-gray-600 border border-gray-800 cursor-not-allowed">
+                                                                    미리보기 없음
+                                                                </span>
+                                                            ) : (
+                                                                <a href={v.url} target="_blank" rel="noreferrer"
+                                                                    className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300">
+                                                                    미리보기
+                                                                </a>
+                                                            )}
+                                                            {!isPicked && (
+                                                                <button onClick={() => chooseDesign(d.projectName, v.version)} disabled={busy}
+                                                                    className="flex-1 text-[10px] px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">
+                                                                    선택
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
                                 )}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                    {d.versions.map(v => {
-                                        const isPicked = d.selectedVersion === v.version;
-                                        return (
-                                            <div key={v.version}
-                                                className={`rounded-lg border p-2 flex flex-col gap-1.5
-                                                    ${isPicked ? 'border-teal-700 bg-teal-900/20' : 'border-gray-800 bg-gray-900'}`}>
-                                                <div className="flex items-center justify-between">
-                                                    <span className="text-[11px] font-mono text-gray-300">{v.version}</span>
-                                                    {isPicked && <span className="text-[10px] text-teal-400">선택됨</span>}
-                                                </div>
-                                                <p className="text-[10px] text-gray-500 leading-snug min-h-[28px]">{v.label}</p>
-                                                <div className="flex gap-1.5">
-                                                    {/* ★파일이 정리된 시안은 링크를 막는다 — 404 가 나면
-                                                        Vercel SPA fallback 때문에 **메인 페이지가 대신 뜬다**.
-                                                        빈 화면보다 더 헷갈린다(2026-08-20 사장 지적). */}
-                                                    {v.exists === false ? (
-                                                        <span title="시안 파일이 정리되어 미리보기를 볼 수 없습니다"
-                                                            className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-900 text-gray-600 border border-gray-800 cursor-not-allowed">
-                                                            미리보기 없음
-                                                        </span>
-                                                    ) : (
-                                                        <a href={v.url} target="_blank" rel="noreferrer"
-                                                            className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300">
-                                                            미리보기
-                                                        </a>
-                                                    )}
-                                                    {d.status !== 'approved' && (
-                                                        <button onClick={() => chooseDesign(d.projectName, v.version)} disabled={busy}
-                                                            className="flex-1 text-[10px] px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">
-                                                            선택
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>
