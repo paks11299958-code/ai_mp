@@ -1676,7 +1676,7 @@ export const adminApi = {
     listDevProjects: () =>
         get<{ projects: DevProjectRow[]; concurrency: { running: number; max: number; canStart: boolean } }>('/admin/devai/list'),
     getDevProject: (id: string) =>
-        get<{ project: DevProjectDetail }>(`/devai?action=get&id=${encodeURIComponent(id)}`),
+        get<{ project: DevProjectDetail }>(`/admin/devai/get?id=${encodeURIComponent(id)}`),
     createDevProject: (body: Record<string, unknown>) =>
         post<{ project: DevProjectDetail }>('/admin/devai/create', body),
     updateDevProject: (body: Record<string, unknown>) =>
