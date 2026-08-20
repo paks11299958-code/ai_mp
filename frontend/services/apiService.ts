@@ -1455,6 +1455,8 @@ export interface DevProjectVersionRow {
     specBody: string;
     /** JSON 배열 문자열 */
     refUrls: string;
+    /** 홈페이지 요구사항(JSON 문자열) — devaiBrief.ts 의 BRIEF_FIELDS 참고 */
+    brief?: string;
     note: string | null;
     createdAt: string;
 }

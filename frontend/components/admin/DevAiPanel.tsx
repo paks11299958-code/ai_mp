@@ -19,6 +19,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { adminApi } from '../../services/apiService';
 import type { DevProjectRow, DevProjectDetail, DevProjectVersionRow, DevDesignRow } from '../../services/apiService';
 import { Icon } from '../Icons';
+import {
+    BRIEF_SECTIONS, parseBrief, stringifyBrief, hasAnyBrief,
+    type BriefValues,
+} from './devaiBrief';
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
     draft: { label: '작성중', cls: 'bg-gray-700 text-gray-300' },
@@ -49,8 +53,9 @@ interface FormState {
     specBody: string;
     refUrls: string;   // 줄바꿈 구분
     note: string;
+    brief: BriefValues;   // 홈페이지 요구사항(상호명·서비스·연락처 등)
 }
-const emptyForm: FormState = { title: '', features: '', specBody: '', refUrls: '', note: '' };
+const emptyForm: FormState = { title: '', features: '', specBody: '', refUrls: '', note: '', brief: {} };
 
 const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode }> = ({ label, hint, children }) => (
     <label className="block">
@@ -87,6 +92,8 @@ export const DevAiPanel: React.FC = () => {
     // 참조 이미지 업로드
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploading, setUploading] = useState(false);
+    // 홈페이지 요구사항 — 칸이 많아 기본은 접어 둔다(프로그램 개발엔 안 쓰인다).
+    const [showBrief, setShowBrief] = useState(false);
 
     const load = useCallback(async () => {
         try {
@@ -116,6 +123,7 @@ export const DevAiPanel: React.FC = () => {
                 specBody: v?.specBody ?? '',
                 refUrls: parseUrls(v?.refUrls ?? '[]').join('\n'),
                 note: '',
+                brief: parseBrief(v?.brief),
             });
             setMode('edit');
         } catch (e: any) {
@@ -197,6 +205,7 @@ export const DevAiPanel: React.FC = () => {
                 specBody: form.specBody,
                 refUrls: form.refUrls,
                 note: form.note,
+                brief: stringifyBrief(form.brief),
             };
             if (mode === 'create') {
                 const d = await adminApi.createDevProject(body);
@@ -296,7 +305,12 @@ export const DevAiPanel: React.FC = () => {
         } finally { setUploading(false); }
     };
 
+    /** 요구사항 한 칸 수정. 폼 전체를 갈아끼우지 않도록 brief 만 얕게 복사한다. */
+    const setBriefField = (key: string, value: string) =>
+        setForm(f => ({ ...f, brief: { ...f.brief, [key]: value } }));
+
     const versions = selected?.versions ?? [];
+    const briefFilled = Object.values(form.brief).filter(v => (v ?? '').trim()).length;
     const refImages = (selected?.files ?? []).filter(f => f.kind === 'image');
     const current = versions[0];
     const compare: DevProjectVersionRow | undefined = useMemo(
@@ -494,6 +508,69 @@ export const DevAiPanel: React.FC = () => {
                                     </p>
                                 )}
                             </Field>
+
+                            {/* ── 홈페이지 요구사항 ──────────────────────────
+                                ★칸을 늘리기만 하면 안 읽힌다 — 배경색 카드로 묶는다(사장 피드백).
+                                비워두면 개발AI가 알아서 채우되, 연락처류는 비워둔 채로 둔다. */}
+                            <div className="rounded-xl border border-gray-700 bg-gray-900/40 overflow-hidden">
+                                <button type="button" onClick={() => setShowBrief(v => !v)}
+                                    className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-gray-800/40">
+                                    <span className="text-xs text-gray-300 flex items-center gap-2">
+                                        <Icon name="Home" size={14} /> 홈페이지 요구사항
+                                        <span className="text-[10px] text-gray-600">
+                                            {briefFilled > 0 ? `${briefFilled}개 입력됨` : '비워두면 AI가 채웁니다'}
+                                        </span>
+                                    </span>
+                                    <span className="text-[10px] text-gray-500">{showBrief ? '접기 ▲' : '펼치기 ▼'}</span>
+                                </button>
+
+                                {showBrief && (
+                                    <div className="px-3 pb-3 space-y-3 border-t border-gray-800 pt-3">
+                                        <p className="text-[10px] text-gray-500 leading-relaxed">
+                                            홈페이지를 만들 때만 쓰입니다. 빈칸은 개발AI가 알아서 채우고, 나중에 수정하면 됩니다.
+                                            <br />
+                                            <span className="text-amber-400/80">
+                                                ★단, 연락처·주소·사업자번호는 비워두면 <b>비워둔 채로</b> 나갑니다 — 지어내지 않습니다.
+                                            </span>
+                                        </p>
+
+                                        {BRIEF_SECTIONS.map(sec => (
+                                            <div key={sec.key}
+                                                className={`rounded-lg p-3 space-y-2.5 border ${sec.key === 'contact'
+                                                    ? 'bg-amber-950/20 border-amber-900/40'
+                                                    : 'bg-gray-800/40 border-gray-800'}`}>
+                                                <div>
+                                                    <div className="text-[11px] font-semibold text-gray-200">{sec.title}</div>
+                                                    <div className={`text-[10px] ${sec.key === 'contact' ? 'text-amber-400/70' : 'text-gray-500'}`}>
+                                                        {sec.desc}
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                    {sec.fields.map(fd => (
+                                                        <div key={fd.key} className={fd.multiline ? 'sm:col-span-2' : ''}>
+                                                            <label className="block">
+                                                                <span className="text-[10px] text-gray-400">{fd.label}</span>
+                                                                {fd.hint && <span className="text-[10px] text-gray-600 ml-1.5">{fd.hint}</span>}
+                                                                {fd.multiline ? (
+                                                                    <textarea rows={2}
+                                                                        value={form.brief[fd.key] ?? ''}
+                                                                        onChange={e => setBriefField(fd.key, e.target.value)}
+                                                                        className={`${inputCls} mt-1 text-xs`} />
+                                                                ) : (
+                                                                    <input
+                                                                        value={form.brief[fd.key] ?? ''}
+                                                                        onChange={e => setBriefField(fd.key, e.target.value)}
+                                                                        className={`${inputCls} mt-1 text-xs`} />
+                                                                )}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
 
                             <Field label="명세 본문" hint="마크다운">
                                 <textarea value={form.specBody} onChange={e => setForm(f => ({ ...f, specBody: e.target.value }))}
