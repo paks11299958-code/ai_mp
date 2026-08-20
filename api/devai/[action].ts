@@ -18,7 +18,11 @@
  *   ★텔레그램 버튼과 **같은 큐**(approval_queue.py)를 쓰므로 어느 쪽으로 눌러도 동작한다.
  *   진행 이벤트는 파이프라인이 devai_events.py 로 DB에 직접 적는다(실시간).
  *
- * 남은 단계: 4)디자인 선택 5)텔레그램 축소
+ * 4단계: designs(시안 목록) / choose-design(시안 확정)
+ *   ★시안 생성·확정은 design_preview.py 가 이미 한다 — 어드민은 대기 파일을 읽고
+ *     approve_design() 을 부를 뿐이다(보관·DESIGN_GUIDE 이력·커밋까지 그쪽이 맡는다).
+ *
+ * 남은 단계: 5)텔레그램 축소
  */
 
 import { readFileSync, writeFileSync, renameSync, mkdirSync } from 'node:fs';
@@ -56,6 +60,25 @@ const str = (v: any, max = 20000): string => String(v ?? '').slice(0, max);
 const HERDR_STATE_DIR = '/home/paks11299958/rag/state/projects';
 /** 승인 결정 큐. approval_queue.py 가 여기를 폴링한다(텔레그램 버튼과 같은 경로). */
 const APPROVAL_DIR = '/home/paks11299958/rag/state/approvals';
+/** 디자인 시안 대기 상태. design_preview.py 가 쓴다. */
+const DESIGN_PENDING_FILE = '/home/paks11299958/rag/logs/design_pending.json';
+
+/** 시안 스타일 라벨 — design_preview.py 의 STYLE_LABELS 와 맞춘다. */
+const DESIGN_STYLE_LABELS: Record<string, string> = {
+    v1: '밝고 모던 (흰 배경, 깔끔한 레이아웃)',
+    v2: '따뜻하고 자연스러운 (베이지/크림 배경, 유기적 느낌)',
+    v3: '강렬하고 대비 (어두운 배경, 포인트 컬러)',
+};
+
+/** 디자인 시안 대기 목록을 읽는다. 없거나 깨졌으면 빈 객체. */
+function readDesignPending(): Record<string, any> {
+    try {
+        const o = JSON.parse(readFileSync(DESIGN_PENDING_FILE, 'utf8'));
+        return o && typeof o === 'object' ? o : {};
+    } catch {
+        return {};
+    }
+}
 
 /**
  * 허드 프로젝트 상태 파일을 읽는다. 없거나 깨졌으면 null.
@@ -397,6 +420,82 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 return res.status(200).json({ ok: true, taskId, decision });
             }
 
+            // ── 디자인 시안 목록 (4단계) ────────────────────────────
+            //   design_preview.py 가 Opus로 HTML 시안 3개를 만들어
+            //   sites/_preview/ 에 두고 logs/design_pending.json 에 대기 상태를 적는다.
+            //   ★어드민은 그 파일을 **읽기만** 한다 — 시안 생성은 기존 경로 그대로.
+            case 'designs': {
+                const pending = readDesignPending();
+                const items = Object.entries(pending).map(([name, v]: [string, any]) => ({
+                    projectName: name,
+                    slug: v?.slug ?? null,
+                    description: v?.description ?? '',
+                    status: v?.status ?? 'waiting',
+                    selectedVersion: v?.selected_version ?? null,
+                    createdAt: v?.created_at ?? null,
+                    // 시안 URL — sites/_preview 아래 정적 파일이라 바로 열 수 있다
+                    versions: Object.keys(v?.paths ?? {}).sort().map(ver => ({
+                        version: ver,
+                        label: DESIGN_STYLE_LABELS[ver] ?? ver,
+                        url: `https://aichat.dbzone.kr/sites/_preview/${String(v.paths[ver]).split('/').pop()}`,
+                    })),
+                }));
+                // 대기 중인 것을 먼저, 그 다음 최신순
+                items.sort((a, b) => {
+                    if (a.status !== b.status) return a.status === 'waiting' ? -1 : 1;
+                    return String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? ''));
+                });
+                return res.status(200).json({ designs: items });
+            }
+
+            // ── 디자인 시안 선택 (4단계) ────────────────────────────
+            case 'choose-design': {
+                if (req.method !== 'POST') return res.status(405).json({ error: 'POST 로 호출하세요.' });
+                const projectName = str(req.body?.projectName, 200).trim();
+                const version = str(req.body?.version, 10).trim();
+                const id = str(req.body?.id, 200);   // 어드민 프로젝트(선택)
+                if (!projectName || !version) {
+                    return res.status(400).json({ error: 'projectName 과 version 이 필요합니다.' });
+                }
+                if (!/^v[0-9]$/.test(version)) {
+                    return res.status(400).json({ error: "version 은 'v1' 형식이어야 합니다." });
+                }
+
+                // ★확정 처리는 design_preview.approve_design 이 한다 — 시안 보관·
+                //   DESIGN_GUIDE 이력·git 커밋까지 그 함수가 이미 맡고 있어 재구현하지 않는다.
+                let out = '';
+                try {
+                    out = execFileSync(
+                        '/home/paks11299958/rag-env/bin/python',
+                        ['-c',
+                         'import sys; sys.path.insert(0, "/home/paks11299958/rag");\n' +
+                         'import design_preview as dp;\n' +
+                         'print(dp.approve_design(sys.argv[1], sys.argv[2]))',
+                         projectName, version],
+                        { cwd: '/home/paks11299958/rag', encoding: 'utf8', timeout: 120_000 },
+                    ).trim();
+                } catch (e: any) {
+                    return res.status(500).json({
+                        error: `시안 확정에 실패했습니다: ${String(e?.stderr || e?.message || e).slice(0, 300)}`,
+                    });
+                }
+                if (out.startsWith('❌')) return res.status(400).json({ error: out });
+
+                if (id) {
+                    const exists = await prisma.devProject.findUnique({ where: { id } });
+                    if (exists) {
+                        await prisma.devProjectEvent.create({
+                            data: {
+                                projectId: id, actor: 'user', phase: 'design',
+                                message: `디자인 시안 ${version} 선택 — ${projectName}`,
+                                meta: JSON.stringify({ projectName, version }),
+                            },
+                        });
+                    }
+                }
+                return res.status(200).json({ ok: true, projectName, version, message: out.slice(0, 1000) });
+            }
+
             // ── 명세서 다운로드 (마크다운) ──────────────────────────
             case 'export': {
                 const id = str(req.query.id ?? req.body?.id, 200);
@@ -427,7 +526,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             default:
                 return res.status(400).json({
                     error: `알 수 없는 action 입니다: ${action || '(없음)'}`,
-                    allowed: ['list', 'get', 'create', 'update', 'delete', 'sync', 'link', 'approve', 'export'],
+                    allowed: ['list', 'get', 'create', 'update', 'delete', 'sync', 'link', 'approve',
+                              'designs', 'choose-design', 'export'],
                 });
         }
     } catch (e: any) {

@@ -12,11 +12,12 @@
  * 3단계(2026-08-20): 진행 중이면 5초마다 자동 갱신 + 승인/반려 버튼.
  *   ★파이프라인이 devai_events.py 로 이벤트를 DB에 직접 적으므로 실시간이다.
  *   승인은 텔레그램 버튼과 같은 결재 큐를 쓴다.
- * 4단계(디자인 선택)는 아직이다.
+ * 4단계(2026-08-20): 디자인 시안 목록·선택.
+ *   ★시안 생성·확정은 design_preview.py 가 이미 한다 — 여기서는 보여주고 고를 뿐이다.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../services/apiService';
-import type { DevProjectRow, DevProjectDetail, DevProjectVersionRow } from '../../services/apiService';
+import type { DevProjectRow, DevProjectDetail, DevProjectVersionRow, DevDesignRow } from '../../services/apiService';
 import { Icon } from '../Icons';
 
 const STATUS_STYLE: Record<string, { label: string; cls: string }> = {
@@ -80,6 +81,9 @@ export const DevAiPanel: React.FC = () => {
     // 3단계 — 자동 갱신 / 승인
     const [autoRefresh, setAutoRefresh] = useState(true);
     const [approveTaskId, setApproveTaskId] = useState('');
+    // 4단계 — 디자인 시안
+    const [designs, setDesigns] = useState<DevDesignRow[]>([]);
+    const [showDesigns, setShowDesigns] = useState(false);
 
     const load = useCallback(async () => {
         try {
@@ -141,6 +145,25 @@ export const DevAiPanel: React.FC = () => {
             setApproveTaskId('');
             await load(); await refreshQuiet(selected.id);
         } catch (e: any) { setErr(e?.message || '결재에 실패했습니다.'); }
+        finally { setBusy(false); }
+    };
+
+    const loadDesigns = useCallback(async () => {
+        try {
+            const d = await adminApi.listDevDesigns();
+            setDesigns(d.designs);
+        } catch (e: any) { setErr(e?.message || '시안 목록을 불러오지 못했습니다.'); }
+    }, []);
+
+    const chooseDesign = async (projectName: string, version: string) => {
+        if (!window.confirm(`'${projectName}' 디자인을 ${version} 으로 확정할까요?\n선택한 시안이 보관되고 나머지는 정리됩니다.`)) return;
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            const d = await adminApi.chooseDevDesign(projectName, version, selected?.id);
+            setMsg(`${projectName} → ${version} 확정했습니다.`);
+            await loadDesigns();
+            if (selected) await refreshQuiet(selected.id);
+        } catch (e: any) { setErr(e?.message || '시안 확정에 실패했습니다.'); }
         finally { setBusy(false); }
     };
 
@@ -246,6 +269,78 @@ export const DevAiPanel: React.FC = () => {
 
             {err && <div className="text-xs text-red-300 bg-red-900/30 border border-red-800 rounded-lg px-3 py-2">{err}</div>}
             {msg && <div className="text-xs text-emerald-300 bg-emerald-900/30 border border-emerald-800 rounded-lg px-3 py-2">{msg}</div>}
+
+            {/* ── 디자인 시안 (4단계) ── */}
+            <div className="bg-gray-800/50 border border-gray-700 rounded-xl">
+                <button
+                    onClick={() => { const n = !showDesigns; setShowDesigns(n); if (n && designs.length === 0) void loadDesigns(); }}
+                    className="w-full flex items-center justify-between px-4 py-2.5 text-left">
+                    <span className="text-xs text-gray-300 flex items-center gap-2">
+                        <Icon name="Image" size={14} /> 디자인 시안
+                        {designs.filter(d => d.status === 'waiting').length > 0 && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300">
+                                대기 {designs.filter(d => d.status === 'waiting').length}
+                            </span>
+                        )}
+                    </span>
+                    <span className="text-[11px] text-gray-500">{showDesigns ? '접기' : '펼치기'}</span>
+                </button>
+
+                {showDesigns && (
+                    <div className="px-4 pb-4 space-y-3 border-t border-gray-700 pt-3">
+                        {designs.length === 0 && (
+                            <p className="text-xs text-gray-600 py-4 text-center">대기 중인 시안이 없습니다.</p>
+                        )}
+                        {designs.map(d => (
+                            <div key={d.projectName} className="bg-gray-900/60 border border-gray-800 rounded-lg p-3">
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                    <span className="text-xs text-gray-200 truncate">{d.projectName}</span>
+                                    {d.status === 'approved' ? (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-900/60 text-teal-300 shrink-0">
+                                            {d.selectedVersion} 확정
+                                        </span>
+                                    ) : (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-900/60 text-amber-300 shrink-0">
+                                            선택 대기
+                                        </span>
+                                    )}
+                                </div>
+                                {d.description && (
+                                    <p className="text-[10px] text-gray-500 mb-2 line-clamp-2">{d.description}</p>
+                                )}
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    {d.versions.map(v => {
+                                        const isPicked = d.selectedVersion === v.version;
+                                        return (
+                                            <div key={v.version}
+                                                className={`rounded-lg border p-2 flex flex-col gap-1.5
+                                                    ${isPicked ? 'border-teal-700 bg-teal-900/20' : 'border-gray-800 bg-gray-900'}`}>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[11px] font-mono text-gray-300">{v.version}</span>
+                                                    {isPicked && <span className="text-[10px] text-teal-400">선택됨</span>}
+                                                </div>
+                                                <p className="text-[10px] text-gray-500 leading-snug min-h-[28px]">{v.label}</p>
+                                                <div className="flex gap-1.5">
+                                                    <a href={v.url} target="_blank" rel="noreferrer"
+                                                        className="flex-1 text-center text-[10px] px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300">
+                                                        미리보기
+                                                    </a>
+                                                    {d.status !== 'approved' && (
+                                                        <button onClick={() => chooseDesign(d.projectName, v.version)} disabled={busy}
+                                                            className="flex-1 text-[10px] px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white">
+                                                            선택
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
                 {/* 목록 */}

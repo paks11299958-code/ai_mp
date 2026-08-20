@@ -1421,6 +1421,18 @@ export const pointsApi = {
  * 서버(api/inverse-trader/engine.ts 의 StatusSnapshot)를 JSON 으로 받은 형태 —
  * Date 는 전부 ISO 문자열로 온다.
  */
+/** 개발AI 콘솔 — 디자인 시안 (design_preview.py 대기 목록) */
+export interface DevDesignRow {
+    projectName: string;
+    slug: string | null;
+    description: string;
+    /** waiting | approved */
+    status: string;
+    selectedVersion: string | null;
+    createdAt: string | null;
+    versions: { version: string; label: string; url: string }[];
+}
+
 /** 개발AI 콘솔 — 프로젝트 목록 행 (2026-08-20) */
 export interface DevProjectRow {
     id: string;
@@ -1667,6 +1679,12 @@ export const adminApi = {
     // 3단계 — 승인/반려. 텔레그램 버튼과 같은 결재 큐에 결정을 쓴다.
     approveDevProject: (id: string, taskId: string, decision: 'approved' | 'rejected') =>
         post<{ ok: boolean; taskId: string; decision: string }>('/devai?action=approve', { id, taskId, decision }),
+    // 4단계 — 디자인 시안 목록/선택. 생성·확정은 design_preview.py 가 맡는다.
+    listDevDesigns: () =>
+        get<{ designs: DevDesignRow[] }>('/devai?action=designs'),
+    chooseDevDesign: (projectName: string, version: string, id?: string) =>
+        post<{ ok: boolean; projectName: string; version: string; message: string }>(
+            '/devai?action=choose-design', { projectName, version, id }),
     // ── 인버스 ETF 1호가 스캘핑 — 가상매매 전용(2026-08-20) ──
     // ★정적 경로 + query 로 호출한다. vercel.json 끝의 catch-all rewrite(`/api/:d/:s1`)가
     //   `/api/inverse-trader/status` 같은 하위 경로를 router.ts(404)로 보내기 때문이다.
