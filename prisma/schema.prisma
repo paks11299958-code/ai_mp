@@ -651,6 +651,10 @@ model DevProject {
   herdrProjectId String?
   /// 작업 저장소 경로. 기본은 ai_mp.
   workdir     String  @default("/home/paks11299958/ai_mp")
+  /// 허드 메이커-체커 사용 여부 — Developer가 만들고 Reviewer가 검증(왕복 상한 있음).
+  /// ★기본 꺼짐. 단일 홈페이지처럼 눈으로 보면 되는 작업엔 낭비다(비용 2배, pane 2개).
+  ///   로직이 있는 개발·큰 작업에만 켠다(사장 결정 2026-08-20).
+  useReview   Boolean @default(false)
 
   versions    DevProjectVersion[]
   files       DevProjectFile[]

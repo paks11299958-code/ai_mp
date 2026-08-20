@@ -1455,6 +1455,8 @@ export interface DevProjectRow {
     status: string;
     herdrProjectId: string | null;
     workdir: string;
+    /** 허드 메이커-체커(Reviewer 검증) 사용 여부 */
+    useReview?: boolean;
     latestVersion: number;
     counts: { versions: number; files: number; events: number };
     createdAt: string;

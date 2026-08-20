@@ -56,8 +56,9 @@ interface FormState {
     refUrls: string;   // 줄바꿈 구분
     note: string;
     brief: BriefValues;   // 홈페이지 요구사항(상호명·서비스·연락처 등)
+    useReview: boolean;   // 허드 메이커-체커(Reviewer 검증) 사용
 }
-const emptyForm: FormState = { title: '', features: '', specBody: '', refUrls: '', note: '', brief: {} };
+const emptyForm: FormState = { title: '', features: '', specBody: '', refUrls: '', note: '', brief: {}, useReview: false };
 
 const Field: React.FC<{ label: string; hint?: string; children: React.ReactNode }> = ({ label, hint, children }) => (
     <label className="block">
@@ -149,6 +150,7 @@ export const DevAiPanel: React.FC = () => {
                 refUrls: parseUrls(v?.refUrls ?? '[]').join('\n'),
                 note: '',
                 brief: parseBrief(v?.brief),
+                useReview: Boolean((d.project as any).useReview),
             });
             setMode('edit');
         } catch (e: any) {
@@ -262,6 +264,7 @@ export const DevAiPanel: React.FC = () => {
                 refUrls: form.refUrls,
                 note: form.note,
                 brief: stringifyBrief(form.brief ?? {}),
+                useReview: form.useReview,
             };
             if (mode === 'create') {
                 const d = await adminApi.createDevProject(body);
@@ -720,6 +723,26 @@ export const DevAiPanel: React.FC = () => {
                                     rows={10} placeholder={'## 목표\n\n## 화면\n\n## 데이터\n\n## 안 할 것'}
                                     className={`${inputCls} font-mono text-xs`} />
                             </Field>
+
+                            {/* ★메이커-체커 — 건별로 고른다. 단일 홈페이지처럼 눈으로 보면
+                                되는 작업엔 낭비고(비용 2배, pane 2개), 로직 있는 개발엔 필요하다. */}
+                            <label className="flex items-start gap-2.5 p-3 rounded-xl border border-gray-700 bg-gray-900/40 cursor-pointer">
+                                <input type="checkbox" checked={form.useReview}
+                                    onChange={e => setForm(f => ({ ...f, useReview: e.target.checked }))}
+                                    className="mt-0.5 accent-purple-500" />
+                                <span className="min-w-0">
+                                    <span className="text-xs text-gray-200 flex items-center gap-1.5">
+                                        <Icon name="Shield" size={13} /> 검증 받기 (메이커-체커)
+                                    </span>
+                                    <span className="block text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+                                        지우가 만든 결과를 Reviewer가 검토하고 고칠 점을 되돌려 왕복합니다.
+                                        품질은 올라가지만 <b>시간·비용이 2배</b>가 됩니다.
+                                        <br />
+                                        홈페이지 한 장처럼 눈으로 확인되는 작업은 꺼 두고,
+                                        로직·API·DB가 얽힌 개발에 켜세요.
+                                    </span>
+                                </span>
+                            </label>
 
                             <Field label="이번 변경 메모" hint="무엇을 왜 바꿨는지 — 버전 이력에 남습니다">
                                 <input value={form.note} onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
