@@ -22,7 +22,7 @@ import type {
 } from '../../services/apiService';
 import { Icon } from '../Icons';
 import {
-    BRIEF_SECTIONS, parseBrief, stringifyBrief, hasAnyBrief,
+    BRIEF_SECTIONS, parseBrief, stringifyBrief,
     type BriefValues,
 } from './devaiBrief';
 
@@ -112,6 +112,14 @@ export const DevAiPanel: React.FC = () => {
 
     useEffect(() => { void load(); }, [load]);
 
+    /** 승인 대기 목록 — ★조용히 실패시킨다. 파이프라인이 안 돌 때도 화면은 살아야 한다. */
+    const loadApprovals = useCallback(async () => {
+        try {
+            const d = await adminApi.listDevApprovals();
+            setApprovals(d.approvals);
+        } catch { /* 목록을 못 읽어도 나머지 화면은 그대로 쓴다 */ }
+    }, []);
+
     /**
      * 승인 대기 폴링.
      * ★프로젝트를 고르지 않아도 **항상** 돈다 — 승인 요청은 아무 때나 오고,
@@ -194,14 +202,6 @@ export const DevAiPanel: React.FC = () => {
         } catch (e: any) { setErr(e?.message || '시안 목록을 불러오지 못했습니다.'); }
     }, []);
 
-    /** 승인 대기 목록 — ★조용히 실패시킨다. 파이프라인이 안 돌 때도 화면은 살아야 한다. */
-    const loadApprovals = useCallback(async () => {
-        try {
-            const d = await adminApi.listDevApprovals();
-            setApprovals(d.approvals);
-        } catch { /* 목록을 못 읽어도 나머지 화면은 그대로 쓴다 */ }
-    }, []);
-
     /** 승인/반려 — 텔레그램 버튼과 **같은 결재 큐**에 쓴다. */
     const decideApproval = async (taskId: string, decision: 'approved' | 'rejected') => {
         try {
@@ -244,7 +244,7 @@ export const DevAiPanel: React.FC = () => {
                 specBody: form.specBody,
                 refUrls: form.refUrls,
                 note: form.note,
-                brief: stringifyBrief(form.brief),
+                brief: stringifyBrief(form.brief ?? {}),
             };
             if (mode === 'create') {
                 const d = await adminApi.createDevProject(body);
@@ -346,10 +346,13 @@ export const DevAiPanel: React.FC = () => {
 
     /** 요구사항 한 칸 수정. 폼 전체를 갈아끼우지 않도록 brief 만 얕게 복사한다. */
     const setBriefField = (key: string, value: string) =>
-        setForm(f => ({ ...f, brief: { ...f.brief, [key]: value } }));
+        setForm(f => ({ ...f, brief: { ...(f.brief ?? {}), [key]: value } }));
 
     const versions = selected?.versions ?? [];
-    const briefFilled = Object.values(form.brief).filter(v => (v ?? '').trim()).length;
+    // ★`?? {}` 를 빼면 안 된다 — form.brief 가 없는 상태(구버전 캐시 번들, 예상 못한
+    //   폼 초기화)에서 Object.values(undefined) 가 터지면 **어드민 화면 전체가**
+    //   ErrorBoundary 로 떨어진다(2026-08-20 실사고).
+    const briefFilled = Object.values(form.brief ?? {}).filter(v => (v ?? '').trim()).length;
     const refImages = (selected?.files ?? []).filter(f => f.kind === 'image');
     const current = versions[0];
     const compare: DevProjectVersionRow | undefined = useMemo(
@@ -639,12 +642,12 @@ export const DevAiPanel: React.FC = () => {
                                                                 {fd.hint && <span className="text-[10px] text-gray-600 ml-1.5">{fd.hint}</span>}
                                                                 {fd.multiline ? (
                                                                     <textarea rows={2}
-                                                                        value={form.brief[fd.key] ?? ''}
+                                                                        value={form.brief?.[fd.key] ?? ''}
                                                                         onChange={e => setBriefField(fd.key, e.target.value)}
                                                                         className={`${inputCls} mt-1 text-xs`} />
                                                                 ) : (
                                                                     <input
-                                                                        value={form.brief[fd.key] ?? ''}
+                                                                        value={form.brief?.[fd.key] ?? ''}
                                                                         onChange={e => setBriefField(fd.key, e.target.value)}
                                                                         className={`${inputCls} mt-1 text-xs`} />
                                                                 )}
