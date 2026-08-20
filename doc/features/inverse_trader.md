@@ -122,13 +122,33 @@ ETF 매도 거래세 면제라 1틱이 통째로 남는다. 실질 비용은 **�
 
 | 위치 | 파일 |
 |---|---|
+| **운영 API** | **서버1** `shared-api/routes/aimp/admin-inverse-trader.ts` (`admin.ts` 에서 `/inverse-trader` 마운트) |
+| **운영 엔진** | **서버1** `shared-api/lib/inverse-trader/` (아래 저장소 사본을 평탄화해 옮긴 것) |
 | 전략·가드 | `api/_lib/inverse-trader/` (strategy·guards·broker·simulation-broker·quote-feed·position-manager·db) |
 | 실시세 | `api/_lib/inverse-trader/naver-quote-feed.ts` |
-| 엔진·정산·API | `api/inverse-trader/` (engine·settlement·[action]) |
+| 엔진·정산 | `api/inverse-trader/` (engine·settlement) |
 | 화면 | `frontend/components/admin/InverseTraderPanel.tsx` |
 | 테스트 | `npm run test:inverse` (7종) · `npm run test:inverse:ui` (4종) |
 | 백테스트 | `scripts/inverse-trader/backtest.mts` |
 | 페이퍼 러너 | `scripts/inverse-trader/live-paper.mts` (실시세 + 텔레그램 알림) |
+
+### ★저장소 사본과 서버1 사본이 둘 다 있는 이유 (2026-08-20)
+
+API 는 서버1로 옮겼지만 `api/_lib/inverse-trader/` 와 `api/inverse-trader/engine·settlement`
+는 **지우지 않았다**. 백테스트(`backtest.mts`)와 테스트(`npm run test:inverse`)가 이 경로를
+직접 import 하기 때문이다 — 지웠더니 7종 테스트가 통째로 깨졌다(실측).
+
+즉 저장소 쪽은 **전략 개선·백테스트용 라이브러리**, 서버1 쪽은 **운영 서빙용**이다.
+★전략을 고치면 **양쪽 다** 반영해야 한다. 한쪽만 고치면 백테스트 결과와 운영 동작이 갈린다.
+서버1로 옮길 때는 import 만 평탄화했고(`../_lib/inverse-trader/x.js` → `./x`),
+검증 로직은 바이트 비교로 동일함을 확인했다.
+
+### ★왜 서버1로 옮겼나
+
+Vercel 서버리스는 VPC 밖이라 Postgres(내부IP `10.178.0.2`)에 붙지 못해 어드민 탭이
+`Operation has timed out` 으로 멈췄다. 개발AI 콘솔과 **같은 원인**이다
+(`doc/features/devai_console.md` 참고). 프런트는 `/api/admin/inverse-trader/<action>` 으로
+부르고 `vercel.json` 의 `/api/admin/:path*` rewrite 가 서버1로 보낸다.
 
 ## ★남은 일
 

@@ -1707,23 +1707,22 @@ export const adminApi = {
         post<{ ok: boolean; projectName: string; version: string; message: string }>(
             '/admin/devai/choose-design', { projectName, version, id }),
     // ── 인버스 ETF 1호가 스캘핑 — 가상매매 전용(2026-08-20) ──
-    // ★정적 경로 + query 로 호출한다. vercel.json 끝의 catch-all rewrite(`/api/:d/:s1`)가
-    //   `/api/inverse-trader/status` 같은 하위 경로를 router.ts(404)로 보내기 때문이다.
-    //   자세한 이유는 api/inverse-trader/index.ts 주석 참고.
+    // ★2026-08-20 서버1(shared-api)로 이전 — /api/admin/* 은 vercel.json rewrite 로
+    //   서버1을 탄다. Vercel 서버리스는 VPC 밖이라 DB 에 못 붙어 타임아웃 났다(devai 와 동일).
     getInverseStatus: () =>
-        get<InverseTraderSnapshot>('/inverse-trader?action=status'),
+        get<InverseTraderSnapshot>('/admin/inverse-trader/status'),
     startInverseSession: () =>
-        post<InverseTraderSnapshot & { started: boolean; rehydrated: boolean; seeded: boolean; seedReason: string | null }>('/inverse-trader?action=start', {}),
+        post<InverseTraderSnapshot & { started: boolean; rehydrated: boolean; seeded: boolean; seedReason: string | null }>('/admin/inverse-trader/start', {}),
     stopInverseSession: (reason?: string) =>
-        post<InverseTraderSnapshot>('/inverse-trader?action=stop', { reason }),
+        post<InverseTraderSnapshot>('/admin/inverse-trader/stop', { reason }),
     emergencyStopInverse: (reason?: string) =>
-        post<InverseTraderSnapshot>('/inverse-trader?action=emergency-stop', { reason }),
+        post<InverseTraderSnapshot>('/admin/inverse-trader/emergency-stop', { reason }),
     tickInverseSession: (times = 1) =>
-        post<InverseTraderSnapshot & { ticks: { skipped: boolean; reason?: string; fills: number }[] }>('/inverse-trader?action=tick', { times }),
+        post<InverseTraderSnapshot & { ticks: { skipped: boolean; reason?: string; fills: number }[] }>('/admin/inverse-trader/tick', { times }),
     settleInverseNow: () =>
-        post<InverseTraderSnapshot>('/inverse-trader?action=settle', {}),
+        post<InverseTraderSnapshot>('/admin/inverse-trader/settle', {}),
     saveInverseConfig: (body: Record<string, unknown>) =>
-        put<{ ok: boolean; config: InverseTraderSnapshot['config']; tradingMode: string }>('/inverse-trader?action=config', body),
+        put<{ ok: boolean; config: InverseTraderSnapshot['config']; tradingMode: string }>('/admin/inverse-trader/config', body),
     // 토스 자동매매 봇 (읽기 전용)
     getTossStatus: () =>
         get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/status'),

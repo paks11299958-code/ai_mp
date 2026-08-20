@@ -486,8 +486,10 @@ async function applyFills(
  * ★이 파일은 모듈이지 HTTP 엔드포인트가 아니다.
  *   다만 Vercel 은 api/ 아래 .ts 를 전부 서버리스 함수로 잡기 때문에,
  *   default export 가 없으면 /api/inverse-trader/settlement 호출 시 런타임 오류가 난다.
- *   실제 엔드포인트는 api/inverse-trader/[action].ts 하나뿐이므로 여기서는 404 로 막는다.
+ *   실제 API 는 2026-08-20 서버1(shared-api/routes/aimp/admin-inverse-trader.ts)로
+ *   옮겼다. 이 파일은 백테스트·테스트(scripts/inverse-trader/)가 쓰는 **라이브러리**로
+ *   남아 있는 것이며, HTTP 로는 404 로 막는다.
  */
 export default async function notAnEndpoint(_req: any, res: any) {
-    return res.status(404).json({ error: 'Not found', hint: '/api/inverse-trader/status 를 사용하세요.' });
+    return res.status(404).json({ error: 'Not found', hint: '/api/admin/inverse-trader/status 를 사용하세요.' });
 }
