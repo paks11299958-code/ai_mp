@@ -1658,6 +1658,12 @@ export const adminApi = {
         post<{ project: DevProjectDetail; versionAdded: boolean }>('/devai?action=update', body),
     deleteDevProject: (id: string) =>
         post<{ deleted: boolean; id: string }>('/devai?action=delete', { id }),
+    // 2단계 — 파이프라인 연결 / 진행·결과 동기화 / 명세서 내보내기
+    linkDevProject: (id: string, herdrProjectId: string) =>
+        post<{ project: DevProjectDetail }>('/devai?action=link', { id, herdrProjectId }),
+    syncDevProject: (id: string) =>
+        post<{ project: DevProjectDetail; eventsAdded: number; batches: { name: string; title: string; status: string; commit: string | null }[] }>('/devai?action=sync', { id }),
+    devProjectExportUrl: (id: string) => `/api/devai?action=export&id=${encodeURIComponent(id)}`,
     // ── 인버스 ETF 1호가 스캘핑 — 가상매매 전용(2026-08-20) ──
     // ★정적 경로 + query 로 호출한다. vercel.json 끝의 catch-all rewrite(`/api/:d/:s1`)가
     //   `/api/inverse-trader/status` 같은 하위 경로를 router.ts(404)로 보내기 때문이다.

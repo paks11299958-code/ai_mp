@@ -7,7 +7,9 @@
  * ★이 화면의 핵심은 '비포/애프터'다 — 저장할 때마다 새 버전이 쌓이고 덮어쓰지 않는다.
  *   방향이 바뀌는 게 정상이라, 무엇을 언제 왜 바꿨는지가 남아야 한다.
  *
- * 2~4단계(작업 모니터링 / 디자인 선택 / 완료)는 아직이다.
+ * 2단계(2026-08-20): 파이프라인 연결 + 진행·결과 동기화 + 명세서 내보내기.
+ *   ★sync 는 허드 상태파일을 읽기만 한다 — 파이프라인이 죽어도 어드민은 산다.
+ * 3~4단계(실시간 작업 모니터링·승인 / 디자인 선택)는 아직이다.
  */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { adminApi } from '../../services/apiService';
@@ -69,6 +71,9 @@ export const DevAiPanel: React.FC = () => {
     const [msg, setMsg] = useState('');
     // 비포/애프터 비교 대상 버전
     const [diffWith, setDiffWith] = useState<number | null>(null);
+    // 2단계 — 파이프라인 연결 / 결과
+    const [linkId, setLinkId] = useState('');
+    const [batches, setBatches] = useState<{ name: string; title: string; status: string; commit: string | null }[]>([]);
 
     const load = useCallback(async () => {
         try {
@@ -89,6 +94,8 @@ export const DevAiPanel: React.FC = () => {
             const d = await adminApi.getDevProject(id);
             setSelected(d.project);
             setDiffWith(null);
+            setBatches([]);
+            setLinkId(d.project.herdrProjectId ?? '');
             const v = d.project.versions[0];
             setForm({
                 title: d.project.title,
@@ -134,6 +141,31 @@ export const DevAiPanel: React.FC = () => {
         } catch (e: any) {
             setErr(e?.message || '저장에 실패했습니다.');
         } finally { setBusy(false); }
+    };
+
+    const link = async () => {
+        if (!selected || !linkId.trim()) { setErr('허드 프로젝트 ID를 입력하세요.'); return; }
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            await adminApi.linkDevProject(selected.id, linkId.trim());
+            setMsg(`파이프라인 ${linkId.trim()} 에 연결했습니다.`);
+            await load(); await open(selected.id);
+        } catch (e: any) { setErr(e?.message || '연결에 실패했습니다.'); }
+        finally { setBusy(false); }
+    };
+
+    const sync = async () => {
+        if (!selected) return;
+        try {
+            setBusy(true); setErr(''); setMsg('');
+            const d = await adminApi.syncDevProject(selected.id);
+            setBatches(d.batches);
+            setMsg(d.eventsAdded > 0
+                ? `진행 상황을 가져왔습니다 — 새 이벤트 ${d.eventsAdded}건.`
+                : '이미 최신입니다(새 이벤트 없음).');
+            await load(); await open(selected.id);
+        } catch (e: any) { setErr(e?.message || '동기화에 실패했습니다.'); }
+        finally { setBusy(false); }
     };
 
     const remove = async () => {
@@ -260,6 +292,106 @@ export const DevAiPanel: React.FC = () => {
                                     첨부·이미지 업로드는 다음 단계에서 붙습니다
                                 </span>
                             </div>
+
+                            {/* ── 파이프라인 연결 · 결과 (2단계) ── */}
+                            {mode === 'edit' && selected && (
+                                <div className="mt-4 pt-3 border-t border-gray-700 space-y-3">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[11px] text-gray-400 shrink-0">파이프라인</span>
+                                        <input value={linkId} onChange={e => setLinkId(e.target.value)}
+                                            placeholder="허드 프로젝트 ID (예: p180458)"
+                                            className={`${inputCls} flex-1 min-w-[180px] font-mono text-xs`} />
+                                        <button onClick={link} disabled={busy}
+                                            className="text-xs px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 disabled:opacity-50 text-gray-200">
+                                            연결
+                                        </button>
+                                        <button onClick={sync} disabled={busy || !selected.herdrProjectId}
+                                            title={selected.herdrProjectId ? '' : '먼저 파이프라인을 연결하세요'}
+                                            className="text-xs px-3 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 text-white">
+                                            진행 가져오기
+                                        </button>
+                                        <a href={adminApi.devProjectExportUrl(selected.id)}
+                                            className="text-xs px-3 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700">
+                                            명세서 .md
+                                        </a>
+                                    </div>
+
+                                    {/* 묶음 진행 */}
+                                    {batches.length > 0 && (
+                                        <div className="bg-gray-900 border border-gray-800 rounded-lg p-2.5">
+                                            <div className="text-[10px] text-gray-500 mb-1.5">묶음 {batches.length}개</div>
+                                            <div className="space-y-1">
+                                                {batches.map(b => (
+                                                    <div key={b.name} className="flex items-center gap-2 text-[11px]">
+                                                        <span className={`px-1.5 py-0.5 rounded font-mono shrink-0
+                                                            ${b.status === 'done' ? 'bg-teal-900/60 text-teal-300' : 'bg-gray-800 text-gray-500'}`}>
+                                                            {b.name}
+                                                        </span>
+                                                        <span className="text-gray-400 truncate flex-1">{b.title}</span>
+                                                        {b.commit && (
+                                                            <code className="text-[10px] text-gray-600 shrink-0">{b.commit.slice(0, 8)}</code>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 완료 결과 */}
+                                    {selected.result && (
+                                        <div className="bg-teal-900/15 border border-teal-800/50 rounded-lg p-3 space-y-2">
+                                            <div className="text-[11px] text-teal-300 font-medium">완료 결과</div>
+                                            {selected.result.deployUrl ? (
+                                                <a href={selected.result.deployUrl} target="_blank" rel="noreferrer"
+                                                    className="text-xs text-blue-300 hover:text-blue-200 underline break-all block">
+                                                    {selected.result.deployUrl}
+                                                </a>
+                                            ) : (
+                                                <p className="text-[11px] text-gray-500">
+                                                    배포 URL 없음 — sites/ 아래 사이트를 만든 작업이 아닙니다.
+                                                </p>
+                                            )}
+                                            {(() => {
+                                                let cs: string[] = [];
+                                                try { cs = JSON.parse(selected.result.commits || '[]'); } catch { /* 무시 */ }
+                                                return cs.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {cs.map(c => (
+                                                            <code key={c} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-900 text-gray-500 border border-gray-800">
+                                                                {c.slice(0, 8)}
+                                                            </code>
+                                                        ))}
+                                                    </div>
+                                                ) : null;
+                                            })()}
+                                            {selected.result.summary && (
+                                                <pre className="text-[10px] text-gray-400 whitespace-pre-wrap max-h-40 overflow-y-auto">
+                                                    {selected.result.summary}
+                                                </pre>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* 최근 이벤트 */}
+                                    {(selected.events?.length ?? 0) > 0 && (
+                                        <div>
+                                            <div className="text-[10px] text-gray-500 mb-1">최근 진행</div>
+                                            <div className="space-y-0.5 max-h-40 overflow-y-auto">
+                                                {selected.events!.slice(0, 12).map(ev => (
+                                                    <div key={ev.id} className="flex items-baseline gap-2 text-[10px]">
+                                                        <span className="text-gray-600 font-mono shrink-0">{fmt(ev.at)}</span>
+                                                        <span className={`shrink-0 ${ev.actor === 'reviewer' ? 'text-amber-400'
+                                                            : ev.actor === 'developer' ? 'text-emerald-400' : 'text-gray-500'}`}>
+                                                            {ev.actor}
+                                                        </span>
+                                                        <span className="text-gray-400 truncate">{ev.message}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* 버전 이력 = 비포/애프터 */}
                             {mode === 'edit' && versions.length > 0 && (
