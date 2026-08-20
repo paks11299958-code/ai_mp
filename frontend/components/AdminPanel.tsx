@@ -25,6 +25,7 @@ import { RefundGuidePanel } from './admin/RefundGuidePanel';
 import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
+import { InverseTraderPanel } from './admin/InverseTraderPanel';
 import { AiStudioPanel } from './admin/AiStudioPanel';
 import { AiGalleryPanel } from './admin/AiGalleryPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
@@ -123,6 +124,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             // 가상매매 성과는 실봇 탭과 성격이 달라 분리(2026-08-05) —
                             // 실봇 탭은 '지금 뭘 하나', 이 탭은 '결과가 어땠나'가 중심.
                             { key: 'paper-trader',  label: '가상매매(페이퍼)', icon: 'Activity' },
+                            // 인버스 ETF 1호가 스캘핑 — 전량 가상매매(SIMULATION). 증권사 주문 API 호출 없음(2026-08-20)
+                            { key: 'inverse-trader', label: '인버스 자동매매', icon: 'TrendingUp' },
                             // AI 스튜디오(서버3 GPU) — 필요할 때만 켜는 온디맨드 서버(2026-08-05)
                             { key: 'ai-studio',     label: 'AI 스튜디오', icon: 'Zap' },
                             // ★보관함을 분리(2026-08-05) — 스튜디오 안에 접이식으로 두니
@@ -223,6 +226,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'sites' && <SitesPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'paper-trader' && <TossTraderPanel mode="paper" />}
+                {mainView === 'inverse-trader' && <InverseTraderPanel />}
                 {mainView === 'ai-studio' && <AiStudioPanel />}
                 {mainView === 'ai-gallery' && <AiGalleryPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}

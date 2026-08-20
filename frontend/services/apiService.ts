@@ -1416,6 +1416,92 @@ export const pointsApi = {
     getHistory: () => get<{ paidPoints: number; bonusPoints: number; points: number; transactions: PointTx[] }>('/points'),
 };
 
+/**
+ * 인버스 ETF 1호가 스캘핑(가상매매 전용) 상태 스냅샷.
+ * 서버(api/inverse-trader/engine.ts 의 StatusSnapshot)를 JSON 으로 받은 형태 —
+ * Date 는 전부 ISO 문자열로 온다.
+ */
+export interface InverseTraderSnapshot {
+    ok: boolean;
+    tradingMode: 'SIMULATION';
+    config: {
+        id?: number;
+        symbol: string;
+        symbolName: string;
+        defaultQty: number;
+        closeBufferMin: number;
+        maxPositionQty: number;
+        dailyLossLimit: number;
+        tradingMode: string;
+        enabled: boolean;
+    };
+    session: {
+        id: string;
+        status: string;
+        startedAt: string | null;
+        endedAt: string | null;
+        lastError: string | null;
+        isLive: boolean;
+    } | null;
+    engine: {
+        hasRuntime: boolean;
+        tickCount: number;
+        lastTickAt: string | null;
+        intervalMs: number;
+        settlementRunning: boolean;
+        settlementDone: boolean;
+        inSettlementWindow: boolean;
+        kstMinutes: number;
+        marketCloseMinutes: number;
+        logs: string[];
+    };
+    quote: {
+        symbol: string;
+        bidPrice: number;
+        bidQty: number;
+        askPrice: number;
+        askQty: number;
+        lastPrice: number;
+        ts: string;
+        source: string;
+    } | null;
+    position: {
+        symbol: string;
+        qty: number;
+        avgPrice: number;
+        realizedPnl: number;
+        unrealizedPnl: number;
+        totalPnl: number;
+    };
+    orders: {
+        id: number;
+        side: 'BUY' | 'SELL';
+        limitPrice: number;
+        orderQty: number;
+        filledQty: number;
+        remainingQty: number;
+        status: string;
+        parentOrderId: number | null;
+        createdAt: string;
+    }[];
+    fills: {
+        id: number;
+        orderId: number;
+        side: 'BUY' | 'SELL';
+        fillPrice: number;
+        fillQty: number;
+        filledAt: string;
+    }[];
+    today: {
+        stat: { buyQty: number; sellQty: number; realizedPnl: number; fillCount: number; forceSettled: boolean; closingQty: number } | null;
+        forceSettled: boolean | null;
+        closingQty: number;
+        /** ★true 면 화면 상단에 강제정산 실패 경고 배너를 띄운다 */
+        settlementFailed: boolean;
+        warning: string | null;
+    };
+}
+
 export const adminApi = {
     getUsers: () =>
         get<AdminUser[]>('/admin/users'),
@@ -1527,6 +1613,24 @@ export const adminApi = {
         get<{ reports: { reportDate: string; revenueKrw: number; chargeCount: number; aiCostUsd: number; newUsers: number; dau: number; chatCount: number; pointSpent: number; topFeatures: { name: string; count: number }[]; errorCount: number; tossPnlKrw: number | null; reportMd: string | null }[] }>(`/biz/daily-reports?days=${days}`),
     bizDirectives: () =>
         get<{ directives: { id: number; createdDate: string; source: string; title: string; detail: string | null; assignee: string | null; status: string; devRequestId: number | null; resultNote: string | null; effectNote: string | null }[] }>('/biz/directives'),
+    // ── 인버스 ETF 1호가 스캘핑 — 가상매매 전용(2026-08-20) ──
+    // ★정적 경로 + query 로 호출한다. vercel.json 끝의 catch-all rewrite(`/api/:d/:s1`)가
+    //   `/api/inverse-trader/status` 같은 하위 경로를 router.ts(404)로 보내기 때문이다.
+    //   자세한 이유는 api/inverse-trader/index.ts 주석 참고.
+    getInverseStatus: () =>
+        get<InverseTraderSnapshot>('/inverse-trader?action=status'),
+    startInverseSession: () =>
+        post<InverseTraderSnapshot & { started: boolean; rehydrated: boolean; seeded: boolean; seedReason: string | null }>('/inverse-trader?action=start', {}),
+    stopInverseSession: (reason?: string) =>
+        post<InverseTraderSnapshot>('/inverse-trader?action=stop', { reason }),
+    emergencyStopInverse: (reason?: string) =>
+        post<InverseTraderSnapshot>('/inverse-trader?action=emergency-stop', { reason }),
+    tickInverseSession: (times = 1) =>
+        post<InverseTraderSnapshot & { ticks: { skipped: boolean; reason?: string; fills: number }[] }>('/inverse-trader?action=tick', { times }),
+    settleInverseNow: () =>
+        post<InverseTraderSnapshot>('/inverse-trader?action=settle', {}),
+    saveInverseConfig: (body: Record<string, unknown>) =>
+        put<{ ok: boolean; config: InverseTraderSnapshot['config']; tradingMode: string }>('/inverse-trader?action=config', body),
     // 토스 자동매매 봇 (읽기 전용)
     getTossStatus: () =>
         get<{ available: boolean; reason?: string; status?: any; staleSeconds?: number | null }>('/admin/toss-trader/status'),
