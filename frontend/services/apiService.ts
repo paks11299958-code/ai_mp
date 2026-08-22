@@ -1843,6 +1843,24 @@ export const adminApi = {
         get<{ name: string; url: string; desc: string }[]>('/admin/sites'),
     deleteSite: (name: string) =>
         del<{ ok: boolean; immediate?: boolean; message?: string; id?: number }>(`/admin/sites/${name}`),
+    // 사이트 소스 ZIP 다운로드 — 받은 파일을 새 GitHub 저장소에 올려 Vercel 독립 배포하는 용도.
+    // ★<a href>로 직접 못 건다: 인증이 Authorization 헤더 방식이라 링크 클릭은 401이 된다.
+    //   fetch로 blob을 받아 임시 <a>로 눌러주는 방식만 동작한다(이미지 조회부와 같은 사정).
+    downloadSite: async (name: string): Promise<void> => {
+        const res = await fetch(`${BASE}/admin/sites/${name}/download`, { headers: { ...authHeaders() } });
+        if (!res.ok) {
+            // 에러 응답은 JSON — 서버 사유를 그대로 보여준다(빈 사이트/404 등 구분됨).
+            let reason = `다운로드 실패 (${res.status})`;
+            try { reason = (await res.json())?.error || reason; } catch { /* 본문이 JSON이 아니면 기본 문구 */ }
+            throw new Error(reason);
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = `${name}.zip`;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);   // ★해제 안 하면 blob이 탭 수명 내내 메모리에 남는다
+    },
     // 스킬 카탈로그 동기화 요청(큐) — 서버2 워커가 build_catalog.py 재실행 + 배포
     syncSkills: () =>
         post<{ ok: boolean; id: number }>('/admin/skills/sync'),

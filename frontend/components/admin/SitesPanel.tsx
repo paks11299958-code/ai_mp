@@ -11,6 +11,7 @@ export const SitesPanel: React.FC = () => {
     const [sites, setSites] = useState<Site[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [busy, setBusy] = useState<string | null>(null);   // 삭제 진행 중인 사이트명
+    const [dl, setDl] = useState<string | null>(null);       // 다운로드 진행 중인 사이트명
     const [msg, setMsg] = useState('');
 
     const load = () => {
@@ -20,6 +21,17 @@ export const SitesPanel: React.FC = () => {
             .catch(() => setError('목록을 불러오지 못했어요.'));
     };
     useEffect(load, []);
+
+    // 소스 ZIP 받기 — 새 GitHub 저장소에 올려 Vercel 독립 주소로 서비스하기 위한 사본.
+    const download = async (name: string) => {
+        setDl(name); setMsg('');
+        try {
+            await adminApi.downloadSite(name);
+            setMsg(`⬇ '${name}.zip' 내려받았어요. 압축을 풀고 README.md의 순서대로 GitHub에 올리면 Vercel에서 새 주소로 배포됩니다.`);
+        } catch (e: any) {
+            setMsg(`❌ '${name}' 다운로드 실패 — ${e?.message || '다시 시도해 주세요.'}`);
+        } finally { setDl(null); }
+    };
 
     const remove = async (name: string) => {
         if (!window.confirm(`'${name}' 사이트를 삭제할까요?\n\n폴더·목록이 제거되고 Vercel에서 내려갑니다. (되돌릴 수 없음)`)) return;
@@ -66,10 +78,17 @@ export const SitesPanel: React.FC = () => {
                                     <div className="text-[11px] text-gray-500 mt-0.5 font-mono">{BASE}{s.url}</div>
                                     {s.desc && <div className="text-xs text-gray-300 mt-1.5 leading-relaxed">{s.desc}</div>}
                                 </div>
-                                <button onClick={() => remove(s.name)} disabled={busy === s.name}
-                                    className="shrink-0 text-xs font-bold text-red-300 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 disabled:opacity-40">
-                                    {busy === s.name ? '삭제 중…' : '🗑 삭제'}
-                                </button>
+                                <div className="shrink-0 flex items-center gap-1.5">
+                                    <button onClick={() => download(s.name)} disabled={dl === s.name}
+                                        title="소스를 ZIP으로 받아 새 GitHub 저장소 + Vercel로 독립 배포"
+                                        className="text-xs font-bold text-sky-300 px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 disabled:opacity-40">
+                                        {dl === s.name ? '준비 중…' : '⬇ 소스받기'}
+                                    </button>
+                                    <button onClick={() => remove(s.name)} disabled={busy === s.name}
+                                        className="text-xs font-bold text-red-300 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 disabled:opacity-40">
+                                        {busy === s.name ? '삭제 중…' : '🗑 삭제'}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}
