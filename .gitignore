@@ -12,6 +12,7 @@ product-extractor/*.zip
 !/PROGRESS.md
 !/PROGRESS-*.md
 !/AGENTS.md
+!/CONTEXT.md
 reports/
 
 # 사이트 모니터 런타임 산출물

@@ -1,5 +1,13 @@
 # ai_mp 에이전트 지침
 
+## 문맥·작업 목록
+
+- **`CONTEXT.md`**(루트) — 도메인 용어집 + 정본 문서 지도. ★용어를 쓰기 전에 읽는다
+- **`docs/adr/`** — 결정 기록. ★새 도구·모델을 제안하기 **전에** 훑는다(이미 탈락시킨 것 재조사 방지)
+- **`docs/agents/domain.md`** — 위 둘을 읽고 고치는 규칙
+- **`docs/agents/issue-tracker.md`** — 작업·버그 목록은 **GitHub Issues가 정본**
+- **`docs/agents/triage-labels.md`** — 라벨 5종
+
 ## ★가장 먼저: 서버 구성 문서를 읽는다
 
 전체 서버 인프라(GCP, Docker, Nginx, 도메인, 포트, 작업 이력)는 **이 저장소 밖**,

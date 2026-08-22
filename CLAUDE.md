@@ -1,5 +1,13 @@
 # 프로젝트 컨텍스트
 
+## 문맥·작업 목록
+
+- **`CONTEXT.md`**(루트) — 도메인 용어집 + 정본 문서 지도. ★용어를 쓰기 전에 읽습니다
+- **`docs/adr/`** — 결정 기록. ★새 도구·모델을 제안하기 **전에** 훑습니다(이미 탈락시킨 것 재조사 방지)
+- **`docs/agents/domain.md`** — 위 둘을 읽고 고치는 규칙
+- **`docs/agents/issue-tracker.md`** — 작업·버그 목록은 **GitHub Issues가 정본**
+- **`docs/agents/triage-labels.md`** — 라벨 5종
+
 ## 서버 구성 인덱스
 
 전체 서버 인프라(GCP, Docker, Nginx, 도메인, 포트, 작업 이력)는 아래 파일에 정리되어 있습니다:
@@ -36,3 +44,17 @@
   연결하다 한 줄이 56,000자까지 불어나고, 그 사슬 안에만 존재하던 사흘치 이력이
   정식 섹션 없이 파묻힌 사고가 있었습니다(2026-07-28 정리).
 - 재발방지 교훈이 나오면 이력에만 묻지 말고 `work_lessons.md`에도 한 줄 추가하세요.
+
+## Agent skills
+
+### Issue tracker
+
+작업과 PRD는 GitHub Issues에서 관리합니다. 자세한 규칙은 `docs/agents/issue-tracker.md`를 따릅니다.
+
+### Triage labels
+
+기본 5종 라벨을 사용합니다. 자세한 매핑은 `docs/agents/triage-labels.md`를 따릅니다.
+
+### Domain docs
+
+단일 문맥 구조를 사용합니다. `CONTEXT.md`와 `docs/adr/`를 기준으로 합니다. 자세한 규칙은 `docs/agents/domain.md`를 따릅니다.
