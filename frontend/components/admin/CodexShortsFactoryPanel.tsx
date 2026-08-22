@@ -232,6 +232,10 @@ export const CodexShortsFactoryPanel: React.FC = () => {
 
     const uploadAsset = async (segment: CodexShortsSegmentDraft, kind: CodexAssetKind, file: File) => {
         if (!current) return;
+        if (file.size > 9 * 1024 * 1024) {
+            setError('파일은 9MB 이하만 올릴 수 있습니다.');
+            return;
+        }
         const isValid = kind === 'image'
             ? ['image/png', 'image/jpeg', 'image/webp'].includes(file.type)
             : (file.type === 'audio/mpeg' || /\.mp3$/i.test(file.name));
