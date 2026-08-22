@@ -180,8 +180,12 @@ interface FormState {
     // 놓치거나 잘못 추측할 수 있어 명시 필드로 분리. 둘 다 선택 입력(비워도 topic에서 추론).
     recipientName: string;  // 받는 사람 이름/애칭 — 축하 카드 "OO야 생일 축하해"에 반영
     relation: string;       // 보내는 사람과의 관계 — 서명 "사랑하는 OO가"에 반영
+    // ★대본 가져오기(2026-08-22 사장 지시) — 다른 도구에서 완성한 대본을 그대로 태운다.
+    // 값이 있으면 워커가 리서치·시나리오 생성을 건너뛰고 원문 그대로 제작한다.
+    // topic과 배타적으로 쓴다(아래 scriptMode 토글).
+    userScript: string;
 }
-const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '', topic: '', recipientName: '', relation: '' };
+const EMPTY_FORM: FormState = { biz: '', strengths: '', target: '', mood: '', referenceUrl1: '', referenceUrl2: '', language: 'ko', qrUrl: '', topic: '', recipientName: '', relation: '', userScript: '' };
 
 // ★스타일 목록 지연 로더(2026-08-02 3차) — plan 단계 진입 시 1회만 outfitApi.styles()를
 // 호출한다. 별도 컴포넌트로 뽑은 이유: [plan] 블록은 조건부 렌더라 부모의 useEffect에
@@ -250,6 +254,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
     const isProduct = category === 'product';
     const noImage = NO_IMAGE_CATEGORIES.includes(category);
     const optionalImage = OPTIONAL_IMAGE_CATEGORIES.includes(category);
+    // ★대본 가져오기(2026-08-22) — 주제 한 줄 대신 완성 대본을 붙여넣거나 파일로 올린다.
+    //   사진 없는 카테고리에서만 쓴다(서버도 같은 조건으로 막는다). 카테고리를 바꾸면
+    //   자동으로 꺼진다 — 사진 필요한 카테고리로 옮겼는데 대본이 남아 있으면 혼란스럽다.
+    const [scriptMode, setScriptMode] = useState(false);
+    const useScript = noImage && scriptMode;
     const [imageFiles, setImageFiles] = useState<File[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     // 생일축하 전용(2026-08-02 2차) — 케이크 사진(선택, 1장)+위치.
@@ -378,6 +387,11 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
         if (optionalImage) {
             // 생일축하 — 가족사진·케이크사진 모두 선택이라 이미지 검증 자체가 없다(topic만 필수).
             if (form.topic.trim().length < 2) { setError('누구의 생일인지 적어주세요.'); return; }
+        } else if (useScript) {
+            // 대본을 가져온 경우 주제는 필요 없다 — "무엇을 만들지"가 대본에 다 있다.
+            if (form.userScript.trim().length < 50) {
+                setError('대본이 너무 짧아요. 장면과 내레이션이 담긴 대본을 넣어주세요.'); return;
+            }
         } else if (noImage) {
             if (form.topic.trim().length < 2) { setError('다루고 싶은 주제를 입력해 주세요.'); return; }
         } else if (isProduct) {
@@ -401,6 +415,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
             const cakeB64 = cakeFile ? await toB64(cakeFile) : undefined;
             const body: Record<string, string> = { category };
             (Object.keys(form) as (keyof FormState)[]).forEach(k => { const v = form[k].trim(); if (v) body[k] = v; });
+            // ★topic과 userScript는 배타적이다(2026-08-22) — 둘 다 보내면 서버가 대본 분기를
+            //   타면서 화면에 남아 있던 옛 주제가 formJson에 섞여 들어간다. 안 쓰는 쪽을 지운다.
+            if (useScript) delete body.topic; else delete body.userScript;
             if (isProduct) body.isProduct = 'true';
             if (optionalImage) {
                 body.cakePosition = cakePosition;
@@ -497,6 +514,7 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
 
     const reset = () => {
         setForm(EMPTY_FORM); setCategory('birthday'); setImageFiles([]); setImagePreviews([]);
+        setScriptMode(false);
         setFormSubStep('category');
         setReqId(null); setRow(null); setError(null); setStep('list');
         loadMine();
@@ -756,6 +774,9 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 onClick={() => {
                                                     setCategory(c.code);
                                                     setImageFiles([]); setImagePreviews([]); setError(null);
+                                                    // 대본 가져오기는 사진 없는 카테고리 전용 — 옮기면 끈다.
+                                                    // 켜진 채로 남으면 사진 카테고리에서 대본이 조용히 함께 전송된다.
+                                                    if (!NO_IMAGE_CATEGORIES.includes(c.code)) setScriptMode(false);
                                                     setFormSubStep('info'); // 카테고리 선택 즉시 정보 입력 탭으로
                                                 }}
                                                 onMouseEnter={() => setHoverCat(c.code)}
@@ -1029,12 +1050,65 @@ export const ShortsMakerBoard: React.FC<Props> = ({ onClose }) => {
                                                 </div>
                                             </div>
                                         )}
+                                        {/* ★대본 가져오기 전환(2026-08-22 사장 지시) — 이미 완성한 대본이
+                                            있는 사람에게는 "주제 한 줄 → AI가 시나리오 5개"가 오히려
+                                            방해물이다(후보 중에 내 것과 같은 게 없다). */}
+                                        {noImage && (
+                                            <div className="flex gap-1.5 p-1 bg-gray-100 rounded-lg">
+                                                {[[false, '✏️ 주제만 입력'], [true, '📄 대본 가져오기']].map(([v, label]) => (
+                                                    <button key={String(v)} type="button"
+                                                            onClick={() => setScriptMode(v as boolean)}
+                                                            className={`flex-1 px-3 py-1.5 rounded-md text-xs font-semibold transition ${
+                                                                scriptMode === v ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500'}`}>
+                                                        {label as string}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {useScript ? (
+                                            <>
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-xs font-semibold text-gray-700">가져온 대본 *</p>
+                                                    <label className="text-[11px] font-semibold text-pink-600 cursor-pointer hover:underline">
+                                                        📎 파일에서 불러오기
+                                                        <input type="file" accept=".txt,.md,text/plain,text/markdown" className="hidden"
+                                                               onChange={async e => {
+                                                                   const f = e.target.files?.[0];
+                                                                   e.target.value = '';   // 같은 파일 다시 고를 수 있게
+                                                                   if (!f) return;
+                                                                   if (f.size > 200 * 1024) { setError('대본 파일은 200KB 이내로 올려주세요.'); return; }
+                                                                   const t = await f.text();
+                                                                   if (t.trim().length > 6000) { setError('대본이 너무 길어요(6,000자 이내).'); return; }
+                                                                   setForm(p => ({ ...p, userScript: t.trim() })); setError(null);
+                                                               }} />
+                                                    </label>
+                                                </div>
+                                                <textarea value={form.userScript} onChange={set('userScript')} rows={8}
+                                                          placeholder={"장면별 내레이션·자막·화면 연출이 적힌 대본을 붙여넣으세요.\n\n[장면 1] ...\n화면 연출: ...\n화면 자막: ...\n나레이션 (지은): \"...\""}
+                                                          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y bg-white font-mono leading-relaxed" />
+                                                <div className="flex items-center justify-between text-[11px]">
+                                                    <span className="text-gray-400">
+                                                        💡 내레이션은 <b className="text-gray-600">한 글자도 바꾸지 않고</b> 그대로 씁니다.
+                                                    </span>
+                                                    <span className={form.userScript.length > 6000 ? 'text-red-500 font-semibold' : 'text-gray-400'}>
+                                                        {form.userScript.length.toLocaleString()} / 6,000
+                                                    </span>
+                                                </div>
+                                                <p className="text-[11px] text-gray-400 leading-relaxed">
+                                                    화자가 여러 명이면 이름(예: 지은/민호)을 적어주세요 — 남녀 목소리를 자동으로 나눠 읽습니다.
+                                                    장면은 최대 10개까지 만듭니다.
+                                                </p>
+                                            </>
+                                        ) : (
+                                        <>
                                         <p className="text-xs font-semibold text-gray-700">
                                             {TOPIC_LABEL[category]?.[0] || '다루고 싶은 주제'} *
                                         </p>
                                         <textarea value={form.topic} onChange={set('topic')} rows={2}
                                                   placeholder={TOPIC_LABEL[category]?.[1] || ''}
                                                   className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm resize-y bg-white" />
+                                        </>
+                                        )}
                                         {category === 'birthday' && (
                                             // 이 카테고리만 받는 사람이 실재하는 개인이라, 무엇을 적어야
                                             // 좋은 결과가 나오는지 한 줄 안내한다(빈 입력으로 어색한
