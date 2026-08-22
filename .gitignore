@@ -22,3 +22,10 @@ site_status.png
 
 # 프론트 빌드 산출물 (Vercel이 빌드로 재생성, 원본은 frontend/public)
 frontend/dist/
+
+# Python 실행 캐시
+__pycache__/
+*.py[cod]
+
+# Codex 쇼츠 품질 검수용 일회성 대용량 샘플(텔레그램 전달본)
+prototypes/shorts-gcp3less-podcast/

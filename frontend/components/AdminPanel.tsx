@@ -36,6 +36,7 @@ import { BatchJobsPanel } from './admin/BatchJobsPanel';
 import { BizReportPanel } from './admin/BizReportPanel';
 import { ShortsAdminPanel } from './admin/ShortsAdminPanel';
 import { SampleVaultPanel } from './admin/SampleVaultPanel';
+import { CodexShortsFactoryPanel } from './admin/CodexShortsFactoryPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -47,7 +48,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer' | 'skills' | 'shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -95,6 +96,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'refund-guide',  label: '💸 환불 절차',  icon: 'Coins' },
                             { key: 'marketing-assets', label: '마케팅 자산', icon: 'Megaphone' },
                             { key: 'shorts',        label: '쇼츠 관리', icon: 'Play' },
+                            { key: 'codex-shorts',  label: '🎬 Codex 쇼츠 공장', icon: 'Sparkles' },
                             { key: 'sample-vault',  label: '샘플 영상 보관함', icon: 'Play' },
                             { key: 'announcements', label: '공지사항', icon: 'Megaphone' },
                         ] },
@@ -259,6 +261,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'card-order' && <CardOrderPanel />}
                 {mainView === 'omd-designs' && <OmdDesignsPanel />}
                 {mainView === 'shorts' && <ShortsAdminPanel />}
+                {mainView === 'codex-shorts' && <CodexShortsFactoryPanel />}
                 {mainView === 'sample-vault' && <SampleVaultPanel />}
 
                 {/* 공지사항 관리 패널 */}
