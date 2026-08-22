@@ -1111,6 +1111,16 @@ export interface ShortsStatus {
     dailyShortCronLog: { exists: boolean; ageSeconds: number | null };
     userShortsQueue: { ok: boolean; waiting?: Record<string, number>; completed?: Record<string, number>; error?: string };
 }
+export interface CodexShortsRemoteJob {
+    jobId: string;
+    title: string;
+    status: 'draft' | 'awaiting_assets' | 'ready' | 'rendering' | 'completed' | 'failed';
+    error?: string | null;
+    duration?: number | null;
+    assets: { segment: number; image: boolean; audio: boolean }[];
+    outputReady: boolean;
+    updatedAt: string;
+}
 // 🎨 AI 스튜디오(서버3 GPU) — 2026-08-05.
 // ★서버가 꺼져 있어도 생성 요청이 가능하다 — 큐에 쌓이면 디스패처가 켠다.
 export const aiStudioApi = {
@@ -1248,6 +1258,49 @@ export const shortsApi = {
         post<{ result: string }>('/admin/shorts/delete', { id, section }),
 
     videoUrl: (id: string) => `${BASE}/admin/shorts/video/${id}`,
+
+    // Codex 보조형 쇼츠 공장 — 서버1 ADMIN 인증 → 서버2 agent-api → v2 렌더러.
+    saveCodexJob: (job: object) =>
+        post<CodexShortsRemoteJob>('/admin/shorts/codex/jobs', job),
+    getCodexJob: (id: string) =>
+        get<CodexShortsRemoteJob>(`/admin/shorts/codex/jobs/${encodeURIComponent(id)}`),
+    listCodexJobs: () =>
+        get<{ jobs: CodexShortsRemoteJob[] }>('/admin/shorts/codex/jobs'),
+    uploadCodexAsset: async (id: string, segment: number, kind: 'image' | 'audio', blob: Blob) => {
+        const res = await fetch(
+            `${BASE}/admin/shorts/codex/jobs/${encodeURIComponent(id)}/assets/${segment}/${kind}`,
+            { method: 'PUT', headers: { 'Content-Type': blob.type || 'application/octet-stream', ...authHeaders() }, body: blob },
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || `파일 업로드 실패 (${res.status})`);
+        return data as { ok: boolean; segment: number; kind: string; bytes: number; path: string };
+    },
+    renderCodexJob: (id: string) =>
+        post<{ started: boolean; jobId: string }>(`/admin/shorts/codex/jobs/${encodeURIComponent(id)}/render`, {}),
+    sendCodexTelegram: (id: string) =>
+        post<{ ok: boolean; jobId: string }>(`/admin/shorts/codex/jobs/${encodeURIComponent(id)}/telegram`, {}),
+    fetchCodexVideo: async (id: string): Promise<string> => {
+        const res = await fetch(`${BASE}/admin/shorts/codex/jobs/${encodeURIComponent(id)}/video`, {
+            headers: { ...authHeaders() },
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || `영상 조회 실패 (${res.status})`);
+        }
+        return URL.createObjectURL(await res.blob());
+    },
+    synthesizeCodexSpeech: async (text: string, voiceName = 'ko-KR-Chirp3-HD-Leda'): Promise<Blob> => {
+        const res = await fetch(`${BASE}/admin/shorts/codex/tts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', ...authHeaders() },
+            body: JSON.stringify({ text, voiceName }),
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || `음성 생성 실패 (${res.status})`);
+        }
+        return res.blob();
+    },
 
     // 내레이션 음성(2026-08-02) — 어드민이 직접 들어보고 고른다.
     // category(2026-08-03): 카테고리별 지정 — 생략(또는 'default')이면 언어 전역 설정.

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../Icons';
+import { shortsApi, type CodexShortsRemoteJob } from '../../services/apiService';
 import {
     createCodexShortsDraft,
     deriveDraftStatus,
@@ -90,9 +91,25 @@ export const CodexShortsFactoryPanel: React.FC = () => {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [busyAsset, setBusyAsset] = useState('');
+    const [remoteJob, setRemoteJob] = useState<CodexShortsRemoteJob | null>(null);
+    const [remoteBusy, setRemoteBusy] = useState('');
+    const [videoUrl, setVideoUrl] = useState('');
     const fileRef = useRef<HTMLInputElement | null>(null);
+    const remotePollBusy = useRef(false);
 
     const current = drafts.find(row => row.id === selectedId) || null;
+
+    const loadRemote = useCallback(async (jobId: string) => {
+        if (remotePollBusy.current) return;
+        remotePollBusy.current = true;
+        try {
+            setRemoteJob(await shortsApi.getCodexJob(jobId));
+        } catch (e: any) {
+            if (e?.status !== 404) setError(e?.message || '서버 작업 상태를 불러오지 못했습니다.');
+        } finally {
+            remotePollBusy.current = false;
+        }
+    }, []);
 
     useEffect(() => {
         try {
@@ -105,6 +122,29 @@ export const CodexShortsFactoryPanel: React.FC = () => {
     useEffect(() => {
         if (!selectedId && drafts.length) setSelectedId(drafts[0].id);
     }, [drafts, selectedId]);
+
+    useEffect(() => {
+        setRemoteJob(null);
+        setVideoUrl('');
+        if (current) void loadRemote(current.id);
+    }, [current?.id, loadRemote]);
+
+    useEffect(() => {
+        if (!current || remoteJob?.status !== 'rendering') return;
+        const timer = setInterval(() => { void loadRemote(current.id); }, 4000);
+        return () => clearInterval(timer);
+    }, [current?.id, remoteJob?.status, loadRemote]);
+
+    useEffect(() => {
+        if (!current || remoteJob?.status !== 'completed' || !remoteJob.outputReady || videoUrl) return;
+        void shortsApi.fetchCodexVideo(current.id)
+            .then(setVideoUrl)
+            .catch(e => setError(e?.message || '완성 영상을 불러오지 못했습니다.'));
+    }, [current?.id, remoteJob?.status, remoteJob?.outputReady, videoUrl]);
+
+    useEffect(() => () => {
+        if (videoUrl && typeof URL.revokeObjectURL === 'function') URL.revokeObjectURL(videoUrl);
+    }, [videoUrl]);
 
     useEffect(() => {
         let disposed = false;
@@ -220,6 +260,22 @@ export const CodexShortsFactoryPanel: React.FC = () => {
         updateSegment(segment.id, { [kind]: undefined });
     };
 
+    const synthesizeAudio = async (segment: CodexShortsSegmentDraft, index: number) => {
+        if (!segment.narration.trim()) { setError('내레이션을 먼저 입력해 주세요.'); return; }
+        const key = assetKey(segment.id, 'audio');
+        setBusyAsset(key);
+        try {
+            const blob = await shortsApi.synthesizeCodexSpeech(segment.narration);
+            const file = new File([blob], `scene${index + 1}.mp3`, { type: 'audio/mpeg' });
+            await uploadAsset(segment, 'audio', file);
+            setMessage(`장면 ${index + 1} AI 음성을 만들었습니다.`);
+        } catch (e: any) {
+            setError(e?.message || 'AI 음성을 만들지 못했습니다.');
+        } finally {
+            setBusyAsset('');
+        }
+    };
+
     const exportAsset = async (segment: CodexShortsSegmentDraft, index: number, kind: CodexAssetKind) => {
         if (!current) return;
         const blob = await getCodexAsset(current.id, segment.id, kind);
@@ -229,6 +285,53 @@ export const CodexShortsFactoryPanel: React.FC = () => {
 
     const unsafeCount = useMemo(() => current?.segments.filter(row => !estimateSegmentLayout(row).safe).length || 0, [current]);
     const readyAssets = current?.segments.filter(row => row.image && row.audio).length || 0;
+
+    const startRender = async () => {
+        if (!current) return;
+        if (current.status !== 'ready') { setError('모든 장면의 이미지와 MP3를 먼저 준비해 주세요.'); return; }
+        if (unsafeCount) { setError('문구 겹침 위험 장면을 먼저 수정해 주세요.'); return; }
+        setRemoteBusy('sync');
+        setError('');
+        setVideoUrl('');
+        try {
+            setMessage('서버에 작업 정보를 저장하고 있습니다.');
+            await shortsApi.saveCodexJob(toRendererJob(current));
+            for (let index = 0; index < current.segments.length; index++) {
+                const segment = current.segments[index];
+                for (const kind of ['image', 'audio'] as const) {
+                    const blob = await getCodexAsset(current.id, segment.id, kind);
+                    if (!blob) throw new Error(`장면 ${index + 1} ${kind === 'image' ? '이미지' : '음성'} 파일을 찾지 못했습니다. 다시 올려 주세요.`);
+                    setMessage(`서버로 파일 전송 중 · 장면 ${index + 1}/${current.segments.length} ${kind === 'image' ? '이미지' : '음성'}`);
+                    await shortsApi.uploadCodexAsset(current.id, index, kind, blob);
+                }
+            }
+            await shortsApi.renderCodexJob(current.id);
+            setRemoteJob(prev => prev ? { ...prev, status: 'rendering' } : {
+                jobId: current.id, title: current.title, status: 'rendering', assets: [],
+                outputReady: false, updatedAt: new Date().toISOString(),
+            });
+            setMessage('영상 렌더링을 시작했습니다. 창을 닫아도 서버에서 계속 진행됩니다.');
+        } catch (e: any) {
+            setError(e?.message || '영상 렌더링 요청에 실패했습니다.');
+            await loadRemote(current.id);
+        } finally {
+            setRemoteBusy('');
+        }
+    };
+
+    const sendTelegram = async () => {
+        if (!current) return;
+        setRemoteBusy('telegram');
+        setError('');
+        try {
+            await shortsApi.sendCodexTelegram(current.id);
+            setMessage('완성 영상을 텔레그램으로 보냈습니다.');
+        } catch (e: any) {
+            setError(e?.message || '텔레그램 전송에 실패했습니다.');
+        } finally {
+            setRemoteBusy('');
+        }
+    };
 
     if (!current) {
         return (
@@ -314,7 +417,7 @@ export const CodexShortsFactoryPanel: React.FC = () => {
                                             </div>
                                             <div className="rounded-xl border border-gray-700 bg-gray-950/70 p-3">
                                                 <div className="text-xs font-bold text-gray-200 mb-2">🎙 장면 음성 MP3 {segment.audio ? '✓' : ''}</div>
-                                                <div className="flex gap-2 flex-wrap"><label className="min-h-11 inline-flex items-center px-3 rounded-lg bg-blue-700 hover:bg-blue-600 text-xs font-bold text-white cursor-pointer">{audioBusy ? '저장 중...' : segment.audio ? '음성 바꾸기' : '음성 올리기'}<input type="file" accept="audio/mpeg,.mp3" className="hidden" disabled={audioBusy} onChange={e => { const file = e.target.files?.[0]; if (file) void uploadAsset(segment, 'audio', file); e.target.value = ''; }} /></label>{segment.audio && <><button onClick={() => void exportAsset(segment, index, 'audio')} className="min-h-11 px-3 rounded-lg border border-gray-700 text-xs text-gray-200">받기</button><button onClick={() => void clearAsset(segment, 'audio')} className="min-h-11 px-3 rounded-lg text-xs text-red-300">지우기</button></>}</div>
+                                                <div className="flex gap-2 flex-wrap"><button onClick={() => void synthesizeAudio(segment, index)} disabled={audioBusy} className="min-h-11 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 text-xs font-bold text-white">{audioBusy ? '만드는 중...' : '✨ AI 음성 만들기'}</button><label className="min-h-11 inline-flex items-center px-3 rounded-lg bg-blue-700 hover:bg-blue-600 text-xs font-bold text-white cursor-pointer">{segment.audio ? 'MP3 바꾸기' : 'MP3 올리기'}<input type="file" accept="audio/mpeg,.mp3" className="hidden" disabled={audioBusy} onChange={e => { const file = e.target.files?.[0]; if (file) void uploadAsset(segment, 'audio', file); e.target.value = ''; }} /></label>{segment.audio && <><button onClick={() => void exportAsset(segment, index, 'audio')} className="min-h-11 px-3 rounded-lg border border-gray-700 text-xs text-gray-200">받기</button><button onClick={() => void clearAsset(segment, 'audio')} className="min-h-11 px-3 rounded-lg text-xs text-red-300">지우기</button></>}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -337,7 +440,7 @@ export const CodexShortsFactoryPanel: React.FC = () => {
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                             <div>
                                 <h3 className="font-bold text-white">렌더러 작업 묶음</h3>
-                                <p className="text-xs text-gray-400 mt-1">현재 베타는 파일을 안전하게 준비하는 단계입니다. 서버2 v2 렌더러 직접 호출은 다음 연결 단계에서 활성화됩니다.</p>
+                                <p className="text-xs text-gray-400 mt-1">서버1 관리자 API를 거쳐 서버2 v2 렌더러로 안전하게 전송합니다. 렌더링 중에는 창을 닫아도 계속 진행됩니다.</p>
                             </div>
                             <div className="flex gap-2 flex-wrap">
                                 <button onClick={() => downloadJson('image-tasks.json', toImageTasks(current))} className="min-h-11 px-3 rounded-lg border border-violet-700 text-xs font-bold text-violet-200">이미지 작업표 받기</button>
@@ -347,8 +450,28 @@ export const CodexShortsFactoryPanel: React.FC = () => {
                         <div className="mt-3 grid sm:grid-cols-3 gap-2 text-xs">
                             <div className={`rounded-lg p-3 ${current.status === 'ready' ? 'bg-emerald-950 text-emerald-200' : 'bg-gray-900 text-gray-400'}`}>파일: {readyAssets}/{current.segments.length} 장면</div>
                             <div className={`rounded-lg p-3 ${unsafeCount === 0 ? 'bg-emerald-950 text-emerald-200' : 'bg-red-950 text-red-200'}`}>안전영역: {unsafeCount === 0 ? '통과' : `${unsafeCount}개 수정 필요`}</div>
-                            <button disabled className="rounded-lg p-3 bg-gray-800 text-gray-500 cursor-not-allowed">영상 렌더링 · 연결 예정</button>
+                            <button onClick={() => void startRender()} disabled={remoteBusy !== '' || current.status !== 'ready' || unsafeCount > 0 || remoteJob?.status === 'rendering'} className="rounded-lg p-3 bg-violet-600 hover:bg-violet-500 disabled:bg-gray-800 disabled:text-gray-500 text-white font-bold">{remoteBusy === 'sync' ? '파일 전송 중...' : remoteJob?.status === 'rendering' ? '영상 렌더링 중...' : '🎬 영상 렌더링'}</button>
                         </div>
+                        {remoteJob && (
+                            <div className={`mt-3 rounded-xl border px-4 py-3 text-sm ${remoteJob.status === 'failed' ? 'border-red-700 bg-red-950/40 text-red-100' : remoteJob.status === 'completed' ? 'border-emerald-700 bg-emerald-950/40 text-emerald-100' : 'border-blue-800 bg-blue-950/40 text-blue-100'}`}>
+                                서버 작업: <b>{remoteJob.status === 'rendering' ? '렌더링 중' : remoteJob.status === 'completed' ? '완성' : remoteJob.status === 'failed' ? '실패' : '파일 준비 중'}</b>
+                                {remoteJob.duration ? ` · ${remoteJob.duration.toFixed(1)}초` : ''}
+                                {remoteJob.error && <div className="mt-1 text-xs">{remoteJob.error}</div>}
+                            </div>
+                        )}
+                        {videoUrl && (
+                            <div className="mt-4 grid md:grid-cols-[240px_1fr] gap-4 items-start">
+                                <video src={videoUrl} controls playsInline className="w-full max-w-[240px] aspect-[9/16] rounded-xl bg-black border border-gray-700" />
+                                <div className="space-y-2">
+                                    <h4 className="font-bold text-white">완성 영상</h4>
+                                    <p className="text-xs text-gray-400">장면별 프레임과 자막을 확인한 뒤 텔레그램으로 보내세요.</p>
+                                    <div className="flex gap-2 flex-wrap">
+                                        <a href={videoUrl} download={`${current.id}.mp4`} className="min-h-11 inline-flex items-center px-4 rounded-lg border border-gray-700 text-xs font-bold text-gray-100">영상 받기</a>
+                                        <button onClick={() => void sendTelegram()} disabled={remoteBusy === 'telegram'} className="min-h-11 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-xs font-bold text-white">{remoteBusy === 'telegram' ? '보내는 중...' : '✈️ 텔레그램으로 보내기'}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </section>
                 )}
             </div>
