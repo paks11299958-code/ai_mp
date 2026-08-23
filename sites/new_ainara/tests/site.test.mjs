@@ -24,11 +24,20 @@ test('keeps semantic structure and accessible consultation dialog',()=>{
   assert.match(js,/returnFocus\?\.focus/);
 });
 
-test('supports mobile and reduced motion without fake contact details',()=>{
+test('supports mobile and reduced motion and keeps the referenced business content',()=>{
   assert.match(css,/@media\(max-width:560px\)/);
   assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
   assert.doesNotMatch(html,/\b(?:010[- ]?\d{4}|\d{2,3}-\d{3,4}-\d{4})\b/);
-  assert.doesNotMatch(html,/사업자등록번호|월 매출|수익 보장/);
+  for(const content of ['AI 포인트형','AI 임대형','AI 홍보형','STARTER','GROWTH','CREATOR','BUSINESS','매월 10일']){
+    assert.match(html,new RegExp(content));
+  }
+  assert.match(html,/특정 수익을 보장하지 않습니다/);
+});
+
+test('draws the AINARA logo with local SVG light strokes',()=>{
+  assert.match(html,/class="brand-mark light-logo"/);
+  assert.match(html,/<ellipse cx="20" cy="20"/);
+  assert.match(css,/@keyframes draw-logo/);
 });
 
 test('loads the external chat only after an explicit consultation action',()=>{
