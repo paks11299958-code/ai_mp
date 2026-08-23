@@ -10,6 +10,7 @@ import { HomepageEditPanel } from './HomepageEditPanel';
 
 interface Props {
     onClose: () => void;
+    isAdmin?: boolean;
 }
 
 const INDIGO = '#5C6AC4';        // 박하진 팔레트(웹 전문가, from-indigo-500 to-violet-500 계열)
@@ -25,8 +26,9 @@ interface FormState {
     biz: string; name: string; tagline: string;
     detail: string; menu: string; address: string;
     hours: string; phone: string; kakao: string; mood: string; referenceUrl: string;
+    threeuiIntensity: 'none' | 'soft' | 'strong';
 }
-const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu: '', address: '', hours: '', phone: '', kakao: '', mood: '', referenceUrl: '' };
+const EMPTY_FORM: FormState = { biz: '', name: '', tagline: '', detail: '', menu: '', address: '', hours: '', phone: '', kakao: '', mood: '', referenceUrl: '', threeuiIntensity: 'none' };
 
 // 상태 표시(리스트 화면).
 const STATUS_LABEL: Record<string, string> = { pending: '대기 중', processing: '제작 중', done: '완성', failed: '실패' };
@@ -41,7 +43,7 @@ function fmtEta(min: number): string {
     return m ? `${h}시간 ${m}분` : `${h}시간`;
 }
 
-export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
+export const HomepageBoard: React.FC<Props> = ({ onClose, isAdmin = false }) => {
     const [step, setStep] = useState<'intro' | 'form' | 'waiting' | 'result' | 'list'>('intro');
     const [form, setForm] = useState<FormState>(EMPTY_FORM);
     const [reqId, setReqId] = useState<number | null>(null);
@@ -319,6 +321,21 @@ export const HomepageBoard: React.FC<Props> = ({ onClose }) => {
                                         🔗 마음에 드는 사이트가 있으면 주소를 넣어주세요 — 색감·분위기만 참고하고 로고·사진·문구는 그대로 베끼지 않아요.
                                     </p>
                                 </div>
+                                {isAdmin && (
+                                    <fieldset className="rounded-xl border border-violet-200 bg-violet-50/60 p-3">
+                                        <legend className="px-1 text-xs font-bold text-violet-800">ThreeUI 3D 효과 · 관리자 베타</legend>
+                                        <p className="text-[11px] text-violet-600 mb-2">업종에 맞는 검증 효과를 히어로에 최대 1개 적용합니다.</p>
+                                        <div className="grid grid-cols-3 gap-1.5">
+                                            {([['none', '없음'], ['soft', '은은함'], ['strong', '강함']] as const).map(([value, label]) => (
+                                                <button key={value} type="button"
+                                                        onClick={() => setForm(f => ({ ...f, threeuiIntensity: value }))}
+                                                        className={`rounded-lg border px-2 py-2 text-xs font-semibold ${form.threeuiIntensity === value ? 'border-violet-600 bg-violet-600 text-white' : 'border-violet-200 bg-white text-violet-700'}`}>
+                                                    {label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </fieldset>
+                                )}
                             </div>
                             <p className="text-[11px] text-gray-400">
                                 입력한 내용은 홈페이지에 <b>공개</b>돼요 — 공개해도 되는 정보만 적어주세요.

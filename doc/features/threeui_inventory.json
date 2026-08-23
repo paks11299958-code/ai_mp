@@ -1,0 +1,1260 @@
+{
+  "source": "https://github.com/MengTo/threeui",
+  "commit": "unknown",
+  "package": "@designcodeio/threeui@1.0.0",
+  "counts": {
+    "packageComponentEntries": 100,
+    "standaloneHtmlSources": 64,
+    "selfContained": 5,
+    "usesTailwindCdn": 45,
+    "usesGsap": 31,
+    "usesIconify": 35,
+    "usesThree": 13,
+    "usesCanvas": 45,
+    "hasReducedMotion": 20,
+    "hasVisibilityPause": 13
+  },
+  "sources": [
+    {
+      "id": "brand-orbs-v2",
+      "file": "lib-dist/shaders/brand-orbs/sources/brand-orbs-v2.html.js",
+      "sourceBytes": 158454,
+      "hosts": [
+        "api.github.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "github.com",
+        "orbs.jakubantalik.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "character-filmstrip",
+      "file": "lib-dist/shaders/character-carousel/sources/character-filmstrip.html.js",
+      "sourceBytes": 266139,
+      "hosts": [],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": true
+    },
+    {
+      "id": "character-wave",
+      "file": "lib-dist/shaders/character-carousel/sources/character-wave.html.js",
+      "sourceBytes": 268769,
+      "hosts": [
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "elemental-marks",
+      "file": "lib-dist/shaders/elements/sources/elemental-marks.html.js",
+      "sourceBytes": 34643,
+      "hosts": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "generative-tree",
+      "file": "lib-dist/shaders/elements/sources/generative-tree.html.js",
+      "sourceBytes": 20339,
+      "hosts": [
+        "static.cloudflareinsights.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "liquid-metal-button",
+      "file": "lib-dist/shaders/liquid-metal-button/liquid-metal-button.html.js",
+      "sourceBytes": 38652,
+      "hosts": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "aeonix-ember-storm",
+      "file": "lib-dist/shaders/neuform-isolated/sources/aeonix-ember-storm.html.js",
+      "sourceBytes": 29493,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "aetheris-labs",
+      "file": "lib-dist/shaders/neuform-isolated/sources/aetheris-labs.html.js",
+      "sourceBytes": 15975,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "amber-halftone",
+      "file": "lib-dist/shaders/neuform-isolated/sources/amber-halftone.html.js",
+      "sourceBytes": 16376,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "audio-wordmark",
+      "file": "lib-dist/shaders/neuform-isolated/sources/audio-wordmark.html.js",
+      "sourceBytes": 17482,
+      "hosts": [
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "aura-ui-fluid",
+      "file": "lib-dist/shaders/neuform-isolated/sources/aura-ui-fluid.html.js",
+      "sourceBytes": 31008,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 5,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "connectivity-graph",
+      "file": "lib-dist/shaders/neuform-isolated/sources/connectivity-graph.html.js",
+      "sourceBytes": 13304,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "constellation-field",
+      "file": "lib-dist/shaders/neuform-isolated/sources/constellation-field.html.js",
+      "sourceBytes": 17149,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 3,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "creator-studio-intro",
+      "file": "lib-dist/shaders/neuform-isolated/sources/creator-studio-intro.html.js",
+      "sourceBytes": 57479,
+      "hosts": [
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "defense-lines",
+      "file": "lib-dist/shaders/neuform-isolated/sources/defense-lines.html.js",
+      "sourceBytes": 14609,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "diagnostics-panel",
+      "file": "lib-dist/shaders/neuform-isolated/sources/diagnostics-panel.html.js",
+      "sourceBytes": 21249,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "digital-expanse",
+      "file": "lib-dist/shaders/neuform-isolated/sources/digital-expanse.html.js",
+      "sourceBytes": 16340,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 2,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "dot-border-button",
+      "file": "lib-dist/shaders/neuform-isolated/sources/dot-border-button.html.js",
+      "sourceBytes": 12286,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "epilude-footer",
+      "file": "lib-dist/shaders/neuform-isolated/sources/epilude-footer.html.js",
+      "sourceBytes": 15685,
+      "hosts": [
+        "app.epilude.com",
+        "www.epilude.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "floating-dots-cta",
+      "file": "lib-dist/shaders/neuform-isolated/sources/floating-dots-cta.html.js",
+      "sourceBytes": 9097,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "flow-field",
+      "file": "lib-dist/shaders/neuform-isolated/sources/flow-field.html.js",
+      "sourceBytes": 10633,
+      "hosts": [
+        "static.cloudflareinsights.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "flux-vortex",
+      "file": "lib-dist/shaders/neuform-isolated/sources/flux-vortex.html.js",
+      "sourceBytes": 21612,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "unpkg.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "gallery-heading",
+      "file": "lib-dist/shaders/neuform-isolated/sources/gallery-heading.html.js",
+      "sourceBytes": 19377,
+      "hosts": [],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": true
+    },
+    {
+      "id": "gateway-flow",
+      "file": "lib-dist/shaders/neuform-isolated/sources/gateway-flow.html.js",
+      "sourceBytes": 17299,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 3,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "generate-button",
+      "file": "lib-dist/shaders/neuform-isolated/sources/generate-button.html.js",
+      "sourceBytes": 15586,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "fonts.googleapis.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "glassblown-neon",
+      "file": "lib-dist/shaders/neuform-isolated/sources/glassblown-neon.html.js",
+      "sourceBytes": 17240,
+      "hosts": [],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": true
+    },
+    {
+      "id": "glassmorphism-cta",
+      "file": "lib-dist/shaders/neuform-isolated/sources/glassmorphism-cta.html.js",
+      "sourceBytes": 8111,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "gradient-beam-cta",
+      "file": "lib-dist/shaders/neuform-isolated/sources/gradient-beam-cta.html.js",
+      "sourceBytes": 6471,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "gradient-cta",
+      "file": "lib-dist/shaders/neuform-isolated/sources/gradient-cta.html.js",
+      "sourceBytes": 5399,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "gradient-pill-button",
+      "file": "lib-dist/shaders/neuform-isolated/sources/gradient-pill-button.html.js",
+      "sourceBytes": 5871,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "ignition-terminal",
+      "file": "lib-dist/shaders/neuform-isolated/sources/ignition-terminal.html.js",
+      "sourceBytes": 12868,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "imaginie-starfield",
+      "file": "lib-dist/shaders/neuform-isolated/sources/imaginie-starfield.html.js",
+      "sourceBytes": 18070,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "wypspaektjjiccarxrgy.supabase.co"
+      ],
+      "remoteAssetCount": 5,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "interface-lines",
+      "file": "lib-dist/shaders/neuform-isolated/sources/interface-lines.html.js",
+      "sourceBytes": 18555,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "julian-vance-nebula",
+      "file": "lib-dist/shaders/neuform-isolated/sources/julian-vance-nebula.html.js",
+      "sourceBytes": 18565,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "kinetic-lathe-certificate",
+      "file": "lib-dist/shaders/neuform-isolated/sources/kinetic-lathe-certificate.html.js",
+      "sourceBytes": 15484,
+      "hosts": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "launch-button",
+      "file": "lib-dist/shaders/neuform-isolated/sources/launch-button.html.js",
+      "sourceBytes": 5332,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "lumina-weavers-cloth",
+      "file": "lib-dist/shaders/neuform-isolated/sources/lumina-weavers-cloth.html.js",
+      "sourceBytes": 17518,
+      "hosts": [
+        "cdn.jsdelivr.net",
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "matrix-field",
+      "file": "lib-dist/shaders/neuform-isolated/sources/matrix-field.html.js",
+      "sourceBytes": 21121,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "nexus-tactile",
+      "file": "lib-dist/shaders/neuform-isolated/sources/nexus-tactile.html.js",
+      "sourceBytes": 17521,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "nexus-topology",
+      "file": "lib-dist/shaders/neuform-isolated/sources/nexus-topology.html.js",
+      "sourceBytes": 20084,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "i.pravatar.cc"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "nexus-unified-flow",
+      "file": "lib-dist/shaders/neuform-isolated/sources/nexus-unified-flow.html.js",
+      "sourceBytes": 15144,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 4,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "override-grid",
+      "file": "lib-dist/shaders/neuform-isolated/sources/override-grid.html.js",
+      "sourceBytes": 14473,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "particle-drift",
+      "file": "lib-dist/shaders/neuform-isolated/sources/particle-drift.html.js",
+      "sourceBytes": 14872,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "particle-network",
+      "file": "lib-dist/shaders/neuform-isolated/sources/particle-network.html.js",
+      "sourceBytes": 13832,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "performance-gauges",
+      "file": "lib-dist/shaders/neuform-isolated/sources/performance-gauges.html.js",
+      "sourceBytes": 45198,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "code.iconify.design",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "platform-core",
+      "file": "lib-dist/shaders/neuform-isolated/sources/platform-core.html.js",
+      "sourceBytes": 20452,
+      "hosts": [
+        "cdn.skypack.dev",
+        "cdn.tailwindcss.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "images.unsplash.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": true,
+      "selfContained": false
+    },
+    {
+      "id": "portal-field",
+      "file": "lib-dist/shaders/neuform-isolated/sources/portal-field.html.js",
+      "sourceBytes": 20257,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "signal-particles",
+      "file": "lib-dist/shaders/neuform-isolated/sources/signal-particles.html.js",
+      "sourceBytes": 33159,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co",
+        "tailwindcss.com"
+      ],
+      "remoteAssetCount": 1,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "skeuomorphic-toggle",
+      "file": "lib-dist/shaders/neuform-isolated/sources/skeuomorphic-toggle.html.js",
+      "sourceBytes": 11113,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "sliding-text-cta",
+      "file": "lib-dist/shaders/neuform-isolated/sources/sliding-text-cta.html.js",
+      "sourceBytes": 5889,
+      "hosts": [
+        "cdn.tailwindcss.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "spinning-border-button",
+      "file": "lib-dist/shaders/neuform-isolated/sources/spinning-border-button.html.js",
+      "sourceBytes": 5650,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "strata-cloud",
+      "file": "lib-dist/shaders/neuform-isolated/sources/strata-cloud.html.js",
+      "sourceBytes": 23871,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 2,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "thinking-button",
+      "file": "lib-dist/shaders/neuform-isolated/sources/thinking-button.html.js",
+      "sourceBytes": 11706,
+      "hosts": [],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": true
+    },
+    {
+      "id": "topo-field",
+      "file": "lib-dist/shaders/neuform-isolated/sources/topo-field.html.js",
+      "sourceBytes": 20277,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "valence-core",
+      "file": "lib-dist/shaders/neuform-isolated/sources/valence-core.html.js",
+      "sourceBytes": 19058,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "vanguard-dimensional",
+      "file": "lib-dist/shaders/neuform-isolated/sources/vanguard-dimensional.html.js",
+      "sourceBytes": 20762,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "vertex-9",
+      "file": "lib-dist/shaders/neuform-isolated/sources/vertex-9.html.js",
+      "sourceBytes": 13060,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": true,
+      "usesCanvas": false,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "void-protocol",
+      "file": "lib-dist/shaders/neuform-isolated/sources/void-protocol.html.js",
+      "sourceBytes": 21477,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "wireframe-forms",
+      "file": "lib-dist/shaders/neuform-isolated/sources/wireframe-forms.html.js",
+      "sourceBytes": 20682,
+      "hosts": [
+        "cdn.tailwindcss.com",
+        "cdnjs.cloudflare.com",
+        "code.iconify.design",
+        "fonts.googleapis.com",
+        "hoirqrkdgbmvpwutwuwj.supabase.co"
+      ],
+      "remoteAssetCount": 3,
+      "usesTailwindCdn": true,
+      "usesGsap": true,
+      "usesIconify": true,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "design-f0ebbe02-7d8a-41fd-9041-a1124185c27b",
+      "file": "lib-dist/shaders/semantic-bloom/sources/design-f0ebbe02-7d8a-41fd-9041-a1124185c27b.html.js",
+      "sourceBytes": 15198,
+      "hosts": [
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "inner-green-3d",
+      "file": "lib-dist/shaders/sylva-living-world/sources/inner-green-3d.html.js",
+      "sourceBytes": 198008,
+      "hosts": [
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": true,
+      "usesCanvas": true,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "text-on-a-path-ii",
+      "file": "lib-dist/shaders/text-path-studies/sources/text-on-a-path-ii.html.js",
+      "sourceBytes": 62927,
+      "hosts": [
+        "www.w3.org"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    },
+    {
+      "id": "text-on-a-path",
+      "file": "lib-dist/shaders/text-path-studies/sources/text-on-a-path.html.js",
+      "sourceBytes": 15544,
+      "hosts": [],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": true,
+      "hasReducedMotion": false,
+      "hasVisibilityPause": false,
+      "selfContained": true
+    },
+    {
+      "id": "uplink-loader",
+      "file": "lib-dist/shaders/uplink-loader/uplink-loader.html.js",
+      "sourceBytes": 16080,
+      "hosts": [
+        "fonts.googleapis.com",
+        "fonts.gstatic.com"
+      ],
+      "remoteAssetCount": 0,
+      "usesTailwindCdn": false,
+      "usesGsap": false,
+      "usesIconify": false,
+      "usesThree": false,
+      "usesCanvas": false,
+      "hasReducedMotion": true,
+      "hasVisibilityPause": false,
+      "selfContained": false
+    }
+  ]
+}

@@ -1826,7 +1826,7 @@ const AppContent: React.FC = () => {
                     <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
                 )}
                 {showHomepageBoard && (
-                    <HomepageBoard onClose={() => setShowHomepageBoard(false)} />
+                    <HomepageBoard onClose={() => setShowHomepageBoard(false)} isAdmin={user?.role === 'ADMIN'} />
                 )}
                 {showShortsMakerBoard && (
                     <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
@@ -2030,7 +2030,7 @@ const AppContent: React.FC = () => {
                 <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
             )}
             {showHomepageBoard && (
-                <HomepageBoard onClose={() => setShowHomepageBoard(false)} />
+                <HomepageBoard onClose={() => setShowHomepageBoard(false)} isAdmin={user?.role === 'ADMIN'} />
             )}
             {showShortsMakerBoard && (
                 <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
