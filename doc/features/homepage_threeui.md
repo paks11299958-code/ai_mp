@@ -147,3 +147,15 @@ node scripts/threeui-inventory.mjs \
   임의 Three.js/WebGL 작성, iframe, 외부 CDN, canvas 중첩은 금지한다.
 - 신규 독립사이트·랜딩 페이지의 히어로에만 적용한다. 어드민 본체·대시보드·로그인·결제 작업이면
   적용하지 않고 제외 사유를 결과에 남긴다.
+
+## 독립사이트 적용 사례 — `new_ainara` (2026-08-23)
+
+- 경로·운영 URL: `sites/new_ainara/` / `https://aichat.dbzone.kr/sites/new_ainara/`
+- 기존 `sites/ai-companion/`은 보존하고, AI·IT용 `particle-network`를 히어로 한 곳에만 적용했다.
+- 첫 버전은 브랜드·상담 흐름 중심이었으나 사용자 검토 후 기존 사이트의 실제 사업 내용을
+  다시 반영했다. 운영 구조 3종, 라이선스 4종, 정산·승급 안내, 본사 지원 4종을 포함한다.
+- 로고는 외부 이미지 없이 SVG 빛 궤적이 그려진 뒤 중심광이 켜지며,
+  `prefers-reduced-motion`에서는 완성 상태를 즉시 표시한다.
+- Playwright 실측: 데스크톱·390px 모바일 가로 넘침 0, 콘솔 오류 0, ThreeUI mount 1,
+  상담 클릭 전 챗봇 미로드, Escape 종료 정상. 운영 HTML·canvas 1·초기 상담 미로드도 재확인했다.
+- 배포 커밋: 최초 제작 `ac1fbce`, 콘텐츠 보강·빛 로고 `9cf88d8` (`master`).
