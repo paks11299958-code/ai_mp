@@ -5,6 +5,38 @@
 > 이미지(최대 3장, 상품모드는 최대 8장) + 신청서 → 서로 다른 후킹 앵글의 시나리오 5개 →
 > 회원이 고른 1개만 실제 TTS+영상으로 제작. 2단계 과금(리서치+시나리오 5개 / 선택 후 영상 제작).
 
+## 관리자 전용 Codex 쇼츠 공장 (2026-08-22)
+
+기존 회원용 `ShortsMakerBoard`와 작업·과금 흐름은 그대로 두고, 관리자 콘텐츠 메뉴에 별도
+`Codex 쇼츠 공장` 베타를 추가했다. GCP3와 n8n 없이 서버2 CPU FFmpeg 렌더러를 사용한다.
+
+```
+관리자 CodexShortsFactoryPanel
+  → 서버1 shared-api /api/aimp/admin/shorts/codex/* (관리자 인증·Google TTS·프록시)
+  → 서버2 agent-api /shorts/codex/* (자산 검증·영속 작업·렌더·Telegram)
+  → ai_mp/shorts_factory_v2.worker (FFmpeg 조립)
+```
+
+- 대본 붙여넣기 또는 `.txt`·`.md` 불러오기 → 최대 10개 장면 초안 생성. 제목·내레이션·
+  화면 연출·이미지 프롬프트를 장면별로 편집한다.
+- 이미지(PNG·JPG·WEBP)와 MP3를 장면별로 교체하며, Google TTS로 장면 음성을 만들 수 있다.
+  공개 프록시 여유폭을 고려해 관리자 업로드는 파일당 9MB 이하로 제한한다.
+- 브라우저 IndexedDB와 서버2 작업 상태를 함께 사용해 새로고침 후 재개한다. 자산은 장면별로
+  교체한 뒤 같은 작업을 다시 렌더할 수 있다. ⚠️현재 `render_frames`는 모든 장면 프레임을
+  다시 쓰므로 변경 장면만 재렌더하는 최적화는 아직 완료되지 않았다.
+- 9:16 미리보기에서 제목·본문·자막 안전영역을 사전 검사하고, 완료 MP4를 미리보기·다운로드·
+  텔레그램 전송할 수 있다.
+- 서버2 작업은 허용된 작업 ID와 정규화된 자산 경로만 사용한다. 이미지 서명·PIL 검증,
+  MP3 서명·ffprobe 검증, 용량·해상도·재생시간 상한, 중복 렌더 차단을 적용한다.
+- 주요 구현: `frontend/components/admin/CodexShortsFactoryPanel.tsx`,
+  `frontend/services/apiService.ts`, `shorts_factory_v2/`. agent-api 라우터의 보존 정본은
+  `agent-wiki/common/scripts/agent-api/codex_shorts.py`다.
+
+**운영 검증**: 실제 6.4초 MP4(1,033,416 bytes) 렌더, 운영 스모크, 최신 Vercel 번들,
+텔레그램 `sendVideo` 전송을 확인했다. 관련 커밋은 ai_mp `a87b372`·`be77d99`, shared-api
+`4ba198e`·`fccacc3`, agent-wiki `f5ec8cc`, rag-pipeline `9eb47f4`. 추적 이슈는
+GitHub `ai_mp#2`로 종료했다.
+
 ## 컨셉
 - 페르소나 **이아린**(마케팅) 기능. homepage 만들기와 동일한 비동기 큐+포인트 선차감 패턴.
 - 흐름: 신청(이미지+업종/장점/타겟/톤/언어) → 리서치+시나리오 5개 생성 → 회원이 1개 선택
