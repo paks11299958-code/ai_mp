@@ -102,6 +102,35 @@ export const NO_AUTOFILL_KEYS: string[] = BRIEF_FIELDS.filter(f => !f.autofill).
 
 export type BriefValues = Record<string, string>;
 
+export type ThreeUiMode = 'none' | 'auto' | 'manual';
+export type ThreeUiIntensity = 'soft' | 'strong';
+
+export const THREEUI_EFFECTS = [
+    { id: 'particle-network', label: 'Particle Network', industry: 'AI·IT' },
+    { id: 'woven-cloth', label: 'Woven Cloth', industry: '뷰티·패션' },
+    { id: 'condensation', label: 'Condensation', industry: '카페·요식업' },
+    { id: 'wireframe-forms', label: 'Wireframe Forms', industry: '부동산·건축' },
+    { id: 'orbital-sphere', label: 'Orbital Sphere', industry: '일반기업' },
+] as const;
+
+const THREEUI_IDS = new Set<string>(THREEUI_EFFECTS.map(e => e.id));
+
+/** 깨진 구버전 값이나 요청 변조가 폼 상태로 들어오지 않게 정규화한다. */
+export function normalizeThreeUiBrief(input: BriefValues): BriefValues {
+    const out = { ...input };
+    const mode: ThreeUiMode = ['auto', 'manual'].includes(input.threeuiMode)
+        ? input.threeuiMode as ThreeUiMode : 'none';
+    if (mode === 'none') {
+        delete out.threeuiMode; delete out.threeuiEffectId; delete out.threeuiIntensity;
+        return out;
+    }
+    out.threeuiMode = mode;
+    out.threeuiIntensity = input.threeuiIntensity === 'strong' ? 'strong' : 'soft';
+    if (mode === 'manual' && THREEUI_IDS.has(input.threeuiEffectId)) out.threeuiEffectId = input.threeuiEffectId;
+    else delete out.threeuiEffectId;
+    return out;
+}
+
 /** JSON 문자열 → 값 맵. 깨졌으면 빈 객체(폼이 죽으면 안 된다). */
 export function parseBrief(json: string | null | undefined): BriefValues {
     if (!json) return {};
@@ -113,7 +142,12 @@ export function parseBrief(json: string | null | undefined): BriefValues {
             const v = (o as any)[f.key];
             if (typeof v === 'string' && v.trim()) out[f.key] = v;
         }
-        return out;
+        return normalizeThreeUiBrief({
+            ...out,
+            threeuiMode: typeof (o as any).threeuiMode === 'string' ? (o as any).threeuiMode : '',
+            threeuiEffectId: typeof (o as any).threeuiEffectId === 'string' ? (o as any).threeuiEffectId : '',
+            threeuiIntensity: typeof (o as any).threeuiIntensity === 'string' ? (o as any).threeuiIntensity : '',
+        });
     } catch {
         return {};
     }
@@ -126,10 +160,15 @@ export function stringifyBrief(values: BriefValues): string {
         const v = (values[f.key] ?? '').trim();
         if (v) out[f.key] = v.slice(0, 2000);
     }
-    return JSON.stringify(out);
+    return JSON.stringify(normalizeThreeUiBrief({ ...out,
+        threeuiMode: values.threeuiMode ?? '',
+        threeuiEffectId: values.threeuiEffectId ?? '',
+        threeuiIntensity: values.threeuiIntensity ?? '',
+    }));
 }
 
 /** 하나라도 채워졌는가 — 홈페이지 프로젝트인지 판단하는 데 쓴다. */
 export function hasAnyBrief(values: BriefValues): boolean {
-    return BRIEF_FIELDS.some(f => (values[f.key] ?? '').trim());
+    return BRIEF_FIELDS.some(f => (values[f.key] ?? '').trim())
+        || ['auto', 'manual'].includes(values.threeuiMode);
 }

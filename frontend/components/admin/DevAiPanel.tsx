@@ -22,7 +22,7 @@ import type {
 } from '../../services/apiService';
 import { Icon } from '../Icons';
 import {
-    BRIEF_SECTIONS, parseBrief, stringifyBrief,
+    BRIEF_SECTIONS, THREEUI_EFFECTS, parseBrief, stringifyBrief,
     type BriefValues,
 } from './devaiBrief';
 
@@ -679,6 +679,72 @@ export const DevAiPanel: React.FC = () => {
                                                 ★단, 연락처·주소·사업자번호는 비워두면 <b>비워둔 채로</b> 나갑니다 — 지어내지 않습니다.
                                             </span>
                                         </p>
+
+                                        <div className="rounded-lg border border-violet-800/50 bg-violet-950/20 p-3 space-y-2.5">
+                                            <div>
+                                                <div className="text-[11px] font-semibold text-violet-200">ThreeUI 효과</div>
+                                                <div className="text-[10px] text-violet-400/70">
+                                                    신규 독립사이트·랜딩 페이지의 히어로 배경에만 최대 1개 적용
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-3 gap-1.5" role="group" aria-label="ThreeUI 적용 방식">
+                                                {([['none', '사용 안 함'], ['auto', '자동 추천'], ['manual', '직접 선택']] as const).map(([value, label]) => (
+                                                    <button key={value} type="button"
+                                                        aria-pressed={(form.brief?.threeuiMode ?? 'none') === value}
+                                                        onClick={() => setForm(f => ({ ...f, brief: {
+                                                            ...f.brief,
+                                                            threeuiMode: value,
+                                                            threeuiIntensity: value === 'none' ? '' : (f.brief?.threeuiIntensity || 'soft'),
+                                                            threeuiEffectId: value === 'manual' ? (f.brief?.threeuiEffectId || THREEUI_EFFECTS[0].id) : '',
+                                                        } }))}
+                                                        className={`rounded-lg border px-2 py-2 text-[11px] font-semibold transition-colors ${
+                                                            (form.brief?.threeuiMode ?? 'none') === value
+                                                                ? 'border-violet-500 bg-violet-600 text-white'
+                                                                : 'border-gray-700 bg-gray-900 text-gray-400 hover:border-violet-700'
+                                                        }`}>
+                                                        {label}
+                                                    </button>
+                                                ))}
+                                            </div>
+
+                                            {form.brief?.threeuiMode === 'manual' && (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                                    {THREEUI_EFFECTS.map(effect => (
+                                                        <button key={effect.id} type="button"
+                                                            aria-pressed={form.brief?.threeuiEffectId === effect.id}
+                                                            onClick={() => setBriefField('threeuiEffectId', effect.id)}
+                                                            className={`rounded-lg border px-2.5 py-2 text-left ${
+                                                                form.brief?.threeuiEffectId === effect.id
+                                                                    ? 'border-violet-500 bg-violet-900/50 text-violet-100'
+                                                                    : 'border-gray-800 bg-gray-900/70 text-gray-400 hover:border-gray-700'
+                                                            }`}>
+                                                            <span className="block text-[11px] font-semibold">{effect.label}</span>
+                                                            <span className="block text-[10px] opacity-70">{effect.industry}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {['auto', 'manual'].includes(form.brief?.threeuiMode ?? '') && (
+                                                <div className="grid grid-cols-2 gap-1.5" role="group" aria-label="ThreeUI 효과 강도">
+                                                    {([['soft', '은은함'], ['strong', '강함']] as const).map(([value, label]) => (
+                                                        <button key={value} type="button"
+                                                            aria-pressed={(form.brief?.threeuiIntensity || 'soft') === value}
+                                                            onClick={() => setBriefField('threeuiIntensity', value)}
+                                                            className={`rounded-lg border px-2 py-1.5 text-[11px] ${
+                                                                (form.brief?.threeuiIntensity || 'soft') === value
+                                                                    ? 'border-violet-500 text-violet-100 bg-violet-900/40'
+                                                                    : 'border-gray-800 text-gray-500 bg-gray-900'
+                                                            }`}>
+                                                            {label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <p className="text-[10px] text-gray-600 leading-relaxed">
+                                                어드민 본체·대시보드·로그인·결제 화면에는 적용하지 않습니다. 기본값은 사용 안 함입니다.
+                                            </p>
+                                        </div>
 
                                         {BRIEF_SECTIONS.map(sec => (
                                             <div key={sec.key}
