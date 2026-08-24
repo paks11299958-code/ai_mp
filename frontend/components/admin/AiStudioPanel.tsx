@@ -1389,8 +1389,7 @@ export const AiStudioPanel: React.FC = () => {
                  "만드는 곳"과 "보는 곳"이 헷갈린다는 지적을 반영. */}
 
             <p className="text-[12px] text-gray-300 leading-relaxed border-t border-gray-800 pt-3">
-                서버3(gcp3-new)은 현재 <b className="text-amber-300">이미지 테스트 모드로 자동 종료가 일시 중지</b>되어 있습니다.
-                테스트 종료 후에는 유휴 자동 종료 설정을 복구해야 합니다.
+                서버3(gcp3-new)은 작업이 없으면 <b className="text-green-300">유휴 30분 또는 최대 4시간에 자동 종료</b>됩니다.
                 이미지는 서버3에 저장되며, 서버가 꺼지면 목록은 남지만 미리보기는 표시되지 않습니다 —
                 필요한 이미지는 <b className="text-gray-400">클릭해서 내려받아 두세요</b>.
             </p>

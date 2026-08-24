@@ -397,7 +397,8 @@ GCP 예산 알림을 **월 10만원**에 걸어 초과 시 텔레그램으로 �
 - **SDXL 1.0** — `models/checkpoints/sd_xl_base_1.0.safetensors` (6.5GB)
 - **psycopg2** — 큐 워커용
 - **자동 종료** — `~/idle_shutdown.sh` + 크론 `*/5 * * * *`
-  (유휴 30분 / 최대 가동 4시간, `sudoers.d/ai-studio-shutdown`로 비번 없이 shutdown)
+  (유휴 30분 / 최대 가동 4시간, ComfyUI·DB 큐·모델 다운로드가 모두 안전할 때만,
+  `sudoers.d/ai-studio-shutdown`로 비번 없이 shutdown)
 
 ### ★설치 중 잡은 함정
 

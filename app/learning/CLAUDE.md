@@ -103,7 +103,7 @@
 |---|---|---|
 | 서버1 | 10.178.0.2 | **운영** — Nginx, PostgreSQL(`aichat`, 정본), `shared-api`(Express, pm2 상시 구동) |
 | 서버2 | 10.178.0.3 | **개발** — 이 세션이 도는 곳, cron 워커(`rag-env` venv), agent-api(8000) |
-| 서버3 | 10.178.0.5 | 온디맨드 GPU (평소 꺼짐, 이 프로젝트와 무관) |
+| 서버3 | 10.178.0.9 | `gcp3-new` 온디맨드 GPU (평소 꺼짐, 이 프로젝트와 무관) |
 
 - 프론트엔드(`ai_mp/frontend`)는 **Vercel** 배포 (Vite + React SPA)
 - 백엔드 로직은 **서버1의 `shared-api`**
