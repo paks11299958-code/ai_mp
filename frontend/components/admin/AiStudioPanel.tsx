@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { aiStudioApi } from '../../services/apiService';
+import { aiStudioApi, type AiPromptTemplate } from '../../services/apiService';
 import { Icon } from '../Icons';
 import { STYLE_PRESETS, buildPrompt, modelNote, type StylePreset } from './aiStudioPresets';
 
@@ -21,6 +21,7 @@ const SIZES = [
 ];
 
 const won = (n: number) => Math.round(n).toLocaleString('ko-KR');
+type StudioMode = 'simple' | 'edit' | 'advanced' | 'dictionary';
 /** MB → 읽기 쉬운 단위. 1GB 미만은 MB 로 둔다(0.0GB 로 보이면 오히려 헷갈린다). */
 const gb = (mb: number) => (mb >= 1024 ? `${(mb / 1024).toFixed(1)}GB` : `${Math.round(mb)}MB`);
 
@@ -168,6 +169,11 @@ export const AiStudioPanel: React.FC = () => {
     const [usage, setUsage] = useState<{ day: string; jobs: number; sec: number; krw: number }[]>([]);
     // 최근 작업 이미지를 크게 볼 때 쓰는 확대 오버레이. null 이면 닫힘.
     const [zoom, setZoom] = useState<string | null>(null);
+    const [studioMode, setStudioMode] = useState<StudioMode>('simple');
+    const [promptTemplates, setPromptTemplates] = useState<AiPromptTemplate[]>([]);
+    const [templateError, setTemplateError] = useState('');
+    const [templateId, setTemplateId] = useState('');
+    const [templateValues, setTemplateValues] = useState<Record<string, string>>({});
 
     // 생성 폼
     const [prompt, setPrompt] = useState('');
@@ -289,6 +295,24 @@ export const AiStudioPanel: React.FC = () => {
         const t = setInterval(load, 15_000);
         return () => clearInterval(t);
     }, [load]);
+
+    useEffect(() => {
+        let alive = true;
+        aiStudioApi.getPromptTemplates().then((result) => {
+            if (!alive) return;
+            const templates = result.templates ?? [];
+            setPromptTemplates(templates);
+            setTemplateError('');
+            if (!templateId && templates.length) {
+                const first = templates.find((item) => item.enabled) ?? templates[0];
+                setTemplateId(first.id);
+                setTemplateValues(Object.fromEntries(first.variables.map((v) => [v.key, v.default ?? ''])));
+            }
+        }).catch((e: any) => {
+            if (alive) setTemplateError(e?.message ?? '프롬프트 사전을 불러오지 못했습니다.');
+        });
+        return () => { alive = false; };
+    }, []);
 
     // FLUX 계열은 샘플링 규칙이 달라 워커가 설정을 자동 조정한다(cfg 1.0 고정, 네거티브 미사용)
     const isFlux = model.toLowerCase().includes('flux');
@@ -511,6 +535,43 @@ export const AiStudioPanel: React.FC = () => {
         }
     };
 
+    const selectTemplate = (template: AiPromptTemplate) => {
+        setTemplateId(template.id);
+        setTemplateValues(Object.fromEntries(template.variables.map((v) => [v.key, v.default ?? ''])));
+        setMsg('');
+    };
+
+    const doTemplateGenerate = async () => {
+        const selected = promptTemplates.find((item) => item.id === templateId);
+        if (!selected?.enabled) { setMsg('이 템플릿은 GPU 워커 연결 후 사용할 수 있습니다.'); return; }
+        setBusy('template-generate'); setMsg('');
+        try {
+            const compiled = await aiStudioApi.compilePromptTemplate(selected.id, templateValues);
+            if (!compiled.enabled) throw new Error('아직 생성 경로가 연결되지 않은 템플릿입니다.');
+            const upscale = compiled.render.upscale ? pickUpscaler(upscalers, selected.category === 'illustration') : undefined;
+            const result = await aiStudioApi.generate({
+                prompt: compiled.positive,
+                negative: compiled.negative,
+                model: compiled.model,
+                width: compiled.render.width,
+                height: compiled.render.height,
+                steps: compiled.render.steps,
+                cfg: compiled.render.cfg,
+                count,
+                upscale,
+                upscaleScale: upscale ? 2 : undefined,
+            });
+            setMsg(running
+                ? `${selected.name} ${result.queued}건 접수 — 곧 처리됩니다.`
+                : `${selected.name} ${result.queued}건 접수 — 서버가 자동으로 켜집니다.`);
+            await load();
+        } catch (e: any) {
+            setMsg(e?.body?.error || e?.message || '템플릿 생성 요청에 실패했습니다.');
+        } finally {
+            setBusy(null);
+        }
+    };
+
     const busySec = st?.today?.busySec ?? 0;
     const estKrw = (busySec / 3600) * (st?.krwPerHour ?? 1260);
 
@@ -646,9 +707,118 @@ export const AiStudioPanel: React.FC = () => {
                 </details>
             )}
 
+            <nav aria-label="AI 스튜디오 작업 방식" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {([
+                    ['simple', '✨ 간단 생성'], ['edit', '🖼 이미지 수정'],
+                    ['advanced', '🛠 고급 생성'], ['dictionary', '📚 프롬프트 사전'],
+                ] as [StudioMode, string][]).map(([key, label]) => (
+                    <button key={key} type="button" onClick={() => setStudioMode(key)}
+                        aria-current={studioMode === key ? 'page' : undefined}
+                        className={`rounded-lg border px-3 py-2 text-sm font-bold transition-colors ${
+                            studioMode === key
+                                ? 'bg-purple-700 border-purple-500 text-white'
+                                : 'bg-gray-800/60 border-gray-700 text-gray-300 hover:border-gray-500'}`}>
+                        {label}
+                    </button>
+                ))}
+            </nav>
+
+            {studioMode === 'simple' && (
+                <section className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-4" aria-labelledby="simple-title">
+                    <div>
+                        <h3 id="simple-title" className="text-sm font-bold text-gray-100">검증된 설정으로 빠르게 만들기</h3>
+                        <p className="text-[13px] text-gray-400 mt-1">종류를 고르고 내용만 입력하면 조명·화각·품질·네거티브가 자동 적용됩니다.</p>
+                    </div>
+                    {templateError ? <p role="alert" className="text-sm text-red-300">{templateError}</p> : (
+                        <>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2">
+                                {promptTemplates.filter((item) => item.enabled).map((item) => (
+                                    <button key={item.id} type="button" onClick={() => selectTemplate(item)}
+                                        className={`text-left rounded-lg border p-3 transition-colors ${templateId === item.id
+                                            ? 'bg-purple-900/40 border-purple-500' : 'bg-gray-900/60 border-gray-700 hover:border-gray-500'}`}>
+                                        <span className="block text-sm font-bold text-gray-100">{item.name}</span>
+                                        <span className="block text-[12px] text-gray-400 mt-1 leading-relaxed">{item.description}</span>
+                                    </button>
+                                ))}
+                            </div>
+                            {(() => {
+                                const selected = promptTemplates.find((item) => item.id === templateId);
+                                if (!selected) return <p className="text-sm text-gray-400">사용 가능한 템플릿이 없습니다.</p>;
+                                return (
+                                    <div className="space-y-3">
+                                        {selected.variables.map((variable) => (
+                                            <Field key={variable.key} label={`${variable.label}${variable.required ? ' *' : ''}`}>
+                                                {variable.type === 'select' ? (
+                                                    <select value={templateValues[variable.key] ?? ''}
+                                                        onChange={(e) => setTemplateValues((cur) => ({ ...cur, [variable.key]: e.target.value }))}
+                                                        className="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
+                                                        {!variable.required && <option value="">선택 안 함</option>}
+                                                        {variable.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                                    </select>
+                                                ) : (
+                                                    <textarea value={templateValues[variable.key] ?? ''} maxLength={variable.maxLength}
+                                                        required={variable.required}
+                                                        onChange={(e) => setTemplateValues((cur) => ({ ...cur, [variable.key]: e.target.value }))}
+                                                        placeholder="예: 30대 한국 여성, 네이비 정장, 자연스러운 미소"
+                                                        className="w-full min-h-24 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm resize-y" />
+                                                )}
+                                            </Field>
+                                        ))}
+                                        <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+                                            <Field label="장수">
+                                                <select value={count} onChange={(e) => setCount(Number(e.target.value))}
+                                                    className="bg-gray-900 border border-gray-700 rounded px-3 py-2 text-sm">
+                                                    {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}장</option>)}
+                                                </select>
+                                            </Field>
+                                            <button type="button" onClick={doTemplateGenerate}
+                                                disabled={busy !== null || selected.variables.some((v) => v.required && !(templateValues[v.key] ?? '').trim())}
+                                                className="sm:flex-1 rounded-lg bg-purple-700 hover:bg-purple-600 px-4 py-2.5 text-sm font-bold disabled:opacity-50">
+                                                {busy === 'template-generate' ? '접수 중…' : `🎨 ${selected.name} 생성 요청`}
+                                            </button>
+                                        </div>
+                                        <p className="text-[12px] text-gray-400">{selected.render.width}×{selected.render.height} · {selected.render.steps}스텝 · {selected.model.replace('.safetensors', '')}</p>
+                                    </div>
+                                );
+                            })()}
+                        </>
+                    )}
+                </section>
+            )}
+
+            {studioMode === 'dictionary' && (
+                <section className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-3" aria-labelledby="dictionary-title">
+                    <div>
+                        <h3 id="dictionary-title" className="text-sm font-bold text-gray-100">중앙 프롬프트 사전</h3>
+                        <p className="text-[13px] text-gray-400 mt-1">서버에서 관리하는 공통 템플릿입니다. 관리자 화면과 향후 n8n/API가 같은 정본을 사용합니다.</p>
+                    </div>
+                    {templateError && <p role="alert" className="text-sm text-red-300">{templateError}</p>}
+                    <div className="space-y-2">
+                        {promptTemplates.map((item) => (
+                            <details key={item.id} className="rounded-lg border border-gray-700 bg-gray-900/50">
+                                <summary className="cursor-pointer px-3 py-2.5 text-sm text-gray-200">
+                                    <b>{item.name}</b>
+                                    <span className={`ml-2 text-[12px] ${item.enabled ? 'text-green-300' : 'text-amber-300'}`}>
+                                        {item.enabled ? '사용 가능' : '워커 연결 대기'}
+                                    </span>
+                                    <span className="ml-2 text-[12px] text-gray-500">{item.id} · {item.workflow}</span>
+                                </summary>
+                                <div className="px-3 pb-3 space-y-2 text-[12px]">
+                                    <p className="text-gray-400">{item.description}</p>
+                                    <p className="text-gray-400">{item.render.width}×{item.render.height} · {item.render.steps}스텝 · CFG {item.render.cfg} · {item.model}</p>
+                                    <div><b className="text-green-300">Positive</b><p className="mt-1 whitespace-pre-wrap break-words text-gray-300">{item.positiveTemplate}</p></div>
+                                    <div><b className="text-red-300">Negative</b><p className="mt-1 whitespace-pre-wrap break-words text-gray-400">{item.negativeTemplate}</p></div>
+                                </div>
+                            </details>
+                        ))}
+                    </div>
+                </section>
+            )}
+
             {/* 생성 폼 */}
-            <div className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-3">
-                <p className="text-sm font-bold text-gray-200">이미지 만들기</p>
+            {(studioMode === 'advanced' || studioMode === 'edit') && <div className="bg-gray-800/40 border border-gray-700 rounded-lg p-4 space-y-3">
+                <p className="text-sm font-bold text-gray-200">{studioMode === 'edit' ? '원본 이미지 수정' : '고급 이미지 생성'}</p>
+                {studioMode === 'edit' && <p className="text-[13px] text-blue-300 bg-blue-900/20 border border-blue-800/50 rounded px-3 py-2">먼저 아래의 <b>원본 사진</b>을 올린 뒤, 바꾸고 싶은 내용을 프롬프트에 적으세요. 얼굴·목·자세를 보존하려면 강도 0.35~0.55부터 시험하는 것이 안전합니다.</p>}
 
                 {/* ★2단 배치(2026-08-08 사장 지시) — 예전엔 한 줄로 길게 늘어서
                     프롬프트를 쓰려면 프리셋·업로드를 한참 지나쳐야 했다.
@@ -1042,7 +1212,7 @@ export const AiStudioPanel: React.FC = () => {
                     </div>
 
                 </div>
-            </div>
+            </div>}
 
             {/* 모델 관리(2차) — 접어 둔다. 자주 쓰는 기능이 아니라 생성 폼을 가리면 안 된다. */}
             <details className="bg-gray-800/40 border border-gray-700 rounded-lg">

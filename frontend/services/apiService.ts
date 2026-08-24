@@ -1121,9 +1121,39 @@ export interface CodexShortsRemoteJob {
     outputReady: boolean;
     updatedAt: string;
 }
+export interface AiPromptVariable {
+    key: string;
+    label: string;
+    type: 'text' | 'select';
+    required?: boolean;
+    default?: string;
+    maxLength?: number;
+    options?: { value: string; label: string }[];
+}
+export interface AiPromptTemplate {
+    id: string;
+    name: string;
+    category: 'portrait' | 'product' | 'space' | 'food' | 'content' | 'illustration';
+    description: string;
+    workflow: 'sdxl_t2i' | 'zimage_t2i';
+    enabled: boolean;
+    model: string;
+    positiveTemplate: string;
+    negativeTemplate: string;
+    variables: AiPromptVariable[];
+    render: { width: number; height: number; steps: number; cfg: number; upscale: boolean };
+}
 // 🎨 AI 스튜디오(서버3 GPU) — 2026-08-05.
 // ★서버가 꺼져 있어도 생성 요청이 가능하다 — 큐에 쌓이면 디스패처가 켠다.
 export const aiStudioApi = {
+    getPromptTemplates: () =>
+        get<{ ok: boolean; templates: AiPromptTemplate[] }>('/admin/ai-studio/prompt-templates'),
+    compilePromptTemplate: (id: string, variables: Record<string, string>) =>
+        post<{
+            ok: boolean; templateId: string; workflow: 'sdxl_t2i' | 'zimage_t2i'; enabled: boolean;
+            model: string; render: AiPromptTemplate['render']; variables: Record<string, string>;
+            positive: string; negative: string;
+        }>(`/admin/ai-studio/prompt-templates/${encodeURIComponent(id)}/compile`, { variables }),
     getStatus: () =>
         get<{
             server: { ok: boolean; status: string; detail: string };
