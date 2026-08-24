@@ -378,6 +378,41 @@ GCP 예산 알림을 **월 10만원**에 걸어 초과 시 텔레그램으로 �
   - `프롬프트 사전`: Positive/Negative, 워크플로, 모델, 렌더 설정과 활성 상태를 조회
 - `enabled=false`인 실험 템플릿은 사전에는 표시하지만 간단 생성 목록과 생성 요청에서는 제외한다.
 
+### 고급 생성 `원문 그대로 생성`(2026-08-24)
+
+- `AI로 다듬기` 옆에 `원문 그대로 생성` 버튼을 추가했다. 이 버튼은 LLM뿐 아니라 선택한
+  프리셋의 촬영·품질 뼈대도 붙이지 않고, 사용자가 입력한 Positive/Negative 문자열을
+  공백·줄바꿈까지 그대로 큐에 저장한다.
+- 계약: 어드민 생성 API `POST /api/aimp/admin/ai-studio/generate`의
+  `promptMode: "raw"`. 큐에는 추적용 `prompt_mode: "raw"`가 함께 기록된다.
+- 빈 프롬프트 판정에만 `trim()`을 사용하고 실제 저장값에는 적용하지 않는다. 기존 요청이나
+  `promptMode: "composed"`는 종전처럼 앞뒤 공백을 정리하고 프리셋 뼈대를 조합한다.
+- raw/composed는 프롬프트 조립 단계만 갈린다. seed, 모델, SDXL/Z-Image workflow,
+  해상도, steps, CFG, 확대 후보정, img2img, 스타일 참조와 `GpuJob` 큐 경로는 같은 함수를 쓴다.
+- 후속 교정: 고급 생성에 `SDXL / Z-Image` 생성 엔진 선택기를 추가했다. Z-Image를 고르면
+  `zimage_t2i`·`z_image_turbo`·832×1216·9 steps·CFG 1을 명시하고, 지원하지 않는
+  원본 이미지·스타일 참조·확대 후보정은 UI 안내와 요청 양쪽에서 제외한다. 따라서
+  `원문 그대로 생성`도 선택한 Z-Image 워크플로를 실제로 탄다.
+- 배포: shared-api `d5b3214`, ai_mp `6e355aa`. 원문 불변 단위 테스트 3개,
+  프론트 테스트 45개, React 안전 검사 136개 파일, TypeScript, 프로덕션 빌드와 운영 smoke를
+  통과했고 서버1 PM2 online 및 Vercel 운영 번들에서 버튼 문구를 확인했다.
+- **남은 검증**: 로그인한 운영 어드민에서 raw 요청을 실제 접수해 DB 큐 문자열과 ComfyUI
+  프롬프트 노드·결과 이미지를 대조하는 실렌더. GitHub Issue
+  [#6](https://github.com/paks11299958-code/ai_mp/issues/6)이 정본이며, 이 확인 전에는
+  “ComfyUI까지 원문 일치 실측 완료”라고 기록하지 않는다.
+
+### 후속 계획 — 커뮤니티 프롬프트 일일 수집·검증·승격
+
+- GitHub Issue [#7](https://github.com/paks11299958-code/ai_mp/issues/7)에 기록한 **미구현 계획**이다.
+- Civitai 공식 API에서 매일 SFW 후보와 생성 메타데이터를 수집하되, 후보 아카이브와 운영
+  프롬프트 사전을 분리한다. 공식 API·이용 허가가 불명확한 출처는 자동 크롤링하지 않는다.
+- 기반 모델·LoRA·Embedding·sampler·steps·CFG·seed·크기·출처를 함께 보존하고,
+  현재 SDXL/Z-Image 환경과 호환되지 않는 후보를 먼저 제외한다.
+- 같은 seed·렌더 조건으로 커뮤니티 원문과 우리 보정본을 Gcp3에서 A/B 생성하고,
+  프롬프트 일치도와 얼굴·목·손·의상·구도를 검증한 항목만 중앙 사전에 활성 템플릿으로 승격한다.
+- 초기 목표는 후보 100개 → 호환 후보 20개 실렌더 → 우수 5~10개 승격이며,
+  최소 7일간의 일일 실행 결과를 보고 조정한다. **후보가 많다는 사실 자체를 품질로 보지 않는다.**
+
 ### n8n·외부 서비스 API
 
 - 기준 경로: `/api/ai-studio-api` (server1 내부에서는 `/api/aimp/ai-studio-api`)

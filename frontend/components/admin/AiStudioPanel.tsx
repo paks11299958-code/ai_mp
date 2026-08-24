@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStudioApi, type AiPromptTemplate } from '../../services/apiService';
 import { Icon } from '../Icons';
 import { STYLE_PRESETS, buildPrompt, modelNote, type StylePreset } from './aiStudioPresets';
+import { engineConfig, type AiStudioWorkflow } from './aiStudioEngine';
 
 // 🎨 AI 스튜디오(서버3 GPU) 어드민 — 2026-08-05 신설
 //
@@ -178,6 +179,7 @@ export const AiStudioPanel: React.FC = () => {
     // 생성 폼
     const [prompt, setPrompt] = useState('');
     const [negative, setNegative] = useState('');
+    const [workflow, setWorkflow] = useState<AiStudioWorkflow>('sdxl_t2i');
     const [model, setModel] = useState('');
     const [sizeIdx, setSizeIdx] = useState(1);
     const [steps, setSteps] = useState(30);
@@ -316,6 +318,7 @@ export const AiStudioPanel: React.FC = () => {
 
     // FLUX 계열은 샘플링 규칙이 달라 워커가 설정을 자동 조정한다(cfg 1.0 고정, 네거티브 미사용)
     const isFlux = model.toLowerCase().includes('flux');
+    const isZImage = workflow === 'zimage_t2i';
     // ★평면 그림(일러스트·썸네일) 여부 — 확대 모델을 여기에 맞춰 고른다.
     //   실측(2026-08-06): 같은 확대라도 사진엔 디테일로, 평면 그림엔 **자글거리는 노이즈**로
     //   나타난다. 그래서 평면이면 RealESRGAN 이 낫다. 프리셋을 안 골랐으면 사진으로 본다
@@ -502,27 +505,32 @@ export const AiStudioPanel: React.FC = () => {
         setBusy(isRaw ? 'generate-raw' : 'generate'); setMsg('');
         try {
             const size = SIZES[sizeIdx];
+            const engine = engineConfig(workflow);
             // 원문 모드는 프리셋 뼈대도 붙이지 않는다. 공백·줄바꿈까지 입력 그대로 보낸다.
             const finalPrompt = isRaw ? prompt : (preset ? buildPrompt(preset, prompt) : prompt);
             const r = await aiStudioApi.generate({
                 prompt: finalPrompt, negative: negative || undefined, promptMode,
-                model: model || undefined,
-                width: size.w, height: size.h, steps, count,
+                workflow: engine.workflow,
+                model: engine.model ?? (model || undefined),
+                width: isZImage ? engine.width : size.w,
+                height: isZImage ? engine.height : size.h,
+                steps: isZImage ? engine.steps : steps,
+                cfg: engine.cfg, count,
                 // 업스케일은 켜져 있고 설치된 모델이 있을 때만 보낸다.
                 // ★어느 걸 쓸지는 고르게 하지 않고 **가장 좋은 것으로 고정**한다 —
                 //   2026-08-06 같은 시드 A/B 실측에서 UltraSharp 가 인물 디테일(속눈썹·잔머리·
                 //   모공)에서 확실히 나았고, RealESRGAN 은 피부결을 뭉갰다. 우열이 분명한
                 //   선택지를 화면에 늘리면 잘못 고를 여지만 생긴다.
                 //   ★예전엔 `upscalers[0]`(목록 첫 번째)라 **설치 순서에 결과가 좌우**됐다.
-                upscale: useUpscale ? pickUpscaler(upscalers, isFlatArt) : undefined,
+                upscale: engine.supportsUpscale && useUpscale ? pickUpscaler(upscalers, isFlatArt) : undefined,
                 upscaleScale: 2,
                 // img2img — 원본이 있을 때만. 없으면 기존과 똑같이 동작한다.
-                initImage: initFile ?? undefined,
-                denoise: initFile ? denoise : undefined,
+                initImage: engine.supportsImageInputs ? (initFile ?? undefined) : undefined,
+                denoise: engine.supportsImageInputs && initFile ? denoise : undefined,
                 // 스타일 참조 — 견본이 있을 때만
-                styleImage: styleFile ?? undefined,
-                styleWeight: styleFile ? styleWeight : undefined,
-                styleMode: styleFile ? styleMode : undefined,
+                styleImage: engine.supportsImageInputs ? (styleFile ?? undefined) : undefined,
+                styleWeight: engine.supportsImageInputs && styleFile ? styleWeight : undefined,
+                styleMode: engine.supportsImageInputs && styleFile ? styleMode : undefined,
             });
             const modeLabel = isRaw ? '원문 그대로 ' : '';
             setMsg(running
@@ -1119,15 +1127,39 @@ export const AiStudioPanel: React.FC = () => {
                     </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                        <Field label="모델">
-                            <select value={model} onChange={(e) => setModel(e.target.value)}
+                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                        <Field label="생성 엔진">
+                            <select value={workflow} onChange={(e) => {
+                                const next = e.target.value as AiStudioWorkflow;
+                                const engine = engineConfig(next);
+                                setWorkflow(next);
+                                if (next === 'zimage_t2i') {
+                                    setModel(engine.model);
+                                    setSizeIdx(SIZES.findIndex((s) => s.w === engine.width && s.h === engine.height));
+                                    setSteps(engine.steps);
+                                    setPreset(null); // 기존 프리셋은 SDXL 전용 뼈대다
+                                    setUseUpscale(false);
+                                } else {
+                                    setModel(models[0] ?? '');
+                                    setSteps(30);
+                                }
+                            }}
+                                aria-label="생성 엔진"
                                 className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                                {models.length === 0 && <option value="">서버 켜면 목록 표시</option>}
+                                <option value="sdxl_t2i">SDXL</option>
+                                <option value="zimage_t2i">Z-Image</option>
+                            </select>
+                        </Field>
+                        <Field label="모델">
+                            <select value={isZImage ? 'z_image_turbo' : model}
+                                onChange={(e) => setModel(e.target.value)} disabled={isZImage}
+                                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
+                                {isZImage && <option value="z_image_turbo">Z-Image Turbo</option>}
+                                {!isZImage && models.length === 0 && <option value="">서버 켜면 목록 표시</option>}
                                 {/* ★고르는 자리에서 성격이 보여야 한다 — 이름만으론 인물용인지 사물용인지 모른다.
                                     ★단 `<option>` 안에서는 줄바꿈·색상이 **브라우저에서 무시된다.**
                                       그래서 여기는 한 줄로 두고, 고른 뒤의 설명은 아래에 크게 따로 띄운다. */}
-                                {models.map((m) => (
+                                {!isZImage && models.map((m) => (
                                     <option key={m} value={m}>
                                         {m.replace('.safetensors', '')}
                                         {modelNote(m) && ` (${modelNote(m)})`}
@@ -1137,7 +1169,7 @@ export const AiStudioPanel: React.FC = () => {
                             {/* ★고른 모델의 설명을 드롭다운 **바깥**에 다시 보여준다(2026-08-05).
                                 닫힌 select 는 폭이 좁아 괄호 설명이 잘려 보이고, 그래서
                                 "설명이 헷갈린다"는 지적이 나왔다. 여기선 잘리지 않는다. */}
-                            {modelNote(model) && (
+                            {!isZImage && modelNote(model) && (
                                 <p className={`mt-1 text-[12px] leading-snug ${
                                     modelNote(model).startsWith('⛔') ? 'text-red-300'
                                         : modelNote(model).startsWith('★') ? 'text-green-300'
@@ -1148,12 +1180,14 @@ export const AiStudioPanel: React.FC = () => {
                         </Field>
                         <Field label="크기">
                             <select value={sizeIdx} onChange={(e) => setSizeIdx(Number(e.target.value))}
+                                disabled={isZImage}
                                 className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
                                 {SIZES.map((s, i) => <option key={s.label} value={i}>{s.label}</option>)}
                             </select>
                         </Field>
                         <Field label="스텝">
-                            <input type="number" min={10} max={60} value={steps}
+                            <input type="number" min={isZImage ? 1 : 10} max={60} value={steps}
+                                disabled={isZImage}
                                 onChange={(e) => setSteps(Number(e.target.value))}
                                 className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs" />
                         </Field>
@@ -1165,9 +1199,16 @@ export const AiStudioPanel: React.FC = () => {
                         </Field>
                     </div>
 
+                    {isZImage && (
+                        <p className="text-[12px] text-emerald-200 bg-emerald-900/25 border border-emerald-700/50 rounded px-2.5 py-2">
+                            Z-Image Turbo · 832×1216 · 9 steps · CFG 1로 설정했습니다.
+                            텍스트 생성 전용이라 원본 이미지·스타일 참조·확대 후보정은 이 요청에서 제외됩니다.
+                        </p>
+                    )}
+
                     {/* 업스케일(후보정) — 미드저니와의 격차에서 모델만큼 큰 부분이 이것이다.
                         1024 원본은 피부·머리카락 디테일이 뭉개져 보인다. */}
-                    {upscalers.length > 0 && (
+                    {!isZImage && upscalers.length > 0 && (
                         <label className="flex items-start gap-2 bg-gray-900/60 rounded-lg px-3 py-2 cursor-pointer">
                             <input type="checkbox" checked={useUpscale}
                                 onChange={(e) => setUseUpscale(e.target.checked)}
