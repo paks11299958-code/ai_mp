@@ -88,6 +88,7 @@
     { "source": "/api/points/:path*",        "destination": "http://34.50.27.95:3020/api/aimp/points/:path*" },
     { "source": "/api/admin",                "destination": "http://34.50.27.95:3020/api/aimp/admin" },
     { "source": "/api/admin/:path*",         "destination": "http://34.50.27.95:3020/api/aimp/admin/:path*" },
+    { "source": "/api/ai-studio-api/:path*", "destination": "http://34.50.27.95:3020/api/aimp/ai-studio-api/:path*" },
 
     { "source": "/api/sessions",             "destination": "http://34.50.27.95:3020/api/aimp/sessions" },
     { "source": "/api/sessions/:path*",      "destination": "http://34.50.27.95:3020/api/aimp/sessions/:path*" },

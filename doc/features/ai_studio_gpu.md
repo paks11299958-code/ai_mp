@@ -378,6 +378,17 @@ GCP 예산 알림을 **월 10만원**에 걸어 초과 시 텔레그램으로 �
   - `프롬프트 사전`: Positive/Negative, 워크플로, 모델, 렌더 설정과 활성 상태를 조회
 - `enabled=false`인 실험 템플릿은 사전에는 표시하지만 간단 생성 목록과 생성 요청에서는 제외한다.
 
+### n8n·외부 서비스 API
+
+- 기준 경로: `/api/ai-studio-api` (server1 내부에서는 `/api/aimp/ai-studio-api`)
+- 인증: `x-api-key`, 서버 환경변수 `AI_STUDIO_API_KEY`가 32자 이상일 때만 활성화
+- `GET /templates`: 활성 템플릿과 변수 규격 조회
+- `POST /generate`: `{templateId, variables, count}` 접수. `Idempotency-Key` 헤더 필수
+- `GET /jobs/:id`: 상태·결과 파일·다운로드 URL 조회
+- `GET /jobs/:id/images/:file`: 결과 이미지 바이너리 다운로드
+- 외부 요청은 원시 prompt·model·workflow를 받지 않는다. 중앙 사전에서 조립한 값만 큐에 넣는다.
+- 같은 API 키와 `Idempotency-Key`의 재요청은 기존 job id를 반환해 n8n 재시도 중복 생성을 막는다.
+
 ### 설치·설정한 것
 
 - **ComfyUI 0.30.0** — `~/ComfyUI`, systemd 서비스 `comfyui`
