@@ -533,7 +533,7 @@ export const AiStudioPanel: React.FC = () => {
                             </span>
                         </h2>
                         <p className="text-[13px] text-gray-300 mt-1">
-                            NVIDIA L4 24GB · 필요할 때만 켜는 서버 · 시간당 약 {won(st?.krwPerHour ?? 1260)}원
+                            gcp3-new · NVIDIA L4 24GB · 시간당 약 {won(st?.krwPerHour ?? 1260)}원
                         </p>
                     </div>
                     <div className="flex gap-2">
@@ -1218,9 +1218,8 @@ export const AiStudioPanel: React.FC = () => {
                  "만드는 곳"과 "보는 곳"이 헷갈린다는 지적을 반영. */}
 
             <p className="text-[12px] text-gray-300 leading-relaxed border-t border-gray-800 pt-3">
-                서버3(ai-studio-gpu)은 마지막 작업 후 <b className="text-gray-400">30분이 지나면 자동으로 꺼집니다</b>
-                (그와 별개로 최대 가동시간 상한이 있습니다 — 기본 4시간).
-                일이 들어오면 유휴 시간이 다시 0으로 초기화되고, 모델을 내려받는 중에도 꺼지지 않습니다.
+                서버3(gcp3-new)은 현재 <b className="text-amber-300">이미지 테스트 모드로 자동 종료가 일시 중지</b>되어 있습니다.
+                테스트 종료 후에는 유휴 자동 종료 설정을 복구해야 합니다.
                 이미지는 서버3에 저장되며, 서버가 꺼지면 목록은 남지만 미리보기는 표시되지 않습니다 —
                 필요한 이미지는 <b className="text-gray-400">클릭해서 내려받아 두세요</b>.
             </p>
