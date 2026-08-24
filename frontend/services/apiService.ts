@@ -1200,6 +1200,7 @@ export const aiStudioApi = {
         post<{ ok: boolean; file: string }>('/admin/ai-studio/upload', { image: base64 }),
     generate: (payload: {
         prompt: string; negative?: string; model?: string;
+        promptMode?: 'composed' | 'raw';
         workflow?: 'sdxl_t2i' | 'sdxl_img2img' | 'zimage_t2i';
         width?: number; height?: number; steps?: number; cfg?: number; count?: number;
         // 업스케일(선택) — 확대 후보정 모델 파일명과 배율

@@ -496,15 +496,17 @@ export const AiStudioPanel: React.FC = () => {
         if (models.length === 0 || models.includes(p.model)) setModel(p.model);
     };
 
-    const doGenerate = async () => {
+    const doGenerate = async (promptMode: 'composed' | 'raw' = 'composed') => {
         if (!prompt.trim()) { setMsg('프롬프트를 입력하세요.'); return; }
-        setBusy('generate'); setMsg('');
+        const isRaw = promptMode === 'raw';
+        setBusy(isRaw ? 'generate-raw' : 'generate'); setMsg('');
         try {
             const size = SIZES[sizeIdx];
-            // 프리셋 모드면 사장이 쓴 내용을 뼈대에 끼워 넣는다
-            const finalPrompt = preset ? buildPrompt(preset, prompt) : prompt;
+            // 원문 모드는 프리셋 뼈대도 붙이지 않는다. 공백·줄바꿈까지 입력 그대로 보낸다.
+            const finalPrompt = isRaw ? prompt : (preset ? buildPrompt(preset, prompt) : prompt);
             const r = await aiStudioApi.generate({
-                prompt: finalPrompt, negative: negative || undefined, model: model || undefined,
+                prompt: finalPrompt, negative: negative || undefined, promptMode,
+                model: model || undefined,
                 width: size.w, height: size.h, steps, count,
                 // 업스케일은 켜져 있고 설치된 모델이 있을 때만 보낸다.
                 // ★어느 걸 쓸지는 고르게 하지 않고 **가장 좋은 것으로 고정**한다 —
@@ -522,9 +524,10 @@ export const AiStudioPanel: React.FC = () => {
                 styleWeight: styleFile ? styleWeight : undefined,
                 styleMode: styleFile ? styleMode : undefined,
             });
+            const modeLabel = isRaw ? '원문 그대로 ' : '';
             setMsg(running
-                ? `${r.queued}건 접수 — 곧 처리됩니다.`
-                : `${r.queued}건 접수 — 서버가 꺼져 있어 자동으로 켜집니다(약 1~2분).`);
+                ? `${modeLabel}${r.queued}건 접수 — 곧 처리됩니다.`
+                : `${modeLabel}${r.queued}건 접수 — 서버가 꺼져 있어 자동으로 켜집니다(약 1~2분).`);
             // ★원본은 일부러 지우지 않는다 — 강도만 바꿔 다시 돌려보는 게 img2img 의
             //   기본 사용법이다. 매번 다시 올리게 하면 번거롭다(치우려면 '원본 빼기').
             await load();
@@ -1048,6 +1051,12 @@ export const AiStudioPanel: React.FC = () => {
                                        text-purple-100 font-bold disabled:opacity-40">
                             {busy === 'refine' ? '다듬는 중…' : '✨ 위 칸을 AI로 다듬기'}
                         </button>
+                        <button onClick={() => doGenerate('raw')} disabled={busy !== null || !prompt.trim()}
+                            title="프리셋 문구나 AI 보강 없이 위 칸을 입력한 그대로 생성합니다"
+                            className="text-[12px] px-2.5 py-1 rounded bg-emerald-800 hover:bg-emerald-700
+                                       text-emerald-100 font-bold disabled:opacity-40">
+                            {busy === 'generate-raw' ? '접수 중…' : '🚀 원문 그대로 생성'}
+                        </button>
                         {/* ★되돌리기 — LLM 이 엉뚱하게 바꿀 수 있는데 손으로 쓴 게 날아가면 안 된다 */}
                         {prevPrompt !== null && (
                             <button onClick={() => { setPrompt(prevPrompt); setPrevPrompt(null); }}
@@ -1200,7 +1209,7 @@ export const AiStudioPanel: React.FC = () => {
 
                     {/* ★프롬프트가 비면 버튼을 잠근다 — 예전엔 눌려도 첫 줄에서 조용히 반환돼
                          "생성하기가 안 눌린다"는 오해가 생겼다(2026-08-06 사장 지적). */}
-                    <button onClick={doGenerate} disabled={busy !== null || !prompt.trim()}
+                    <button onClick={() => doGenerate('composed')} disabled={busy !== null || !prompt.trim()}
                         className="w-full text-sm px-4 py-2.5 rounded-lg bg-purple-700 hover:bg-purple-600
                                    font-bold disabled:opacity-50">
                         {busy === 'generate' ? '접수 중…'
