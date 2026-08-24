@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { engineConfig } from './aiStudioEngine';
+import { engineConfig, workflowForModel, Z_IMAGE_MODEL } from './aiStudioEngine';
 
 describe('AI Studio generation engine routing', () => {
     it('Z-Image 선택을 검증된 워크플로와 렌더 값으로 고정한다', () => {
@@ -20,5 +20,10 @@ describe('AI Studio generation engine routing', () => {
         expect(config.workflow).toBe('sdxl_t2i');
         expect(config.supportsImageInputs).toBe(true);
         expect(config.supportsUpscale).toBe(true);
+    });
+
+    it('같은 모델 목록에서 Z-Image 선택 여부로 워크플로를 결정한다', () => {
+        expect(workflowForModel(Z_IMAGE_MODEL)).toBe('zimage_t2i');
+        expect(workflowForModel('RealVisXL_V5.safetensors')).toBe('sdxl_t2i');
     });
 });

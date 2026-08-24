@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStudioApi, type AiPromptTemplate } from '../../services/apiService';
 import { Icon } from '../Icons';
 import { STYLE_PRESETS, buildPrompt, modelNote, type StylePreset } from './aiStudioPresets';
-import { engineConfig, type AiStudioWorkflow } from './aiStudioEngine';
+import { engineConfig, workflowForModel, Z_IMAGE_MODEL, type AiStudioWorkflow } from './aiStudioEngine';
 
 // 🎨 AI 스튜디오(서버3 GPU) 어드민 — 2026-08-05 신설
 //
@@ -1127,39 +1127,32 @@ export const AiStudioPanel: React.FC = () => {
                     </div>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                        <Field label="생성 엔진">
-                            <select value={workflow} onChange={(e) => {
-                                const next = e.target.value as AiStudioWorkflow;
-                                const engine = engineConfig(next);
-                                setWorkflow(next);
-                                if (next === 'zimage_t2i') {
-                                    setModel(engine.model);
-                                    setSizeIdx(SIZES.findIndex((s) => s.w === engine.width && s.h === engine.height));
-                                    setSteps(engine.steps);
-                                    setPreset(null); // 기존 프리셋은 SDXL 전용 뼈대다
-                                    setUseUpscale(false);
-                                } else {
-                                    setModel(models[0] ?? '');
-                                    setSteps(30);
-                                }
-                            }}
-                                aria-label="생성 엔진"
-                                className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                                <option value="sdxl_t2i">SDXL</option>
-                                <option value="zimage_t2i">Z-Image</option>
-                            </select>
-                        </Field>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         <Field label="모델">
-                            <select value={isZImage ? 'z_image_turbo' : model}
-                                onChange={(e) => setModel(e.target.value)} disabled={isZImage}
+                            <select value={isZImage ? Z_IMAGE_MODEL : model}
+                                onChange={(e) => {
+                                    const nextModel = e.target.value;
+                                    const nextWorkflow = workflowForModel(nextModel);
+                                    const engine = engineConfig(nextWorkflow);
+                                    setWorkflow(nextWorkflow);
+                                    setModel(nextModel);
+                                    if (nextWorkflow === 'zimage_t2i') {
+                                        setSizeIdx(SIZES.findIndex((s) => s.w === engine.width && s.h === engine.height));
+                                        setSteps(engine.steps);
+                                        setPreset(null); // 기존 프리셋은 SDXL 전용 뼈대다
+                                        setUseUpscale(false);
+                                    } else if (isZImage) {
+                                        setSteps(30);
+                                    }
+                                }}
+                                aria-label="모델"
                                 className="w-full bg-gray-900 border border-gray-700 rounded px-2 py-1.5 text-xs">
-                                {isZImage && <option value="z_image_turbo">Z-Image Turbo</option>}
-                                {!isZImage && models.length === 0 && <option value="">서버 켜면 목록 표시</option>}
+                                <option value={Z_IMAGE_MODEL}>Z-Image Turbo (원문 프롬프트용)</option>
+                                {models.length === 0 && <option value="">SDXL은 서버 켜면 목록 표시</option>}
                                 {/* ★고르는 자리에서 성격이 보여야 한다 — 이름만으론 인물용인지 사물용인지 모른다.
                                     ★단 `<option>` 안에서는 줄바꿈·색상이 **브라우저에서 무시된다.**
                                       그래서 여기는 한 줄로 두고, 고른 뒤의 설명은 아래에 크게 따로 띄운다. */}
-                                {!isZImage && models.map((m) => (
+                                {models.map((m) => (
                                     <option key={m} value={m}>
                                         {m.replace('.safetensors', '')}
                                         {modelNote(m) && ` (${modelNote(m)})`}

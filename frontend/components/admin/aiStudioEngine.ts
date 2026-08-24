@@ -1,9 +1,13 @@
 export type AiStudioWorkflow = 'sdxl_t2i' | 'zimage_t2i';
+export const Z_IMAGE_MODEL = 'z_image_turbo';
+
+export const workflowForModel = (model: string): AiStudioWorkflow =>
+    model === Z_IMAGE_MODEL ? 'zimage_t2i' : 'sdxl_t2i';
 
 export const engineConfig = (workflow: AiStudioWorkflow) => workflow === 'zimage_t2i'
     ? {
         workflow,
-        model: 'z_image_turbo',
+        model: Z_IMAGE_MODEL,
         width: 832,
         height: 1216,
         steps: 9,
