@@ -550,6 +550,7 @@ export const AiStudioPanel: React.FC = () => {
             if (!compiled.enabled) throw new Error('아직 생성 경로가 연결되지 않은 템플릿입니다.');
             const upscale = compiled.render.upscale ? pickUpscaler(upscalers, selected.category === 'illustration') : undefined;
             const result = await aiStudioApi.generate({
+                workflow: compiled.workflow,
                 prompt: compiled.positive,
                 negative: compiled.negative,
                 model: compiled.model,

@@ -366,8 +366,8 @@ GCP 예산 알림을 **월 10만원**에 걸어 초과 시 텔레그램으로 �
 - 목록: `GET /api/aimp/admin/ai-studio/prompt-templates`
 - 조립·검증: `POST /api/aimp/admin/ai-studio/prompt-templates/:id/compile`
 - 기존 프론트 프리셋 7종을 서버 사전으로 옮겼고, Z-Image `한국형 임원 비서`
-  템플릿을 실험 상태로 추가했다. Z-Image 큐 워커 라우팅을 연결하기 전이므로
-  해당 템플릿의 `enabled` 는 `false`다.
+  템플릿을 추가했다. `gpu_worker.py`의 `zimage_t2i` 라우팅과 실제 렌더를 검증한 뒤
+  해당 템플릿을 활성화했다.
 - 선택형 변수는 허용 목록, 텍스트 변수는 필수·최대 길이, 알 수 없는 변수는 거부한다.
 - 사전과 조립 API는 서버1 `shared-api`에 둔다. Gcp3가 꺼져도 어드민·n8n이
   템플릿을 조회하고 작업을 접수할 수 있어야 하기 때문이다.
