@@ -74,6 +74,7 @@ import { LearningLanding } from './components/learning/LearningLanding';
 import { LearningOnboarding } from './components/learning/LearningOnboarding';
 import { LearningPlanConfirm } from './components/learning/LearningPlanConfirm';
 import { LearningDashboard } from './components/learning/LearningDashboard';
+import { LearningGoals } from './components/learning/LearningGoals';
 import { LearningTask } from './components/learning/LearningTask';
 import { LearningReview } from './components/learning/LearningReview';
 import { LearningWeeklyReport } from './components/learning/LearningWeeklyReport';
@@ -3145,6 +3146,7 @@ const IS_LEARNING_REVIEW = /^\/learning\/review$/.test(LEARNING_PATH);
 const IS_LEARNING_REPORT = /^\/learning\/report\/[^/]+$/.test(LEARNING_PATH);
 const IS_LEARNING_SETTINGS = /^\/learning\/settings$/.test(LEARNING_PATH);
 const IS_LEARNING_CURRICULUM = /^\/learning\/curriculum$/.test(LEARNING_PATH);
+const IS_LEARNING_GOALS = /^\/learning\/goals$/.test(LEARNING_PATH);
 
 // 🎨 리버스 프롬프트(/reverse-prompt) — app/reverse-prompt/PRD.md
 // LEARNING_PATH와 같은 뒤 슬래시 제거 규칙을 재사용한다.
@@ -3168,6 +3170,7 @@ const App: React.FC = () => (
     IS_LEARN_2 ? <LearnPage2 /> :
     IS_LEARNING_PLAN ? <LearningPlanConfirm /> :
     IS_LEARNING_DASHBOARD ? <LearningDashboard /> :
+    IS_LEARNING_GOALS ? <LearningGoals /> :
     IS_LEARNING_TASK ? <LearningTask /> :
     IS_LEARNING_REVIEW ? <LearningReview /> :
     IS_LEARNING_REPORT ? <LearningWeeklyReport /> :

@@ -10,6 +10,7 @@ import React from 'react';
 export const LEARNING_TABS = [
     { key: 'dashboard',  label: '오늘',     emoji: '📖', href: '/learning/dashboard' },
     { key: 'curriculum', label: '커리큘럼', emoji: '🗂', href: '/learning/curriculum' },
+    { key: 'goals',      label: '내 학습',  emoji: '🎒', href: '/learning/goals' },
     { key: 'review',     label: '복습',     emoji: '🔁', href: '/learning/review' },
     { key: 'settings',   label: '설정',     emoji: '⚙️', href: '/learning/settings' },
 ] as const;
