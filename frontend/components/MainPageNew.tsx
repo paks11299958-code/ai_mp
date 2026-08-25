@@ -385,7 +385,7 @@ export const FEATURES_GRID = [
     //   (이미지→프롬프트)이라 같은 이름을 쓰면 구분이 안 돼 '이미지 → 프롬프트'로 붙였다.
     { id: 29, numeral: 'XXIX',latin: 'Reverse',key: 'reverse-prompt',name: '이미지 → 프롬프트', tag: 'AI 프롬프트 역추출', catch: '마음에 든 그림, 어떻게 만들었을까? 🎨', category: 'create', desc: '마음에 드는 이미지를 올리면 Midjourney와 Stable Diffusion 프롬프트를 한 번에 뽑아드려요. 화풍·구도·조명까지 분석해 그대로 따라 만들 수 있어요.', icon: 'sparkles', palette: { bg: '#FEF6E8', deep: '#E2C9A0', accent: '#8B6020' }, personaName: '이아린',  releasedAt: '2026-08-18' },
     // ★'learn'(무료 학습자료, 사이트 사용법 강의)과는 완전히 다른 기능이다 — 경로도 /learning 으로 분리.
-    { id: 30, numeral: 'XXX', latin: 'Coach',  key: 'learning-coach',name: 'AI 학습코칭',   tag: 'AI 맞춤 커리큘럼', catch: '배우고 싶은 걸 적으면 커리큘럼이 나와요 🎓', category: 'create', desc: '배우고 싶은 주제와 기간만 정하면 AI가 주차별 커리큘럼과 매일 할 학습을 짜드려요. 본문·퀴즈·오답노트·주간 리포트까지 챙겨줍니다.', icon: 'ebook',    palette: { bg: '#E9EBF9', deep: '#A5A9F0', accent: '#6366F1' }, personaName: 'AI 학습코칭', releasedAt: '2026-08-25' },
+    { id: 30, numeral: 'XXX', latin: 'Coach',  key: 'learning-coach',name: 'AI 학습코칭',   tag: 'AI 맞춤 커리큘럼', catch: '배우고 싶은 걸 적으면 커리큘럼이 나와요 🎓', category: 'info', desc: '배우고 싶은 주제와 기간만 정하면 AI가 주차별 커리큘럼과 매일 할 학습을 짜드려요. 본문·퀴즈·오답노트·주간 리포트까지 챙겨줍니다.', icon: 'ebook',    palette: { bg: '#E9EBF9', deep: '#A5A9F0', accent: '#6366F1' }, personaName: 'AI 학습코칭', releasedAt: '2026-08-25' },
 ];
 
 // 기능 연관 키워드(동의어) 맵 — 이름/설명에 없는 표현으로도 찾게 함.
