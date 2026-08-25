@@ -30,8 +30,11 @@ export const LearningGoals: React.FC = () => {
     };
 
     useEffect(() => {
+        // ★useLearnAuth 는 'checking' | 'ok' | 'guest' 를 준다('user' 가 아니다 —
+        //   2026-08-25 여기서 'user' 를 기다려 목록이 영영 "불러오는 중…"에 멈췄다).
+        if (auth === 'checking') return;
         if (auth === 'guest') { goLoginTo('/learning/goals'); return; }
-        if (auth === 'user') load();
+        load();
     }, [auth]);
 
     // 전환·보관·재개·삭제 공통 호출. 성공하면 목록을 다시 읽는다.
@@ -86,7 +89,7 @@ export const LearningGoals: React.FC = () => {
                     </div>
                 )}
 
-                {goals === null ? (
+                {auth === 'checking' || goals === null ? (
                     <p className="text-center text-sm text-[#9089A1] py-10">불러오는 중…</p>
                 ) : goals.length === 0 ? (
                     <div className="text-center py-12">
