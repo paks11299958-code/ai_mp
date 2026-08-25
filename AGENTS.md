@@ -28,7 +28,9 @@ sed -n '158,705p' /home/paks11299958/work_index.md   # §1~13 (항상 유효한 
 ```
 
 ★파일이 안 보인다고 해서 **"여기가 GCP2 서버가 아니다"라고 판단하지 말 것.**
-서버 식별은 내부 IP 끝자리로 한다 — **.2=서버1(운영) / .3=서버2(에이전트·여기) / .5=서버3(GPU)**.
+서버 식별은 내부 IP 끝자리로 한다 — **.2=서버1(운영) / .3=서버2(에이전트·여기) / .9=서버3(GPU)**.
+★서버3 GPU는 2026-08-24 `gcp3-new`(내부 `10.178.0.9`)로 **전수 교체**됐다. 옛 `ai-studio-gpu`/`.5`는
+더 이상 존재하지 않는다. 온디맨드라 평소 `TERMINATED`인 것이 정상이다.
 확인: `hostname -I` 또는
 `curl -s -H "Metadata-Flavor: Google" http://metadata.google.internal/computeMetadata/v1/instance/name`
 (서버2 = `dbzone-ai-20260524-072604`, 내부 10.178.0.3)
