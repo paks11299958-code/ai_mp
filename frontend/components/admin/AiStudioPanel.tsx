@@ -409,7 +409,7 @@ export const AiStudioPanel: React.FC = () => {
         if (!window.confirm(
             '이 이미지를 약 3.4초 영상으로 만듭니다.\n\n' +
             '렌더만 약 7~9분·150~190원이며, 서버가 꺼져 있으면 부팅·유휴시간이 추가됩니다.\n' +
-            '인물은 고정하고 카메라만 천천히 줌인합니다. 계속할까요?')) return;
+            '인물은 고정하고 카메라에 미세한 시네마틱 움직임을 줍니다. 계속할까요?')) return;
         setBusy('animate'); setMsg('');
         try {
             const r = await aiStudioApi.animate(file, 'slow_push_in');
