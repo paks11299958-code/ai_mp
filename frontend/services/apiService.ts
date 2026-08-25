@@ -1212,11 +1212,18 @@ export const aiStudioApi = {
         //   styleMode: 'style transfer'(화풍만) | 'standard'(인물까지) | 'prompt is more important'
         styleImage?: string; styleWeight?: number; styleMode?: string;
     }) => post<{ ok: boolean; ids: number[]; queued: number }>('/admin/ai-studio/generate', payload),
+    animate: (sourceFile: string, motion: 'slow_push_in' | 'slow_pull_out' | 'pan_left' | 'pan_right') =>
+        post<{ ok: boolean; id: number; queued: number }>('/admin/ai-studio/animate', {
+            sourceFile, motion,
+        }),
     getJobs: (limit = 20) =>
         get<{
             jobs: {
-                id: number; status: string; error: string | null; prompt: string;
+                id: number; type: string; workflow: string | null;
+                status: string; error: string | null; prompt: string;
                 model: string; size: string; files: string[]; elapsedSec: number | null;
+                videoFile: string | null;
+                video: { durationSec: number; width: number; height: number; codec: string; bytes: number } | null;
                 createdAt: string; finishedAt: string | null;
             }[];
         }>(`/admin/ai-studio/jobs?limit=${limit}`),
@@ -1251,6 +1258,13 @@ export const aiStudioApi = {
             headers: { ...authHeaders() },
         });
         if (!res.ok) throw new Error(`이미지 로드 실패 (${res.status})`);
+        return URL.createObjectURL(await res.blob());
+    },
+    fetchVideo: async (file: string): Promise<string> => {
+        const res = await fetch(`/api/admin/ai-studio/video/${encodeURIComponent(file)}`, {
+            headers: { ...authHeaders() },
+        });
+        if (!res.ok) throw new Error(`영상 로드 실패 (${res.status})`);
         return URL.createObjectURL(await res.blob());
     },
 };

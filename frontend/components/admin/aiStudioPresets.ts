@@ -210,7 +210,6 @@ export const STYLE_PRESETS: StylePreset[] = [
 const MODEL_NOTES: Record<string, string> = {
     RealVisXL_V5:              '★사람 사진은 이걸로 — 얼굴·피부가 가장 자연스러움',
     JuggernautXL_v9:           '★물건·공간은 이걸로 — 제품컷·인테리어·음식',
-    DreamShaperXL_Turbo_v2:    '빠르게 여러 장 뽑아볼 때 — 대신 품질은 떨어짐',
     sd_xl_base_1_0:            '특별히 잘하는 게 없음 — 위 둘을 먼저 쓰세요',
     // ★2026-08-08 디스크 정리로 **서버3에서 삭제**한 것들(54GB→32GB).
     //   화면에 남겨두면 "있는데 안 되는" 모델이 되므로 여기서도 뺀다.

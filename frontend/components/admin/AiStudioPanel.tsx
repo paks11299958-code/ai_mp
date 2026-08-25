@@ -160,6 +160,23 @@ const JobImage: React.FC<{ file: string; serverOff: boolean; onZoom?: (url: stri
     );
 };
 
+const VideoButton: React.FC<{ file: string; serverOff: boolean; onOpen: (url: string) => void }> = ({ file, serverOff, onOpen }) => {
+    const [loading, setLoading] = useState(false);
+    const [failed, setFailed] = useState(false);
+    const open = async () => {
+        if (serverOff || loading) return;
+        setLoading(true); setFailed(false);
+        try { onOpen(await aiStudioApi.fetchVideo(file)); }
+        catch { setFailed(true); }
+        finally { setLoading(false); }
+    };
+    return <button type="button" onClick={open} disabled={serverOff || loading}
+        className="w-full rounded bg-emerald-800 hover:bg-emerald-700 disabled:bg-gray-800
+                   px-1.5 py-1 text-[11px] font-bold text-white disabled:text-gray-500">
+        {serverOff ? '서버를 켜면 재생' : loading ? '불러오는 중…' : failed ? '재생 실패 · 재시도' : '▶ 영상 보기'}
+    </button>;
+};
+
 export const AiStudioPanel: React.FC = () => {
     const [st, setSt] = useState<Awaited<ReturnType<typeof aiStudioApi.getStatus>> | null>(null);
     const [models, setModels] = useState<string[]>([]);
@@ -170,6 +187,7 @@ export const AiStudioPanel: React.FC = () => {
     const [usage, setUsage] = useState<{ day: string; jobs: number; sec: number; krw: number }[]>([]);
     // 최근 작업 이미지를 크게 볼 때 쓰는 확대 오버레이. null 이면 닫힘.
     const [zoom, setZoom] = useState<string | null>(null);
+    const [videoZoom, setVideoZoom] = useState<string | null>(null);
     const [studioMode, setStudioMode] = useState<StudioMode>('simple');
     const [promptTemplates, setPromptTemplates] = useState<AiPromptTemplate[]>([]);
     const [templateError, setTemplateError] = useState('');
@@ -385,6 +403,21 @@ export const AiStudioPanel: React.FC = () => {
             setJobs(before);   // 실패하면 되돌린다 — 지워진 것처럼 보이면 안 된다
             setMsg(e?.body?.error || e?.message || '삭제에 실패했습니다.');
         }
+    };
+
+    const doAnimate = async (file: string) => {
+        if (!window.confirm(
+            '이 이미지를 약 3.4초 영상으로 만듭니다.\n\n' +
+            '렌더만 약 7~9분·150~190원이며, 서버가 꺼져 있으면 부팅·유휴시간이 추가됩니다.\n' +
+            '인물은 고정하고 카메라만 천천히 줌인합니다. 계속할까요?')) return;
+        setBusy('animate'); setMsg('');
+        try {
+            const r = await aiStudioApi.animate(file, 'slow_push_in');
+            setMsg(`영상 작업 #${r.id}을 접수했습니다. 이미지 원본은 그대로 보존됩니다.`);
+            await load();
+        } catch (e: any) {
+            setMsg(e?.body?.error || e?.message || '영상 생성 요청에 실패했습니다.');
+        } finally { setBusy(null); }
     };
 
     /** 스타일 견본 올리기 — 업로드 경로는 img2img 와 같다(둘 다 서버3 input 폴더). */
@@ -1398,6 +1431,17 @@ export const AiStudioPanel: React.FC = () => {
                                 <p className="text-[10px] text-gray-500 truncate">
                                     #{j.id}{j.elapsedSec != null && ` · ${j.elapsedSec}초`}
                                 </p>
+                                {j.status === 'completed' && j.videoFile && (
+                                    <VideoButton file={j.videoFile} serverOff={!running} onOpen={setVideoZoom} />
+                                )}
+                                {j.status === 'completed' && j.type === 'image' && j.files[0] && (
+                                    <button type="button" onClick={() => doAnimate(j.files[0])}
+                                        disabled={busy !== null}
+                                        className="w-full rounded bg-purple-800 hover:bg-purple-700 px-1.5 py-1
+                                                   text-[11px] font-bold text-white disabled:opacity-40">
+                                        🎬 영상으로 만들기
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -1422,6 +1466,22 @@ export const AiStudioPanel: React.FC = () => {
                                className="text-[13px] px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-100">
                                 닫기
                             </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {videoZoom && (
+                <div onClick={() => { URL.revokeObjectURL(videoZoom); setVideoZoom(null); }}
+                     className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4">
+                    <div className="relative max-w-full" onClick={(e) => e.stopPropagation()}>
+                        <video src={videoZoom} controls autoPlay playsInline
+                               className="max-h-[82vh] max-w-full rounded-lg border border-gray-600" />
+                        <div className="mt-2 flex items-center justify-center gap-2">
+                            <a href={videoZoom} download="ai-studio-i2v.mp4"
+                               className="text-[13px] px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">⬇ 내려받기</a>
+                            <button onClick={() => { URL.revokeObjectURL(videoZoom); setVideoZoom(null); }}
+                               className="text-[13px] px-3 py-1.5 rounded bg-gray-700 hover:bg-gray-600">닫기</button>
                         </div>
                     </div>
                 </div>
