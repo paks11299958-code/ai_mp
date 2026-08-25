@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { LearningTabs } from './LearningTabs';
 import { useLearnAuth, goLoginTo } from '../learn/LearnKit';
 
 // 📌 오답 노트 (/learning/review) — S8 (app/learning/PRD.md 5장, 7장 간격 반복).
@@ -57,17 +58,18 @@ export const LearningReview: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
-            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
-                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-                    <button onClick={() => { window.location.href = '/learning/dashboard'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
-                        ← 대시보드
+            <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur">
+                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+                    <button onClick={() => { window.location.href = '/'; }} className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold">
+                        ← 메인
                     </button>
                     <span className="text-sm font-extrabold">📌 오답 노트</span>
                     <span className="w-16" />
                 </div>
+                <LearningTabs active="review" />
             </header>
 
-            <main className="max-w-2xl mx-auto px-4 py-6 pb-24">
+            <main className="max-w-4xl mx-auto px-4 py-6 pb-24">
                 {error && (
                     <div className="mb-4 bg-red-500/10 border border-red-500/30 rounded-xl px-4 py-3 text-sm text-red-700">{error}</div>
                 )}

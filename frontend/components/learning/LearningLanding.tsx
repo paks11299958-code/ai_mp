@@ -25,7 +25,7 @@ export const LearningLanding: React.FC = () => {
     return (
         <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
             <header className="sticky top-0 z-10 bg-[#F5EFE6]/90 backdrop-blur border-b border-[#F0E9DE]">
-                <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+                <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
                     <button
                         onClick={() => { window.location.href = '/'; }}
                         className="flex items-center gap-1.5 h-full text-sm text-indigo-700 font-semibold"
@@ -37,7 +37,7 @@ export const LearningLanding: React.FC = () => {
                 </div>
             </header>
 
-            <main className="max-w-2xl mx-auto px-4 py-10 pb-24">
+            <main className="max-w-4xl mx-auto px-4 py-10 pb-24">
                 <section className="text-center mb-10">
                     <span className="inline-block bg-indigo-500/15 text-indigo-700 text-xs font-bold px-3 py-1.5 rounded-full mb-3">
                         지속형 학습 코치
@@ -51,13 +51,15 @@ export const LearningLanding: React.FC = () => {
                     </p>
                 </section>
 
-                <div className="space-y-4 mb-10">
+                {/* PC(sm↑)에서는 2열 — 1열로 두면 max-w-4xl 안에서 카드가 가로로 늘어져 허전하다 */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-10">
                     <FeatureRow emoji="🎯" title="목표를 커리큘럼으로" desc="기간·주당 일수·수준에 맞춰 AI가 주차별 학습 계획을 짜드려요." />
                     <FeatureRow emoji="📖" title="매일 조금씩" desc="하루 학습 본문과 퀴즈 3~5문항, 3~10분이면 충분해요." />
                     <FeatureRow emoji="🔁" title="틀린 건 다시" desc="오답은 간격을 두고 다시 물어봐 확실히 기억하게 도와드려요." />
                     <FeatureRow emoji="📊" title="주간 리포트" desc="일주일마다 진도와 취약한 부분을 요약해 알려드려요." />
                 </div>
 
+                <div className="max-w-xl mx-auto">
                 {checked && goal ? (
                     <>
                         <div className="bg-white border border-[#E4DCF0] rounded-2xl p-4 mb-3">
@@ -105,6 +107,7 @@ export const LearningLanding: React.FC = () => {
                         </p>
                     </>
                 )}
+                </div>
             </main>
         </div>
     );
