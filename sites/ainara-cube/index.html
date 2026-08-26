@@ -233,13 +233,13 @@ header{
 .cube-static i:nth-child(3),.cube-static i:nth-child(8){background:rgba(232,230,220,.42);border-color:rgba(250,249,245,.34);}
 .cube-stage[data-cube-mode="live"] .cube-static{display:none;}
 
-/* ── 묶음 C — 스크롤 분해: 큐브 조각 → AI 임대형 서비스 카드 ─────────────────
+/* ── 묶음 C — 자동 전개: 큐브 조각 → AI 임대형 서비스 카드 ───────────────────
    ★canvas 를 쓰지 않는다. 사이트 전체에서 canvas 는 히어로의 1개뿐이므로(SPEC 2항)
      조각은 실제 DOM 카드로 만든다. 덕분에 문구가 진짜 텍스트라 검색·접근성도 살아 있다.
    ★프레임마다 건드리는 것은 transform / opacity 뿐이다(레이아웃 유발 0).
    ★기본 상태(JS 없음·모션축소) = 이미 '완전히 펼쳐진 격자'다.
-     JS 가 살아 있을 때만 [data-unfold-mode="live"] 를 붙여 키 큰 스크롤 구간 + sticky
-     로 바꾼다 → 스크립트가 죽어도 서비스 9개가 그대로 읽힌다. */
+     JS 가 살아 있을 때만 [data-unfold-mode="live"] 를 붙여 진입 시 한 번 자동 전개한다.
+     스크립트가 죽어도 서비스 9개는 그대로 읽힌다. */
 .unfold{
   position:relative;background:var(--ink-deep);color:#faf9f5;
   padding:var(--sec) 0;
@@ -294,39 +294,9 @@ header{
   position:relative;font-size:clamp(13px,1.45vw,16px);font-weight:500;
   letter-spacing:-.02em;line-height:1.35;color:#faf9f5;
 }
-/* 진행도 표시 — 문구 없는 장식. live 일 때만 보인다. */
-.unfold-bar{
-  margin-top:clamp(20px,3vw,34px);height:2px;border-radius:2px;
-  background:rgba(250,249,245,.14);overflow:hidden;display:none;
-}
-.unfold-bar i{display:block;height:100%;width:0;background:var(--brand-hover);}
-
-/* ── live (JS + 모션 허용) — 여기서만 스크롤 구간이 생긴다 ── */
-.unfold[data-unfold-mode="live"]{padding:0;height:260vh;}
-.unfold[data-unfold-mode="live"] .unfold-stick{
-  position:sticky;top:72px;                       /* 헤더 높이(72px)만큼 내린다 */
-  height:calc(100vh - 72px);
-  height:calc(100svh - 72px);                     /* 모바일 주소창 대응(미지원이면 위 줄) */
-  display:flex;flex-direction:column;justify-content:center;
-  overflow:hidden;                                /* ★분해 중 조각이 밖으로 새지 않게 */
-}
-.unfold[data-unfold-mode="live"] .unfold-bar{display:block;}
+/* live는 긴 sticky 구간을 만들지 않는다. 스크롤은 시작 신호일 뿐이고 전개는 자동 완주한다. */
+.unfold-stick{overflow:hidden;}
 .unfold[data-unfold-mode="live"] .ucard{will-change:transform;}
-/* 세로가 짧은 창(노트북·가로 모드)에서는 sticky 한 칸 안에 머리글+격자가 다 들어가야 한다.
-   ★1280×600 실측에서 31px 이 overflow:hidden 에 잘렸다 — 그래서 높이 기준으로 줄인다.
-     문구는 그대로 두고 크기·여백만 줄인다. */
-@media (max-height:760px){
-  .unfold[data-unfold-mode="live"] .unfold-head{margin-bottom:20px;}
-  .unfold[data-unfold-mode="live"] .unfold-head h2{font-size:clamp(24px,3vw,32px);}
-  .unfold[data-unfold-mode="live"] .unfold-head p{font-size:14.5px;}
-  .unfold[data-unfold-mode="live"] .ucard{min-height:74px;}
-  .unfold[data-unfold-mode="live"] .unfold-bar{margin-top:18px;}
-}
-@media (max-height:620px){
-  .unfold[data-unfold-mode="live"] .unfold-head .kicker{margin-bottom:8px;}
-  .unfold[data-unfold-mode="live"] .unfold-head h2{font-size:24px;margin-bottom:6px;}
-  .unfold[data-unfold-mode="live"] .ucard{min-height:60px;}
-}
 
 /* ── 통계 바 ── */
 .statbar{background:var(--ink-deep);color:#faf9f5;}
@@ -501,11 +471,7 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   .cta-grid{grid-template-columns:1fr;gap:34px;}
   .cta-photo{order:-1;}
   .f-grid{grid-template-columns:1fr;gap:30px;}
-  /* 묶음 C — 모바일은 헤더가 64px 이고 분해 폭도 좁힌다(JS 가 u 를 한 번 더 줄인다) */
-  .unfold[data-unfold-mode="live"]{height:220vh;}
-  .unfold[data-unfold-mode="live"] .unfold-stick{
-    top:64px;height:calc(100vh - 64px);height:calc(100svh - 64px);
-  }
+  /* 묶음 C — 모바일은 분해 폭과 자동 재생 시간을 줄인다(JS에서 처리). */
   .unfold-head{margin-bottom:22px;}
   .ucard{min-height:66px;padding:11px 10px;}
   .ucard .mark{left:10px;top:10px;width:8px;height:8px;}
@@ -527,7 +493,6 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   .ucard .face{border-radius:8px;}
   .ucard .mark{left:8px;top:8px;width:7px;height:7px;}
   .ucard .label{font-size:12px;letter-spacing:-.03em;}
-  .unfold[data-unfold-mode="live"]{height:200vh;}
 }
 
 /* ── 모션 축소: 애니메이션 전면 정지 + 정적 대체 (SPEC 3항) ── */
@@ -540,20 +505,16 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
      그 사이에도 어긋난 화면이 보이지 않게 CSS 로도 한 번 더 눌러 둔다. */
   .cube-stage canvas{display:none!important;}
   .cube-stage[data-cube-mode="live"] .cube-static{display:grid!important;}
-  /* 묶음 C — 스크롤 분해도 전부 끈다. 카드 9개를 펼쳐진 격자 그대로 보인다(SPEC 3항).
+  /* 묶음 C — 자동 전개도 전부 끈다. 카드 9개를 펼쳐진 격자 그대로 보인다(SPEC 3항).
      JS 도 mount 하지 않지만, 실행 중에 '모션 줄이기'를 켠 순간에도 어긋난 화면이
      보이지 않게 CSS 로 한 번 더 눌러 둔다. */
-  .unfold[data-unfold-mode="live"]{height:auto!important;padding:var(--sec) 0!important;}
-  .unfold[data-unfold-mode="live"] .unfold-stick{
-    position:static!important;height:auto!important;overflow:visible!important;display:block!important;
-  }
+  .unfold[data-unfold-mode="live"] .unfold-stick{overflow:visible!important;}
   .unfold-inner{perspective:none!important;}
   .unfold-stage{transform:none!important;}
   .ucard{transform:none!important;}
   .ucard .face{opacity:0!important;}
   .ucard .mark{opacity:1!important;}
   .ucard .label{opacity:1!important;}
-  .unfold-bar{display:none!important;}
 }
 </style>
 </head>
@@ -603,9 +564,9 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   </div>
 </section>
 
-<!-- ── 묶음 C — 스크롤 분해 → 서비스 카드 전개 ────────────────────────────────
+<!-- ── 묶음 C — 영역 진입 시 자동 분해 → 서비스 카드 전개 ──────────────────────
      히어로의 큐브가 아래로 내려와 흩어지고, 조각이 그대로 'AI 임대형' 9개 서비스
-     카드가 된다. 상태는 진행도 p(0~1) 하나뿐 — 스크롤을 되돌리면 그대로 역재생된다.
+     카드가 된다. 스크롤은 시작 신호만 주며 애니메이션은 한 번 끝까지 자동 완주한다.
      ★머리글·카드 문구는 전부 SPEC 의 기존 문구 그대로다(창작 0).
         h2/tag/리드 = 수익 구조 "02 AI 임대형" 카드와 같은 문장. -->
 <section class="unfold" id="unfold" data-unfold>
@@ -629,8 +590,6 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
         <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>AI 책만들기</span></article>
         <article class="ucard acc" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>AI 스튜디오</span></article>
       </div>
-
-      <div class="unfold-bar" aria-hidden="true"><i data-unfold-bar></i></div>
     </div>
   </div>
 </section>
@@ -1193,12 +1152,11 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
 })();
 </script>
 
-<!-- ── 묶음 C: 스크롤 분해 → 서비스 카드 전개 ─────────────────────────────
+<!-- ── 묶음 C: 영역 진입 시 자동 분해 → 서비스 카드 전개 ───────────────────
      · canvas 를 쓰지 않는다(사이트 전체 canvas 1개 규칙 — 히어로가 이미 쓴다).
        조각은 실제 DOM 카드이고, 프레임마다 transform / opacity 만 바꾼다.
-     · ★상태는 진행도 p(0~1) 하나뿐이다. 타이머·누적 변수 없음 →
-       스크롤 위치만 알면 화면이 결정되고, 되돌리면 그대로 역재생된다.
-     · p 는 sticky 구간(히어로가 지나간 직후 ~ 다음 섹션 직전)에서 0→1 로 잰다.
+     · 서비스 영역이 30% 보이면 한 번 시작하고, 스크롤과 무관하게 끝까지 자동 완주한다.
+     · PC 1.4초 / 모바일 0.95초. 완료 뒤에는 펼쳐진 메뉴 상태로 고정한다.
      · prefers-reduced-motion 이면 mount 하지 않는다 → 마크업 기본값(펼쳐진 격자)이 남는다. -->
 <script>
 (function () {
@@ -1206,10 +1164,8 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
 
   var sec = document.querySelector('[data-unfold]');
   if (!sec) return;
-  var stick = sec.querySelector('.unfold-stick');
   var stage = sec.querySelector('[data-unfold-stage]');
-  var bar   = sec.querySelector('[data-unfold-bar]');
-  if (!stick || !stage) return;
+  if (!stage) return;
 
   var cards = [].slice.call(stage.querySelectorAll('[data-ucard]'));
   if (cards.length !== 9) return;               // 카드 수가 바뀌면 조용히 정적 격자 유지
@@ -1235,8 +1191,8 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   // 흩어진 더미로 보인다 → 1/3 로 낮춘다(검토 지적 FIX-1).
   var RZ = [-1.4, 0.7, -0.7, 1, -1, 0.7, -0.7, 1.4, -1];
 
-  var live = false, p = -1, raf = 0, stickTop = 0, ro = null, dirty = true;
-  var secH = 0, stickH = 0;                      // 구간 높이 캐시 — relayout 에서만 갱신
+  var live = false, played = false, current = 0, raf = 0, ro = null, io = null;
+  var startedAt = 0;
   var geo = [];                                  // 조각별 {dx,dy,dz,s} — 진행도 0 일 때의 오프셋
 
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
@@ -1300,40 +1256,36 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       if (marks[j])  marks[j].style.opacity  = lk;
       if (labels[j]) labels[j].style.opacity = lk;
     }
-    if (bar) bar.style.width = (v * 100).toFixed(2) + '%';
   }
 
-  // sticky 구간을 0~1 로 환산. 위로 지나가면 1, 아직 아래면 0 (클램프 → 역재생 대칭)
-  // ★높이 두 값은 relayout() 에서 한 번만 재서 담아 둔다 — 매 프레임 offsetHeight 를 읽으면
-  //   직전 프레임 apply() 가 쓴 스타일 때문에 레이아웃이 강제된다(검토 지적 FIX-4).
-  // ★뒤 18% 는 p=1 로 고정한다 — 조립이 끝난 격자를 정지 상태로 볼 시간을 준다(FIX-2).
-  //   나누기 하나뿐이라 상태는 여전히 진행도 p 하나다(역재생·클램프 그대로).
-  function progress() {
-    var total = secH - stickH;
-    if (total <= 0) return 1;
-    var raw = (stickTop - sec.getBoundingClientRect().top) / total;
-    return clamp01(raw / 0.82);
-  }
-
-  function tick() {
-    raf = 0;
+  function tick(now) {
     if (!live) return;
-    var np = progress();
-    if (dirty || Math.abs(np - p) > 0.0004) { p = np; apply(p); dirty = false; }
+    if (!startedAt) startedAt = now;
+    var duration = mqNarrow && mqNarrow.matches ? 950 : 1400;
+    current = clamp01((now - startedAt) / duration);
+    apply(current);
+    if (current < 1) {
+      raf = requestAnimationFrame(tick);
+    } else {
+      raf = 0;
+      sec.setAttribute('data-unfold-state', 'complete');
+      if (io) { io.disconnect(); io = null; }
+    }
   }
-  function schedule() { if (!raf) raf = requestAnimationFrame(tick); }
+
+  function reveal() {
+    if (!live || played) return;
+    played = true;
+    startedAt = 0;
+    sec.setAttribute('data-unfold-state', 'animating');
+    raf = requestAnimationFrame(tick);
+  }
 
   function relayout() {
-    var t = parseFloat(window.getComputedStyle(stick).top);
-    stickTop = isNaN(t) ? 0 : t;
-    secH = sec.offsetHeight;
-    stickH = stick.offsetHeight;
     measure();
-    dirty = true;
-    schedule();
+    apply(current);
   }
 
-  var onScroll = function () { schedule(); };
   var onResize = function () { relayout(); };
 
   function mount() {
@@ -1345,11 +1297,18 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
     if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
       document.fonts.ready.then(function () { if (live) relayout(); });
     }
-    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onResize);
     if (window.ResizeObserver) {                 // transform 은 offsetWidth 를 바꾸지 않아 되먹임 없음
       ro = new ResizeObserver(function () { if (live) relayout(); });
       ro.observe(stage);
+    }
+    if (window.IntersectionObserver) {
+      io = new IntersectionObserver(function (entries) {
+        if (entries[0] && entries[0].isIntersecting) reveal();
+      }, { threshold: 0.3 });
+      io.observe(sec);
+    } else {
+      reveal();
     }
   }
 
@@ -1357,9 +1316,9 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
     if (!live) return;
     live = false;
     if (raf) { cancelAnimationFrame(raf); raf = 0; }
-    window.removeEventListener('scroll', onScroll);
     window.removeEventListener('resize', onResize);
     if (ro) { ro.disconnect(); ro = null; }
+    if (io) { io.disconnect(); io = null; }
     stage.style.transform = '';
     for (var j = 0; j < 9; j++) {                // 인라인 스타일을 걷어내 기본값(펼친 격자)으로
       cards[j].style.transform = '';
@@ -1367,9 +1326,8 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       if (marks[j])  marks[j].style.opacity  = '';
       if (labels[j]) labels[j].style.opacity = '';
     }
-    if (bar) bar.style.width = '';
     sec.removeAttribute('data-unfold-mode');
-    p = -1; dirty = true;
+    sec.removeAttribute('data-unfold-state');
   }
 
   function applyMode() {
