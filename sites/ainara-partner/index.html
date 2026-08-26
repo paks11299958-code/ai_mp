@@ -81,6 +81,32 @@ h1 .sub{display:block;color:var(--brand);}
 .fc-1{left:-26px;bottom:56px;}
 .fc-2{right:-18px;top:40px;}
 
+/* ── 히어로 서비스 칩: 자사 서비스명을 지그재그로 띄워 위아래로 부유시킨다 ──
+   ★타사 로고(Claude/Gemini/GPT 등)는 쓰지 않는다 — 제휴 오인·상표권 문제가 있고,
+     라이선스를 파는 페이지라 더 민감하다. 대신 **우리가 파는 것**을 보여준다. */
+.hero-visual .chips{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.chip{position:absolute;display:inline-flex;align-items:center;gap:6px;
+  padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:500;
+  color:var(--ink);background:rgba(255,255,255,.92);border:1px solid var(--hairline-strong);
+  box-shadow:0 6px 18px rgba(20,20,19,.10);backdrop-filter:blur(6px);white-space:nowrap;
+  animation:chipFloat 6s ease-in-out infinite;}
+.chip::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--brand);flex:none;}
+.chip.alt{background:rgba(20,20,19,.86);color:#faf9f5;border-color:rgba(250,249,245,.16);}
+.chip.alt::before{background:var(--brand-hover);}
+/* 지그재그 배치 — 좌우를 번갈아 두고 시작 시점을 흩어 한꺼번에 움직이지 않게 한다.
+   ★기존 플로팅 카드(fc-1 왼쪽아래, fc-2 오른쪽위)와 겹치지 않는 구역만 쓴다.
+     칩을 컨테이너 밖(-14px 등)에 두면 잘려나가므로 전부 안쪽에 배치한다(실측). */
+.chip:nth-child(1){left:6%;   top:14%;  animation-delay:-.2s;}
+.chip:nth-child(2){left:52%;  top:31%;  animation-delay:-1.6s;}
+.chip:nth-child(3){left:8%;   top:47%;  animation-delay:-3.1s;}
+.chip:nth-child(4){left:46%;  top:63%;  animation-delay:-4.4s;}
+/* fc-1(왼쪽 아래 카드)을 피해 위쪽으로 — 80% 에 두면 겹친다(실측) */
+.chip:nth-child(5){left:34%;  top:78%;  animation-delay:-2.5s;}
+@keyframes chipFloat{
+  0%,100%{transform:translateY(0);}
+  50%    {transform:translateY(-11px);}
+}
+
 /* ── stat bar ── */
 .statbar{border-bottom:1px solid var(--hairline);background:#fff;}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);padding:36px 0;}
@@ -199,6 +225,13 @@ footer li a:hover{color:#faf9f5;}
   /* ★원본(1152x960 = 6/5) 비율 그대로 둔다 — 4/3 으로 두면 cover 가 위아래 10%를
      잘라 인물 머리·턱이 날아간다(실측). 잘리지 않는 것이 우선이다. */
   .hero-visual img{aspect-ratio:6/5;}
+  /* 좁은 화면에서는 칩을 줄이고 3개만 남긴다(5개면 그림을 덮는다).
+     ★음수 left 를 주면 컨테이너 밖으로 잘려나간다(실측) — 반드시 안쪽 % 로 둔다. */
+  .chip{font-size:11.5px;padding:6px 11px;}
+  .chip:nth-child(4),.chip:nth-child(5){display:none;}
+  .chip:nth-child(1){left:5%;  top:12%;}
+  .chip:nth-child(2){left:40%; top:40%;}
+  .chip:nth-child(3){left:7%;  top:70%;}
   .tiers{grid-template-columns:1fr;}
   .stats{grid-template-columns:1fr;}
   .stat{border-left:0;padding-left:0;}
@@ -242,7 +275,15 @@ footer li a:hover{color:#faf9f5;}
       <p class="hero-note">계약 전 1:1 사업 설명 · 라이선스 등급별 운영 범위 안내</p>
     </div>
     <div class="hero-visual">
-      <div class="photo"><img src="assets/img/hero.png" alt="파트너 사업 상담 미팅" width="1152" height="960"></div>
+      <div class="photo"><img src="assets/img/hero.png" alt="AI 플랫폼 이미지" width="1152" height="960"></div>
+      <!-- 자사 서비스명 칩(지그재그·부유). 장식이므로 aria-hidden. -->
+      <div class="chips" aria-hidden="true">
+        <span class="chip">AI 사주</span>
+        <span class="chip alt">병원 AI 상담</span>
+        <span class="chip">AI 쇼츠 제작</span>
+        <span class="chip alt">AI 홈페이지</span>
+        <span class="chip">AI 법률상담</span>
+      </div>
       <div class="float-card fc-1">
         <div class="k">파트너 모집</div>
         <div class="v">2026<em>년</em></div>
