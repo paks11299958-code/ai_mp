@@ -233,6 +233,101 @@ header{
 .cube-static i:nth-child(3),.cube-static i:nth-child(8){background:rgba(232,230,220,.42);border-color:rgba(250,249,245,.34);}
 .cube-stage[data-cube-mode="live"] .cube-static{display:none;}
 
+/* ── 묶음 C — 스크롤 분해: 큐브 조각 → AI 임대형 서비스 카드 ─────────────────
+   ★canvas 를 쓰지 않는다. 사이트 전체에서 canvas 는 히어로의 1개뿐이므로(SPEC 2항)
+     조각은 실제 DOM 카드로 만든다. 덕분에 문구가 진짜 텍스트라 검색·접근성도 살아 있다.
+   ★프레임마다 건드리는 것은 transform / opacity 뿐이다(레이아웃 유발 0).
+   ★기본 상태(JS 없음·모션축소) = 이미 '완전히 펼쳐진 격자'다.
+     JS 가 살아 있을 때만 [data-unfold-mode="live"] 를 붙여 키 큰 스크롤 구간 + sticky
+     로 바꾼다 → 스크립트가 죽어도 서비스 9개가 그대로 읽힌다. */
+.unfold{
+  position:relative;background:var(--ink-deep);color:#faf9f5;
+  padding:var(--sec) 0;
+}
+.unfold-head{margin-bottom:clamp(24px,3.6vw,40px);}
+.unfold .kicker{color:rgba(250,249,245,.66);}
+.unfold .kicker .cubelet{background:var(--brand-hover);box-shadow:4px 4px 0 rgba(217,119,87,.26);}
+.unfold-head h2{
+  font-family:var(--serif);font-weight:400;letter-spacing:-.03em;line-height:1.16;
+  font-size:clamp(28px,4vw,42px);margin:0 0 10px;color:#faf9f5;
+}
+.unfold-head h2 .tag{
+  display:inline-block;vertical-align:middle;margin-left:12px;
+  font-family:var(--sans);font-size:11.5px;font-weight:500;letter-spacing:.04em;
+  color:#e7d7cd;background:rgba(217,119,87,.16);border:1px solid rgba(217,119,87,.34);
+  border-radius:5px;padding:3px 9px;line-height:1.4;
+}
+.unfold-head p{font-size:clamp(14.5px,1.6vw,17px);color:#d9d7cf;margin:0;max-width:60ch;}
+
+/* 무대 — perspective 는 부모(.unfold-inner)가, 회전은 무대가 맡는다.
+   preserve-3d 라야 조각의 translateZ 가 무대 회전에 맞춰 깊이로 보인다. */
+.unfold-inner{perspective:1200px;}
+.unfold-stage{
+  position:relative;                       /* 조각의 offsetParent — JS 가 좌표를 잰다 */
+  transform-style:preserve-3d;
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:clamp(9px,1.4vw,16px);
+}
+/* 조각 = 서비스 카드. 펼쳐진 상태가 기본값이다. */
+.ucard{
+  position:relative;min-height:clamp(74px,8vw,106px);
+  border:1px solid rgba(250,249,245,.17);border-radius:10px;
+  background:rgba(250,249,245,.055);
+  padding:clamp(12px,1.7vw,18px);
+  display:flex;align-items:flex-end;
+  transform-origin:50% 50%;
+}
+/* 큐브 스티커 — 분해 전(진행도 0)에는 이 면이 카드를 덮어 큐브 조각처럼 보인다.
+   JS 가 opacity 만 바꾼다. 기본값 0(= 펼쳐진 카드). */
+.ucard .face{
+  position:absolute;inset:-1px;border-radius:10px;opacity:0;
+  background:linear-gradient(140deg,#faf9f5 0%,#e8e6dc 54%,#c8c4b9 100%);
+  box-shadow:inset 0 0 0 1px rgba(20,20,19,.14);
+}
+.ucard.acc .face{background:linear-gradient(140deg,#d97757 0%,#c96442 58%,#a85033 100%);}
+.ucard .mark{
+  position:absolute;left:clamp(12px,1.7vw,18px);top:clamp(12px,1.7vw,18px);
+  width:9px;height:9px;border-radius:2px;background:rgba(250,249,245,.34);
+}
+.ucard.acc .mark{background:var(--brand-hover);}
+.ucard .label{
+  position:relative;font-size:clamp(13px,1.45vw,16px);font-weight:500;
+  letter-spacing:-.02em;line-height:1.35;color:#faf9f5;
+}
+/* 진행도 표시 — 문구 없는 장식. live 일 때만 보인다. */
+.unfold-bar{
+  margin-top:clamp(20px,3vw,34px);height:2px;border-radius:2px;
+  background:rgba(250,249,245,.14);overflow:hidden;display:none;
+}
+.unfold-bar i{display:block;height:100%;width:0;background:var(--brand-hover);}
+
+/* ── live (JS + 모션 허용) — 여기서만 스크롤 구간이 생긴다 ── */
+.unfold[data-unfold-mode="live"]{padding:0;height:260vh;}
+.unfold[data-unfold-mode="live"] .unfold-stick{
+  position:sticky;top:72px;                       /* 헤더 높이(72px)만큼 내린다 */
+  height:calc(100vh - 72px);
+  height:calc(100svh - 72px);                     /* 모바일 주소창 대응(미지원이면 위 줄) */
+  display:flex;flex-direction:column;justify-content:center;
+  overflow:hidden;                                /* ★분해 중 조각이 밖으로 새지 않게 */
+}
+.unfold[data-unfold-mode="live"] .unfold-bar{display:block;}
+.unfold[data-unfold-mode="live"] .ucard{will-change:transform;}
+/* 세로가 짧은 창(노트북·가로 모드)에서는 sticky 한 칸 안에 머리글+격자가 다 들어가야 한다.
+   ★1280×600 실측에서 31px 이 overflow:hidden 에 잘렸다 — 그래서 높이 기준으로 줄인다.
+     문구는 그대로 두고 크기·여백만 줄인다. */
+@media (max-height:760px){
+  .unfold[data-unfold-mode="live"] .unfold-head{margin-bottom:20px;}
+  .unfold[data-unfold-mode="live"] .unfold-head h2{font-size:clamp(24px,3vw,32px);}
+  .unfold[data-unfold-mode="live"] .unfold-head p{font-size:14.5px;}
+  .unfold[data-unfold-mode="live"] .ucard{min-height:74px;}
+  .unfold[data-unfold-mode="live"] .unfold-bar{margin-top:18px;}
+}
+@media (max-height:620px){
+  .unfold[data-unfold-mode="live"] .unfold-head .kicker{margin-bottom:8px;}
+  .unfold[data-unfold-mode="live"] .unfold-head h2{font-size:24px;margin-bottom:6px;}
+  .unfold[data-unfold-mode="live"] .ucard{min-height:60px;}
+}
+
 /* ── 통계 바 ── */
 .statbar{background:var(--ink-deep);color:#faf9f5;}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(250,249,245,.14);}
@@ -406,6 +501,15 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   .cta-grid{grid-template-columns:1fr;gap:34px;}
   .cta-photo{order:-1;}
   .f-grid{grid-template-columns:1fr;gap:30px;}
+  /* 묶음 C — 모바일은 헤더가 64px 이고 분해 폭도 좁힌다(JS 가 u 를 한 번 더 줄인다) */
+  .unfold[data-unfold-mode="live"]{height:220vh;}
+  .unfold[data-unfold-mode="live"] .unfold-stick{
+    top:64px;height:calc(100vh - 64px);height:calc(100svh - 64px);
+  }
+  .unfold-head{margin-bottom:22px;}
+  .ucard{min-height:66px;padding:11px 10px;}
+  .ucard .mark{left:10px;top:10px;width:8px;height:8px;}
+  .ucard .label{font-size:13px;}
   .ai-consult-panel{grid-template-columns:1fr;max-height:92vh;overflow-y:auto;}
 }
 @media (max-width:420px){
@@ -417,6 +521,13 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   .model ul{grid-template-columns:1fr;}
   .tiers{grid-template-columns:1fr;}
   .cube-stage{max-width:236px;}
+  /* 360px — 3열은 유지하되(큐브 3×3 이 개념) 여백만 줄인다. 가로 스크롤 0 */
+  .unfold-stage{gap:7px;}
+  .ucard{min-height:58px;padding:9px 8px;border-radius:8px;}
+  .ucard .face{border-radius:8px;}
+  .ucard .mark{left:8px;top:8px;width:7px;height:7px;}
+  .ucard .label{font-size:12px;letter-spacing:-.03em;}
+  .unfold[data-unfold-mode="live"]{height:200vh;}
 }
 
 /* ── 모션 축소: 애니메이션 전면 정지 + 정적 대체 (SPEC 3항) ── */
@@ -429,6 +540,20 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
      그 사이에도 어긋난 화면이 보이지 않게 CSS 로도 한 번 더 눌러 둔다. */
   .cube-stage canvas{display:none!important;}
   .cube-stage[data-cube-mode="live"] .cube-static{display:grid!important;}
+  /* 묶음 C — 스크롤 분해도 전부 끈다. 카드 9개를 펼쳐진 격자 그대로 보인다(SPEC 3항).
+     JS 도 mount 하지 않지만, 실행 중에 '모션 줄이기'를 켠 순간에도 어긋난 화면이
+     보이지 않게 CSS 로 한 번 더 눌러 둔다. */
+  .unfold[data-unfold-mode="live"]{height:auto!important;padding:var(--sec) 0!important;}
+  .unfold[data-unfold-mode="live"] .unfold-stick{
+    position:static!important;height:auto!important;overflow:visible!important;display:block!important;
+  }
+  .unfold-inner{perspective:none!important;}
+  .unfold-stage{transform:none!important;}
+  .ucard{transform:none!important;}
+  .ucard .face{opacity:0!important;}
+  .ucard .mark{opacity:1!important;}
+  .ucard .label{opacity:1!important;}
+  .unfold-bar{display:none!important;}
 }
 </style>
 </head>
@@ -474,6 +599,38 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
          (사이트 전체 canvas 최대 1개 — SPEC 2항) -->
     <div class="cube-stage" data-cube-stage aria-hidden="true">
       <div class="cube-static"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 묶음 C — 스크롤 분해 → 서비스 카드 전개 ────────────────────────────────
+     히어로의 큐브가 아래로 내려와 흩어지고, 조각이 그대로 'AI 임대형' 9개 서비스
+     카드가 된다. 상태는 진행도 p(0~1) 하나뿐 — 스크롤을 되돌리면 그대로 역재생된다.
+     ★머리글·카드 문구는 전부 SPEC 의 기존 문구 그대로다(창작 0).
+        h2/tag/리드 = 수익 구조 "02 AI 임대형" 카드와 같은 문장. -->
+<section class="unfold" id="unfold" data-unfold>
+  <div class="unfold-stick">
+    <div class="wrap unfold-inner">
+      <div class="unfold-head">
+        <p class="kicker"><span class="cubelet"></span>02 AI 임대형</p>
+        <h2>AI 임대형<span class="tag">B2B SaaS</span></h2>
+        <p>사업자가 월 임대료를 지불하는 형태로, 계약 유지 기간 동안 파트너에게 지속적인 정산이 발생합니다.</p>
+      </div>
+
+      <!-- 조각 9개 = 카드 9개. 기본(JS 없음/모션축소) 상태가 곧 완성된 격자다. -->
+      <div class="unfold-stage" data-unfold-stage>
+        <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>병원 AI 상담</span></article>
+        <article class="ucard acc" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>성형외과 AI</span></article>
+        <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>정수기 렌탈 AI</span></article>
+        <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>휴대폰 매장 AI</span></article>
+        <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>인터넷 가입 AI</span></article>
+        <article class="ucard acc" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>쇼핑몰 AI</span></article>
+        <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>AI 주식</span></article>
+        <article class="ucard" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>AI 책만들기</span></article>
+        <article class="ucard acc" data-ucard><span class="face" aria-hidden="true"></span><span class="mark" aria-hidden="true"></span><span class="label" data-ulabel>AI 스튜디오</span></article>
+      </div>
+
+      <div class="unfold-bar" aria-hidden="true"><i data-unfold-bar></i></div>
     </div>
   </div>
 </section>
@@ -1033,6 +1190,200 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
     else if (mqReduce.addListener) mqReduce.addListener(apply);
   }
   apply();
+})();
+</script>
+
+<!-- ── 묶음 C: 스크롤 분해 → 서비스 카드 전개 ─────────────────────────────
+     · canvas 를 쓰지 않는다(사이트 전체 canvas 1개 규칙 — 히어로가 이미 쓴다).
+       조각은 실제 DOM 카드이고, 프레임마다 transform / opacity 만 바꾼다.
+     · ★상태는 진행도 p(0~1) 하나뿐이다. 타이머·누적 변수 없음 →
+       스크롤 위치만 알면 화면이 결정되고, 되돌리면 그대로 역재생된다.
+     · p 는 sticky 구간(히어로가 지나간 직후 ~ 다음 섹션 직전)에서 0→1 로 잰다.
+     · prefers-reduced-motion 이면 mount 하지 않는다 → 마크업 기본값(펼쳐진 격자)이 남는다. -->
+<script>
+(function () {
+  'use strict';
+
+  var sec = document.querySelector('[data-unfold]');
+  if (!sec) return;
+  var stick = sec.querySelector('.unfold-stick');
+  var stage = sec.querySelector('[data-unfold-stage]');
+  var bar   = sec.querySelector('[data-unfold-bar]');
+  if (!stick || !stage) return;
+
+  var cards = [].slice.call(stage.querySelectorAll('[data-ucard]'));
+  if (cards.length !== 9) return;               // 카드 수가 바뀌면 조용히 정적 격자 유지
+  var faces = [], marks = [], labels = [], i;
+  for (i = 0; i < 9; i++) {
+    faces.push(cards[i].querySelector('.face'));
+    marks.push(cards[i].querySelector('.mark'));
+    labels.push(cards[i].querySelector('[data-ulabel]'));
+  }
+
+  var mm = window.matchMedia ? function (q) { return window.matchMedia(q); } : null;
+  var mqReduce = mm ? mm('(prefers-reduced-motion: reduce)') : null;
+  var mqNarrow = mm ? mm('(max-width: 820px)') : null;
+
+  // 조각의 큐브 격자 좌표 — 3×3×3 중 각 행이 서로 다른 깊이를 갖도록 고른 9칸.
+  // (행마다 z 가 -1/0/1 하나씩 → 뭉쳤을 때 평면이 아니라 덩어리로 보인다)
+  var LAT = [];
+  for (i = 0; i < 9; i++) {
+    var c = i % 3, r = (i / 3) | 0;
+    LAT.push([c - 1, 1 - r, ((c * 2 + r) % 3) - 1]);
+  }
+  // 조각별 기울기(고정값 — 난수 아님). 진폭이 크면 뭉친 상태에서 맞물림이 깨져
+  // 흩어진 더미로 보인다 → 1/3 로 낮춘다(검토 지적 FIX-1).
+  var RZ = [-1.4, 0.7, -0.7, 1, -1, 0.7, -0.7, 1.4, -1];
+
+  var live = false, p = -1, raf = 0, stickTop = 0, ro = null, dirty = true;
+  var secH = 0, stickH = 0;                      // 구간 높이 캐시 — relayout 에서만 갱신
+  var geo = [];                                  // 조각별 {dx,dy,dz,s} — 진행도 0 일 때의 오프셋
+
+  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function ease(x) { return x * x * (3 - 2 * x); }        // smoothstep
+
+  // ── 측정 — transform 의 영향을 받지 않는 offset* 로 잰다(rect 는 변형이 섞인다) ──
+  function measure() {
+    var sw = stage.clientWidth, sh = stage.clientHeight;
+    if (!sw || !sh) return false;
+    var cx0 = sw / 2, cy0 = sh / 2;
+    var u = Math.min(sw, sh) * 0.26;             // 큐비 한 칸 간격(px). 덩어리 ≈ 3u
+    if (mqNarrow && mqNarrow.matches) u *= 0.74; // 모바일은 분해 폭을 줄인다
+    if (u < 24) u = 24;
+    if (u > 96) u = 96;
+
+    for (var j = 0; j < 9; j++) {
+      var el = cards[j], g = LAT[j];
+      var w = el.offsetWidth || 1, h = el.offsetHeight || 1;
+      var cx = el.offsetLeft + w / 2, cy = el.offsetTop + h / 2;
+      // ★가로로 긴 카드를 '정사각 큐비'로 되돌리려면 축별 배율이 달라야 한다.
+      //   uniform scale 로는 납작한 판때기가 되어 큐브로 안 보였다(실측).
+      // ★검토 지적 FIX-1 — f=0 에서 조각이 '흩어진 더미'로 보이던 문제.
+      //   제안값(1.14)까지 키워도 실렌더에 틈이 남아, 캡처로 확인하며 1.3 까지 올렸다.
+      var tile = u * 1.3;    // 칸 간격보다 크게 → 조각끼리 맞물려 틈 없이 한 덩어리로 보인다
+      geo[j] = {
+        dx: (cx0 + g[0] * u) - cx,
+        dy: (cy0 - g[1] * u) - cy,
+        dz: g[2] * u * 0.11,                   // 깊이는 아주 얕게. 깊으면 원근 배율차 + 무대 회전이
+                                               // 조각을 가로로 밀어 흩어진 더미처럼 보였다(실측)
+        sx: Math.max(0.06, Math.min(1, tile / w)),
+        sy: Math.max(0.06, Math.min(1, tile / h))
+      };
+    }
+    return true;
+  }
+
+  // ── 진행도 하나로 화면을 결정한다(입력 p 외에 상태 없음) ──
+  function apply(v) {
+    var e = ease(v), k = 1 - e;                  // k=1 뭉친 큐브 / k=0 펼친 격자
+    stage.style.transform = k > 0.001
+      ? 'rotateX(' + (-15 * k).toFixed(2) + 'deg) rotateY(' + (24 * k).toFixed(2) + 'deg)'
+      : '';
+
+    // 라벨(서비스명)은 후반부에 나타난다 — 조각이 카드가 되는 구간
+    var lab = ease(clamp01((v - 0.42) / 0.44));
+    var fk = k.toFixed(3), lk = lab.toFixed(3);
+
+    for (var j = 0; j < 9; j++) {
+      var g = geo[j];
+      if (!g) continue;
+      var sx = 1 + (g.sx - 1) * k, sy = 1 + (g.sy - 1) * k;
+      // ★함수 순서 주의: rotate 를 scale 앞에 둬야 '정사각으로 줄인 뒤 회전'이 된다.
+      //   scale(비균일) 뒤에 rotate 를 두면 조각이 기울어지며 찌그러진다.
+      cards[j].style.transform =
+        'translate3d(' + (g.dx * k).toFixed(2) + 'px,' + (g.dy * k).toFixed(2) + 'px,' +
+        (g.dz * k).toFixed(2) + 'px) rotate(' + (RZ[j] * k).toFixed(2) + 'deg) scale(' +
+        sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+      if (faces[j])  faces[j].style.opacity  = fk;
+      // ★점(mark)은 밝은 face 위에서는 흰 점이 흰 바탕에 묻힌다 → 라벨과 같은 타이밍으로
+      //   나타나게 묶는다(큐브 상태에서는 감춰지고, 펼친 카드에서만 보인다). 검토 지적 FIX-3.
+      if (marks[j])  marks[j].style.opacity  = lk;
+      if (labels[j]) labels[j].style.opacity = lk;
+    }
+    if (bar) bar.style.width = (v * 100).toFixed(2) + '%';
+  }
+
+  // sticky 구간을 0~1 로 환산. 위로 지나가면 1, 아직 아래면 0 (클램프 → 역재생 대칭)
+  // ★높이 두 값은 relayout() 에서 한 번만 재서 담아 둔다 — 매 프레임 offsetHeight 를 읽으면
+  //   직전 프레임 apply() 가 쓴 스타일 때문에 레이아웃이 강제된다(검토 지적 FIX-4).
+  // ★뒤 18% 는 p=1 로 고정한다 — 조립이 끝난 격자를 정지 상태로 볼 시간을 준다(FIX-2).
+  //   나누기 하나뿐이라 상태는 여전히 진행도 p 하나다(역재생·클램프 그대로).
+  function progress() {
+    var total = secH - stickH;
+    if (total <= 0) return 1;
+    var raw = (stickTop - sec.getBoundingClientRect().top) / total;
+    return clamp01(raw / 0.82);
+  }
+
+  function tick() {
+    raf = 0;
+    if (!live) return;
+    var np = progress();
+    if (dirty || Math.abs(np - p) > 0.0004) { p = np; apply(p); dirty = false; }
+  }
+  function schedule() { if (!raf) raf = requestAnimationFrame(tick); }
+
+  function relayout() {
+    var t = parseFloat(window.getComputedStyle(stick).top);
+    stickTop = isNaN(t) ? 0 : t;
+    secH = sec.offsetHeight;
+    stickH = stick.offsetHeight;
+    measure();
+    dirty = true;
+    schedule();
+  }
+
+  var onScroll = function () { schedule(); };
+  var onResize = function () { relayout(); };
+
+  function mount() {
+    if (live) return;
+    live = true;
+    sec.setAttribute('data-unfold-mode', 'live');
+    relayout();
+    // 폰트가 늦게 오면 카드 높이가 바뀐다 → 한 번 더 잰다
+    if (document.fonts && document.fonts.ready && document.fonts.ready.then) {
+      document.fonts.ready.then(function () { if (live) relayout(); });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onResize);
+    if (window.ResizeObserver) {                 // transform 은 offsetWidth 를 바꾸지 않아 되먹임 없음
+      ro = new ResizeObserver(function () { if (live) relayout(); });
+      ro.observe(stage);
+    }
+  }
+
+  function unmount() {                           // 실행 중 '모션 줄이기'를 켠 경우
+    if (!live) return;
+    live = false;
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    window.removeEventListener('scroll', onScroll);
+    window.removeEventListener('resize', onResize);
+    if (ro) { ro.disconnect(); ro = null; }
+    stage.style.transform = '';
+    for (var j = 0; j < 9; j++) {                // 인라인 스타일을 걷어내 기본값(펼친 격자)으로
+      cards[j].style.transform = '';
+      if (faces[j])  faces[j].style.opacity  = '';
+      if (marks[j])  marks[j].style.opacity  = '';
+      if (labels[j]) labels[j].style.opacity = '';
+    }
+    if (bar) bar.style.width = '';
+    sec.removeAttribute('data-unfold-mode');
+    p = -1; dirty = true;
+  }
+
+  function applyMode() {
+    if (mqReduce && mqReduce.matches) unmount(); else mount();
+  }
+  if (mqReduce) {
+    if (mqReduce.addEventListener) mqReduce.addEventListener('change', applyMode);
+    else if (mqReduce.addListener) mqReduce.addListener(applyMode);
+  }
+  if (mqNarrow) {                                // 분해 폭이 분기점에서 바뀌므로 다시 잰다
+    if (mqNarrow.addEventListener) mqNarrow.addEventListener('change', function () { if (live) relayout(); });
+    else if (mqNarrow.addListener) mqNarrow.addListener(function () { if (live) relayout(); });
+  }
+  applyMode();
 })();
 </script>
 
