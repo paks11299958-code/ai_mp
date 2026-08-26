@@ -7,6 +7,9 @@ import { Icon } from '../Icons';
 interface Site { name: string; url: string; desc: string }
 const BASE = 'https://aichat.dbzone.kr';
 
+export const resolveSiteUrl = (url: string) =>
+    /^https?:\/\//i.test(url) ? url : `${BASE}${url}`;
+
 export const SitesPanel: React.FC = () => {
     const [sites, setSites] = useState<Site[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -67,31 +70,34 @@ export const SitesPanel: React.FC = () => {
                 {sites && sites.length === 0 && <div className="text-sm text-gray-500 py-8 text-center">아직 만든 사이트가 없어요.</div>}
 
                 <div className="space-y-2.5">
-                    {sites && sites.map(s => (
-                        <div key={s.name} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                            <div className="flex items-start justify-between gap-3">
-                                <div className="min-w-0">
-                                    <a href={`${BASE}${s.url}`} target="_blank" rel="noopener noreferrer"
-                                        className="text-sm font-bold text-sky-300 hover:underline inline-flex items-center gap-1">
-                                        {s.name} <Icon name="ExternalLink" size={12} />
-                                    </a>
-                                    <div className="text-[11px] text-gray-500 mt-0.5 font-mono">{BASE}{s.url}</div>
-                                    {s.desc && <div className="text-xs text-gray-300 mt-1.5 leading-relaxed">{s.desc}</div>}
-                                </div>
-                                <div className="shrink-0 flex items-center gap-1.5">
-                                    <button onClick={() => download(s.name)} disabled={dl === s.name}
-                                        title="소스를 ZIP으로 받아 새 GitHub 저장소 + Vercel로 독립 배포"
-                                        className="text-xs font-bold text-sky-300 px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 disabled:opacity-40">
-                                        {dl === s.name ? '준비 중…' : '⬇ 소스받기'}
-                                    </button>
-                                    <button onClick={() => remove(s.name)} disabled={busy === s.name}
-                                        className="text-xs font-bold text-red-300 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 disabled:opacity-40">
-                                        {busy === s.name ? '삭제 중…' : '🗑 삭제'}
-                                    </button>
+                    {sites && sites.map(s => {
+                        const siteUrl = resolveSiteUrl(s.url);
+                        return (
+                            <div key={s.name} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <a href={siteUrl} target="_blank" rel="noopener noreferrer"
+                                            className="text-sm font-bold text-sky-300 hover:underline inline-flex items-center gap-1">
+                                            {s.name} <Icon name="ExternalLink" size={12} />
+                                        </a>
+                                        <div className="text-[11px] text-gray-500 mt-0.5 font-mono break-all">{siteUrl}</div>
+                                        {s.desc && <div className="text-xs text-gray-300 mt-1.5 leading-relaxed">{s.desc}</div>}
+                                    </div>
+                                    <div className="shrink-0 flex items-center gap-1.5">
+                                        <button onClick={() => download(s.name)} disabled={dl === s.name}
+                                            title="소스를 ZIP으로 받아 새 GitHub 저장소 + Vercel로 독립 배포"
+                                            className="text-xs font-bold text-sky-300 px-2.5 py-1.5 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 disabled:opacity-40">
+                                            {dl === s.name ? '준비 중…' : '⬇ 소스받기'}
+                                        </button>
+                                        <button onClick={() => remove(s.name)} disabled={busy === s.name}
+                                            className="text-xs font-bold text-red-300 px-2.5 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 disabled:opacity-40">
+                                            {busy === s.name ? '삭제 중…' : '🗑 삭제'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
         </div>
