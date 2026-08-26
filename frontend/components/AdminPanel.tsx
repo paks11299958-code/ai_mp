@@ -11,6 +11,7 @@ import { UsersPanel } from './admin/UsersPanel';
 import { AiIdeasPanel } from './admin/AiIdeasPanel';
 import { MarketingAssetsPanel } from './admin/MarketingAssetsPanel';
 import { SitesPanel } from './admin/SitesPanel';
+import { HomepageMakerPanel } from './admin/HomepageMakerPanel';
 import { SkillsPanel } from './admin/SkillsPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
@@ -48,7 +49,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'homepage-maker' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -123,6 +124,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'agent-growth',  label: '직원 성장',   icon: 'Sparkles' },
                             { key: 'skills',        label: '스킬',       icon: 'Zap' },
                             { key: 'sites',         label: '독립사이트', icon: 'Globe' },
+                            { key: 'homepage-maker', label: '홈페이지 생성', icon: 'Sparkles' },
                             { key: 'toss-trader',   label: '토스 자동매매', icon: 'TrendingUp' },
                             // 가상매매 성과는 실봇 탭과 성격이 달라 분리(2026-08-05) —
                             // 실봇 탭은 '지금 뭘 하나', 이 탭은 '결과가 어땠나'가 중심.
@@ -228,6 +230,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'marketing-assets' && <MarketingAssetsPanel />}
                 {mainView === 'skills' && <SkillsPanel />}
                 {mainView === 'sites' && <SitesPanel />}
+                {mainView === 'homepage-maker' && <HomepageMakerPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'paper-trader' && <TossTraderPanel mode="paper" />}
                 {mainView === 'inverse-trader' && <InverseTraderPanel />}
