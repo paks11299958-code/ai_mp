@@ -230,14 +230,22 @@ footer li a:hover{color:#faf9f5;}
   /* ★원본(1152x960 = 6/5) 비율 그대로 둔다 — 4/3 으로 두면 cover 가 위아래 10%를
      잘라 인물 머리·턱이 날아간다(실측). 잘리지 않는 것이 우선이다. */
   .hero-visual img{aspect-ratio:6/5;}
-  /* 좁은 화면에서는 칩을 줄이고 4개만 남긴다(8개면 그림을 다 덮는다).
+  /* ★모바일에서도 8개를 모두 보여준다(2026-08-26 사장 "추가한 칩 안 보인다").
+     칩을 작게 줄이고 8행으로 촘촘히 지그재그 배치하면 다 들어간다.
      ★음수 left 를 주면 컨테이너 밖으로 잘려나간다(실측) — 반드시 안쪽 % 로 둔다. */
-  .chip{font-size:11.5px;padding:6px 11px;}
-  .chip:nth-child(n+5){display:none;}
-  .chip:nth-child(1){left:4%;  top:8%;}
-  .chip:nth-child(2){left:42%; top:32%;}
-  .chip:nth-child(3){left:5%;  top:56%;}
-  .chip:nth-child(4){left:40%; top:80%;}
+  .chip{font-size:10.5px;padding:5px 9px;gap:5px;}
+  .chip::before{width:4px;height:4px;}
+  .chip:nth-child(1){left:3%;   top:3%;}
+  .chip:nth-child(2){left:46%;  top:15%;}
+  .chip:nth-child(3){left:3%;   top:27%;}
+  .chip:nth-child(4){left:57%;  top:39%;}
+  .chip:nth-child(5){left:4%;   top:51%;}
+  .chip:nth-child(6){left:48%;  top:63%;}
+  .chip:nth-child(7){left:5%;   top:75%;}
+  .chip:nth-child(8){left:46%;  top:87%;}
+  /* 부유 폭도 줄인다 — 간격이 좁아 크게 움직이면 서로 닿는다 */
+  .chip{animation-name:chipFloatSm;}
+  @keyframes chipFloatSm{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
   .tiers{grid-template-columns:1fr;}
   .stats{grid-template-columns:1fr;}
   .stat{border-left:0;padding-left:0;}
@@ -334,7 +342,7 @@ footer li a:hover{color:#faf9f5;}
         <div class="idx">02</div>
         <h3>AI 임대형<span class="badge">B2B SaaS</span></h3>
         <p class="desc">사업자가 월 임대료를 지불하는 형태로, 계약 유지 기간 동안 파트너에게 지속적인 정산이 발생합니다.</p>
-        <ul><li>병원 AI 상담</li><li>성형외과 AI</li><li>정수기 렌탈 AI</li><li>휴대폰 매장 AI</li><li>인터넷 가입 AI</li><li>쇼핑몰 AI</li></ul>
+        <ul><li>병원 AI 상담</li><li>성형외과 AI</li><li>정수기 렌탈 AI</li><li>휴대폰 매장 AI</li><li>인터넷 가입 AI</li><li>쇼핑몰 AI</li><li>AI 주식</li><li>AI 책만들기</li><li>AI 스튜디오</li></ul>
       </div>
       <div class="model">
         <div class="idx">03</div>
