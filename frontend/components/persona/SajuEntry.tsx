@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
-import { SAJU_TONE, SAJU_HERO_IMAGES } from './sajuHero';
+import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, prefersReducedMotion } from './sajuHero';
 
 // 도결(道潔) 선생 전용 진입 화면 — "사주 사이트 같은 큰 랜딩".
 //
@@ -13,8 +13,9 @@ import { SAJU_TONE, SAJU_HERO_IMAGES } from './sajuHero';
 //   App.tsx는 이 컴포넌트의 존재를 모른다(분기는 PersonaEntrySheet 안에서 한다).
 //   ★★App.tsx를 건드리면 전 화면 백지 사고가 재발한다(2026-07-29 useCallback TDZ 실사고).
 //
-// ★묶음 A(이번) 범위: 화면 구조와 분기까지. 히어로는 tiger.png 정적 표시다.
-//   책 → 연기(상승) → 안개(가로) → 호랑이 캔버스 연출은 묶음 B에서 sajuHero.ts에 붙인다.
+// ★히어로(묶음 B): 책 → 연기(상승) → 안개(가로 흐름) → 호랑이 를 Canvas 2D 한 장으로
+//   그린다. 그리는 로직은 전부 sajuHero.ts에 있고 여기서는 canvas를 붙였다 떼기만 한다.
+//   모션 감소 설정이면 **캔버스를 아예 만들지 않고** tiger.png를 정적으로 띄운다.
 
 const T = SAJU_TONE;
 
@@ -76,7 +77,10 @@ const SAJU_CSS = `
 .sj-hero{position:relative;width:100%;border-radius:22px;overflow:hidden;
   border:1px solid ${T.line};background:#0b0908;
   box-shadow:0 40px 80px -40px rgba(0,0,0,.95), 0 0 0 1px rgba(0,0,0,.4);}
-.sj-hero img{display:block;width:100%;height:auto;}
+.sj-hero img,.sj-hero canvas{display:block;width:100%;height:auto;background:#0b0908;}
+/* ★aspect-ratio가 없으면 canvas 기본 300×150이 잡혀 첫 프레임에 상자가 찌그러진다.
+   width/height 속성은 JS가 dpr배로 채우므로 비율은 그대로 유지된다. */
+.sj-hero canvas{aspect-ratio:${SAJU_HERO_ASPECT};}
 .sj-heroveil{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(78% 68% at 50% 46%, rgba(0,0,0,0) 40%, rgba(13,11,10,.55) 82%, rgba(13,11,10,.9) 100%);}
 
@@ -122,6 +126,19 @@ interface Props {
 
 export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
     const featsRef = useRef<HTMLDivElement | null>(null);
+    const heroRef = useRef<HTMLCanvasElement | null>(null);
+
+    // ★한 번만 판단해 렌더 내내 고정한다 — 렌더마다 matchMedia를 부르면 canvas가
+    //   붙었다 떨어졌다 하며 연출이 처음부터 다시 재생될 수 있다.
+    const [reduced] = useState(prefersReducedMotion);
+
+    useEffect(() => {
+        if (reduced) return;                 // 정적 대체 — 캔버스 자체가 없다
+        const el = heroRef.current;
+        if (!el) return;
+        const hero = mountSajuHero(el);
+        return () => hero.destroy();         // rAF·옵저버까지 전부 걷어낸다
+    }, [reduced]);
 
     // Esc로 닫기 — 전체를 덮는 화면이라 출구가 하나(✕)뿐이면 갇힌 느낌이 든다.
     useEffect(() => {
@@ -189,9 +206,11 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                         )}
                     </div>
 
-                    {/* 우 — 히어로. 묶음 B에서 이 자리에 canvas 1개가 들어간다. */}
+                    {/* 우 — 히어로. canvas는 최대 1개, 모션 감소면 정적 이미지로 대체한다. */}
                     <div className="sj-hero">
-                        <img src={SAJU_HERO_IMAGES.tiger} alt="" aria-hidden="true" />
+                        {reduced
+                            ? <img src={SAJU_HERO_IMAGES.tiger} alt="" aria-hidden="true" />
+                            : <canvas ref={heroRef} aria-hidden="true" />}
                         <div className="sj-heroveil" aria-hidden="true" />
                     </div>
                 </div>
