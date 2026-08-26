@@ -531,7 +531,7 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
     </nav>
     <div class="nav-cta">
       <a class="btn btn-ghost" href="#apply">로그인</a>
-      <a class="btn btn-dark" href="#apply">파트너 신청</a>
+      <a class="btn btn-dark" href="#apply" data-ai-consult-open>파트너 신청</a>
     </div>
   </div>
 </header>
@@ -548,7 +548,7 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       <h1>AI Companion<span class="sub">Partner</span></h1>
       <p class="hero-lead">AI SaaS 플랫폼 사업운영 라이선스. 단순 가입이 아니라, AI 서비스를 직접 운영할 수 있는 권한을 드립니다. 플랫폼·기술·정산은 본사가 맡고, 파트너는 사업에 집중합니다.</p>
       <div class="hero-actions">
-        <a class="btn btn-brand btn-lg" href="#apply">파트너 신청하기</a>
+        <a class="btn btn-brand btn-lg" href="#apply" data-ai-consult-open>파트너 신청하기</a>
         <a class="btn btn-ghost btn-lg" href="#license">라이선스 자세히 보기</a>
       </div>
       <p class="hero-note">계약 전 1:1 사업 설명 · 라이선스 등급별 운영 범위 안내</p>
@@ -761,7 +761,7 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       <h2>AI 사업, 만드는 것이 아니라 운영하는 것부터 시작합니다.</h2>
       <p>라이선스 상담은 사업 계획 확인 후 진행됩니다. 신청서를 남겨 주시면 담당 매니저가 영업일 기준 1일 이내에 연락드립니다.</p>
       <div class="hero-actions">
-        <a class="btn btn-brand btn-lg" href="#apply">파트너 신청하기</a>
+        <a class="btn btn-brand btn-lg" href="#apply" data-ai-consult-open>파트너 신청하기</a>
         <a class="btn btn-ghost btn-lg" href="#apply">사업 설명 자료 받기</a>
       </div>
     </div>
@@ -806,9 +806,8 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   </div>
 </footer>
 
-<!-- ★원본(sites/ai-companion)과 동일하게 첫 진입 시 상담 모달을 표시한다.
-     hidden 을 붙이면 원본 동작이 바뀌므로 붙이지 않는다. 닫기·배경클릭·Esc 로 닫힌다. -->
-<div class="ai-consult-modal" data-ai-consult-modal role="dialog" aria-modal="true" aria-label="AI 상담">
+<!-- 첫 진입에는 히어로를 보여주고, 파트너 신청 버튼을 누른 뒤 상담 모달을 표시한다. -->
+<div class="ai-consult-modal" data-ai-consult-modal role="dialog" aria-modal="true" aria-label="AI 상담" hidden>
   <div class="ai-consult-panel">
     <button class="ai-consult-close" data-ai-consult-close type="button" aria-label="상담 창 닫기">×</button>
     <iframe title="AI 아바타" src="assets/ai-consult/avatar.html" loading="lazy"></iframe>
