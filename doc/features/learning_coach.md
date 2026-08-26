@@ -7,15 +7,57 @@
 (`/api/aimp/learn/*` ≠ `/api/aimp/learning/*`).
 
 ## 진입 경로
-- 페르소나 카드 **AI 학습코칭** 클릭 → `App.tsx`의 얼리리턴 라우트가 `/learning`으로 이동
+- **메인 기능카드 id 30 `learning-coach`**(2026-08-25 신설, 카테고리 `info`=📰 정보·학습)
+  → `App.tsx`의 얼리리턴 라우트가 `/learning`으로 이동
+  ★그전까지 `FEATURES_GRID` 미등록 + `Persona.isVisible=false` 라 **주소를 직접 쳐야만**
+  들어갈 수 있었다(8/13 "오픈 배포" 기록과 달리 실제로는 닫혀 있었다).
 - 알림 이메일 링크도 `/learning` 고유 주소로 들어온다 → **모달이 아니라 전체 화면**인 이유
   (화면 10개 + 매일 반복 사용 + 고유 주소 필요, 2026-08-13 사장과 확인)
+- `/learning`(랜딩)은 **진행 중인 학습이 있으면** 제목·진행률 카드와
+  `이어서 학습하기 / 전체 커리큘럼 / 새 학습 신청`을 보여준다(2026-08-25).
+  ★그전에는 무조건 소개 화면이라 이미 커리큘럼이 있어도 "신청 →" 버튼만 나왔다.
 
-## 화면 10개 (`frontend/components/learning/`)
+## 과금 — 커리큘럼 확정 시 500P (2026-08-25 신설)
+`MenuLimit` `feature='learning'` (USER/MANAGE/ADMIN 3행, 500P).
+차감 시점은 **`POST /goals/:id/confirm`**(모듈 20개 생성이 시작되는 지점).
+- **1~2단계(목표 입력·주차 개요)는 무료** — 계획을 보고 확정 전에 그만둘 수 있어야 한다
+- 20일 학습·채점·주간리포트는 **추가 차감 없음**
+- ★차감은 상태 전환 **뒤**에 한다(차감만 되고 생성이 안 되는 쪽이 더 나쁘다).
+  실패 시 `outline_ready` 로 롤백해 재시도 가능하게 했다
+- 실측 원가 ≈ **80원**(개요 6원 + 모듈 20개 본문·문제 73원, gemini-2.5-flash).
+  ★`LcAiUsageLog` 를 **model 별로 집계**할 것 — 8/13 이전 claude-sonnet-5 로그가 섞여 있어
+  통으로 보면 원가를 과대평가한다
+
+## 화면 11개 (`frontend/components/learning/`)
 `LearningLanding` → `LearningOnboarding`(목표·기간·수준 입력) → `LearningPlanConfirm`(주차 개요 확인)
 → `LearningGenerationProgress`(모듈 생성 진행) → `LearningDashboard` → `LearningTask`(본문+퀴즈)
 → `LearningReview`(오답 간격반복) → `LearningCurriculum`(전체 커리큘럼, S10)
 → `LearningWeeklyReport`(S9) → `LearningSettings`(S11, 알림 시각 등)
+→ **`LearningGoals`**(내 커리큘럼 목록·전환·중단·삭제, 2026-08-25 신설)
+
+## 상단 탭 (`LearningTabs.tsx`, 2026-08-25)
+`📖 오늘 · 🗂 커리큘럼 · 🎒 내 학습 · 🔁 복습 · ⚙️ 설정` — **상시 오가는 5개만** 묶는다.
+★**과제·퀴즈·신청 온보딩은 일부러 뺐다** — 몰입 화면이라 탭을 넣으면 문제 푸는 중에
+다른 탭을 눌러 진행이 끊긴다. 탭은 SPA 상태 전환이 아니라 `location.href` 이동이며
+각 화면은 독립 라우트를 유지한다.
+PC 폭은 `max-w-4xl`(그전 `max-w-2xl`=672px 고정이라 1190px 화면에서 양옆이 크게 비었다).
+
+## 여러 커리큘럼 관리 (2026-08-25 신설)
+★**기존 구멍**: `today`·`curriculum` 이 `findFirst(status:'active', createdAt desc)` 로
+**가장 최근 1개만** 봐서, 새 커리큘럼을 만들면 이전 것이 화면에서 사라지고 되돌아갈 방법이
+없었다 — **500P 낸 데이터가 묻혔다.**
+
+- `resolveCurrentGoalId()` — `LcProfile.activeGoalId`(선택 기억)를 보고, 없거나 무효면
+  최근 `active` 로 폴백. `today`·`curriculum` 이 함께 쓴다
+- API: `GET /goals`(목록·진행률) · `POST /goals/:id/select`(전환) ·
+  `archive`(중단=보관) · `resume`(재개) · `DELETE /goals/:id`(완전삭제)
+- 상태값: `active`(진행 중) / `archived`(보관). ★**중단을 기본 동선에, 삭제는 2단계 확인**으로
+  분리했다 — 500P 들인 데이터라 실수 삭제 시 재생성에 또 500P 든다
+- 삭제 시 자식은 FK CASCADE 로 함께 지워진다(Module·WeekOutline·DailyTask·Question·
+  ReviewItem·Attempt 전부 `confdeltype='c'` 실측 확인)
+- ★`LcProfile.activeGoalId` 는 **raw SQL 로 추가**했다(운영DB ≠ schema.prisma 규칙).
+  ★raw SQL 로 컬럼을 추가하면 **schema.prisma 반영 + 서버1 `prisma generate` 까지** 해야 한다 —
+  DB만 고치면 Prisma 가 필드를 몰라 `Unknown field` 로 조회가 전부 실패한다(2026-08-25 실제 사고)
 
 ## 커리큘럼 생성 — ★2단계 분할
 84모듈 일괄 생성이 63초 걸려 온보딩 이탈을 유발하던 문제를 분리(2026-08-11 확정):

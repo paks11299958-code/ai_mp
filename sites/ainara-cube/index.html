@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Companion — AI SaaS 플랫폼 사업운영 라이선스 파트너</title>
+<meta name="description" content="AI Companion Partner — 단순 가입이 아닌, AI 사업을 운영할 수 있는 라이선스. AI SaaS 플랫폼 사업운영 파트너를 모집합니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Serif+KR:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   AINARA 큐브 퍼즐 — 묶음 A (정적)
+   팔레트·폰트는 sites/ainara-partner 와 동일(SPEC 지정).
+   레이아웃/모티프는 "큐브 = 면(facet) + 압출(extrude)" 로 새로 짰다.
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --brand:#c96442;
+  --brand-hover:#d97757;
+  --brand-soft:#f6ece6;
+  --canvas:#ffffff;
+  --canvas-warm:#faf9f5;
+  --parchment:#f5f4ed;
+  --sand:#e8e6dc;
+  --ink:#141413;
+  --ink-deep:#0f0f0e;
+  --label:#4d4c48;
+  --body:#5e5d59;
+  --muted:#87867f;
+  --hairline:#f0eee6;
+  --hairline-strong:#e8e6dc;
+  --ring:#d1cfc5;
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+  --sans:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  --serif:"Newsreader","Noto Serif KR",Georgia,serif;
+  --sec:92px;
+  /* 큐브 압출(extrude) 두께 — 카드가 "면"으로 읽히게 하는 이 사이트의 시그니처 */
+  --ex:7px;
+}
+*,*::before,*::after{box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--canvas);color:var(--ink);
+  font-family:var(--sans);font-weight:400;line-height:1.65;letter-spacing:-.01em;
+  word-break:keep-all;overflow-wrap:break-word;
+}
+/* ★height:auto 필수. HTML 의 width/height 속성이 남으면 aspect-ratio 가 무력화돼
+   폭만 줄고 높이는 원본 그대로가 된다(2026-08-26 실기기 사고). */
+img{max-width:100%;height:auto;display:block;}
+a{color:inherit;text-decoration:none;}
+/* 360px 에서 가로 스크롤 0 — 좌우 여백을 16px 로 두고 그 안에서만 그린다 */
+.wrap{width:min(1160px,calc(100% - 32px));margin-inline:auto;}
+.sec{padding:var(--sec) 0;}
+
+/* ── 큐브 모티프 공용 ──────────────────────────────────────────
+   facet = 큐브의 한 면. 우하단으로 압출된 단색 블록(box-shadow)이 두께를 만든다.
+   box-shadow 는 레이아웃에 영향이 없어 모바일 가로 스크롤을 유발하지 않는다. */
+.facet{
+  position:relative;background:var(--canvas);
+  border:1px solid var(--hairline-strong);border-radius:var(--r-lg);
+  box-shadow:var(--ex) var(--ex) 0 var(--sand);
+  transition:transform .18s ease, box-shadow .18s ease;
+}
+.facet:hover{transform:translate(-2px,-2px);box-shadow:calc(var(--ex) + 2px) calc(var(--ex) + 2px) 0 var(--sand);}
+
+/* 섹션 머리 */
+.kicker{
+  display:inline-flex;align-items:center;gap:9px;
+  font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--brand);margin:0 0 16px;
+}
+.kicker .cubelet{width:11px;height:11px;border-radius:2px;background:var(--brand);box-shadow:4px 4px 0 var(--brand-soft);}
+.sec-title{
+  font-family:var(--serif);font-weight:500;letter-spacing:-.025em;line-height:1.25;
+  font-size:clamp(28px,4.2vw,42px);margin:0 0 16px;color:var(--ink);
+}
+.sec-lead{font-size:clamp(15px,1.6vw,17px);color:var(--body);margin:0;max-width:62ch;}
+
+/* ── 버튼 ── */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--sans);font-size:15px;font-weight:500;
+  border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;
+  transition:.18s ease;white-space:nowrap;
+}
+.btn-dark{background:var(--ink-deep);color:#faf9f5;height:40px;padding:0 18px;}
+.btn-dark:hover{background:#30302e;}
+.btn-ghost{background:var(--canvas);color:var(--label);border-color:var(--ring);height:40px;padding:0 16px;}
+.btn-ghost:hover{background:var(--parchment);}
+.btn-brand{background:var(--brand);color:#faf9f5;}
+.btn-brand:hover{background:var(--brand-hover);}
+.btn-lg{height:52px;padding:0 26px;font-size:16px;border-radius:var(--r-md);}
+/* 큐브 사이트답게 주요 버튼에도 얇은 압출을 준다 */
+.btn-lg.btn-brand{box-shadow:5px 5px 0 var(--brand-soft);}
+.btn-lg.btn-brand:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--brand-soft);}
+.btn-lg.btn-ghost{box-shadow:5px 5px 0 var(--sand);}
+.btn-lg.btn-ghost:hover{transform:translate(-1px,-1px);box-shadow:6px 6px 0 var(--sand);}
+
+/* ── header ── */
+header{
+  position:sticky;top:0;z-index:60;
+  background:rgba(255,255,255,.88);backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--hairline);
+}
+.nav{height:72px;display:flex;align-items:center;justify-content:space-between;gap:20px;}
+.logo{display:flex;align-items:center;gap:11px;font-family:var(--serif);font-size:21px;font-weight:500;letter-spacing:-.02em;}
+/* 로고 마크 = 3면이 보이는 작은 큐브(순수 CSS) */
+.logo .mark{
+  width:30px;height:30px;border-radius:7px;background:var(--brand);
+  position:relative;overflow:hidden;flex:none;
+}
+.logo .mark::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.34) 0 50%,transparent 50%);}
+.logo .mark::after{content:"";position:absolute;left:50%;top:22%;width:1px;height:78%;background:rgba(250,249,245,.5);}
+.nav nav{display:flex;gap:28px;font-size:15px;color:var(--label);}
+.nav nav a:hover{color:var(--ink);}
+.nav-cta{display:flex;gap:8px;align-items:center;}
+
+/* ── hero — 어두운 풀블리드 (SPEC "1) 히어로 — 어두운 배경 위의 큐브 퍼즐") ──
+   ★밝은 아이보리 히어로는 첫인상이 약해 폐기(2026-08-26 사장 지시).
+   ainara-partner 의 CTA 섹션 방식(사진 + 베일)을 히어로로 끌어올려 네 겹을 겹친다.
+     1층 배경 사진      assets/img/cta.png   object-fit:cover
+     2층 그라데이션 베일 SPEC 지정값 그대로
+     3층 큐브 자리      (묶음 B 가 canvas 를 얹는다 — 지금은 비어 있다)
+     4층 카피          흰 세리프 제목 + #d9d7cf 본문 + 테라코타 버튼            */
+.hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:var(--ink-deep);color:#faf9f5;
+  /* 헤더가 sticky(72px) 이므로 상단 여백을 넉넉히 준다(SPEC) */
+  padding:clamp(74px,9vw,116px) 0 clamp(80px,10vw,124px);
+}
+/* 1층 — 배경 사진.
+   ★전역 img{height:auto} 를 여기서만 height:100% 로 덮는다. 풀블리드 커버 이미지는
+   컨테이너 높이를 채워야 하므로 object-fit:cover 와 짝이어야 한다.
+   대신 HTML 의 width/height 속성은 주지 않는다(SPEC 5항 — 속성이 남으면 비율이 깨진다). */
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  width:100%;height:100%;object-fit:cover;object-position:58% 46%;
+}
+/* 2층 — 그라데이션 베일.
+   두 번째 레이어가 SPEC 지정값 그대로이고, 그 위에 바닥 스크림을 한 겹 더 얹었다.
+   ★스크림 이유: 세로가 긴 뷰포트(820px·모바일)에서 105deg 축이 하단을 밝게 남겨
+   히어로 아래 검은 통계바와 맞닿는 경계가 텅 비어 보였다(실측). 아래쪽만 어둡게 눌러
+   경계를 잇는다 — SPEC 그라데이션 자체는 손대지 않았다. */
+.hero::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    linear-gradient(to top, rgba(15,15,14,.62) 0%, rgba(15,15,14,.16) 26%, rgba(15,15,14,0) 52%),
+    linear-gradient(105deg,
+      rgba(15,15,14,.93) 0%,
+      rgba(15,15,14,.82) 46%,
+      rgba(201,100,66,.55) 100%);
+}
+/* 2층(b) — 아이소메트릭 격자. 큐브가 놓인 바닥 느낌.
+   어두운 배경이므로 밝은 선으로 그린다(어두운 선은 묻힌다). */
+.hero::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    repeating-linear-gradient(30deg,  rgba(250,249,245,.07) 0 1px, transparent 1px 46px),
+    repeating-linear-gradient(-30deg, rgba(250,249,245,.07) 0 1px, transparent 1px 46px);
+  -webkit-mask-image:radial-gradient(110% 88% at 76% 46%,#000 0%,transparent 74%);
+          mask-image:radial-gradient(110% 88% at 76% 46%,#000 0%,transparent 74%);
+}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.04fr .96fr;gap:48px;align-items:center;}
+.hero-copy{position:relative;z-index:3;}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  height:30px;padding:0 13px;border-radius:999px;
+  background:rgba(217,119,87,.16);color:#f0b49b;border:1px solid rgba(217,119,87,.34);
+  font-size:13px;font-weight:500;letter-spacing:-.01em;margin-bottom:24px;
+}
+.eyebrow i{width:7px;height:7px;border-radius:2px;background:var(--brand-hover);display:block;}
+.hero h1{
+  font-family:var(--serif);font-weight:400;letter-spacing:-.035em;line-height:1.04;
+  font-size:clamp(42px,7.4vw,74px);margin:0 0 22px;color:#faf9f5;
+}
+/* 두 번째 줄만 테라코타. 어두운 배경에서는 --brand(#c96442) 가 탁해 --brand-hover 를 쓴다 */
+.hero h1 .sub{display:block;color:var(--brand-hover);font-style:italic;}
+.hero-lead{font-size:clamp(15px,1.7vw,18px);color:#d9d7cf;margin:0 0 30px;max-width:52ch;}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.hero-note{font-size:13.5px;color:rgba(250,249,245,.6);margin:0;}
+/* 어두운 배경용 버튼 보정 — 반투명 흰 테두리(SPEC).
+   base 의 .btn-lg.btn-ghost:hover 와 특정도가 같으므로 이 블록이 뒤에 와야 이긴다. */
+.hero .btn-ghost{background:transparent;color:#faf9f5;border-color:rgba(250,249,245,.34);}
+.hero .btn-ghost:hover{background:rgba(250,249,245,.1);border-color:rgba(250,249,245,.5);}
+.hero .btn-lg.btn-ghost{box-shadow:5px 5px 0 rgba(250,249,245,.14);}
+.hero .btn-lg.btn-ghost:hover{box-shadow:6px 6px 0 rgba(250,249,245,.2);}
+.hero .btn-lg.btn-brand{box-shadow:5px 5px 0 rgba(201,100,66,.34);}
+.hero .btn-lg.btn-brand:hover{box-shadow:6px 6px 0 rgba(201,100,66,.44);}
+
+/* ── 3층: 히어로 큐브 자리 ────────────────────────────────────────
+   ★지금은 비어 있다. 묶음 B 가 이 안에 canvas 를 1개 넣는다
+     (사이트 전체에서 canvas 는 최대 1개 — SPEC 2항).
+   묶음 B 가 지킬 것:
+     · canvas 는 opacity .85 안팎 + pointer-events:none 으로 얹는다.
+     · 어두운 배경 위이므로 큐브 면은 밝게 칠한다(아이보리~웜그레이 + 테라코타 포인트).
+     · prefers-reduced-motion 이면 canvas 를 아예 만들지 말고 정적 대체를 넣는다.
+       (아래 모션축소 미디어쿼리에 canvas 숨김 규칙을 미리 걸어 뒀다) */
+.cube-stage{
+  position:relative;z-index:2;pointer-events:none;
+  aspect-ratio:1/1;width:100%;max-width:440px;margin-inline:auto;
+}
+/* 큐브가 앉을 자리를 알려주는 은은한 광원(요소 하나, 애니메이션 없음) */
+.cube-stage::before{
+  content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:98%;height:98%;border-radius:50%;
+  background:radial-gradient(closest-side, rgba(217,119,87,.22), rgba(217,119,87,0) 70%);
+}
+
+/* ── 통계 바 ── */
+.statbar{background:var(--ink-deep);color:#faf9f5;}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(250,249,245,.14);}
+.stat{background:var(--ink-deep);padding:34px 26px;}
+.stat .n{font-family:var(--serif);font-size:clamp(28px,3.4vw,38px);font-weight:400;letter-spacing:-.02em;line-height:1.1;}
+.stat .n span{font-family:var(--sans);font-size:16px;font-weight:400;margin-left:3px;color:var(--brand-hover);}
+.stat .l{margin-top:9px;font-size:13.5px;color:rgba(250,249,245,.66);line-height:1.5;}
+
+/* ── 수익 구조 3종 ── */
+.models{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:52px;}
+.model{padding:32px 28px 30px;display:flex;flex-direction:column;}
+.model .idx{
+  font-family:var(--serif);font-size:13px;font-weight:500;letter-spacing:.18em;
+  color:var(--brand);margin-bottom:18px;
+}
+.model h3{font-size:21px;font-weight:700;letter-spacing:-.02em;margin:0 0 8px;}
+.model .tag{
+  display:inline-block;align-self:flex-start;
+  font-size:11.5px;font-weight:500;letter-spacing:.04em;color:var(--label);
+  background:var(--parchment);border:1px solid var(--hairline-strong);
+  border-radius:5px;padding:3px 9px;margin-bottom:14px;
+}
+.model p{font-size:14.5px;color:var(--body);margin:0 0 22px;}
+.model ul{
+  list-style:none;margin:auto 0 0;padding:18px 0 0;
+  border-top:1px dashed var(--ring);
+  display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;
+}
+.model li{
+  position:relative;padding-left:15px;font-size:13.5px;color:var(--label);line-height:1.5;
+}
+.model li::before{
+  content:"";position:absolute;left:0;top:7px;
+  width:7px;height:7px;border-radius:2px;background:var(--sand);
+  box-shadow:2px 2px 0 var(--hairline-strong);
+}
+.model.m-2 li::before{background:#dcc7ba;}
+.model.m-3 li::before{background:#cfd0c4;}
+
+/* ── 라이선스 ── */
+.license{background:var(--parchment);}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:52px;align-items:start;}
+.tier{padding:28px 24px 26px;background:var(--canvas);}
+.tier .badge{
+  position:absolute;top:-11px;left:24px;
+  background:var(--brand);color:#faf9f5;font-size:11.5px;font-weight:500;
+  border-radius:5px;padding:3px 10px;letter-spacing:-.01em;
+}
+.tier.featured{border-color:var(--brand);box-shadow:var(--ex) var(--ex) 0 var(--brand-soft);}
+.tier.featured:hover{box-shadow:calc(var(--ex) + 2px) calc(var(--ex) + 2px) 0 var(--brand-soft);}
+.tier h3{font-family:var(--serif);font-size:22px;font-weight:500;letter-spacing:-.02em;margin:0 0 12px;}
+.tier .price{font-size:26px;font-weight:700;letter-spacing:-.03em;line-height:1.2;}
+.tier.featured .price{color:var(--brand);}
+.tier .renew{font-size:13px;color:var(--muted);margin-top:5px;}
+.tier .rates{list-style:none;margin:20px 0 0;padding:18px 0 0;border-top:1px solid var(--hairline);}
+.tier .rates li{
+  position:relative;padding-left:16px;font-size:13.5px;color:var(--label);margin-bottom:8px;
+}
+.tier .rates li:last-child{margin-bottom:0;}
+.tier .rates li::before{
+  content:"";position:absolute;left:0;top:7px;width:8px;height:8px;border-radius:2px;
+  background:var(--sand);
+}
+.tier.featured .rates li::before{background:var(--brand-soft);}
+.notes{margin-top:34px;display:grid;gap:10px;}
+.notes p{
+  margin:0;font-size:13px;line-height:1.7;color:var(--muted);
+  padding-left:14px;border-left:2px solid var(--ring);
+}
+
+/* ── 파트너 지원 ── */
+.support-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:56px;align-items:center;}
+.support-photo{border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--ex) var(--ex) 0 var(--sand);border:1px solid var(--hairline-strong);}
+.support-photo img{width:100%;aspect-ratio:7/9;object-fit:cover;}
+.support-list{list-style:none;margin:34px 0 0;padding:0;display:grid;gap:2px;}
+.support-list li{padding:20px 0;border-top:1px solid var(--hairline);display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;}
+.support-list li:last-child{border-bottom:1px solid var(--hairline);}
+.support-list .cubelet-lg{
+  width:16px;height:16px;border-radius:3px;background:var(--brand-soft);
+  box-shadow:4px 4px 0 var(--sand);margin-top:5px;flex:none;
+}
+.support-list li:nth-child(2) .cubelet-lg{background:#e7d7cd;}
+.support-list li:nth-child(3) .cubelet-lg{background:#dfe0d6;}
+.support-list li:nth-child(4) .cubelet-lg{background:var(--sand);}
+.support-list strong{display:block;font-size:16.5px;font-weight:700;letter-spacing:-.02em;margin-bottom:5px;}
+.support-list span{font-size:14.5px;color:var(--body);}
+
+/* ── CTA ── */
+.cta{background:var(--ink-deep);color:#faf9f5;position:relative;overflow:hidden;}
+.cta::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(30deg,  rgba(250,249,245,.05) 0 1px, transparent 1px 54px),
+    repeating-linear-gradient(-30deg, rgba(250,249,245,.05) 0 1px, transparent 1px 54px);
+  -webkit-mask-image:radial-gradient(90% 90% at 88% 20%,#000 0%,transparent 70%);
+          mask-image:radial-gradient(90% 90% at 88% 20%,#000 0%,transparent 70%);
+}
+.cta-grid{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:56px;align-items:center;}
+.cta h2{
+  font-family:var(--serif);font-weight:400;letter-spacing:-.03em;line-height:1.25;
+  font-size:clamp(27px,4vw,42px);margin:0 0 20px;
+}
+.cta p{font-size:clamp(14.5px,1.6vw,16.5px);color:rgba(250,249,245,.7);margin:0 0 30px;max-width:54ch;}
+.cta .btn-ghost{background:transparent;color:#faf9f5;border-color:rgba(250,249,245,.32);}
+.cta .btn-ghost:hover{background:rgba(250,249,245,.09);}
+.cta .btn-lg.btn-ghost{box-shadow:5px 5px 0 rgba(250,249,245,.14);}
+.cta .btn-lg.btn-brand{box-shadow:5px 5px 0 rgba(201,100,66,.32);}
+.cta-photo{border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--ex) var(--ex) 0 rgba(250,249,245,.16);}
+.cta-photo img{width:100%;aspect-ratio:19/13;object-fit:cover;}
+
+/* ── footer ── */
+footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);padding:62px 0 34px;}
+.f-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;}
+.f-brand .logo{margin-bottom:14px;}
+.f-brand p{margin:0;font-size:14px;color:var(--body);line-height:1.7;}
+.f-col h4{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;}
+.f-col ul{list-style:none;margin:0;padding:0;display:grid;gap:9px;}
+.f-col li{font-size:14px;color:var(--label);}
+.f-col a:hover{color:var(--brand);}
+.f-bottom{
+  margin-top:46px;padding-top:22px;border-top:1px solid var(--hairline);
+  font-size:13px;color:var(--muted);
+}
+
+/* ── 상담 모달 ── */
+.ai-consult-modal{position:fixed;inset:0;z-index:200;background:rgba(15,15,14,.72);backdrop-filter:blur(6px);display:grid;place-items:center;padding:24px;}
+.ai-consult-modal[hidden]{display:none;}
+.ai-consult-panel{position:relative;width:min(1020px,100%);max-height:min(88vh,780px);background:var(--canvas-warm);border-radius:var(--r-xl);overflow:hidden;display:grid;grid-template-columns:1fr 1fr;box-shadow:0 30px 80px rgba(0,0,0,.4);}
+.ai-consult-panel iframe{width:100%;height:100%;min-height:520px;border:0;display:block;background:#fff;}
+.ai-consult-close{position:absolute;top:12px;right:14px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid var(--ring);background:#fff;color:var(--label);font-size:18px;line-height:1;cursor:pointer;}
+.ai-consult-close:hover{background:var(--parchment);}
+
+/* ── 반응형: 분기점 820px (SPEC 6항) ── */
+@media (max-width:1040px){
+  .models{grid-template-columns:1fr;}
+  .tiers{grid-template-columns:1fr 1fr;}
+  .f-grid{grid-template-columns:1fr 1fr;}
+}
+@media (max-width:820px){
+  :root{--sec:64px;--ex:5px;}
+  /* 로고가 "AI / Companion" 두 줄로 깨지지 않게 nowrap (partner 실측 교훈 차용) */
+  .nav{height:64px;gap:12px;}
+  .nav nav{display:none;}
+  .logo{font-size:18px;white-space:nowrap;}
+  .nav-cta .btn{height:36px;padding:0 12px;font-size:14px;}
+  .hero{padding:56px 0 64px;}
+  .hero-grid{grid-template-columns:1fr;gap:34px;}
+  /* 큐브는 카피 아래로 (SPEC 비주얼 컨셉 1항) */
+  .cube-stage{order:2;max-width:300px;}
+  /* 세로 화면에서는 사진 인물이 잘리지 않게 초점을 위로 */
+  .hero-bg{object-position:56% 38%;}
+  /* ★초점을 위로 올린 만큼 밝은 창·책상이 카피 하단과 겹친다(360~414px 실측:
+     .hero-note 2.84:1 로 WCAG AA 미달). 바닥 스크림을 전 구간 세로 스크림으로
+     확장해 하단까지 눌러 준다 — SPEC 105deg 그라데이션은 그대로 둔다. */
+  .hero::before{
+    background:
+      linear-gradient(to bottom,
+        rgba(15,15,14,.52) 0%,
+        rgba(15,15,14,.62) 50%,
+        rgba(15,15,14,.80) 100%),
+      linear-gradient(105deg,
+        rgba(15,15,14,.93) 0%,
+        rgba(15,15,14,.82) 46%,
+        rgba(201,100,66,.55) 100%);
+  }
+  .stats{grid-template-columns:1fr 1fr;}
+  .stat{padding:26px 20px;}
+  .model ul{grid-template-columns:1fr 1fr;}
+  .support-grid{grid-template-columns:1fr;gap:34px;}
+  .support-photo{max-width:420px;}
+  .cta-grid{grid-template-columns:1fr;gap:34px;}
+  .cta-photo{order:-1;}
+  .f-grid{grid-template-columns:1fr;gap:30px;}
+  .ai-consult-panel{grid-template-columns:1fr;max-height:92vh;overflow-y:auto;}
+}
+@media (max-width:420px){
+  .wrap{width:calc(100% - 24px);}
+  /* 360px 헤더는 로고+신청 버튼만 남긴다(로그인은 CTA 섹션에서 접근) */
+  .nav-cta .btn-ghost{display:none;}
+  .hero-actions .btn-lg{width:100%;}
+  .stats{grid-template-columns:1fr;}
+  .model ul{grid-template-columns:1fr;}
+  .tiers{grid-template-columns:1fr;}
+  .cube-stage{max-width:236px;}
+}
+
+/* ── 모션 축소: 애니메이션 전면 정지 + 정적 대체 (SPEC 3항) ── */
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{transition:none!important;animation:none!important;}
+  .facet:hover,.btn-lg:hover{transform:none!important;}
+  /* 큐브 canvas 는 그리지 않는다. 묶음 B 는 이 경우 정적 대체 화면을 넣어야 한다. */
+  .cube-stage canvas{display:none!important;}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#top"><span class="mark" aria-hidden="true"></span> AI Companion</a>
+    <nav>
+      <a href="#model">수익 구조</a>
+      <a href="#license">라이선스</a>
+      <a href="#support">파트너 지원</a>
+      <a href="#apply">문의</a>
+    </nav>
+    <div class="nav-cta">
+      <a class="btn btn-ghost" href="#apply">로그인</a>
+      <a class="btn btn-dark" href="#apply">파트너 신청</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero" id="top">
+  <!-- 1층 — 배경 사진(장식). alt 는 비우고 aria-hidden 으로 접근성 트리에서 뺀다.
+       ★width/height 속성을 주지 않는다(SPEC 5항). 크기는 CSS 가 100%×100% 로 잡는다. -->
+  <img class="hero-bg" src="assets/img/cta.png" alt="" aria-hidden="true">
+  <!-- 2층 그라데이션 베일 / 격자는 .hero::before, .hero::after 가 그린다 -->
+
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow"><i></i>2026년 파트너 모집</span>
+      <h1>AI Companion<span class="sub">Partner</span></h1>
+      <p class="hero-lead">AI SaaS 플랫폼 사업운영 라이선스. 단순 가입이 아니라, AI 서비스를 직접 운영할 수 있는 권한을 드립니다. 플랫폼·기술·정산은 본사가 맡고, 파트너는 사업에 집중합니다.</p>
+      <div class="hero-actions">
+        <a class="btn btn-brand btn-lg" href="#apply">파트너 신청하기</a>
+        <a class="btn btn-ghost btn-lg" href="#license">라이선스 자세히 보기</a>
+      </div>
+      <p class="hero-note">계약 전 1:1 사업 설명 · 라이선스 등급별 운영 범위 안내</p>
+    </div>
+
+    <!-- ★3층 — 큐브 자리. 어두운 배경 위에 얹히도록 자리만 잡아 두고 비워 둔다.
+         묶음 B 가 이 안에 canvas 를 1개 넣는다(사이트 전체 canvas 최대 1개). -->
+    <div class="cube-stage" data-cube-stage aria-hidden="true"></div>
+  </div>
+</section>
+
+<section class="statbar">
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="n">3<span>가지</span></div><div class="l">수익 구조 (포인트·임대·구축)</div></div>
+      <div class="stat"><div class="n">0<span>원</span></div><div class="l">개발 — 파트너는 운영만 하면 됩니다</div></div>
+      <div class="stat"><div class="n">매월 10일</div><div class="l">정산 지급일 (고정)</div></div>
+      <div class="stat"><div class="n">2026<span>년</span></div><div class="l">파트너 모집 시작</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="model">
+  <div class="wrap">
+    <p class="kicker"><span class="cubelet"></span>Revenue Structure</p>
+    <h2 class="sec-title">AI로 만드는 3가지 운영 구조</h2>
+    <p class="sec-lead">파트너는 하나의 라이선스로 세 가지 방식의 사업을 동시에 운영할 수 있습니다. 각 구조는 서로 독립적으로 정산되며, 운영 범위는 라이선스 등급에 따라 달라집니다.</p>
+
+    <div class="models">
+      <article class="facet model m-1">
+        <div class="idx">01</div>
+        <h3>AI 포인트형</h3>
+        <span class="tag">사용량 비례 정산</span>
+        <p>이용자가 AI 서비스를 사용할 때마다 포인트가 차감되고, 사용량에 비례해 파트너 정산이 발생하는 구조입니다.</p>
+        <ul>
+          <li>AI 사주</li>
+          <li>AI 손금</li>
+          <li>AI 꿈해몽</li>
+          <li>AI 관상</li>
+          <li>AI 이성친구</li>
+          <li>AI 법률상담</li>
+        </ul>
+      </article>
+
+      <article class="facet model m-2">
+        <div class="idx">02</div>
+        <h3>AI 임대형</h3>
+        <span class="tag">B2B SaaS</span>
+        <p>사업자가 월 임대료를 지불하는 형태로, 계약 유지 기간 동안 파트너에게 지속적인 정산이 발생합니다.</p>
+        <ul>
+          <li>병원 AI 상담</li>
+          <li>성형외과 AI</li>
+          <li>정수기 렌탈 AI</li>
+          <li>휴대폰 매장 AI</li>
+          <li>인터넷 가입 AI</li>
+          <li>쇼핑몰 AI</li>
+          <li>AI 주식</li>
+          <li>AI 책만들기</li>
+          <li>AI 스튜디오</li>
+        </ul>
+      </article>
+
+      <article class="facet model m-3">
+        <div class="idx">03</div>
+        <h3>AI 홍보형</h3>
+        <span class="tag">SaaS</span>
+        <p>사업자가 월 구독으로 이용하는 마케팅 제작 도구로, 구독이 유지되는 동안 반복 정산이 발생합니다.</p>
+        <ul>
+          <li>AI 쇼츠 제작</li>
+          <li>AI SNS 콘텐츠</li>
+          <li>AI 홈페이지</li>
+          <li>AI 광고 문구</li>
+          <li>AI 블로그</li>
+          <li>AI 상세페이지</li>
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="sec license" id="license">
+  <div class="wrap">
+    <p class="kicker"><span class="cubelet"></span>License</p>
+    <h2 class="sec-title">AI Companion Partner 라이선스</h2>
+    <p class="sec-lead">등급에 따라 운영 가능한 서비스 범위와 정산 비율이 달라집니다. 조건 충족 시 갱신비 없이 다음 단계로 승급됩니다.</p>
+
+    <div class="tiers">
+      <article class="facet tier">
+        <h3>Starter</h3>
+        <div class="price">29만원</div>
+        <div class="renew">갱신비 연간 19만원</div>
+        <ul class="rates">
+          <li>포인트형 15%</li>
+          <li>홍보형 15%</li>
+          <li>직접추천 3%</li>
+        </ul>
+      </article>
+
+      <article class="facet tier featured">
+        <span class="badge">가장 많이 선택</span>
+        <h3>Growth</h3>
+        <div class="price">99만원</div>
+        <div class="renew">갱신비 연간 49만원</div>
+        <ul class="rates">
+          <li>포인트형 20%</li>
+          <li>임대형 15%</li>
+          <li>직접추천 5%</li>
+        </ul>
+      </article>
+
+      <article class="facet tier">
+        <h3>Creator</h3>
+        <div class="price">299만원</div>
+        <div class="renew">갱신비 연간 99만원</div>
+        <ul class="rates">
+          <li>포인트형 25%</li>
+          <li>임대형 20%</li>
+          <li>직접추천 7%</li>
+        </ul>
+      </article>
+
+      <article class="facet tier">
+        <h3>Business</h3>
+        <div class="price">999만원</div>
+        <div class="renew">갱신비 연간 199만원</div>
+        <ul class="rates">
+          <li>포인트형 30%</li>
+          <li>임대형 30%</li>
+          <li>직접추천 10%</li>
+        </ul>
+      </article>
+    </div>
+
+    <!-- ★SPEC 주석 2줄 — 문구 그대로. 삭제·요약 금지. -->
+    <div class="notes">
+      <p>※ 표기된 비율은 라이선스 계약서상의 정산 기준이며, 실제 정산액은 파트너의 운영 성과에 따라 달라집니다. 본사는 특정 수익을 보장하지 않습니다.</p>
+      <p>※ 승급 조건 예시 — Starter → Growth: 월 AI 매출 300만원 이상 또는 직접추천 파트너 5명 이상. 조건 충족 시 별도 갱신비 없이 자동 승급됩니다.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="support">
+  <div class="wrap support-grid">
+    <div class="support-photo">
+      <img src="assets/img/support.png" alt="파트너 지원 이미지" width="896" height="1152" loading="lazy">
+    </div>
+    <div>
+      <p class="kicker"><span class="cubelet"></span>Support</p>
+      <h2 class="sec-title">운영은 파트너가, 나머지는 본사가 맡습니다</h2>
+      <p class="sec-lead">플랫폼 개발, 서버 운영, 결제·정산, 신규 AI 기능 업데이트까지 — 사업 운영을 제외한 전 영역을 본사가 담당합니다.</p>
+      <ul class="support-list">
+        <li>
+          <span class="cubelet-lg" aria-hidden="true"></span>
+          <div><strong>지속적인 AI 기능 업데이트</strong><span>신규 AI 서비스가 추가되면 전 파트너에게 자동 반영됩니다.</span></div>
+        </li>
+        <li>
+          <span class="cubelet-lg" aria-hidden="true"></span>
+          <div><strong>전문 교육 및 마케팅 지원</strong><span>업종별 영업 자료, 제안서 템플릿, 정기 온라인 교육을 제공합니다.</span></div>
+        </li>
+        <li>
+          <span class="cubelet-lg" aria-hidden="true"></span>
+          <div><strong>전담 매니저 1:1 지원</strong><span>계약부터 첫 운영까지, 담당 매니저가 단계별로 함께합니다.</span></div>
+        </li>
+        <li>
+          <span class="cubelet-lg" aria-hidden="true"></span>
+          <div><strong>안정적인 정산 시스템</strong><span>매월 10일 고정 지급. 대시보드에서 실시간 매출·정산 내역을 확인합니다.</span></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="sec cta" id="apply">
+  <div class="wrap cta-grid">
+    <div>
+      <h2>AI 사업, 만드는 것이 아니라 운영하는 것부터 시작합니다.</h2>
+      <p>라이선스 상담은 사업 계획 확인 후 진행됩니다. 신청서를 남겨 주시면 담당 매니저가 영업일 기준 1일 이내에 연락드립니다.</p>
+      <div class="hero-actions">
+        <a class="btn btn-brand btn-lg" href="#apply">파트너 신청하기</a>
+        <a class="btn btn-ghost btn-lg" href="#apply">사업 설명 자료 받기</a>
+      </div>
+    </div>
+    <div class="cta-photo">
+      <img src="assets/img/cta.png" alt="AI Companion 파트너 신청 이미지" width="1216" height="832" loading="lazy">
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div class="f-brand">
+        <span class="logo"><span class="mark" aria-hidden="true"></span> AI Companion</span>
+        <p>AI와 함께 성장하는<br>AI Companion Partner 프로그램</p>
+      </div>
+      <div class="f-col">
+        <h4>회사소개</h4>
+        <ul>
+          <li><a href="#top">회사 개요</a></li>
+          <li><a href="#top">비전 및 가치</a></li>
+          <li><a href="#top">연혁</a></li>
+        </ul>
+      </div>
+      <div class="f-col">
+        <h4>이용안내</h4>
+        <ul>
+          <li><a href="#license">라이선스 안내</a></li>
+          <li><a href="#model">수익 구조</a></li>
+          <li><a href="#apply">가입 방법</a></li>
+        </ul>
+      </div>
+      <div class="f-col">
+        <h4>고객지원</h4>
+        <ul>
+          <li>준비 중</li>
+          <li>준비 중</li>
+        </ul>
+      </div>
+    </div>
+    <div class="f-bottom">© 2026 AI Companion. All rights reserved.</div>
+  </div>
+</footer>
+
+<!-- ★원본(sites/ai-companion)과 동일하게 첫 진입 시 상담 모달을 표시한다.
+     hidden 을 붙이면 원본 동작이 바뀌므로 붙이지 않는다. 닫기·배경클릭·Esc 로 닫힌다. -->
+<div class="ai-consult-modal" data-ai-consult-modal role="dialog" aria-modal="true" aria-label="AI 상담">
+  <div class="ai-consult-panel">
+    <button class="ai-consult-close" data-ai-consult-close type="button" aria-label="상담 창 닫기">×</button>
+    <iframe title="AI 아바타" src="assets/ai-consult/avatar.html" loading="lazy"></iframe>
+    <iframe title="AI 상담" src="https://bot.dbzone.kr/lead-generation-7o4fpsk" loading="lazy"></iframe>
+  </div>
+</div>
+
+<script type="module">
+import { initAiConsultModal } from './ai-consult-modal.js';
+initAiConsultModal(document);
+</script>
+</body>
+</html>
