@@ -42,3 +42,4 @@ Hermes가 자동으로:
 | ai-companion | /sites/ai-companion/ | AI SaaS 플랫폼 사업운영 라이선스 파트너 모집 원페이지(시안 v1, 2026-08-20). 신청 폼 미연동, 연락처·실적 수치는 확정 후 채울 것 |
 | threeui-lab | /sites/threeui-lab/ | 홈페이지 자동화용 ThreeUI Community 업종별 후보 5종 연구실(운영 생성기 미연결, 2026-08-23) |
 | new_ainara | /sites/new_ainara/ | AINARA AI Companion 독립 브랜드 사이트. Particle Network와 기존 AI 상담 흐름 적용(2026-08-23) |
+| ainara-cube | https://aiworld.dbzone.kr/ | 큐브가 자동으로 펼쳐져 AI 임대형 서비스 메뉴가 되는 AINARA 파트너 독립사이트(2026-08-26) |
