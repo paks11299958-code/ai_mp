@@ -1,5 +1,6 @@
 import React from 'react';
 import { MpnFeatureIcon } from './MainPageNew';
+import { SajuEntry } from './persona/SajuEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -55,6 +56,16 @@ interface Props {
 }
 
 export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
+    // ★도결(道潔) 선생만 사주 랜딩으로 갈아 끼운다(2026-08-26 사장 지시).
+    //   사주는 분위기 자체가 상품인데 채팅창이 먼저 보여 일반 챗봇과 구분이 안 됐다.
+    //   분기를 **여기서** 하는 이유: App.tsx를 고치면 전 화면 백지 사고가 재발한다
+    //   (2026-07-29 useCallback 의존성 TDZ — tsc·안전검사 둘 다 통과하고 실렌더에서만 터졌다).
+    //   ★도결이 아니면 아래 기존 JSX가 **한 줄도 바뀌지 않은 채** 그대로 나간다.
+    //   이 컴포넌트에는 훅이 없으므로 이 조기 return이 훅 순서를 깨지 않는다.
+    if (guide.title?.startsWith('도결')) {
+        return <SajuEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} />;
+    }
+
     const who = guide.personaName || guide.title;
     // 문구는 실제 동작과 일치시킨다(2026-07-30): 기능 링크면 보드를 여니 "시작하기",
     // 페르소나 링크·메인 카드면 채팅으로 가니 "대화하기"로 목적을 명시한다.
