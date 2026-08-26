@@ -14,7 +14,13 @@
     }
   },
   "redirects": [
-    { "source": "/k/:feature", "destination": "/?f=:feature&ref=KIN", "permanent": false }
+    { "source": "/k/:feature", "destination": "/?f=:feature&ref=KIN", "permanent": false },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "ainara2.dbzone.kr" }],
+      "destination": "/sites/ainara-partner/",
+      "permanent": false
+    }
   ],
   "rewrites": [
     { "source": "/api-proxy", "destination": "/api/api-proxy" },
