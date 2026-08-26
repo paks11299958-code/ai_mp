@@ -206,6 +206,33 @@ header{
   background:radial-gradient(closest-side, rgba(217,119,87,.22), rgba(217,119,87,0) 70%);
 }
 
+/* 묶음 B — 큐브 canvas.
+   ★사이트 전체에서 canvas 는 이 하나뿐이다(SPEC 2항).
+   stage 가 aspect-ratio:1/1 로 자리를 잡고 canvas 는 그 자리를 100% 채운다
+   (canvas 에 width/height 속성을 남기지 않고 JS 가 dPR 배율로 잡는다 → 360px 가로 스크롤 0). */
+.cube-stage canvas{
+  display:block;width:100%;height:100%;
+  position:relative;z-index:1;      /* ::before 광원 위에 얹는다(안 그러면 큐브가 덮인다) */
+  opacity:.85;pointer-events:none;
+}
+/* 정적 대체 — 모션 축소이거나 JS/Canvas 를 못 쓰면 이게 남는다(SPEC 3항).
+   기본값이 '보임'이고, canvas 를 실제로 띄웠을 때만 JS 가 [data-cube-mode=live] 를 붙여 숨긴다.
+   → JS 가 죽어도 히어로 오른쪽이 텅 비지 않는다. */
+.cube-static{
+  position:absolute;inset:0;z-index:1;
+  display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);
+  gap:clamp(5px,2.2%,12px);padding:11%;
+}
+.cube-static i{
+  display:block;border-radius:7px;
+  border:1px solid rgba(250,249,245,.20);
+  background:rgba(250,249,245,.09);
+}
+.cube-static i:nth-child(1),.cube-static i:nth-child(6){background:rgba(250,249,245,.80);border-color:rgba(250,249,245,.5);}
+.cube-static i:nth-child(5){background:rgba(217,119,87,.72);border-color:rgba(217,119,87,.8);}
+.cube-static i:nth-child(3),.cube-static i:nth-child(8){background:rgba(232,230,220,.42);border-color:rgba(250,249,245,.34);}
+.cube-stage[data-cube-mode="live"] .cube-static{display:none;}
+
 /* ── 통계 바 ── */
 .statbar{background:var(--ink-deep);color:#faf9f5;}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(250,249,245,.14);}
@@ -397,8 +424,11 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   html{scroll-behavior:auto;}
   *,*::before,*::after{transition:none!important;animation:none!important;}
   .facet:hover,.btn-lg:hover{transform:none!important;}
-  /* 큐브 canvas 는 그리지 않는다. 묶음 B 는 이 경우 정적 대체 화면을 넣어야 한다. */
+  /* 큐브 canvas 는 그리지 않는다(묶음 B: JS 가 아예 canvas 를 만들지 않는다).
+     사용자가 실행 중에 '모션 줄이기'를 켜면 JS 가 canvas 를 걷어내지만,
+     그 사이에도 어긋난 화면이 보이지 않게 CSS 로도 한 번 더 눌러 둔다. */
   .cube-stage canvas{display:none!important;}
+  .cube-stage[data-cube-mode="live"] .cube-static{display:grid!important;}
 }
 </style>
 </head>
@@ -438,9 +468,13 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       <p class="hero-note">계약 전 1:1 사업 설명 · 라이선스 등급별 운영 범위 안내</p>
     </div>
 
-    <!-- ★3층 — 큐브 자리. 어두운 배경 위에 얹히도록 자리만 잡아 두고 비워 둔다.
-         묶음 B 가 이 안에 canvas 를 1개 넣는다(사이트 전체 canvas 최대 1개). -->
-    <div class="cube-stage" data-cube-stage aria-hidden="true"></div>
+    <!-- ★3층 — 큐브 자리(묶음 B).
+         기본 마크업은 '정적 대체'(조용한 3×3 그리드)다. 모션이 허용되고 Canvas 2D 가
+         살아 있을 때만 아래 스크립트가 canvas 를 1개 끼워 넣고 이 그리드를 숨긴다.
+         (사이트 전체 canvas 최대 1개 — SPEC 2항) -->
+    <div class="cube-stage" data-cube-stage aria-hidden="true">
+      <div class="cube-static"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
   </div>
 </section>
 
@@ -665,6 +699,342 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
     <iframe title="AI 상담" src="https://bot.dbzone.kr/lead-generation-7o4fpsk" loading="lazy"></iframe>
   </div>
 </div>
+
+<!-- ── 묶음 B: 히어로 3×3×3 큐브 (Canvas 2D 직접 계산) ─────────────────────
+     · 외부 라이브러리 0개. 정점 회전(Y축 yaw → X축 pitch 회전행렬) 뒤
+       원근 투영(scale = f / z)을 직접 계산한다.
+     · 가림 처리는 painter's algorithm — 큐비를 카메라에서 먼 순서로,
+       각 큐비 안에서도 먼 면부터 그린다. 뒷면은 법선·시선 내적으로 걷어낸다.
+     · 마우스 위치를 향해 회전각이 lerp 로 따라오고, 멈추면 아주 천천히 자전한다.
+       포인터가 없는 기기(hover:none)는 자전만 한다.
+     · devicePixelRatio·리사이즈 대응, 화면 밖이면 rAF 정지(IntersectionObserver).
+     · prefers-reduced-motion 이면 canvas 를 만들지 않고 .cube-static 을 그대로 둔다. -->
+<script>
+(function () {
+  'use strict';
+
+  var stage = document.querySelector('[data-cube-stage]');
+  if (!stage) return;
+
+  var mm = window.matchMedia ? function (q) { return window.matchMedia(q); } : null;
+  var mqReduce = mm ? mm('(prefers-reduced-motion: reduce)') : null;
+  var mqHover  = mm ? mm('(hover: hover) and (pointer: fine)') : null;
+
+  // ── 기하 ────────────────────────────────────────────────────────────────
+  // 단위 큐비의 8꼭짓점(±1). 실제 크기는 HALF 로 줄여 쓴다.
+  var CORNERS = [
+    [-1,-1,-1], [ 1,-1,-1], [ 1, 1,-1], [-1, 1,-1],
+    [-1,-1, 1], [ 1,-1, 1], [ 1, 1, 1], [-1, 1, 1]
+  ];
+  // 면 6개: 꼭짓점 4개 + 바깥쪽 법선 + '이 면이 큐브 겉면인지' 판정용 축/부호
+  var FACES = [
+    { v: [4,5,6,7], n: [ 0, 0, 1], ax: 2, sg:  1 }, // +z
+    { v: [1,0,3,2], n: [ 0, 0,-1], ax: 2, sg: -1 }, // -z
+    { v: [5,1,2,6], n: [ 1, 0, 0], ax: 0, sg:  1 }, // +x
+    { v: [0,4,7,3], n: [-1, 0, 0], ax: 0, sg: -1 }, // -x
+    { v: [3,7,6,2], n: [ 0, 1, 0], ax: 1, sg:  1 }, // +y
+    { v: [0,1,5,4], n: [ 0,-1, 0], ax: 1, sg: -1 }  // -y
+  ];
+
+  // ── 팔레트 (어두운 히어로 위에 얹히므로 면은 밝게 — SPEC) ────────────────
+  // FACES 와 같은 순서: +z, -z, +x, -x, +y, -y
+  var SIDE_RGB = [
+    [242,239,230], [200,196,185], [232,230,220],
+    [211,207,196], [250,249,245], [178,174,163]
+  ];
+  var ACCENT_RGB = [217, 119, 87];   // --brand-hover, 스티커 일부에만 찍는 포인트
+  var BODY_FILL  = 'rgba(22,21,19,.88)';  // 큐비 몸통(스티커 사이 홈)
+  var EDGE_LINE  = 'rgba(250,249,245,.34)';
+
+  var HALF    = 0.46;   // 큐비 반지름 → 사이 간격이 살짝 벌어져 퍼즐처럼 보인다
+  var SPACING = 1.02;   // 큐비 중심 간 거리
+  var DIST    = 7.6;    // 카메라 거리(원근 강도). 클수록 평평해진다
+  var FOCAL_K = 1.25;   // 초점거리 = 캔버스 폭 × 이 값
+
+  // 겉면 27칸 중 속(0,0,0)은 어느 각도에서도 안 보이므로 뺀다 → 26개
+  var CUBIES = [];
+  for (var gx = -1; gx <= 1; gx++)
+    for (var gy = -1; gy <= 1; gy++)
+      for (var gz = -1; gz <= 1; gz++)
+        if (gx || gy || gz) CUBIES.push([gx, gy, gz]);
+
+  // 스티커 포인트 색 — 좌표·면으로 결정되는 고정 패턴(프레임마다 안 바뀐다)
+  function isAccent(g, f) {
+    var h = ((g[0] + 2) * 31 + (g[1] + 2) * 17 + (g[2] + 2) * 7 + f * 13) % 11;
+    return h === 0 || h === 4;
+  }
+
+  // ── 캔버스 ──────────────────────────────────────────────────────────────
+  var canvas = null, ctx = null;
+  var W = 0, H = 0, dpr = 1;
+  var raf = 0, running = false, lastT = 0;
+
+  // 회전 상태 — 상태는 각도 두 개뿐이다(누적 타이머 없음)
+  var spin = 0;                 // 아주 느린 자전(라디안, 계속 증가)
+  var SPIN_SPEED = 0.085;       // rad/s → 한 바퀴 약 74초
+  var BASE_PITCH = -0.42;       // 살짝 위에서 내려다본 각(윗면이 항상 조금은 보이게)
+  var curYaw = 0.62, curPitch = BASE_PITCH;   // 첫 프레임부터 세 면이 보이는 각
+  var LERP_K = 3.2;             // 클수록 빠르게 따라온다
+
+  // 재사용 버퍼(프레임마다 새 배열을 만들지 않는다)
+  var rotC = []; for (var i = 0; i < 8; i++) rotC.push([0, 0, 0]);
+  var rotN = []; for (var i = 0; i < 6; i++) rotN.push([0, 0, 0]);
+  var px = new Float64Array(8), py = new Float64Array(8);
+  var vx = new Float64Array(8), vy = new Float64Array(8), vz = new Float64Array(8);
+  var order = [];               // {i, z} — 큐비 깊이 정렬용
+  for (var i = 0; i < CUBIES.length; i++) order.push({ i: i, z: 0 });
+  var faceOrder = [];
+  for (var i = 0; i < 6; i++) faceOrder.push({ f: 0, z: 0 });
+
+  function rot(x, y, z, cy, sy, cp, sp, out) {
+    var x1 =  x * cy + z * sy;
+    var z1 = -x * sy + z * cy;
+    var y2 =  y * cp - z1 * sp;
+    var z2 =  y * sp + z1 * cp;
+    out[0] = x1; out[1] = y2; out[2] = z2;
+    return out;
+  }
+
+  function ch(v) { return v < 0 ? 0 : v > 255 ? 255 : v | 0; }
+  function shade(rgb, k) {
+    return 'rgb(' + ch(rgb[0] * k) + ',' + ch(rgb[1] * k) + ',' + ch(rgb[2] * k) + ')';
+  }
+
+  function resize() {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return false;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = w; H = h;
+    canvas.width  = Math.max(1, Math.round(w * dpr));
+    canvas.height = Math.max(1, Math.round(h * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);   // 이후 좌표는 전부 CSS 픽셀
+    return true;
+  }
+
+  function draw() {
+    if (!W || !H) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+
+    var cy = Math.cos(curYaw),   sy = Math.sin(curYaw);
+    var cp = Math.cos(curPitch), sp = Math.sin(curPitch);
+    var f  = Math.min(W, H) * FOCAL_K;
+    var ox = W / 2, oy = H / 2;
+
+    // 회전은 선형변환 → 꼭짓점 오프셋 8개와 법선 6개는 프레임당 한 번만 돌린다
+    var j;
+    for (j = 0; j < 8; j++)
+      rot(CORNERS[j][0] * HALF, CORNERS[j][1] * HALF, CORNERS[j][2] * HALF, cy, sy, cp, sp, rotC[j]);
+    for (j = 0; j < 6; j++)
+      rot(FACES[j].n[0], FACES[j].n[1], FACES[j].n[2], cy, sy, cp, sp, rotN[j]);
+
+    // 광원(카메라 좌표계). 왼쪽 위 앞에서 비춘다 — 카메라 쪽이 -z
+    var LX = -0.42, LY = 0.72, LZ = -0.55;
+    var ln = Math.sqrt(LX * LX + LY * LY + LZ * LZ);
+    LX /= ln; LY /= ln; LZ /= ln;
+
+    // 1) 큐비 중심을 돌려 깊이 정렬 (먼 것 → 가까운 것)
+    var c = [0, 0, 0];
+    for (j = 0; j < CUBIES.length; j++) {
+      var g = CUBIES[j];
+      rot(g[0] * SPACING, g[1] * SPACING, g[2] * SPACING, cy, sy, cp, sp, c);
+      order[j].i = j;
+      order[j].z = c[2] + DIST;
+      order[j].cx = c[0]; order[j].cy = c[1];
+    }
+    order.sort(function (a, b) { return b.z - a.z; });
+
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 1;
+
+    for (var k = 0; k < order.length; k++) {
+      var o = order[k];
+      var gg = CUBIES[o.i];
+      var ccx = o.cx, ccy = o.cy, ccz = o.z;   // 카메라 좌표(z 에 DIST 포함)
+
+      // 2) 이 큐비의 꼭짓점 8개를 투영
+      var ok = true;
+      for (j = 0; j < 8; j++) {
+        var X = ccx + rotC[j][0], Y = ccy + rotC[j][1], Z = ccz + rotC[j][2];
+        if (Z < 0.4) { ok = false; break; }      // 카메라 뒤/너무 가까움 → 건너뛴다
+        vx[j] = X; vy[j] = Y; vz[j] = Z;
+        var s = f / Z;
+        px[j] = ox + X * s;
+        py[j] = oy - Y * s;                       // 화면 y 는 아래가 +
+      }
+      if (!ok) continue;
+
+      // 3) 보이는 면만 골라 다시 먼 순서로
+      var nf = 0;
+      for (var fi = 0; fi < 6; fi++) {
+        var F = FACES[fi], vi = F.v;
+        var fcx = (vx[vi[0]] + vx[vi[1]] + vx[vi[2]] + vx[vi[3]]) / 4;
+        var fcy = (vy[vi[0]] + vy[vi[1]] + vy[vi[2]] + vy[vi[3]]) / 4;
+        var fcz = (vz[vi[0]] + vz[vi[1]] + vz[vi[2]] + vz[vi[3]]) / 4;
+        var N = rotN[fi];
+        // 카메라는 원점. 면 → 카메라 벡터는 -면중심. 내적>0 이면 앞면
+        if (N[0] * -fcx + N[1] * -fcy + N[2] * -fcz <= 0) continue;
+        faceOrder[nf].f = fi; faceOrder[nf].z = fcz; nf++;
+      }
+      for (var a = 1; a < nf; a++) {              // 최대 3개 — 삽입정렬로 충분
+        var tmpF = faceOrder[a].f, tmpZ = faceOrder[a].z, b = a - 1;
+        while (b >= 0 && faceOrder[b].z < tmpZ) {
+          faceOrder[b + 1].f = faceOrder[b].f; faceOrder[b + 1].z = faceOrder[b].z; b--;
+        }
+        faceOrder[b + 1].f = tmpF; faceOrder[b + 1].z = tmpZ;
+      }
+
+      // 4) 그리기 — 몸통(어두운 홈) 위에 안쪽으로 줄인 스티커
+      for (var q = 0; q < nf; q++) {
+        var fj = faceOrder[q].f, FF = FACES[fj], iv = FF.v;
+        var x0 = px[iv[0]], y0 = py[iv[0]];
+        var x1 = px[iv[1]], y1 = py[iv[1]];
+        var x2 = px[iv[2]], y2 = py[iv[2]];
+        var x3 = px[iv[3]], y3 = py[iv[3]];
+
+        ctx.beginPath();
+        ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3);
+        ctx.closePath();
+        ctx.fillStyle = BODY_FILL;
+        ctx.fill();
+
+        // 큐브 겉면에 놓인 면에만 스티커를 붙인다(속을 향한 면은 홈 색 그대로)
+        if (gg[FF.ax] !== FF.sg) continue;
+
+        var NN = rotN[fj];
+        var nd = NN[0] * LX + NN[1] * LY + NN[2] * LZ;
+        if (nd < 0) nd = 0;
+        var lit = 0.60 + 0.40 * nd;
+        // 뒤로 갈수록 살짝 어둡게 — 깊이감
+        lit *= 1.10 - 0.20 * ((faceOrder[q].z - (DIST - 2.2)) / 4.4);
+
+        var base = isAccent(gg, fj) ? ACCENT_RGB : SIDE_RGB[fj];
+        var mx = (x0 + x1 + x2 + x3) / 4, my = (y0 + y1 + y2 + y3) / 4;
+        var t = 0.15;                              // 안쪽으로 15% 축소
+        ctx.beginPath();
+        ctx.moveTo(x0 + (mx - x0) * t, y0 + (my - y0) * t);
+        ctx.lineTo(x1 + (mx - x1) * t, y1 + (my - y1) * t);
+        ctx.lineTo(x2 + (mx - x2) * t, y2 + (my - y2) * t);
+        ctx.lineTo(x3 + (mx - x3) * t, y3 + (my - y3) * t);
+        ctx.closePath();
+        ctx.fillStyle = shade(base, lit);
+        ctx.fill();
+        ctx.strokeStyle = EDGE_LINE;
+        ctx.stroke();
+      }
+    }
+  }
+
+  // ── 루프 ────────────────────────────────────────────────────────────────
+  function frame(t) {
+    raf = 0;
+    if (!running) return;
+    var dt = lastT ? (t - lastT) / 1000 : 0;
+    lastT = t;
+    if (dt > 0.1) dt = 0.1;                       // 탭 복귀 시 튀는 것 방지
+
+    if (dpr !== Math.min(window.devicePixelRatio || 1, 2)) resize();
+
+    spin += SPIN_SPEED * dt;
+    var yaw = spin + pointerX * 0.80;
+    var pitch = BASE_PITCH + pointerY * 0.30;   // -0.72 ~ -0.12 — 정면(0)까지는 안 눕는다
+    var e = 1 - Math.exp(-LERP_K * dt);
+    curYaw   += (yaw - curYaw) * e;
+    curPitch += (pitch - curPitch) * e;
+
+    draw();
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (running) return;
+    running = true; lastT = 0;
+    if (!raf) raf = requestAnimationFrame(frame);
+  }
+  function stop() {
+    running = false;
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+
+  // ── 포인터 ──────────────────────────────────────────────────────────────
+  var pointerX = 0, pointerY = 0;
+  function onPointer(e) {
+    var w = window.innerWidth || 1, h = window.innerHeight || 1;
+    var nx = (e.clientX / w) * 2 - 1;
+    var ny = (e.clientY / h) * 2 - 1;
+    pointerX = nx < -1 ? -1 : nx > 1 ? 1 : nx;
+    pointerY = ny < -1 ? -1 : ny > 1 ? 1 : ny;
+  }
+
+  // ── 기동 / 해제 ─────────────────────────────────────────────────────────
+  var io = null, ro = null, onResize = null, pointerBound = false;
+  // 탭이 숨으면 rAF 를 멈춘다(IntersectionObserver 와 별개 — 배경 탭에서도 안 돈다)
+  function onVisibility() {
+    if (document.hidden) stop();
+    else if (!io || stage.getBoundingClientRect().bottom > 0) start();
+  }
+
+  function mount() {
+    if (canvas) return;
+    canvas = document.createElement('canvas');
+    ctx = canvas.getContext && canvas.getContext('2d');
+    if (!ctx) { canvas = null; return; }          // Canvas 2D 없으면 정적 대체 유지
+    stage.appendChild(canvas);
+    stage.setAttribute('data-cube-mode', 'live');
+
+    if (!resize()) {                              // 아직 레이아웃 전이면 다음 프레임에
+      requestAnimationFrame(function () { resize(); draw(); });
+    }
+
+    if (mqHover && mqHover.matches) {             // hover:none 기기는 자전만
+      window.addEventListener('pointermove', onPointer, { passive: true });
+      pointerBound = true;
+    }
+
+    if (window.ResizeObserver) {
+      ro = new ResizeObserver(function () { if (resize() && !running) draw(); });
+      ro.observe(stage);
+    } else {
+      onResize = function () { if (resize() && !running) draw(); };
+      window.addEventListener('resize', onResize);
+    }
+
+    if (window.IntersectionObserver) {
+      io = new IntersectionObserver(function (es) {
+        if (es[0] && es[0].isIntersecting) start(); else stop();
+      }, { threshold: 0 });
+      io.observe(stage);
+    } else {
+      start();
+    }
+
+    document.addEventListener('visibilitychange', onVisibility);
+
+    draw();                                        // 첫 화면은 즉시 한 장 그려 둔다
+  }
+
+  function unmount() {                             // 실행 중 '모션 줄이기'를 켠 경우
+    stop();
+    if (io) { io.disconnect(); io = null; }
+    if (ro) { ro.disconnect(); ro = null; }
+    if (onResize) { window.removeEventListener('resize', onResize); onResize = null; }
+    document.removeEventListener('visibilitychange', onVisibility);
+    if (pointerBound) { window.removeEventListener('pointermove', onPointer); pointerBound = false; }
+    if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    canvas = null; ctx = null;
+    stage.removeAttribute('data-cube-mode');
+  }
+
+  function apply() {
+    if (mqReduce && mqReduce.matches) unmount(); else mount();
+  }
+  if (mqReduce) {
+    if (mqReduce.addEventListener) mqReduce.addEventListener('change', apply);
+    else if (mqReduce.addListener) mqReduce.addListener(apply);
+  }
+  apply();
+})();
+</script>
 
 <script type="module">
 import { initAiConsultModal } from './ai-consult-modal.js';
