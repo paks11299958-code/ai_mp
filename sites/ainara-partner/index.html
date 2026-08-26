@@ -96,12 +96,17 @@ h1 .sub{display:block;color:var(--brand);}
 /* 지그재그 배치 — 좌우를 번갈아 두고 시작 시점을 흩어 한꺼번에 움직이지 않게 한다.
    ★기존 플로팅 카드(fc-1 왼쪽아래, fc-2 오른쪽위)와 겹치지 않는 구역만 쓴다.
      칩을 컨테이너 밖(-14px 등)에 두면 잘려나가므로 전부 안쪽에 배치한다(실측). */
-.chip:nth-child(1){left:6%;   top:14%;  animation-delay:-.2s;}
-.chip:nth-child(2){left:52%;  top:31%;  animation-delay:-1.6s;}
-.chip:nth-child(3){left:8%;   top:47%;  animation-delay:-3.1s;}
-.chip:nth-child(4){left:46%;  top:63%;  animation-delay:-4.4s;}
-/* fc-1(왼쪽 아래 카드)을 피해 위쪽으로 — 80% 에 두면 겹친다(실측) */
-.chip:nth-child(5){left:34%;  top:78%;  animation-delay:-2.5s;}
+/* 8개를 4행 지그재그로. 좌우 열을 번갈아 두되 같은 행끼리는 x 를 벌려 겹치지 않게 한다.
+   ★fc-1(왼쪽 아래)·fc-2(오른쪽 위) 플로팅 카드 구역은 비워 둔다. */
+.chip:nth-child(1){left:5%;   top:9%;   animation-delay:-.2s;}
+.chip:nth-child(2){left:50%;  top:22%;  animation-delay:-1.6s;}
+.chip:nth-child(3){left:6%;   top:35%;  animation-delay:-3.1s;}
+.chip:nth-child(4){left:53%;  top:48%;  animation-delay:-4.4s;}
+/* fc-1(왼쪽 아래 카드) 구역이라 오른쪽으로 밀었다(실측) */
+.chip:nth-child(5){left:30%;  top:61%;  animation-delay:-2.5s;}
+.chip:nth-child(6){left:56%;  top:73%;  animation-delay:-.9s;}
+.chip:nth-child(7){left:33%;  top:86%;  animation-delay:-3.8s;}
+.chip:nth-child(8){left:30%;  top:2%;   animation-delay:-5.2s;}
 @keyframes chipFloat{
   0%,100%{transform:translateY(0);}
   50%    {transform:translateY(-11px);}
@@ -225,13 +230,14 @@ footer li a:hover{color:#faf9f5;}
   /* ★원본(1152x960 = 6/5) 비율 그대로 둔다 — 4/3 으로 두면 cover 가 위아래 10%를
      잘라 인물 머리·턱이 날아간다(실측). 잘리지 않는 것이 우선이다. */
   .hero-visual img{aspect-ratio:6/5;}
-  /* 좁은 화면에서는 칩을 줄이고 3개만 남긴다(5개면 그림을 덮는다).
+  /* 좁은 화면에서는 칩을 줄이고 4개만 남긴다(8개면 그림을 다 덮는다).
      ★음수 left 를 주면 컨테이너 밖으로 잘려나간다(실측) — 반드시 안쪽 % 로 둔다. */
   .chip{font-size:11.5px;padding:6px 11px;}
-  .chip:nth-child(4),.chip:nth-child(5){display:none;}
-  .chip:nth-child(1){left:5%;  top:12%;}
-  .chip:nth-child(2){left:40%; top:40%;}
-  .chip:nth-child(3){left:7%;  top:70%;}
+  .chip:nth-child(n+5){display:none;}
+  .chip:nth-child(1){left:4%;  top:8%;}
+  .chip:nth-child(2){left:42%; top:32%;}
+  .chip:nth-child(3){left:5%;  top:56%;}
+  .chip:nth-child(4){left:40%; top:80%;}
   .tiers{grid-template-columns:1fr;}
   .stats{grid-template-columns:1fr;}
   .stat{border-left:0;padding-left:0;}
@@ -278,11 +284,16 @@ footer li a:hover{color:#faf9f5;}
       <div class="photo"><img src="assets/img/hero.png" alt="AI 플랫폼 이미지" width="1152" height="960"></div>
       <!-- 자사 서비스명 칩(지그재그·부유). 장식이므로 aria-hidden. -->
       <div class="chips" aria-hidden="true">
+        <!-- ★앞 4개는 모바일에서도 보이는 자리다(뒤는 숨김) — 수익 구조 3종이
+             골고루 드러나도록 포인트형·임대형·홍보형을 섞어 배치했다. -->
         <span class="chip">AI 사주</span>
         <span class="chip alt">병원 AI 상담</span>
         <span class="chip">AI 쇼츠 제작</span>
-        <span class="chip alt">AI 홈페이지</span>
-        <span class="chip">AI 법률상담</span>
+        <span class="chip alt">AI 주식</span>
+        <span class="chip">AI 홈페이지</span>
+        <span class="chip alt">AI 법률상담</span>
+        <span class="chip">AI 책만들기</span>
+        <span class="chip alt">AI 스튜디오</span>
       </div>
       <div class="float-card fc-1">
         <div class="k">파트너 모집</div>
