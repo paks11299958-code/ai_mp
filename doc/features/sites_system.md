@@ -55,8 +55,8 @@ rewrites:
    {"name":"ainara2.dbzone.kr"}
    ```
    ★`dbzone.kr` 은 **Vercel DNS 에 위임**돼 있어 외부 등록업체를 갈 필요가 없다.
-   단, **레코드가 이미 있어야** 한다 — 신규 하위도메인 생성은 별도 권한이 필요하다
-   (현재 토큰은 `forbidden`, 재개 조건은 `~/TODO.md` 🌐 항목).
+   신규 레코드와 별도 프로젝트 생성에는 **팀 전체 스코프 토큰**이 필요하다. 개별
+   `ai-mp` 프로젝트 스코프 토큰은 DNS·프로젝트 생성 API에서 `forbidden`이 발생한다.
 
 2. **`vercel.json` 의 `redirects` 에 host 조건부 규칙 1개** 추가
    ```json
@@ -71,6 +71,17 @@ rewrites:
 
 ⚠️이 방식은 리다이렉트라 **주소창이 `/sites/<name>/` 으로 바뀐다.** 주소를 그대로
 유지하려면 **별도 Vercel 프로젝트**가 필요하고, 프로젝트 생성 권한이 있어야 한다.
+
+### 주소를 유지하는 별도 프로젝트 (2026-08-26 실전)
+
+`aiworld.dbzone.kr`은 같은 `ai_mp` 저장소에서 별도 Vercel 프로젝트 `aiworld`를 만들고
+`rootDirectory`를 `sites/ainara-cube`로 지정했다. 이 구조에서는 사이트 폴더에 정적 배포용
+`vercel.json`을 두어 루트 앱의 설치·빌드 설정 상속을 명시적으로 끊는다. 그렇지 않으면
+배포 상태가 `READY`여도 출력 파일이 0개라 실제 도메인은 404가 될 수 있다.
+
+프로젝트의 Production Branch도 저장소의 실제 운영 브랜치인 `master`로 확인한다. 잘못
+`main`으로 두면 `master` push가 Preview로만 배포된다. DNS 작업 전에는 존 전체를 JSON으로
+백업하고, 신규 레코드만 추가하며 기존 `aichat`·`bot`·MX·TXT는 수정하지 않는다.
 
 **배포 확인 시 주의**: 배포 직후 자산이 이상한 크기(SPA HTML 크기 ≈ 2.7KB)로 나오면
 **CDN 캐시**일 수 있다. `?v=$(date +%s)` 로 우회해 재확인할 것 — 미배포로 오진하기 쉽다
