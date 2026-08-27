@@ -515,7 +515,9 @@ export const mountSajuLoadingSmoke = (canvas: HTMLCanvasElement): { destroy(): v
     const N = (typeof window !== 'undefined' && window.innerWidth < 600) ? 14 : 24;
     const puffs = Array.from({ length: N }, () => ({
         ox: 0.08 + rnd() * 0.84,
-        oy: 1.04 + rnd() * 0.12,
+        // ★발생점을 아래로만 몰면 판 하단에 뭉쳐 보인다(실측). 화면 아래~중간까지 흩어
+        //   각 입자가 서로 다른 높이에서 시작하게 한다 — 어느 순간을 잘라도 고르게 퍼진다.
+        oy: 0.55 + rnd() * 0.62,
         rise: 0.75 + rnd() * 0.5,
         speed: 1 / (5.5 + rnd() * 4),     // 히어로보다 느리게 — 기다림을 재촉하지 않는다
         phase: rnd(),

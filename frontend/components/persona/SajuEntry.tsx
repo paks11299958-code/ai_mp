@@ -140,6 +140,8 @@ const SAJU_CSS = `
 .sj-smoke{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;}
 .sj-loadinner{position:relative;z-index:1;display:flex;flex-direction:column;
   align-items:center;gap:14px;}
+/* ★점 3개는 **가로**로 — 바깥 flex 가 column 이라 그대로 두면 세로로 쌓인다(실측). */
+.sj-loaddots{display:flex;align-items:center;gap:7px;}
 .sj-loading p{margin:0;font-size:12.5px;color:${T.textSub};}
 .sj-loading .sj-dot{width:7px;height:7px;border-radius:50%;background:${T.gold};display:inline-block;
   animation:sjPulse 1.1s ease-in-out infinite;}
@@ -340,7 +342,9 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                                         <div className="sj-loading">
                                             {!reduced && <canvas ref={smokeRef} className="sj-smoke" aria-hidden="true" />}
                                             <div className="sj-loadinner">
-                                                <span className="sj-dot" /><span className="sj-dot" /><span className="sj-dot" />
+                                                <span className="sj-loaddots">
+                                                    <span className="sj-dot" /><span className="sj-dot" /><span className="sj-dot" />
+                                                </span>
                                                 <p>도결 선생이 명부를 살피는 중입니다…</p>
                                             </div>
                                         </div>
