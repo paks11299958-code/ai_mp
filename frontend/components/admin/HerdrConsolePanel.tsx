@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Icon } from '../Icons';
 import { DevAiPanel } from './DevAiPanel';
 import { HomepageMakerPanel } from './HomepageMakerPanel';
+import { MediaHerdrPanel } from './MediaHerdrPanel';
 
 // 허드 AI 콘솔 — 흩어져 있던 "AI 에게 만들라고 시키는" 화면들을 한 곳으로 모은다.
 //
@@ -33,22 +34,6 @@ const TABS: { key: HerdrTab; label: string; icon: string; desc: string }[] = [
     { key: 'dev',      label: '개발',     icon: 'Cpu',      desc: '명세를 주고 코드로' },
 ];
 
-/** 아직 연결되지 않은 탭 — 무엇이 없는지 분명히 적는다(빈 화면만 두지 않는다). */
-const NotReady: React.FC<{ title: string; note: string }> = ({ title, note }) => (
-    <div className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-2xl mx-auto mt-10 rounded-2xl border border-gray-800 bg-gray-900/60 p-6">
-            <div className="flex items-center gap-2">
-                <Icon name="Clock" size={18} className="text-amber-400" />
-                <h3 className="text-sm font-bold text-white">{title}</h3>
-                <span className="rounded-full bg-amber-500/15 px-2 py-1 text-[10px] font-bold text-amber-300">
-                    연결 전
-                </span>
-            </div>
-            <p className="mt-3 text-xs leading-relaxed text-gray-400">{note}</p>
-        </div>
-    </div>
-);
-
 export const HerdrConsolePanel: React.FC = () => {
     const [tab, setTab] = useState<HerdrTab>('homepage');
 
@@ -79,22 +64,8 @@ export const HerdrConsolePanel: React.FC = () => {
             {/* 본문 — 기존 패널을 그대로 렌더한다(안을 고치지 않는다) */}
             {tab === 'homepage' && <HomepageMakerPanel />}
             {tab === 'dev' && <DevAiPanel />}
-            {tab === 'shorts' && (
-                <NotReady
-                    title="쇼츠 만들기"
-                    note={'쇼츠 제작은 아직 이 화면에 연결되지 않았습니다. '
-                        + '지금은 콘텐츠 > 🎬 Codex 쇼츠 공장에서 진행합니다. '
-                        + '(2026-08-27 사장 확정 — 기존 파이프라인은 그대로 두고, 이 탭은 2단계에서 연결)'}
-                />
-            )}
-            {tab === 'video' && (
-                <NotReady
-                    title="영상 만들기 (i2v)"
-                    note={'이미지 한 장을 움직이는 영상으로 만듭니다(Wan 2.2 TI2V-5B). '
-                        + '★편당 250~566원으로 쇼츠보다 비싸 탭을 분리했습니다 — 실수로 비싼 쪽을 '
-                        + '돌리지 않게 하기 위함입니다. 현재는 관리자 AI 스튜디오에서 실행합니다.'}
-                />
-            )}
+            {tab === 'shorts' && <MediaHerdrPanel kind="shorts" />}
+            {tab === 'video' && <MediaHerdrPanel kind="video" />}
         </div>
     );
 };

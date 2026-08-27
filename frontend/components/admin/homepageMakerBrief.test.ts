@@ -30,5 +30,6 @@ describe('홈페이지 생성 메이커-체커 명세', () => {
         expect(text).toContain('메이커가 제작하고 체커가');
         expect(text).toContain('승인 전에는 운영 도메인에 배포하지 않는다');
         expect(text).toContain('사실 정보는 제공되지 않았다면 만들지 않는다');
+        expect(text).toContain('frontend/App.tsx');
     });
 });

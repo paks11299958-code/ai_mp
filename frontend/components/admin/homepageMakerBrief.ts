@@ -7,6 +7,7 @@ export interface HomepageMakerBrief {
     contentSource: string;
     mustKeep: string;
     desiredDomain: string;
+    forbiddenFiles: string;
 }
 
 export const EMPTY_HOMEPAGE_MAKER_BRIEF: HomepageMakerBrief = {
@@ -18,6 +19,7 @@ export const EMPTY_HOMEPAGE_MAKER_BRIEF: HomepageMakerBrief = {
     contentSource: '',
     mustKeep: '',
     desiredDomain: '',
+    forbiddenFiles: 'frontend/App.tsx',
 };
 
 export const REQUIRED_HOMEPAGE_MAKER_FIELDS: (keyof HomepageMakerBrief)[] = [
@@ -46,6 +48,9 @@ export function buildHomepageMakerHandoff(brief: HomepageMakerBrief): string {
 - 반드시 유지할 내용: ${valueOrFallback(brief.mustKeep, '별도 지정 없음')}
 - 희망 도메인: ${valueOrFallback(brief.desiredDomain, '배포 전 확인')}
 
+## 작업 경계
+- 수정 금지 파일·경로: ${valueOrFallback(brief.forbiddenFiles, '별도 지정 없음')}
+
 ## 제작 방식
 1. 강한 시각 콘셉트 하나를 히어로의 중심으로 삼는다.
 2. 오브젝트의 움직임이 다음 콘텐츠 또는 메뉴로 자연스럽게 이어지게 한다.
@@ -56,5 +61,6 @@ export function buildHomepageMakerHandoff(brief: HomepageMakerBrief): string {
 - 연락처·주소·가격·실적 등 사실 정보는 제공되지 않았다면 만들지 않는다.
 - 기존 사이트·DNS 레코드를 수정하거나 삭제하지 않는다.
 - 새 독립 도메인은 승인 후 신규 레코드 추가 방식으로만 연결한다.
+- 수정 금지 파일·경로는 우회하거나 임의로 해제하지 않는다.
 `;
 }
