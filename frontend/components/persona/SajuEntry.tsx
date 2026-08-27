@@ -117,16 +117,30 @@ const SAJU_CSS = `
   backdrop-filter:blur(2px);animation:sjFade .22s ease;
   transition:background .4s ease;}
 /* ★기다리는 동안만 판을 걷어 **호랑이가 연기 너머로 비치게** 한다(2026-08-27 사장 제안).
-   결과가 나오면 원래 농도로 돌아간다 — 본문이 500자 넘게 오므로 가독성이 우선이다. */
+   결과가 나오면 원래 농도로 돌아간다 — 본문이 500자 넘게 오므로 가독성이 우선이다.
+   ★★한 번에 확 드러나면 부담스럽다는 지적(2026-08-27) — **천천히 나타났다 사라지기를
+     반복**한다. 12초 한 주기로, 가장 옅어지는 순간에도 잠깐만 머문다. */
 .sj-panel.is-waiting{
-  background:linear-gradient(165deg,rgba(13,11,10,.62) 0%,rgba(20,16,14,.72) 100%);}
+  animation:sjFade .22s ease, sjTigerBreathe 12s ease-in-out 1.2s infinite;}
+@keyframes sjTigerBreathe{
+  0%   {background:linear-gradient(165deg,rgba(13,11,10,.94) 0%,rgba(20,16,14,.97) 100%);}
+  38%  {background:linear-gradient(165deg,rgba(13,11,10,.60) 0%,rgba(20,16,14,.70) 100%);}
+  58%  {background:linear-gradient(165deg,rgba(13,11,10,.60) 0%,rgba(20,16,14,.70) 100%);}
+  100% {background:linear-gradient(165deg,rgba(13,11,10,.94) 0%,rgba(20,16,14,.97) 100%);}
+}
+/* 모션 감소면 숨쉬기를 멈추고 **중간 농도로 고정**한다 — 호랑이는 은은히 보이되 안 움직인다. */
+@media (prefers-reduced-motion:reduce){
+  .sj-panel.is-waiting{animation:none;
+    background:linear-gradient(165deg,rgba(13,11,10,.78) 0%,rgba(20,16,14,.85) 100%);}
+}
 @keyframes sjFade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.sj-panel{animation:none}}
 
 .sj-panelhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:16px 18px 12px;border-bottom:1px solid ${T.line};}
-/* 판이 옅어졌을 때 머리글도 배경에 묻히지 않게 살짝 눌러 준다. */
-.sj-panel.is-waiting .sj-panelhead{background:linear-gradient(180deg,rgba(13,11,10,.72),rgba(13,11,10,0));
+/* 판이 옅어지는 구간에도 머리글이 묻히지 않게 상시로 살짝 눌러 둔다.
+   ★숨쉬기와 같이 깜빡이면 어지러우므로 여기는 **고정**이다. */
+.sj-panel.is-waiting .sj-panelhead{background:linear-gradient(180deg,rgba(13,11,10,.8),rgba(13,11,10,0));
   border-bottom-color:rgba(201,162,39,.18);}
 .sj-panelname{font-size:16px;font-weight:700;
   background:linear-gradient(100deg,${T.goldLight},${T.gold});
