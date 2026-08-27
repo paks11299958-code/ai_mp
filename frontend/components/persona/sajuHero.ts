@@ -496,3 +496,95 @@ export const mountSajuHero = (canvas: HTMLCanvasElement): SajuHeroHandle => {
         },
     };
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 로딩 연기 — 풀이를 기다리는 동안 향 연기만 계속 피어오른다.
+//
+// 왜(2026-08-27 사장 지시): "기다리는 화면이 너무 밋밋하다." 히어로 연출을 그대로
+// 재생하는 안도 있었으나 그건 **6초짜리 정해진 타임라인**이라 풀이가 20~30초 걸리면
+// 끝나고 정지 프레임만 남아 다시 밋밋해진다. 그래서 **연기만 무한 루프**로 돌린다.
+// ★"도결 선생이 명부를 살피는 중"에 향 연기가 오르는 것은 사주 정서와도 맞는다.
+//
+// ★히어로와 같은 그리기 방식(radialGradient + screen 합성)을 쓰되, 타임라인·이미지·
+//   안개는 없다. 향로 계열 입자만 쓰고 발생점을 화면 아래쪽에 고르게 편다.
+export const mountSajuLoadingSmoke = (canvas: HTMLCanvasElement): { destroy(): void } => {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return { destroy: () => {} };
+
+    const rnd = makeRng(0x10ad1);
+    const N = (typeof window !== 'undefined' && window.innerWidth < 600) ? 14 : 24;
+    const puffs = Array.from({ length: N }, () => ({
+        ox: 0.08 + rnd() * 0.84,
+        oy: 1.04 + rnd() * 0.12,
+        rise: 0.75 + rnd() * 0.5,
+        speed: 1 / (5.5 + rnd() * 4),     // 히어로보다 느리게 — 기다림을 재촉하지 않는다
+        phase: rnd(),
+        wob: 0.035 + rnd() * 0.05,
+        wobF: 2 + rnd() * 3,
+        r0: 0.05 + rnd() * 0.05,
+        rg: 0.14 + rnd() * 0.16,
+        drift: (rnd() - 0.5) * 0.1,
+        alpha: 0.3 + rnd() * 0.22,        // 글을 읽어야 하므로 히어로보다 옅게
+    }));
+
+    let W = 1, H = 1, raf = 0, t = 0, last = 0, visible = true;
+
+    const resize = (): void => {
+        const dpr = Math.min(2, (typeof devicePixelRatio === 'number' ? devicePixelRatio : 1) || 1);
+        const r = canvas.getBoundingClientRect();
+        W = Math.max(1, Math.round(r.width * dpr));
+        H = Math.max(1, Math.round(r.height * dpr));
+        if (canvas.width !== W) canvas.width = W;
+        if (canvas.height !== H) canvas.height = H;
+    };
+
+    const render = (): void => {
+        ctx.clearRect(0, 0, W, H);
+        ctx.globalCompositeOperation = 'screen';
+        for (const p of puffs) {
+            const u = (t * p.speed + p.phase) % 1;
+            const fade = u < 0.2 ? u / 0.2 : Math.pow(1 - (u - 0.2) / 0.8, 1.4);
+            const a = p.alpha * fade;
+            if (a <= 0.004) continue;
+            const sway = Math.sin(u * p.wobF + p.phase * 6.283) * p.wob * Math.pow(u, 1.4);
+            const x = (p.ox + sway + p.drift * u) * W;
+            const y = (p.oy - u * p.rise) * H;
+            const r = (p.r0 + u * p.rg) * H;
+            const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+            g.addColorStop(0, `rgba(228,222,210,${a})`);
+            g.addColorStop(0.35, `rgba(210,204,193,${a * 0.72})`);
+            g.addColorStop(0.72, `rgba(190,185,175,${a * 0.3})`);
+            g.addColorStop(1, 'rgba(176,171,162,0)');
+            ctx.fillStyle = g;
+            ctx.fillRect(x - r, y - r, r * 2, r * 2);
+        }
+        ctx.globalCompositeOperation = 'source-over';
+    };
+
+    const tick = (now: number): void => {
+        raf = requestAnimationFrame(tick);
+        if (!visible) { last = now; return; }
+        // ★탭을 오래 비웠다 돌아와도 한 번에 튀지 않게 상한을 둔다.
+        const dt = Math.min(0.1, last ? (now - last) / 1000 : 0);
+        last = now;
+        t += dt;
+        render();
+    };
+
+    resize();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { resize(); render(); }) : null;
+    ro?.observe(canvas);
+    const io = typeof IntersectionObserver !== 'undefined'
+        ? new IntersectionObserver(es => { visible = es.some(e => e.isIntersecting); }, { threshold: 0 })
+        : null;
+    io?.observe(canvas);
+    raf = requestAnimationFrame(tick);
+
+    return {
+        destroy(): void {
+            cancelAnimationFrame(raf);
+            ro?.disconnect();
+            io?.disconnect();
+        },
+    };
+};

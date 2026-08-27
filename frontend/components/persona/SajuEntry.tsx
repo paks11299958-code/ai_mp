@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
-import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, prefersReducedMotion } from './sajuHero';
+import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, mountSajuLoadingSmoke, prefersReducedMotion } from './sajuHero';
 import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor } from './useSajuRunner';
 
 // 도결(道潔) 선생 전용 진입 화면 — "사주 사이트 같은 큰 랜딩".
@@ -78,10 +78,11 @@ const SAJU_CSS = `
 .sj-hero{position:relative;width:100%;border-radius:22px;overflow:hidden;
   border:1px solid ${T.line};background:#0b0908;
   box-shadow:0 40px 80px -40px rgba(0,0,0,.95), 0 0 0 1px rgba(0,0,0,.4);}
-.sj-hero img,.sj-hero canvas{display:block;width:100%;height:auto;background:#0b0908;}
+.sj-hero img,.sj-hero canvas:not(.sj-smoke){display:block;width:100%;height:auto;background:#0b0908;}
 /* ★aspect-ratio가 없으면 canvas 기본 300×150이 잡혀 첫 프레임에 상자가 찌그러진다.
    width/height 속성은 JS가 dpr배로 채우므로 비율은 그대로 유지된다. */
-.sj-hero canvas{aspect-ratio:${SAJU_HERO_ASPECT};}
+/* ★:not(.sj-smoke) — 로딩 연기 캔버스는 판을 꽉 채워야 하므로 이 비율을 받으면 안 된다. */
+.sj-hero canvas:not(.sj-smoke){aspect-ratio:${SAJU_HERO_ASPECT};}
 .sj-heroveil{position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(78% 68% at 50% 46%, rgba(0,0,0,0) 40%, rgba(13,11,10,.55) 82%, rgba(13,11,10,.9) 100%);}
 
@@ -133,8 +134,12 @@ const SAJU_CSS = `
 .sj-pick:hover{border-color:rgba(201,162,39,.45);background:rgba(201,162,39,.10);}
 .sj-pickhint{font-style:normal;font-size:11px;font-weight:500;color:${T.textSub};}
 
-.sj-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:14px;height:100%;min-height:180px;}
+.sj-loading{position:relative;display:flex;align-items:center;justify-content:center;
+  height:100%;min-height:220px;}
+/* ★향 연기 — 판 전체를 덮되 글 뒤에 깔린다. 캔버스는 mountSajuLoadingSmoke 가 그린다. */
+.sj-smoke{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;}
+.sj-loadinner{position:relative;z-index:1;display:flex;flex-direction:column;
+  align-items:center;gap:14px;}
 .sj-loading p{margin:0;font-size:12.5px;color:${T.textSub};}
 .sj-loading .sj-dot{width:7px;height:7px;border-radius:50%;background:${T.gold};display:inline-block;
   animation:sjPulse 1.1s ease-in-out infinite;}
@@ -195,6 +200,8 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
     /** 풀이 판이 히어로를 덮고 있는가 */
     const panelOpen = !!(runner.picking || runner.loading || runner.result || runner.error);
 
+    const smokeRef = useRef<HTMLCanvasElement | null>(null);
+
     // ★한 번만 판단해 렌더 내내 고정한다 — 렌더마다 matchMedia를 부르면 canvas가
     //   붙었다 떨어졌다 하며 연출이 처음부터 다시 재생될 수 있다.
     const [reduced] = useState(prefersReducedMotion);
@@ -206,6 +213,17 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
         const hero = mountSajuHero(el);
         return () => hero.destroy();         // rAF·옵저버까지 전부 걷어낸다
     }, [reduced]);
+
+    // 기다리는 동안 향 연기를 피운다(2026-08-27 사장 지시 "기다리는 화면이 밋밋하다").
+    // ★로딩이 끝나면 canvas 가 언마운트되므로 정리 함수가 rAF·옵저버를 걷어낸다.
+    // ★★`reduced` 선언 **뒤에** 둔다 — 앞에 두면 TDZ 로 터진다(2026-07-29 전 화면 백지 사고).
+    useEffect(() => {
+        if (reduced || !runner.loading) return;
+        const el = smokeRef.current;
+        if (!el) return;
+        const smoke = mountSajuLoadingSmoke(el);
+        return () => smoke.destroy();
+    }, [reduced, runner.loading]);
 
     // Esc로 닫기 — 전체를 덮는 화면이라 출구가 하나(✕)뿐이면 갇힌 느낌이 든다.
     useEffect(() => {
@@ -315,11 +333,16 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                                         </>
                                     )}
 
-                                    {/* ② 실행 중 */}
+                                    {/* ② 실행 중 — 향 연기가 계속 피어오른다(2026-08-27 사장 지시
+                                        "기다리는 화면이 밋밋하다"). 히어로 연출은 6초 타임라인이라
+                                        풀이가 더 걸리면 정지해 버려서, 연기만 무한 루프로 돌린다. */}
                                     {runner.loading && (
                                         <div className="sj-loading">
-                                            <span className="sj-dot" /><span className="sj-dot" /><span className="sj-dot" />
-                                            <p>도결 선생이 명부를 살피는 중입니다…</p>
+                                            {!reduced && <canvas ref={smokeRef} className="sj-smoke" aria-hidden="true" />}
+                                            <div className="sj-loadinner">
+                                                <span className="sj-dot" /><span className="sj-dot" /><span className="sj-dot" />
+                                                <p>도결 선생이 명부를 살피는 중입니다…</p>
+                                            </div>
                                         </div>
                                     )}
 
