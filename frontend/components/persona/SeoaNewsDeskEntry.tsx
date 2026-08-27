@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
 // 뉴스 본문은 **기존 보드를 그대로** 재사용한다(새로 만들지 않는다).
@@ -51,12 +51,25 @@ const SEOA_HERO_IMAGES = [
     '/seoa/seoa_sit_check_20260827.png',
 ] as const;
 
+/**
+ * 뉴스 재생 중에 띄우는 뉴스룸 소재 2장(2026-08-27 신설).
+ * 위 히어로 2장을 각각 원본으로 넣어 **배경만** 스튜디오로 바꾼 것이라 얼굴이 같다.
+ * ★재생을 누를 때마다 랜덤이다. 히어로와 짝을 맞추지 않는다 — 사장 지시.
+ */
+const SEOA_NEWSROOM_IMAGES = [
+    '/seoa/seoa_newsroom_stand_20260827.png',
+    '/seoa/seoa_newsroom_sit_v2_20260827.png',
+] as const;
+
+const pickOne = <T,>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)];
+
 /** 히어로 원본 비율. 이대로 잡아야 잘림이 없다(2026-08-26 모바일 잘림 사고). */
 const SEOA_HERO_ASPECT = '896 / 1195';
 
 type TimeOfDay = 'morning' | 'afternoon' | 'evening';
 
-/** 인사말·조명 3단(사양서 5-1). ★분기는 **서버 KST**(date.timeOfDay)로만 한다. */
+/** 인사말 3단(사양서 5-1). ★분기는 **서버 KST**(date.timeOfDay)로만 한다.
+    조명(필터·색막)은 2026-08-27 제거 — 인사말 문구만 시간대를 탄다. */
 const GREETING: Record<TimeOfDay, { text: string; emoji: string }> = {
     morning:   { text: '좋은 아침이에요', emoji: '☀️' },
     afternoon: { text: '안녕하세요',      emoji: '👋' },
@@ -179,26 +192,16 @@ const SEOA_CSS = `
   gap:34px;align-items:start;padding-top:30px;}
 
 /* ── 히어로 ────────────────────────────────────────────────────────────────
-   ★CSS filter 와 색 보정막은 **이미지에만** 건다. 인사말·카드에 걸면 가독성이 죽는다. */
+   재생 중에는 같은 자리에 뉴스룸 이미지가 들어간다(src 만 바뀐다). */
 .sn-hero{position:relative;width:100%;max-width:430px;margin:0 auto;border-radius:22px;overflow:hidden;
   border:1px solid ${T.line};background:${T.accentSoft};
   box-shadow:0 34px 60px -34px rgba(24,50,92,.55);}
 .sn-herofig{position:relative;margin:0;display:block;width:100%;aspect-ratio:${SEOA_HERO_ASPECT};
   overflow:hidden;background:${T.accentSoft};}
 .sn-heroimg{display:block;width:100%;height:auto;}
-/* 시간대 조명 — 필터는 img 한 곳에서만 건다. */
-.sn-heroimg.is-morning{filter:brightness(1.07) contrast(1.01) saturate(0.94);}
-.sn-heroimg.is-afternoon{filter:none;}
-.sn-heroimg.is-evening{filter:saturate(1.3) brightness(0.9) contrast(1.04);}
-/* 색 가산막 — figure 안(이미지 위)에만 있고 텍스트에는 절대 닿지 않는다.
-   ★필터만으로는 색을 '더할' 수 없다(밝기·채도만 조절된다). 새벽의 푸른 기운과
-     저녁의 앰버는 이 막이 만든다 — 실측으로 세기를 맞췄다(아래 주석). */
-.sn-tint{position:absolute;inset:0;pointer-events:none;}
-.sn-tint.is-morning{background:linear-gradient(180deg,rgba(120,176,255,.34) 0%,rgba(126,180,255,.20) 100%);
-  mix-blend-mode:screen;}
-.sn-tint.is-afternoon{background:none;}
-.sn-tint.is-evening{background:linear-gradient(180deg,rgba(255,178,86,.30) 0%,rgba(255,138,44,.46) 100%);
-  mix-blend-mode:overlay;}
+/* ★시간대 조명(필터·색막)은 2026-08-27 사장 지시로 제거했다.
+   저녁 앰버막(.46)이 특히 세서 인물 톤을 덮었다 — 원본 사진을 그대로 보여준다.
+   시간대 감각은 인사말 문구(GREETING)가 대신한다. 되살리지 말 것. */
 
 .sn-greet{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:38px 20px 18px;
   background:linear-gradient(to top,rgba(12,26,44,.80) 30%,rgba(12,26,44,.34) 68%,rgba(12,26,44,0) 100%);
@@ -249,17 +252,39 @@ const SEOA_CSS = `
 .sn-newsnote{margin:10px 0 0;font-size:11.5px;line-height:1.65;color:${T.inkMute};}
 .sn-newsnote b{color:${T.accentDeep};font-weight:800;}
 .sn-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:12px;}
-.sn-cat{display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box;
-  width:100%;min-width:0;padding:12px 12px;border-radius:14px;cursor:pointer;text-align:left;
+/* ★카드는 이제 div 다 — 안에 '글로 보기'와 '▶ 듣기' 두 버튼이 들어간다(2026-08-27).
+   버튼 안에 버튼을 넣을 수 없어 껍데기를 div 로 바꿨다. */
+.sn-cat{display:flex;align-items:stretch;gap:0;box-sizing:border-box;
+  width:100%;min-width:0;border-radius:14px;overflow:hidden;
   border:1px solid ${T.line};background:#fff;color:${T.ink};
   box-shadow:0 10px 22px -20px rgba(24,50,92,.7);
   transition:border-color .15s ease,background .15s ease,transform .15s ease;}
-.sn-cat:hover{border-color:rgba(61,116,184,.55);background:${T.accentSoft};}
-.sn-cat:active{transform:scale(.98);}
+.sn-cat:hover{border-color:rgba(61,116,184,.55);}
+.sn-cat.is-playing{border-color:${T.accentDeep};background:${T.accentSoft};}
+.sn-catmain{flex:1 1 auto;min-width:0;display:flex;align-items:center;
+  padding:12px 10px 12px 12px;border:0;background:transparent;color:inherit;
+  cursor:pointer;text-align:left;font:inherit;}
+.sn-catmain:hover{background:${T.accentSoft};}
+.sn-catmain:active{transform:scale(.98);}
 .sn-catlabel{min-width:0;font-size:12.5px;font-weight:700;line-height:1.35;overflow-wrap:anywhere;}
-.sn-catcost{flex:0 0 auto;padding:3px 7px;border-radius:999px;font-size:10px;font-weight:800;
-  color:${T.accentDeep};background:${T.accentSoft};border:1px solid ${T.line};
-  font-variant-numeric:tabular-nums;}
+/* ▶ — 최소 40px 폭. 모바일에서 손가락으로 눌리는 크기를 지킨다. */
+.sn-catplay{flex:0 0 auto;width:40px;display:flex;align-items:center;justify-content:center;
+  border:0;border-left:1px solid ${T.line};background:transparent;cursor:pointer;
+  font-size:12px;line-height:1;color:${T.accentDeep};transition:background .15s ease;}
+.sn-catplay:hover:not(:disabled){background:${T.accentSoft};}
+.sn-catplay:disabled{opacity:.5;cursor:default;}
+.sn-cat.is-playing .sn-catplay{background:${T.accentDeep};color:#fff;border-left-color:${T.accentDeep};}
+.sn-playerr{margin:9px 0 0;padding:9px 12px;border-radius:11px;font-size:11.5px;line-height:1.6;
+  color:#8A4B12;background:#FDF1E3;border:1px solid #F0D6B8;}
+
+/* ON AIR — 재생 중 히어로 위에 뜬다. */
+.sn-onair{display:inline-block;margin-right:9px;padding:3px 8px;border-radius:5px;
+  font-size:10.5px;font-weight:900;letter-spacing:.1em;vertical-align:middle;
+  color:#fff;background:#D8443C;}
+.sn-stop{margin-left:10px;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:800;
+  cursor:pointer;color:#fff;background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.45);}
+.sn-stop:hover{background:rgba(255,255,255,.3);}
 
 .sn-hint{margin:12px 0 0;padding:11px 14px;border-radius:13px;font-size:12px;line-height:1.65;
   color:${T.accentDeep};background:${T.accentSoft};border:1px solid ${T.line};}
@@ -330,7 +355,15 @@ interface Props {
 export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
     // 히어로는 **마운트 시 한 번** 뽑는다. 렌더마다 뽑으면 상태가 바뀔 때마다
     // 서 있다 앉았다 하며 화면이 튄다.
-    const [heroSrc] = useState(() => SEOA_HERO_IMAGES[Math.floor(Math.random() * SEOA_HERO_IMAGES.length)]);
+    const [heroSrc] = useState(() => pickOne(SEOA_HERO_IMAGES));
+
+    /** 재생 중인 카테고리(=뉴스룸으로 바뀐 상태). null 이면 평소 히어로. */
+    const [playing, setPlaying] = useState<string | null>(null);
+    /** 이번 재생에 쓸 뉴스룸 이미지 — ★재생을 누를 때마다 새로 뽑는다. */
+    const [newsroomSrc, setNewsroomSrc] = useState<string>(SEOA_NEWSROOM_IMAGES[0]);
+    const [playLoading, setPlayLoading] = useState<string | null>(null);
+    const [playError, setPlayError] = useState('');
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     const [summary, setSummary] = useState<DeskSummary | null>(null);
     /** 요약이 죽어도 화면(히어로·인사말·뉴스)은 살아 있어야 한다 — 시세 칸만 대체 문구. */
@@ -392,7 +425,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose, openCategory]);
 
-    // ★인사말·조명은 **서버 KST**(date.timeOfDay)로만 정한다. 브라우저 시계는 쓰지 않는다.
+    // ★인사말은 **서버 KST**(date.timeOfDay)로만 정한다. 브라우저 시계는 쓰지 않는다.
     //   요약이 아직/영영 없으면 필터 없는 낮 톤으로 둔다(멋대로 아침/저녁을 지어내지 않는다).
     const timeOfDay: TimeOfDay = summary?.date?.timeOfDay ?? 'afternoon';
     const greeting = GREETING[timeOfDay] ?? GREETING.afternoon;
@@ -404,6 +437,68 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
     // 서아의 기능은 'news' 하나다(personaFeatures.ts). 뉴스 칸이 이미 그 자리를 대신하므로
     // 칩으로 또 보여주지 않는다 — 나중에 기능이 늘면 그때만 칩이 나온다.
     const extraFeatures = (guide.features ?? []).filter(f => f.key !== 'news');
+
+    /** 재생 정지 — 뉴스룸에서 평소 히어로로 돌아온다. */
+    const stopPlay = () => {
+        const a = audioRef.current;
+        if (a) {
+            a.pause();
+            a.onended = null; a.onerror = null;
+            if (a.dataset?.objUrl) { URL.revokeObjectURL(a.dataset.objUrl); delete a.dataset.objUrl; }
+        }
+        setPlaying(null);
+        setPlayLoading(null);
+    };
+
+    /**
+     * ▶ 재생 — **여기서도 50P가 차감된다**(글로 읽는 것과 동일). 서버가 차감한다.
+     * ★모바일 대응: 사용자 제스처(클릭) 시점에 audio 엘리먼트를 만들어 둬야
+     *   fetch 뒤의 play() 가 차단되지 않는다(TodayNewsBoard 에서 검증된 패턴).
+     */
+    const playNews = async (key: string) => {
+        if (!localStorage.getItem('token')) { setNeedLogin(true); return; }
+        setNeedLogin(false);
+        setPlayError('');
+
+        // ★제스처 컨텍스트 유지 — await 이전에 엘리먼트를 확보한다.
+        if (!audioRef.current) audioRef.current = new Audio();
+        const audio = audioRef.current;
+        audio.pause();
+
+        // ★재생을 누를 때마다 뉴스룸 이미지를 새로 뽑는다(사장 지시).
+        setNewsroomSrc(pickOne(SEOA_NEWSROOM_IMAGES));
+        setPlayLoading(key);
+
+        try {
+            const res = await fetch(`/api/news/tts?category=${encodeURIComponent(key)}`, {
+                credentials: 'include',
+                headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+            });
+            if (!res.ok) throw new Error(res.status === 401 ? 'login' : 'nofile');
+
+            const url = URL.createObjectURL(await res.blob());
+            if (audio.dataset?.objUrl) URL.revokeObjectURL(audio.dataset.objUrl);
+            audio.dataset.objUrl = url;
+            audio.onended = () => stopPlay();
+            audio.onerror = () => { setPlayError('음성을 재생하지 못했어요.'); stopPlay(); };
+            audio.src = url;
+
+            setPlayLoading(null);
+            setPlaying(key);          // ← 여기서 화면이 뉴스룸으로 바뀐다
+            await audio.play();
+        } catch (e: any) {
+            setPlayLoading(null);
+            setPlaying(null);
+            if (e?.message === 'login') setNeedLogin(true);
+            else setPlayError('아직 오늘 음성이 준비되지 않았어요. 글로 보실 수 있어요.');
+        }
+    };
+
+    // 화면을 벗어나면 재생을 멈춘다(소리만 남는 것을 막는다).
+    useEffect(() => () => {
+        const a = audioRef.current;
+        if (a) { a.pause(); if (a.dataset?.objUrl) URL.revokeObjectURL(a.dataset.objUrl); }
+    }, []);
 
     /** 카테고리 클릭 — **여기서부터가 유료 구간**이다. */
     const openNews = (key: string) => {
@@ -516,22 +611,37 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
                 <button className="sn-close" onClick={onClose} aria-label="닫기">✕</button>
 
                 <div className="sn-top">
-                    {/* ① 히어로 — 선 모습/앉은 모습 랜덤 + 시간대 조명 */}
+                    {/* ① 히어로 — 선 모습/앉은 모습 랜덤.
+                        ★재생 중에는 뉴스룸으로 바뀐다(playing !== null). 끝나면 스스로 돌아온다. */}
                     <div className="sn-hero">
                         <figure className="sn-herofig">
                             <img
-                                className={`sn-heroimg is-${timeOfDay}`}
-                                src={heroSrc}
-                                alt={`${who} 뉴스데스크`}
+                                className="sn-heroimg"
+                                src={playing ? newsroomSrc : heroSrc}
+                                alt={playing ? `${who} 뉴스룸` : `${who} 뉴스데스크`}
                                 width={896}
                                 height={1195}
                             />
-                            <span className={`sn-tint is-${timeOfDay}`} aria-hidden="true" />
                         </figure>
-                        {/* ★인사말은 figure 밖이다 — 조명 필터·색막이 글자에 닿지 않는다. */}
+                        {/* ★인사말은 figure 밖이다 — 글자가 이미지 처리에 닿지 않는다. */}
                         <div className="sn-greet">
-                            <p className="sn-greettext">{greeting.text} {greeting.emoji}</p>
-                            <p className="sn-greetsub">오늘의 시세·날씨 같은 소식, 제가 정리해 뒀어요.</p>
+                            {playing ? (
+                                <>
+                                    <p className="sn-greettext">
+                                        <span className="sn-onair">ON AIR</span>
+                                        {categories.find(c => c.key === playing)?.label ?? '뉴스'}
+                                    </p>
+                                    <p className="sn-greetsub">
+                                        읽어 드리고 있어요.
+                                        <button type="button" className="sn-stop" onClick={stopPlay}>■ 멈추기</button>
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="sn-greettext">{greeting.text} {greeting.emoji}</p>
+                                    <p className="sn-greetsub">오늘의 시세·날씨 같은 소식, 제가 정리해 뒀어요.</p>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -568,24 +678,41 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
                         {/* 뉴스 — ★여기까지가 무료다. 본문은 카테고리를 누를 때만 조회한다. */}
                         <div className="sn-secthead">
                             <h3 className="sn-secttitle">📰 오늘 뉴스</h3>
-                            <p className="sn-sectsub">보고 싶은 분야를 고르시면 정리해 드려요</p>
+                            <p className="sn-sectsub">분야를 누르면 글로, ▶를 누르면 제가 읽어 드려요</p>
                         </div>
                         <p className="sn-newsnote">
                             이 화면을 보는 것만으로는 <b>포인트가 들지 않아요</b>.
                             {newsCost !== null
-                                ? <> 분야를 누르실 때만 <b>{newsCost}P</b> 차감됩니다.</>
-                                : ' 분야를 누르실 때만 차감됩니다.'}
+                                ? <> 글로 보시거나 ▶로 들으실 때만 <b>{newsCost}P</b> 차감됩니다.</>
+                                : ' 글로 보시거나 ▶로 들으실 때만 차감됩니다.'}
                         </p>
+                        {playError && <p className="sn-playerr">{playError}</p>}
 
                         {categories.length > 0 ? (
                             <div className="sn-cats sn-fade">
-                                {categories.map(c => (
-                                    <button key={c.key} className="sn-cat" onClick={() => openNews(c.key)}>
-                                        <span className="sn-catlabel">{c.label}</span>
-                                        {/* ★단가는 서버 값만 쓴다. 못 받았으면 배지 자체를 생략한다. */}
-                                        {newsCost !== null && <span className="sn-catcost">{newsCost}P</span>}
-                                    </button>
-                                ))}
+                                {/* ★카드 본체=글로 읽기, ▶=음성으로 듣기. 둘 다 같은 단가로 차감된다.
+                                    버튼 안에 버튼을 넣을 수 없어 div 로 감싸고 각각을 button 으로 둔다. */}
+                                {categories.map(c => {
+                                    const isPlaying = playing === c.key;
+                                    const isLoading = playLoading === c.key;
+                                    return (
+                                        <div key={c.key} className={`sn-cat${isPlaying ? ' is-playing' : ''}`}>
+                                            <button type="button" className="sn-catmain" onClick={() => openNews(c.key)}>
+                                                <span className="sn-catlabel">{c.label}</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="sn-catplay"
+                                                onClick={() => (isPlaying ? stopPlay() : playNews(c.key))}
+                                                disabled={isLoading}
+                                                aria-label={`${c.label} ${isPlaying ? '멈추기' : '들려주기'}`}
+                                                title={isPlaying ? '멈추기' : '서아가 읽어드려요'}
+                                            >
+                                                {isLoading ? '…' : isPlaying ? '■' : '▶'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         ) : catsFailed ? (
                             <div className="sn-hint">
