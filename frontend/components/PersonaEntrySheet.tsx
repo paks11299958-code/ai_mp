@@ -1,6 +1,7 @@
 import React from 'react';
 import { MpnFeatureIcon } from './MainPageNew';
 import { SajuEntry } from './persona/SajuEntry';
+import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -64,6 +65,13 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     //   이 컴포넌트에는 훅이 없으므로 이 조기 return이 훅 순서를 깨지 않는다.
     if (guide.title?.startsWith('도결')) {
         return <SajuEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} />;
+    }
+    // ★서아도 같은 규약으로 뉴스데스크 랜딩으로 갈아 끼운다(2026-08-27 사장 지시).
+    //   판별 키는 도결과 **똑같이** guide.title 접두사다 — 페르소나 카드로 들어오면
+    //   title이 persona.name('서아')이다(App.tsx showPersonaGuide).
+    //   ★임의 문자열 매칭이 아니라 위 도결 분기와 같은 규약을 그대로 쓴다.
+    if (guide.title?.startsWith('서아')) {
+        return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} />;
     }
 
     const who = guide.personaName || guide.title;

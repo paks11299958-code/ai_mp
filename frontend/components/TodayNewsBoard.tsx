@@ -3,6 +3,10 @@ import { X, Newspaper, Volume2, VolumeX, Loader, RefreshCw } from 'lucide-react'
 
 interface Props {
     onClose: () => void;
+    /** 처음 열릴 때 펼칠 카테고리 key. 서아 뉴스데스크 랜딩에서 사용자가 고른 분야를
+     *  그대로 이어받는다 — 없으면 지금까지처럼 첫 카테고리로 연다.
+     *  ★유료(50P) 조회는 이 컴포넌트가 마운트된 뒤 그 카테고리 **하나**에만 일어난다. */
+    initialCategory?: string;
 }
 
 interface CategoryItem {
@@ -162,8 +166,12 @@ const T = {
     gold:     '#C9A84C',
 };
 
-export const TodayNewsBoard: React.FC<Props> = ({ onClose }) => {
-    const [activeKey, setActiveKey] = useState(CATEGORIES[0].key);
+export const TodayNewsBoard: React.FC<Props> = ({ onClose, initialCategory }) => {
+    // ★모르는 key가 들어오면 무시한다 — 없는 카테고리로 /today를 때리면 404만 나고
+    //   사용자는 빈 화면을 본다(차감은 조회 성공 후라 돈은 안 나가지만 헛걸음이다).
+    const [activeKey, setActiveKey] = useState(
+        CATEGORIES.some(c => c.key === initialCategory) ? (initialCategory as string) : CATEGORIES[0].key,
+    );
     // 슬롯은 status가 주는 '가용 슬롯'을 따른다(오후뉴스 제거 후엔 am만 존재).
     // 확정 전(null)엔 fetch 보류 → 없는 슬롯 요청으로 빈 화면 뜨는 것 방지.
     const [slot, setSlot] = useState<'am' | 'pm' | null>(null);
