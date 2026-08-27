@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
 import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, prefersReducedMotion } from './sajuHero';
+import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor } from './useSajuRunner';
 
 // 도결(道潔) 선생 전용 진입 화면 — "사주 사이트 같은 큰 랜딩".
 //
@@ -103,10 +104,61 @@ const SAJU_CSS = `
 .sj-note{margin:26px 0 0;font-size:12px;line-height:1.7;color:${T.textSub};}
 .sj-note b{color:${T.goldLight};font-weight:700;}
 
+/* ── 풀이 판 — 히어로 **같은 자리**를 덮는다. 창 밖으로 나가지 않는 것이 목적이다. ── */
+.sj-panel{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+  background:linear-gradient(165deg,rgba(13,11,10,.94) 0%,rgba(20,16,14,.97) 100%);
+  backdrop-filter:blur(2px);animation:sjFade .22s ease;}
+@keyframes sjFade{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sj-panel{animation:none}}
+
+.sj-panelhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 18px 12px;border-bottom:1px solid ${T.line};}
+.sj-panelname{font-size:16px;font-weight:700;
+  background:linear-gradient(100deg,${T.goldLight},${T.gold});
+  -webkit-background-clip:text;background-clip:text;color:transparent;}
+.sj-panelback{width:30px;height:30px;flex:none;border-radius:50%;cursor:pointer;
+  border:1px solid ${T.line};background:transparent;color:${T.textSub};font-size:13px;line-height:1;}
+.sj-panelback:hover{color:${T.goldLight};border-color:rgba(201,162,39,.45);}
+
+/* ★스크롤은 판 안에서만. 결과가 길어도 창 전체가 밀리지 않는다. */
+.sj-panelbody{flex:1;min-height:0;overflow-y:auto;padding:16px 18px;}
+
+.sj-dialog{margin:0 0 14px;font-size:13.5px;line-height:1.8;color:${T.textSub};}
+.sj-picks{display:grid;gap:8px;}
+.sj-pick{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:13px 15px;border-radius:12px;cursor:pointer;text-align:left;
+  border:1px solid ${T.line};background:rgba(240,233,220,.045);
+  color:${T.text};font-size:13.5px;font-weight:600;
+  transition:border-color .15s ease,background .15s ease;}
+.sj-pick:hover{border-color:rgba(201,162,39,.45);background:rgba(201,162,39,.10);}
+.sj-pickhint{font-style:normal;font-size:11px;font-weight:500;color:${T.textSub};}
+
+.sj-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;height:100%;min-height:180px;}
+.sj-loading p{margin:0;font-size:12.5px;color:${T.textSub};}
+.sj-loading .sj-dot{width:7px;height:7px;border-radius:50%;background:${T.gold};display:inline-block;
+  animation:sjPulse 1.1s ease-in-out infinite;}
+.sj-loading .sj-dot:nth-child(2){animation-delay:.15s}
+.sj-loading .sj-dot:nth-child(3){animation-delay:.3s}
+@keyframes sjPulse{0%,100%{opacity:.25;transform:scale(.85)}50%{opacity:1;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.sj-loading .sj-dot{animation:none;opacity:.7}}
+
+/* 풀이 본문 — 줄바꿈을 그대로 살린다(도결 선생 말투가 문단으로 온다). */
+.sj-result{font-size:14px;line-height:1.95;color:${T.text};white-space:pre-wrap;
+  overflow-wrap:anywhere;}
+.sj-err{margin:0;font-size:13px;line-height:1.8;color:#e8a49c;}
+
+.sj-panelfoot{display:flex;gap:8px;padding:12px 18px 16px;border-top:1px solid ${T.line};}
+.sj-panelfoot .sj-cta2{flex:1;padding:11px 14px;font-size:12.5px;}
+
 @media (max-width:820px){
   .sj-sheet{padding-left:16px;padding-right:16px;}
   .sj-top{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:44px;}
   .sj-hero{order:-1;border-radius:18px;}
+  /* ★풀이가 열리면 히어로 비율(1216:832)만으로는 본문이 너무 좁다 —
+     모바일에서만 판이 열렸을 때 높이를 벌린다(닫으면 원래 비율로 돌아온다). */
+  .sj-hero:has(.sj-panel){min-height:66vh;}
+  .sj-panelbody{padding:14px 15px;}
   .sj-desc{max-width:none;}
   .sj-feats{margin-top:44px;}
   .sj-featgrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
@@ -127,6 +179,21 @@ interface Props {
 export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
     const featsRef = useRef<HTMLDivElement | null>(null);
     const heroRef = useRef<HTMLCanvasElement | null>(null);
+
+    // ★창 안에서 풀이까지 끝낸다 — 채팅으로 나가지 않는다(2026-08-27 사장 지시).
+    //   퀵메뉴·명부는 DB 정본을 그대로 읽고, 실행도 채팅이 쓰던 같은 API 를 부른다.
+    const { id: personaId, menus } = usePersonaMenus(guide.personaName || guide.title);
+    const [birth] = useSavedBirth();
+    const runner = useSajuRunner(personaId, birth);
+    /** 기능 클릭 — 창 안에서 돌릴 수 있으면 여기서 풀고, 아니면 기존 채팅 경로로 넘긴다.
+     *  ★해몽(텍스트)·관상/손금(사진)은 입력 UI 가 따로 필요해 아직 채팅으로 보낸다. */
+    const handleFeature = (featureKey: string) => {
+        const menu = sheetMenuFor(menus, featureKey);
+        if (menu) runner.select(menu);
+        else onFeature(featureKey);
+    };
+    /** 풀이 판이 히어로를 덮고 있는가 */
+    const panelOpen = !!(runner.picking || runner.loading || runner.result || runner.error);
 
     // ★한 번만 판단해 렌더 내내 고정한다 — 렌더마다 matchMedia를 부르면 canvas가
     //   붙었다 떨어졌다 하며 연출이 처음부터 다시 재생될 수 있다.
@@ -177,7 +244,7 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                         {features.length > 0 && (
                             <div className="sj-chips">
                                 {features.map(f => (
-                                    <button key={f.key} className="sj-chip" onClick={() => onFeature(f.key)}>
+                                    <button key={f.key} className="sj-chip" onClick={() => handleFeature(f.key)}>
                                         <MpnFeatureIcon kind={f.icon} size={18} color={T.goldLight} bg={T.inkDeep} />
                                         {f.name}
                                     </button>
@@ -206,12 +273,73 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                         )}
                     </div>
 
-                    {/* 우 — 히어로. canvas는 최대 1개, 모션 감소면 정적 이미지로 대체한다. */}
+                    {/* 우 — 히어로. 기능을 고르면 **같은 자리**가 풀이 판으로 바뀐다.
+                        ★창 밖으로 나가지 않는 것이 이 화면의 목적이다(2026-08-27 사장 지시). */}
                     <div className="sj-hero">
                         {reduced
                             ? <img src={SAJU_HERO_IMAGES.tiger} alt="" aria-hidden="true" />
                             : <canvas ref={heroRef} aria-hidden="true" />}
                         <div className="sj-heroveil" aria-hidden="true" />
+
+                        {panelOpen && (
+                            <div className="sj-panel" role="region" aria-live="polite"
+                                 aria-label={runner.picking?.label || runner.result?.title || '풀이'}>
+                                <div className="sj-panelhead">
+                                    <span className="sj-panelname sj-serif">
+                                        {runner.result?.title || runner.picking?.label || '풀이 중'}
+                                    </span>
+                                    <button className="sj-panelback" onClick={runner.reset} aria-label="닫고 처음으로">
+                                        ✕
+                                    </button>
+                                </div>
+
+                                <div className="sj-panelbody">
+                                    {/* ① 서브메뉴 — 무엇을 볼지 고른다 */}
+                                    {runner.picking && (
+                                        <>
+                                            {runner.picking.subMenu?.dialog && (
+                                                <p className="sj-dialog sj-serif">{runner.picking.subMenu.dialog}</p>
+                                            )}
+                                            <div className="sj-picks">
+                                                {(runner.picking.subMenu?.items ?? []).map(it => (
+                                                    <button key={it.label} className="sj-pick"
+                                                        onClick={() => it.partnerModal
+                                                            // 상대방 정보가 필요한 항목(인연 궁합)은 아직 채팅 경로다.
+                                                            ? onFeature('yeonn')
+                                                            : runner.pick(it.label, it.prompt)}>
+                                                        {it.label}
+                                                        {it.partnerModal && <em className="sj-pickhint">상대 정보 필요</em>}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {/* ② 실행 중 */}
+                                    {runner.loading && (
+                                        <div className="sj-loading">
+                                            <span className="sj-dot" /><span className="sj-dot" /><span className="sj-dot" />
+                                            <p>도결 선생이 명부를 살피는 중입니다…</p>
+                                        </div>
+                                    )}
+
+                                    {/* ③ 결과 — 창 안에서 그대로 읽는다 */}
+                                    {runner.result && (
+                                        <div className="sj-result">{runner.result.body}</div>
+                                    )}
+
+                                    {/* ④ 오류 */}
+                                    {runner.error && <p className="sj-err">{runner.error}</p>}
+                                </div>
+
+                                {(runner.result || runner.error) && (
+                                    <div className="sj-panelfoot">
+                                        <button className="sj-cta2" onClick={runner.reset}>다른 것도 보기</button>
+                                        <button className="sj-cta2" onClick={() => onStart()}>도결 선생에게 더 묻기</button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -224,7 +352,7 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                         </div>
                         <div className="sj-featgrid">
                             {features.map(f => (
-                                <button key={f.key} className="sj-feat" onClick={() => onFeature(f.key)}>
+                                <button key={f.key} className="sj-feat" onClick={() => handleFeature(f.key)}>
                                     <span className="sj-featicon">
                                         <MpnFeatureIcon kind={f.icon} size={24} color={T.goldLight} bg={T.inkDeep} />
                                     </span>
