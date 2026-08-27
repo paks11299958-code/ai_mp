@@ -166,3 +166,24 @@ export const sheetMenuFor = (menus: SajuMenu[], featureKey: string): SajuMenu | 
     const m = menus.find(x => x.label === label);
     return m && canRunInSheet(m) ? m : undefined;
 };
+
+/** 2단계 — 입력 UI 가 필요한 기능도 창 안에서 처리한다(2026-08-27).
+ *  ★관상·손금은 **기존 모달·결과 카드를 그대로** 띄운다(FaceReadingModal 등은 독립
+ *    컴포넌트라 personaId 만 주면 된다). 새로 만들 이유가 없다.
+ *  ★꿈해몽만 입력창이 없다 — 채팅 입력창에 의존하던 것이라 창 안에 textarea 를 둔다. */
+export type SajuInputKind = 'face' | 'palm' | 'dream';
+
+export const inputKindFor = (menus: SajuMenu[], featureKey: string): SajuInputKind | undefined => {
+    const label = KEY_TO_LABEL[featureKey];
+    const m = label ? menus.find(x => x.label === label) : undefined;
+    if (!m) return undefined;
+    if (m.faceModal) return 'face';
+    if (m.palmModal) return 'palm';
+    if (m.placeholder) return 'dream';
+    return undefined;
+};
+
+/** 꿈해몽 안내 문구 — DB 의 placeholder 를 그대로 쓴다(문구 창작 금지). */
+export const dreamPlaceholder = (menus: SajuMenu[]): string =>
+    menus.find(m => m.label === KEY_TO_LABEL.dream)?.placeholder
+    ?? '어젯밤 꾼 꿈의 내용을 들려주세요.';

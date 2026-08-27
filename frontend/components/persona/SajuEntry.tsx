@@ -2,7 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
 import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, mountSajuLoadingSmoke, prefersReducedMotion } from './sajuHero';
-import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor } from './useSajuRunner';
+import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor, inputKindFor, dreamPlaceholder, type SajuInputKind } from './useSajuRunner';
+// 2단계 — 기존 모달·결과 카드를 그대로 재사용한다(새로 만들지 않는다).
+import { FaceReadingModal } from '../FaceReadingModal';
+import { FaceReadingResultCard } from '../FaceReadingResultCard';
+import { PalmReadingModal } from '../PalmReadingModal';
+import { PalmReadingResultCard } from '../PalmReadingResultCard';
+import type { FaceReadingResult, PalmReadingResult } from '../../types';
 
 // 도결(道潔) 선생 전용 진입 화면 — "사주 사이트 같은 큰 랜딩".
 //
@@ -168,6 +174,23 @@ const SAJU_CSS = `
 .sj-panelfoot{display:flex;gap:8px;padding:12px 18px 16px;border-top:1px solid ${T.line};}
 .sj-panelfoot .sj-cta2{flex:1;padding:11px 14px;font-size:12.5px;}
 
+/* ── 꿈해몽 입력 — 입력창이 없던 유일한 기능이라 창 안에 둔다 ── */
+.sj-dreamwrap{position:fixed;inset:0;z-index:90;display:grid;place-items:center;padding:20px;
+  background:rgba(6,5,4,.72);backdrop-filter:blur(3px);}
+.sj-dream{width:min(520px,100%);border-radius:20px;overflow:hidden;
+  border:1px solid ${T.line};background:linear-gradient(165deg,#15100d 0%,${T.inkDeep} 100%);
+  box-shadow:0 40px 90px -30px rgba(0,0,0,.9);}
+.sj-dreambody{padding:16px 18px 18px;display:grid;gap:12px;}
+.sj-dreaminput{width:100%;box-sizing:border-box;resize:vertical;
+  padding:13px 14px;border-radius:12px;border:1px solid ${T.line};
+  background:rgba(240,233,220,.04);color:${T.text};
+  font-family:inherit;font-size:14px;line-height:1.8;}
+.sj-dreaminput::placeholder{color:${T.textSub};opacity:.65;}
+.sj-dreaminput:focus{outline:none;border-color:rgba(201,162,39,.5);
+  box-shadow:0 0 0 3px rgba(201,162,39,.12);}
+.sj-dream .sj-cta{width:100%;}
+.sj-dream .sj-cta:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;}
+
 @media (max-width:820px){
   .sj-sheet{padding-left:16px;padding-right:16px;}
   .sj-top{grid-template-columns:minmax(0,1fr);gap:26px;padding-top:44px;}
@@ -206,13 +229,24 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
      *  ★해몽(텍스트)·관상/손금(사진)은 입력 UI 가 따로 필요해 아직 채팅으로 보낸다. */
     const handleFeature = (featureKey: string) => {
         const menu = sheetMenuFor(menus, featureKey);
-        if (menu) runner.select(menu);
-        else onFeature(featureKey);
+        if (menu) { runner.select(menu); return; }
+        // 2단계 — 입력이 필요한 기능도 창 안에서 받는다(2026-08-27).
+        const kind = inputKindFor(menus, featureKey);
+        if (kind) { setInputKind(kind); setDream(''); return; }
+        onFeature(featureKey);              // 그래도 못 하는 건 기존 채팅 경로로
     };
     /** 풀이 판이 히어로를 덮고 있는가 */
     const panelOpen = !!(runner.picking || runner.loading || runner.result || runner.error);
 
     const smokeRef = useRef<HTMLCanvasElement | null>(null);
+
+    // 2단계 — 사진 업로드(관상·손금)와 텍스트(꿈해몽)를 창 안에서 받는다.
+    // ★관상·손금은 **기존 모달·결과 카드를 그대로** 쓴다(독립 컴포넌트라 personaId 만 주면 된다).
+    //   새로 만들면 그쪽에 이미 있는 연출(손금 봉인→플립 등)을 잃는다.
+    const [inputKind, setInputKind] = useState<SajuInputKind | null>(null);
+    const [dream, setDream] = useState('');
+    const [faceResult, setFaceResult] = useState<FaceReadingResult | null>(null);
+    const [palmResult, setPalmResult] = useState<{ result: PalmReadingResult; imageUrl: string | null; hand: 'left' | 'right' } | null>(null);
 
     // ★한 번만 판단해 렌더 내내 고정한다 — 렌더마다 matchMedia를 부르면 canvas가
     //   붙었다 떨어졌다 하며 연출이 처음부터 다시 재생될 수 있다.
@@ -400,6 +434,75 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                     </div>
                 )}
             </div>
+
+            {/* ── 2단계: 입력이 필요한 기능 ──────────────────────────────
+                ★관상·손금은 **기존 모달과 결과 카드를 그대로** 띄운다. 이 창 위에
+                  얹히므로 여전히 채팅으로 나가지 않는다. */}
+            {inputKind === 'face' && personaId && (
+                <FaceReadingModal
+                    personaId={personaId}
+                    onResult={r => { setFaceResult(r); setInputKind(null); }}
+                    onClose={() => setInputKind(null)}
+                />
+            )}
+            {faceResult && (
+                <FaceReadingResultCard
+                    result={faceResult}
+                    personaName={guide.personaName || guide.title}
+                    onClose={() => setFaceResult(null)}
+                />
+            )}
+
+            {inputKind === 'palm' && personaId && (
+                <PalmReadingModal
+                    personaId={personaId}
+                    onResult={(result, imageUrl, hand) => { setPalmResult({ result, imageUrl, hand }); setInputKind(null); }}
+                    onClose={() => setInputKind(null)}
+                />
+            )}
+            {palmResult && (
+                <PalmReadingResultCard
+                    result={palmResult.result}
+                    imageUrl={palmResult.imageUrl}
+                    hand={palmResult.hand}
+                    personaName={guide.personaName || guide.title}
+                    onClose={() => setPalmResult(null)}
+                />
+            )}
+
+            {/* 꿈해몽 — 입력창이 없던 유일한 기능이라 창 안에 둔다.
+                ★차감은 `/quick-menu-result` 가 서버에서 처리한다(실패 시 환불까지).
+                  채팅 경로의 activate(50P 선차감)를 쓰면 이중과금이 된다. */}
+            {inputKind === 'dream' && (
+                <div className="sj-dreamwrap" role="dialog" aria-modal="true" aria-label="꿈해몽">
+                    <div className="sj-dream">
+                        <div className="sj-panelhead">
+                            <span className="sj-panelname sj-serif">🌙 해몽</span>
+                            <button className="sj-panelback" onClick={() => setInputKind(null)} aria-label="닫기">✕</button>
+                        </div>
+                        <div className="sj-dreambody">
+                            <textarea
+                                className="sj-dreaminput"
+                                value={dream}
+                                onChange={e => setDream(e.target.value)}
+                                placeholder={dreamPlaceholder(menus)}
+                                rows={6}
+                                autoFocus
+                            />
+                            <button
+                                className="sj-cta"
+                                disabled={!dream.trim()}
+                                onClick={() => {
+                                    const m = menus.find(x => x.label === '🌙 해몽');
+                                    runner.run('🌙 해몽', `${m?.prompt ? m.prompt + '\n\n' : ''}${dream.trim()}`);
+                                    setInputKind(null);
+                                }}>
+                                도결 선생께 여쭙기
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
