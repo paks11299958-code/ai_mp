@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { adminApi } from '../../services/apiService';
 import { Icon } from '../Icons';
 import {
     EMPTY_RESEARCH_DEV_BRIEF,
@@ -72,15 +73,35 @@ export const ResearchDevPanel: React.FC = () => {
     const [brief, setBrief] = useState<ResearchDevBrief>(EMPTY_RESEARCH_DEV_BRIEF);
     const [prepared, setPrepared] = useState(false);
     const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    const [busy, setBusy] = useState(false);
+    const [saved, setSaved] = useState<{id:string; signature:string}|null>(null);
     const policy = getResearchDevPolicy(brief.workType);
     const ready = isResearchDevBriefReady(brief);
     const handoff = useMemo(() => buildResearchDevHandoff(brief), [brief]);
-    const set = (key: keyof ResearchDevBrief, value: string) => { setBrief(v => ({ ...v, [key]: value })); setPrepared(false); setMessage(''); };
+    const signature = `${handoff}\n${brief.workType}`;
+    const dirty = saved?.signature !== signature;
+    const set = (key: keyof ResearchDevBrief, value: string) => { setBrief(v => ({ ...v, [key]: value })); setPrepared(false); setMessage(''); setError(''); };
     const selectType = (workType: ResearchWorkType) => { setBrief(v => ({ ...v, workType })); setPrepared(false); setMessage(''); };
-    const prepare = () => {
+    const prepare = async () => {
         if (!ready) return;
-        setPrepared(true);
-        setMessage('입력 명세를 준비했습니다. A묶음에서는 AI를 호출하지 않으며, 실제 리서치는 B 연결 후 시작됩니다.');
+        try {
+            setBusy(true); setError('');
+            const body = {title:`[리서치 개발] ${brief.title.trim()}`, features:brief.target.trim(), specBody:handoff,
+                refUrls:brief.references || '', note:'허드 AI 리서치 개발 탭에서 저장',
+                brief:JSON.stringify({hermesV2:true, workType:brief.workType}),
+                useReview:policy.useClaudeReview, workdir:'/home/paks11299958/ai_mp'};
+            const d = await adminApi.createDevProject(body);
+            setSaved({id:d.project.id, signature}); setPrepared(true);
+            setMessage('명세를 저장했습니다. 내용을 확인한 뒤 개발을 시작하세요.');
+        } catch (e:any) { setError(e?.message || '명세 저장 실패'); }
+        finally { setBusy(false); }
+    };
+    const start = async () => {
+        if (!saved || dirty) return;
+        if (!window.confirm(`'${brief.title}' 리서치 개발을 시작할까요?\n최종 명세 뒤 승인 절차를 거칩니다.`)) return;
+        try { setBusy(true); setError(''); const d=await adminApi.startDevProject(saved.id); setMessage(d.message); }
+        catch(e:any){ setError(e?.message || '개발 시작 실패'); } finally { setBusy(false); }
     };
 
     return <div className="flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-6xl space-y-5">
@@ -92,7 +113,8 @@ export const ResearchDevPanel: React.FC = () => {
 
         <div className="grid gap-5 lg:grid-cols-2"><section className="space-y-4 rounded-2xl border border-gray-800 bg-gray-900/70 p-4 sm:p-5"><div><h3 className="text-sm font-bold text-white">공통 입력</h3><p className="mt-1 text-xs text-gray-500">모든 유형에 공통으로 전달됩니다.</p></div>{COMMON_FIELDS.map(def => <Field key={def.key} def={def} value={String(brief[def.key])} onChange={value => set(def.key, value)}/>)}</section><section className="space-y-4 rounded-2xl border border-gray-800 bg-gray-900/70 p-4 sm:p-5"><div><h3 className="text-sm font-bold text-white">유형별 입력</h3><p className="mt-1 text-xs text-gray-500">현재 유형에 필요한 파라미터만 실행 명세에 포함됩니다.</p></div>{TYPE_FIELD_DEFS[brief.workType].map(def => <Field key={def.key} def={def} value={String(brief[def.key])} onChange={value => set(def.key, value)}/>)}</section></div>
 
-        {message && <div role="status" className="rounded-lg border border-amber-700/60 bg-amber-900/20 px-3 py-2 text-xs text-amber-200">{message}</div>}
-        <section className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-bold text-white">Claude/Codex에 전달될 개발 명세</h3><span className="text-[11px] text-gray-500">입력과 동시에 자동 생성</span></div><pre className="mt-3 max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-xl border border-gray-800 bg-gray-950/70 p-4 text-xs leading-relaxed text-gray-300">{handoff}</pre><div className="mt-4 grid gap-2 sm:grid-cols-2"><button type="button" onClick={prepare} disabled={!ready} className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-200 disabled:opacity-35">{prepared ? '✓ 입력 명세 준비됨' : '1. 리서치 시작'}</button><button type="button" disabled aria-describedby="research-dev-boundary" className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-35">2. 개발 시작</button></div><p id="research-dev-boundary" className="mt-2 text-[11px] text-gray-500">B 리서치 영수증과 C Codex 실행 배관이 연결되기 전에는 개발을 시작하지 않습니다. 기존 V1 경로로 우회하지 않습니다.</p></section>
+        {error && <div role="alert" className="rounded-lg border border-red-800 bg-red-900/30 px-3 py-2 text-xs text-red-300">{error}</div>}
+        {message && <div role="status" className="rounded-lg border border-emerald-800 bg-emerald-900/20 px-3 py-2 text-xs text-emerald-200">{message}</div>}
+        <section className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-bold text-white">Claude/Codex에 전달될 개발 명세</h3><span className="text-[11px] text-gray-500">입력과 동시에 자동 생성</span></div><pre className="mt-3 max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-xl border border-gray-800 bg-gray-950/70 p-4 text-xs leading-relaxed text-gray-300">{handoff}</pre><div className="mt-4 grid gap-2 sm:grid-cols-2"><button type="button" onClick={()=>void prepare()} disabled={!ready||busy} className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-200 disabled:opacity-35">{saved&&!dirty ? '✓ 입력 명세 저장됨' : '1. 리서치 준비'}</button><button type="button" onClick={()=>void start()} disabled={!saved||dirty||busy} aria-describedby="research-dev-boundary" className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-35">2. 개발 시작</button></div><p id="research-dev-boundary" className="mt-2 text-[11px] text-gray-500">명세 저장만으로는 실행되지 않습니다. 개발 시작과 확인창 뒤에만 V2 파이프라인이 가동됩니다.</p></section>
     </div></div>;
 };
