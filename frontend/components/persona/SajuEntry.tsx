@@ -108,12 +108,20 @@ const SAJU_CSS = `
 /* ── 풀이 판 — 히어로 **같은 자리**를 덮는다. 창 밖으로 나가지 않는 것이 목적이다. ── */
 .sj-panel{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
   background:linear-gradient(165deg,rgba(13,11,10,.94) 0%,rgba(20,16,14,.97) 100%);
-  backdrop-filter:blur(2px);animation:sjFade .22s ease;}
+  backdrop-filter:blur(2px);animation:sjFade .22s ease;
+  transition:background .4s ease;}
+/* ★기다리는 동안만 판을 걷어 **호랑이가 연기 너머로 비치게** 한다(2026-08-27 사장 제안).
+   결과가 나오면 원래 농도로 돌아간다 — 본문이 500자 넘게 오므로 가독성이 우선이다. */
+.sj-panel.is-waiting{
+  background:linear-gradient(165deg,rgba(13,11,10,.62) 0%,rgba(20,16,14,.72) 100%);}
 @keyframes sjFade{from{opacity:0}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){.sj-panel{animation:none}}
 
 .sj-panelhead{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:16px 18px 12px;border-bottom:1px solid ${T.line};}
+/* 판이 옅어졌을 때 머리글도 배경에 묻히지 않게 살짝 눌러 준다. */
+.sj-panel.is-waiting .sj-panelhead{background:linear-gradient(180deg,rgba(13,11,10,.72),rgba(13,11,10,0));
+  border-bottom-color:rgba(201,162,39,.18);}
 .sj-panelname{font-size:16px;font-weight:700;
   background:linear-gradient(100deg,${T.goldLight},${T.gold});
   -webkit-background-clip:text;background-clip:text;color:transparent;}
@@ -142,7 +150,9 @@ const SAJU_CSS = `
   align-items:center;gap:14px;}
 /* ★점 3개는 **가로**로 — 바깥 flex 가 column 이라 그대로 두면 세로로 쌓인다(실측). */
 .sj-loaddots{display:flex;align-items:center;gap:7px;}
-.sj-loading p{margin:0;font-size:12.5px;color:${T.textSub};}
+/* ★판이 옅어진 상태라 호랑이 무늬 위에 글이 얹힌다 — 그림자로 띄워 읽히게 한다. */
+.sj-loading p{margin:0;font-size:12.5px;color:${T.text};
+  text-shadow:0 1px 3px rgba(0,0,0,.9), 0 0 12px rgba(0,0,0,.7);}
 .sj-loading .sj-dot{width:7px;height:7px;border-radius:50%;background:${T.gold};display:inline-block;
   animation:sjPulse 1.1s ease-in-out infinite;}
 .sj-loading .sj-dot:nth-child(2){animation-delay:.15s}
@@ -302,7 +312,7 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                         <div className="sj-heroveil" aria-hidden="true" />
 
                         {panelOpen && (
-                            <div className="sj-panel" role="region" aria-live="polite"
+                            <div className={`sj-panel${runner.loading ? ' is-waiting' : ''}`} role="region" aria-live="polite"
                                  aria-label={runner.picking?.label || runner.result?.title || '풀이'}>
                                 <div className="sj-panelhead">
                                     <span className="sj-panelname sj-serif">
