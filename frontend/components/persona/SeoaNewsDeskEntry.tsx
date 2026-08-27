@@ -104,8 +104,14 @@ interface DeskMarket {
     key: string;
     label: string;
     status: CellStatus;
-    /** ★지수가 아니라 대용 ETF 다 — 화면이 이 이름을 숨기면 "코스피 108,680"으로 오해한다. */
-    proxy: { symbol: string; name: string };
+    /**
+     * 값의 성격(2026-08-27). ★표기를 이 값으로 가른다.
+     *   'index' — 진짜 종합주가지수(6,912.37). **'원'을 붙이지 않는다.**
+     *   'etf'   — 지수를 못 받아 대용 ETF 주가로 채운 것(109,135원). 지수가 아니다.
+     */
+    valueKind: 'index' | 'etf' | null;
+    /** ETF 폴백일 때만 온다 — 화면이 이 이름을 숨기면 "코스피 109,135"로 오해한다. */
+    proxy?: { symbol: string; name: string };
     price: number | null;
     prevClose: number | null;
     change: number | null;
@@ -512,17 +518,23 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
     const renderMarket = (m: DeskMarket) => {
         const hasPrice = m.status === 'ok' && typeof m.price === 'number';
         const hasDelta = hasPrice && typeof m.change === 'number' && typeof m.changePct === 'number';
+        // ★지수는 '원'이 아니다(6,912.37 포인트). ETF 폴백일 때만 '원'을 붙인다.
+        const isIndex = m.valueKind === 'index';
         return (
             <div className="sn-mkt" key={m.key}>
                 <div className="sn-mkthead">
                     <span className="sn-mktname">{m.label}</span>
-                    {/* 지수가 아니라 대용 ETF 라는 사실을 화면에서 숨기지 않는다. */}
-                    <span className="sn-mktproxy">{m.proxy?.name}</span>
+                    {/* ETF 로 떨어졌을 때만 대용 이름을 드러낸다 — 숨기면 지수로 오해된다. */}
+                    <span className="sn-mktproxy">{isIndex ? '종합주가지수' : m.proxy?.name}</span>
                 </div>
                 <div className="sn-mktbody">
                     {hasPrice ? (
                         <>
-                            <div className="sn-mktprice">{won(m.price as number)}<small>원</small></div>
+                            <div className="sn-mktprice">
+                                {isIndex
+                                    ? (m.price as number).toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                    : <>{won(m.price as number)}<small>원</small></>}
+                            </div>
                             {hasDelta ? (
                                 <div className="sn-mktdelta" style={{ color: colorOf(m.direction) }}>
                                     {arrowOf(m.direction)} {signed(m.change as number)} ({signedPct(m.changePct as number)})
@@ -663,7 +675,10 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
                         {/* 시세 3종 — 실패해도 칸을 비우지 않는다 */}
                         <div className="sn-secthead">
                             <h3 className="sn-secttitle">📈 오늘 시세</h3>
-                            <p className="sn-sectsub">코스피·코스닥은 대표 ETF 가격이에요</p>
+                            {/* ★ETF 폴백이 하나라도 있을 때만 안내한다. 지수가 정상이면 틀린 설명이다. */}
+                            {(summary?.markets ?? []).some(m => m.valueKind === 'etf') && (
+                                <p className="sn-sectsub">일부는 지수 대신 대표 ETF 가격이에요</p>
+                            )}
                         </div>
                         <div className="sn-mkts" aria-live="polite">
                             {markets.length > 0
