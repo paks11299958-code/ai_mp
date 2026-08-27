@@ -1595,6 +1595,15 @@ export interface DevProjectDetail extends Omit<DevProjectRow, 'latestVersion' | 
     result?: { deployUrl: string | null; summary: string | null; commits: string; designSourceUrl: string | null } | null;
 }
 
+export interface DevProjectArtifacts {
+    siteSlug: string | null;
+    sourceAvailable: boolean;
+    images: { name: string; url: string; size: number }[];
+    imagesTruncated: boolean;
+    spec: { text: string; truncated: boolean } | null;
+    reviews: { fileName: string; date: string; text: string; truncated: boolean }[];
+}
+
 export interface InverseTraderSnapshot {
     ok: boolean;
     tradingMode: 'SIMULATION';
@@ -1794,6 +1803,8 @@ export const adminApi = {
         get<{ projects: DevProjectRow[]; concurrency: { running: number; max: number; canStart: boolean } }>('/admin/devai/list'),
     getDevProject: (id: string) =>
         get<{ project: DevProjectDetail }>(`/admin/devai/get?id=${encodeURIComponent(id)}`),
+    getDevProjectArtifacts: (id: string) =>
+        get<{ artifacts: DevProjectArtifacts }>(`/admin/devai/artifacts?id=${encodeURIComponent(id)}`),
     createDevProject: (body: Record<string, unknown>) =>
         post<{ project: DevProjectDetail }>('/admin/devai/create', body),
     updateDevProject: (body: Record<string, unknown>) =>

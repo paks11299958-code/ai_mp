@@ -3,6 +3,7 @@ import { Icon } from '../Icons';
 import { DevAiPanel } from './DevAiPanel';
 import { HomepageMakerPanel } from './HomepageMakerPanel';
 import { MediaHerdrPanel } from './MediaHerdrPanel';
+import { HerdrResultsPanel } from './HerdrResultsPanel';
 
 // 허드 AI 콘솔 — 흩어져 있던 "AI 에게 만들라고 시키는" 화면들을 한 곳으로 모은다.
 //
@@ -24,7 +25,7 @@ import { MediaHerdrPanel } from './MediaHerdrPanel';
 //
 // 정본 기획서: ai_mp/doc/features/herdr_admin_console.md
 
-type HerdrTab = 'homepage' | 'shorts' | 'video' | 'dev';
+type HerdrTab = 'homepage' | 'shorts' | 'video' | 'dev' | 'results';
 
 const TABS: { key: HerdrTab; label: string; icon: string; desc: string }[] = [
     { key: 'homepage', label: '홈페이지', icon: 'Globe',    desc: '콘셉트 하나로 독립 사이트' },
@@ -32,6 +33,7 @@ const TABS: { key: HerdrTab; label: string; icon: string; desc: string }[] = [
     // ★'Film' 은 Icons.tsx 에 등록돼 있지 않다 — 없는 이름을 주면 빈 자리가 된다(실측).
     { key: 'video',    label: '영상',     icon: 'Sparkles', desc: 'i2v — 편당 250~566원' },
     { key: 'dev',      label: '개발',     icon: 'Cpu',      desc: '명세를 주고 코드로' },
+    { key: 'results',  label: '결과',     icon: 'CheckCircle', desc: '진행 기록과 산출물' },
 ];
 
 export const HerdrConsolePanel: React.FC = () => {
@@ -66,6 +68,7 @@ export const HerdrConsolePanel: React.FC = () => {
             {tab === 'dev' && <DevAiPanel />}
             {tab === 'shorts' && <MediaHerdrPanel kind="shorts" />}
             {tab === 'video' && <MediaHerdrPanel kind="video" />}
+            {tab === 'results' && <HerdrResultsPanel />}
         </div>
     );
 };
