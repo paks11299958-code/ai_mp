@@ -11,7 +11,6 @@ import { UsersPanel } from './admin/UsersPanel';
 import { AiIdeasPanel } from './admin/AiIdeasPanel';
 import { MarketingAssetsPanel } from './admin/MarketingAssetsPanel';
 import { SitesPanel } from './admin/SitesPanel';
-import { HomepageMakerPanel } from './admin/HomepageMakerPanel';
 import { SkillsPanel } from './admin/SkillsPanel';
 import { AnnouncementsPanel } from './admin/AnnouncementsPanel';
 import { CategoriesPanel } from './admin/CategoriesPanel';
@@ -27,7 +26,8 @@ import { CardOrderPanel } from './admin/CardOrderPanel';
 import { OmdDesignsPanel } from './admin/OmdDesignsPanel';
 import { TossTraderPanel } from './admin/TossTraderPanel';
 import { InverseTraderPanel } from './admin/InverseTraderPanel';
-import { DevAiPanel } from './admin/DevAiPanel';
+// 허드 AI 콘솔 — devai·homepage-maker 를 흡수해 한 곳으로(2026-08-27 사장 발안).
+import { HerdrConsolePanel } from './admin/HerdrConsolePanel';
 import { AiStudioPanel } from './admin/AiStudioPanel';
 import { AiGalleryPanel } from './admin/AiGalleryPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
@@ -49,7 +49,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'homepage-maker' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -124,14 +124,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'agent-growth',  label: '직원 성장',   icon: 'Sparkles' },
                             { key: 'skills',        label: '스킬',       icon: 'Zap' },
                             { key: 'sites',         label: '독립사이트', icon: 'Globe' },
-                            { key: 'homepage-maker', label: '홈페이지 생성', icon: 'Sparkles' },
                             { key: 'toss-trader',   label: '토스 자동매매', icon: 'TrendingUp' },
                             // 가상매매 성과는 실봇 탭과 성격이 달라 분리(2026-08-05) —
                             // 실봇 탭은 '지금 뭘 하나', 이 탭은 '결과가 어땠나'가 중심.
                             { key: 'paper-trader',  label: '가상매매(페이퍼)', icon: 'Activity' },
                             // 인버스 ETF 1호가 스캘핑 — 전량 가상매매(SIMULATION). 증권사 주문 API 호출 없음(2026-08-20)
                             { key: 'inverse-trader', label: '인버스 자동매매', icon: 'TrendingUp' },
-                            { key: 'devai',         label: '개발AI 콘솔',   icon: 'Cpu' },
+                            // ★devai·homepage-maker 를 흡수했다 — 개발 시작점이 여러 곳이면
+                            //   나중에 어느 것이 정본인지 모르게 된다(2026-08-27).
+                            { key: 'herdr',         label: '🐮 허드 AI',    icon: 'Cpu' },
                             // AI 스튜디오(서버3 GPU) — 필요할 때만 켜는 온디맨드 서버(2026-08-05)
                             { key: 'ai-studio',     label: 'AI 스튜디오', icon: 'Zap' },
                             // ★보관함을 분리(2026-08-05) — 스튜디오 안에 접이식으로 두니
@@ -230,11 +231,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'marketing-assets' && <MarketingAssetsPanel />}
                 {mainView === 'skills' && <SkillsPanel />}
                 {mainView === 'sites' && <SitesPanel />}
-                {mainView === 'homepage-maker' && <HomepageMakerPanel />}
                 {mainView === 'toss-trader' && <TossTraderPanel />}
                 {mainView === 'paper-trader' && <TossTraderPanel mode="paper" />}
                 {mainView === 'inverse-trader' && <InverseTraderPanel />}
-                {mainView === 'devai' && <DevAiPanel />}
+                {mainView === 'herdr' && <HerdrConsolePanel />}
                 {mainView === 'ai-studio' && <AiStudioPanel />}
                 {mainView === 'ai-gallery' && <AiGalleryPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}
