@@ -6,6 +6,19 @@ import App from './App';
 import { AttendPage } from './components/AttendPage';
 import { NewsPage } from './components/NewsPage';
 import { InstallBanner } from './components/InstallBanner';
+import { registerVersionedServiceWorker } from './services/serviceWorkerUpdate';
+
+// 커밋별 URL로 SW 업데이트를 검사한다. 새 worker가 기존 탭을 넘겨받으면 한 번 새로고침해
+// 배포 전 JavaScript를 계속 실행하는 열린 탭도 최신 UI로 전환한다.
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        registerVersionedServiceWorker(
+            navigator.serviceWorker,
+            __GIT_COMMIT__,
+            () => window.location.reload(),
+        ).catch(() => { /* PWA 설치 실패가 본 화면 렌더를 막으면 안 된다. */ });
+    }, { once: true });
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
