@@ -375,6 +375,10 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
     const [playLoading, setPlayLoading] = useState<string | null>(null);
     const [playError, setPlayError] = useState('');
     const audioRef = useRef<HTMLAudioElement | null>(null);
+    const rootRef = useRef<HTMLDivElement | null>(null);
+    const heroRef = useRef<HTMLDivElement | null>(null);
+    const playOriginScrollRef = useRef<number | null>(null);
+    const playOriginFocusRef = useRef<HTMLElement | null>(null);
 
     const [summary, setSummary] = useState<DeskSummary | null>(null);
     /** 요약이 죽어도 화면(히어로·인사말·뉴스)은 살아 있어야 한다 — 시세 칸만 대체 문구. */
@@ -461,7 +465,30 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
     // 칩으로 또 보여주지 않는다 — 나중에 기능이 늘면 그때만 칩이 나온다.
     const extraFeatures = (guide.features ?? []).filter(f => f.key !== 'news');
 
-    /** 재생 정지 — 뉴스룸에서 평소 히어로로 돌아온다. */
+    /** 뉴스룸으로 시선을 옮기되 사용자의 모션 감소 설정을 따른다. */
+    const focusNewsroom = () => {
+        const root = rootRef.current;
+        const hero = heroRef.current;
+        if (!root || !hero) return;
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        const top = root.scrollTop + hero.getBoundingClientRect().top - root.getBoundingClientRect().top - 12;
+        root.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? 'auto' : 'smooth' });
+        hero.focus({ preventScroll: true });
+    };
+
+    /** 재생 전 위치와 ▶ 버튼으로 돌아간다. */
+    const restorePlaybackView = () => {
+        const root = rootRef.current;
+        const top = playOriginScrollRef.current;
+        const target = playOriginFocusRef.current;
+        playOriginScrollRef.current = null;
+        playOriginFocusRef.current = null;
+        const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+        if (root && top !== null) root.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
+        if (target?.isConnected) target.focus({ preventScroll: true });
+    };
+
+    /** 재생 정지 — 뉴스룸에서 평소 히어로와 재생 전 위치로 돌아온다. */
     const stopPlay = () => {
         const a = audioRef.current;
         if (a) {
@@ -471,6 +498,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
         }
         setPlaying(null);
         setPlayLoading(null);
+        restorePlaybackView();
     };
 
     /**
@@ -482,6 +510,12 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
         if (!localStorage.getItem('token')) { setNeedLogin(true); return; }
         setNeedLogin(false);
         setPlayError('');
+
+        // 재생이 끝나면 사용자가 ▶를 눌렀던 자리와 버튼으로 정확히 돌아간다.
+        playOriginScrollRef.current = rootRef.current?.scrollTop ?? null;
+        playOriginFocusRef.current = document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
 
         // ★제스처 컨텍스트 유지 — await 이전에 엘리먼트를 확보한다.
         if (!audioRef.current) audioRef.current = new Audio();
@@ -521,9 +555,11 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
             setPlayLoading(null);
             setPlaying(key);          // ← 여기서 화면이 뉴스룸으로 바뀐다
             await audio.play();
+            requestAnimationFrame(focusNewsroom);
         } catch (e: any) {
             setPlayLoading(null);
             setPlaying(null);
+            restorePlaybackView();
             if (e?.message === 'login') setNeedLogin(true);
             else setPlayError('아직 오늘 음성이 준비되지 않았어요. 글로 보실 수 있어요.');
         }
@@ -640,7 +676,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
-        <div className="sn-root" onClick={onClose}>
+        <div ref={rootRef} className="sn-root" onClick={onClose}>
             <style>{SEOA_CSS}</style>
             <div
                 className="sn-sheet"
@@ -654,7 +690,12 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
                 <div className="sn-top">
                     {/* ① 히어로 — 선 모습/앉은 모습 랜덤.
                         ★재생 중에는 뉴스룸으로 바뀐다(playing !== null). 끝나면 스스로 돌아온다. */}
-                    <div className="sn-hero">
+                    <div
+                        ref={heroRef}
+                        className="sn-hero"
+                        tabIndex={-1}
+                        aria-label={playing ? `${who} 뉴스룸 재생 중` : `${who} 뉴스데스크`}
+                    >
                         <figure className="sn-herofig">
                             <img
                                 className="sn-heroimg"
