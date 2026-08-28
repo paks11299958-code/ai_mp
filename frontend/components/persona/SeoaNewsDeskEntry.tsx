@@ -156,6 +156,12 @@ type NewsSlot = 'am' | 'pm';
 export const buildNewsTtsUrl = (category: string, slot: NewsSlot): string =>
     `/api/news/tts?category=${encodeURIComponent(category)}&slot=${slot}`;
 
+/** 실제 서버 계약: 본문(`/today`)만 차감하고 캐시된 TTS(`/tts`) 재생은 무료다. */
+export const buildNewsCostNotice = (cost: number | null): string =>
+    cost === null
+        ? '글로 볼 때만 포인트가 차감되고, ▶ 듣기는 무료예요.'
+        : `글로 볼 때만 ${cost}P가 차감되고, ▶ 듣기는 무료예요.`;
+
 /** 요약이 통째로 실패해도 **칸을 비우지 않는다**(사양서 §7). 라벨만 있는 자리표. */
 const MARKET_PLACEHOLDERS: { key: string; label: string }[] = [
     { key: 'kospi', label: '코스피' },
@@ -493,20 +499,20 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     };
 
     /**
-     * ▶ 재생 — **여기서도 50P가 차감된다**(글로 읽는 것과 동일). 서버가 차감한다.
+     * ▶ 재생 — 로그인은 필요하지만 캐시된 TTS를 받으므로 포인트는 차감되지 않는다.
      * ★모바일 대응: 사용자 제스처(클릭) 시점에 audio 엘리먼트를 만들어 둬야
      *   fetch 뒤의 play() 가 차단되지 않는다(TodayNewsBoard 에서 검증된 패턴).
      */
-    const playNews = async (key: string) => {
+    const playNews = async (key: string, trigger?: HTMLElement) => {
         if (!localStorage.getItem('token')) { setNeedLogin(true); return; }
         setNeedLogin(false);
         setPlayError('');
 
         // 재생이 끝나면 사용자가 ▶를 눌렀던 자리와 버튼으로 정확히 돌아간다.
         playOriginScrollRef.current = rootRef.current?.scrollTop ?? null;
-        playOriginFocusRef.current = document.activeElement instanceof HTMLElement
+        playOriginFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement
             ? document.activeElement
-            : null;
+            : null);
 
         // ★제스처 컨텍스트 유지 — await 이전에 엘리먼트를 확보한다.
         if (!audioRef.current) audioRef.current = new Audio();
@@ -758,15 +764,13 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                         </div>
                         <p className="sn-newsnote">
                             이 화면을 보는 것만으로는 <b>포인트가 들지 않아요</b>.
-                            {newsCost !== null
-                                ? <> 글로 보시거나 ▶로 들으실 때만 <b>{newsCost}P</b> 차감됩니다.</>
-                                : ' 글로 보시거나 ▶로 들으실 때만 차감됩니다.'}
+                            {' '}{buildNewsCostNotice(newsCost)}
                         </p>
                         {playError && <p className="sn-playerr">{playError}</p>}
 
                         {categories.length > 0 ? (
                             <div className="sn-cats sn-fade">
-                                {/* ★카드 본체=글로 읽기, ▶=음성으로 듣기. 둘 다 같은 단가로 차감된다.
+                                {/* ★카드 본체=글로 읽기(유료), ▶=캐시된 음성 듣기(무료).
                                     버튼 안에 버튼을 넣을 수 없어 div 로 감싸고 각각을 button 으로 둔다. */}
                                 {categories.map(c => {
                                     const isPlaying = playing === c.key;
@@ -779,7 +783,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                                             <button
                                                 type="button"
                                                 className="sn-catplay"
-                                                onClick={() => (isPlaying ? stopPlay() : playNews(c.key))}
+                                                onClick={e => (isPlaying ? stopPlay() : playNews(c.key, e.currentTarget))}
                                                 disabled={isLoading}
                                                 aria-label={`${c.label} ${isPlaying ? '멈추기' : '들려주기'}`}
                                                 title={isPlaying ? '멈추기' : '서아가 읽어드려요'}
