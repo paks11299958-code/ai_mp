@@ -151,6 +151,38 @@ interface DeskSummary {
 
 interface NewsCategory { key: string; label: string }
 type NewsSlot = 'am' | 'pm';
+export interface HeadlineCue { title: string; at: number }
+type HeadlineCueMap = Record<string, HeadlineCue[]>;
+
+interface NewsStatus {
+    slot?: string;
+    slots?: string[];
+    headline_cues?: unknown;
+}
+
+/** 무료 상태 API의 제목만 허용한다. 본문 비슷한 비정상 데이터는 화면에 싣지 않는다. */
+const parseHeadlineCues = (value: unknown): HeadlineCueMap => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    const parsed: HeadlineCueMap = {};
+    for (const [category, rawCues] of Object.entries(value)) {
+        if (!Array.isArray(rawCues)) continue;
+        parsed[category] = rawCues.slice(0, 12).flatMap(raw => {
+            if (!raw || typeof raw !== 'object') return [];
+            const cue = raw as { title?: unknown; at?: unknown };
+            if (typeof cue.title !== 'string' || !cue.title.trim() || cue.title.length > 160) return [];
+            if (typeof cue.at !== 'number' || !Number.isFinite(cue.at) || cue.at < 0 || cue.at > 1) return [];
+            return [{ title: cue.title.trim(), at: cue.at }];
+        });
+    }
+    return parsed;
+};
+
+/** TTS 전체 길이에 대한 대략 위치로 현재 제목을 고른다. 문장 단위 자막은 제공하지 않는다. */
+export const selectHeadlineCue = (cues: HeadlineCue[], progress: number): string => {
+    if (!cues.length) return '';
+    const safeProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
+    return cues.reduce((selected, cue) => cue.at <= safeProgress ? cue.title : selected, cues[0].title);
+};
 
 /** agent-api의 TTS 파일은 오전/오후 슬롯별로 저장되므로 슬롯을 반드시 전달한다. */
 export const buildNewsTtsUrl = (category: string, slot: NewsSlot): string =>
@@ -304,6 +336,9 @@ const SEOA_CSS = `
   font-size:10.5px;font-weight:700;color:rgba(255,255,255,.9);}
 .sn-playtrack{height:4px;margin-top:7px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.24);}
 .sn-playfill{display:block;height:100%;border-radius:inherit;background:#fff;transition:width .2s linear;}
+.sn-headline{margin:8px 0 0;padding:7px 9px;border-radius:8px;background:rgba(255,255,255,.12);
+  color:#fff;font-size:11.5px;font-weight:800;line-height:1.45;overflow-wrap:anywhere;}
+.sn-headline-label{margin-right:6px;color:rgba(255,255,255,.68);font-size:9.5px;letter-spacing:.08em;}
 .sn-playcontrols{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;}
 .sn-playcontrol{padding:4px 8px;border-radius:7px;border:1px solid rgba(255,255,255,.28);
   background:rgba(255,255,255,.12);color:#fff;font-size:10.5px;font-weight:800;cursor:pointer;}
@@ -403,6 +438,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     const [catsFailed, setCatsFailed] = useState(false);
     /** 오늘 생성된 최신 뉴스 슬롯. 슬롯 없는 TTS 요청은 agent-api에서 404가 난다. */
     const [newsSlot, setNewsSlot] = useState<NewsSlot | null>(null);
+    /** 무료 상태 API가 주는 제목과 대략적 위치만 저장한다. 뉴스 본문은 담지 않는다. */
+    const [headlineCues, setHeadlineCues] = useState<HeadlineCueMap>({});
     /** 뉴스 1건 단가. ★서버가 안 주면 null 로 두고 배지를 **생략**한다(50을 박지 않는다). */
     const [newsCost, setNewsCost] = useState<number | null>(null);
     /** 사용자가 고른 카테고리. null 이면 유료 보드가 **마운트되지 않는다**(= 차감 없음). */
@@ -434,10 +471,11 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
         // ③ 오늘 생성된 최신 슬롯 — TTS 파일 경로 선택에 필요하며 무료다.
         fetch('/api/news/status')
             .then(r => (r.ok ? r.json() : Promise.reject(new Error(`status ${r.status}`))))
-            .then((d: { slot?: string; slots?: string[] }) => {
+            .then((d: NewsStatus) => {
                 if (!alive) return;
                 const latest = d?.slot ?? d?.slots?.[d.slots.length - 1];
                 if (latest === 'am' || latest === 'pm') setNewsSlot(latest);
+                setHeadlineCues(parseHeadlineCues(d?.headline_cues));
             })
             .catch(() => { /* 재생 시 한 번 더 조회한다 */ });
 
@@ -578,11 +616,12 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
             if (!slot) {
                 const statusRes = await fetch('/api/news/status');
                 if (!statusRes.ok) throw new Error('nofile');
-                const status = await statusRes.json() as { slot?: string; slots?: string[] };
+                const status = await statusRes.json() as NewsStatus;
                 const latest = status?.slot ?? status?.slots?.[status.slots.length - 1];
                 if (latest !== 'am' && latest !== 'pm') throw new Error('nofile');
                 slot = latest;
                 setNewsSlot(latest);
+                setHeadlineCues(parseHeadlineCues(status?.headline_cues));
             }
 
             const res = await fetch(buildNewsTtsUrl(key, slot), {
@@ -727,6 +766,9 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     const markets = summary?.markets ?? [];
     const playProgress = playDuration > 0 ? Math.min(100, Math.max(0, (playCurrent / playDuration) * 100)) : 0;
     const playRemaining = Math.max(0, playDuration - playCurrent);
+    const currentHeadline = playing
+        ? selectHeadlineCue(headlineCues[playing] ?? [], playProgress / 100)
+        : '';
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
@@ -786,6 +828,12 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                                         >
                                             <span className="sn-playfill" style={{ width: `${playProgress}%` }} />
                                         </div>
+                                        {currentHeadline && (
+                                            <p className="sn-headline" aria-live="polite">
+                                                <span className="sn-headline-label">제목 자막</span>
+                                                {currentHeadline}
+                                            </p>
+                                        )}
                                         <div className="sn-playcontrols" aria-label="뉴스 음성 재생 제어">
                                             <button type="button" className="sn-playcontrol" onClick={togglePlayback}>
                                                 {playPaused ? '▶ 계속 듣기' : 'Ⅱ 일시정지'}

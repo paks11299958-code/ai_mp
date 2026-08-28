@@ -134,7 +134,8 @@ GET https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI,KOSDAQ
 
 ```text
 GET /api/news/status
-→ { "available": true, "slot": "am", "slots": ["am"] }
+→ { "available": true, "slot": "am", "slots": ["am"],
+    "headline_cues": { "국내뉴스": [{ "title": "뉴스 제목", "at": 0.02 }] } }
 
 GET /api/news/tts?category=국내뉴스&slot=am
 ```
@@ -145,6 +146,8 @@ GET /api/news/tts?category=국내뉴스&slot=am
 - **슬롯 없는 `/api/news/tts?category=...` 호출 금지.** agent-api 실측상 최신 슬롯 파일이
   있어도 슬롯 없는 요청은 `404`, `slot=am`을 붙인 요청은 `200`을 반환했다.
 - TTS는 로그인만 필요하고 포인트 차감은 없다. `/today` 본문 조회와 과금 계약을 섞지 않는다.
+- `headline_cues`는 무료 제목 자막용이다. 카테고리별 최대 12개, 제목 최대 160자와
+  전체 음성 대비 대략 위치(`0..1`)만 반환하며 본문·핵심 내용·출처는 포함하지 않는다.
 - 구현: `frontend/components/persona/SeoaNewsDeskEntry.tsx`
 - 회귀 테스트: `frontend/components/persona/SeoaNewsDeskEntry.test.ts`
 
@@ -174,6 +177,7 @@ GET /api/news/tts?category=국내뉴스&slot=am
 10. 과금 안내가 실제 계약과 일치함: 글로 보기만 서버 단가 차감, ▶ 듣기는 무료
 11. 재생 중 카테고리 제목, 오전·오후 슬롯, 진행률, 경과·남은 시간이 표시됨
 12. 일시정지·계속 듣기·처음부터·0.8/1.0/1.2배속 제어가 동작함
+13. 무료 상태 API의 제목만 재생 위치에 맞춰 자막으로 표시되고 유료 본문은 노출되지 않음
 
 ### 8-1. 운영 수정 기록
 
@@ -187,7 +191,8 @@ GET /api/news/tts?category=국내뉴스&slot=am
   진행 막대, 경과·남은 시간을 표시한다. 뉴스 본문 API를 추가 호출하지 않아 추가 차감이 없다.
 - **2026-08-28 · 3단계 재생 제어** — 일시정지·계속 듣기·처음부터·속도 조절을 추가했다.
   정확한 문장 자막은 MP3에 메타데이터가 없고, 무료로 원문을 반환하면 유료 `/today` 본문을
-  우회하므로 정책 결정 전에는 노출하지 않는다.
+  우회하므로 제공하지 않는다. 대신 `/news/status`가 제목과 대략 위치만 반환하고 화면은 이를
+  `제목 자막`으로 표시한다. 프런트에서도 개수·길이·위치 범위를 다시 제한한다.
 
 ## 9. 리뷰 — ★묶음별로 미리 정한다
 

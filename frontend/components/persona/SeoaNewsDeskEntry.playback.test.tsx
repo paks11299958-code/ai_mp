@@ -36,7 +36,17 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
         vi.stubGlobal('fetch', vi.fn((input: RequestInfo | URL) => {
             const url = String(input);
             if (url === '/api/news/categories') return Promise.resolve(jsonResponse({ categories: [{ key: '국내뉴스', label: '국내 뉴스' }] }));
-            if (url === '/api/news/status') return Promise.resolve(jsonResponse({ available: true, slot: 'am', slots: ['am'] }));
+            if (url === '/api/news/status') return Promise.resolve(jsonResponse({
+                available: true,
+                slot: 'am',
+                slots: ['am'],
+                headline_cues: {
+                    국내뉴스: [
+                        { title: '첫 뉴스 제목', at: 0 },
+                        { title: '두 번째 뉴스 제목', at: 0.2 },
+                    ],
+                },
+            }));
             if (url === '/api/points/menu-prices') return Promise.resolve(jsonResponse({ prices: { news: 50 } }));
             if (url.startsWith('/api/news/tts?')) return Promise.resolve(jsonResponse(null));
             return Promise.reject(new Error(`unexpected fetch: ${url}`));
@@ -87,6 +97,7 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
         });
         expect(screen.getByText('오전 브리핑')).toBeTruthy();
         expect(screen.getByText('0:30 · 남은 1:30')).toBeTruthy();
+        expect(screen.getByText('두 번째 뉴스 제목')).toBeTruthy();
         expect(screen.getByRole('progressbar', { name: '뉴스 음성 재생 진행률' }).getAttribute('aria-valuenow')).toBe('25');
 
         fireEvent.click(screen.getByRole('button', { name: 'Ⅱ 일시정지' }));
