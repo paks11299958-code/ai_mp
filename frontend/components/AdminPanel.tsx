@@ -38,6 +38,7 @@ import { BizReportPanel } from './admin/BizReportPanel';
 import { ShortsAdminPanel } from './admin/ShortsAdminPanel';
 import { SampleVaultPanel } from './admin/SampleVaultPanel';
 import { CodexShortsFactoryPanel } from './admin/CodexShortsFactoryPanel';
+import { PartnerApplicationsPanel } from './admin/PartnerApplicationsPanel';
 
 interface AdminPanelProps {
     personas: Persona[];
@@ -49,7 +50,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -104,6 +105,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         { id: 'members', label: '회원·포인트', icon: 'Users', tabs: [
                             { key: 'biz',           label: '경영 리포트', icon: 'BarChart2' },
                             { key: 'users',         label: '회원 관리',   icon: 'Users' },
+                            { key: 'partner-applications', label: 'B2B 파트너', icon: 'Users' },
                             { key: 'points',        label: '포인트 통계', icon: 'Coins' },
                             { key: 'menu-limits',   label: '메뉴권한',    icon: 'Shield' },
                             { key: 'referral',      label: '레퍼럴',      icon: 'Users' },
@@ -218,6 +220,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
 
                 {/* 회원 관리 패널 */}
                 {mainView === 'users' && <UsersPanel />}
+                {mainView === 'partner-applications' && <PartnerApplicationsPanel />}
 
                 {/* 메뉴권한 패널 */}
                 {mainView === 'menu-limits' && <MenuLimitsPanel />}

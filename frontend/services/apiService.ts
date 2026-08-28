@@ -88,6 +88,12 @@ export function put<T>(path: string, body?: unknown): Promise<T> {
         ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
 }
+export function patch<T>(path: string, body?: unknown): Promise<T> {
+    return request<T>(path, {
+        method: 'PATCH',
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    });
+}
 export function del<T>(path: string, body?: unknown): Promise<T> {
     return request<T>(path, {
         method: 'DELETE',
@@ -1474,6 +1480,24 @@ export interface AdminUser {
     sessionCount: number;
 }
 
+export type PartnerApplicationStatus = 'PENDING' | 'CONTACTED' | 'APPROVED' | 'REJECTED';
+export interface PartnerApplicationAdminRow {
+    id: string;
+    accountId: string;
+    loginId: string;
+    name: string;
+    phone: string;
+    email: string;
+    referrer: string | null;
+    status: PartnerApplicationStatus;
+    managerMemo: string | null;
+    contactedAt: string | null;
+    approvedAt: string | null;
+    lastLoginAt: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
 export interface UserTransactionRow {
     id: number;
     amount: number;
@@ -1688,6 +1712,12 @@ export interface InverseTraderSnapshot {
 export const adminApi = {
     getUsers: () =>
         get<AdminUser[]>('/admin/users'),
+
+    getPartnerApplications: (status = '') =>
+        get<PartnerApplicationAdminRow[]>(`/admin/partner-applications${status ? `?status=${encodeURIComponent(status)}` : ''}`),
+
+    updatePartnerApplication: (id: string, status: PartnerApplicationStatus, managerMemo?: string) =>
+        patch<Partial<PartnerApplicationAdminRow>>(`/admin/partner-applications/${encodeURIComponent(id)}`, { status, ...(managerMemo === undefined ? {} : { managerMemo }) }),
 
     grantPoints: (identifier: string, amount: number, description?: string) => {
         const isPhone = /^[0-9+\-\s]+$/.test(identifier.replace(/\s/g, ''));

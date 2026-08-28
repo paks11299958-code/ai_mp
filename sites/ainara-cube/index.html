@@ -429,6 +429,32 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
 .ai-consult-panel iframe{width:100%;height:100%;min-height:520px;border:0;display:block;background:#fff;}
 .ai-consult-close{position:absolute;top:12px;right:14px;z-index:2;width:36px;height:36px;border-radius:50%;border:1px solid var(--ring);background:#fff;color:var(--label);font-size:18px;line-height:1;cursor:pointer;}
 .ai-consult-close:hover{background:var(--parchment);}
+.partner-modal{position:fixed;inset:0;z-index:240;background:rgba(22,20,18,.72);backdrop-filter:blur(8px);display:grid;place-items:center;padding:24px;}
+.partner-modal[hidden]{display:none;}
+body[data-partner-open="true"]{overflow:hidden;}
+.partner-dialog{position:relative;width:min(620px,100%);max-height:92vh;overflow:auto;background:#fbf8f2;border:1px solid rgba(100,76,60,.16);border-radius:28px;padding:42px;box-shadow:0 30px 90px rgba(0,0,0,.34);}
+.partner-dialog::before{content:"";position:absolute;inset:0 0 auto;height:5px;background:linear-gradient(90deg,var(--brand),#bd8068);}
+.partner-close{position:absolute;top:18px;right:18px;width:38px;height:38px;border:1px solid var(--ring);border-radius:50%;background:#fff;color:var(--label);font-size:20px;cursor:pointer;}
+.partner-kicker{margin:0 48px 8px 0;color:var(--brand);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;}
+.partner-dialog h2{margin:0;font-family:var(--font-serif);font-size:clamp(28px,4vw,40px);line-height:1.15;color:var(--ink);}
+.partner-intro{margin:12px 0 26px;color:var(--muted);line-height:1.65;}
+.partner-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.partner-field{display:grid;gap:7px;}
+.partner-field.full{grid-column:1/-1;}
+.partner-field label{font-size:13px;font-weight:750;color:var(--label);}
+.partner-field input{width:100%;height:48px;border:1px solid #d9d1c6;border-radius:12px;background:#fff;padding:0 14px;color:var(--ink);font:inherit;outline:none;}
+.partner-field input:focus{border-color:var(--brand);box-shadow:0 0 0 3px rgba(199,103,72,.13);}
+.partner-consent{display:flex;gap:10px;align-items:flex-start;margin:20px 0;color:var(--muted);font-size:13px;line-height:1.5;}
+.partner-consent input{margin-top:3px;accent-color:var(--brand);}
+.partner-submit{width:100%;min-height:52px;border:0;border-radius:13px;background:var(--ink);color:#fff;font:inherit;font-weight:800;cursor:pointer;}
+.partner-submit:hover{background:#302d29;}
+.partner-submit:disabled{opacity:.55;cursor:wait;}
+.partner-error{min-height:21px;margin:12px 0 0;color:#a13f2b;font-size:13px;}
+.partner-switch{margin:18px 0 0;text-align:center;color:var(--muted);font-size:14px;}
+.partner-switch button{border:0;background:none;color:var(--brand);font:inherit;font-weight:800;cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+.partner-success{text-align:center;padding:30px 0 10px;}
+.partner-success-mark{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:#e8eee2;color:#53684c;font-size:30px;}
+.partner-status{display:inline-flex;margin-top:18px;padding:8px 13px;border-radius:999px;background:#eee6dc;color:#70594b;font-size:13px;font-weight:800;}
 
 /* ── 반응형: 분기점 820px (SPEC 6항) ── */
 @media (max-width:1040px){
@@ -477,6 +503,9 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
   .ucard .mark{left:10px;top:10px;width:8px;height:8px;}
   .ucard .label{font-size:13px;}
   .ai-consult-panel{grid-template-columns:1fr;max-height:92vh;overflow-y:auto;}
+  .partner-dialog{padding:34px 22px 26px;border-radius:22px;}
+  .partner-grid{grid-template-columns:1fr;}
+  .partner-field.full{grid-column:auto;}
 }
 @media (max-width:420px){
   .wrap{width:calc(100% - 24px);}
@@ -530,8 +559,8 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       <a href="#apply">문의</a>
     </nav>
     <div class="nav-cta">
-      <a class="btn btn-ghost" href="#apply">로그인</a>
-      <a class="btn btn-dark" href="#apply" data-ai-consult-open>파트너 신청</a>
+      <button class="btn btn-ghost" type="button" data-partner-login>로그인</button>
+      <button class="btn btn-dark" type="button" data-partner-apply>파트너 신청</button>
     </div>
   </div>
 </header>
@@ -548,7 +577,7 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       <h1>AI Companion<span class="sub">Partner</span></h1>
       <p class="hero-lead">AI SaaS 플랫폼 사업운영 라이선스. 단순 가입이 아니라, AI 서비스를 직접 운영할 수 있는 권한을 드립니다. 플랫폼·기술·정산은 본사가 맡고, 파트너는 사업에 집중합니다.</p>
       <div class="hero-actions">
-        <a class="btn btn-brand btn-lg" href="#apply" data-ai-consult-open>파트너 신청하기</a>
+        <button class="btn btn-brand btn-lg" type="button" data-partner-apply>파트너 신청하기</button>
         <a class="btn btn-ghost btn-lg" href="#license">라이선스 자세히 보기</a>
       </div>
       <p class="hero-note">계약 전 1:1 사업 설명 · 라이선스 등급별 운영 범위 안내</p>
@@ -761,7 +790,7 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
       <h2>AI 사업, 만드는 것이 아니라 운영하는 것부터 시작합니다.</h2>
       <p>라이선스 상담은 사업 계획 확인 후 진행됩니다. 신청서를 남겨 주시면 담당 매니저가 영업일 기준 1일 이내에 연락드립니다.</p>
       <div class="hero-actions">
-        <a class="btn btn-brand btn-lg" href="#apply" data-ai-consult-open>파트너 신청하기</a>
+        <button class="btn btn-brand btn-lg" type="button" data-partner-apply>파트너 신청하기</button>
         <a class="btn btn-ghost btn-lg" href="#apply">사업 설명 자료 받기</a>
       </div>
     </div>
@@ -813,6 +842,59 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
     <iframe title="AI 아바타" src="assets/ai-consult/avatar.html" loading="lazy"></iframe>
     <iframe title="AI 상담" src="https://bot.dbzone.kr/lead-generation-7o4fpsk" loading="lazy"></iframe>
   </div>
+</div>
+
+<div class="partner-modal" data-partner-modal role="dialog" aria-modal="true" aria-label="AI Companion 파트너 계정" hidden>
+  <section class="partner-dialog" data-partner-dialog>
+    <button class="partner-close" data-partner-close type="button" aria-label="창 닫기">×</button>
+    <div data-partner-view="register">
+      <p class="partner-kicker">AI Companion Partner</p>
+      <h2 id="partner-title">파트너 신청</h2>
+      <p class="partner-intro">AI 서비스를 함께 성장시킬 사업 파트너를 기다립니다. 신청 내용을 확인한 뒤 담당자가 연락드립니다.</p>
+      <form data-partner-register novalidate>
+        <div class="partner-grid">
+          <div class="partner-field full"><label for="partner-login-id">회원아이디</label><input id="partner-login-id" name="loginId" autocomplete="username" minlength="4" maxlength="40" required placeholder="영문 소문자로 시작, 4자 이상"></div>
+          <div class="partner-field"><label for="partner-password">암호</label><input id="partner-password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required placeholder="8자 이상"></div>
+          <div class="partner-field"><label for="partner-password-confirm">암호 확인</label><input id="partner-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="72" required></div>
+          <div class="partner-field"><label for="partner-name">성명</label><input id="partner-name" name="name" autocomplete="name" maxlength="60" required></div>
+          <div class="partner-field"><label for="partner-phone">연락처</label><input id="partner-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required placeholder="010-0000-0000"></div>
+          <div class="partner-field full"><label for="partner-email">이메일</label><input id="partner-email" name="email" type="email" autocomplete="email" maxlength="254" required></div>
+          <div class="partner-field full"><label for="partner-referrer">추천인 <span aria-hidden="true">(선택)</span></label><input id="partner-referrer" name="referrer" maxlength="80" placeholder="추천인 성명 또는 추천코드"></div>
+        </div>
+        <label class="partner-consent"><input name="privacyAgreed" type="checkbox" required><span>파트너 신청 처리와 담당자 연락을 위한 개인정보 수집 및 이용에 동의합니다.</span></label>
+        <button class="partner-submit" type="submit">파트너 신청 완료</button>
+        <p class="partner-error" data-partner-register-error role="alert"></p>
+      </form>
+      <p class="partner-switch">이미 신청하셨나요? <button type="button" data-partner-show-login>로그인</button></p>
+    </div>
+    <div data-partner-view="login" hidden>
+      <p class="partner-kicker">Partner Access</p>
+      <h2>파트너 로그인</h2>
+      <p class="partner-intro">파트너 신청 시 만든 아이디로 로그인해 주세요.</p>
+      <form data-partner-login-form novalidate>
+        <div class="partner-grid">
+          <div class="partner-field full"><label for="partner-login-user">회원아이디</label><input id="partner-login-user" name="loginId" autocomplete="username" required></div>
+          <div class="partner-field full"><label for="partner-login-password">암호</label><input id="partner-login-password" name="password" type="password" autocomplete="current-password" required></div>
+        </div>
+        <button class="partner-submit" type="submit" style="margin-top:20px">로그인</button>
+        <p class="partner-error" data-partner-login-error role="alert"></p>
+      </form>
+      <p class="partner-switch">아직 파트너가 아니신가요? <button type="button" data-partner-show-register>파트너 신청</button></p>
+    </div>
+    <div class="partner-success" data-partner-view="success" hidden>
+      <div class="partner-success-mark" aria-hidden="true">✓</div>
+      <h2>신청이 완료되었습니다</h2>
+      <p class="partner-intro">담당자가 확인 후 연락드리겠습니다.</p>
+      <span class="partner-status">접수 완료</span>
+    </div>
+    <div class="partner-success" data-partner-view="account" hidden>
+      <p class="partner-kicker">AI Companion Partner</p>
+      <h2><span data-partner-name></span>님, 반갑습니다</h2>
+      <p class="partner-intro">파트너 신청이 정상적으로 접수되어 담당자 확인을 기다리고 있습니다.</p>
+      <span class="partner-status" data-partner-status>접수 완료</span>
+      <button class="partner-submit" data-partner-logout type="button" style="margin-top:24px">로그아웃</button>
+    </div>
+  </section>
 </div>
 
 <!-- ── 묶음 B: 히어로 3×3×3 큐브 (Canvas 2D 직접 계산) ─────────────────────
@@ -1346,7 +1428,9 @@ footer{background:var(--canvas-warm);border-top:1px solid var(--hairline);paddin
 
 <script type="module">
 import { initAiConsultModal } from './ai-consult-modal.js';
+import { initPartnerPortal } from './partner-portal.js';
 initAiConsultModal(document);
+initPartnerPortal(document);
 </script>
 </body>
 </html>
