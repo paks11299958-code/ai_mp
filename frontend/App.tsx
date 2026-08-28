@@ -1438,6 +1438,10 @@ const AppContent: React.FC = () => {
                 if (qm) setPendingQuickMenuLabel(qm);
                 else FEATURE_ACTIONS[key]?.();
             }}
+            onInvite={() => {
+                setDeepLinkGuide(null);
+                setShowInviteModal(true);
+            }}
         />
     ) : null;
 
@@ -1911,7 +1915,7 @@ const AppContent: React.FC = () => {
                         {shareToast}
                     </div>
                 )}
-                {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} personas={visiblePersonas.map(p => ({ id: p.id, name: p.name }))} />}
+                {showInviteModal && <InviteFriendModal onClose={() => setShowInviteModal(false)} currentPersonaName={activePersona?.name} personas={visiblePersonas.map(p => ({ id: p.id, name: p.name }))} />}
                 {/* ★메인에서도 진입 시트를 렌더한다(2026-07-30). 이게 이번 변경의 핵심 —
                     전엔 chat return에만 있어서 소개를 보려면 화면이 먼저 채팅으로 갈아치워졌다.
                     이제 메인에 머문 채 시트만 덮이고, 전환은 CTA를 눌렀을 때 한 번만 일어난다. */}

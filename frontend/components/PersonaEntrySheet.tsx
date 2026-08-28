@@ -54,9 +54,11 @@ interface Props {
     onStart: (featureKey?: string) => void;
     /** 기능칩 클릭 — 그 기능을 실행한다. */
     onFeature: (featureKey: string) => void;
+    /** 도결 랜딩의 친구 초대 CTA — 기존 초대 모달을 연다. */
+    onInvite: () => void;
 }
 
-export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
+export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite }) => {
     // ★도결(道潔) 선생만 사주 랜딩으로 갈아 끼운다(2026-08-26 사장 지시).
     //   사주는 분위기 자체가 상품인데 채팅창이 먼저 보여 일반 챗봇과 구분이 안 됐다.
     //   분기를 **여기서** 하는 이유: App.tsx를 고치면 전 화면 백지 사고가 재발한다
@@ -64,7 +66,7 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     //   ★도결이 아니면 아래 기존 JSX가 **한 줄도 바뀌지 않은 채** 그대로 나간다.
     //   이 컴포넌트에는 훅이 없으므로 이 조기 return이 훅 순서를 깨지 않는다.
     if (guide.title?.startsWith('도결')) {
-        return <SajuEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} />;
+        return <SajuEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} onInvite={onInvite} />;
     }
     // ★서아도 같은 규약으로 뉴스데스크 랜딩으로 갈아 끼운다(2026-08-27 사장 지시).
     //   판별 키는 도결과 **똑같이** guide.title 접두사다 — 페르소나 카드로 들어오면

@@ -228,9 +228,10 @@ interface Props {
     onClose: () => void;
     onStart: (featureKey?: string) => void;
     onFeature: (featureKey: string) => void;
+    onInvite: () => void;
 }
 
-export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
+export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite }) => {
     const featsRef = useRef<HTMLDivElement | null>(null);
     const heroRef = useRef<HTMLCanvasElement | null>(null);
 
@@ -331,8 +332,8 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature 
                         )}
 
                         <div className="sj-ctas">
-                            <button className="sj-cta" onClick={() => onStart(guide.autoRunFeatureKey)}>
-                                도결 선생과 대화하기
+                            <button className="sj-cta" onClick={onInvite}>
+                                🎁 친구 초대 +1000P
                             </button>
                             {features.length > 0 && (
                                 <button
