@@ -90,6 +90,7 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
         ));
         await screen.findByLabelText('서아 뉴스룸 재생 중');
         expect(root?.classList.contains('is-playing')).toBe(true);
+        expect(screen.getByRole('button', { name: '뉴스 음성 멈추기' })).toBeTruthy();
         expect(FakeAudio.latest?.play).toHaveBeenCalledTimes(1);
 
         act(() => {

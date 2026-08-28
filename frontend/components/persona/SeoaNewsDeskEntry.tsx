@@ -327,6 +327,7 @@ const SEOA_CSS = `
   font-size:10.5px;font-weight:900;letter-spacing:.1em;vertical-align:middle;
   color:#fff;background:#D8443C;}
 .sn-stop{margin-left:10px;padding:3px 9px;border-radius:8px;font-size:11px;font-weight:800;
+  min-width:40px;min-height:40px;
   cursor:pointer;color:#fff;background:rgba(255,255,255,.18);
   border:1px solid rgba(255,255,255,.45);}
 .sn-stop:hover{background:rgba(255,255,255,.3);}
@@ -389,6 +390,7 @@ const SEOA_CSS = `
      제목 자막과 멈춤 버튼을 잃지 않으며, 평상시 히어로의 스크롤은 바꾸지 않는다. */
   .sn-root.is-playing .sn-hero{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:3;
     max-width:430px;box-shadow:0 26px 46px -24px rgba(12,31,58,.82);}
+  .sn-root.is-playing{scroll-padding-top:min(68svh,540px);}
   .sn-root.is-playing .sn-herofig{max-height:min(64svh,520px);}
   .sn-root.is-playing .sn-greet{padding-left:14px;padding-right:14px;padding-bottom:12px;}
   .sn-root.is-playing .sn-playcontrol{min-height:36px;padding:6px 10px;}
@@ -406,7 +408,10 @@ const SEOA_CSS = `
   .sn-cta,.sn-cta2{flex:1 1 100%;text-align:center;}
 }
 @media (max-width:820px) and (max-height:600px){
-  .sn-root.is-playing .sn-herofig{height:calc(100svh - 24px);min-height:280px;max-height:none;}
+  /* 가로형 휴대폰에서 카드가 화면 전체를 덮으면 아래 뉴스 선택으로 갈 수 없다.
+     방송 정보가 들어가는 최소 높이는 지키되 360px에서 멈춰 다음 내용을 남긴다. */
+  .sn-root.is-playing{scroll-padding-top:376px;}
+  .sn-root.is-playing .sn-herofig{height:min(74svh,360px);min-height:300px;max-height:none;}
   .sn-root.is-playing .sn-greet{padding-top:24px;padding-bottom:8px;}
   .sn-root.is-playing .sn-greetsub{margin-top:2px;}
   .sn-root.is-playing .sn-player{margin-top:5px;padding:7px 8px;}
@@ -826,7 +831,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                                     </p>
                                     <p className="sn-greetsub">
                                         읽어 드리고 있어요.
-                                        <button type="button" className="sn-stop" onClick={stopPlay}>■ 멈추기</button>
+                                        <button type="button" className="sn-stop" onClick={stopPlay} aria-label="뉴스 음성 멈추기">■ 멈추기</button>
                                     </p>
                                     <div className="sn-player">
                                         <div className="sn-playmeta">
