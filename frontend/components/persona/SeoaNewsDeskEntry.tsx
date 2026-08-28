@@ -150,6 +150,11 @@ interface DeskSummary {
 }
 
 interface NewsCategory { key: string; label: string }
+type NewsSlot = 'am' | 'pm';
+
+/** agent-api의 TTS 파일은 오전/오후 슬롯별로 저장되므로 슬롯을 반드시 전달한다. */
+export const buildNewsTtsUrl = (category: string, slot: NewsSlot): string =>
+    `/api/news/tts?category=${encodeURIComponent(category)}&slot=${slot}`;
 
 /** 요약이 통째로 실패해도 **칸을 비우지 않는다**(사양서 §7). 라벨만 있는 자리표. */
 const MARKET_PLACEHOLDERS: { key: string; label: string }[] = [
@@ -376,6 +381,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
     const [summaryFailed, setSummaryFailed] = useState(false);
     const [categories, setCategories] = useState<NewsCategory[]>([]);
     const [catsFailed, setCatsFailed] = useState(false);
+    /** 오늘 생성된 최신 뉴스 슬롯. 슬롯 없는 TTS 요청은 agent-api에서 404가 난다. */
+    const [newsSlot, setNewsSlot] = useState<NewsSlot | null>(null);
     /** 뉴스 1건 단가. ★서버가 안 주면 null 로 두고 배지를 **생략**한다(50을 박지 않는다). */
     const [newsCost, setNewsCost] = useState<number | null>(null);
     /** 사용자가 고른 카테고리. null 이면 유료 보드가 **마운트되지 않는다**(= 차감 없음). */
@@ -404,7 +411,17 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
             })
             .catch(() => { if (alive) setCatsFailed(true); });
 
-        // ③ 단가 — 로그인 상태에서만 받을 수 있다(무료 조회). 못 받으면 배지를 생략한다.
+        // ③ 오늘 생성된 최신 슬롯 — TTS 파일 경로 선택에 필요하며 무료다.
+        fetch('/api/news/status')
+            .then(r => (r.ok ? r.json() : Promise.reject(new Error(`status ${r.status}`))))
+            .then((d: { slot?: string; slots?: string[] }) => {
+                if (!alive) return;
+                const latest = d?.slot ?? d?.slots?.[d.slots.length - 1];
+                if (latest === 'am' || latest === 'pm') setNewsSlot(latest);
+            })
+            .catch(() => { /* 재생 시 한 번 더 조회한다 */ });
+
+        // ④ 단가 — 로그인 상태에서만 받을 수 있다(무료 조회). 못 받으면 배지를 생략한다.
         const token = localStorage.getItem('token');
         if (token) {
             fetch('/api/points/menu-prices', { headers: { Authorization: `Bearer ${token}` } })
@@ -476,7 +493,19 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
         setPlayLoading(key);
 
         try {
-            const res = await fetch(`/api/news/tts?category=${encodeURIComponent(key)}`, {
+            // 마운트 직후 바로 누른 경우에도 슬롯을 확보한다.
+            let slot = newsSlot;
+            if (!slot) {
+                const statusRes = await fetch('/api/news/status');
+                if (!statusRes.ok) throw new Error('nofile');
+                const status = await statusRes.json() as { slot?: string; slots?: string[] };
+                const latest = status?.slot ?? status?.slots?.[status.slots.length - 1];
+                if (latest !== 'am' && latest !== 'pm') throw new Error('nofile');
+                slot = latest;
+                setNewsSlot(latest);
+            }
+
+            const res = await fetch(buildNewsTtsUrl(key, slot), {
                 credentials: 'include',
                 headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
             });
