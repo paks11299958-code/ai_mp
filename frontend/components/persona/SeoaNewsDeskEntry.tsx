@@ -13,7 +13,7 @@ import { TodayNewsBoard } from '../TodayNewsBoard';
 // 펼쳐 "서아가 데스크에 앉아 다 처리해 주는" 느낌을 만든다.
 // 근거 문서: doc/features/persona_entry_seoa.md
 //
-// ★계약은 기존 시트와 똑같다 — onStart()=채팅, onFeature(key)=그 기능, onClose()=닫기.
+// ★계약은 기존 시트와 똑같다 — onInvite()=친구초대, onFeature(key)=그 기능, onClose()=닫기.
 //   App.tsx는 이 컴포넌트의 존재를 모른다(분기는 PersonaEntrySheet 안에서 한다).
 //   ★★App.tsx를 건드리면 전 화면 백지 사고가 재발한다(2026-07-29 useCallback TDZ 실사고).
 //
@@ -161,15 +161,6 @@ const MARKET_PLACEHOLDERS: { key: string; label: string }[] = [
     { key: 'kospi', label: '코스피' },
     { key: 'kosdaq', label: '코스닥' },
 ];
-
-/** 받침에 따라 '과'/'와'. ★PersonaEntrySheet의 josaGwaWa를 **import 하지 않는다** —
- *  그쪽이 이 파일을 import 하므로 순환이 되고, 이 저장소는 그 계열의 TDZ로 전 화면이
- *  백지가 된 적이 있다(2026-07-29). 3줄짜리 순수 함수라 여기 두는 편이 안전하다. */
-const gwaWa = (word: string): string => {
-    const ch = word?.trim().slice(-1) ?? '';
-    if (ch < '가' || ch > '힣') return '와';
-    return (ch.charCodeAt(0) - 0xAC00) % 28 !== 0 ? '과' : '와';
-};
 
 const won = (n: number): string => n.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
 const signed = (n: number): string => (n > 0 ? '+' : '') + won(n);
@@ -359,11 +350,11 @@ const SEOA_CSS = `
 interface Props {
     guide: PersonaEntryGuide;
     onClose: () => void;
-    onStart: (featureKey?: string) => void;
+    onInvite: () => void;
     onFeature: (featureKey: string) => void;
 }
 
-export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature }) => {
+export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, onFeature }) => {
     // 히어로는 **마운트 시 한 번** 뽑는다. 렌더마다 뽑으면 상태가 바뀔 때마다
     // 서 있다 앉았다 하며 화면이 튄다.
     const [heroSrc] = useState(() => pickOne(SEOA_HERO_IMAGES));
@@ -829,8 +820,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, on
                         )}
 
                         <div className="sn-ctas">
-                            <button className="sn-cta" onClick={() => onStart(guide.autoRunFeatureKey)}>
-                                {who}{gwaWa(who)} 대화하기
+                            <button className="sn-cta" onClick={onInvite}>
+                                🎁 친구 초대 +1000P
                             </button>
                         </div>
                     </div>

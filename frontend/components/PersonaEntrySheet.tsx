@@ -73,7 +73,7 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     //   title이 persona.name('서아')이다(App.tsx showPersonaGuide).
     //   ★임의 문자열 매칭이 아니라 위 도결 분기와 같은 규약을 그대로 쓴다.
     if (guide.title?.startsWith('서아')) {
-        return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onStart={onStart} onFeature={onFeature} />;
+        return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onInvite={onInvite} onFeature={onFeature} />;
     }
 
     const who = guide.personaName || guide.title;
