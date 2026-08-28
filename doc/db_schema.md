@@ -74,6 +74,24 @@ PartnerReply: id, postId, userId, content, isAdminReply(boolean), createdAt
 ```
 - `isAdminReply`: 관리자 답글 → 프론트에서 `관리자` 뱃지 표시
 
+## PartnerAccount / PartnerApplication (AI World B2B, 2026-08-28)
+```
+PartnerAccount:
+  id(BIGSERIAL), loginId(대소문자 무시 unique), passwordHash, name
+  phone(unique), email(대소문자 무시 unique), status(ACTIVE|SUSPENDED|WITHDRAWN)
+  lastLoginAt, createdAt, updatedAt
+
+PartnerApplication:
+  id(BIGSERIAL), partnerAccountId(unique FK), referrer(nullable)
+  status(PENDING|CONTACTED|APPROVED|REJECTED)
+  privacyVersion, privacyAgreedAt, managerMemo(nullable)
+  contactedAt, approvedAt, createdAt, updatedAt
+```
+- 일반 B2C `User`와 테이블·로그인·쿠키를 완전히 분리한다.
+- 계정과 신청서는 한 트랜잭션으로 생성하며 비밀번호는 bcrypt cost 12 해시만 저장한다.
+- 운영 DB에는 `shared-api/prisma/partner-portal-ddl.sql`을 raw SQL로 적용했다. `prisma db push` 금지.
+- 상세 운영 계약: [features/aiworld_partner_portal.md](features/aiworld_partner_portal.md)
+
 ## CorpCode
 ```
 corpCode (PK), corpName, stockCode(nullable), modifyDt

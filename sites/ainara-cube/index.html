@@ -405,6 +405,10 @@ header{
 .cta .btn-ghost:hover{background:rgba(250,249,245,.09);}
 .cta .btn-lg.btn-ghost{box-shadow:5px 5px 0 rgba(250,249,245,.14);}
 .cta .btn-lg.btn-brand{box-shadow:5px 5px 0 rgba(201,100,66,.32);}
+.cta .partner-contact{display:flex;align-items:center;gap:9px;margin:22px 0 0;font-size:13.5px;color:rgba(250,249,245,.58);}
+.cta .partner-contact::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--brand);box-shadow:3px 3px 0 rgba(201,100,66,.24);flex:none;}
+.cta .partner-contact a{color:rgba(250,249,245,.88);font-weight:650;text-decoration:none;text-underline-offset:3px;}
+.cta .partner-contact a:hover,.cta .partner-contact a:focus-visible{text-decoration:underline;color:#fff;}
 .cta-photo{border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--ex) var(--ex) 0 rgba(250,249,245,.16);}
 .cta-photo img{width:100%;aspect-ratio:19/13;object-fit:cover;}
 
@@ -793,6 +797,7 @@ body[data-partner-open="true"]{overflow:hidden;}
         <button class="btn btn-brand btn-lg" type="button" data-partner-apply>파트너 신청하기</button>
         <a class="btn btn-ghost btn-lg" href="#apply">사업 설명 자료 받기</a>
       </div>
+      <p class="partner-contact">사업 파트너 담당자 <a href="mailto:lumia7450@gmail.com">lumia7450@gmail.com</a></p>
     </div>
     <div class="cta-photo">
       <img src="assets/img/cta.png" alt="AI Companion 파트너 신청 이미지" width="1216" height="832" loading="lazy">
