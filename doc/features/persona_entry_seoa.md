@@ -126,6 +126,26 @@ GET https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI,KOSDAQ
 
 **신규는 시세·환율 조회 라우트 1개 + 진입 화면 컴포넌트뿐이다.**
 
+### 6-1. 뉴스 TTS 슬롯 계약 (2026-08-28 보완)
+
+뉴스와 TTS 파일은 오전·오후 슬롯별로 생성된다. 서아 뉴스데스크의 ▶ 재생도 기존
+`TodayNewsBoard`와 동일하게 **현재 생성된 슬롯을 반드시 전달**해야 한다.
+
+```text
+GET /api/news/status
+→ { "available": true, "slot": "am", "slots": ["am"] }
+
+GET /api/news/tts?category=국내뉴스&slot=am
+```
+
+- `slot`은 `am` 또는 `pm`만 허용한다.
+- 화면 마운트 때 `/api/news/status`를 무료 조회하여 최신 슬롯을 저장한다.
+- 상태 조회가 끝나기 전에 ▶를 누른 경우 재생 시점에 상태를 한 번 더 조회한다.
+- **슬롯 없는 `/api/news/tts?category=...` 호출 금지.** agent-api 실측상 최신 슬롯 파일이
+  있어도 슬롯 없는 요청은 `404`, `slot=am`을 붙인 요청은 `200`을 반환했다.
+- 구현: `frontend/components/persona/SeoaNewsDeskEntry.tsx`
+- 회귀 테스트: `frontend/components/persona/SeoaNewsDeskEntry.test.ts`
+
 ## 7. ★금지 조항 (사고 방지)
 
 - ★★**`App.tsx` 를 수정하지 말 것.** 2026-07-29 이 파일 수정으로 전 화면 백지 사고.
@@ -148,6 +168,13 @@ GET https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI,KOSDAQ
 6. 뉴스 카테고리 선택 → 기존 경로로 조회, **50P 표기**
 7. **진입만으로는 포인트가 차감되지 않음**(실측 확인)
 8. 390 / 820 / 1440 폭에서 잘림·겹침 없음
+9. 뉴스 ▶ 재생 → `/api/news/status`의 최신 슬롯을 포함한 TTS 요청이 성공하고 음성이 재생됨
+
+### 8-1. 운영 수정 기록
+
+- **2026-08-28 · `2a7de85`** — 서아 전용 화면의 슬롯 없는 TTS 요청으로 발생한 `404`를
+  수정했다. Vercel `ai-mp`·`aiworld` 배포 성공, 운영 번들에서
+  `news/tts?category=...&slot=...` 반영 및 운영 상태 `available=true`, `slot=am`을 확인했다.
 
 ## 9. 리뷰 — ★묶음별로 미리 정한다
 
