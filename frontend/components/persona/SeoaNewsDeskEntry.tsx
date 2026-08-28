@@ -162,6 +162,11 @@ export const buildNewsCostNotice = (cost: number | null): string =>
         ? '글로 볼 때만 포인트가 차감되고, ▶ 듣기는 무료예요.'
         : `글로 볼 때만 ${cost}P가 차감되고, ▶ 듣기는 무료예요.`;
 
+export const formatAudioTime = (seconds: number): string => {
+    const safe = Number.isFinite(seconds) && seconds > 0 ? Math.floor(seconds) : 0;
+    return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, '0')}`;
+};
+
 /** 요약이 통째로 실패해도 **칸을 비우지 않는다**(사양서 §7). 라벨만 있는 자리표. */
 const MARKET_PLACEHOLDERS: { key: string; label: string }[] = [
     { key: 'kospi', label: '코스피' },
@@ -293,6 +298,12 @@ const SEOA_CSS = `
   cursor:pointer;color:#fff;background:rgba(255,255,255,.18);
   border:1px solid rgba(255,255,255,.45);}
 .sn-stop:hover{background:rgba(255,255,255,.3);}
+.sn-player{margin-top:10px;padding:9px 10px;border-radius:10px;background:rgba(5,17,31,.46);
+  border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(4px);}
+.sn-playmeta{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:10.5px;font-weight:700;color:rgba(255,255,255,.9);}
+.sn-playtrack{height:4px;margin-top:7px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.24);}
+.sn-playfill{display:block;height:100%;border-radius:inherit;background:#fff;transition:width .2s linear;}
 
 .sn-hint{margin:12px 0 0;padding:11px 14px;border-radius:13px;font-size:12px;line-height:1.65;
   color:${T.accentDeep};background:${T.accentSoft};border:1px solid ${T.line};}
@@ -371,6 +382,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     const [newsroomSrc, setNewsroomSrc] = useState<string>(SEOA_NEWSROOM_IMAGES[0]);
     const [playLoading, setPlayLoading] = useState<string | null>(null);
     const [playError, setPlayError] = useState('');
+    const [playCurrent, setPlayCurrent] = useState(0);
+    const [playDuration, setPlayDuration] = useState(0);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const heroRef = useRef<HTMLDivElement | null>(null);
@@ -490,11 +503,13 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
         const a = audioRef.current;
         if (a) {
             a.pause();
-            a.onended = null; a.onerror = null;
+            a.onended = null; a.onerror = null; a.onloadedmetadata = null; a.ontimeupdate = null;
             if (a.dataset?.objUrl) { URL.revokeObjectURL(a.dataset.objUrl); delete a.dataset.objUrl; }
         }
         setPlaying(null);
         setPlayLoading(null);
+        setPlayCurrent(0);
+        setPlayDuration(0);
         restorePlaybackView();
     };
 
@@ -547,6 +562,11 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
             audio.dataset.objUrl = url;
             audio.onended = () => stopPlay();
             audio.onerror = () => { setPlayError('음성을 재생하지 못했어요.'); stopPlay(); };
+            audio.onloadedmetadata = () => {
+                setPlayDuration(Number.isFinite(audio.duration) ? audio.duration : 0);
+                setPlayCurrent(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
+            };
+            audio.ontimeupdate = () => setPlayCurrent(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
             audio.src = url;
 
             setPlayLoading(null);
@@ -670,6 +690,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     };
 
     const markets = summary?.markets ?? [];
+    const playProgress = playDuration > 0 ? Math.min(100, Math.max(0, (playCurrent / playDuration) * 100)) : 0;
+    const playRemaining = Math.max(0, playDuration - playCurrent);
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
@@ -714,6 +736,22 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                                         읽어 드리고 있어요.
                                         <button type="button" className="sn-stop" onClick={stopPlay}>■ 멈추기</button>
                                     </p>
+                                    <div className="sn-player">
+                                        <div className="sn-playmeta">
+                                            <span>{newsSlot === 'pm' ? '오후' : '오전'} 브리핑</span>
+                                            <span>{formatAudioTime(playCurrent)} · 남은 {formatAudioTime(playRemaining)}</span>
+                                        </div>
+                                        <div
+                                            className="sn-playtrack"
+                                            role="progressbar"
+                                            aria-label="뉴스 음성 재생 진행률"
+                                            aria-valuemin={0}
+                                            aria-valuemax={100}
+                                            aria-valuenow={Math.round(playProgress)}
+                                        >
+                                            <span className="sn-playfill" style={{ width: `${playProgress}%` }} />
+                                        </div>
+                                    </div>
                                 </>
                             ) : (
                                 <>

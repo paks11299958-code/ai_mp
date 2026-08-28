@@ -8,7 +8,11 @@ class FakeAudio {
     dataset: Record<string, string> = {};
     onended: (() => void) | null = null;
     onerror: (() => void) | null = null;
+    onloadedmetadata: (() => void) | null = null;
+    ontimeupdate: (() => void) | null = null;
     src = '';
+    duration = 120;
+    currentTime = 0;
     pause = vi.fn();
     play = vi.fn().mockResolvedValue(undefined);
 
@@ -73,6 +77,16 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
         ));
         await screen.findByLabelText('서아 뉴스룸 재생 중');
         expect(FakeAudio.latest?.play).toHaveBeenCalledTimes(1);
+
+        act(() => {
+            if (!FakeAudio.latest) return;
+            FakeAudio.latest.currentTime = 30;
+            FakeAudio.latest.onloadedmetadata?.();
+            FakeAudio.latest.ontimeupdate?.();
+        });
+        expect(screen.getByText('오전 브리핑')).toBeTruthy();
+        expect(screen.getByText('0:30 · 남은 1:30')).toBeTruthy();
+        expect(screen.getByRole('progressbar', { name: '뉴스 음성 재생 진행률' }).getAttribute('aria-valuenow')).toBe('25');
 
         act(() => { FakeAudio.latest?.onended?.(); });
         await waitFor(() => expect(screen.queryByLabelText('서아 뉴스룸 재생 중')).toBeNull());
