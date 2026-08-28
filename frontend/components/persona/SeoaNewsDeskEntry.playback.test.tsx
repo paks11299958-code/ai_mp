@@ -13,6 +13,7 @@ class FakeAudio {
     src = '';
     duration = 120;
     currentTime = 0;
+    playbackRate = 1;
     pause = vi.fn();
     play = vi.fn().mockResolvedValue(undefined);
 
@@ -87,6 +88,18 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
         expect(screen.getByText('오전 브리핑')).toBeTruthy();
         expect(screen.getByText('0:30 · 남은 1:30')).toBeTruthy();
         expect(screen.getByRole('progressbar', { name: '뉴스 음성 재생 진행률' }).getAttribute('aria-valuenow')).toBe('25');
+
+        fireEvent.click(screen.getByRole('button', { name: 'Ⅱ 일시정지' }));
+        expect(FakeAudio.latest?.pause).toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: '▶ 계속 듣기' })).toBeTruthy();
+        fireEvent.click(screen.getByRole('button', { name: '▶ 계속 듣기' }));
+        await waitFor(() => expect(screen.getByRole('button', { name: 'Ⅱ 일시정지' })).toBeTruthy());
+
+        fireEvent.click(screen.getByRole('button', { name: '↺ 처음부터' }));
+        expect(FakeAudio.latest?.currentTime).toBe(0);
+        fireEvent.click(screen.getByRole('button', { name: '1.0× 속도' }));
+        expect(FakeAudio.latest?.playbackRate).toBe(1.2);
+        expect(screen.getByRole('button', { name: '1.2× 속도' })).toBeTruthy();
 
         act(() => { FakeAudio.latest?.onended?.(); });
         await waitFor(() => expect(screen.queryByLabelText('서아 뉴스룸 재생 중')).toBeNull());

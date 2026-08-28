@@ -304,6 +304,10 @@ const SEOA_CSS = `
   font-size:10.5px;font-weight:700;color:rgba(255,255,255,.9);}
 .sn-playtrack{height:4px;margin-top:7px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.24);}
 .sn-playfill{display:block;height:100%;border-radius:inherit;background:#fff;transition:width .2s linear;}
+.sn-playcontrols{display:flex;align-items:center;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.sn-playcontrol{padding:4px 8px;border-radius:7px;border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.12);color:#fff;font-size:10.5px;font-weight:800;cursor:pointer;}
+.sn-playcontrol:hover{background:rgba(255,255,255,.22);}
 
 .sn-hint{margin:12px 0 0;padding:11px 14px;border-radius:13px;font-size:12px;line-height:1.65;
   color:${T.accentDeep};background:${T.accentSoft};border:1px solid ${T.line};}
@@ -384,6 +388,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     const [playError, setPlayError] = useState('');
     const [playCurrent, setPlayCurrent] = useState(0);
     const [playDuration, setPlayDuration] = useState(0);
+    const [playPaused, setPlayPaused] = useState(false);
+    const [playRate, setPlayRate] = useState<0.8 | 1 | 1.2>(1);
     const audioRef = useRef<HTMLAudioElement | null>(null);
     const rootRef = useRef<HTMLDivElement | null>(null);
     const heroRef = useRef<HTMLDivElement | null>(null);
@@ -510,7 +516,35 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
         setPlayLoading(null);
         setPlayCurrent(0);
         setPlayDuration(0);
+        setPlayPaused(false);
         restorePlaybackView();
+    };
+
+    const togglePlayback = async () => {
+        const audio = audioRef.current;
+        if (!audio || !playing) return;
+        if (playPaused) {
+            try { await audio.play(); setPlayPaused(false); }
+            catch { setPlayError('음성을 계속 재생하지 못했어요.'); }
+        } else {
+            audio.pause();
+            setPlayPaused(true);
+        }
+    };
+
+    const replayFromStart = async () => {
+        const audio = audioRef.current;
+        if (!audio || !playing) return;
+        audio.currentTime = 0;
+        setPlayCurrent(0);
+        try { await audio.play(); setPlayPaused(false); }
+        catch { setPlayError('음성을 다시 재생하지 못했어요.'); }
+    };
+
+    const cyclePlaybackRate = () => {
+        const next = playRate === 0.8 ? 1 : playRate === 1 ? 1.2 : 0.8;
+        setPlayRate(next);
+        if (audioRef.current) audioRef.current.playbackRate = next;
     };
 
     /**
@@ -567,6 +601,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                 setPlayCurrent(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
             };
             audio.ontimeupdate = () => setPlayCurrent(Number.isFinite(audio.currentTime) ? audio.currentTime : 0);
+            audio.playbackRate = playRate;
             audio.src = url;
 
             setPlayLoading(null);
@@ -750,6 +785,17 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
                                             aria-valuenow={Math.round(playProgress)}
                                         >
                                             <span className="sn-playfill" style={{ width: `${playProgress}%` }} />
+                                        </div>
+                                        <div className="sn-playcontrols" aria-label="뉴스 음성 재생 제어">
+                                            <button type="button" className="sn-playcontrol" onClick={togglePlayback}>
+                                                {playPaused ? '▶ 계속 듣기' : 'Ⅱ 일시정지'}
+                                            </button>
+                                            <button type="button" className="sn-playcontrol" onClick={replayFromStart}>
+                                                ↺ 처음부터
+                                            </button>
+                                            <button type="button" className="sn-playcontrol" onClick={cyclePlaybackRate}>
+                                                {playRate.toFixed(1)}× 속도
+                                            </button>
                                         </div>
                                     </div>
                                 </>
