@@ -385,6 +385,13 @@ const SEOA_CSS = `
      안 보인다. 여기서만 위쪽(얼굴)을 기준으로 잘라 담고, **가로는 절대 넘치지 않는다**. */
   .sn-herofig{max-height:min(46vh,420px);}
   .sn-heroimg{height:100%;object-fit:cover;object-position:50% 16%;}
+  /* 재생 중에는 뉴스룸과 제어기를 화면 위에 붙여 둔다. 긴 뉴스 목록을 스크롤해도
+     제목 자막과 멈춤 버튼을 잃지 않으며, 평상시 히어로의 스크롤은 바꾸지 않는다. */
+  .sn-root.is-playing .sn-hero{position:sticky;top:max(8px,env(safe-area-inset-top));z-index:3;
+    max-width:430px;box-shadow:0 26px 46px -24px rgba(12,31,58,.82);}
+  .sn-root.is-playing .sn-herofig{max-height:min(64svh,520px);}
+  .sn-root.is-playing .sn-greet{padding-left:14px;padding-right:14px;padding-bottom:12px;}
+  .sn-root.is-playing .sn-playcontrol{min-height:36px;padding:6px 10px;}
   .sn-desc{max-width:none;}
   /* 좁은 폭에서 3칸을 유지하면 "KODEX 코스닥150"이 줄바꿈되며 카드가 들쭉날쭉해진다.
      한 줄에 하나씩, 값은 오른쪽으로 붙여 읽기 흐름을 지킨다. */
@@ -397,6 +404,14 @@ const SEOA_CSS = `
   .sn-mktsub{margin-top:2px;}
   .sn-cats{grid-template-columns:repeat(2,minmax(0,1fr));}
   .sn-cta,.sn-cta2{flex:1 1 100%;text-align:center;}
+}
+@media (max-width:820px) and (max-height:600px){
+  .sn-root.is-playing .sn-herofig{height:calc(100svh - 24px);min-height:280px;max-height:none;}
+  .sn-root.is-playing .sn-greet{padding-top:24px;padding-bottom:8px;}
+  .sn-root.is-playing .sn-greetsub{margin-top:2px;}
+  .sn-root.is-playing .sn-player{margin-top:5px;padding:7px 8px;}
+  .sn-root.is-playing .sn-headline{margin-top:5px;padding:5px 7px;}
+  .sn-root.is-playing .sn-playcontrols{margin-top:5px;}
 }
 @media (max-width:360px){
   .sn-cats{grid-template-columns:minmax(0,1fr);}
@@ -772,7 +787,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
-        <div ref={rootRef} className="sn-root" onClick={onClose}>
+        <div ref={rootRef} className={`sn-root${playing ? ' is-playing' : ''}`} onClick={onClose}>
             <style>{SEOA_CSS}</style>
             <div
                 className="sn-sheet"

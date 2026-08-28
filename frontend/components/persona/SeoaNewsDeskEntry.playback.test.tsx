@@ -80,6 +80,8 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
         );
 
         const playButton = await screen.findByRole('button', { name: '국내 뉴스 들려주기' });
+        const root = screen.getByRole('dialog').parentElement;
+        expect(root?.classList.contains('is-playing')).toBe(false);
         fireEvent.click(playButton);
 
         await waitFor(() => expect(fetch).toHaveBeenCalledWith(
@@ -87,6 +89,7 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
             expect.any(Object),
         ));
         await screen.findByLabelText('서아 뉴스룸 재생 중');
+        expect(root?.classList.contains('is-playing')).toBe(true);
         expect(FakeAudio.latest?.play).toHaveBeenCalledTimes(1);
 
         act(() => {
@@ -114,6 +117,7 @@ describe('SeoaNewsDeskEntry 뉴스룸 재생', () => {
 
         act(() => { FakeAudio.latest?.onended?.(); });
         await waitFor(() => expect(screen.queryByLabelText('서아 뉴스룸 재생 중')).toBeNull());
+        expect(root?.classList.contains('is-playing')).toBe(false);
         expect(screen.getAllByLabelText('서아 뉴스데스크').length).toBeGreaterThan(0);
         expect(document.activeElement).toBe(playButton);
         expect(document.body.textContent).toContain('글로 볼 때만 50P가 차감되고, ▶ 듣기는 무료예요.');
