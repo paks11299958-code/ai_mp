@@ -50,7 +50,8 @@ CTA 버튼 아래에는 사업 파트너 담당자 `lumia7450@gmail.com`을 `mai
 - ai_mp `cac7c6c`: Vercel `aiworld`, `ai-mp` Production Ready
 - 운영 API: 존재하지 않는 파트너 로그인 401, 무인증 관리자 목록 401
 - 운영 화면: 390px에서 신청 모달 실제 클릭, 입력 8개, 가로 넘침·pageerror 없음
-- 담당자 이메일 후속 화면: 로컬 390px·1280px 실제 렌더, 표시·`mailto:`·무가로넘침 확인
+- 담당자 이메일 후속 `78bc69b`: Vercel 두 프로젝트 Production Ready. 운영
+  `aiworld.dbzone.kr` 390px·1280px 실제 렌더에서 표시·`mailto:`·무가로넘침·pageerror 0 확인
 
 실제 개인정보 행을 만들지 않기 위해 성공 가입과 인증 관리자 상태 변경은 아직 운영 실측하지 않았다.
 운영 검증 계정을 만들거나 삭제하려면 별도 승인을 받는다.
