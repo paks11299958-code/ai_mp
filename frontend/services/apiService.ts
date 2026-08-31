@@ -1477,8 +1477,6 @@ export interface AdminUser {
     createdAt: string;
     /** 마지막 로그인 시각(2026-07-28 신설). 도입 이전 로그인은 기록이 없어 null. */
     lastLoginAt: string | null;
-    approvalRole: 'PARTNER' | 'APPROVER';
-    referrerLoginId: string | null;
     sessionCount: number;
 }
 
@@ -1498,6 +1496,8 @@ export interface PartnerApplicationAdminRow {
     lastLoginAt: string | null;
     createdAt: string;
     updatedAt: string;
+    approvalRole: 'PARTNER' | 'APPROVER' | 'ADMIN';
+    referrerLoginId: string | null;
 }
 
 export interface UserTransactionRow {
@@ -1721,7 +1721,7 @@ export const adminApi = {
     updatePartnerApplication: (id: string, status: PartnerApplicationStatus, managerMemo?: string) =>
         patch<Partial<PartnerApplicationAdminRow>>(`/admin/partner-applications/${encodeURIComponent(id)}`, { status, ...(managerMemo === undefined ? {} : { managerMemo }) }),
 
-    updatePartnerApprovalRole: (accountId: string, approvalRole: 'PARTNER' | 'APPROVER') =>
+    updatePartnerApprovalRole: (accountId: string, approvalRole: 'PARTNER' | 'APPROVER' | 'ADMIN') =>
         patch<{ id: string; approvalRole: string }>(`/admin/partner-accounts/${encodeURIComponent(accountId)}/approval-role`, { approvalRole }),
 
     grantPoints: (identifier: string, amount: number, description?: string) => {

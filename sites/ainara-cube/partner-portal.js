@@ -107,12 +107,30 @@ export function initPartnerPortal(root = document) {
         list.append(row);
       });
       const approvalSection = modal.querySelector('[data-partner-approval-section]');
-      approvalSection.hidden = data.partner.approvalRole !== 'APPROVER';
+      approvalSection.hidden = !['APPROVER','ADMIN'].includes(data.partner.approvalRole);
       if (!approvalSection.hidden) {
         const queue = modal.querySelector('[data-partner-approval-queue]'); queue.textContent = '';
         if (!data.approvalQueue.length) { const empty=document.createElement('p');empty.className='partner-intro';empty.textContent='승인을 기다리는 신청이 없습니다.';queue.append(empty); }
         data.approvalQueue.forEach(item => {
           const row=document.createElement('div');row.className='partner-row';const text=document.createElement('span');const name=document.createElement('b');name.textContent=item.name;const meta=document.createElement('small');meta.textContent=`${item.loginId} · 추천인 ${item.referrerLoginId||'없음'} · ${STATUS[item.status]||item.status}`;text.append(name,meta);const button=document.createElement('button');button.className='partner-mini';button.type='button';button.textContent='승인';button.addEventListener('click',async()=>{button.disabled=true;try{await request(`/referrals/${item.id}/approve`,{method:'PATCH',body:'{}'});button.textContent='승인 완료';row.dataset.done='true';}catch(e){error.textContent=e.message;button.disabled=false;}});row.append(text,button);queue.append(row);
+        });
+      }
+      const adminSection = modal.querySelector('[data-partner-admin-section]');
+      adminSection.hidden = data.partner.approvalRole !== 'ADMIN';
+      if (!adminSection.hidden) {
+        const managers = modal.querySelector('[data-partner-approval-managers]'); managers.textContent = '';
+        (data.approvalManagers || []).forEach(item => {
+          const row=document.createElement('div');row.className='partner-row';
+          const text=document.createElement('span');const name=document.createElement('b');name.textContent=item.name;
+          const meta=document.createElement('small');meta.textContent=`${item.loginId} · ${item.approvalRole==='ADMIN'?'최고 관리자':item.approvalRole==='APPROVER'?'승인 담당자':'일반 파트너'}`;
+          text.append(name,meta);row.append(text);
+          if (item.approvalRole !== 'ADMIN') {
+            const button=document.createElement('button');button.className='partner-mini';button.type='button';
+            button.textContent=item.approvalRole==='APPROVER'?'담당 해제':'담당 지정';
+            button.addEventListener('click',async()=>{button.disabled=true;const next=item.approvalRole==='APPROVER'?'PARTNER':'APPROVER';try{await request(`/partners/${item.id}/approval-role`,{method:'PATCH',body:JSON.stringify({approvalRole:next})});item.approvalRole=next;button.textContent=next==='APPROVER'?'담당 해제':'담당 지정';meta.textContent=`${item.loginId} · ${next==='APPROVER'?'승인 담당자':'일반 파트너'}`;button.disabled=false;}catch(e){error.textContent=e.message;button.disabled=false;}});
+            row.append(button);
+          }
+          managers.append(row);
         });
       }
       showView('dashboard');

@@ -20,7 +20,7 @@
 
 - 공개 프록시: `aiworld.dbzone.kr/api/partner-auth/*`
 - 백엔드: `/api/aimp/partner-auth/*`
-- API: `register`, `login`, `me`, `logout`
+- API: `register`, `login`, `me`, `logout`, `dashboard`, `referrals/:id/approve`, `partners/:id/approval-role`
 - 쿠키: `partner_token`, HttpOnly, Secure, SameSite=Lax, 7일
 - 토큰은 `aud=aiworld-partner`, `iss=shared-api`로 일반회원 토큰과 구분한다.
 - 가입·로그인은 IP별 10분 10회로 제한한다.
@@ -31,6 +31,9 @@
 2. 회원아이디·암호·성명·연락처·이메일·선택 추천인과 개인정보 동의를 받는다.
 3. 계정과 신청서를 한 트랜잭션으로 만들고 `접수 완료`를 표시한다.
 4. `로그인` 버튼에서 파트너 전용 계정으로 로그인하고 신청 상태를 확인한다.
+5. `?ref=파트너아이디`로 들어오면 추천인 아이디를 자동 저장·읽기 전용 입력하고 가입 시 FK로 연결한다.
+6. 승인 파트너는 대시보드에서 소개 링크와 추천 회원을 본다. `APPROVER`와 `ADMIN`은 전체 승인 대기도 보고 승인한다.
+7. 파트너 `ADMIN`은 승인된 파트너를 `APPROVER`로 지정하거나 해제한다. `APPROVER`는 다른 회원의 역할을 바꿀 수 없다.
 
 CTA 버튼 아래에는 사업 파트너 담당자 `lumia7450@gmail.com`을 `mailto:` 링크로 표시한다.
 
@@ -42,6 +45,13 @@ CTA 버튼 아래에는 사업 파트너 담당자 `lumia7450@gmail.com`을 `mai
 - 성명, 연락처, 이메일, 추천인, 최근 로그인과 처리 시각을 표시한다.
 - 담당자 메모는 2,000자까지 저장한다.
 - 모든 목록·변경 API는 기존 ADMIN 인증을 통과해야 한다.
+- 역할 계층은 `PARTNER < APPROVER < ADMIN`이다. 파트너 `ADMIN`은 승인 파트너를 `APPROVER`로 지정·해제하고, 일반 파트너는 자기 추천 목록만 본다.
+- 모든 상태 변경은 `PartnerApprovalHistory`에 행위자 유형·ID와 전후 상태를 기록한다.
+
+## 정산 뼈대
+
+대시보드와 API는 `NOT_CONFIGURED`/`준비 중`만 표시한다. 금액·수수료·정산 계산과 지급 기능은
+운영 정책 확정 전까지 구현하지 않는다.
 
 ## 운영 반영과 검증 (2026-08-28)
 
@@ -55,3 +65,14 @@ CTA 버튼 아래에는 사업 파트너 담당자 `lumia7450@gmail.com`을 `mai
 
 실제 개인정보 행을 만들지 않기 위해 성공 가입과 인증 관리자 상태 변경은 아직 운영 실측하지 않았다.
 운영 검증 계정을 만들거나 삭제하려면 별도 승인을 받는다.
+
+## 추천·위임 승인 운영 반영 (2026-08-31)
+
+- shared-api `6e25282`, 전체 승인 대기 후속 `3616f2a`; 서버1 PM2 online
+- ai_mp `4e7db77`, 전체 승인 대기 후속 `8cd8bab`; Vercel `aiworld`·`ai-mp` Ready
+- 운영 DB에 추천 FK·승인 역할·승인자·승인 이력 추가형 SQL 적용
+- `paks1012`: 신청 `APPROVED`, 계정 역할 `ADMIN`
+- 최근 승인 파트너 `lumia`, `happyintel`: 계정 역할 `APPROVER`
+- 운영 `?ref=paks1012`: 자동 입력값·readonly·안내 표시·390px 무가로넘침 확인
+- 현재 운영 신청은 승인 3건, 승인 대기 0건이라 실제 대기 회원 승인 클릭은 아직 미검증
+- 비밀번호 변경 요청은 사용자가 취소했고 완료 여부를 확인하지 않았으므로 변경 완료로 간주하지 않는다.

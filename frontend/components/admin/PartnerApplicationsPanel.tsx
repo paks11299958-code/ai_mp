@@ -100,8 +100,8 @@ export const PartnerApplicationsPanel: React.FC = () => {
                                 {(Object.keys(META) as PartnerApplicationStatus[]).map(status => <button key={status} disabled={saving === row.id || row.status === status} onClick={() => void update(row, status)}
                                     className="min-h-10 rounded-lg border border-gray-600 px-3 text-xs font-bold text-gray-200 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40">{META[status].label}</button>)}
                             </div>
-                            <button disabled={saving === row.id || row.status !== 'APPROVED'} onClick={() => void updateRole(row)} className="min-h-10 rounded-lg border border-indigo-700 px-3 text-xs font-bold text-indigo-200 disabled:opacity-40">
-                                {row.approvalRole === 'APPROVER' ? '승인 담당자 해제' : '승인 담당자로 지정'}
+                            <button disabled={saving === row.id || row.status !== 'APPROVED' || row.approvalRole === 'ADMIN'} onClick={() => void updateRole(row)} className="min-h-10 rounded-lg border border-indigo-700 px-3 text-xs font-bold text-indigo-200 disabled:opacity-40">
+                                {row.approvalRole === 'ADMIN' ? '최고 관리자' : row.approvalRole === 'APPROVER' ? '승인 담당자 해제' : '승인 담당자로 지정'}
                             </button>
                         </div>}
                     </article>;
