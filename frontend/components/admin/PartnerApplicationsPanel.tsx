@@ -47,6 +47,12 @@ export const PartnerApplicationsPanel: React.FC = () => {
         } catch (e: any) { setError(e?.message || '상태를 변경하지 못했습니다.'); }
         finally { setSaving(''); }
     };
+    const updateRole = async (row: PartnerApplicationAdminRow) => {
+        setSaving(row.id);
+        try { await adminApi.updatePartnerApprovalRole(row.accountId, row.approvalRole === 'APPROVER' ? 'PARTNER' : 'APPROVER'); await load(); }
+        catch (e: any) { setError(e?.message || '승인 담당자 권한을 변경하지 못했습니다.'); }
+        finally { setSaving(''); }
+    };
 
     const counts = rows.reduce<Record<string, number>>((acc, row) => ({ ...acc, [row.status]: (acc[row.status] || 0) + 1 }), {});
     return (
@@ -81,6 +87,7 @@ export const PartnerApplicationsPanel: React.FC = () => {
                         {open && <div className="space-y-4 border-t border-gray-700 bg-gray-900/40 p-4">
                             <dl className="grid grid-cols-[90px_1fr] gap-2 text-xs">
                                 <dt className="text-gray-500">추천인</dt><dd className="text-gray-200">{row.referrer || '-'}</dd>
+                                <dt className="text-gray-500">연결 추천인</dt><dd className="text-gray-200">{row.referrerLoginId || '-'}</dd>
                                 <dt className="text-gray-500">최근 로그인</dt><dd className="text-gray-200">{fmt(row.lastLoginAt)}</dd>
                                 <dt className="text-gray-500">연락 완료</dt><dd className="text-gray-200">{fmt(row.contactedAt)}</dd>
                                 <dt className="text-gray-500">승인</dt><dd className="text-gray-200">{fmt(row.approvedAt)}</dd>
@@ -93,6 +100,9 @@ export const PartnerApplicationsPanel: React.FC = () => {
                                 {(Object.keys(META) as PartnerApplicationStatus[]).map(status => <button key={status} disabled={saving === row.id || row.status === status} onClick={() => void update(row, status)}
                                     className="min-h-10 rounded-lg border border-gray-600 px-3 text-xs font-bold text-gray-200 hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-40">{META[status].label}</button>)}
                             </div>
+                            <button disabled={saving === row.id || row.status !== 'APPROVED'} onClick={() => void updateRole(row)} className="min-h-10 rounded-lg border border-indigo-700 px-3 text-xs font-bold text-indigo-200 disabled:opacity-40">
+                                {row.approvalRole === 'APPROVER' ? '승인 담당자 해제' : '승인 담당자로 지정'}
+                            </button>
                         </div>}
                     </article>;
                 })}</div>}

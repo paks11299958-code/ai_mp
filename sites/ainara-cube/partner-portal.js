@@ -7,6 +7,12 @@ export function initPartnerPortal(root = document) {
   const dialog = modal.querySelector('[data-partner-dialog]');
   const views = [...modal.querySelectorAll('[data-partner-view]')];
   let returnFocus = null;
+  const refKey = 'aiworldPartnerRef';
+  const incomingRef = new URLSearchParams(location.search).get('ref')?.trim();
+  if (incomingRef && /^[a-zA-Z0-9._-]{4,40}$/.test(incomingRef)) localStorage.setItem(refKey, incomingRef);
+  const storedRef = localStorage.getItem(refKey) || '';
+  const refInput = modal.querySelector('[name="referrer"]');
+  if (storedRef && refInput) { refInput.value = storedRef; refInput.readOnly = true; modal.querySelector('[data-partner-ref-note]').hidden = false; }
 
   const showView = name => views.forEach(view => { view.hidden = view.dataset.partnerView !== name; });
   const open = (name, trigger) => {
@@ -63,6 +69,7 @@ export function initPartnerPortal(root = document) {
     submit.disabled = true;
     try {
       await request('/register', { method: 'POST', body: JSON.stringify({ ...values, privacyAgreed: values.privacyAgreed === 'on' }) });
+      localStorage.removeItem(refKey);
       form.reset();
       showView('success');
       modal.querySelector('[data-partner-close]').focus();
@@ -86,4 +93,22 @@ export function initPartnerPortal(root = document) {
   modal.querySelector('[data-partner-logout]').addEventListener('click', async () => {
     try { await request('/logout', { method: 'POST', body: '{}' }); } finally { close(); }
   });
+  modal.querySelector('[data-partner-open-dashboard]').addEventListener('click', async () => {
+    const error = modal.querySelector('[data-partner-dashboard-error]'); error.textContent = '';
+    try {
+      const data = await request('/dashboard');
+      modal.querySelector('[data-partner-my-link]').value = data.referralLink;
+      const list = modal.querySelector('[data-partner-referrals]'); list.textContent = '';
+      if (!data.referrals.length) { const empty=document.createElement('p');empty.className='partner-intro';empty.textContent='아직 소개 링크로 가입한 회원이 없습니다.';list.append(empty); }
+      data.referrals.forEach(item => {
+        const row=document.createElement('div');row.className='partner-row';
+        const text=document.createElement('span');const name=document.createElement('b');name.textContent=item.name;const meta=document.createElement('small');meta.textContent=`${item.loginId} · ${STATUS[item.status]||item.status}`;text.append(name,meta);row.append(text);
+        if (data.partner.approvalRole==='APPROVER' && ['PENDING','CONTACTED'].includes(item.status)) { const button=document.createElement('button');button.className='partner-mini';button.type='button';button.textContent='승인';button.addEventListener('click',async()=>{button.disabled=true;try{await request(`/referrals/${item.id}/approve`,{method:'PATCH',body:'{}'});button.textContent='승인 완료';meta.textContent=`${item.loginId} · 파트너 승인`;}catch(e){error.textContent=e.message;button.disabled=false;}});row.append(button); }
+        list.append(row);
+      });
+      showView('dashboard');
+    } catch(e) { error.textContent=e.message; }
+  });
+  modal.querySelector('[data-partner-copy-link]').addEventListener('click', async () => { await navigator.clipboard.writeText(modal.querySelector('[data-partner-my-link]').value); modal.querySelector('[data-partner-copy-link]').textContent='복사되었습니다'; });
+  modal.querySelector('[data-partner-back-account]').addEventListener('click', () => showView('account'));
 }
