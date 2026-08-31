@@ -106,6 +106,15 @@ export function initPartnerPortal(root = document) {
         if (data.partner.approvalRole==='APPROVER' && ['PENDING','CONTACTED'].includes(item.status)) { const button=document.createElement('button');button.className='partner-mini';button.type='button';button.textContent='승인';button.addEventListener('click',async()=>{button.disabled=true;try{await request(`/referrals/${item.id}/approve`,{method:'PATCH',body:'{}'});button.textContent='승인 완료';meta.textContent=`${item.loginId} · 파트너 승인`;}catch(e){error.textContent=e.message;button.disabled=false;}});row.append(button); }
         list.append(row);
       });
+      const approvalSection = modal.querySelector('[data-partner-approval-section]');
+      approvalSection.hidden = data.partner.approvalRole !== 'APPROVER';
+      if (!approvalSection.hidden) {
+        const queue = modal.querySelector('[data-partner-approval-queue]'); queue.textContent = '';
+        if (!data.approvalQueue.length) { const empty=document.createElement('p');empty.className='partner-intro';empty.textContent='승인을 기다리는 신청이 없습니다.';queue.append(empty); }
+        data.approvalQueue.forEach(item => {
+          const row=document.createElement('div');row.className='partner-row';const text=document.createElement('span');const name=document.createElement('b');name.textContent=item.name;const meta=document.createElement('small');meta.textContent=`${item.loginId} · 추천인 ${item.referrerLoginId||'없음'} · ${STATUS[item.status]||item.status}`;text.append(name,meta);const button=document.createElement('button');button.className='partner-mini';button.type='button';button.textContent='승인';button.addEventListener('click',async()=>{button.disabled=true;try{await request(`/referrals/${item.id}/approve`,{method:'PATCH',body:'{}'});button.textContent='승인 완료';row.dataset.done='true';}catch(e){error.textContent=e.message;button.disabled=false;}});row.append(text,button);queue.append(row);
+        });
+      }
       showView('dashboard');
     } catch(e) { error.textContent=e.message; }
   });
