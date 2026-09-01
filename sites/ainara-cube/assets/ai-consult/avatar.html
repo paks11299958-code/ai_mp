@@ -9,7 +9,9 @@
     html, body { width: 100%; height: 100%; }
     body {
       margin: 0;
-      background: linear-gradient(135deg, #020617 0%, #1e3a8a 100%);
+      background:
+        radial-gradient(circle at 50% 28%, rgba(229, 126, 79, .22), transparent 42%),
+        linear-gradient(145deg, #17120f 0%, #080706 100%);
       overflow: hidden;
     }
     model-viewer { width: 100%; height: 100%; background: transparent; }
@@ -20,15 +22,18 @@
     }
     .progress-bar.hide { visibility: hidden; }
     .update-bar {
-      width: 0; height: 100%; border-radius: 25px; background: #2563eb;
+      width: 0; height: 100%; border-radius: 25px; background: #d96c42;
       transition: width .3s;
     }
   </style>
 </head>
 <body>
-  <model-viewer id="avatar" src="./via3.glb" camera-controls autoplay
-    animation-name="Wave" tone-mapping="neutral" shadow-intensity="0.8"
-    interaction-prompt="none">
+  <model-viewer id="avatar" src="./seoa-consult-rigged.glb"
+    poster="./seoa-consult-poster.png" camera-controls
+    camera-orbit="0deg 82deg auto" min-camera-orbit="auto 68deg auto"
+    max-camera-orbit="auto 96deg auto" tone-mapping="neutral"
+    shadow-intensity="0.8" exposure="1.05" interaction-prompt="none"
+    alt="AI 상담 매니저 서아 3D 아바타">
     <div class="progress-bar hide" slot="progress-bar">
       <div class="update-bar"></div>
     </div>
@@ -40,9 +45,6 @@
       const update = avatar.querySelector('.update-bar');
       update.style.width = `${event.detail.totalProgress * 100}%`;
       bar.classList.toggle('hide', event.detail.totalProgress === 1);
-    });
-    avatar.addEventListener('load', () => {
-      window.setTimeout(() => avatar.pause(), avatar.duration * 1000);
     });
   </script>
 </body>

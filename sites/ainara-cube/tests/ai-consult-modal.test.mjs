@@ -97,3 +97,12 @@ test('routes AI and inquiry requests through separate n8n webhooks without brows
   assert.match(source, /AbortController/);
   assert.doesNotMatch(source, /AIza|api[_-]?key/i);
 });
+
+test('uses the rigged Seoa model for the consultation avatar', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+
+  assert.match(avatar, /src="\.\/seoa-consult-rigged\.glb"/);
+  assert.match(avatar, /poster="\.\/seoa-consult-poster\.png"/);
+  assert.match(avatar, /alt="AI 상담 매니저 서아 3D 아바타"/);
+  assert.doesNotMatch(avatar, /via3\.glb|animation-name="Wave"/);
+});
