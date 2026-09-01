@@ -122,7 +122,8 @@
 
 - 왼쪽: `assets/ai-consult/avatar.html` iframe에서 리깅된 서아 3D 모델
   (`seoa-consult-rigged.glb`)을 정면 기본 시점으로 표시한다. 로딩 중에는
-  `seoa-consult-poster.png`를 보여주며 사용자가 드래그해 시점을 바꿀 수 있다.
+  `seoa-consult-poster.png`를 보여준다. 현재 생성 모델의 얼굴 품질을 보완하기 위해
+  코와 입을 가리는 마스크 오버레이를 적용하고 정면 시점으로 고정한다.
 - 오른쪽 `AI에게 질문`: AI월드 전용 n8n Gemini Webhook의 `answer`를 대화로 표시
 - 오른쪽 `담당자 상담 접수`: 성함·연락처·문의 유형·내용을 n8n 문자·메일 알림으로 전달
 - 비밀 키는 브라우저에 두지 않는다. 요청 중 중복 제출 방지와 실패 안내를 제공한다.

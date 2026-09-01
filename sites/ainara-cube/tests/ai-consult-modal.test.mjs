@@ -105,5 +105,7 @@ test('uses the rigged Seoa model for the consultation avatar', async () => {
   assert.match(avatar, /poster="\.\/seoa-consult-poster\.png"/);
   assert.match(avatar, /camera-orbit="90deg 82deg auto"/);
   assert.match(avatar, /alt="AI 상담 매니저 서아 3D 아바타"/);
+  assert.match(avatar, /class="face-mask" aria-hidden="true"/);
+  assert.doesNotMatch(avatar, /poster="\.\/seoa-consult-poster\.png" camera-controls/);
   assert.doesNotMatch(avatar, /via3\.glb|animation-name="Wave"/);
 });

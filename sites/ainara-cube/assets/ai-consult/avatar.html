@@ -25,11 +25,39 @@
       width: 0; height: 100%; border-radius: 25px; background: #d96c42;
       transition: width .3s;
     }
+    .face-mask {
+      position: absolute;
+      z-index: 2;
+      top: 13.2%;
+      left: 50%;
+      width: clamp(12px, 5.8vh, 34px);
+      height: clamp(7px, 3.1vh, 18px);
+      transform: translateX(-50%);
+      border: 1px solid rgba(151, 138, 122, .7);
+      border-radius: 42% 42% 48% 48% / 34% 34% 66% 66%;
+      background:
+        linear-gradient(to bottom, transparent 32%, rgba(166, 154, 139, .2) 34% 38%, transparent 40% 59%, rgba(166, 154, 139, .17) 61% 65%, transparent 67%),
+        linear-gradient(145deg, #f5f0e8, #ded4c7);
+      box-shadow: 0 2px 4px rgba(31, 23, 18, .2);
+      pointer-events: none;
+    }
+    .face-mask::before,
+    .face-mask::after {
+      content: "";
+      position: absolute;
+      top: 18%;
+      width: 22%;
+      height: 70%;
+      border: 1px solid rgba(222, 212, 199, .9);
+      border-radius: 50%;
+    }
+    .face-mask::before { right: 92%; border-right: 0; }
+    .face-mask::after { left: 92%; border-left: 0; }
   </style>
 </head>
 <body>
   <model-viewer id="avatar" src="./seoa-consult-rigged.glb"
-    poster="./seoa-consult-poster.png" camera-controls
+    poster="./seoa-consult-poster.png"
     camera-orbit="90deg 82deg auto" min-camera-orbit="auto 68deg auto"
     max-camera-orbit="auto 96deg auto" tone-mapping="neutral"
     shadow-intensity="0.8" exposure="1.05" interaction-prompt="none"
@@ -38,6 +66,7 @@
       <div class="update-bar"></div>
     </div>
   </model-viewer>
+  <div class="face-mask" aria-hidden="true"></div>
   <script>
     const avatar = document.querySelector('#avatar');
     avatar.addEventListener('progress', (event) => {
