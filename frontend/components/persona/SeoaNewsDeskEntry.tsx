@@ -52,14 +52,39 @@ const SEOA_HERO_IMAGES = [
 ] as const;
 
 /**
- * 뉴스 재생 중에 띄우는 뉴스룸 소재 2장(2026-08-27 신설).
+ * 뉴스 재생 중에 띄우는 뉴스룸 소재(2026-08-27 신설 → 2026-09-01 월별 확대).
  * 위 히어로 2장을 각각 원본으로 넣어 **배경만** 스튜디오로 바꾼 것이라 얼굴이 같다.
  * ★재생을 누를 때마다 랜덤이다. 히어로와 짝을 맞추지 않는다 — 사장 지시.
+ *
+ * ★2026-09-01: 2장뿐이라 자주 오는 사용자에게 식상하다는 지적 → **월별 12 × 2포즈 = 24장**.
+ *   그 달 옷차림이 뜬다(1월 두꺼운 니트, 7월 민소매…). 절기와 어긋나지 않게 맞췄다.
+ *   같은 원본에 FACE_LOCK 을 걸어 옷만 바꾼 것이라 얼굴은 전부 동일하다(`shared-api/seoa_edit.cjs`).
  */
-const SEOA_NEWSROOM_IMAGES = [
+const SEOA_NEWSROOM_FALLBACK = [
     '/seoa/seoa_newsroom_stand_20260827.png',
     '/seoa/seoa_newsroom_sit_v2_20260827.png',
 ] as const;
+
+/** 월(1~12) → 그 달 소재 2장(서서·앉아서). */
+const SEOA_NEWSROOM_BY_MONTH: Record<number, readonly string[]> = Object.fromEntries(
+    Array.from({ length: 12 }, (_, i) => {
+        const mm = String(i + 1).padStart(2, '0');
+        // ★.webp — PNG(장당 1.4MB) 그대로 두면 24장에 34MB다. q88 로 75KB/장(실측),
+        //   896px 표시 크기에서 육안 열화 없음. 기존 히어로 2장은 PNG 그대로 둔다.
+        return [i + 1, [`/seoa/month/seoa_${mm}_stand.webp`, `/seoa/month/seoa_${mm}_sit.webp`]];
+    }),
+);
+
+/**
+ * 이번 달 소재를 고른다.
+ * ★월은 **서버가 준 KST 날짜**(summary.date.date = 'YYYY-MM-DD')에서 뽑는다 —
+ *   인사말이 브라우저 시계를 안 쓰는 것과 같은 이유다(자정 근처에서 어긋난다).
+ *   요약이 아직 없거나 형식이 다르면 기존 2장으로 떨어진다(화면이 비지 않게).
+ */
+const newsroomPoolFor = (dateStr?: string): readonly string[] => {
+    const m = Number(String(dateStr ?? '').slice(5, 7));
+    return (m >= 1 && m <= 12 && SEOA_NEWSROOM_BY_MONTH[m]) || SEOA_NEWSROOM_FALLBACK;
+};
 
 const pickOne = <T,>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)];
 
@@ -438,7 +463,7 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
     /** 재생 중인 카테고리(=뉴스룸으로 바뀐 상태). null 이면 평소 히어로. */
     const [playing, setPlaying] = useState<string | null>(null);
     /** 이번 재생에 쓸 뉴스룸 이미지 — ★재생을 누를 때마다 새로 뽑는다. */
-    const [newsroomSrc, setNewsroomSrc] = useState<string>(SEOA_NEWSROOM_IMAGES[0]);
+    const [newsroomSrc, setNewsroomSrc] = useState<string>(SEOA_NEWSROOM_FALLBACK[0]);
     const [playLoading, setPlayLoading] = useState<string | null>(null);
     const [playError, setPlayError] = useState('');
     const [playCurrent, setPlayCurrent] = useState(0);
@@ -627,7 +652,8 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
         audio.pause();
 
         // ★재생을 누를 때마다 뉴스룸 이미지를 새로 뽑는다(사장 지시).
-        setNewsroomSrc(pickOne(SEOA_NEWSROOM_IMAGES));
+        //   후보는 **이번 달 2장**이다(2026-09-01) — 월은 서버 KST 날짜에서 뽑는다.
+        setNewsroomSrc(pickOne(newsroomPoolFor(summary?.date?.date)));
         setPlayLoading(key);
 
         try {
