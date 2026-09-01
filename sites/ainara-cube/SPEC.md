@@ -116,9 +116,14 @@
 회사소개(회사 개요·비전 및 가치·연혁) / 이용안내(라이선스 안내·수익 구조·가입 방법) / 고객지원(준비 중·준비 중)
 `© 2026 AI Companion. All rights reserved.`
 
-### 상담 모달 (그대로 이식)
-`ai-consult-modal.js` 가 이미 폴더에 있다. 첫 진입 시 표시되고 닫기·배경클릭·Esc 로 닫힌다.
-iframe 2개: `assets/ai-consult/avatar.html` 과 `https://bot.dbzone.kr/lead-generation-7o4fpsk`.
+### 상담 모달
+`ai-consult-modal.js`가 담당한다. 첫 진입에는 숨기고 메뉴의 `AI 상담` 버튼으로 연다.
+닫기·배경 클릭·Esc로 닫으며 원래 버튼으로 포커스를 돌려준다.
+
+- 왼쪽: `assets/ai-consult/avatar.html` 아바타 iframe
+- 오른쪽 `AI에게 질문`: AI월드 전용 n8n Gemini Webhook의 `answer`를 대화로 표시
+- 오른쪽 `담당자 상담 접수`: 성함·연락처·문의 유형·내용을 n8n 문자·메일 알림으로 전달
+- 비밀 키는 브라우저에 두지 않는다. 요청 중 중복 제출 방지와 실패 안내를 제공한다.
 
 ## 팔레트 (기존 사이트와 동일)
 ```
@@ -131,5 +136,6 @@ sans: "Noto Sans KR"  /  serif: "Newsreader","Noto Serif KR"
 폰트는 Google Fonts 링크 허용(기존 사이트와 동일).
 
 ## 산출물
-`sites/ainara-cube/index.html` 한 파일(+ 이미 있는 `ai-consult-modal.js`, `assets/`).
-CSS·JS 는 인라인. 외부 요청은 Google Fonts 와 상담 iframe 뿐이어야 한다.
+`sites/ainara-cube/index.html` 한 파일(+ `ai-consult-modal.js`, `assets/`).
+CSS는 인라인이고 상담 동작은 모듈 JS에 둔다. 외부 요청은 Google Fonts, 아바타 iframe,
+AI월드 전용 n8n 상담·알림 Webhook으로 제한한다.

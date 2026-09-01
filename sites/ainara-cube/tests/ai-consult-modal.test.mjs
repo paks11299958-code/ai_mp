@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import { initAiConsultModal } from '../ai-consult-modal.js';
 
@@ -75,4 +76,24 @@ test('closes an open modal when Escape is pressed', () => {
   fixture.listeners.get('keydown')({ key: 'Escape' });
 
   assert.equal(fixture.modal.hidden, true);
+});
+
+test('uses the AIworld consultation workspace instead of the legacy Typebot iframe', async () => {
+  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
+
+  assert.match(html, /data-ai-chat-form/);
+  assert.match(html, /data-ai-inquiry-form/);
+  assert.match(html, /담당자 상담 접수/);
+  assert.doesNotMatch(html, /lead-generation-7o4fpsk/);
+  assert.doesNotMatch(html, /generativelanguage\.googleapis\.com/);
+});
+
+test('routes AI and inquiry requests through separate n8n webhooks without browser secrets', async () => {
+  const source = await readFile(new URL('../ai-consult-modal.js', import.meta.url), 'utf8');
+
+  assert.match(source, /GEMINI_WEBHOOK = 'https:\/\/n8n\.dbzone\.kr\/webhook\//);
+  assert.match(source, /INQUIRY_WEBHOOK = 'https:\/\/n8n\.dbzone\.kr\/webhook\//);
+  assert.match(source, /button\.disabled = true/);
+  assert.match(source, /AbortController/);
+  assert.doesNotMatch(source, /AIza|api[_-]?key/i);
 });
