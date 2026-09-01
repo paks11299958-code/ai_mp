@@ -70,6 +70,7 @@ CTA 버튼 아래에는 사업 파트너 담당자 `lumia7450@gmail.com`을 `mai
 
 - shared-api `6e25282`, 전체 승인 대기 후속 `3616f2a`; 서버1 PM2 online
 - ai_mp `4e7db77`, 전체 승인 대기 후속 `8cd8bab`; Vercel `aiworld`·`ai-mp` Ready
+- 3단계 권한 후속: shared-api `9969c18`, ai_mp `5c797a8`; `PARTNER < APPROVER < ADMIN`과 ADMIN 전용 담당자 관리 운영 반영
 - 운영 DB에 추천 FK·승인 역할·승인자·승인 이력 추가형 SQL 적용
 - `paks1012`: 신청 `APPROVED`, 계정 역할 `ADMIN`
 - 최근 승인 파트너 `lumia`, `happyintel`: 계정 역할 `APPROVER`
