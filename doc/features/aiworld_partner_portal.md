@@ -102,6 +102,17 @@ v6.1 스키마가 호환되지 않았다. 소문자 `webhook`은 외부 HTTP 호
 - 실제 문자·메일 오발송을 피하기 위해 담당자 접수 운영 테스트는 하지 않고 구성과 Webhook 등록만 검증한다.
 - 사이트 소스 변경은 배포 후 운영 모달에서 AI 응답과 접수 성공 화면을 추가 검증해야 한다.
 
+## AI 상담 서아 2.5D 아바타 (2026-09-02)
+
+- AI월드는 독립 Vercel 프로젝트라 공용 `/consult/{slug}` 아바타와 별도로
+  `sites/ainara-cube/assets/ai-consult/avatar.html`을 사용한다.
+- 기존 마스크형 3D GLB를 LivePortrait idle과 MuseTalk speaking PoC 영상으로 교체했다.
+- 실제 Gemini 질문 제출 시 `THINKING`, 답변 도착 시 `SPEAKING`, 연결 실패 시 `FALLBACK`,
+  모달 열기·닫기와 일정 시간 경과 후 `IDLE`로 전환한다.
+- 부모와 아바타 iframe은 같은 출처의 `SEOA_AVATAR_STATE` postMessage만 허용한다.
+- speaking 영상은 현재 특정 검수 문장의 무음 PoC다. 응답별 정확한 립싱크는 TTS+MuseTalk 생성 API가
+  준비된 뒤 응답 ID로 연결한다.
+
 ## 가입 비밀번호 최소 길이 4자로 완화 (2026-09-02, 사장 지시)
 
 - 최소 **8자 → 4자**. 상한 72자는 유지한다(bcrypt 입력 한계).

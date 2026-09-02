@@ -1,80 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI 상담 아바타</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>서아 AI 사업 상담 매니저</title>
   <style>
-    html, body { width: 100%; height: 100%; }
-    body {
-      margin: 0;
-      background:
-        radial-gradient(circle at 50% 28%, rgba(229, 126, 79, .22), transparent 42%),
-        linear-gradient(145deg, #17120f 0%, #080706 100%);
-      overflow: hidden;
-    }
-    model-viewer { width: 100%; height: 100%; background: transparent; }
-    .progress-bar {
-      width: 50%; height: 6px; position: absolute; left: 50%; top: 50%;
-      transform: translate(-50%, -50%); border-radius: 25px;
-      background: rgba(255,255,255,.15);
-    }
-    .progress-bar.hide { visibility: hidden; }
-    .update-bar {
-      width: 0; height: 100%; border-radius: 25px; background: #d96c42;
-      transition: width .3s;
-    }
-    .face-mask {
-      position: absolute;
-      z-index: 2;
-      top: 13.2%;
-      left: 50%;
-      width: clamp(12px, 5.8vh, 34px);
-      height: clamp(7px, 3.1vh, 18px);
-      transform: translateX(-50%);
-      border: 1px solid rgba(151, 138, 122, .7);
-      border-radius: 42% 42% 48% 48% / 34% 34% 66% 66%;
-      background:
-        linear-gradient(to bottom, transparent 32%, rgba(166, 154, 139, .2) 34% 38%, transparent 40% 59%, rgba(166, 154, 139, .17) 61% 65%, transparent 67%),
-        linear-gradient(145deg, #f5f0e8, #ded4c7);
-      box-shadow: 0 2px 4px rgba(31, 23, 18, .2);
-      pointer-events: none;
-    }
-    .face-mask::before,
-    .face-mask::after {
-      content: "";
-      position: absolute;
-      top: 18%;
-      width: 22%;
-      height: 70%;
-      border: 1px solid rgba(222, 212, 199, .9);
-      border-radius: 50%;
-    }
-    .face-mask::before { right: 92%; border-right: 0; }
-    .face-mask::after { left: 92%; border-left: 0; }
+    :root{font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif}
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0}
+    body{overflow:hidden;background:#eef5fb}
+    .avatar{position:relative;width:100%;height:100%;overflow:hidden;background:radial-gradient(circle at 50% 22%,#fff 0,#edf5fc 48%,#c8daec 100%)}
+    video{width:100%;height:100%;display:block;object-fit:cover;object-position:center 34%;transition:filter .25s ease,transform .25s ease}
+    [data-state="thinking"] video{filter:saturate(.92) brightness(.98);animation:thinking 1.9s ease-in-out infinite}
+    [data-state="fallback"] video{filter:saturate(.82)}
+    .state{position:absolute;z-index:2;left:50%;bottom:max(18px,env(safe-area-inset-bottom));translate:-50% 0;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid rgba(75,106,141,.2);border-radius:999px;background:rgba(255,255,255,.9);box-shadow:0 8px 28px rgba(33,63,99,.14);color:#31465e;font-size:12px;font-weight:700;white-space:nowrap;backdrop-filter:blur(10px)}
+    .dot{width:7px;height:7px;border-radius:50%;background:#5f8fc6;box-shadow:0 0 0 4px rgba(95,143,198,.13)}
+    [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
+    [data-state="speaking"] .dot{background:#28a170;box-shadow:0 0 0 4px rgba(40,161,112,.14)}
+    [data-state="fallback"] .dot{background:#b98432;box-shadow:0 0 0 4px rgba(185,132,50,.14)}
+    @keyframes thinking{50%{transform:translateY(-3px)}}
+    @keyframes pulse{50%{opacity:.4;transform:scale(.72)}}
+    @media(prefers-reduced-motion:reduce){video,.dot{animation:none!important;transition:none}}
   </style>
 </head>
 <body>
-  <model-viewer id="avatar" src="./seoa-consult-rigged.glb"
-    poster="./seoa-consult-poster.png"
-    camera-orbit="90deg 82deg auto" min-camera-orbit="auto 68deg auto"
-    max-camera-orbit="auto 96deg auto" tone-mapping="neutral"
-    shadow-intensity="0.8" exposure="1.05" interaction-prompt="none"
-    alt="AI 상담 매니저 서아 3D 아바타">
-    <div class="progress-bar hide" slot="progress-bar">
-      <div class="update-bar"></div>
-    </div>
-  </model-viewer>
-  <div class="face-mask" aria-hidden="true"></div>
+  <main class="avatar" id="avatar" data-state="idle">
+    <video id="avatar-video" src="./seoa-idle.mp4" autoplay muted loop playsinline preload="auto" poster="./seoa-consult-poster.png" aria-label="서아 AI 사업 상담 매니저"></video>
+    <div class="state" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="state-text">상담 준비가 되었어요</span></div>
+  </main>
   <script>
-    const avatar = document.querySelector('#avatar');
-    avatar.addEventListener('progress', (event) => {
-      const bar = avatar.querySelector('.progress-bar');
-      const update = avatar.querySelector('.update-bar');
-      update.style.width = `${event.detail.totalProgress * 100}%`;
-      bar.classList.toggle('hide', event.detail.totalProgress === 1);
+    const STATES = new Set(['IDLE','THINKING','SPEAKING','FALLBACK']);
+    const root = document.querySelector('#avatar');
+    const video = document.querySelector('#avatar-video');
+    const status = document.querySelector('#state-text');
+
+    async function setState(value) {
+      const state = String(value || '').toUpperCase();
+      if (!STATES.has(state)) return;
+      const src = state === 'SPEAKING' ? './seoa-speaking-poc.mp4' : './seoa-idle.mp4';
+      root.dataset.state = state.toLowerCase();
+      status.textContent = state === 'THINKING' ? '답변을 준비하고 있어요'
+        : state === 'SPEAKING' ? '서아가 답변하고 있어요'
+        : state === 'FALLBACK' ? '연결을 확인하고 있어요'
+        : '상담 준비가 되었어요';
+      if (!video.currentSrc.endsWith(src.slice(1))) { video.src = src; video.load(); }
+      video.playbackRate = state === 'THINKING' ? .82 : 1;
+      try { await video.play(); }
+      catch { if (state !== 'FALLBACK') setState('FALLBACK'); }
+    }
+
+    video.addEventListener('error', () => {
+      if (root.dataset.state !== 'fallback') setState('FALLBACK');
     });
+    window.addEventListener('message', event => {
+      if (event.source !== window.parent || event.origin !== location.origin) return;
+      if (event.data?.type === 'SEOA_AVATAR_STATE') setState(event.data.state);
+    });
+    setState('IDLE');
+    window.parent.postMessage({type:'SEOA_AVATAR_READY'}, location.origin);
   </script>
 </body>
 </html>

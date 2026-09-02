@@ -12,12 +12,14 @@ export function initAiConsultModal(document) {
     returnFocus = event?.currentTarget || null;
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
+    setAvatarState(document, 'IDLE');
     closeButton.focus?.();
   };
 
   const closeModal = () => {
     modal.hidden = true;
     document.body.style.overflow = '';
+    setAvatarState(document, 'IDLE');
     returnFocus?.focus?.();
   };
 
@@ -31,6 +33,17 @@ export function initAiConsultModal(document) {
   });
 
   initAiConsultAssistant(document);
+}
+
+const AVATAR_STATES = new Set(['IDLE', 'THINKING', 'SPEAKING', 'FALLBACK']);
+
+export function setAvatarState(document, state) {
+  if (!AVATAR_STATES.has(state)) return false;
+  const frame = document.querySelector('[data-ai-consult-avatar]');
+  const origin = document.defaultView?.location?.origin;
+  if (!frame?.contentWindow || !origin) return false;
+  frame.contentWindow.postMessage({ type: 'SEOA_AVATAR_STATE', state }, origin);
+  return true;
 }
 
 const GEMINI_WEBHOOK = 'https://n8n.dbzone.kr/webhook/b67f63e8-2302-44d5-b129-78e0f2068821';
@@ -69,6 +82,13 @@ export function initAiConsultAssistant(document) {
   const chatLog = document.querySelector('[data-ai-chat-log]');
   const inquiryForm = document.querySelector('[data-ai-inquiry-form]');
   const inquiryStatus = document.querySelector('[data-ai-inquiry-status]');
+  let avatarIdleTimer = null;
+
+  const showAvatarState = (state, idleDelay = 0) => {
+    if (avatarIdleTimer) clearTimeout(avatarIdleTimer);
+    setAvatarState(document, state);
+    if (idleDelay > 0) avatarIdleTimer = setTimeout(() => setAvatarState(document, 'IDLE'), idleDelay);
+  };
 
   tabs.forEach((tab) => tab.addEventListener('click', () => {
     const selected = tab.dataset.aiConsultTab;
@@ -88,14 +108,17 @@ export function initAiConsultAssistant(document) {
     input.disabled = true;
     button.disabled = true;
     button.textContent = '답변 중';
+    showAvatarState('THINKING');
     try {
       const result = await postJson(GEMINI_WEBHOOK, { question });
       const answer = typeof result.answer === 'string' && result.answer.trim()
         ? result.answer.trim()
         : '답변을 받지 못했습니다. 잠시 후 다시 시도해 주세요.';
       appendMessage(document, chatLog, 'assistant', answer);
+      showAvatarState('SPEAKING', 4_900);
     } catch {
       appendMessage(document, chatLog, 'assistant', '지금은 AI 상담 연결이 원활하지 않습니다. 잠시 후 다시 시도하거나 담당자 상담을 접수해 주세요.');
+      showAvatarState('FALLBACK', 4_000);
     } finally {
       input.disabled = false;
       button.disabled = false;

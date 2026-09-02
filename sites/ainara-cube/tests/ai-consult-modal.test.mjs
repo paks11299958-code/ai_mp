@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { initAiConsultModal } from '../ai-consult-modal.js';
+import { initAiConsultModal, setAvatarState } from '../ai-consult-modal.js';
 
 function createFixture() {
   const listeners = new Map();
@@ -98,14 +98,28 @@ test('routes AI and inquiry requests through separate n8n webhooks without brows
   assert.doesNotMatch(source, /AIza|api[_-]?key/i);
 });
 
-test('uses the rigged Seoa model for the consultation avatar', async () => {
+test('uses the SeoA 2.5D videos for the consultation avatar', async () => {
   const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
 
-  assert.match(avatar, /src="\.\/seoa-consult-rigged\.glb"/);
-  assert.match(avatar, /poster="\.\/seoa-consult-poster\.png"/);
-  assert.match(avatar, /camera-orbit="90deg 82deg auto"/);
-  assert.match(avatar, /alt="AI 상담 매니저 서아 3D 아바타"/);
-  assert.match(avatar, /class="face-mask" aria-hidden="true"/);
-  assert.doesNotMatch(avatar, /poster="\.\/seoa-consult-poster\.png" camera-controls/);
-  assert.doesNotMatch(avatar, /via3\.glb|animation-name="Wave"/);
+  assert.match(avatar, /src="\.\/seoa-idle\.mp4"/);
+  assert.match(avatar, /seoa-speaking-poc\.mp4/);
+  assert.match(avatar, /SEOA_AVATAR_STATE/);
+  assert.match(avatar, /data-state="idle"/);
+  assert.doesNotMatch(avatar, /model-viewer|\.glb|face-mask/);
+});
+
+test('sends only allowed avatar states to the same-origin iframe', () => {
+  const messages = [];
+  const frame = { contentWindow: { postMessage: (...args) => messages.push(args) } };
+  const document = {
+    defaultView: { location: { origin: 'https://aiworld.dbzone.kr' } },
+    querySelector: (selector) => selector === '[data-ai-consult-avatar]' ? frame : null,
+  };
+
+  assert.equal(setAvatarState(document, 'THINKING'), true);
+  assert.equal(setAvatarState(document, 'UNKNOWN'), false);
+  assert.deepEqual(messages, [[
+    { type: 'SEOA_AVATAR_STATE', state: 'THINKING' },
+    'https://aiworld.dbzone.kr',
+  ]]);
 });
