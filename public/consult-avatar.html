@@ -1,62 +1,55 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="ko">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <title>서아 AI 상담 아바타</title>
   <style>
-    body {
-      margin: 0; width: 100vw; height: 100vh;
-      background: linear-gradient(135deg, #020617 0%, #1e3a8a 100%);
-      overflow: hidden; display: flex; justify-content: center; align-items: center;
-    }
-    model-viewer { width: 100%; height: 100%; background-color: transparent; }
-    .progress-bar {
-      display: block; width: 50%; height: 6px; position: absolute;
-      left: 50%; top: 50%; transform: translate3d(-50%, -50%, 0);
-      border-radius: 25px; background-color: rgba(255,255,255,0.15);
-    }
-    .progress-bar.hide { visibility: hidden; transition: visibility 0.3s; }
-    .update-bar {
-      background-color: #2563eb; width: 0%; height: 100%;
-      border-radius: 25px; float: left; transition: width 0.3s;
-    }
+    :root{color-scheme:dark;font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100dvh;overflow:hidden;background:#dce9f6}
+    .avatar{position:relative;width:100vw;height:100dvh;display:grid;place-items:end center;background:radial-gradient(circle at 50% 22%,#fff 0,#edf5fc 48%,#c8daec 100%)}
+    .avatar::after{content:"";position:absolute;inset:auto 8% 2.5% 8%;height:14%;border-radius:50%;background:rgba(49,83,119,.16);filter:blur(24px)}
+    video{position:relative;z-index:1;width:100%;height:100%;object-fit:cover;object-position:center 34%;transform:translateZ(0);transition:filter .25s ease,transform .25s ease}
+    [data-state="thinking"] video{filter:saturate(.92) brightness(.98);animation:thinking 1.9s ease-in-out infinite}
+    [data-state="fallback"] video{filter:saturate(.82)}
+    .state{position:absolute;z-index:2;left:50%;bottom:max(16px,env(safe-area-inset-bottom));translate:-50% 0;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid rgba(75,106,141,.2);border-radius:999px;background:rgba(255,255,255,.88);box-shadow:0 8px 28px rgba(33,63,99,.14);color:#31465e;font-size:12px;font-weight:700;white-space:nowrap;backdrop-filter:blur(10px)}
+    .dot{width:7px;height:7px;border-radius:50%;background:#5f8fc6;box-shadow:0 0 0 4px rgba(95,143,198,.13)}
+    [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
+    [data-state="speaking"] .dot{background:#28a170;box-shadow:0 0 0 4px rgba(40,161,112,.14)}
+    [data-state="fallback"] .dot{background:#b98432;box-shadow:0 0 0 4px rgba(185,132,50,.14)}
+    @keyframes thinking{50%{transform:translateY(-3px)}}
+    @keyframes pulse{50%{opacity:.4;transform:scale(.72)}}
+    @media(prefers-reduced-motion:reduce){video,.dot{animation:none!important;transition:none}}
   </style>
 </head>
 <body>
-  <!-- AI상담 봇 캐릭터: www.dbzone.kr이 CORS 허용(access-control-allow-origin: *)이라 직접 로드 -->
-  <model-viewer
-    id="avatar"
-    src="https://www.dbzone.kr/via3.glb"
-    camera-controls
-    autoplay
-    animation-name="Wave"
-    tone-mapping="neutral"
-    shadow-intensity="0.8"
-    interaction-prompt="none">
-    <div class="progress-bar hide" slot="progress-bar">
-      <div class="update-bar"></div>
-    </div>
-  </model-viewer>
+  <main class="avatar" id="avatar" data-state="idle">
+    <video id="avatar-video" src="/seoa/avatar/idle.mp4" autoplay muted loop playsinline preload="auto" poster="/seoa/seoa_stand_check_20260827.png" aria-label="서아 AI 상담 아바타"></video>
+    <div class="state" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="state-text">상담 준비가 되었어요</span></div>
+  </main>
+  <script type="module">
+    import { AVATAR_STATES, createAvatarStateMachine, normalizeAvatarState } from '/avatar-state-machine.js';
 
-  <script>
-    const onProgress = (event) => {
-      const progressBar = event.target.querySelector('.progress-bar');
-      const updatingBar = event.target.querySelector('.update-bar');
-      updatingBar.style.width = `${event.detail.totalProgress * 100}%`;
-      if (event.detail.totalProgress === 1) {
-        progressBar.classList.add('hide');
-        event.target.removeEventListener('progress', onProgress);
-      } else {
-        progressBar.classList.remove('hide');
-      }
-    };
-    const mv = document.querySelector('model-viewer');
-    mv.addEventListener('progress', onProgress);
-    mv.addEventListener('load', () => {
-      const duration = mv.duration * 1000;
-      setTimeout(() => { mv.pause(); }, duration);
+    const root = document.querySelector('#avatar');
+    const video = document.querySelector('#avatar-video');
+    const status = document.querySelector('#state-text');
+    const machine = createAvatarStateMachine({
+      video,
+      root,
+      status,
+      onStateChange: detail => window.parent.postMessage({ type: 'SEOA_AVATAR_STATE_CHANGED', ...detail }, location.origin),
     });
+
+    window.addEventListener('message', event => {
+      if (event.source !== window.parent || event.origin !== location.origin) return;
+      if (event.data?.type !== 'SEOA_AVATAR_STATE') return;
+      const state = normalizeAvatarState(event.data.state);
+      if (state) machine.setState(state, 'parent-command');
+    });
+
+    machine.setState(AVATAR_STATES.IDLE, 'initial');
+    window.parent.postMessage({ type: 'SEOA_AVATAR_READY' }, location.origin);
   </script>
 </body>
 </html>

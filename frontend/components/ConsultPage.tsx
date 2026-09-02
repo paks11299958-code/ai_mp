@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // 🤖 AI상담 봇 페이지 (/consult/{slug}) — "AI상담 봇 만들기"로 발급된 링크가 여는 화면.
 // 사용자가 자기 홈페이지 메뉴에 이 링크를 붙이면, 방문자에게 아바타 + 마스터
@@ -6,7 +6,10 @@ import React, { useEffect, useState } from 'react';
 // 진입 전 얼리리턴으로 렌더되므로 앱 훅·컨텍스트에 의존하지 않는다.
 
 const TYPEBOT_URL = 'https://bot.dbzone.kr/consult-master';
+const TYPEBOT_ORIGIN = new URL(TYPEBOT_URL).origin;
 const DEFAULT_GREETING = '무엇을 도와드릴까요? 문의를 남겨주시면 담당자에게 바로 전달됩니다.';
+
+type AvatarState = 'IDLE' | 'THINKING' | 'SPEAKING' | 'FALLBACK';
 
 interface BotPublicConfig {
     slug: string;
@@ -20,6 +23,7 @@ export const ConsultPage: React.FC<{ slug: string }> = ({ slug }) => {
     const [bot, setBot] = useState<BotPublicConfig | null>(null);
     const [error, setError] = useState('');
     const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+    const avatarFrameRef = useRef<HTMLIFrameElement>(null);
 
     useEffect(() => {
         fetch(`/api/consult-bots/${encodeURIComponent(slug)}`)
@@ -34,6 +38,24 @@ export const ConsultPage: React.FC<{ slug: string }> = ({ slug }) => {
     useEffect(() => {
         if (bot?.companyName) document.title = `${bot.companyName} AI 상담`;
     }, [bot]);
+
+    useEffect(() => {
+        const sendAvatarState = (state: AvatarState) => {
+            avatarFrameRef.current?.contentWindow?.postMessage({ type: 'SEOA_AVATAR_STATE', state }, window.location.origin);
+        };
+        const onMessage = (event: MessageEvent) => {
+            if (event.origin === window.location.origin && event.data?.type === 'SEOA_AVATAR_READY') {
+                sendAvatarState('IDLE');
+                return;
+            }
+            // Typebot 쪽에서 같은 규약을 보내기 시작하면 별도 프론트 수정 없이 상태를 연결한다.
+            if (event.origin !== TYPEBOT_ORIGIN || event.data?.type !== 'SEOA_AVATAR_STATE') return;
+            if (!['IDLE', 'THINKING', 'SPEAKING', 'FALLBACK'].includes(event.data.state)) return;
+            sendAvatarState(event.data.state as AvatarState);
+        };
+        window.addEventListener('message', onMessage);
+        return () => window.removeEventListener('message', onMessage);
+    }, []);
 
     const frame: React.CSSProperties = {
         display: 'flex', flexDirection: isMobile ? 'column' : 'row',
@@ -62,7 +84,10 @@ export const ConsultPage: React.FC<{ slug: string }> = ({ slug }) => {
         <div style={frame}>
             {bot.showAvatar && (
                 <div style={{ flex: isMobile ? '0 0 30%' : '0 0 38%', minHeight: 0 }}>
-                    <iframe src="/consult-avatar.html" title={`${bot.companyName} 상담 캐릭터`}
+                    <iframe ref={avatarFrameRef} src="/consult-avatar.html" title={`${bot.companyName} 상담 캐릭터`}
+                        onLoad={() => avatarFrameRef.current?.contentWindow?.postMessage(
+                            { type: 'SEOA_AVATAR_STATE', state: 'IDLE' }, window.location.origin,
+                        )}
                         style={{ width: '100%', height: '100%', border: 0, display: 'block' }} />
                 </div>
             )}
