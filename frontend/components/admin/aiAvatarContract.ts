@@ -64,6 +64,32 @@ export interface AiAvatarJobRow {
     completedAt: string | null;
 }
 
+/**
+ * 검수 점수표 한 건 (Phase 4).
+ * ★행으로 쌓인다 — 덮어쓰지 않는다. "언제 누가 몇 점을 줘서 게시가 열렸는가"가 감사 대상이다.
+ */
+export interface AiAvatarReviewRow {
+    id: string;
+    projectId: string;
+    /** 1~5. 아직 안 매긴 축은 null. */
+    identity: number | null;
+    temporal: number | null;
+    lipsync: number | null;
+    passed: boolean;
+    note: string | null;
+    reviewedBy: number | null;
+    createdAt: string;
+}
+
+/** 검수 축과 합격선. 서버 `aiAvatarReview.ts` 와 같아야 한다. */
+export const REVIEW_AXES = [
+    { key: 'identity', label: '정체성', min: 4, hint: '얼굴이 그 사람으로 보이는가' },
+    { key: 'temporal', label: '시간축', min: 3, hint: '움직임이 끊기거나 떨리지 않는가' },
+    { key: 'lipsync', label: '립싱크', min: 3, hint: '입이 소리와 맞는가' },
+] as const;
+
+export type ReviewAxisKey = (typeof REVIEW_AXES)[number]['key'];
+
 export interface AiAvatarPublicationRow {
     id: string;
     projectId: string;

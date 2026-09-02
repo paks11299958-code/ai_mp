@@ -5,6 +5,7 @@ import type {
     AiAvatarJobRow,
     AiAvatarProjectRow,
     AiAvatarPublicationRow,
+    AiAvatarReviewRow,
 } from '../components/admin/aiAvatarContract';
 
 const BASE = '/api';
@@ -1733,7 +1734,15 @@ export const adminApi = {
             assets: AiAvatarAssetRow[];
             jobs: AiAvatarJobRow[];
             publications: AiAvatarPublicationRow[];
+            reviews: AiAvatarReviewRow[];
         }>(`/admin/ai-avatar/projects/${encodeURIComponent(id)}`),
+
+    /** 검수 점수 기록. 통과하면 서버가 stage 를 REVIEW 로 올려 게시가 열린다. */
+    reviewAiAvatar: (projectId: string, scores: Record<string, number>, note?: string) =>
+        post<{
+            ok: boolean; reviewId: string; passed: boolean; stage: string;
+            reason: string; failedAxes: string[]; missingAxes: string[];
+        }>(`/admin/ai-avatar/projects/${encodeURIComponent(projectId)}/review`, { ...scores, note }),
 
     createAiAvatarProject: (name: string, personaName: string) =>
         post<{ ok: boolean; project: AiAvatarProjectRow }>('/admin/ai-avatar/projects', { name, personaName }),

@@ -6,8 +6,11 @@ import type {
     AiAvatarJobRow,
     AiAvatarProjectRow,
     AiAvatarPublicationRow,
+    AiAvatarReviewRow,
     AiAvatarStage,
+    ReviewAxisKey,
 } from './aiAvatarContract';
+import { REVIEW_AXES } from './aiAvatarContract';
 import {
     PUBLISH_TARGETS,
     type AiAvatarJobKind,
@@ -59,6 +62,9 @@ export const AiAvatarPanel: React.FC = () => {
     const [assets, setAssets] = useState<AiAvatarAssetRow[]>([]);
     const [jobs, setJobs] = useState<AiAvatarJobRow[]>([]);
     const [publications, setPublications] = useState<AiAvatarPublicationRow[]>([]);
+    const [reviews, setReviews] = useState<AiAvatarReviewRow[]>([]);
+    // 화면에서 매기는 중인 점수(저장 전). 서버 판정은 저장 시점에만 한다.
+    const [scores, setScores] = useState<Partial<Record<ReviewAxisKey, number>>>({});
     const [loading, setLoading] = useState(true);
     // 상세(자산·작업·게시)를 읽는 중에는 실행 버튼을 잠근다.
     // ★자산이 아직 안 온 상태로 게시를 누르면 '자산 없음'이라는 잘못된 안내가 뜬다(실측).
@@ -99,6 +105,7 @@ export const AiAvatarPanel: React.FC = () => {
             setAssets(res.assets ?? []);
             setJobs(res.jobs ?? []);
             setPublications(res.publications ?? []);
+            setReviews(res.reviews ?? []);
             setProjects(prev => prev.map(p => (p.id === id ? { ...p, ...res.project } : p)));
         } catch (e) {
             if (aliveRef.current) setError(message(e));
@@ -202,6 +209,25 @@ export const AiAvatarPanel: React.FC = () => {
             return `${TARGET_LABEL[target]} 게시를 되돌렸습니다.`;
         });
     };
+
+    /**
+     * 검수 점수 저장. 통과 여부와 사유는 **서버 판정을 그대로 보여준다**.
+     * ★화면에서 미리 통과/불통과를 계산해 버튼을 잠그지 않는다 — 합격선이 두 곳에 생기면
+     *   서버만 고쳤을 때 화면이 옛 기준으로 거짓말을 한다.
+     */
+    const submitReview = () => {
+        if (!selected) return;
+        void run(async () => {
+            const res = await adminApi.reviewAiAvatar(selected.id, scores as Record<string, number>);
+            await loadDetail(selected.id);
+            await loadProjects();
+            return res.passed
+                ? '검수 통과 — 게시할 수 있습니다.'
+                : `검수 미통과: ${res.reason}`;
+        });
+    };
+
+    const latestReview = reviews[0] ?? null;
 
     const latestPublicationFor = (target: AiAvatarPublishTarget) =>
         publications.find(p => p.target === target) ?? null;
@@ -379,6 +405,48 @@ export const AiAvatarPanel: React.FC = () => {
                                         ))}
                                     </ul>
                                 )}
+
+                                <h5 className="mt-5 text-sm font-bold text-white">검수 점수표</h5>
+                                <p className="mt-1 text-xs text-slate-400">
+                                    영상을 직접 보고 매깁니다. 세 축이 모두 합격선을 넘어야 게시가 열립니다.
+                                </p>
+                                <div className="mt-3 rounded-lg border border-slate-700 bg-slate-950 p-3">
+                                    {REVIEW_AXES.map(axis => (
+                                        <div key={axis.key} className="mb-3 last:mb-0">
+                                            <div className="flex flex-wrap items-baseline gap-x-2">
+                                                <span className="text-sm font-semibold text-white">{axis.label}</span>
+                                                <span className="text-xs text-slate-500">{axis.hint} · {axis.min}점 이상</span>
+                                            </div>
+                                            <div className="mt-1.5 flex flex-wrap gap-1.5">
+                                                {[1, 2, 3, 4, 5].map(n => (
+                                                    <button key={n} type="button"
+                                                        onClick={() => setScores(s => ({ ...s, [axis.key]: n }))}
+                                                        aria-label={`${axis.label} ${n}점`}
+                                                        aria-pressed={scores[axis.key] === n}
+                                                        disabled={busy}
+                                                        className={`min-h-11 min-w-11 rounded-lg border text-xs font-bold disabled:opacity-50 ${
+                                                            scores[axis.key] === n
+                                                                ? 'border-cyan-400 bg-cyan-500/20 text-cyan-100'
+                                                                : 'border-slate-700 text-slate-400'}`}>
+                                                        {n}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={submitReview}
+                                        aria-label="검수 점수 저장" disabled={busy || detailLoading}
+                                        className="mt-1 min-h-11 w-full rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 text-xs font-bold text-cyan-200 disabled:opacity-50">
+                                        검수 점수 저장
+                                    </button>
+                                    {latestReview && (
+                                        <p className={`mt-2 text-xs ${latestReview.passed ? 'text-emerald-300' : 'text-amber-300'}`}>
+                                            최근 검수: {latestReview.passed ? '통과 — 게시 가능' : '미통과 — 게시 잠김'}
+                                            {' · '}
+                                            {REVIEW_AXES.map(a => `${a.label} ${latestReview[a.key] ?? '-'}`).join(' / ')}
+                                        </p>
+                                    )}
+                                </div>
 
                                 <h5 className="mt-5 text-sm font-bold text-white">게시</h5>
                                 <div className="mt-3 space-y-2">

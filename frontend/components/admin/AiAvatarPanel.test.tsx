@@ -13,6 +13,7 @@ const api = {
     cancelAiAvatarJob: vi.fn(),
     publishAiAvatar: vi.fn(),
     rollbackAiAvatar: vi.fn(),
+    reviewAiAvatar: vi.fn(),
 };
 vi.mock('../../services/apiService', () => ({ adminApi: api }));
 
@@ -33,7 +34,12 @@ const job = (over: Partial<any> = {}) => ({
 });
 
 const detail = (over: Partial<any> = {}) => ({
-    ok: true, project: project(), assets: [asset()], jobs: [], publications: [], ...over,
+    ok: true, project: project(), assets: [asset()], jobs: [], publications: [], reviews: [], ...over,
+});
+
+const review = (over: Partial<any> = {}) => ({
+    id: 'r1', projectId: 'p1', identity: 5, temporal: 4, lipsync: 4, passed: true,
+    note: null, reviewedBy: 2, createdAt: '2026-09-02T00:00:00Z', ...over,
 });
 
 beforeEach(() => {
@@ -163,5 +169,71 @@ describe('AiAvatarPanel — 서버 원장 연결', () => {
         await clickWhenEnabled('AI월드 사업 상담 되돌리기');
 
         await waitFor(() => expect(api.rollbackAiAvatar).toHaveBeenCalledWith('p1', 'aiworld'));
+    });
+});
+
+// ── 검수 점수표 (Phase 4) ──────────────────────────────────────────
+// ★여기서 지키는 것: 점수 게이트가 **화면에서** 무력화되지 않는 것.
+//   판정은 서버가 하므로, 화면은 "서버가 준 결과를 그대로 보여주는가"를 검증한다.
+describe('검수 점수표', () => {
+    it('세 축을 모두 보여주고 합격선을 함께 안내한다', async () => {
+        api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+        api.getAiAvatarProject.mockResolvedValue(detail());
+        render(<AiAvatarPanel />);
+        await screen.findByText('검수 점수표');
+        // ★1~5 버튼이 축마다 있는지로 본다(텍스트는 단계 설명과 겹친다).
+        for (const label of ['정체성', '시간축', '립싱크']) {
+            for (const n of [1, 2, 3, 4, 5]) {
+                expect(screen.getByLabelText(`${label} ${n}점`)).toBeTruthy();
+            }
+        }
+        // 정체성만 4점 이상이라는 것이 화면에 드러나야 한다.
+        expect(screen.getByText(/얼굴이 그 사람으로 보이는가 · 4점 이상/)).toBeTruthy();
+    });
+
+    it('점수를 눌러 저장하면 서버로 보낸다', async () => {
+        api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+        api.getAiAvatarProject.mockResolvedValue(detail());
+        api.reviewAiAvatar.mockResolvedValue({
+            ok: true, reviewId: 'r1', passed: true, stage: 'REVIEW',
+            reason: '', failedAxes: [], missingAxes: [],
+        });
+        render(<AiAvatarPanel />);
+        await screen.findByText('검수 점수표');
+        fireEvent.click(screen.getByLabelText('정체성 5점'));
+        fireEvent.click(screen.getByLabelText('시간축 4점'));
+        fireEvent.click(screen.getByLabelText('립싱크 3점'));
+        fireEvent.click(screen.getByLabelText('검수 점수 저장'));
+        await waitFor(() => expect(api.reviewAiAvatar).toHaveBeenCalledWith(
+            'p1', { identity: 5, temporal: 4, lipsync: 3 }));
+    });
+
+    it('★미통과 사유를 서버 문구 그대로 보여준다', async () => {
+        api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+        api.getAiAvatarProject.mockResolvedValue(detail());
+        api.reviewAiAvatar.mockResolvedValue({
+            ok: true, reviewId: 'r2', passed: false, stage: 'LIPSYNC',
+            reason: '합격선 미달: 정체성(4점 이상)', failedAxes: ['identity'], missingAxes: [],
+        });
+        render(<AiAvatarPanel />);
+        await screen.findByText('검수 점수표');
+        fireEvent.click(screen.getByLabelText('정체성 3점'));
+        fireEvent.click(screen.getByLabelText('검수 점수 저장'));
+        // 화면이 자체 판정으로 다른 말을 하면 안 된다.
+        await screen.findByText(/합격선 미달: 정체성\(4점 이상\)/);
+    });
+
+    it('최근 검수 결과를 통과/미통과로 표시한다', async () => {
+        api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+        api.getAiAvatarProject.mockResolvedValue(detail({ reviews: [review({ passed: false })] }));
+        render(<AiAvatarPanel />);
+        await screen.findByText(/미통과 — 게시 잠김/);
+    });
+
+    it('통과한 검수는 게시 가능으로 표시한다', async () => {
+        api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+        api.getAiAvatarProject.mockResolvedValue(detail({ reviews: [review()] }));
+        render(<AiAvatarPanel />);
+        await screen.findByText(/통과 — 게시 가능/);
     });
 });
