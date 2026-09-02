@@ -274,7 +274,22 @@ MediaPipe import 가 죽는다(`libglvnd0 libgles2 libegl1`).
 학습데이터 전처리용이라 추론 경로엔 없지만, 진입점을 남기면 조용히 되살아난다.
 
 **남은 것**: Phase 4(립싱크·점수표·승인·게시·롤백).
-🟡상용 릴리스 전 `sd-vae`·`face-parse-bisent`·`syncnet` 의 개별 라이선스 확인이 남았다.
+### 2026-09-03 남은 의존성 라이선스 확인 완료 — ✅전부 상용 가능 (GPU 불필요, 비용 0)
+
+| 구성요소 | 라이선스 | 상용 | 추론 경로 사용 |
+|---|---|---|---|
+| `sd-vae-ft-mse` (stabilityai) | **MIT** | ✅ | 사용 |
+| `face-parse-bisent` (zllrunning/face-parsing.PyTorch) | **MIT** | ✅ | 사용(`blending.py`) |
+| `syncnet` (ByteDance/LatentSync) | **openrail++** | ✅ | ❌**미사용**(`train.py` 전용) |
+| `whisper-tiny` (openai) | MIT | ✅ | 사용 |
+| MuseTalk 코드·학습모델 | MIT | ✅ | 사용 |
+| DWPose (MMPose) | Apache-2.0 | ✅ | 사용 |
+| ~~InsightFace `buffalo_l`~~ | ~~비상업~~ → MediaPipe Apache-2.0 | ✅ | 교체·삭제 완료 |
+| ~~S3FD~~ | ~~미표기~~ → MediaPipe Apache-2.0 | ✅ | 교체·삭제 완료 |
+
+★`syncnet` 은 학습용이라 우리 추론에 아예 안 탄다 — 라이선스와 무관하게 위험이 없다.
+
+**결론: AI 아바타(idle + 립싱크) 전 구간이 상용 배포 가능하다.** 라이선스 부채 없음.
 
 ## 10. Claude 구현 순서
 
