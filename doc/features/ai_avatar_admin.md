@@ -214,6 +214,42 @@ ComfyUI 큐도 `GpuJob` 도 비어 있어 **렌더 도중 "유휴 30분"으로 �
 ②`AVATAR_DISPATCH_ENABLED=1` ③MediaPipe 어댑터 투입 ④InsightFace판/MediaPipe판 육안 비교
 ⑤S3FD 사용 여부 확인 ⑥산출물 회수 후 VM `TERMINATED` 확인.
 
+### 2026-09-02 Phase 3-b 실행 — 라이선스 교체 완료 (GPU 18분, 약 ₩380)
+
+사장 승인 후 서버3을 켜고 체크리스트 ①③④⑤⑥을 수행했다. **₩0 → ₩380**.
+정본 사본과 설치 절차: `ai-3d-avatar/deploy/liveportrait/`(커밋 `076d17c`).
+
+**①`idle_shutdown.sh` 설치 — 실제 결함을 재현해 확인했다.**
+설치 전 옛 버전은 아바타 작업이 `RUNNING` 인데도 `DRY_RUN_SAFE_TO_STOP` 을 냈다
+(= 렌더 도중 서버를 껐을 것). 설치 후 같은 조건에서 `BUSY_DB:1` 로 막혔다.
+`IDLE_MIN=0` 이라는 즉시 종료 조건에서도 막히는 것까지 확인했다.
+
+**③④검출기 교체 — `buffalo_l` 삭제 완료.**
+`cropper.py` 의 import 한 줄만 바꿔 MediaPipe(Apache-2.0)로 교체했다.
+같은 입력·같은 `d5.pkl`·`pose m0.25` 로 A/B 각각 생성 → 148프레임 **평균 픽셀차 0.12%**,
+육안 비교에서 인상·프레이밍 차이 없음.
+🔴**결정적 검증**: `buffalo_l` 을 **물리 삭제한 뒤에도 정상 생성**되고 결과가 B판과
+픽셀 동일(최대차 0.21/255)이다 — 조용한 폴백이 아니다. 이후 21MB 삭제했다.
+**서버3에 비상업 가중치는 더 이상 없다.**
+
+★함정: `pip install mediapipe` 만 하면 **numpy 2.2.6 으로 올라가 torch 2.3.0 이 깨진다.**
+`--dry-run` 으로 먼저 잡아내고 `"numpy<2"` 를 함께 고정했다. `libEGL.so.1` 이 없으면
+MediaPipe import 가 죽는다(`libglvnd0 libgles2 libegl1`).
+
+**⑤S3FD — 실제로 쓰고 있다. 미해결로 남았다.** ⚠️
+`FaceAlignment(...)` 가 `face_detector=` 없이 호출돼 기본값 `'sfd'` 로 돌고,
+`~/.cache/torch/hub/checkpoints/s3fd-619a316812.pth`(89MB)가 09-02 PoC 때 실제로 받아졌다.
+원본 저장소 `sfzhang15/SFD` 에 **LICENSE 가 없어** 법적으로 "허가 없음"이 기본값이다.
+→ **립싱크(MuseTalk)를 상용에 쓰기 전 반드시 해결.** idle 경로는 이제 깨끗하다.
+대안 `YOLOv8_face` 는 클래스만 있고 가중치가 없으며 **YOLOv8 은 AGPL-3.0** 이라 더 곤란하다.
+
+🟡**`landmark.onnx` 가 CPU 로 돈다** — onnxruntime-gpu 1.18 이 CUDA 11 의
+`libcublasLt.so.11` 을 찾는데 서버3엔 CUDA 12.9 뿐이다. **내 변경과 무관한 기존 상태**로
+(onnxruntime 설치 05:17 / mediapipe 설치 14:31) A·B 양쪽에 동일하게 적용돼 비교는 유효하다.
+렌더가 12초라 당장 문제는 아니지만 별건으로 남는다.
+
+**남은 것**: Phase 4(립싱크·점수표·승인·게시·롤백). 그리고 위 S3FD.
+
 ## 10. Claude 구현 순서
 
 1. 이 문서와 `AiAvatarPanel.tsx`, `aiAvatarContract.ts`를 먼저 읽는다.
