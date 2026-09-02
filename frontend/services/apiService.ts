@@ -1,5 +1,11 @@
 import { Persona, PersonaImage, PersonaVideo, User, DbSession, Message, ConversationSummary, UserMemory, SwingAnalysis, UserSwingAnalysis, Category } from '../types';
 import { getStoredRef } from './referral';
+import type {
+    AiAvatarAssetRow,
+    AiAvatarJobRow,
+    AiAvatarProjectRow,
+    AiAvatarPublicationRow,
+} from '../components/admin/aiAvatarContract';
 
 const BASE = '/api';
 
@@ -1714,6 +1720,40 @@ export interface InverseTraderSnapshot {
 export const adminApi = {
     getUsers: () =>
         get<AdminUser[]>('/admin/users'),
+
+    // AI 아바타 — 사진 기반 2.5D 아바타 원장(Phase 2).
+    // ★서버가 정본이다. 화면 상태를 믿지 말고 응답으로 갱신한다.
+    listAiAvatarProjects: () =>
+        get<{ ok: boolean; projects: AiAvatarProjectRow[] }>('/admin/ai-avatar/projects'),
+
+    getAiAvatarProject: (id: string) =>
+        get<{
+            ok: boolean;
+            project: AiAvatarProjectRow;
+            assets: AiAvatarAssetRow[];
+            jobs: AiAvatarJobRow[];
+            publications: AiAvatarPublicationRow[];
+        }>(`/admin/ai-avatar/projects/${encodeURIComponent(id)}`),
+
+    createAiAvatarProject: (name: string, personaName: string) =>
+        post<{ ok: boolean; project: AiAvatarProjectRow }>('/admin/ai-avatar/projects', { name, personaName }),
+
+    enqueueAiAvatarJob: (projectId: string, kind: string) =>
+        post<{ ok: boolean; job: AiAvatarJobRow; deduplicated?: boolean }>('/admin/ai-avatar/jobs', { projectId, kind }),
+
+    getAiAvatarJob: (id: string) =>
+        get<{ ok: boolean; job: AiAvatarJobRow }>(`/admin/ai-avatar/jobs/${encodeURIComponent(id)}`),
+
+    cancelAiAvatarJob: (id: string) =>
+        post<{ ok: boolean }>(`/admin/ai-avatar/jobs/${encodeURIComponent(id)}/cancel`, {}),
+
+    publishAiAvatar: (projectId: string, target: string, assetId: string) =>
+        post<{ ok: boolean; publicationId: string }>(
+            `/admin/ai-avatar/projects/${encodeURIComponent(projectId)}/publish`, { target, assetId }),
+
+    rollbackAiAvatar: (projectId: string, target: string) =>
+        post<{ ok: boolean; publicationId: string }>(
+            `/admin/ai-avatar/projects/${encodeURIComponent(projectId)}/rollback`, { target }),
 
     getPartnerApplications: (status = '') =>
         get<PartnerApplicationAdminRow[]>(`/admin/partner-applications${status ? `?status=${encodeURIComponent(status)}` : ''}`),

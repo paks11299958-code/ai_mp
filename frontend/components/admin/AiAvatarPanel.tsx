@@ -1,29 +1,25 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../Icons';
-import type { AiAvatarJob, AiAvatarStage } from './aiAvatarContract';
+import { adminApi } from '../../services/apiService';
+import type {
+    AiAvatarAssetRow,
+    AiAvatarJobRow,
+    AiAvatarProjectRow,
+    AiAvatarPublicationRow,
+    AiAvatarStage,
+} from './aiAvatarContract';
 import {
     PUBLISH_TARGETS,
-    SEOA_REFERENCE_URL,
     type AiAvatarJobKind,
     type AiAvatarPublishTarget,
-    type AiAvatarRepoState,
-    cancelJob,
-    createProject,
-    enqueueJob,
     estimateJob,
-    hasActiveJobs,
-    jobsForProject,
-    latestPublication,
-    publishProject,
-    rollbackPublication,
-    seedState,
-    tick,
-} from './aiAvatarMockRepo';
+} from './aiAvatarPlan';
 
 /**
- * Phase 1 — Mock repository와 UI 상태 연결.
- * 서버 API·DB·서버3 GPU는 아직 붙지 않았고, 이 화면은 네트워크를 호출하지 않는다.
- * 게시 버튼은 mock 원장만 바꾸며 실제 사이트 배포와 무관하다.
+ * Phase 2 — 서버 원장(shared-api)에 연결된 AI 아바타 어드민.
+ *
+ * ★서버가 정본이다. 화면에서 낙관적으로 상태를 바꾸지 않고, 매 동작 뒤 서버를 다시 읽는다.
+ * ★작업은 큐에 쌓이기만 한다. 서버3 GPU 실행과 실제 사이트 반영은 Phase 3 이후다.
  */
 
 const STAGE_LABEL: Record<AiAvatarStage, string> = {
@@ -58,61 +54,104 @@ const stageOverview = [
 ] as const;
 
 export const AiAvatarPanel: React.FC = () => {
-    const [state, setState] = useState<AiAvatarRepoState>(() => seedState(Date.now()));
-    const [selectedId, setSelectedId] = useState('seoa');
+    const [projects, setProjects] = useState<AiAvatarProjectRow[]>([]);
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [assets, setAssets] = useState<AiAvatarAssetRow[]>([]);
+    const [jobs, setJobs] = useState<AiAvatarJobRow[]>([]);
+    const [publications, setPublications] = useState<AiAvatarPublicationRow[]>([]);
+    const [loading, setLoading] = useState(true);
+    // 상세(자산·작업·게시)를 읽는 중에는 실행 버튼을 잠근다.
+    // ★자산이 아직 안 온 상태로 게시를 누르면 '자산 없음'이라는 잘못된 안내가 뜬다(실측).
+    const [detailLoading, setDetailLoading] = useState(true);
+    const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [creating, setCreating] = useState(false);
     const [draftName, setDraftName] = useState('');
     const [draftPersona, setDraftPersona] = useState('');
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    // 언마운트 뒤 도착한 응답으로 setState 하지 않도록 표시해 둔다.
+    const aliveRef = useRef(true);
+    useEffect(() => () => { aliveRef.current = false; }, []);
 
-    const active = hasActiveJobs(state);
+    const message = (e: unknown) =>
+        (e instanceof Error && e.message) ? e.message : '요청을 처리하지 못했습니다.';
+
+    const loadProjects = useCallback(async () => {
+        try {
+            const res = await adminApi.listAiAvatarProjects();
+            if (!aliveRef.current) return;
+            setProjects(res.projects ?? []);
+            setError(null);
+            setSelectedId(prev => prev ?? res.projects?.[0]?.id ?? null);
+        } catch (e) {
+            if (aliveRef.current) setError(message(e));
+        } finally {
+            if (aliveRef.current) setLoading(false);
+        }
+    }, []);
+
+    const loadDetail = useCallback(async (id: string, silent = false) => {
+        if (!silent) setDetailLoading(true);
+        try {
+            const res = await adminApi.getAiAvatarProject(id);
+            if (!aliveRef.current) return;
+            setAssets(res.assets ?? []);
+            setJobs(res.jobs ?? []);
+            setPublications(res.publications ?? []);
+            setProjects(prev => prev.map(p => (p.id === id ? { ...p, ...res.project } : p)));
+        } catch (e) {
+            if (aliveRef.current) setError(message(e));
+        } finally {
+            if (aliveRef.current && !silent) setDetailLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { void loadProjects(); }, [loadProjects]);
+    useEffect(() => { if (selectedId) void loadDetail(selectedId); }, [selectedId, loadDetail]);
+
+    const selected = useMemo(
+        () => projects.find(p => p.id === selectedId) ?? null,
+        [projects, selectedId],
+    );
+    const hasActive = jobs.some(j => j.status === 'QUEUED' || j.status === 'RUNNING');
 
     // 진행 중 작업이 있을 때만 타이머 하나를 돌리고, 끝나면 즉시 정리한다(중복 타이머 금지).
     useEffect(() => {
-        if (!active) return undefined;
-        timerRef.current = setInterval(() => setState((prev) => tick(prev, Date.now())), POLL_MS);
+        if (!hasActive || !selectedId) return undefined;
+        timerRef.current = setInterval(() => { void loadDetail(selectedId, true); }, POLL_MS);
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
             timerRef.current = null;
         };
-    }, [active]);
+    }, [hasActive, selectedId, loadDetail]);
 
-    const selected = useMemo(
-        () => state.projects.find((project) => project.id === selectedId) ?? state.projects[0],
-        [state.projects, selectedId],
-    );
-    const selectedJobs = useMemo(
-        () => (selected ? jobsForProject(state, selected.id) : []),
-        [state, selected],
-    );
-
-    const guard = useCallback((run: () => AiAvatarRepoState, success?: string) => {
+    /** 서버 호출 공통 처리. 성공하면 서버를 다시 읽어 화면을 맞춘다. */
+    const run = useCallback(async (action: () => Promise<string | null>) => {
+        setBusy(true);
         try {
-            setState(run());
+            const ok = await action();
+            if (!aliveRef.current) return;
             setError(null);
-            setNotice(success ?? null);
+            setNotice(ok);
         } catch (e) {
-            setError(e instanceof Error ? e.message : '알 수 없는 오류가 발생했습니다.');
-            setNotice(null);
+            if (aliveRef.current) { setError(message(e)); setNotice(null); }
+        } finally {
+            if (aliveRef.current) setBusy(false);
         }
     }, []);
 
     const submitProject = (event: React.FormEvent) => {
         event.preventDefault();
-        guard(() => {
-            const next = createProject(
-                state,
-                { name: draftName, personaName: draftPersona, referenceImageUrl: SEOA_REFERENCE_URL },
-                Date.now(),
-            );
-            setSelectedId(next.projects[0].id);
+        void run(async () => {
+            const res = await adminApi.createAiAvatarProject(draftName.trim(), draftPersona.trim());
             setDraftName('');
             setDraftPersona('');
             setCreating(false);
-            return next;
-        }, '프로젝트를 만들었습니다. (mock)');
+            await loadProjects();
+            setSelectedId(res.project.id);
+            return '프로젝트를 만들었습니다.';
+        });
     };
 
     const runJob = (kind: AiAvatarJobKind) => {
@@ -120,22 +159,54 @@ export const AiAvatarPanel: React.FC = () => {
         const estimate = estimateJob(kind);
         if (estimate.gpuSeconds > 0) {
             const ok = window.confirm(
-                `${estimate.label}을(를) 실행합니다.\n예상 GPU 시간 약 ${estimate.gpuSeconds}초, 예상 비용 약 ${estimate.estimatedCostKrw}원.\n\n※ Phase 1 mock이라 실제 서버3 GPU는 기동하지 않습니다.`,
+                `${estimate.label}을(를) 실행합니다.\n예상 GPU 시간 약 ${estimate.gpuSeconds}초, 예상 비용 약 ${estimate.estimatedCostKrw}원.\n\n※ 지금은 작업을 큐에 넣기만 합니다. 서버3 GPU는 아직 기동하지 않습니다.`,
             );
             if (!ok) return;
         }
-        guard(() => enqueueJob(state, selected.id, kind, Date.now()), `${estimate.label} 작업을 큐에 넣었습니다.`);
+        void run(async () => {
+            const res = await adminApi.enqueueAiAvatarJob(selected.id, kind);
+            await loadDetail(selected.id);
+            return res.deduplicated
+                ? '이미 같은 작업이 진행 중입니다.'
+                : `${estimate.label} 작업을 큐에 넣었습니다.`;
+        });
     };
 
+    const cancel = (jobId: string) => {
+        if (!selected) return;
+        void run(async () => {
+            await adminApi.cancelAiAvatarJob(jobId);
+            await loadDetail(selected.id);
+            return '작업을 취소했습니다.';
+        });
+    };
+
+    /** 게시는 해당 종류의 최신 자산을 쓴다. 자산이 없으면 서버가 400으로 막는다. */
     const publish = (target: AiAvatarPublishTarget) => {
         if (!selected) return;
-        guard(() => publishProject(state, selected.id, target, Date.now()), `${TARGET_LABEL[target]}에 게시했습니다. (mock)`);
+        const asset = assets.find(a => a.kind === 'IDLE_VIDEO') ?? assets[0];
+        if (!asset) { setError('게시할 자산이 없습니다. 먼저 자산을 등록하세요.'); return; }
+        void run(async () => {
+            await adminApi.publishAiAvatar(selected.id, target, asset.id);
+            await loadDetail(selected.id);
+            await loadProjects();
+            return `${TARGET_LABEL[target]}에 게시했습니다.`;
+        });
     };
 
     const rollback = (target: AiAvatarPublishTarget) => {
         if (!selected) return;
-        guard(() => rollbackPublication(state, selected.id, target, Date.now()), `${TARGET_LABEL[target]} 게시를 되돌렸습니다. (mock)`);
+        void run(async () => {
+            await adminApi.rollbackAiAvatar(selected.id, target);
+            await loadDetail(selected.id);
+            return `${TARGET_LABEL[target]} 게시를 되돌렸습니다.`;
+        });
     };
+
+    const latestPublicationFor = (target: AiAvatarPublishTarget) =>
+        publications.find(p => p.target === target) ?? null;
+    const assetById = (id: string | null) => (id ? assets.find(a => a.id === id) ?? null : null);
+    const assetOfKind = (kind: AiAvatarAssetRow['kind']) => assets.find(a => a.kind === kind) ?? null;
 
     return (
         <section className="flex-1 overflow-y-auto bg-gray-950 p-4 sm:p-6" aria-labelledby="ai-avatar-title">
@@ -143,15 +214,16 @@ export const AiAvatarPanel: React.FC = () => {
                 <header className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-slate-900 to-cyan-950/40 p-5 sm:p-6">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Phase 1 · Mock</p>
+                            <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Phase 2 · 원장 연결</p>
                             <h3 id="ai-avatar-title" className="text-2xl font-black text-white">AI 아바타</h3>
                             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
                                 사진 기반 2.5D 아바타의 기준 이미지 → 대기 동작 → 립싱크 → 검수·게시를 한곳에서 관리합니다.
-                                지금은 전체 흐름을 검증하는 mock 단계라 서버3 GPU와 실제 사이트 배포는 일어나지 않습니다.
+                                프로젝트·자산·작업·게시 기록은 서버에 저장됩니다. 작업은 큐에 쌓이기만 하며,
+                                서버3 GPU 실행과 실제 사이트 반영은 아직 연결되지 않았습니다.
                             </p>
                         </div>
                         <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-200">
-                            Mock 원장 · 백엔드 미연결
+                            GPU 미연결 · 큐 적재만
                         </span>
                     </div>
                 </header>
@@ -206,8 +278,10 @@ export const AiAvatarPanel: React.FC = () => {
                             </form>
                         )}
 
-                        <ul className="space-y-2">
-                            {state.projects.map((project) => (
+                        {/* ★프로젝트가 쌓이면 목록만으로 페이지가 한없이 길어진다(실측 25,000px).
+                            목록 자체를 스크롤 영역으로 가둬 화면 높이를 일정하게 유지한다. */}
+                        <ul className="max-h-[26rem] space-y-2 overflow-y-auto pr-1">
+                            {projects.map((project) => (
                                 <li key={project.id}>
                                     <button type="button" onClick={() => setSelectedId(project.id)}
                                         aria-current={selected?.id === project.id}
@@ -235,18 +309,26 @@ export const AiAvatarPanel: React.FC = () => {
 
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     <figure className="overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
-                                        {selected.idleVideoUrl ? (
-                                            <video src={selected.idleVideoUrl} muted loop autoPlay playsInline
-                                                className="aspect-square w-full bg-slate-950 object-contain" aria-label="서아 대기 동작 미리보기" />
+                                        {assetOfKind('IDLE_VIDEO') ? (
+                                            <div className="grid aspect-square w-full place-items-center px-3 text-center text-[11px] leading-4 text-slate-300">
+                                                <span aria-label="대기 동작 자산">
+                                                    등록됨<br />
+                                                    <span className="break-all text-slate-500">{assetOfKind('IDLE_VIDEO')!.storageKey}</span>
+                                                </span>
+                                            </div>
                                         ) : (
                                             <div className="grid aspect-square w-full place-items-center text-xs text-slate-500">대기 동작 없음</div>
                                         )}
                                         <figcaption className="px-3 py-2 text-xs text-slate-300">IDLE · LivePortrait m0.25</figcaption>
                                     </figure>
                                     <figure className="overflow-hidden rounded-xl border border-slate-700 bg-slate-950">
-                                        {selected.speakingVideoUrl ? (
-                                            <video src={selected.speakingVideoUrl} muted loop autoPlay playsInline
-                                                className="aspect-square w-full bg-slate-950 object-contain" aria-label="서아 말하기 동작 미리보기" />
+                                        {assetOfKind('SPEAKING_VIDEO') ? (
+                                            <div className="grid aspect-square w-full place-items-center px-3 text-center text-[11px] leading-4 text-slate-300">
+                                                <span aria-label="말하기 자산">
+                                                    등록됨<br />
+                                                    <span className="break-all text-slate-500">{assetOfKind('SPEAKING_VIDEO')!.storageKey}</span>
+                                                </span>
+                                            </div>
                                         ) : (
                                             <div className="grid aspect-square w-full place-items-center text-xs text-slate-500">말하기 없음</div>
                                         )}
@@ -262,7 +344,8 @@ export const AiAvatarPanel: React.FC = () => {
                                         const estimate = estimateJob(kind);
                                         return (
                                             <button key={kind} type="button" onClick={() => runJob(kind)}
-                                                className="min-h-11 rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm font-bold text-slate-100">
+                                                disabled={busy || detailLoading}
+                                                className="min-h-11 rounded-lg border border-slate-700 bg-slate-800 px-3 text-sm font-bold text-slate-100 disabled:opacity-50">
                                                 {JOB_LABEL[kind]}
                                                 {estimate.gpuSeconds > 0 && (
                                                     <span className="ml-2 text-[11px] font-semibold text-amber-300">약 {estimate.gpuSeconds}초</span>
@@ -273,11 +356,11 @@ export const AiAvatarPanel: React.FC = () => {
                                 </div>
 
                                 <h5 className="mt-5 text-sm font-bold text-white">작업 이력</h5>
-                                {selectedJobs.length === 0 ? (
+                                {jobs.length === 0 ? (
                                     <p className="mt-2 text-xs text-slate-500">아직 실행한 작업이 없습니다.</p>
                                 ) : (
                                     <ul className="mt-3 space-y-2" aria-label="작업 이력">
-                                        {selectedJobs.map((job) => (
+                                        {jobs.map((job) => (
                                             <li key={job.id} className="rounded-lg border border-slate-700 bg-slate-950 p-3">
                                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                                     <span className="text-sm font-semibold text-white">{JOB_LABEL[job.kind]}</span>
@@ -287,7 +370,7 @@ export const AiAvatarPanel: React.FC = () => {
                                                     <div className="h-full bg-cyan-400" style={{ width: `${job.progress}%` }} />
                                                 </div>
                                                 {(job.status === 'QUEUED' || job.status === 'RUNNING') && (
-                                                    <button type="button" onClick={() => guard(() => cancelJob(state, job.id, Date.now()), '작업을 취소했습니다.')}
+                                                    <button type="button" onClick={() => cancel(job.id)} disabled={busy}
                                                         className="mt-2 min-h-11 rounded-lg border border-slate-700 px-3 text-xs font-bold text-slate-300">
                                                         취소
                                                     </button>
@@ -297,25 +380,25 @@ export const AiAvatarPanel: React.FC = () => {
                                     </ul>
                                 )}
 
-                                <h5 className="mt-5 text-sm font-bold text-white">게시 (mock)</h5>
+                                <h5 className="mt-5 text-sm font-bold text-white">게시</h5>
                                 <div className="mt-3 space-y-2">
                                     {PUBLISH_TARGETS.map((target) => {
-                                        const pub = latestPublication(state, selected.id, target);
+                                        const pub = latestPublicationFor(target);
                                         return (
                                             <div key={target} className="rounded-lg border border-slate-700 bg-slate-950 p-3">
                                                 <p className="text-sm font-semibold text-white">{TARGET_LABEL[target]}</p>
                                                 <p className="mt-1 break-all text-xs text-slate-400">
-                                                    {pub ? `현재 ${pub.assetUrl}` : '게시 이력 없음'}
+                                                    {pub ? `현재 ${assetById(pub.assetId)?.storageKey ?? pub.assetId}` : '게시 이력 없음'}
                                                 </p>
                                                 <div className="mt-2 flex flex-wrap gap-2">
                                                     <button type="button" onClick={() => publish(target)}
-                                                        aria-label={`${TARGET_LABEL[target]} 게시`}
-                                                        className="min-h-11 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 text-xs font-bold text-cyan-200">
+                                                        aria-label={`${TARGET_LABEL[target]} 게시`} disabled={busy || detailLoading}
+                                                        className="min-h-11 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 text-xs font-bold text-cyan-200 disabled:opacity-50">
                                                         게시
                                                     </button>
                                                     <button type="button" onClick={() => rollback(target)}
-                                                        aria-label={`${TARGET_LABEL[target]} 되돌리기`}
-                                                        className="min-h-11 rounded-lg border border-slate-700 px-3 text-xs font-bold text-slate-300">
+                                                        aria-label={`${TARGET_LABEL[target]} 되돌리기`} disabled={busy || detailLoading}
+                                                        className="min-h-11 rounded-lg border border-slate-700 px-3 text-xs font-bold text-slate-300 disabled:opacity-50">
                                                         되돌리기
                                                     </button>
                                                 </div>
@@ -325,14 +408,14 @@ export const AiAvatarPanel: React.FC = () => {
                                 </div>
                             </>
                         ) : (
-                            <p className="text-sm text-slate-400">프로젝트를 먼저 만드세요.</p>
+                            <p className="text-sm text-slate-400">{loading ? '불러오는 중…' : '프로젝트를 먼저 만드세요.'}</p>
                         )}
                     </section>
                 </div>
 
                 <p className="rounded-lg border border-rose-400/20 bg-rose-400/5 p-3 text-xs leading-5 text-rose-200">
-                    Phase 1 mock입니다. 서버3 GPU 실행, 운영 DB 기록, 실제 사이트 게시는 승인·권한·롤백 가드가
-                    구현된 Phase 2 이후에 연결합니다. 여기서 누른 게시는 화면 안 원장만 바꿉니다.
+                    작업은 큐에 적재만 되고 서버3 GPU는 아직 실행되지 않습니다(Phase 3에서 연결).
+                    게시는 원장에 기록되며, 운영 사이트의 실제 자산 교체는 아직 이 화면과 연결돼 있지 않습니다.
                 </p>
             </div>
         </section>

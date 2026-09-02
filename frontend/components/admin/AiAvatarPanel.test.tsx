@@ -1,107 +1,167 @@
 import React from 'react';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AiAvatarPanel } from './AiAvatarPanel';
 
-describe('AiAvatarPanel Phase 1 mock 연결', () => {
-    let fetchSpy: ReturnType<typeof vi.spyOn>;
+// ★서버 원장에 연결된 패널이므로 apiService 를 통째로 가짜로 세운다.
+//   테스트가 실제 네트워크를 타면 안 된다.
+const api = {
+    listAiAvatarProjects: vi.fn(),
+    getAiAvatarProject: vi.fn(),
+    createAiAvatarProject: vi.fn(),
+    enqueueAiAvatarJob: vi.fn(),
+    getAiAvatarJob: vi.fn(),
+    cancelAiAvatarJob: vi.fn(),
+    publishAiAvatar: vi.fn(),
+    rollbackAiAvatar: vi.fn(),
+};
+vi.mock('../../services/apiService', () => ({ adminApi: api }));
 
-    beforeEach(() => {
-        fetchSpy = vi.spyOn(globalThis, 'fetch');
-    });
+const { AiAvatarPanel } = await import('./AiAvatarPanel');
 
-    afterEach(() => {
-        fetchSpy.mockRestore();
-        vi.useRealTimers();
-        vi.restoreAllMocks();
-    });
+const project = (over: Partial<any> = {}) => ({
+    id: 'p1', name: '서아 상담 아바타', personaName: '서아', stage: 'REVIEW',
+    createdBy: 2, createdAt: '2026-09-02T00:00:00Z', updatedAt: '2026-09-02T00:00:00Z', ...over,
+});
+const asset = (over: Partial<any> = {}) => ({
+    id: 'a1', projectId: 'p1', kind: 'IDLE_VIDEO', storageKey: 'ai-avatar/p1/IDLE_VIDEO/abc',
+    mime: 'video/mp4', bytes: 1234, sha256: 'abc', createdAt: '2026-09-02T00:00:00Z', ...over,
+});
+const job = (over: Partial<any> = {}) => ({
+    id: 'j1', projectId: 'p1', kind: 'GENERATE_IDLE', status: 'QUEUED', progress: 0,
+    errorCode: null, createdAt: '2026-09-02T00:00:00Z', updatedAt: '2026-09-02T00:00:00Z',
+    completedAt: null, ...over,
+});
 
-    it('시드된 서아 프로젝트 자산을 보여주고 네트워크를 호출하지 않는다', () => {
+const detail = (over: Partial<any> = {}) => ({
+    ok: true, project: project(), assets: [asset()], jobs: [], publications: [], ...over,
+});
+
+beforeEach(() => {
+    vi.clearAllMocks();
+    api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+    api.getAiAvatarProject.mockResolvedValue(detail());
+});
+
+afterEach(() => { vi.restoreAllMocks(); });
+
+/** 상세 로딩이 끝나 버튼이 눌릴 수 있게 될 때까지 기다린다(로딩 중엔 비활성). */
+async function clickWhenEnabled(name: string | RegExp) {
+    const btn = await screen.findByRole('button', { name }) as HTMLButtonElement;
+    await waitFor(() => expect(btn.disabled).toBe(false));
+    fireEvent.click(btn);
+}
+
+describe('AiAvatarPanel — 서버 원장 연결', () => {
+    it('서버에서 받은 프로젝트를 보여준다', async () => {
         render(<AiAvatarPanel />);
-
-        expect(screen.getByRole('heading', { name: 'AI 아바타' })).toBeTruthy();
-        expect(screen.getByLabelText('서아 대기 동작 미리보기').getAttribute('src')).toBe('/seoa/avatar/idle.mp4');
-        expect(screen.getByLabelText('서아 말하기 동작 미리보기').getAttribute('src')).toBe('/seoa/avatar/speaking-poc.mp4');
-        expect(screen.getByText('Mock 원장 · 백엔드 미연결')).toBeTruthy();
-        expect(fetchSpy).not.toHaveBeenCalled();
+        expect(await screen.findByRole('heading', { name: '서아 상담 아바타' })).toBeTruthy();
+        expect(api.listAiAvatarProjects).toHaveBeenCalled();
+        expect(screen.getByText('GPU 미연결 · 큐 적재만')).toBeTruthy();
     });
 
-    it('새 프로젝트를 만들면 목록에 추가되고 선택된다', () => {
+    it('목록 조회가 실패하면 오류를 보여준다', async () => {
+        api.listAiAvatarProjects.mockRejectedValue(new Error('권한이 없습니다.'));
         render(<AiAvatarPanel />);
+        expect((await screen.findByRole('alert')).textContent).toContain('권한이 없습니다.');
+    });
+
+    it('프로젝트를 만들면 서버에 보내고 목록을 다시 읽는다', async () => {
+        api.createAiAvatarProject.mockResolvedValue({ ok: true, project: project({ id: 'p2', name: '유나' }) });
+        render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
 
         fireEvent.click(screen.getByRole('button', { name: '새 프로젝트' }));
         fireEvent.change(screen.getByLabelText(/프로젝트 이름/), { target: { value: '유나 아바타' } });
         fireEvent.change(screen.getByLabelText(/페르소나 이름/), { target: { value: '유나' } });
         fireEvent.click(screen.getByRole('button', { name: '만들기' }));
 
-        expect(screen.getByRole('heading', { name: '유나 아바타' })).toBeTruthy();
-        expect(screen.getByRole('status').textContent).toContain('프로젝트를 만들었습니다');
-        expect(fetchSpy).not.toHaveBeenCalled();
+        await waitFor(() => expect(api.createAiAvatarProject).toHaveBeenCalledWith('유나 아바타', '유나'));
+        expect(api.listAiAvatarProjects).toHaveBeenCalledTimes(2);
     });
 
-    it('이름 없이 만들면 오류를 보여주고 프로젝트를 만들지 않는다', () => {
+    it('서버가 이름을 거부하면 그 메시지를 그대로 보여준다', async () => {
+        api.createAiAvatarProject.mockRejectedValue(new Error('프로젝트 이름을 입력하세요.'));
         render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
 
         fireEvent.click(screen.getByRole('button', { name: '새 프로젝트' }));
         fireEvent.click(screen.getByRole('button', { name: '만들기' }));
 
-        expect(screen.getByRole('alert').textContent).toContain('프로젝트 이름');
+        expect((await screen.findByRole('alert')).textContent).toContain('프로젝트 이름을 입력하세요.');
     });
 
-    it('GPU 작업은 예상 비용 확인을 받고, 취소하면 큐에 넣지 않는다', () => {
+    it('GPU 작업은 예상 비용 확인을 받고, 취소하면 서버를 부르지 않는다', async () => {
         const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
         render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
 
-        fireEvent.click(screen.getByRole('button', { name: /대기 동작 생성/ }));
+        await clickWhenEnabled(/대기 동작 생성/);
 
-        expect(confirmSpy).toHaveBeenCalledOnce();
         expect(confirmSpy.mock.calls[0][0]).toContain('예상 비용');
-        expect(screen.queryByLabelText('작업 이력')).toBeNull();
+        expect(api.enqueueAiAvatarJob).not.toHaveBeenCalled();
     });
 
-    it('작업을 실행하면 진행률이 올라가고 완료 시 단계가 갱신된다', async () => {
+    it('작업을 큐에 넣으면 서버에 보내고 상세를 다시 읽는다', async () => {
         vi.spyOn(window, 'confirm').mockReturnValue(true);
-        vi.useFakeTimers({ shouldAdvanceTime: true });
+        api.enqueueAiAvatarJob.mockResolvedValue({ ok: true, job: job() });
         render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
 
-        fireEvent.click(screen.getByRole('button', { name: /대기 동작 생성/ }));
-        expect(screen.getByLabelText('작업 이력').textContent).toContain('대기 중');
+        await clickWhenEnabled(/대기 동작 생성/);
 
-        await act(async () => { await vi.advanceTimersByTimeAsync(25_000); });
-
-        await waitFor(() => expect(screen.getByLabelText('작업 이력').textContent).toContain('완료'));
-        expect(fetchSpy).not.toHaveBeenCalled();
+        await waitFor(() => expect(api.enqueueAiAvatarJob).toHaveBeenCalledWith('p1', 'GENERATE_IDLE'));
     });
 
-    it('검수를 통과하지 않은 프로젝트는 게시를 거부한다', () => {
-        render(<AiAvatarPanel />);
-
-        fireEvent.click(screen.getByRole('button', { name: '새 프로젝트' }));
-        fireEvent.change(screen.getByLabelText(/프로젝트 이름/), { target: { value: '신규' } });
-        fireEvent.change(screen.getByLabelText(/페르소나 이름/), { target: { value: '테스트' } });
-        fireEvent.click(screen.getByRole('button', { name: '만들기' }));
-
-        fireEvent.click(screen.getByRole('button', { name: '공용 상담 (/consult) 게시' }));
-
-        expect(screen.getByRole('alert').textContent).toContain('검수 단계');
-    });
-
-    it('되돌릴 이전 버전이 없으면 롤백을 거부한다', () => {
-        render(<AiAvatarPanel />);
-
-        fireEvent.click(screen.getByRole('button', { name: '공용 상담 (/consult) 되돌리기' }));
-
-        expect(screen.getByRole('alert').textContent).toContain('되돌릴 이전 버전이 없습니다');
-    });
-
-    it('언마운트하면 폴링 타이머를 정리한다', () => {
+    it('★이미 진행 중인 작업이면 중복 안내를 보여준다', async () => {
         vi.spyOn(window, 'confirm').mockReturnValue(true);
+        api.enqueueAiAvatarJob.mockResolvedValue({ ok: true, job: job(), deduplicated: true });
+        render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
+
+        await clickWhenEnabled(/대기 동작 생성/);
+
+        expect((await screen.findByRole('status')).textContent).toContain('이미 같은 작업이 진행 중입니다.');
+    });
+
+    it('진행 중 작업이 있으면 폴링하고, 언마운트하면 타이머를 정리한다', async () => {
+        api.getAiAvatarProject.mockResolvedValue(detail({ jobs: [job({ status: 'RUNNING', progress: 40 })] }));
         const clearSpy = vi.spyOn(globalThis, 'clearInterval');
         const { unmount } = render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
+        await waitFor(() => expect(screen.getByLabelText('작업 이력').textContent).toContain('진행 40%'));
 
-        fireEvent.click(screen.getByRole('button', { name: /대기 동작 생성/ }));
         unmount();
-
         expect(clearSpy).toHaveBeenCalled();
+    });
+
+    it('서버가 게시를 거부하면 그 이유를 보여준다', async () => {
+        api.publishAiAvatar.mockRejectedValue(new Error('검수 단계를 통과한 프로젝트만 게시할 수 있습니다.'));
+        render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
+
+        await clickWhenEnabled('공용 상담 (/consult) 게시');
+
+        expect((await screen.findByRole('alert')).textContent).toContain('검수 단계를 통과한 프로젝트만');
+    });
+
+    it('게시할 자산이 없으면 서버를 부르지 않고 막는다', async () => {
+        api.getAiAvatarProject.mockResolvedValue(detail({ assets: [] }));
+        render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
+
+        await clickWhenEnabled('공용 상담 (/consult) 게시');
+
+        expect((await screen.findByRole('alert')).textContent).toContain('게시할 자산이 없습니다');
+        expect(api.publishAiAvatar).not.toHaveBeenCalled();
+    });
+
+    it('롤백은 대상별로 서버에 요청한다', async () => {
+        api.rollbackAiAvatar.mockResolvedValue({ ok: true, publicationId: 'pub2' });
+        render(<AiAvatarPanel />);
+        await screen.findByRole('heading', { name: '서아 상담 아바타' });
+
+        await clickWhenEnabled('AI월드 사업 상담 되돌리기');
+
+        await waitFor(() => expect(api.rollbackAiAvatar).toHaveBeenCalledWith('p1', 'aiworld'));
     });
 });
