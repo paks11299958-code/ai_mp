@@ -30,6 +30,7 @@ import { InverseTraderPanel } from './admin/InverseTraderPanel';
 import { HerdrConsolePanel } from './admin/HerdrConsolePanel';
 import { AiStudioPanel } from './admin/AiStudioPanel';
 import { AiGalleryPanel } from './admin/AiGalleryPanel';
+import { AiAvatarPanel } from './admin/AiAvatarPanel';
 import { AgentGrowthPanel } from './admin/AgentGrowthPanel';
 import { ReferralStatsPanel } from './admin/ReferralStatsPanel';
 import { MarketingDailyPanel } from './admin/MarketingDailyPanel';
@@ -50,7 +51,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault' | 'ai-avatar'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -137,6 +138,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                             { key: 'herdr',         label: '🐮 허드 AI',    icon: 'Cpu' },
                             // AI 스튜디오(서버3 GPU) — 필요할 때만 켜는 온디맨드 서버(2026-08-05)
                             { key: 'ai-studio',     label: 'AI 스튜디오', icon: 'Zap' },
+                            { key: 'ai-avatar',     label: 'AI 아바타', icon: 'Bot' },
                             // ★보관함을 분리(2026-08-05) — 스튜디오 안에 접이식으로 두니
                             //   '만드는 곳'과 '보는 곳'이 섞여 헷갈린다는 지적. 생성/관리를 나눈다.
                             { key: 'ai-gallery',    label: 'AI 보관함', icon: 'Image' },
@@ -239,6 +241,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'inverse-trader' && <InverseTraderPanel />}
                 {mainView === 'herdr' && <HerdrConsolePanel />}
                 {mainView === 'ai-studio' && <AiStudioPanel />}
+                {mainView === 'ai-avatar' && <AiAvatarPanel />}
                 {mainView === 'ai-gallery' && <AiGalleryPanel />}
                 {mainView === 'referral' && <ReferralStatsPanel />}
                 {mainView === 'marketing-daily' && <MarketingDailyPanel />}

@@ -46,6 +46,7 @@ Codex와 Claude가 **같은 말을 쓰기 위한** 문서다. 읽고 고치는 �
 |---|---|---|
 | **쇼츠** | 숏츠, 쇼트폼 | 유튜브 세로 영상 자동 제작. `doc/features/shorts_maker.md` |
 | **AI 스튜디오** | ComfyUI, GPU 스튜디오 | 서버3 이미지·영상 생성. `doc/features/ai_studio_gpu.md`, `ai_studio_ops.md` |
+| **AI 아바타** | 3D 캐릭터 메뉴 | 사진 기반 2.5D 아바타 제작·검수·게시 어드민. `doc/features/ai_avatar_admin.md` |
 | **페르소나** | 캐릭터, 봇 | 다중 AI 채팅의 대화 상대. `README.md` |
 | **기능 키** | 메뉴 키, 피처 키 | 기능 식별자. ★등록처 4곳 중 하나만 빠져도 딥링크가 조용히 채팅으로 폴백한다 |
 | **토스봇** | 트레이더, 자동매매봇 | 자동매매. `doc/features/toss_auto_trading.md` |
