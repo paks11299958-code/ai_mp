@@ -182,7 +182,24 @@ SELL을 외치며 거부당했다.
 
 ## 배포
 
-- **봇 = git 아님, scp 직접배포**: 서버2 원본 → 백업(.bak-날짜) → scp → md5 대조 → py_compile/테스트 → `pm2 restart` + `save`. SSH 전 서버1 claude 락(pgrep) 확인.
+- ★**2026-09-02부터 git 배포**(GitHub **private** `paks11299958-code/toss-trader`):
+  ```bash
+  git push origin master
+  ssh 10.178.0.2 "cd ~/toss_trader && git pull && \
+    ~/shared-api/node_modules/.bin/pm2 restart toss-trader --update-env"
+  ```
+  `config.env`(실 API키)·`logs/`(실장부·매매이력)·상태파일·`*.bak*` 은 `.gitignore` 로 제외한다.
+  🔴**저장소를 public 으로 바꾸지 말 것** — 매매 전략·리스크 파라미터가 들어 있다.
+- ~~봇 = git 아님, scp 직접배포~~ (09-02 이전 방식): 서버2 원본 → 백업(.bak-날짜) → scp → md5 대조
+  → py_compile/테스트 → `pm2 restart` + `save`.
+  ★이 방식 때문에 **서버1↔서버2가 양방향으로 벌어졌다**(09-02 실측: 서버2가 한 달 뒤처지고
+  모듈 4개 부재, 반대로 테스트는 서버2가 상위). git 도입으로 그 위험을 없앴다.
+- ★`ecosystem.config.js` 가 **실봇 모드를 결정한다**(`config.env` 의 MODE 보다 pm2 env 우선).
+  이 파일을 건드릴 땐 실거래/드라이런이 뒤바뀌지 않는지 확인할 것
+  (실모드 확인: `tr '\0' '\n' < /proc/<pid>/environ | grep MODE`).
+- 🔴**서버1에서 테스트를 실행하지 말 것** — `unittest discover` 는 collect 가 아니라 **실행**이라
+  가짜 종목 체결이 실파일에 기록된다(09-01·09-02 2회 사고). `trades.json` 은 09-02 가드로 막았으나
+  `trader.log` 는 여전히 오염된다. 서버1에선 `py_compile` + 로더 수집만, 실행은 서버2에서.
 - **프론트(어드민) = ai_mp master push → Vercel**.
 - 테스트: `python3 -m unittest test_strategy test_risk`(순수함수 22개).
 
@@ -697,3 +714,36 @@ LG생활건강)가 자동으로 `selection.json`에 편입됨(`updatedBy: auto-s
       오른 걸 못 챙기고 되밀리는 구조. 손절 3%는 변동폭 안에 있어 헛손절 우려)
 - [ ] 그 다음에야 실계좌 임계 조정을 논할 것 — 발굴 승률이 42~55%인 상태에서
       문턱만 여는 것은 순서가 아니다
+
+## 2026-09-02 — 서버 정합 + git 도입 + 테스트 안전장치 (Opus)
+
+**① 서버1↔서버2 정합**(사장 선택 2안, 서버1 무변경)
+- 착수 근거였던 09-01 기록("서버1 테스트가 낡음")과 **실측이 반대**였다.
+  서버2가 한 달 넘게 뒤처지고 모듈 4개(`trades`·`notify`·`holdings_json`·`score_one`)가 **부재**.
+  반대로 `test_scanner.py`·`test_broker_equity.py` 는 서버2가 상위였다.
+- ★**서버2본으로 통째 밀었으면 8/5 스캔창 변경이 롤백**될 뻔했다.
+  → **동기화 전 반드시** ①`md5sum` 전수 대조 ②`stat -c %y` 로 파일별 최신 판정
+  ③덮기 전 `diff | grep '^<'` 로 **사라질 줄을 눈으로 확인**.
+- 테스트 파일은 통째 복사 대신 **케이스 목록 비교 후 병합**(`grep -oP 'def \Ktest_\w+'`).
+
+**② 스캔 창 마감(deadline) 회귀 테스트 신설**
+- ★`scanner.py` 의 창 마감 검사를 `if False:` 로 무력화해도 **전 테스트가 통과**했다.
+  08-05 사고(16시 스캔이 당일 완성봉을 버려 이틀 전 종가로 판단) 대응으로 도입한
+  안전장치인데 그것을 지키는 테스트가 **양쪽 서버 어디에도 없었다.**
+- → `test_scan_window_closes_after_deadline` 신설(창 마감 후·장중 미실행, 다음날 정상 실행).
+- ★**통과하는 테스트가 그 기능을 검증한다는 뜻이 아니다.** 사고 후 만든 안전장치일수록
+  **일부러 깨보고**(돌연변이) 테스트가 잡는지 확인할 것.
+
+**③ 테스트 환경 가드**(`trades.py`)
+- `record()` 가 `path is None and _is_test_env()` 이면 기록을 건너뛴다.
+  판정은 **`notify._is_test_env()` 를 재사용**한다(두 곳이 갈리면 한쪽만 막힌다).
+  `path` 명시 호출(테스트가 격리한 임시 파일)은 그대로 쓴다.
+- ★**쓰기구 한 곳에서 막은 이유**: 실장부가 두 사고에서 무사했던 건 `LedgerIsolatedCase` 가
+  `ledger.*` 를 모킹했기 때문인데 **그 격리에 `trades.record` 만 빠져 있었다.**
+  테스트 쪽 모킹은 빠뜨릴 여지가 남는다(`notify.py` 가 08-05에 같은 결론).
+- 오염된 `logs/trades.json` 정리: 190건 중 가짜 188건 제거, 실제 2건만 보존
+  (6자리 숫자 종목코드 기준). 백업 `logs/trades.json.bak.20260902-0512`.
+
+**결과**: 서버1·서버2 파일 완전 일치(운영 25 + 테스트 15), 양쪽 **212개** 테스트,
+봇 2개 **22시간 무중단**(전 과정 재시작 없음).
+커밋 `3c59d00`·`ea36622`·`3e15a08`·`9c971b8`.
