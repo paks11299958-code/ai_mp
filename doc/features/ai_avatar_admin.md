@@ -174,6 +174,46 @@ Phase 3 순서: ①어댑터 투입 ②같은 입력으로 InsightFace판/MediaP
 **육안 비교**(크롭이 달라지면 얼굴 인상이 바뀐다) ③S3FD 확인 ④통과 시 `buffalo_l` 삭제.
 - 제공된 인물 사진과 음성의 사용 동의·보관기간·삭제 경로를 프로젝트 단위로 기록한다.
 
+### 2026-09-02 Phase 3-a 완료 (디스패처 판정부, 서버3 미기동·GPU 비용 0)
+
+Phase 3을 **3-a(과금 0)** 와 **3-b(과금 시작)** 로 쪼갰다. 3-a 는 서버3을 켜지 않고
+"켜야 하는가"를 판정하는 층까지만 만든 것이다.
+
+- `rag/ai_avatar_dispatch.py` — 판정 순수 함수(부작용 없음), 커밋 `698e69e`
+- `rag/ai_studio_dispatcher.py` — 기존 디스패처에 아바타 큐 인식 연결
+- `rag/test_ai_avatar_dispatch.py` — 회귀 26개
+
+★**`AVATAR_DISPATCH_ENABLED` 기본값 `0`.** 이 스위치가 꺼져 있는 한 아바타 큐가
+아무리 쌓여도 `avatar_pending_count()` 가 0을 돌려주므로 서버3은 켜지지 않는다.
+**3-b 는 이 값을 `1` 로 두는 순간 시작되고, 거기서부터 과금이다.**
+
+★**크론을 새로 만들지 않았다.** 진입점이 둘이면 `instances start` 를 각자 부르고
+하루 기동 상한도 따로 세어 요금이 두 배로 샌다. 기존 `ai_studio_dispatcher` 에 얹었다.
+
+★**죽은 RUNNING 회수가 필요한 이유**: 부분 유니크 인덱스(`AiAvatarJob_active_key`)가
+`(projectId, kind) WHERE status IN (QUEUED,RUNNING)` 이라, 크래시로 RUNNING 이 남으면
+그 프로젝트의 그 작업을 **영영 다시 만들 수 없다**. 종류별 타임아웃으로 회수한다
+(idle 45분 · 립싱크 60분 · 준비 15분 · 검수 20분). QUEUED 는 아무리 오래돼도 회수하지
+않는다 — 서버가 꺼져 있어 대기가 긴 것은 정상이다.
+
+🔴★★**실측으로 잡은 결함 — DB 시각은 UTC 다.** `CURRENT_TIMESTAMP` 가 UTC naive 로
+저장되는데 디스패처가 KST 를 붙였더니 **갓 만든 RUNNING 이 540분(9시간) 경과**로 나와
+모든 실행 중 작업이 즉시 '죽은 것'으로 판정됐다. 그대로 3-b 를 켰다면 **렌더 중인
+서버3을 유휴로 보고 껐을 것이다**. 단위 테스트는 tz-aware 값을 직접 만들어 써서 못 잡았고,
+**운영 DB 에 실제 행을 넣어 보고서야** 드러났다. UTC 부착으로 고치고 회귀를 남겼다.
+
+🔴★★**`idle_shutdown.sh` 도 함께 고쳐야 한다(서버3 미설치).** 이 스크립트의
+`db_active_jobs()` 는 `GpuJob` 만 센다 — 아바타 큐를 모른다. 그대로 3-b 를 켜면
+ComfyUI 큐도 `GpuJob` 도 비어 있어 **렌더 도중 "유휴 30분"으로 서버가 스스로 꺼진다**.
+고친 파일은 `ai-3d-avatar/deploy/server3/idle_shutdown.sh` 에 두었고 커밋 `2917793`,
+설치 절차는 같은 폴더 `README.md` 에 있다.
+★`config-backup/server3/` 는 서버3에서 **끌어오는 사본**이라 서버3을 켜면 백업 크론이
+옛 파일로 되돌린다. 배포 원본으로 쓰지 말 것.
+
+**3-b 착수 전 체크리스트**: ①`idle_shutdown.sh` 설치·`CHECK_ONLY=1` 확인
+②`AVATAR_DISPATCH_ENABLED=1` ③MediaPipe 어댑터 투입 ④InsightFace판/MediaPipe판 육안 비교
+⑤S3FD 사용 여부 확인 ⑥산출물 회수 후 VM `TERMINATED` 확인.
+
 ## 10. Claude 구현 순서
 
 1. 이 문서와 `AiAvatarPanel.tsx`, `aiAvatarContract.ts`를 먼저 읽는다.
