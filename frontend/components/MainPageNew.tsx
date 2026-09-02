@@ -1884,7 +1884,7 @@ const PersonaSelectPanel: React.FC<{
                     <span style={{ color: T.lineSoft }}>|</span>
                     <span>통신판매업 신고번호: 제 2026-충북청주-0690호</span>
                     <span style={{ color: T.lineSoft }}>|</span>
-                    <span>주소: 충북 청주 흥덕 옥산 오송가락로 1056 청주리버파크자이 104-1303</span>
+                    <span>주소: 충북 청주 흥덕 옥산 오송가락로 1056</span>
                     <span style={{ color: T.lineSoft }}>|</span>
                     <span>전화: 0502-468-0502</span>
                 </div>
