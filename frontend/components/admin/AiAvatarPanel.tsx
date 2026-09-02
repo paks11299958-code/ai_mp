@@ -240,16 +240,18 @@ export const AiAvatarPanel: React.FC = () => {
                 <header className="rounded-2xl border border-cyan-500/25 bg-gradient-to-br from-slate-900 to-cyan-950/40 p-5 sm:p-6">
                     <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                            <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Phase 2 · 원장 연결</p>
+                            <p className="mb-2 text-xs font-bold uppercase tracking-[.18em] text-cyan-300">Phase 4 · 검수·게시</p>
                             <h3 id="ai-avatar-title" className="text-2xl font-black text-white">AI 아바타</h3>
                             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">
                                 사진 기반 2.5D 아바타의 기준 이미지 → 대기 동작 → 립싱크 → 검수·게시를 한곳에서 관리합니다.
-                                프로젝트·자산·작업·게시 기록은 서버에 저장됩니다. 작업은 큐에 쌓이기만 하며,
-                                서버3 GPU 실행과 실제 사이트 반영은 아직 연결되지 않았습니다.
+                                검수 점수가 합격선을 넘어야 게시가 열립니다. 작업은 큐에 쌓이며,
+                                서버3 GPU 자동 기동은 현재 꺼져 있습니다(운영자가 직접 켤 때만 실행).
                             </p>
                         </div>
+                        {/* ★과금 상태는 화면에 항상 보이게 둔다. 자동 기동 스위치
+                            (서버2 AVATAR_DISPATCH_ENABLED)가 꺼져 있어 큐가 쌓여도 GPU 는 안 켜진다. */}
                         <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs font-bold text-amber-200">
-                            GPU 미연결 · 큐 적재만
+                            GPU 자동기동 OFF · 큐 적재만
                         </span>
                     </div>
                 </header>
@@ -482,8 +484,9 @@ export const AiAvatarPanel: React.FC = () => {
                 </div>
 
                 <p className="rounded-lg border border-rose-400/20 bg-rose-400/5 p-3 text-xs leading-5 text-rose-200">
-                    작업은 큐에 적재만 되고 서버3 GPU는 아직 실행되지 않습니다(Phase 3에서 연결).
-                    게시는 원장에 기록되며, 운영 사이트의 실제 자산 교체는 아직 이 화면과 연결돼 있지 않습니다.
+                    작업은 큐에 적재되며, 서버3 GPU 자동 기동은 꺼져 있습니다(시간당 약 1,260원이라
+                    운영자가 켤 때만 실행). 게시는 원장에 기록되며, 운영 사이트의 실제 자산 교체는
+                    아직 이 화면과 연결돼 있지 않습니다.
                 </p>
             </div>
         </section>

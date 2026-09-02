@@ -62,7 +62,7 @@ describe('AiAvatarPanel — 서버 원장 연결', () => {
         render(<AiAvatarPanel />);
         expect(await screen.findByRole('heading', { name: '서아 상담 아바타' })).toBeTruthy();
         expect(api.listAiAvatarProjects).toHaveBeenCalled();
-        expect(screen.getByText('GPU 미연결 · 큐 적재만')).toBeTruthy();
+        expect(screen.getByText('GPU 자동기동 OFF · 큐 적재만')).toBeTruthy();
     });
 
     it('목록 조회가 실패하면 오류를 보여준다', async () => {
