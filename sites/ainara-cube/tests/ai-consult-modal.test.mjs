@@ -161,9 +161,11 @@ test('★인사 영상은 1회 재생이고 소리가 켜진다', async () => {
   assert.match(avatar, /seoa-greeting\.mp4/, '인사 영상 파일을 써야 한다');
   // 반복하면 인사말이 무한히 돈다
   assert.match(avatar, /video\.loop\s*=\s*!greeting/, 'GREETING 만 loop 를 꺼야 한다');
-  // ★소리는 항상 꺼야 한다 — 자동재생 정책상 소리가 켜져 있으면 재생이 막혀
+  // ★기본은 음소거다 — 자동재생 정책상 소리가 켜져 있으면 재생이 막혀
   //   인사 영상 자체가 안 나온다(2026-09-03 운영 실측으로 fallback 확인).
-  assert.match(avatar, /video\.muted\s*=\s*true/, '자동재생을 위해 음소거여야 한다');
+  //   사용자가 버튼으로 켠 뒤에는 그 선택(soundOn)을 따른다.
+  assert.match(avatar, /video\.muted\s*=\s*!soundOn/, '사용자 선택을 따라 음소거해야 한다');
+  assert.match(avatar, /let soundOn = false/, '기본값은 음소거여야 한다');
   // 끝나고 대기로 안 돌아가면 마지막 프레임에서 멈춘다
   assert.match(avatar, /addEventListener\('ended'/, '끝나면 IDLE 로 돌아가야 한다');
 });
@@ -209,4 +211,24 @@ test('★iframe 초기화가 먼저 온 인사를 덮어쓰지 않는다', async
   const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
   // 무조건 setState('IDLE') 하면 먼저 도착한 GREETING 이 지워진다.
   assert.match(avatar, /if \(root\.dataset\.state === 'idle'\) setState\('IDLE'\)/);
+});
+
+test('★소리 버튼이 눈에 띄게 있고 동작한다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+
+  assert.match(avatar, /id="sound-toggle"/, '소리 버튼이 있어야 한다');
+  // 인사 중 아직 음소거면 강조해야 한다 — 안 그러면 멘트를 놓친다.
+  assert.match(avatar, /\[data-state="greeting"\] \.sound\[data-muted="true"\]/,
+    '인사 중에는 소리 버튼을 강조해야 한다');
+  // 터치 대상 44px 이상(모바일 기준)
+  assert.match(avatar, /min-height:44px/, '버튼은 44px 이상이어야 한다');
+  // 켠 뒤 상태가 바뀌어도 유지돼야 한다
+  assert.match(avatar, /soundOn = !soundOn/, '토글이 있어야 한다');
+  assert.match(avatar, /aria-pressed/, '스크린리더에 상태를 알려야 한다');
+});
+
+test('★인사 중 소리를 켜면 처음부터 다시 튼다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 중간에 켜면 멘트 앞부분을 이미 놓쳤다 — 되감아야 의미가 있다.
+  assert.match(avatar, /video\.currentTime = 0/, '인사 중 켜면 되감아야 한다');
 });

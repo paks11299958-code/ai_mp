@@ -18,14 +18,32 @@
     [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
     [data-state="speaking"] .dot{background:#28a170;box-shadow:0 0 0 4px rgba(40,161,112,.14)}
     [data-state="fallback"] .dot{background:#b98432;box-shadow:0 0 0 4px rgba(185,132,50,.14)}
+    /* 소리 버튼 — 브라우저가 소리 있는 자동재생을 막으므로 사용자가 직접 켠다.
+       ★인사 중에는 눈에 띄어야 한다(멘트를 놓치면 만든 의미가 없다). */
+    .sound{position:absolute;z-index:3;top:14px;right:14px;display:flex;align-items:center;gap:7px;
+      min-height:44px;padding:10px 14px;border:1px solid rgba(75,106,141,.22);border-radius:999px;
+      background:rgba(255,255,255,.92);box-shadow:0 8px 26px rgba(33,63,99,.16);color:#31465e;
+      font-family:inherit;font-size:13px;font-weight:800;cursor:pointer;backdrop-filter:blur(10px);
+      transition:transform .18s ease,box-shadow .18s ease,background .18s ease}
+    .sound:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(33,63,99,.22)}
+    .sound:focus-visible{outline:3px solid #5f8fc6;outline-offset:2px}
+    .sound .ico{font-size:15px;line-height:1}
+    /* 인사 중 + 아직 음소거면 → 초록으로 강조하고 살짝 흔들어 시선을 끈다 */
+    [data-state="greeting"] .sound[data-muted="true"]{background:#28a170;border-color:#28a170;color:#fff;
+      box-shadow:0 10px 30px rgba(40,161,112,.4);animation:nudge 1.5s ease-in-out infinite}
+    @keyframes nudge{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
     @keyframes thinking{50%{transform:translateY(-3px)}}
     @keyframes pulse{50%{opacity:.4;transform:scale(.72)}}
-    @media(prefers-reduced-motion:reduce){video,.dot{animation:none!important;transition:none}}
+    @media(prefers-reduced-motion:reduce){video,.dot,.sound{animation:none!important;transition:none}}
   </style>
 </head>
 <body>
   <main class="avatar" id="avatar" data-state="idle">
     <video id="avatar-video" src="./seoa-idle.mp4" autoplay muted loop playsinline preload="auto" poster="./seoa-consult-poster.png" aria-label="서아 AI 사업 상담 매니저"></video>
+    <button type="button" class="sound" id="sound-toggle" data-muted="true"
+            aria-pressed="false" aria-label="소리 켜기">
+      <span class="ico" id="sound-ico" aria-hidden="true">🔇</span><span id="sound-label">소리 켜기</span>
+    </button>
     <div class="state" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="state-text">상담 준비가 되었어요</span></div>
   </main>
   <script>
@@ -35,6 +53,12 @@
     const root = document.querySelector('#avatar');
     const video = document.querySelector('#avatar-video');
     const status = document.querySelector('#state-text');
+    const soundBtn = document.querySelector('#sound-toggle');
+    const soundIco = document.querySelector('#sound-ico');
+    const soundLabel = document.querySelector('#sound-label');
+    // ★사용자가 소리를 켰는지 기억한다. 켠 뒤에는 상태가 바뀌어도 유지해야 한다 —
+    //   매번 음소거로 되돌리면 켜도 소용이 없다.
+    let soundOn = false;
 
     async function setState(value) {
       const state = String(value || '').toUpperCase();
@@ -53,7 +77,8 @@
       //   소리 있는 재생이 막히고, 그러면 재생 실패로 fallback 에 빠진다
       //   (2026-09-03 운영 실측). 소리는 사용자가 스피커 버튼으로 켠다.
       video.loop = !greeting;
-      video.muted = true;
+      // 사용자가 켰으면 그 선택을 따른다. 아직 안 켰으면 음소거여야 재생이 막히지 않는다.
+      video.muted = !soundOn;
       if (!video.currentSrc.endsWith(src.slice(1))) { video.src = src; video.load(); }
       video.playbackRate = state === 'THINKING' ? .82 : 1;
       try { await video.play(); }
@@ -68,6 +93,25 @@
         }
       }
     }
+
+    function renderSound() {
+      soundBtn.dataset.muted = String(!soundOn);
+      soundBtn.setAttribute('aria-pressed', String(soundOn));
+      soundBtn.setAttribute('aria-label', soundOn ? '소리 끄기' : '소리 켜기');
+      soundIco.textContent = soundOn ? '🔊' : '🔇';
+      soundLabel.textContent = soundOn ? '소리 켜짐' : '소리 켜기';
+    }
+
+    soundBtn.addEventListener('click', async () => {
+      soundOn = !soundOn;
+      video.muted = !soundOn;
+      renderSound();
+      // ★클릭은 사용자 제스처라 이 시점의 재생은 브라우저가 막지 않는다.
+      //   인사 중에 켰다면 처음부터 다시 틀어 멘트를 놓치지 않게 한다.
+      if (soundOn && root.dataset.state === 'greeting') video.currentTime = 0;
+      try { await video.play(); } catch {}
+    });
+    renderSound();
 
     // 인사가 끝나면 스스로 대기로 돌아간다(다른 상태에서는 loop 라 ended 가 안 온다).
     video.addEventListener('ended', () => {
