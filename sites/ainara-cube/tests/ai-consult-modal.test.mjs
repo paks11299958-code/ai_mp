@@ -286,3 +286,16 @@ test('★모바일에서 자막·버튼이 서로 겹치지 않는다', async ()
   assert.match(avatar, /\.sound #sound-label\{display:none\}/,
     '모바일에서는 아이콘만 남겨 폭을 줄여야 한다');
 });
+
+test('★인사 중에는 상태 배지를 감추되 다른 상태에서는 보인다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 인사 중에는 불필요하다(서아가 말하는 게 보이고 자막도 나온다).
+  assert.match(avatar, /\[data-state="greeting"\] \.state\{opacity:0/,
+    '인사 중에는 배지를 감춰야 한다');
+  // ★"답변 준비 중"은 아무 일도 안 일어나 보이는 순간이라 반드시 남아야 한다.
+  //   display:none 으로 지우면 스크린리더 안내(aria-live)까지 사라진다.
+  assert.doesNotMatch(avatar, /\[data-state="greeting"\] \.state\{display:none/,
+    '요소 자체를 지우면 스크린리더 안내가 사라진다');
+  assert.match(avatar, /'답변을 준비하고 있어요'/, '생각 중 문구는 남아야 한다');
+  assert.match(avatar, /'서아가 답변하고 있어요'/, '답변 중 문구는 남아야 한다');
+});

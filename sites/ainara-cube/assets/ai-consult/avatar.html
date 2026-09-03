@@ -23,6 +23,11 @@
     @media(max-width:480px){.state{top:auto;left:50%;translate:-50% 0;
       bottom:max(78px,calc(env(safe-area-inset-bottom) + 72px));
       font-size:11px;padding:5px 10px;max-width:calc(100% - 20px)}}
+    /* ★인사 중에는 배지를 감춘다(2026-09-03 사장 지시). 서아가 말하는 게 보이고
+       자막까지 나오므로 안내가 필요 없다. '답변 준비 중'처럼 **아무 일도 안 일어나
+       보이는** 순간에만 있으면 된다. 요소는 남겨 스크린리더 안내는 유지한다. */
+    [data-state="greeting"] .state{opacity:0;pointer-events:none}
+    .state{transition:opacity .2s ease}
     .dot{width:7px;height:7px;border-radius:50%;background:#5f8fc6;box-shadow:0 0 0 4px rgba(95,143,198,.13)}
     [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
     [data-state="speaking"] .dot{background:#28a170;box-shadow:0 0 0 4px rgba(40,161,112,.14)}
