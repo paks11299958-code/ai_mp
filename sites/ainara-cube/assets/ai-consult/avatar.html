@@ -18,8 +18,10 @@
        닫기(×) 버튼이 iframe 기준 x 292~328 · y 12~48 에 있다.
        상태 배지를 위쪽에 두면 x 177~330 이라 38px 겹쳐 글자가 잘렸다.
        → 배지는 자막 바로 위(아래쪽)로 내린다. 소리 버튼만 위쪽 왼편에 남긴다. */
+    /* ★자막(bottom 8px, 2줄이면 높이 ~30px)과 겹치지 않게 충분히 띄운다.
+       390px 실측에서 46px 로는 1px 겹쳤다 — 여유를 둔다. */
     @media(max-width:480px){.state{top:auto;left:50%;translate:-50% 0;
-      bottom:max(46px,calc(env(safe-area-inset-bottom) + 40px));
+      bottom:max(78px,calc(env(safe-area-inset-bottom) + 72px));
       font-size:11px;padding:5px 10px;max-width:calc(100% - 20px)}}
     .dot{width:7px;height:7px;border-radius:50%;background:#5f8fc6;box-shadow:0 0 0 4px rgba(95,143,198,.13)}
     [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
