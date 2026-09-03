@@ -48,17 +48,24 @@
         : state === 'FALLBACK' ? '연결을 확인하고 있어요'
         : '상담 준비가 되었어요';
       const greeting = state === 'GREETING';
-      // ★인사만 소리를 켠다. 자동재생 정책상 음소거가 아니면 막힐 수 있어,
-      //   실패하면 아래 catch 에서 음소거로 한 번 더 시도한다(영상까지 잃지 않게).
+      // ★인사만 1회 재생한다(반복하면 "안녕하세요"가 무한히 돈다).
+      // ★★소리는 항상 끈다. 브라우저 자동재생 정책상 사용자가 클릭하기 전에는
+      //   소리 있는 재생이 막히고, 그러면 재생 실패로 fallback 에 빠진다
+      //   (2026-09-03 운영 실측). 소리는 사용자가 스피커 버튼으로 켠다.
       video.loop = !greeting;
-      video.muted = !greeting;
+      video.muted = true;
       if (!video.currentSrc.endsWith(src.slice(1))) { video.src = src; video.load(); }
       video.playbackRate = state === 'THINKING' ? .82 : 1;
       try { await video.play(); }
       catch {
-        // 소리 있는 자동재생이 막힌 경우 — 음소거로 낮춰 인사 영상이라도 보여준다.
-        if (greeting) { video.muted = true; try { await video.play(); return; } catch {} }
-        if (state !== 'FALLBACK') setState('FALLBACK');
+        // ★load() 직후엔 아직 준비가 안 돼 실패할 수 있다. 한 번 더 기다렸다 시도하고,
+        //   그래도 안 되면 그때 fallback 이다(성급히 오류로 만들지 않는다).
+        try {
+          await new Promise(r => setTimeout(r, 300));
+          await video.play();
+        } catch {
+          if (state !== 'FALLBACK') setState('FALLBACK');
+        }
       }
     }
 

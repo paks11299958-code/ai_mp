@@ -159,9 +159,11 @@ test('★인사 영상은 1회 재생이고 소리가 켜진다', async () => {
   const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
 
   assert.match(avatar, /seoa-greeting\.mp4/, '인사 영상 파일을 써야 한다');
-  // 반복하면 인사말이 무한히 돈다 / 음소거면 멘트가 안 들린다
+  // 반복하면 인사말이 무한히 돈다
   assert.match(avatar, /video\.loop\s*=\s*!greeting/, 'GREETING 만 loop 를 꺼야 한다');
-  assert.match(avatar, /video\.muted\s*=\s*!greeting/, 'GREETING 만 소리를 켜야 한다');
+  // ★소리는 항상 꺼야 한다 — 자동재생 정책상 소리가 켜져 있으면 재생이 막혀
+  //   인사 영상 자체가 안 나온다(2026-09-03 운영 실측으로 fallback 확인).
+  assert.match(avatar, /video\.muted\s*=\s*true/, '자동재생을 위해 음소거여야 한다');
   // 끝나고 대기로 안 돌아가면 마지막 프레임에서 멈춘다
   assert.match(avatar, /addEventListener\('ended'/, '끝나면 IDLE 로 돌아가야 한다');
 });
