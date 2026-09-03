@@ -271,3 +271,14 @@ test('자막이 얼굴을 가리지 않는 위치에 있다', async () => {
   assert.match(avatar, /\.caption\{[^}]*position:absolute/, '영상 위에 얹어야 한다');
   assert.match(avatar, /\.caption\{[^}]*bottom:/, '아래쪽에 둬야 한다');
 });
+
+test('★모바일에서 자막·버튼이 서로 겹치지 않는다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 390px 실측: 자막이 얼굴을 가리고(화면 48% 지점), 소리 버튼 글자가 닫기 버튼에 잘렸다.
+  assert.match(avatar, /@media\(max-width:480px\)[\s\S]{0,400}\.caption\{/,
+    '모바일에서 자막 위치를 따로 잡아야 한다');
+  assert.match(avatar, /@media\(max-width:480px\)\{\.sound\{[^}]*left:12px/,
+    '모바일에서 소리 버튼을 왼쪽으로 옮겨 닫기 버튼과 겹치지 않게 해야 한다');
+  assert.match(avatar, /\.sound #sound-label\{display:none\}/,
+    '모바일에서는 아이콘만 남겨 폭을 줄여야 한다');
+});
