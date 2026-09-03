@@ -9,12 +9,16 @@ import { Icon } from './Icons';
 //   비회원이 기능을 누르면 곧바로 가입 창(setShowAuthModal)이 떴다. 무엇을 하는 곳인지,
 //   무엇을 주는지 한 줄도 없이 "가입하세요"만 요구한 셈이다.
 //   게스트 계정 자동 생성은 ?ref= 링크로 들어온 사람에게만 걸려 있어서, 그냥 방문한
-//   사람은 500P가 있다는 사실조차 모른 채 가입 창만 보고 나갔다.
+//   사람은 체험 포인트가 있다는 사실조차 모른 채 가입 창만 보고 나갔다.
 //   실제로 8월 정회원 가입은 0명이었다.
 //
 // 이 모달이 채우는 것은 '단계적 가입 유도'의 빠진 첫 단계다:
-//   비회원 → [체험회원 + 500P] → 2~3회 사용 → 잔액 소진 → 정회원
+//   비회원 → [체험회원 + 1,000P] → 몇 회 사용 → 잔액 소진 → 정회원
 //             ↑ 여기가 통째로 비어 있었다
+//
+// ★금액 표기는 서버 GUEST_SIGNUP_BONUS(=SIGNUP_BONUS, 1000)와 짝이다(2026-09-03 사장 지시로
+//   500 → 1000 통일). 한쪽만 고치면 "500P 받고 체험하기"를 눌렀는데 1000P가 들어오는
+//   불일치가 생긴다 — 실제로 안내 문구는 1,000P인데 지급은 500P였던 기간이 있었다.
 //
 // ★게스트 계정은 '체험 시작' 버튼을 눌렀을 때만 만든다(모달 표시만으로 만들지 않는다).
 //   렌더/표시 시점에 만들면 같은 사람이 여러 계정을 받는다 — 초대 링크를 3번 열었더니
@@ -80,7 +84,7 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                     )}
 
                     <div className="mt-5 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3">
-                        <p className="text-sm font-bold text-amber-900">🎁 체험 포인트 500P 무료 지급</p>
+                        <p className="text-sm font-bold text-amber-900">🎁 체험 포인트 1,000P 무료 지급</p>
                         <p className="mt-1 text-[12px] text-amber-800">
                             가입 없이 바로 시작 · 주요 기능 2~3회 체험할 수 있어요
                         </p>
@@ -96,7 +100,7 @@ export const GuestTrialModal: React.FC<GuestTrialModalProps> = ({ feature, onSuc
                         className="w-full py-3.5 rounded-2xl text-white font-bold text-[15px] transition active:scale-[0.98] disabled:opacity-60"
                         style={{ background: accent }}
                     >
-                        {loading ? '체험 준비 중…' : '500P 받고 바로 체험하기'}
+                        {loading ? '체험 준비 중…' : '1,000P 받고 바로 체험하기'}
                     </button>
                     <button
                         onClick={onLogin}

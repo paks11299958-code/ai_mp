@@ -163,7 +163,7 @@ const AppContent: React.FC = () => {
     // 비회원이 기능/페르소나를 눌렀을 때 띄우는 체험 안내 모달(2026-08-07 사장 지시).
     // null=닫힘. featureKey가 있으면 그 기능 설명을 보여주고, 체험 시작 후 그 기능으로 보낸다.
     // ★기존엔 곧바로 가입 창(setShowAuthModal)이라 "무엇을 주는지" 한 줄도 없었다 —
-    //   그냥 방문한 사람은 500P의 존재조차 모른 채 나갔고, 8월 정회원 가입은 0명이었다.
+    //   그냥 방문한 사람은 체험 포인트의 존재조차 모른 채 나갔고, 8월 정회원 가입은 0명이었다.
     const [guestTrialModal, setGuestTrialModal] = useState<{ featureKey?: string } | null>(null);
 
     // 학습자료(/learn) 게이트에서 온 로그인 복귀 — 이메일/카카오/모달 등 모든 로그인 경로 공통.
@@ -1493,7 +1493,7 @@ const AppContent: React.FC = () => {
         // 페르소나/기능 카드, 카테고리, 검색 등 정적 정보 영역은 그대로 사용 가능.
         if (screen === 'main') {
             // ★비회원 클릭 → 가입 창이 아니라 '체험 안내'를 먼저 보여준다(2026-08-07).
-            //   같은 행동(계정 생성)인데 "가입하세요"(부담)와 "500P 받고 써보세요"(혜택)는
+            //   같은 행동(계정 생성)인데 "가입하세요"(부담)와 "포인트 받고 써보세요"(혜택)는
             //   인상이 정반대다. 로그인 창은 모달 안 '이미 회원이신가요?'로 남겨둔다.
             const requireLogin = () => setGuestTrialModal({});
             const openTrialFor = (featureKey?: string) => setGuestTrialModal({ featureKey });
