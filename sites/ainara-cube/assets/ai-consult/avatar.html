@@ -14,9 +14,13 @@
     [data-state="thinking"] video{filter:saturate(.92) brightness(.98);animation:thinking 1.9s ease-in-out infinite}
     [data-state="fallback"] video{filter:saturate(.82)}
     .state{position:absolute;z-index:2;left:50%;bottom:max(18px,env(safe-area-inset-bottom));translate:-50% 0;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 12px;border:1px solid rgba(75,106,141,.2);border-radius:999px;background:rgba(255,255,255,.9);box-shadow:0 8px 28px rgba(33,63,99,.14);color:#31465e;font-size:12px;font-weight:700;white-space:nowrap;backdrop-filter:blur(10px)}
-    /* 모바일에서는 상태 배지가 자막과 겹친다 — 위쪽 왼편으로 옮긴다. */
-    @media(max-width:480px){.state{bottom:auto;top:12px;left:12px;translate:none;
-      font-size:11px;padding:6px 10px}}
+    /* ★모바일 배치(390px 실측 기준):
+       닫기(×) 버튼이 iframe 기준 x 292~328 · y 12~48 에 있다.
+       상태 배지를 위쪽에 두면 x 177~330 이라 38px 겹쳐 글자가 잘렸다.
+       → 배지는 자막 바로 위(아래쪽)로 내린다. 소리 버튼만 위쪽 왼편에 남긴다. */
+    @media(max-width:480px){.state{top:auto;left:50%;translate:-50% 0;
+      bottom:max(46px,calc(env(safe-area-inset-bottom) + 40px));
+      font-size:11px;padding:5px 10px;max-width:calc(100% - 20px)}}
     .dot{width:7px;height:7px;border-radius:50%;background:#5f8fc6;box-shadow:0 0 0 4px rgba(95,143,198,.13)}
     [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
     [data-state="speaking"] .dot{background:#28a170;box-shadow:0 0 0 4px rgba(40,161,112,.14)}
@@ -54,8 +58,7 @@
        글자를 감추고 아이콘만 남겨 폭을 줄이고, 왼쪽으로 옮긴다. */
     @media(max-width:480px){.sound{top:10px;right:auto;left:12px;padding:0;
       width:44px;min-width:44px;justify-content:center}
-      .sound #sound-label{display:none}
-      .state{left:auto;right:12px}}
+      .sound #sound-label{display:none}}
     /* 인사 중 + 아직 음소거면 → 초록으로 강조하고 살짝 흔들어 시선을 끈다 */
     [data-state="greeting"] .sound[data-muted="true"]{background:#28a170;border-color:#28a170;color:#fff;
       box-shadow:0 10px 30px rgba(40,161,112,.4);animation:nudge 1.5s ease-in-out infinite}

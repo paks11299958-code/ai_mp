@@ -279,6 +279,10 @@ test('★모바일에서 자막·버튼이 서로 겹치지 않는다', async ()
     '모바일에서 자막 위치를 따로 잡아야 한다');
   assert.match(avatar, /@media\(max-width:480px\)\{\.sound\{[^}]*left:12px/,
     '모바일에서 소리 버튼을 왼쪽으로 옮겨 닫기 버튼과 겹치지 않게 해야 한다');
+  // ★상태 배지를 위쪽에 두면 닫기(×) 버튼과 38px 겹쳐 글자가 잘린다
+  //   (390px 실측: 배지 x177~330 vs 닫기 x292~328). 아래쪽으로 내린다.
+  assert.match(avatar, /@media\(max-width:480px\)\{\.state\{top:auto/,
+    '모바일에서 상태 배지는 아래쪽에 둬야 한다(닫기 버튼 회피)');
   assert.match(avatar, /\.sound #sound-label\{display:none\}/,
     '모바일에서는 아이콘만 남겨 폭을 줄여야 한다');
 });
