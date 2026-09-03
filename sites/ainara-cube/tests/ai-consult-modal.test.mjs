@@ -327,3 +327,12 @@ test('★재생 준비를 canplay 로 기다린다(고정 시간 금지)', async
   assert.match(avatar, /readyState >= 3/, '이미 준비됐으면 즉시 진행해야 한다');
   assert.doesNotMatch(avatar, /setTimeout\(r, 300\)/, '고정 300ms 대기는 용량이 늘면 깨진다');
 });
+
+test('★영상 교체 시의 가짜 error 로 fallback 에 빠지지 않는다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 2026-09-03 실측: src 를 갈아 끼우면 error(err=none) → emptied 가 뜬다.
+  // 그걸 장애로 처리했더니 인사 영상이 readyState=4 로 잘 돌던 중 fallback 에 빠져
+  // 자막이 안 나왔다. MediaError 가 실제로 있을 때만 장애다.
+  assert.match(avatar, /if \(!video\.error\) return;/,
+    'video.error 가 없으면 실제 오류가 아니다');
+});

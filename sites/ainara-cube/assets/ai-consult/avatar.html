@@ -206,6 +206,11 @@
       if (root.dataset.state === 'greeting') setState('IDLE');
     });
     video.addEventListener('error', () => {
+      // ★★영상을 갈아 끼우는 순간에도 error 가 뜬다(src 교체 → emptied).
+      //   2026-09-03 실측: 인사 영상이 readyState=4 로 잘 돌던 중 error(err=none) 가
+      //   발생해 **fallback 에 빠지고 자막이 안 나왔다**. 실제 오류가 아니었다.
+      //   → MediaError 객체가 실제로 있을 때만 장애로 본다.
+      if (!video.error) return;
       if (root.dataset.state !== 'fallback') setState('FALLBACK');
     });
     window.addEventListener('message', event => {
