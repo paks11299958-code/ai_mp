@@ -336,3 +336,15 @@ test('★영상 교체 시의 가짜 error 로 fallback 에 빠지지 않는다'
   assert.match(avatar, /if \(!video\.error\) return;/,
     'video.error 가 없으면 실제 오류가 아니다');
 });
+
+test('★로딩 대기 중의 가짜 error 로도 fallback 에 빠지지 않는다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 2026-09-03: 전역 error 핸들러만 고쳤더니 여전히 fallback 이었다.
+  // canplay 대기 **안쪽** 리스너가 src 교체 시 error 로 즉시 reject 해서
+  // 로딩이 끝나기도 전에 실패 처리됐다(추적: state→fallback 이 error 보다 먼저, rs=0).
+  const guards = avatar.match(/if \(!video\.error\) return;/g) || [];
+  assert.ok(guards.length >= 2,
+    `error 판정 가드가 전역·로딩대기 양쪽에 있어야 한다(현재 ${guards.length}곳)`);
+  // 타임아웃은 별도 함수로 분리돼야 한다(error 가드에 걸려 무시되면 안 된다)
+  assert.match(avatar, /onTimeout/, '타임아웃은 error 가드와 분리돼야 한다');
+});
