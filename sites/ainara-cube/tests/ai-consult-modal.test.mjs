@@ -102,7 +102,9 @@ test('uses the SeoA 2.5D videos for the consultation avatar', async () => {
   const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
 
   assert.match(avatar, /src="\.\/seoa-idle\.mp4"/);
-  assert.match(avatar, /seoa-speaking-poc\.mp4/);
+  // ★답변 중에도 대기 영상을 쓴다(2026-09-03) — speaking-poc 는 더 이상 참조하지 않는다.
+  assert.doesNotMatch(avatar, /seoa-speaking-poc\.mp4/,
+    '답변 시 영상 전환은 제거됐다(내용과 무관한 입 모양이라 어색하다)');
   assert.match(avatar, /SEOA_AVATAR_STATE/);
   assert.match(avatar, /data-state="idle"/);
   assert.doesNotMatch(avatar, /model-viewer|\.glb|face-mask/);
@@ -172,9 +174,11 @@ test('★인사 영상은 1회 재생이고 소리가 켜진다', async () => {
 
 test('★인사가 idle·speaking 자리를 차지하지 않는다', async () => {
   const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
-  // 대기와 답변은 여전히 각자의 영상을 써야 한다
+  // 대기 영상은 그대로여야 한다(인사가 그 자리를 뺏으면 안 된다).
   assert.match(avatar, /seoa-idle\.mp4/);
-  assert.match(avatar, /seoa-speaking-poc\.mp4/);
+  // 답변 중에도 대기 영상을 쓰므로 speaking 전용 영상은 없다.
+  assert.match(avatar, /'GREETING' \? '\.\/seoa-greeting\.mp4' : '\.\/seoa-idle\.mp4'/,
+    '인사만 전용 영상이고 나머지는 대기 영상이다');
 });
 
 test('★iframe 이 준비되기 전에 열어도 인사가 도달한다', () => {
@@ -298,4 +302,14 @@ test('★인사 중에는 상태 배지를 감추되 다른 상태에서는 보�
     '요소 자체를 지우면 스크린리더 안내가 사라진다');
   assert.match(avatar, /'답변을 준비하고 있어요'/, '생각 중 문구는 남아야 한다');
   assert.match(avatar, /'서아가 답변하고 있어요'/, '답변 중 문구는 남아야 한다');
+});
+
+test('★답변 중에도 대기 영상을 유지한다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // speaking-poc 는 특정 문장으로 만든 립싱크 샘플이라 AI 가 무슨 답을 하든 같은 입 모양이
+  // 돈다 — 내용과 어긋나 오히려 어색하다(2026-09-03 사장 지시로 제거).
+  assert.doesNotMatch(avatar, /seoa-speaking-poc/, 'speaking 전용 영상을 참조하면 안 된다');
+  // 다만 상태 자체는 남아야 한다 — 배지 문구로 "답변 중"을 알린다.
+  assert.match(avatar, /'서아가 답변하고 있어요'/, '답변 중 안내 문구는 남아야 한다');
+  assert.match(avatar, /SPEAKING/, 'SPEAKING 상태는 유지돼야 한다');
 });

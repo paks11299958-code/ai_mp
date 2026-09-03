@@ -116,8 +116,11 @@
     async function setState(value) {
       const state = String(value || '').toUpperCase();
       if (!STATES.has(state)) return;
-      const src = state === 'GREETING' ? './seoa-greeting.mp4'
-        : state === 'SPEAKING' ? './seoa-speaking-poc.mp4' : './seoa-idle.mp4';
+      // ★답변 중에도 대기 영상을 그대로 둔다(2026-09-03 사장 지시).
+      //   speaking-poc 는 특정 문장으로 만든 립싱크 샘플이라, AI 가 무슨 답을 하든
+      //   **같은 입 모양**이 돈다 — 내용과 어긋나 오히려 어색하다.
+      //   상태 표시는 배지 문구("서아가 답변하고 있어요")로 충분하다.
+      const src = state === 'GREETING' ? './seoa-greeting.mp4' : './seoa-idle.mp4';
       root.dataset.state = state.toLowerCase();
       status.textContent = state === 'GREETING' ? '서아가 인사하고 있어요'
         : state === 'THINKING' ? '답변을 준비하고 있어요'
