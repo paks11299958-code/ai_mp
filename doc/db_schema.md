@@ -656,3 +656,49 @@ User의 대부분 관계는 `onDelete: Cascade`라 자동 삭제되나, **BoardR
 ★**마이그레이션 실행 시 주의**: 이 컨테이너에서 `.env.local` 의 외부 IP(34.50.27.95)로는
 `SocketTimeout` 이 난다. **내부 IP `10.178.0.2` 로 바꿔 실행**할 것(`.env.local` 자체는
 수정하지 않고 `DATABASE_URL=...` 환경변수로만 덮는다).
+
+---
+
+## AiAvatar* 6개 (2026-09-02~03 신설, 🧑‍🎤 AI 아바타 어드민 — **raw SQL만**, 운영 DB 실행 완료)
+
+사진 기반 2.5D 아바타(LivePortrait idle + MuseTalk 립싱크)의 프로젝트·자산·작업·검수·게시 원장.
+정본 문서: `doc/features/ai_avatar_admin.md`
+
+| 테이블 | 용도 | 신설 |
+|---|---|---|
+| `AiAvatarProject` | 프로젝트. `stage`: REFERENCE→IDLE→LIPSYNC→REVIEW→PUBLISHED | 09-02 |
+| `AiAvatarAsset` | 자산(이미지·영상). `storageKey`·`sha256`·`bytes` | 09-02 |
+| `AiAvatarJob` | 작업 큐. QUEUED/RUNNING/READY/FAILED/CANCELLED | 09-02 |
+| `AiAvatarPublication` | 게시 이력. `previousAssetId` 로 롤백 | 09-02 |
+| `AiAvatarAudit` | 감사 로그(actor·action·target·detail) | 09-02 |
+| **`AiAvatarReview`** | **검수 점수표**(identity·temporal·lipsync 1~5, passed) | **09-03** |
+
+★**`prisma db push` 금지 · 추가형 raw SQL만.** 운영 DB 스키마가 git `schema.prisma` 와
+다르므로 push 하면 남의 테이블이 날아간다. 마이그레이션:
+`shared-api/migrations/2026-09-03-ai-avatar-review.sql`
+
+### ★설계 근거 (다시 만들 때 이유를 잃지 않도록)
+
+- **`AiAvatarJob_active_key`** = `(projectId, kind) WHERE status IN ('QUEUED','RUNNING')`
+  부분 유니크. 같은 작업 중복 큐잉을 막는다.
+  🔴**그래서 죽은 RUNNING 회수가 필수다** — 크래시로 RUNNING 이 남으면 그 프로젝트의
+  그 종류 작업을 **영영 다시 만들 수 없다**. 종류별 타임아웃으로 회수한다
+  (idle 45 · 립싱크 60 · 준비 15 · 검수 20분). ★이 값은 서버2 디스패처·서버3 워커와
+  **셋이 같아야 한다** — 어긋나면 같은 작업이 두 번 돌아 GPU 요금이 두 배가 된다.
+- **`AiAvatarReview` 는 덮어쓰지 않고 행으로 쌓는다.** "언제 누가 몇 점을 줘서 게시가
+  열렸는가"가 감사 대상이라 프로젝트 행에 점수 칼럼을 붙이면 재검수 이력이 사라진다.
+- **CHECK 제약으로 1~5 를 DB 에서도 막는다.** 앱 검증만 믿으면 다른 경로(스크립트·수동
+  UPDATE)로 6점이 들어가고, 그때는 게이트가 아니라 **데이터가 거짓말을 한다**.
+- 입력 사진·생성 영상은 **bytea 에 넣지 않는다.** `storageKey` 만 저장한다.
+
+### 🔴 이 프로젝트의 Prisma raw 함정 (2026-09-02 실측)
+
+**Prisma raw 경로가 드라이버 오류를 `ReferenceError` 로 뭉갠다** → `e.code === '23505'`
+(unique violation)를 **볼 수 없다**. 그래서 "에러를 잡아 분기"하는 코드는 여기서 동작하지
+않는다 → **조건부 INSERT + `ON CONFLICT DO NOTHING`** 으로 애초에 오류가 안 나게 쓴다.
+
+**DB `CURRENT_TIMESTAMP` 는 UTC naive 다.** KST 를 붙이면 9시간이 어긋나 갓 만든 RUNNING 이
+540분 경과로 판정된다(실측). 시간 비교 코드는 `timezone.utc` 로 붙일 것.
+
+★마이그레이션 실행은 `.env.local` 외부 IP(34.50.27.95)가 아니라 **`@127.0.0.1:`** 로
+치환해 돌린다(보안 하드닝으로 외부 접근 차단 — 파일 자체는 고치지 말 것).
