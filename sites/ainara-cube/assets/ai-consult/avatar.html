@@ -73,7 +73,9 @@
       if (event.source !== window.parent || event.origin !== location.origin) return;
       if (event.data?.type === 'SEOA_AVATAR_STATE') setState(event.data.state);
     });
-    setState('IDLE');
+    // ★부모가 먼저 보낸 상태가 있으면 덮어쓰지 않는다. 여기서 무조건 IDLE 을 걸면
+    //   먼저 도착한 GREETING 이 지워진다(초기값은 이미 data-state="idle" 이다).
+    if (root.dataset.state === 'idle') setState('IDLE');
     window.parent.postMessage({type:'SEOA_AVATAR_READY'}, location.origin);
   </script>
 </body>

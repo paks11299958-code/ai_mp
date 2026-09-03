@@ -172,3 +172,39 @@ test('★인사가 idle·speaking 자리를 차지하지 않는다', async () =>
   assert.match(avatar, /seoa-idle\.mp4/);
   assert.match(avatar, /seoa-speaking-poc\.mp4/);
 });
+
+test('★iframe 이 준비되기 전에 열어도 인사가 도달한다', () => {
+  // 2026-09-03 실측 결함: 열자마자 postMessage 하면 iframe 이 아직 안 떠서 버려졌다.
+  // 운영에서 계속 idle 이었고, 코드만 봐서는 멀쩡해 보였다.
+  const fixture = createFixture();
+  const messages = [];
+  const frame = { contentWindow: { postMessage: (m) => messages.push(m) } };
+  const baseQuery = fixture.document.querySelector.bind(fixture.document);
+  fixture.document.querySelector = (sel) =>
+    sel === '[data-ai-consult-avatar]' ? frame : baseQuery(sel);
+
+  const viewListeners = [];
+  fixture.document.defaultView = {
+    location: { origin: 'https://aiworld.dbzone.kr' },
+    addEventListener: (t, h) => viewListeners.push([t, h]),
+    removeEventListener: () => {},
+    setTimeout: () => {},
+  };
+
+  initAiConsultModal(fixture.document);
+  fixture.openListeners.get('click')({ preventDefault() {}, currentTarget: fixture.openButton });
+
+  // iframe 이 뒤늦게 준비 신호를 보낸 상황을 재현
+  const before = messages.filter(m => m?.state === 'GREETING').length;
+  viewListeners.filter(([t]) => t === 'message')
+    .forEach(([, h]) => h({ data: { type: 'SEOA_AVATAR_READY' } }));
+  const after = messages.filter(m => m?.state === 'GREETING').length;
+
+  assert.ok(after > before, 'READY 를 받으면 인사를 다시 보내야 한다');
+});
+
+test('★iframe 초기화가 먼저 온 인사를 덮어쓰지 않는다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 무조건 setState('IDLE') 하면 먼저 도착한 GREETING 이 지워진다.
+  assert.match(avatar, /if \(root\.dataset\.state === 'idle'\) setState\('IDLE'\)/);
+});

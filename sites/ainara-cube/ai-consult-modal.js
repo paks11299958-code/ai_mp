@@ -14,7 +14,10 @@ export function initAiConsultModal(document) {
     document.body.style.overflow = 'hidden';
     // ★상담창을 열면 서아가 한 번 인사한다. 인사 영상은 대사가 있어 1회만 재생되고,
     //   끝나면 avatar.html 이 스스로 IDLE 로 돌아간다(여기서 되돌릴 필요 없다).
-    setAvatarState(document, 'GREETING');
+    // ★★여기서 바로 보내면 **iframe 이 아직 안 떠서 메시지가 버려진다**(2026-09-03 실측:
+    //   운영에서 열어보니 계속 idle 이었다). iframe 이 로드를 마치고 보내는
+    //   SEOA_AVATAR_READY 를 받은 뒤에 보내야 한다. 이미 떠 있으면 즉시 전달된다.
+    requestGreeting(document);
     closeButton.focus?.();
   };
 
@@ -38,6 +41,29 @@ export function initAiConsultModal(document) {
 }
 
 const AVATAR_STATES = new Set(['GREETING', 'IDLE', 'THINKING', 'SPEAKING', 'FALLBACK']);
+
+/**
+ * 인사를 요청한다 — iframe 준비 상태에 관계없이 한 번은 도달하게 한다.
+ *
+ * ★iframe 이 아직 로딩 중이면 postMessage 가 버려진다. 그래서 두 갈래로 건다:
+ *   ① 지금 바로 한 번(이미 떠 있는 경우 — 두 번째 열 때부터)
+ *   ② SEOA_AVATAR_READY 를 받으면 한 번 더(첫 진입)
+ *   중복 호출돼도 같은 영상을 다시 트는 것뿐이라 해롭지 않다.
+ */
+export function requestGreeting(document) {
+  const view = document.defaultView;
+  if (view?.addEventListener) {
+    const onReady = (event) => {
+      if (event.data?.type !== 'SEOA_AVATAR_READY') return;
+      view.removeEventListener('message', onReady);
+      setAvatarState(document, 'GREETING');
+    };
+    view.addEventListener('message', onReady);
+    // 준비 신호가 영영 안 와도 화면이 멈추지 않게 정리한다.
+    view.setTimeout?.(() => view.removeEventListener('message', onReady), 8000);
+  }
+  return setAvatarState(document, 'GREETING');
+}
 
 export function setAvatarState(document, state) {
   if (!AVATAR_STATES.has(state)) return false;
