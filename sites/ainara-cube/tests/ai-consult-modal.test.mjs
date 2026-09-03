@@ -232,3 +232,42 @@ test('★인사 중 소리를 켜면 처음부터 다시 튼다', async () => {
   // 중간에 켜면 멘트 앞부분을 이미 놓쳤다 — 되감아야 의미가 있다.
   assert.match(avatar, /video\.currentTime = 0/, '인사 중 켜면 되감아야 한다');
 });
+
+// ── 인사 자막 (2026-09-03) ────────────────────────────────────
+// ★자막은 어긋나도 에러가 안 난다. 입과 안 맞거나 대기 중에 남아 있어도
+//   화면상 멀쩡해 보이므로, 시각과 정리 시점을 코드로 못박는다.
+
+test('★자막 시각이 실제 음성과 맞는다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  const block = avatar.match(/const GREETING_CUES = \[([\s\S]*?)\];/);
+  assert.ok(block, 'GREETING_CUES 가 있어야 한다');
+
+  const cues = [...block[1].matchAll(/\[([\d.]+),\s*([\d.]+),\s*'([^']+)'\]/g)]
+    .map(m => [Number(m[1]), Number(m[2]), m[3]]);
+  assert.equal(cues.length, 3, '문장 3개여야 한다');
+
+  // 영상은 7.416초다 — 넘어가면 자막이 영상보다 오래 떠 있다.
+  assert.ok(cues.at(-1)[1] <= 7.5, `마지막 자막이 영상 길이를 넘는다: ${cues.at(-1)[1]}`);
+  // 시각이 앞뒤로 뒤집히면 자막이 안 뜨거나 겹친다.
+  for (const [a, b] of cues) assert.ok(a < b, `시작<끝이어야 한다: ${a},${b}`);
+  for (let i = 1; i < cues.length; i++) {
+    assert.ok(cues[i][0] >= cues[i-1][1], `자막이 겹친다: ${cues[i-1]} / ${cues[i]}`);
+  }
+  // ★실측한 문장 사이 쉼(3.255~3.792)에 세 번째 자막이 걸쳐 있으면 안 된다.
+  assert.ok(cues[2][0] >= 3.6, `두 번째 문장 시작이 너무 이르다: ${cues[2][0]}`);
+});
+
+test('★인사가 끝나면 자막을 지운다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 대기·답변 중에 인사말이 남아 있으면 안 된다.
+  assert.match(avatar, /if \(!greeting\) \{ caption\.dataset\.show = 'false'/,
+    '인사가 아니면 자막을 지워야 한다');
+  assert.match(avatar, /addEventListener\('timeupdate', updateCaption\)/,
+    '재생 위치에 따라 자막을 갱신해야 한다');
+});
+
+test('자막이 얼굴을 가리지 않는 위치에 있다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  assert.match(avatar, /\.caption\{[^}]*position:absolute/, '영상 위에 얹어야 한다');
+  assert.match(avatar, /\.caption\{[^}]*bottom:/, '아래쪽에 둬야 한다');
+});

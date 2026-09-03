@@ -18,6 +18,19 @@
     [data-state="thinking"] .dot{animation:pulse 1s ease-in-out infinite}
     [data-state="speaking"] .dot{background:#28a170;box-shadow:0 0 0 4px rgba(40,161,112,.14)}
     [data-state="fallback"] .dot{background:#b98432;box-shadow:0 0 0 4px rgba(185,132,50,.14)}
+    /* 인사 자막 — 소리를 안 켜도 멘트가 전달돼야 한다(자동재생이 음소거라서).
+       ★영상 위에 얹되 얼굴을 가리지 않게 아래쪽에 둔다. */
+    .caption{position:absolute;z-index:2;left:50%;translate:-50% 0;
+      bottom:max(70px,calc(env(safe-area-inset-bottom) + 62px));
+      width:min(92%,560px);padding:11px 15px;border-radius:12px;
+      background:rgba(18,32,48,.82);color:#fff;font-size:15px;font-weight:700;line-height:1.5;
+      text-align:center;letter-spacing:-.01em;box-shadow:0 10px 30px rgba(12,26,43,.3);
+      backdrop-filter:blur(8px);opacity:0;transition:opacity .25s ease;pointer-events:none;
+      overflow-wrap:break-word;}
+    .caption[data-show="true"]{opacity:1}
+    @media(max-width:420px){.caption{font-size:13.5px;padding:9px 12px;
+      bottom:max(64px,calc(env(safe-area-inset-bottom) + 58px))}}
+
     /* 소리 버튼 — 브라우저가 소리 있는 자동재생을 막으므로 사용자가 직접 켠다.
        ★인사 중에는 눈에 띄어야 한다(멘트를 놓치면 만든 의미가 없다). */
     .sound{position:absolute;z-index:3;top:14px;right:14px;display:flex;align-items:center;gap:7px;
@@ -40,6 +53,7 @@
 <body>
   <main class="avatar" id="avatar" data-state="idle">
     <video id="avatar-video" src="./seoa-idle.mp4" autoplay muted loop playsinline preload="auto" poster="./seoa-consult-poster.png" aria-label="서아 AI 사업 상담 매니저"></video>
+    <p class="caption" id="caption" data-show="false" aria-live="polite"></p>
     <button type="button" class="sound" id="sound-toggle" data-muted="true"
             aria-pressed="false" aria-label="소리 켜기">
       <span class="ico" id="sound-ico" aria-hidden="true">🔇</span><span id="sound-label">소리 켜기</span>
@@ -53,7 +67,21 @@
     const root = document.querySelector('#avatar');
     const video = document.querySelector('#avatar-video');
     const status = document.querySelector('#state-text');
+    const caption = document.querySelector('#caption');
     const soundBtn = document.querySelector('#sound-toggle');
+
+    /**
+     * 인사 자막 — [시작초, 끝초, 문구].
+     *
+     * ★시각은 실제 음성에서 잰 값이다(silencedetect: 3.255~3.792 에 문장 사이 쉼,
+     *   전체 7.416초). 눈대중으로 정하면 입과 자막이 어긋난다.
+     * ★멘트를 바꾸면 이 표와 seoa-greeting.mp4 를 함께 바꿔야 한다.
+     */
+    const GREETING_CUES = [
+      [0.15, 1.55, '안녕하세요.'],
+      [1.55, 3.40, 'AI Companion Partner 상담 매니저입니다.'],
+      [3.75, 7.42, '수익 구조, 라이선스, 운영 지원과 신청 절차를 안내해 드립니다.'],
+    ];
     const soundIco = document.querySelector('#sound-ico');
     const soundLabel = document.querySelector('#sound-label');
     // ★사용자가 소리를 켰는지 기억한다. 켠 뒤에는 상태가 바뀌어도 유지해야 한다 —
@@ -72,6 +100,8 @@
         : state === 'FALLBACK' ? '연결을 확인하고 있어요'
         : '상담 준비가 되었어요';
       const greeting = state === 'GREETING';
+      // 인사가 아니면 자막을 지운다(대기·답변 중에 인사말이 남아 있으면 안 된다).
+      if (!greeting) { caption.dataset.show = 'false'; caption.textContent = ''; }
       // ★인사만 1회 재생한다(반복하면 "안녕하세요"가 무한히 돈다).
       // ★★소리는 항상 끈다. 브라우저 자동재생 정책상 사용자가 클릭하기 전에는
       //   소리 있는 재생이 막히고, 그러면 재생 실패로 fallback 에 빠진다
@@ -93,6 +123,20 @@
         }
       }
     }
+
+    /** 현재 재생 위치에 해당하는 자막을 고른다. 없으면 숨긴다(문장 사이 쉼). */
+    function updateCaption() {
+      if (root.dataset.state !== 'greeting') { caption.dataset.show = 'false'; return; }
+      const t = video.currentTime;
+      const cue = GREETING_CUES.find(([a, b]) => t >= a && t < b);
+      if (cue) {
+        if (caption.textContent !== cue[2]) caption.textContent = cue[2];
+        caption.dataset.show = 'true';
+      } else {
+        caption.dataset.show = 'false';
+      }
+    }
+    video.addEventListener('timeupdate', updateCaption);
 
     function renderSound() {
       soundBtn.dataset.muted = String(!soundOn);
