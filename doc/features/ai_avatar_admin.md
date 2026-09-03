@@ -348,7 +348,12 @@ Phase 4 가 그 문을 여는 부분이다.
 |---|---|---|
 | consult | IDLE_VIDEO | `public/seoa/avatar/idle.mp4` |
 | consult | SPEAKING_VIDEO | `public/seoa/avatar/speaking-poc.mp4` |
-| aiworld | IDLE_VIDEO | `sites/ainara-cube/assets/ai-consult/idle.mp4` |
+| aiworld | IDLE_VIDEO | `sites/ainara-cube/assets/ai-consult/seoa-idle.mp4` |
+| aiworld | SPEAKING_VIDEO | `sites/ainara-cube/assets/ai-consult/seoa-speaking-poc.mp4` |
+
+★2026-09-03 정정: 전에 `idle.mp4`/`speaking.mp4` 로 적혀 있었는데 실제 파일에는
+**`seoa-` 접두사**가 붙는다. 그대로 따라 넣었으면 아무도 안 보는 파일만 하나 더 생겼다
+(shared-api `8fcca9e` 로 코드도 수정).
 
 **검증**: 워커 회귀 10개(사보타주 2종 실패 확인) · 게시 안내 5개 · shared-api 37개 ·
 프론트 53개 · check · build. **운영 실클릭**으로 게시 후 경고 배너까지 확인(잔존 0).
@@ -373,6 +378,43 @@ Phase 4 가 그 문을 여는 부분이다.
 🔴★★**서버3은 큐가 비면 5분 크론으로 곧 꺼진다.** 켜 두고 준비 작업을 하다가
 `유휴 30분` 에 걸려 종료됐다(실측). **작업을 먼저 큐에 넣고 그 다음에 켜는 순서**가 맞다.
 `idle_shutdown.sh` 는 큐에 QUEUED/RUNNING 이 있으면 스탬프를 갱신해 서버를 유지한다.
+
+### 2026-09-03 aiworld 상담 진입 인사 (사장 요청, GPU 약 ₩630)
+
+상담창(`aiworld.dbzone.kr` → AI 상담)을 열면 **서아가 한 번 인사한다.**
+
+```
+모달 열림 → GREETING(1회, 7.4초) → 끝나면 자동으로 IDLE(반복)
+                                        ↓
+                                  질문하면 THINKING → SPEAKING
+```
+
+★**붙이지 않고 상태로 나눴다.** 인사를 idle 자리에 두면 **대기 중 무한 반복**되고,
+speaking 자리에 두면 **답변할 때마다 인사**한다. `avatar.html` 이 이미 상태별로 영상을
+갈아 끼우므로 `GREETING` 상태를 새로 두는 것이 맞다. `loop=false` 라 `ended` 가 오고,
+그때 스스로 IDLE 로 돌아간다(실측 7.3초 전환).
+
+★**90도 인사는 이 방식으로 불가능하다.** 기존 드라이빙 30개의 **최대 고개 각도가 5.3도**라
+회전행렬을 직접 만들어 목례(30도)를 넣어 봤지만, **"눈 치켜뜨는 것처럼 어색"**했다
+(고개는 숙였는데 시선은 카메라라 위로 흘겨보는 인상). → 목례를 빼고 정면 멘트만 쓴다.
+진짜 인사 동작이 필요하면 **인사 자세 사진을 따로 만드는** 별도 작업이다.
+
+**자산**: `sites/ainara-cube/assets/ai-consult/seoa-greeting.mp4` (7.4초)
+**자막**: `GREETING_CUES` 3단계. ★시각은 실제 음성에서 쟀다(`silencedetect` 로 문장 사이
+쉼 3.255~3.792, 전체 7.416초 측정). **멘트를 바꾸면 이 표와 mp4 를 함께** 바꿔야 한다.
+
+**🔴배포 후에야 드러난 것 3건** — 전부 코드·단위 테스트는 통과했었다.
+- **인사가 버려짐**: 모달 열자마자 postMessage 하는데 iframe 이 아직 안 떠서 메시지가
+  사라지고, 뒤늦게 뜬 iframe 이 스스로 IDLE 을 걸어 덮어썼다.
+  → `SEOA_AVATAR_READY` 를 받고 다시 보낸다. ★테스트는 **전송만 보고 도달은 안 봤다**.
+- **자동재생 차단**: 소리를 켠 채 자동재생하면 브라우저가 막고, 그 실패가 연결 오류로
+  오인돼 `fallback` 이 된다. → **항상 음소거**로 틀고 소리는 사용자가 버튼으로 켠다.
+- **모바일 겹침 3종**: 자막이 얼굴을 가리고, 소리버튼 글자가 닫기(×)에 잘리고,
+  배지가 자막과 겹쳤다. ★캡처를 눈으로 보고 두 번 고쳤는데도 **1px 겹침**이 남았다 —
+  요소 4개를 좌표로 상호 대조해야 끝난다. 모바일 닫기 버튼은 iframe 기준 `x292~328·y12~48`.
+
+**회귀 20개**(`sites/ainara-cube/tests/ai-consult-modal.test.mjs`).
+⚠️`sites/ai-companion` 은 아직 옛 3D(glb)를 쓰는 **다른 사이트**다. aiworld = `ainara-cube`.
 
 ### 2026-09-03 운영 방식 결정 — **수동 기동으로 간다**
 
