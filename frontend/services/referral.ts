@@ -13,7 +13,10 @@ export function captureRefFromUrl(): boolean {
         const params = new URLSearchParams(window.location.search);
         const ref = params.get('ref');
         if (!ref) return false;
-        const code = ref.trim().toUpperCase().slice(0, 16);
+        // 24자 절단 — 소재별 채널 코드(SHORTS_TAROT 등)가 16자를 넘겨도 잘리지 않게(2026-09-03).
+        // ★백엔드 방문 API(auth.ts)·가입 ref 처리와 같은 길이여야 한다. 여기서만 자르면
+        //   방문에 기록된 코드와 가입에 실린 코드가 갈려 퍼널이 어긋난다.
+        const code = ref.trim().toUpperCase().slice(0, 24);
         if (code) {
             localStorage.setItem(KEY, code);
             // 방문 서버 기록(측정 퍼널 시작점, 2026-07-07). 비로그인 OK,
