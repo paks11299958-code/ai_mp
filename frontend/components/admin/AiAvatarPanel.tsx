@@ -65,6 +65,9 @@ export const AiAvatarPanel: React.FC = () => {
     const [reviews, setReviews] = useState<AiAvatarReviewRow[]>([]);
     // 화면에서 매기는 중인 점수(저장 전). 서버 판정은 저장 시점에만 한다.
     const [scores, setScores] = useState<Partial<Record<ReviewAxisKey, number>>>({});
+    // 게시 후 "사이트에 실제로 넣는 방법" 안내(자동 반영을 하지 않기 때문에 필요하다).
+    const [deployHint, setDeployHint] = useState<
+        { target: string; destPath: string | null; sha256: string; note: string } | null>(null);
     const [loading, setLoading] = useState(true);
     // 상세(자산·작업·게시)를 읽는 중에는 실행 버튼을 잠근다.
     // ★자산이 아직 안 온 상태로 게시를 누르면 '자산 없음'이라는 잘못된 안내가 뜬다(실측).
@@ -194,10 +197,15 @@ export const AiAvatarPanel: React.FC = () => {
         const asset = assets.find(a => a.kind === 'IDLE_VIDEO') ?? assets[0];
         if (!asset) { setError('게시할 자산이 없습니다. 먼저 자산을 등록하세요.'); return; }
         void run(async () => {
-            await adminApi.publishAiAvatar(selected.id, target, asset.id);
+            const res = await adminApi.publishAiAvatar(selected.id, target, asset.id);
             await loadDetail(selected.id);
             await loadProjects();
-            return `${TARGET_LABEL[target]}에 게시했습니다.`;
+            // ★"게시했습니다"로 끝내면 사이트가 바뀐 줄 안다. 실제로는 원장 기록까지이므로
+            //   무엇을 어디에 넣어야 하는지 함께 알린다(자동 반영은 하지 않기로 했다).
+            setDeployHint(res.deploy?.applied === false ? { target, ...res.deploy } : null);
+            return res.deploy?.applied === false
+                ? `${TARGET_LABEL[target]} 게시를 기록했습니다. 사이트 반영은 아래 안내를 따르세요.`
+                : `${TARGET_LABEL[target]}에 게시했습니다.`;
         });
     };
 
@@ -451,6 +459,20 @@ export const AiAvatarPanel: React.FC = () => {
                                 </div>
 
                                 <h5 className="mt-5 text-sm font-bold text-white">게시</h5>
+                                {deployHint && (
+                                    <div className="mt-2 rounded-lg border border-amber-400/30 bg-amber-400/5 p-3">
+                                        <p className="text-xs font-bold text-amber-200">
+                                            원장에만 기록됨 — 사이트는 아직 그대로입니다
+                                        </p>
+                                        <p className="mt-1 text-xs leading-5 text-amber-100/80">{deployHint.note}</p>
+                                        {deployHint.destPath && (
+                                            <p className="mt-1 break-all font-mono text-[11px] text-amber-100/70">
+                                                → {deployHint.destPath}
+                                                <br />sha256 {deployHint.sha256.slice(0, 16)}…
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
                                 <div className="mt-3 space-y-2">
                                     {PUBLISH_TARGETS.map((target) => {
                                         const pub = latestPublicationFor(target);

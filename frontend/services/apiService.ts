@@ -1757,7 +1757,11 @@ export const adminApi = {
         post<{ ok: boolean }>(`/admin/ai-avatar/jobs/${encodeURIComponent(id)}/cancel`, {}),
 
     publishAiAvatar: (projectId: string, target: string, assetId: string) =>
-        post<{ ok: boolean; publicationId: string }>(
+        post<{
+            ok: boolean; publicationId: string;
+            /** ★applied:false — 원장 기록일 뿐 사이트는 아직 안 바뀌었다. */
+            deploy?: { applied: boolean; destPath: string | null; sha256: string; note: string };
+        }>(
             `/admin/ai-avatar/projects/${encodeURIComponent(projectId)}/publish`, { target, assetId }),
 
     rollbackAiAvatar: (projectId: string, target: string) =>

@@ -237,3 +237,25 @@ describe('검수 점수표', () => {
         await screen.findByText(/통과 — 게시 가능/);
     });
 });
+
+// ── 게시 반영 안내 (Phase 5) ──────────────────────────────────────
+describe('게시 후 사이트 반영 안내', () => {
+    it('★게시해도 사이트는 안 바뀐다는 것을 화면이 말한다', async () => {
+        api.listAiAvatarProjects.mockResolvedValue({ ok: true, projects: [project()] });
+        api.getAiAvatarProject.mockResolvedValue(detail());
+        api.publishAiAvatar.mockResolvedValue({
+            ok: true, publicationId: 'pub1',
+            deploy: { applied: false, destPath: 'public/seoa/avatar/idle.mp4',
+                      sha256: 'abc1234567890def', note: '원장에 기록했습니다.' },
+        });
+        render(<AiAvatarPanel />);
+        await screen.findByText('검수 점수표');
+        // ★상세 로딩이 끝나야 게시 버튼이 열린다(로딩 중 잠금은 의도된 안전장치다).
+        const btn = screen.getByLabelText('공용 상담 (/consult) 게시') as HTMLButtonElement;
+        await waitFor(() => expect(btn.disabled).toBe(false));
+        fireEvent.click(btn);
+        // "게시했습니다"로 끝나면 사람은 사이트가 바뀐 줄 안다.
+        await screen.findByText(/원장에만 기록됨 — 사이트는 아직 그대로입니다/);
+        expect(screen.getByText(/public\/seoa\/avatar\/idle\.mp4/)).toBeTruthy();
+    });
+});
