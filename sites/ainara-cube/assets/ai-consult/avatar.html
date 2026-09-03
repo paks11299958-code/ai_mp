@@ -29,7 +29,9 @@
     <div class="state" role="status" aria-live="polite"><span class="dot" aria-hidden="true"></span><span id="state-text">상담 준비가 되었어요</span></div>
   </main>
   <script>
-    const STATES = new Set(['IDLE','THINKING','SPEAKING','FALLBACK']);
+    const STATES = new Set(['GREETING','IDLE','THINKING','SPEAKING','FALLBACK']);
+    // ★인사 영상은 대사가 있어서 **1회만** 재생한다. 반복하면 "안녕하세요"가 무한히 돈다.
+    //   끝나면 스스로 IDLE 로 넘어간다(부모가 따로 안 시켜도 된다).
     const root = document.querySelector('#avatar');
     const video = document.querySelector('#avatar-video');
     const status = document.querySelector('#state-text');
@@ -37,18 +39,33 @@
     async function setState(value) {
       const state = String(value || '').toUpperCase();
       if (!STATES.has(state)) return;
-      const src = state === 'SPEAKING' ? './seoa-speaking-poc.mp4' : './seoa-idle.mp4';
+      const src = state === 'GREETING' ? './seoa-greeting.mp4'
+        : state === 'SPEAKING' ? './seoa-speaking-poc.mp4' : './seoa-idle.mp4';
       root.dataset.state = state.toLowerCase();
-      status.textContent = state === 'THINKING' ? '답변을 준비하고 있어요'
+      status.textContent = state === 'GREETING' ? '서아가 인사하고 있어요'
+        : state === 'THINKING' ? '답변을 준비하고 있어요'
         : state === 'SPEAKING' ? '서아가 답변하고 있어요'
         : state === 'FALLBACK' ? '연결을 확인하고 있어요'
         : '상담 준비가 되었어요';
+      const greeting = state === 'GREETING';
+      // ★인사만 소리를 켠다. 자동재생 정책상 음소거가 아니면 막힐 수 있어,
+      //   실패하면 아래 catch 에서 음소거로 한 번 더 시도한다(영상까지 잃지 않게).
+      video.loop = !greeting;
+      video.muted = !greeting;
       if (!video.currentSrc.endsWith(src.slice(1))) { video.src = src; video.load(); }
       video.playbackRate = state === 'THINKING' ? .82 : 1;
       try { await video.play(); }
-      catch { if (state !== 'FALLBACK') setState('FALLBACK'); }
+      catch {
+        // 소리 있는 자동재생이 막힌 경우 — 음소거로 낮춰 인사 영상이라도 보여준다.
+        if (greeting) { video.muted = true; try { await video.play(); return; } catch {} }
+        if (state !== 'FALLBACK') setState('FALLBACK');
+      }
     }
 
+    // 인사가 끝나면 스스로 대기로 돌아간다(다른 상태에서는 loop 라 ended 가 안 온다).
+    video.addEventListener('ended', () => {
+      if (root.dataset.state === 'greeting') setState('IDLE');
+    });
     video.addEventListener('error', () => {
       if (root.dataset.state !== 'fallback') setState('FALLBACK');
     });

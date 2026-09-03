@@ -123,3 +123,52 @@ test('sends only allowed avatar states to the same-origin iframe', () => {
     'https://aiworld.dbzone.kr',
   ]]);
 });
+
+// ── 상담창 진입 인사 (2026-09-03) ─────────────────────────────
+// ★인사 영상은 **대사가 있는** 영상이다. idle 처럼 반복하면 "안녕하세요"가 무한히 돌고,
+//   speaking 자리에 두면 답변할 때마다 인사한다. 그래서 자리와 반복 여부를 못박는다.
+
+test('상담창을 열면 인사 상태로 시작한다', () => {
+  const fixture = createFixture();
+  const messages = [];
+  const frame = { contentWindow: { postMessage: (m) => messages.push(m) } };
+  const baseQuery = fixture.document.querySelector.bind(fixture.document);
+  fixture.document.querySelector = (sel) =>
+    sel === '[data-ai-consult-avatar]' ? frame : baseQuery(sel);
+  fixture.document.defaultView = { location: { origin: 'https://aiworld.dbzone.kr' } };
+
+  initAiConsultModal(fixture.document);
+  fixture.openListeners.get('click')({ preventDefault() {}, currentTarget: fixture.openButton });
+
+  const states = messages.filter(m => m?.type === 'SEOA_AVATAR_STATE').map(m => m.state);
+  assert.ok(states.includes('GREETING'), `열었을 때 GREETING 이어야 한다: ${states}`);
+  assert.equal(fixture.modal.hidden, false);
+});
+
+test('GREETING 이 허용 상태에 포함된다', () => {
+  const messages = [];
+  const frame = { contentWindow: { postMessage: (...a) => messages.push(a[0]) } };
+  const document = {
+    defaultView: { location: { origin: 'https://aiworld.dbzone.kr' } },
+    querySelector: (s) => s === '[data-ai-consult-avatar]' ? frame : null,
+  };
+  assert.equal(setAvatarState(document, 'GREETING'), true);
+});
+
+test('★인사 영상은 1회 재생이고 소리가 켜진다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+
+  assert.match(avatar, /seoa-greeting\.mp4/, '인사 영상 파일을 써야 한다');
+  // 반복하면 인사말이 무한히 돈다 / 음소거면 멘트가 안 들린다
+  assert.match(avatar, /video\.loop\s*=\s*!greeting/, 'GREETING 만 loop 를 꺼야 한다');
+  assert.match(avatar, /video\.muted\s*=\s*!greeting/, 'GREETING 만 소리를 켜야 한다');
+  // 끝나고 대기로 안 돌아가면 마지막 프레임에서 멈춘다
+  assert.match(avatar, /addEventListener\('ended'/, '끝나면 IDLE 로 돌아가야 한다');
+});
+
+test('★인사가 idle·speaking 자리를 차지하지 않는다', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 대기와 답변은 여전히 각자의 영상을 써야 한다
+  assert.match(avatar, /seoa-idle\.mp4/);
+  assert.match(avatar, /seoa-speaking-poc\.mp4/);
+});

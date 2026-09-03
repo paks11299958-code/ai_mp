@@ -12,7 +12,9 @@ export function initAiConsultModal(document) {
     returnFocus = event?.currentTarget || null;
     modal.hidden = false;
     document.body.style.overflow = 'hidden';
-    setAvatarState(document, 'IDLE');
+    // ★상담창을 열면 서아가 한 번 인사한다. 인사 영상은 대사가 있어 1회만 재생되고,
+    //   끝나면 avatar.html 이 스스로 IDLE 로 돌아간다(여기서 되돌릴 필요 없다).
+    setAvatarState(document, 'GREETING');
     closeButton.focus?.();
   };
 
@@ -35,7 +37,7 @@ export function initAiConsultModal(document) {
   initAiConsultAssistant(document);
 }
 
-const AVATAR_STATES = new Set(['IDLE', 'THINKING', 'SPEAKING', 'FALLBACK']);
+const AVATAR_STATES = new Set(['GREETING', 'IDLE', 'THINKING', 'SPEAKING', 'FALLBACK']);
 
 export function setAvatarState(document, state) {
   if (!AVATAR_STATES.has(state)) return false;
