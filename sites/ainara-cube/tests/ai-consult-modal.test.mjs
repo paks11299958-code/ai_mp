@@ -318,3 +318,12 @@ test('★답변 중에도 대기 영상을 유지한다', async () => {
   assert.match(avatar, /'서아가 답변하고 있어요'/, '답변 중 안내 문구는 남아야 한다');
   assert.match(avatar, /SPEAKING/, 'SPEAKING 상태는 유지돼야 한다');
 });
+
+test('★재생 준비를 canplay 로 기다린다(고정 시간 금지)', async () => {
+  const avatar = await readFile(new URL('../assets/ai-consult/avatar.html', import.meta.url), 'utf8');
+  // 2026-09-03 운영 실측: 고정 300ms 대기로는 786KB 영상이 준비되기 전에 play() 가
+  // 실패해 fallback 에 빠졌다. 영상 용량이 늘어도 견디려면 이벤트를 기다려야 한다.
+  assert.match(avatar, /addEventListener\('canplay'/, 'canplay 를 기다려야 한다');
+  assert.match(avatar, /readyState >= 3/, '이미 준비됐으면 즉시 진행해야 한다');
+  assert.doesNotMatch(avatar, /setTimeout\(r, 300\)/, '고정 300ms 대기는 용량이 늘면 깨진다');
+});

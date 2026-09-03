@@ -144,10 +144,23 @@
       video.playbackRate = state === 'THINKING' ? .82 : 1;
       try { await video.play(); }
       catch {
-        // ★load() 직후엔 아직 준비가 안 돼 실패할 수 있다. 한 번 더 기다렸다 시도하고,
-        //   그래도 안 되면 그때 fallback 이다(성급히 오류로 만들지 않는다).
+        // ★load() 직후엔 아직 준비가 안 돼 실패한다. 고정 시간(300ms)으로 기다렸더니
+        //   인사 영상이 786KB 로 커진 뒤 부족해서 **fallback 에 빠졌다**(2026-09-03 운영 실측).
+        //   → 재생 가능해질 때까지 canplay 를 기다린다(최대 6초). 용량이 늘어도 견딘다.
         try {
-          await new Promise(r => setTimeout(r, 300));
+          await new Promise((resolve, reject) => {
+            if (video.readyState >= 3) return resolve();
+            const ok = () => { cleanup(); resolve(); };
+            const ng = () => { cleanup(); reject(new Error('load failed')); };
+            const cleanup = () => {
+              video.removeEventListener('canplay', ok);
+              video.removeEventListener('error', ng);
+              clearTimeout(timer);
+            };
+            const timer = setTimeout(ng, 6000);
+            video.addEventListener('canplay', ok);
+            video.addEventListener('error', ng);
+          });
           await video.play();
         } catch {
           if (state !== 'FALLBACK') setState('FALLBACK');
