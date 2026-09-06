@@ -33,8 +33,13 @@ const TABS: { key: HerdrTab; label: string; icon: string; desc: string }[] = [
     { key: 'shorts',   label: '쇼츠',     icon: 'Play',     desc: '세로 영상·자막·업로드' },
     // ★'Film' 은 Icons.tsx 에 등록돼 있지 않다 — 없는 이름을 주면 빈 자리가 된다(실측).
     { key: 'video',    label: '영상',     icon: 'Sparkles', desc: 'i2v — 편당 250~566원' },
-    { key: 'dev',      label: '개발',     icon: 'Cpu',      desc: '명세를 주고 코드로' },
-    { key: 'research-dev', label: '리서치 개발', icon: 'Search', desc: '리서치 명세부터 Codex 개발까지' },
+    // ★라벨이 스스로 차이를 말하게 한다(2026-09-06 사장 지시). 예전 '개발'/'리서치 개발'은
+    //   이름만 봐선 무엇이 다른지 알 수 없었다. 진짜 차이는 **명세를 누가 쓰느냐**다.
+    //   desc 는 hover 툴팁이라 모바일에선 안 보인다 — 라벨에 담아야 한다.
+    { key: 'dev',      label: '개발(직접 명세)', icon: 'Cpu',
+      desc: '내가 명세를 쓴다 · 클로드가 개발 · 시안·이미지·승인 목록까지' },
+    { key: 'research-dev', label: '개발(AI 명세)', icon: 'Search',
+      desc: '질문지만 채우면 AI가 명세를 쓴다 · 유형이 리뷰 여부를 자동 결정' },
     { key: 'results',  label: '결과',     icon: 'CheckCircle', desc: '진행 기록과 산출물' },
 ];
 

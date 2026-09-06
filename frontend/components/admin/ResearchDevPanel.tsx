@@ -11,7 +11,10 @@ import {
     type ResearchWorkType,
 } from './researchDevBrief';
 
-const STEPS = ['유형·요구사항', '리서치', '명세·컨셉', '텔레그램 승인', 'Codex 개발', '검증·검토', '배포·URL'] as const;
+// ★'Codex 개발' 이 아니라 '개발' 이다(2026-09-06): 코덱스 한도가 차면 클로드로 자동
+//   폴백하므로 엔진을 단정하면 화면이 거짓말을 한다. 실제로 어느 엔진이 돌았는지는
+//   전환이 일어난 그 순간 텔레그램으로 알린다(devai_start.apply_agent_fallback).
+const STEPS = ['유형·요구사항', '리서치', '명세·컨셉', '텔레그램 승인', '개발', '검증·검토', '배포·URL'] as const;
 const inputCls = 'w-full rounded-xl border border-gray-700 bg-gray-950/70 px-3.5 py-3 text-sm text-white placeholder:text-gray-600 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20';
 
 type FieldDef = { key: keyof ResearchDevBrief; label: string; hint: string; required?: boolean; multiline?: boolean };
@@ -115,6 +118,6 @@ export const ResearchDevPanel: React.FC = () => {
 
         {error && <div role="alert" className="rounded-lg border border-red-800 bg-red-900/30 px-3 py-2 text-xs text-red-300">{error}</div>}
         {message && <div role="status" className="rounded-lg border border-emerald-800 bg-emerald-900/20 px-3 py-2 text-xs text-emerald-200">{message}</div>}
-        <section className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-bold text-white">Claude/Codex에 전달될 개발 명세</h3><span className="text-[11px] text-gray-500">입력과 동시에 자동 생성</span></div><pre className="mt-3 max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-xl border border-gray-800 bg-gray-950/70 p-4 text-xs leading-relaxed text-gray-300">{handoff}</pre><div className="mt-4 grid gap-2 sm:grid-cols-2"><button type="button" onClick={()=>void prepare()} disabled={!ready||busy} className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-200 disabled:opacity-35">{saved&&!dirty ? '✓ 입력 명세 저장됨' : '1. 리서치 준비'}</button><button type="button" onClick={()=>void start()} disabled={!saved||dirty||busy} aria-describedby="research-dev-boundary" className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-35">2. 개발 시작</button></div><p id="research-dev-boundary" className="mt-2 text-[11px] text-gray-500">명세 저장만으로는 실행되지 않습니다. 개발 시작과 확인창 뒤에만 V2 파이프라인이 가동됩니다.</p></section>
+        <section className="rounded-2xl border border-gray-800 bg-gray-900/70 p-4 sm:p-5"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="text-sm font-bold text-white">개발 에이전트에 전달될 명세</h3><span className="text-[11px] text-gray-500">입력과 동시에 자동 생성</span></div><pre className="mt-3 max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-xl border border-gray-800 bg-gray-950/70 p-4 text-xs leading-relaxed text-gray-300">{handoff}</pre><div className="mt-4 grid gap-2 sm:grid-cols-2"><button type="button" onClick={()=>void prepare()} disabled={!ready||busy} className="rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-4 py-3 text-sm font-bold text-cyan-200 disabled:opacity-35">{saved&&!dirty ? '✓ 입력 명세 저장됨' : '1. 리서치 준비'}</button><button type="button" onClick={()=>void start()} disabled={!saved||dirty||busy} aria-describedby="research-dev-boundary" className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-bold text-white disabled:opacity-35">2. 개발 시작</button></div><p id="research-dev-boundary" className="mt-2 text-[11px] text-gray-500">명세 저장만으로는 실행되지 않습니다. 개발 시작과 확인창 뒤에만 V2 파이프라인이 가동됩니다.</p></section>
     </div></div>;
 };

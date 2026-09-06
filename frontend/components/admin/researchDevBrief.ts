@@ -42,9 +42,12 @@ export const EMPTY_RESEARCH_DEV_BRIEF: ResearchDevBrief = {
 };
 
 export const RESEARCH_WORK_TYPES: Array<{ key: ResearchWorkType; label: string; summary: string }> = [
-    { key: 'simple', label: '1. 단순 문구·관리 화면', summary: 'Codex 단독 · Claude 검토 OFF' },
-    { key: 'feature', label: '2. 일반 기능', summary: 'Claude 명세 · Codex 구현 · 자동 테스트' },
-    { key: 'risk', label: '3. 위험 기능', summary: 'Claude 명세 · Codex 구현 · Claude diff 검토' },
+    // ★구현 엔진을 이름으로 못 박지 않는다(2026-09-06): 코덱스 한도가 차면 클로드로
+    //   자동 폴백하므로 'Codex 구현'이라고 쓰면 화면이 거짓말을 한다.
+    //   사장이 유형을 고를 때 실제로 필요한 정보는 **명세를 누가 쓰고 검토가 붙느냐**다.
+    { key: 'simple', label: '1. 단순 문구·관리 화면', summary: '명세 그대로 구현 · 검토 없음' },
+    { key: 'feature', label: '2. 일반 기능', summary: 'AI 명세 · 자동 테스트 · 검토 없음' },
+    { key: 'risk', label: '3. 위험 기능', summary: 'AI 명세 · Claude diff 검토 ON' },
     { key: 'homepage', label: '4. 홈페이지·랜딩', summary: '화면 캡처 · Claude 시각 검토 · 사장 승인' },
 ];
 
