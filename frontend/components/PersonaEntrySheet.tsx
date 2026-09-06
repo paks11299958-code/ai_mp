@@ -2,6 +2,7 @@ import React from 'react';
 import { MpnFeatureIcon } from './MainPageNew';
 import { SajuEntry } from './persona/SajuEntry';
 import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
+import { ChaerinStudioEntry } from './persona/ChaerinStudioEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -74,6 +75,13 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     //   ★임의 문자열 매칭이 아니라 위 도결 분기와 같은 규약을 그대로 쓴다.
     if (guide.title?.startsWith('서아')) {
         return <SeoaNewsDeskEntry guide={guide} onClose={onClose} onInvite={onInvite} onFeature={onFeature} />;
+    }
+    // ★윤채린도 같은 규약으로 AI 스튜디오 랜딩으로 갈아 끼운다(2026-09-06 사장 지시).
+    //   얼굴을 바꿔주는 기능이 넷인데 기능 카드로 흩어져 "AI 스튜디오"라는 정체가 안 보였다.
+    //   판별 키는 도결·서아와 **똑같이** guide.title 접두사다.
+    if (guide.title?.startsWith('윤채린')) {
+        return <ChaerinStudioEntry guide={guide} onClose={onClose} onStart={onStart}
+                                   onFeature={onFeature} onInvite={onInvite} />;
     }
 
     const who = guide.personaName || guide.title;
