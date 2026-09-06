@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>윤채린 진입화면 시안 B — 매거진 화보</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Noto+Serif+KR:wght@300;600&display=swap" rel="stylesheet">
+<style>
+:root{ --ink:#131013; --paper:#F4F1EC; --accent:#B8474F; --soft:#8B8079; --line:rgba(19,16,19,.12) }
+*{box-sizing:border-box}
+body{margin:0;background:#26232A;font-family:'Pretendard',system-ui,sans-serif;color:var(--ink)}
+.wrap{max-width:430px;margin:0 auto;background:var(--paper);min-height:100vh;position:relative;
+  box-shadow:0 0 60px rgba(0,0,0,.35);overflow:hidden}
+.disp{font-family:'Playfair Display',serif}
+.serif{font-family:'Noto Serif KR',serif}
+
+.close{position:absolute;top:16px;right:16px;z-index:9;width:36px;height:36px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.3);color:#fff;font-size:15px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* 표지 */
+.cover{position:relative;height:430px;background:linear-gradient(165deg,#3A2F33 0%,#6B4E52 48%,#A87A78 100%);
+  overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:0 22px 26px}
+.cover::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(60% 45% at 68% 26%, rgba(255,222,214,.42), transparent 62%)}
+.cover::after{content:'';position:absolute;left:-10%;right:-10%;top:52%;height:56%;
+  background:radial-gradient(50% 50% at 50% 50%, rgba(255,255,255,.14), transparent 70%);
+  transform:rotate(-7deg)}
+.mast{position:absolute;top:26px;left:22px;right:22px;display:flex;
+  justify-content:space-between;align-items:baseline;color:#fff;z-index:2}
+.mast .t{font-size:25px;letter-spacing:.02em;font-weight:900}
+.mast .n{font-size:10px;letter-spacing:.28em;opacity:.72}
+.cover .txt{position:relative;z-index:2;color:#fff}
+.cover .kick{font-size:10.5px;letter-spacing:.3em;opacity:.8;margin-bottom:13px}
+.cover h1{margin:0 0 12px;font-size:38px;line-height:1.1;font-weight:900;letter-spacing:-.02em}
+.cover h1 span{display:block;font-size:19px;font-weight:400;letter-spacing:.04em;
+  margin-top:11px;opacity:.9}
+.cover .by{font-size:11.5px;opacity:.72;letter-spacing:.06em}
+
+/* 목차 */
+.toc{padding:30px 22px 6px}
+.toc .lbl{font-size:10px;letter-spacing:.3em;color:var(--accent);font-weight:700;margin-bottom:16px}
+.item{display:flex;gap:15px;padding:17px 0;border-top:1px solid var(--line);cursor:pointer;
+  align-items:center;transition:padding-left .18s}
+.item:hover{padding-left:5px}
+.item:last-child{border-bottom:1px solid var(--line)}
+.item .no{font-family:'Playfair Display',serif;font-size:27px;color:var(--accent);
+  line-height:1;width:38px;flex:0 0 38px;opacity:.85}
+.item .bd{flex:1;min-width:0}
+.item b{display:block;font-size:15px;margin-bottom:4px;font-weight:700;letter-spacing:-.01em}
+.item small{display:block;font-size:11.5px;color:var(--soft);line-height:1.6}
+.item .pt{font-size:10px;color:var(--soft);white-space:nowrap;letter-spacing:.04em}
+
+/* 사진 */
+.shoot{margin:26px 22px 0;border:1px solid var(--line);border-radius:2px;padding:22px 18px;
+  text-align:center;background:#fff}
+.shoot .ic{font-size:25px;margin-bottom:10px}
+.shoot b{display:block;font-size:14px;margin-bottom:6px;letter-spacing:-.01em}
+.shoot small{font-size:11.5px;color:var(--soft);line-height:1.65;display:block}
+.shoot .sec{margin-top:12px;padding-top:11px;border-top:1px dotted var(--line);
+  font-size:10.5px;color:var(--accent);line-height:1.55}
+
+/* 대담 */
+.talk{margin:26px 22px 0;padding:20px 18px;background:var(--ink);color:#fff;cursor:pointer;
+  display:flex;align-items:center;gap:14px}
+.talk .q{font-family:'Playfair Display',serif;font-size:34px;line-height:.8;color:var(--accent)}
+.talk b{display:block;font-size:14px;margin-bottom:4px}
+.talk small{font-size:11.5px;opacity:.66;line-height:1.55}
+.talk .go{margin-left:auto;opacity:.5}
+
+.foot{padding:26px 22px 40px;text-align:center;font-size:10.5px;color:#A99E96;line-height:1.75}
+.badge{display:inline-block;margin-bottom:12px;padding:5px 12px;border:1px solid var(--line);
+  font-size:10.5px;letter-spacing:.1em;color:var(--soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="close">✕</button>
+
+  <div class="cover">
+    <div class="mast">
+      <div class="t disp">CHAERIN</div>
+      <div class="n">ISSUE 01</div>
+    </div>
+    <div class="txt">
+      <div class="kick">AI BEAUTY EDITORIAL</div>
+      <h1 class="disp">Another<br>You<span class="serif">사진 한 장으로 만나는 또 다른 나</span></h1>
+      <div class="by">EDITOR — 윤채린 · 뷰티 컨설턴트</div>
+    </div>
+  </div>
+
+  <div class="toc">
+    <div class="lbl">CONTENTS</div>
+
+    <div class="item"><div class="no disp">01</div><div class="bd">
+      <b>시간여행</b><small>10대부터 80대까지, 시간을 건너뛴 얼굴</small></div>
+      <div class="pt">100P</div></div>
+
+    <div class="item"><div class="no disp">02</div><div class="bd">
+      <b>헤어스타일</b><small>48종 중에서 오늘의 나를 고르다</small></div>
+      <div class="pt">200P</div></div>
+
+    <div class="item"><div class="no disp">03</div><div class="bd">
+      <b>전통의상</b><small>나라별 왕실의상, 전신 화보로</small></div>
+      <div class="pt">200P</div></div>
+
+    <div class="item"><div class="no disp">04</div><div class="bd">
+      <b>닮은꼴</b><small>당신과 닮은 얼굴을 찾아서</small></div>
+      <div class="pt">무료</div></div>
+
+    <div class="item"><div class="no disp">05</div><div class="bd">
+      <b>관상</b><small>얼굴에 적힌 이야기를 읽다</small></div>
+      <div class="pt">300P</div></div>
+  </div>
+
+  <div class="shoot">
+    <div class="ic">📷</div>
+    <b>촬영을 시작합니다</b>
+    <small>사진 한 장이면 위 다섯 편 모두 진행됩니다.<br>매 편마다 다시 올릴 필요 없습니다.</small>
+    <div class="sec">얼굴 원본은 서버에 남기지 않습니다 — 완성된 화보만 보관</div>
+  </div>
+
+  <div class="talk">
+    <div class="q disp">"</div>
+    <div><b>에디터와 대화</b><small>피부·화장·스타일, 무엇이든</small></div>
+    <div class="go">›</div>
+  </div>
+
+  <div class="foot">
+    <div class="badge">시안 B · 매거진 화보</div><br>
+    잡지를 넘기듯 기능을 목차로 배치했습니다.<br>도결 선생의 '사주 사이트' 같은 결로,<br>윤채린은 '뷰티 매거진' 결을 노렸습니다.
+  </div>
+</div>
+</body>
+</html>

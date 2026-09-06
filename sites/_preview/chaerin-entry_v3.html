@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>윤채린 진입화면 시안 C — 매직 미러</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500&display=swap" rel="stylesheet">
+<style>
+:root{ --bg:#0E0B10; --bg2:#171320; --glow:#D9A7C7; --glow2:#8FA8D9;
+       --text:#F2EAF0; --soft:#A093A6; --line:rgba(217,167,199,.20) }
+*{box-sizing:border-box}
+body{margin:0;background:#07060A;font-family:'Pretendard',system-ui,sans-serif;color:var(--text)}
+.wrap{max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;
+  background:radial-gradient(120% 70% at 50% 0%, #241C2C 0%, var(--bg) 55%, #07060A 100%)}
+.serif{font-family:'Noto Serif KR',serif}
+
+.close{position:absolute;top:15px;right:15px;z-index:9;width:37px;height:37px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--soft);
+  font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* 거울 */
+.stage{padding:60px 22px 8px;text-align:center;position:relative}
+.kick{font-size:10.5px;letter-spacing:.32em;color:var(--glow);opacity:.85;margin-bottom:15px}
+.stage h1{margin:0 0 11px;font-size:26px;line-height:1.45;font-weight:300;letter-spacing:.01em}
+.stage h1 b{font-weight:500;color:var(--glow)}
+.stage .lead{margin:0 0 30px;font-size:12.5px;color:var(--soft);line-height:1.75}
+
+.mirror{position:relative;width:225px;height:290px;margin:0 auto;
+  border-radius:112px 112px 96px 96px;overflow:hidden;
+  background:linear-gradient(170deg,#2C2336,#1A1622);
+  border:1px solid var(--line);
+  box-shadow:0 0 0 6px rgba(217,167,199,.05), 0 20px 50px rgba(0,0,0,.6),
+             inset 0 0 60px rgba(217,167,199,.08)}
+.mirror .shine{position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 32%,rgba(255,255,255,.13) 46%,transparent 58%);
+  animation:sweep 5.5s ease-in-out infinite}
+@keyframes sweep{0%,100%{transform:translateX(-58%)}50%{transform:translateX(58%)}}
+.mirror .face{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:9px}
+.mirror .face .ic{font-size:44px;filter:grayscale(.3) opacity(.85)}
+.mirror .face .cap{font-size:11px;letter-spacing:.18em;color:var(--soft)}
+.orb{position:absolute;border-radius:50%;filter:blur(1px);opacity:.7;
+  animation:float 7s ease-in-out infinite}
+.orb.a{width:7px;height:7px;background:var(--glow);top:16%;left:12%}
+.orb.b{width:5px;height:5px;background:var(--glow2);top:68%;right:14%;animation-delay:1.6s}
+.orb.c{width:4px;height:4px;background:#fff;top:38%;right:9%;animation-delay:3.1s}
+@keyframes float{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-13px);opacity:.9}}
+
+/* 질문 */
+.ask{margin:34px 20px 0;text-align:center}
+.ask .q{font-size:14.5px;color:var(--text);margin-bottom:4px;font-weight:500}
+.ask .a{font-size:11.5px;color:var(--soft);line-height:1.7}
+
+/* 선택지 — 거울에게 묻는 형식 */
+.opts{margin:22px 20px 0;display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;align-items:center;gap:13px;padding:15px 16px;border-radius:14px;
+  border:1px solid var(--line);background:rgba(255,255,255,.035);cursor:pointer;
+  transition:background .18s,transform .18s,border-color .18s}
+.opt:hover{background:rgba(217,167,199,.10);transform:translateX(3px);border-color:rgba(217,167,199,.4)}
+.opt .em{font-size:21px;width:26px;text-align:center;flex:0 0 26px}
+.opt .bd{flex:1;min-width:0}
+.opt b{display:block;font-size:13.5px;font-weight:500;margin-bottom:3px}
+.opt small{display:block;font-size:11px;color:var(--soft);line-height:1.5}
+.opt .pt{font-size:10px;color:var(--glow);opacity:.85;white-space:nowrap}
+
+/* 사진 */
+.up{margin:24px 20px 0;padding:19px 16px;border-radius:15px;text-align:center;
+  border:1px dashed rgba(217,167,199,.35);background:rgba(217,167,199,.05)}
+.up b{display:block;font-size:13.5px;margin-bottom:6px;font-weight:500}
+.up small{display:block;font-size:11px;color:var(--soft);line-height:1.65}
+.up .lock{margin-top:10px;font-size:10px;color:var(--glow);opacity:.8}
+
+.talk{margin:24px 20px 0;padding:16px;border-radius:15px;cursor:pointer;
+  background:linear-gradient(120deg,rgba(217,167,199,.16),rgba(143,168,217,.12));
+  border:1px solid var(--line);display:flex;align-items:center;gap:12px}
+.talk .av{width:40px;height:40px;border-radius:50%;flex:0 0 40px;
+  background:linear-gradient(140deg,var(--glow),var(--glow2));
+  display:flex;align-items:center;justify-content:center;font-size:18px}
+.talk b{display:block;font-size:13.5px;margin-bottom:3px;font-weight:500}
+.talk small{font-size:11px;color:var(--soft)}
+.talk .go{margin-left:auto;color:var(--soft)}
+
+.foot{padding:28px 22px 42px;text-align:center;font-size:10.5px;color:#6E6272;line-height:1.75}
+.badge{display:inline-block;margin-bottom:12px;padding:5px 12px;border-radius:99px;
+  border:1px solid var(--line);font-size:10.5px;color:var(--soft)}
+@media (prefers-reduced-motion:reduce){.mirror .shine,.orb{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="close">✕</button>
+
+  <div class="stage">
+    <div class="kick">MAGIC MIRROR</div>
+    <h1 class="serif">거울아 거울아,<br><b>오늘의 나는 어때?</b></h1>
+    <p class="lead">사진 한 장을 비추면<br>보고 싶은 모습으로 바꿔 드릴게요</p>
+
+    <div class="mirror">
+      <div class="shine"></div>
+      <div class="face">
+        <div class="ic">🪞</div>
+        <div class="cap">사진을 비춰 보세요</div>
+      </div>
+      <span class="orb a"></span><span class="orb b"></span><span class="orb c"></span>
+    </div>
+  </div>
+
+  <div class="ask">
+    <div class="q serif">무엇이 궁금하세요?</div>
+    <div class="a">고르면 이 창 안에서 바로 보여드려요</div>
+  </div>
+
+  <div class="opts">
+    <div class="opt"><div class="em">⏳</div><div class="bd">
+      <b>스무 살의 나는 어땠을까?</b><small>시간여행 · 10대~80대</small></div><div class="pt">100P</div></div>
+    <div class="opt"><div class="em">💇‍♀️</div><div class="bd">
+      <b>이 머리가 나한테 어울릴까?</b><small>헤어스타일 · 48종</small></div><div class="pt">200P</div></div>
+    <div class="opt"><div class="em">👘</div><div class="bd">
+      <b>왕실 의상을 입으면?</b><small>전통의상 · 나라별 전신 화보</small></div><div class="pt">200P</div></div>
+    <div class="opt"><div class="em">✨</div><div class="bd">
+      <b>나는 누구를 닮았을까?</b><small>닮은 연예인 찾기</small></div><div class="pt">무료</div></div>
+    <div class="opt"><div class="em">🔮</div><div class="bd">
+      <b>내 얼굴엔 뭐가 적혀 있을까?</b><small>관상 분석</small></div><div class="pt">300P</div></div>
+  </div>
+
+  <div class="up">
+    <b>📷 사진 한 장만 비춰주세요</b>
+    <small>한 번 올리면 위 다섯 가지 모두에 쓰입니다</small>
+    <div class="lock">🔒 얼굴 원본은 저장하지 않아요 — 결과만 남습니다</div>
+  </div>
+
+  <div class="talk">
+    <div class="av">💄</div>
+    <div><b>윤채린에게 직접 물어보기</b><small>피부·화장·스타일 상담</small></div>
+    <div class="go">›</div>
+  </div>
+
+  <div class="foot">
+    <div class="badge">시안 C · 매직 미러</div><br>
+    기능 이름 대신 <b>사용자의 질문</b>으로 배치했습니다.<br>
+    "시간여행"보다 "스무 살의 나는 어땠을까?"가<br>무엇인지 바로 이해됩니다.
+  </div>
+</div>
+</body>
+</html>
