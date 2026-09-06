@@ -437,6 +437,22 @@ const AppContent: React.FC = () => {
      *    페르소나(신은비=명품감정, 유나=타로, 서아=뉴스 등 9명)가 전부 걸려 **"OO와 시작하기"를
      *    눌렀는데 기능 보드가 뜨는** 문제가 있었다(2026-07-29 사장 지적). */
     const [deepLinkGuide, setDeepLinkGuide] = useState<PersonaEntryGuide | null>(null);
+    /** 진입 랜딩에서 기능을 열었을 때, 그 보드를 닫으면 **랜딩으로 돌아오기** 위한 기억
+     *  (2026-09-06 사장 지적 "진입페이지로 안 가고 채팅으로 간다").
+     *  ★시트를 열어둔 채 보드를 띄울 수는 없다 — 시트가 z-85, 보드는 z-50~70 이라 가려진다.
+     *    그래서 "닫았다가 되돌아온다"로 푼다. 랜딩을 거치지 않은 실행이면 null 이라 종전과 같다. */
+    const [entryReturnGuide, setEntryReturnGuide] = useState<PersonaEntryGuide | null>(null);
+
+    /** 보드를 닫는다 — 진입 랜딩에서 열었던 것이면 그 랜딩으로 **되돌아간다**.
+     *  ★랜딩을 거치지 않은 평소 경로(메인 기능카드 등)에서는 entryReturnGuide 가 null 이라
+     *    종전과 완전히 같게 동작한다. 기존 흐름을 건드리지 않는 것이 이 함수의 전제다. */
+    const closeBoardAndReturn = (close: () => void) => () => {
+        close();
+        if (entryReturnGuide) {
+            setDeepLinkGuide(entryReturnGuide);
+            setEntryReturnGuide(null);
+        }
+    };
 
     // 기능 키 → 전용 보드 열기. 공유 딥링크(?f) 처리와 hero 즐겨찾기/채팅 기능카드(FEATURE_ACTIONS)가
     // 공유하는 단일 출처(webtoon은 페르소나 활성화가 선행돼야 해서 호출처에서 별도 처리).
@@ -1431,11 +1447,20 @@ const AppContent: React.FC = () => {
                     else FEATURE_ACTIONS[runKey]?.();
                 }
             }}
+            // ★기능 실행 — 갈 곳이 두 가지다(2026-09-06 사장 지적 "왜 채팅으로 튕기냐").
+            //   ① 퀵메뉴형(FEATURE_QUICK_MENU_LABEL) = 채팅창에 메시지를 넣는 방식이라
+            //      채팅 화면이 **반드시 필요하다**. 종전대로 전환한다.
+            //   ② 보드형(FEATURE_ACTIONS) = 보드가 main·chat **양쪽 return 에 모두**
+            //      렌더돼 있으므로(App.tsx 1849~ / 2272~) 화면을 옮길 이유가 없다.
+            //      옮기면 스튜디오·사주 랜딩을 열어놓고 채팅으로 튕겨 흐름이 끊긴다.
+            //   ★시트는 닫는다 — 시트가 z-85, 보드는 z-50~70 이라 열어두면 **보드가 뒤에 가린다**.
+            //     (되돌아오기는 보드의 onClose 에서 다시 열어주는 후속 과제로 둔다)
             onFeature={(key) => {
-                setDeepLinkGuide(null);
-                goTo('chat');
                 const qm = FEATURE_QUICK_MENU_LABEL[key];
-                if (qm) setPendingQuickMenuLabel(qm);
+                // 보드형만 되돌아올 자리를 기억한다 — 퀵메뉴형은 채팅으로 가므로 돌아올 곳이 없다.
+                setEntryReturnGuide(qm ? null : deepLinkGuide);
+                setDeepLinkGuide(null);
+                if (qm) { goTo('chat'); setPendingQuickMenuLabel(qm); }
                 else FEATURE_ACTIONS[key]?.();
             }}
             onInvite={() => {
@@ -1848,12 +1873,12 @@ const AppContent: React.FC = () => {
                 )}
                 {showHairBoard && (
                     <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
-                        <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
+                        <HairStyleBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowHairBoard(false))} />
                     </ErrorBoundary>
                 )}
                 {showOutfitBoard && (
                     <ErrorBoundary label="프로필 사진 화면 오류" onClose={() => setShowOutfitBoard(false)}>
-                        <OutfitBoard personaId={activePersona?.id} onClose={() => setShowOutfitBoard(false)} />
+                        <OutfitBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowOutfitBoard(false))} />
                     </ErrorBoundary>
                 )}
                 {/* 닮은 연예인 찾기 (윤채린) — 메인 화면 블록에서도 렌더돼야 카드 클릭 시 모달이 뜸 */}
@@ -1862,7 +1887,7 @@ const AppContent: React.FC = () => {
                         personaId={lookalikePersonaId}
                         onResult={r => setLookalikeResult(r)}
                         onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
-                        onClose={() => setShowLookalikeModal(false)}
+                        onClose={closeBoardAndReturn(() => setShowLookalikeModal(false))}
                     />
                 )}
                 {lookalikeResult && (
@@ -1874,7 +1899,7 @@ const AppContent: React.FC = () => {
                 )}
                 {showAgeBoard && (
                     <ErrorBoundary label="나이 변환 화면 오류" onClose={() => setShowAgeBoard(false)}>
-                        <AgeTransformBoard personaId={activePersona?.id} onClose={() => setShowAgeBoard(false)} />
+                        <AgeTransformBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowAgeBoard(false))} />
                     </ErrorBoundary>
                 )}
                 {showTodayNews && (
@@ -2271,12 +2296,12 @@ const AppContent: React.FC = () => {
             {/* 헤어스타일 진단 (윤채린) */}
             {showHairBoard && (
                 <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
-                    <HairStyleBoard personaId={activePersona?.id} onClose={() => setShowHairBoard(false)} />
+                    <HairStyleBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowHairBoard(false))} />
                 </ErrorBoundary>
             )}
             {showOutfitBoard && (
                 <ErrorBoundary label="프로필 사진 화면 오류" onClose={() => setShowOutfitBoard(false)}>
-                    <OutfitBoard personaId={activePersona?.id} onClose={() => setShowOutfitBoard(false)} />
+                    <OutfitBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowOutfitBoard(false))} />
                 </ErrorBoundary>
             )}
             {/* 닮은 연예인 찾기 (윤채린) */}
@@ -2285,7 +2310,7 @@ const AppContent: React.FC = () => {
                     personaId={lookalikePersonaId}
                     onResult={r => setLookalikeResult(r)}
                     onPointsUpdated={(paid, bonus) => { setUserPaidPoints(paid); setUserBonusPoints(bonus); }}
-                    onClose={() => setShowLookalikeModal(false)}
+                    onClose={closeBoardAndReturn(() => setShowLookalikeModal(false))}
                 />
             )}
             {lookalikeResult && (
@@ -2297,7 +2322,7 @@ const AppContent: React.FC = () => {
             )}
             {showAgeBoard && (
                 <ErrorBoundary label="나이 변환 화면 오류" onClose={() => setShowAgeBoard(false)}>
-                    <AgeTransformBoard personaId={activePersona?.id} onClose={() => setShowAgeBoard(false)} />
+                    <AgeTransformBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowAgeBoard(false))} />
                 </ErrorBoundary>
             )}
 
