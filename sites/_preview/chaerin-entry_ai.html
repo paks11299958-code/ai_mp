@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>윤채린 진입화면 — AI 스튜디오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#141013; --line:rgba(255,255,255,.10);
+  --text:#F3EDEF; --soft:#A2949B; --rose:#E8B4B8; --rose-deep:#C48B92;
+  --film:#0A0709;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#0A0709;font-family:'Pretendard',system-ui,-apple-system,sans-serif;
+  color:var(--text);-webkit-font-smoothing:antialiased}
+.serif{font-family:'Noto Serif KR',serif}
+.wrap{max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;
+  background:var(--ink)}
+/* 필름 그레인 — 암실 톤을 만든다 */
+.wrap::after{content:'';position:fixed;inset:0;max-width:430px;margin:0 auto;
+  pointer-events:none;z-index:50;opacity:.045;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.close{position:absolute;top:14px;right:14px;z-index:60;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(0,0,0,.5);color:var(--soft);backdrop-filter:blur(6px);
+  font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* ── 간판 ────────────────────────────────────────────────── */
+.top{padding:34px 22px 4px;text-align:center}
+.sign{font-size:10.5px;letter-spacing:.4em;color:var(--rose);opacity:.9;margin-bottom:11px}
+.top h1{margin:0 0 8px;font-size:25px;line-height:1.36;font-weight:300}
+.top h1 b{font-weight:700;color:var(--rose)}
+.top p{margin:0;font-size:12.5px;color:var(--soft);line-height:1.7}
+.rise{opacity:0;transform:translateY(12px);animation:rise .7s cubic-bezier(.22,.8,.3,1) forwards}
+.rise.d1{animation-delay:.05s} .rise.d2{animation-delay:.15s} .rise.d3{animation-delay:.25s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ── 히어로: 네 살 ↔ 스물다섯 (스스로 움직인다) ──────────── */
+.ba{margin:20px auto 0;width:252px;aspect-ratio:3/4;position:relative;cursor:ew-resize;
+  border-radius:3px;overflow:hidden;background:#241C21;
+  box-shadow:0 18px 40px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.06);
+  opacity:0;animation:rise .8s cubic-bezier(.22,.8,.3,1) .3s forwards}
+.ba .side{position:absolute;inset:0;background-size:cover;background-position:center top;
+  display:flex;align-items:flex-start;padding-top:16px;
+  font-size:11px;letter-spacing:.14em;color:#fff;font-weight:700;
+  text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.ba .before{background-image:url('img/chaerin-baby.jpg');
+  justify-content:flex-start;padding-left:16px;overflow:hidden;white-space:nowrap}
+.ba .after{background-image:url('img/chaerin-lady.jpg');clip-path:inset(0 0 0 50%);
+  justify-content:flex-end;padding-right:16px}
+.ba .lamp{position:absolute;inset:-40%;z-index:2;pointer-events:none;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);
+  animation:lamp 4.6s ease-in-out infinite}
+@keyframes lamp{0%,100%{transform:translateX(-46%)}50%{transform:translateX(46%)}}
+.ba .handle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;z-index:3;
+  box-shadow:0 0 12px rgba(0,0,0,.45)}
+.ba .handle::after{content:'⇄';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:32px;height:32px;border-radius:50%;background:#fff;color:#141013;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+  box-shadow:0 3px 10px rgba(0,0,0,.4)}
+.ba .tag{position:absolute;bottom:11px;z-index:3;font-size:10px;letter-spacing:.12em;
+  padding:4px 10px;border-radius:2px;background:rgba(0,0,0,.5);color:#fff;font-weight:600}
+.ba .tag.l{left:11px} .ba .tag.r{right:11px}
+.ba-cap{text-align:center;font-size:10.5px;color:var(--soft);opacity:.7;margin-top:9px}
+
+/* ── AI 변신 필름 ────────────────────────────────────────── */
+.sec-hd{display:flex;align-items:baseline;justify-content:space-between;
+  padding:0 22px;margin:26px 0 12px}
+.sec-hd b{font-size:12.5px;letter-spacing:.16em;color:var(--rose);font-weight:700}
+.sec-hd span{font-size:10px;color:var(--soft);letter-spacing:.08em}
+
+.rail{display:flex;gap:11px;padding:0 22px 12px;overflow-x:auto;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.rail::-webkit-scrollbar{display:none} .rail{scrollbar-width:none}
+.shot{flex:0 0 auto;scroll-snap-align:center;width:128px;background:var(--film);
+  padding:8px 7px 8px;border-radius:3px;position:relative;cursor:pointer;
+  box-shadow:0 12px 28px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.05);
+  transform:rotate(var(--rot,0deg));transition:transform .22s}
+.shot:nth-child(1){--rot:-1.4deg} .shot:nth-child(2){--rot:1deg}
+.shot:nth-child(3){--rot:-.7deg}  .shot:nth-child(4){--rot:1.2deg}
+.shot:hover{transform:rotate(0deg) translateY(-5px)}
+.shot .pic{position:relative;aspect-ratio:3/4;overflow:hidden;background:#241C21;border-radius:1px}
+.shot .pic img{width:100%;height:100%;object-fit:cover;display:block}
+.shot .lb{position:absolute;left:0;right:0;bottom:0;padding:14px 7px 5px;
+  font-size:9.5px;letter-spacing:.06em;color:#fff;font-weight:600;
+  background:linear-gradient(transparent,rgba(0,0,0,.62));text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.shot .cap{margin-top:7px;text-align:center;font-size:8.5px;letter-spacing:.16em;
+  color:var(--rose-deep);opacity:.85}
+/* 현상되듯 등장 */
+.shot img{animation:develop 2.2s ease-out backwards}
+.shot:nth-child(1) img{animation-delay:.55s} .shot:nth-child(2) img{animation-delay:.75s}
+.shot:nth-child(3) img{animation-delay:.95s} .shot:nth-child(4) img{animation-delay:1.15s}
+@keyframes develop{
+  0%{opacity:0;filter:saturate(0) contrast(.6) brightness(.45)}
+  100%{opacity:1;filter:none}}
+
+/* ── 셔터 ───────────────────────────────────────────────── */
+.shoot{margin:20px 20px 0;padding:19px 18px;border-radius:16px;text-align:center;
+  background:linear-gradient(150deg,rgba(232,180,184,.13),rgba(232,180,184,.04));
+  border:1px solid rgba(232,180,184,.22)}
+.shutter{width:58px;height:58px;margin:0 auto 11px;border-radius:50%;cursor:pointer;
+  background:linear-gradient(150deg,var(--rose),var(--rose-deep));
+  display:flex;align-items:center;justify-content:center;font-size:23px;
+  box-shadow:0 0 0 5px rgba(232,180,184,.14), 0 8px 22px rgba(0,0,0,.5);
+  animation:pulse 2.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 5px rgba(232,180,184,.14),0 8px 22px rgba(0,0,0,.5)}
+  50%{box-shadow:0 0 0 12px rgba(232,180,184,.05),0 8px 22px rgba(0,0,0,.5)}}
+.shoot b{display:block;font-size:15px;margin-bottom:6px;font-weight:500}
+.shoot small{display:block;font-size:11.5px;color:var(--soft);line-height:1.65}
+.shoot .lock{margin-top:10px;font-size:10px;color:var(--rose-deep);opacity:.9}
+
+/* ── 가격표 ─────────────────────────────────────────────── */
+.menu{padding:28px 22px 0}
+.row{display:flex;align-items:center;gap:13px;padding:14px 2px;
+  border-bottom:1px solid rgba(255,255,255,.055);cursor:pointer;
+  transition:padding-left .18s,background .18s}
+.row:hover{padding-left:7px;background:rgba(232,180,184,.045)}
+.row .th{width:44px;height:56px;flex:0 0 44px;border-radius:2px;overflow:hidden;background:#241C21}
+.row .th img{width:100%;height:100%;object-fit:cover;display:block}
+.row .th.none{display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.55}
+.row .bd{flex:1;min-width:0}
+.row b{display:block;font-size:14px;font-weight:500;margin-bottom:3px}
+.row small{display:block;font-size:11px;color:var(--soft);line-height:1.5}
+.row .pt{font-size:10.5px;color:var(--rose);white-space:nowrap}
+
+.talk{margin:24px 20px 0;padding:16px 17px;border-radius:15px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid var(--line);
+  display:flex;align-items:center;gap:13px}
+.talk .av{width:42px;height:42px;border-radius:50%;flex:0 0 42px;
+  background:linear-gradient(140deg,var(--rose),var(--rose-deep));
+  display:flex;align-items:center;justify-content:center;font-size:19px}
+.talk b{display:block;font-size:13.5px;margin-bottom:3px;font-weight:500}
+.talk small{font-size:11px;color:var(--soft)}
+.talk .go{margin-left:auto;color:var(--soft);animation:nudge 1.9s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+
+.foot{padding:26px 22px 42px;text-align:center;font-size:10.5px;color:#6A5F65;line-height:1.75}
+.badge{display:inline-block;margin-bottom:12px;padding:5px 12px;border-radius:99px;
+  border:1px solid var(--line);font-size:10.5px;color:var(--soft)}
+
+@media (prefers-reduced-motion:reduce){
+  .rise,.ba{opacity:1!important;transform:none!important;animation:none!important}
+  .lamp,.shutter,.talk .go,.shot img{animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="close">✕</button>
+
+  <div class="top">
+    <div class="sign rise d1">CHAERIN AI STUDIO</div>
+    <h1 class="serif rise d2">오늘은 어떤 나로<br><b>바꿔드릴까요?</b></h1>
+    <p class="rise d3">사진 한 장이면<br>다른 세계의 내가 됩니다</p>
+  </div>
+
+  <div class="ba" id="ba">
+    <div class="side before"></div>
+    <div class="side after" id="af"></div>
+    <div class="lamp"></div>
+    <div class="handle" id="hd"></div>
+    <span class="tag l">네 살</span>
+    <span class="tag r">스물다섯</span>
+  </div>
+  <div class="ba-cap">시간여행 — 손으로 밀어보세요</div>
+
+  <div class="sec-hd"><b>AI 변신</b><span>옆으로 넘기기 →</span></div>
+  <div class="rail">
+    <div class="shot">
+      <div class="pic"><img src="img/st-ghibli.jpg" alt=""><span class="lb">지브리풍</span></div>
+      <div class="cap">ANIME</div>
+    </div>
+    <div class="shot">
+      <div class="pic"><img src="img/st-figure.jpg" alt=""><span class="lb">피규어</span></div>
+      <div class="cap">3D TOY</div>
+    </div>
+    <div class="shot">
+      <div class="pic"><img src="img/st-webtoon.jpg" alt=""><span class="lb">웹툰</span></div>
+      <div class="cap">ILLUST</div>
+    </div>
+    <div class="shot">
+      <div class="pic"><img src="img/st-hair.jpg" alt=""><span class="lb">헤어 체인지</span></div>
+      <div class="cap">STYLE</div>
+    </div>
+  </div>
+
+  <div class="shoot">
+    <div class="shutter">📷</div>
+    <b>사진 한 장 올리기</b>
+    <small>한 번 올리면 아래 전부에 그대로 씁니다</small>
+    <div class="lock">🔒 얼굴 원본은 저장하지 않아요 — 결과만 남습니다</div>
+  </div>
+
+  <div class="menu">
+    <div class="row">
+      <div class="th"><img src="img/st-age.jpg" alt=""></div>
+      <div class="bd"><b>시간여행</b><small>열 살부터 여든까지, 그때의 나</small></div>
+      <div class="pt">100P</div>
+    </div>
+    <div class="row">
+      <div class="th"><img src="img/st-hair.jpg" alt=""></div>
+      <div class="bd"><b>헤어스타일</b><small>48종 중에서 오늘의 머리</small></div>
+      <div class="pt">200P</div>
+    </div>
+    <div class="row">
+      <div class="th"><img src="img/st-hanbok.jpg" alt=""></div>
+      <div class="bd"><b>전통의상</b><small>나라별 전통의상 전신 화보</small></div>
+      <div class="pt">200P</div>
+    </div>
+    <div class="row">
+      <div class="th none">✨</div>
+      <div class="bd"><b>닮은꼴</b><small>당신과 닮은 얼굴 찾기</small></div>
+      <div class="pt">무료</div>
+    </div>
+  </div>
+
+  <div class="talk">
+    <div class="av">💄</div>
+    <div><b>윤채린에게 물어보기</b><small>피부·화장·스타일 상담</small></div>
+    <div class="go">›</div>
+  </div>
+
+  <div class="foot">
+    <div class="badge">시안 · AI 스튜디오</div><br>
+    시간여행 슬라이더 + 요즘 유행하는 AI 변신(지브리·피규어·웹툰).<br>
+    <span style="opacity:.75">※ 인물은 AI로 만든 가상 이미지입니다(실존 인물 아님)</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var ba=document.getElementById('ba'),af=document.getElementById('af'),hd=document.getElementById('hd');
+  var manual=false,t0=performance.now(),raf=null;
+  function set(p){p=Math.max(4,Math.min(96,p));af.style.clipPath='inset(0 0 0 '+p+'%)';hd.style.left=p+'%';}
+  function auto(now){
+    if(manual) return;
+    var t=(now-t0)/1000, w=(Math.sin(t*2*Math.PI/4.4)+1)/2;
+    var e=w<.5?2*w*w:1-Math.pow(-2*w+2,2)/2;
+    set(18+e*64); raf=requestAnimationFrame(auto);
+  }
+  if(!reduce) raf=requestAnimationFrame(auto); else set(50);
+  function take(x){manual=true;if(raf){cancelAnimationFrame(raf);raf=null;}
+    var r=ba.getBoundingClientRect();set((x-r.left)/r.width*100);}
+  var down=false;
+  ba.addEventListener('mousedown',function(e){down=true;take(e.clientX)});
+  window.addEventListener('mousemove',function(e){if(down)take(e.clientX)});
+  window.addEventListener('mouseup',function(){down=false});
+  ba.addEventListener('touchstart',function(e){take(e.touches[0].clientX)},{passive:true});
+  ba.addEventListener('touchmove',function(e){take(e.touches[0].clientX)},{passive:true});
+})();
+</script>
+</body>
+</html>
