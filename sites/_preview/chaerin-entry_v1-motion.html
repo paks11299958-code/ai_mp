@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>윤채린 진입화면 A+ — 페이퍼 모션</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --rose:#E8B4B8; --rose-deep:#C48B92; --cream:#FDF8F5; --ink:#2A2124;
+  --ink-soft:#6B5B60; --line:rgba(42,33,36,.10); --paper:#F7F0EA;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#E6DCD6;font-family:'Pretendard',system-ui,-apple-system,sans-serif;
+  color:var(--ink);-webkit-font-smoothing:antialiased}
+.serif{font-family:'Noto Serif KR',serif}
+
+/* ── 종이 질감: 미세한 노이즈를 SVG 필터로 깔고 그 위에 결을 얹는다.
+      이미지 파일 없이 만들어 로딩이 0이다. ─────────────────────────── */
+.wrap{max-width:430px;margin:0 auto;min-height:100vh;position:relative;
+  background:var(--cream);box-shadow:0 0 60px rgba(0,0,0,.10);overflow:hidden}
+.wrap::before{content:'';position:fixed;inset:0;max-width:430px;margin:0 auto;
+  pointer-events:none;z-index:60;opacity:.055;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* 종이 결(세로 섬유) — 아주 옅게 */
+.wrap::after{content:'';position:fixed;inset:0;max-width:430px;margin:0 auto;
+  pointer-events:none;z-index:59;opacity:.35;
+  background:repeating-linear-gradient(96deg,transparent 0 3px,rgba(42,33,36,.014) 3px 4px)}
+
+.close{position:absolute;top:14px;right:14px;z-index:70;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(255,255,255,.86);color:var(--ink-soft);
+  font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* ── 히어로 ──────────────────────────────────────────────────────── */
+/* ★아래 여백은 찢긴 가장자리(14px)보다 넉넉해야 사진이 그 위로 올라타지 않는다. */
+.hero{position:relative;padding:56px 22px 42px;text-align:center;
+  background:linear-gradient(175deg,#FBEEE9 0%,var(--cream) 62%)}
+
+/* 찢긴 종이 가장자리 — 히어로 아래를 종이처럼 끊는다.
+   ★히어로 배경과 본문 배경이 거의 같은 색이라 실렌더에서 '흰 얼룩'으로만 보였다.
+     결을 살리려면 경계에 옅은 그림자를 함께 줘야 종이가 겹친 것처럼 읽힌다. */
+.hero::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:14px;z-index:2;
+  background:var(--cream);filter:drop-shadow(0 -2px 2px rgba(42,33,36,.06));
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='430' height='16' preserveAspectRatio='none'%3E%3Cpath d='M0 7 Q 18 2 34 6 T 68 5 T 104 8 T 138 4 T 172 7 T 208 3 T 242 7 T 278 5 T 312 8 T 348 4 T 384 7 T 430 5 L430 16 L0 16 Z' fill='%23000'/%3E%3C/svg%3E") no-repeat center/100% 100%;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='430' height='16' preserveAspectRatio='none'%3E%3Cpath d='M0 7 Q 18 2 34 6 T 68 5 T 104 8 T 138 4 T 172 7 T 208 3 T 242 7 T 278 5 T 312 8 T 348 4 T 384 7 T 430 5 L430 16 L0 16 Z' fill='%23000'/%3E%3C/svg%3E") no-repeat center/100% 100%}
+
+.eyebrow{font-size:11px;letter-spacing:.22em;color:var(--rose-deep);font-weight:700;
+  text-transform:uppercase;margin-bottom:12px}
+.hero h1{margin:0 0 10px;font-size:27px;line-height:1.38;font-weight:700;letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--rose-deep)}
+.hero p{margin:0;font-size:13.5px;line-height:1.72;color:var(--ink-soft)}
+
+/* 글자 등장 — 종이가 아래에서 밀려 올라오듯 */
+.rise{opacity:0;transform:translateY(14px);animation:rise .72s cubic-bezier(.22,.8,.3,1) forwards}
+.rise.d1{animation-delay:.06s} .rise.d2{animation-delay:.17s} .rise.d3{animation-delay:.28s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ── Before/After — 자동 재생 + 종이 질감 ──────────────────────────── */
+.ba{margin:26px auto 0;width:100%;max-width:290px;aspect-ratio:3/4;border-radius:4px;
+  overflow:hidden;position:relative;cursor:ew-resize;background:#DCCBC4;
+  box-shadow:0 2px 0 rgba(255,255,255,.6), 0 16px 32px rgba(42,33,36,.20),
+             0 3px 8px rgba(42,33,36,.14);
+  transform:rotate(-.7deg);
+  opacity:0;animation:rise .8s cubic-bezier(.22,.8,.3,1) .34s forwards}
+.ba .side{position:absolute;inset:0;display:flex;align-items:flex-start;
+  padding-top:24px;font-size:12px;letter-spacing:.16em;color:#fff;font-weight:700}
+/* ★BEFORE 는 잘리는 쪽(왼쪽 면)에 있다 — 슬라이더가 왼쪽 끝으로 가면
+     글자가 좁은 영역에 갇혀 잘린다. 자동재생 하한을 18%로 둔 것과 함께,
+     글자 자체도 넘칠 때 숨겨 '반쪽 글자'가 보이지 않게 한다. */
+.ba .before{background:linear-gradient(150deg,#9C8B85,#6E5F5B);
+  justify-content:flex-start;padding-left:20px;overflow:hidden;white-space:nowrap}
+.ba .after{background:linear-gradient(150deg,#F3C9C4,#D98F9A);clip-path:inset(0 0 0 50%);
+  justify-content:flex-end;padding-right:20px}
+/* 사진 위에도 종이 결이 덮이게 */
+.ba::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.10;
+  mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23m)'/%3E%3C/svg%3E")}
+.ba .handle{position:absolute;top:0;bottom:0;left:50%;width:2px;background:#fff;z-index:3;
+  box-shadow:0 0 12px rgba(0,0,0,.32)}
+.ba .handle::after{content:'⇄';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:34px;height:34px;border-radius:50%;background:#fff;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;font-size:14px;
+  box-shadow:0 3px 10px rgba(0,0,0,.22)}
+.ba .tag{position:absolute;bottom:12px;z-index:3;font-size:10.5px;letter-spacing:.14em;
+  padding:5px 11px;border-radius:2px;background:rgba(0,0,0,.44);color:#fff;font-weight:600}
+.ba .tag.l{left:12px} .ba .tag.r{right:12px}
+
+/* 스튜디오 조명 — 사선으로 훑고 지나간다 */
+.ba .lamp{position:absolute;inset:-40%;z-index:2;pointer-events:none;
+  background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.30) 50%,transparent 60%);
+  animation:lamp 4.6s ease-in-out infinite}
+@keyframes lamp{0%,100%{transform:translateX(-46%)}50%{transform:translateX(46%)}}
+
+/* 종이 입자 — 공중에 떠다니는 먼지 */
+.dust{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+.dust i{position:absolute;display:block;border-radius:50%;background:var(--rose-deep);
+  opacity:0;animation:dust 9s linear infinite}
+@keyframes dust{
+  0%{opacity:0;transform:translate3d(0,18px,0) scale(.6)}
+  14%{opacity:.42}
+  76%{opacity:.30}
+  100%{opacity:0;transform:translate3d(14px,-96px,0) scale(1)}}
+
+/* ── 업로드 카드 — 종이 한 장이 얹힌 느낌 ───────────────────────────── */
+.up{position:relative;margin:26px 20px 0;padding:20px 18px;text-align:center;
+  background:var(--paper);border-radius:3px;
+  box-shadow:0 1px 0 rgba(255,255,255,.7), 0 10px 22px rgba(42,33,36,.11);
+  transform:rotate(.35deg)}
+.up::before{content:'';position:absolute;inset:7px;border:1px dashed rgba(196,139,146,.55);
+  border-radius:2px;pointer-events:none}
+/* 모서리 접힘 */
+.up::after{content:'';position:absolute;top:0;right:0;width:0;height:0;
+  border-style:solid;border-width:0 20px 20px 0;
+  border-color:transparent #E7DACF transparent transparent;
+  filter:drop-shadow(-2px 2px 2px rgba(42,33,36,.13))}
+.up .ic{font-size:26px;margin-bottom:8px;display:inline-block;animation:bob 3.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-5px) rotate(2deg)}}
+.up b{display:block;font-size:14.5px;margin-bottom:5px;position:relative}
+.up small{display:block;font-size:11.5px;color:var(--ink-soft);line-height:1.62;position:relative}
+.up .note{position:relative;margin-top:11px;font-size:10.5px;color:var(--rose-deep);font-weight:600;
+  background:rgba(253,240,238,.9);border-radius:3px;padding:7px 9px;line-height:1.55}
+
+/* ── 기능 카드 ───────────────────────────────────────────────────── */
+.sec{padding:32px 20px 0}
+.sec h2{margin:0 0 4px;font-size:15px;font-weight:700}
+.sec .sub{margin:0 0 16px;font-size:12px;color:var(--ink-soft)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.card{position:relative;background:#fff;border-radius:3px;padding:15px 13px;cursor:pointer;
+  box-shadow:0 1px 0 rgba(255,255,255,.8), 0 6px 16px rgba(42,33,36,.09);
+  transition:transform .2s cubic-bezier(.22,.8,.3,1), box-shadow .2s;
+  opacity:0;transform:translateY(16px)}
+.card.in{opacity:1;transform:translateY(0) rotate(var(--tilt,0deg))}
+.card:nth-child(1){--tilt:-.5deg} .card:nth-child(2){--tilt:.45deg}
+.card:nth-child(3){--tilt:.4deg}  .card:nth-child(4){--tilt:-.4deg}
+.card:hover{transform:translateY(-4px) rotate(0deg);box-shadow:0 14px 26px rgba(42,33,36,.16)}
+.card .emo{font-size:23px;display:block;margin-bottom:9px;transition:transform .25s}
+.card:hover .emo{transform:scale(1.14) rotate(-6deg)}
+.card b{display:block;font-size:13.5px;margin-bottom:4px;font-weight:700}
+.card small{display:block;font-size:11px;color:var(--ink-soft);line-height:1.55}
+.card .pt{position:absolute;top:13px;right:12px;font-size:10px;font-weight:700;
+  color:var(--rose-deep);background:#FDF0EE;border-radius:99px;padding:3px 8px}
+
+/* ── 채팅 CTA ────────────────────────────────────────────────────── */
+.chat{position:relative;margin:26px 20px 0;padding:17px 18px;border-radius:3px;overflow:hidden;
+  background:linear-gradient(120deg,#2A2124,#453539);color:#fff;
+  display:flex;align-items:center;gap:13px;cursor:pointer;
+  box-shadow:0 10px 24px rgba(42,33,36,.22);
+  opacity:0;transform:translateY(16px)}
+.chat.in{opacity:1;transform:none}
+.chat::after{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.13) 50%,transparent 58%);
+  animation:lamp 5.4s ease-in-out infinite}
+.chat .av{width:44px;height:44px;border-radius:50%;flex:0 0 44px;z-index:1;
+  background:linear-gradient(140deg,var(--rose),var(--rose-deep));
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+.chat b{display:block;font-size:14px;margin-bottom:3px}
+.chat small{font-size:11.5px;opacity:.72;line-height:1.5}
+.chat .go{margin-left:auto;font-size:17px;opacity:.6;animation:nudge 1.9s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+
+.foot{padding:26px 20px 42px;text-align:center;font-size:10.5px;color:#A2918F;line-height:1.7}
+.badge{display:inline-block;margin:0 0 12px;padding:6px 13px;border-radius:99px;
+  background:#fff;border:1px solid var(--line);font-size:11px;color:var(--ink-soft)}
+
+/* ★모션 감소 설정이면 전부 정지 — 어지럼증·멀미 접근성 */
+@media (prefers-reduced-motion:reduce){
+  .rise,.ba,.card,.chat{opacity:1!important;transform:none!important;animation:none!important}
+  .lamp,.dust i,.up .ic,.chat::after,.chat .go{animation:none!important}
+  .dust{display:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="close">✕</button>
+
+  <div class="hero">
+    <div class="dust" id="dust"></div>
+    <div class="eyebrow rise d1">AI Beauty Studio</div>
+    <h1 class="serif rise d2">사진 한 장이면,<br><em>다른 내가 됩니다</em></h1>
+    <p class="rise d3">피부 고민, 나한테 다 말해봐.<br>답 찾아줄게 — 윤채린</p>
+
+    <div class="ba" id="ba">
+      <div class="side before">BEFORE</div>
+      <div class="side after" id="af">AFTER</div>
+      <div class="lamp"></div>
+      <div class="handle" id="hd"></div>
+      <span class="tag l">지금</span>
+      <span class="tag r">20대</span>
+    </div>
+  </div>
+
+  <div class="up">
+    <div class="ic">📷</div>
+    <b>먼저 사진 한 장만 올려주세요</b>
+    <small>한 번 올리면 아래 기능 전부에 그대로 쓰입니다.<br>매번 다시 올리지 않아도 돼요.</small>
+    <div class="note">🔒 얼굴 원본은 서버에 저장하지 않습니다 (결과물만 보관)</div>
+  </div>
+
+  <div class="sec">
+    <h2>무엇을 해볼까요?</h2>
+    <p class="sub">고르면 바로 이 창 안에서 결과가 나옵니다</p>
+    <div class="grid" id="grid">
+      <div class="card"><span class="pt">100P</span><span class="emo">⏳</span>
+        <b>시간여행</b><small>10대부터 80대까지<br>나이를 바꿔봐요</small></div>
+      <div class="card"><span class="pt">200P</span><span class="emo">💇‍♀️</span>
+        <b>헤어스타일</b><small>48종 스타일을<br>미리 써봐요</small></div>
+      <div class="card"><span class="pt">200P</span><span class="emo">👘</span>
+        <b>전통의상</b><small>나라별 왕실의상<br>전신 화보</small></div>
+      <div class="card"><span class="emo">✨</span>
+        <b>닮은꼴</b><small>닮은 연예인을<br>찾아드려요</small></div>
+    </div>
+  </div>
+
+  <div class="chat" id="chat">
+    <div class="av">💄</div>
+    <div>
+      <b>윤채린과 대화하기</b>
+      <small>피부·화장·스타일 뭐든 물어보세요</small>
+    </div>
+    <div class="go">›</div>
+  </div>
+
+  <div class="foot">
+    <div class="badge">시안 A+ · 페이퍼 모션</div><br>
+    종이 질감 위에서 슬라이더가 스스로 움직입니다.<br>
+    손대면 자동재생이 멈추고 직접 조작됩니다.
+  </div>
+</div>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ── 종이 입자 ─────────────────────────────────────── */
+  if(!reduce){
+    var d=document.getElementById('dust');
+    for(var i=0;i<11;i++){
+      var s=document.createElement('i'),sz=2+Math.random()*3;
+      s.style.width=s.style.height=sz.toFixed(1)+'px';
+      s.style.left=(Math.random()*100).toFixed(1)+'%';
+      s.style.top=(55+Math.random()*45).toFixed(1)+'%';
+      s.style.animationDelay=(Math.random()*9).toFixed(1)+'s';
+      s.style.animationDuration=(7+Math.random()*5).toFixed(1)+'s';
+      d.appendChild(s);
+    }
+  }
+
+  /* ── Before/After: 자동 재생 + 손대면 수동 ──────────────
+     ★자동재생을 '멈춤'이 아니라 '양보'로 만든다 — 사장이 만지는 순간
+       기계가 끼어들면 조작감이 망가진다(도결 히어로에서 배운 것). */
+  var ba=document.getElementById('ba'),af=document.getElementById('af'),hd=document.getElementById('hd');
+  var manual=false, t0=performance.now(), raf=null;
+
+  function set(p){
+    p=Math.max(3,Math.min(97,p));
+    af.style.clipPath='inset(0 0 0 '+p+'%)';
+    hd.style.left=p+'%';
+  }
+  function auto(now){
+    if(manual) return;
+    var t=(now-t0)/1000;
+    /* 4.4초 주기로 좌우를 오간다. ease 를 넣어 기계적이지 않게. */
+    var w=(Math.sin(t*2*Math.PI/4.4)+1)/2;         // 0..1
+    var e=w<.5 ? 2*w*w : 1-Math.pow(-2*w+2,2)/2;   // easeInOutQuad
+    set(18+e*64);
+    raf=requestAnimationFrame(auto);
+  }
+  if(!reduce) raf=requestAnimationFrame(auto);
+  else set(50);
+
+  function takeOver(x){
+    manual=true;
+    if(raf){cancelAnimationFrame(raf);raf=null;}
+    var r=ba.getBoundingClientRect();
+    set((x-r.left)/r.width*100);
+  }
+  var down=false;
+  ba.addEventListener('mousedown',function(e){down=true;takeOver(e.clientX)});
+  window.addEventListener('mousemove',function(e){if(down)takeOver(e.clientX)});
+  window.addEventListener('mouseup',function(){down=false});
+  ba.addEventListener('touchstart',function(e){takeOver(e.touches[0].clientX)},{passive:true});
+  ba.addEventListener('touchmove',function(e){takeOver(e.touches[0].clientX)},{passive:true});
+
+  /* ── 카드가 스크롤에 맞춰 한 장씩 얹힌다 ───────────────── */
+  var targets=[].slice.call(document.querySelectorAll('#grid .card')).concat([document.getElementById('chat')]);
+  if(reduce || !('IntersectionObserver' in window)){
+    targets.forEach(function(el){el.classList.add('in')});
+  }else{
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(en){
+        if(!en.isIntersecting) return;
+        var el=en.target, i=targets.indexOf(el);
+        el.style.transitionDelay=(i%4)*70+'ms';
+        el.classList.add('in');
+        io.unobserve(el);
+      });
+    },{threshold:.15});
+    targets.forEach(function(el){io.observe(el)});
+  }
+})();
+</script>
+</body>
+</html>
