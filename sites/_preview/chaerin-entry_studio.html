@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>윤채린 진입화면 — 스튜디오</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#141013; --ink2:#1D171B; --line:rgba(255,255,255,.10);
+  --text:#F3EDEF; --soft:#A2949B; --rose:#E8B4B8; --rose-deep:#C48B92;
+  --film:#0A0709;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#0A0709;font-family:'Pretendard',system-ui,-apple-system,sans-serif;
+  color:var(--text);-webkit-font-smoothing:antialiased}
+.serif{font-family:'Noto Serif KR',serif}
+.wrap{max-width:430px;margin:0 auto;min-height:100vh;position:relative;overflow:hidden;
+  background:var(--ink)}
+
+.close{position:absolute;top:14px;right:14px;z-index:40;width:38px;height:38px;border-radius:50%;
+  border:1px solid var(--line);background:rgba(0,0,0,.45);color:var(--soft);backdrop-filter:blur(6px);
+  font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* ── 1. 헤더: 스튜디오 간판 ───────────────────────────────── */
+/* ★헤더가 크면 사진이 화면 밖으로 밀려 '사진관'이 안 보인다 — 간판만 남기고 압축. */
+.top{padding:34px 22px 16px;text-align:center;position:relative}
+.sign{font-size:10.5px;letter-spacing:.42em;color:var(--rose);opacity:.9;margin-bottom:11px}
+.top h1{margin:0 0 8px;font-size:25px;line-height:1.34;font-weight:300;letter-spacing:-.01em}
+.top h1 b{font-weight:700;color:var(--rose)}
+.top p{margin:0;font-size:12.5px;color:var(--soft);line-height:1.7}
+
+/* ── 2. 네컷 필름 — 이 화면의 주인공 ──────────────────────── */
+.filmwrap{margin:16px 0 0;padding:0 0 4px;position:relative}
+.filmrail{display:flex;gap:12px;padding:0 22px 14px;overflow-x:auto;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+.filmrail::-webkit-scrollbar{display:none}
+.filmrail{scrollbar-width:none}
+
+/* 필름 스트립 한 장 = 사진 4컷 세로 */
+/* ★실측(390px): 186px 스트립은 세로 3컷이 화면을 통째로 먹어 메뉴가 한참 아래로 밀린다.
+     사진관은 '결과가 먼저'가 맞지만, 스크롤 없이 메뉴 존재가 보여야 다음 행동이 생긴다. */
+.strip{flex:0 0 auto;scroll-snap-align:center;width:150px;background:var(--film);
+  padding:9px 8px 10px;border-radius:3px;position:relative;
+  box-shadow:0 14px 34px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.05);
+  transform:rotate(var(--rot,0deg))}
+.strip:nth-child(1){--rot:-1.2deg} .strip:nth-child(2){--rot:.9deg}
+.strip:nth-child(3){--rot:-.6deg}
+/* 필름 구멍 */
+.strip::before,.strip::after{content:'';position:absolute;top:10px;bottom:10px;width:6px;
+  background-image:radial-gradient(circle,#000 42%,transparent 44%);
+  background-size:6px 13px;background-repeat:repeat-y;opacity:.55}
+.strip::before{left:2px} .strip::after{right:2px}
+
+.cuts{display:flex;flex-direction:column;gap:6px}
+.cut{position:relative;aspect-ratio:3/4;overflow:hidden;background:#241C21;border-radius:1px}
+.cut img{width:100%;height:100%;object-fit:cover;display:block;
+  filter:saturate(.94) contrast(1.03)}
+/* ★사진 배경이 밝아 흰 글자가 묻혔다 — 아래쪽에 옅은 그라데이션을 깔고 얹는다. */
+.cut .lb{position:absolute;left:0;right:0;bottom:0;padding:12px 6px 4px;
+  font-size:8.5px;letter-spacing:.1em;color:#fff;
+  background:linear-gradient(transparent,rgba(0,0,0,.55));
+  text-shadow:0 1px 3px rgba(0,0,0,.9)}
+/* 빈 컷 = 아직 안 찍은 자리 */
+.cut.empty{display:flex;align-items:center;justify-content:center;
+  border:1px dashed rgba(255,255,255,.16);background:rgba(255,255,255,.02)}
+.cut.empty span{font-size:17px;opacity:.4}
+
+/* ★absolute 로 두면 사진 위로 올라타 글자가 겹친다(실측) — 흐름에 두고 여백으로 띄운다. */
+.strip .foot{margin-top:9px;text-align:center;
+  font-size:8.5px;letter-spacing:.22em;color:var(--rose-deep);opacity:.85}
+
+/* 현상 중인 효과 — 첫 스트립만 위에서 아래로 서서히 드러난다 */
+.strip.dev .cut img{animation:develop 2.6s ease-out backwards}
+.strip.dev .cut:nth-child(1) img{animation-delay:.15s}
+.strip.dev .cut:nth-child(2) img{animation-delay:.5s}
+.strip.dev .cut:nth-child(3) img{animation-delay:.85s}
+@keyframes develop{
+  0%{opacity:0;filter:saturate(0) contrast(.6) brightness(.5)}
+  60%{opacity:.85;filter:saturate(.5) contrast(.9) brightness(.9)}
+  100%{opacity:1;filter:saturate(.94) contrast(1.03) brightness(1)}}
+
+.rail-hint{text-align:center;font-size:10.5px;color:var(--soft);opacity:.65;margin-top:2px}
+
+/* ── 3. 촬영 시작 — 셔터 버튼 ─────────────────────────────── */
+.shoot{margin:22px 20px 0;padding:20px 18px;border-radius:16px;text-align:center;
+  background:linear-gradient(150deg,rgba(232,180,184,.13),rgba(232,180,184,.04));
+  border:1px solid rgba(232,180,184,.22);position:relative;overflow:hidden}
+.shutter{width:60px;height:60px;margin:0 auto 12px;border-radius:50%;cursor:pointer;
+  background:linear-gradient(150deg,var(--rose),var(--rose-deep));
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+  box-shadow:0 0 0 5px rgba(232,180,184,.14), 0 8px 22px rgba(0,0,0,.5);
+  animation:pulse 2.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 5px rgba(232,180,184,.14),0 8px 22px rgba(0,0,0,.5)}
+  50%{box-shadow:0 0 0 12px rgba(232,180,184,.05),0 8px 22px rgba(0,0,0,.5)}}
+.shoot b{display:block;font-size:15px;margin-bottom:6px;font-weight:500}
+.shoot small{display:block;font-size:11.5px;color:var(--soft);line-height:1.65}
+.shoot .lock{margin-top:10px;font-size:10px;color:var(--rose-deep);opacity:.9}
+
+/* ── 4. 촬영 메뉴 — 사진관 가격표처럼 ─────────────────────── */
+.menu{padding:30px 22px 0}
+.menu .hd{display:flex;align-items:baseline;justify-content:space-between;
+  border-bottom:1px solid var(--line);padding-bottom:9px;margin-bottom:4px}
+.menu .hd b{font-size:13px;letter-spacing:.16em;color:var(--rose);font-weight:700}
+.menu .hd span{font-size:10px;color:var(--soft);letter-spacing:.1em}
+.row{display:flex;align-items:center;gap:13px;padding:15px 2px;
+  border-bottom:1px solid rgba(255,255,255,.055);cursor:pointer;
+  transition:padding-left .18s,background .18s}
+.row:hover{padding-left:7px;background:rgba(232,180,184,.045)}
+.row .th{width:46px;height:58px;flex:0 0 46px;border-radius:2px;overflow:hidden;
+  background:#241C21;position:relative}
+.row .th img{width:100%;height:100%;object-fit:cover;display:block}
+.row .th.none{display:flex;align-items:center;justify-content:center;font-size:18px;opacity:.55}
+.row .bd{flex:1;min-width:0}
+.row b{display:block;font-size:14px;font-weight:500;margin-bottom:3px}
+.row small{display:block;font-size:11px;color:var(--soft);line-height:1.5}
+.row .pt{font-size:10.5px;color:var(--rose);white-space:nowrap;letter-spacing:.04em}
+
+/* ── 5. 상담 ─────────────────────────────────────────────── */
+.talk{margin:26px 20px 0;padding:16px 17px;border-radius:15px;cursor:pointer;
+  background:rgba(255,255,255,.045);border:1px solid var(--line);
+  display:flex;align-items:center;gap:13px}
+.talk .av{width:42px;height:42px;border-radius:50%;flex:0 0 42px;
+  background:linear-gradient(140deg,var(--rose),var(--rose-deep));
+  display:flex;align-items:center;justify-content:center;font-size:19px}
+.talk b{display:block;font-size:13.5px;margin-bottom:3px;font-weight:500}
+.talk small{font-size:11px;color:var(--soft)}
+.talk .go{margin-left:auto;color:var(--soft);animation:nudge 1.9s ease-in-out infinite}
+@keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+
+.foot{padding:26px 22px 42px;text-align:center;font-size:10.5px;color:#6A5F65;line-height:1.75}
+.badge{display:inline-block;margin-bottom:12px;padding:5px 12px;border-radius:99px;
+  border:1px solid var(--line);font-size:10.5px;color:var(--soft)}
+
+@media (prefers-reduced-motion:reduce){
+  .strip.dev .cut img,.shutter,.talk .go{animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="close">✕</button>
+
+  <div class="top">
+    <div class="sign">CHAERIN STUDIO</div>
+    <h1 class="serif">오늘은 어떤 나로<br><b>찍어드릴까요?</b></h1>
+    <p>사진 한 장만 주시면<br>네 컷으로 만들어 드릴게요</p>
+  </div>
+
+  <div class="filmwrap">
+    <div class="filmrail" id="rail">
+      <!-- 스트립 1: 완성 예시 -->
+      <div class="strip dev">
+        <div class="cuts">
+          <div class="cut"><img src="img/st-age.jpg" alt=""><span class="lb">여덟 살</span></div>
+          <div class="cut"><img src="img/st-hanbok.jpg" alt=""><span class="lb">한복</span></div>
+        </div>
+        <div class="foot">CHAERIN · 001</div>
+      </div>
+      <!-- 스트립 2: 다른 손님 컷(순서를 섞어 같은 사진의 반복으로 안 보이게) -->
+      <div class="strip">
+        <div class="cuts">
+          <div class="cut"><img src="img/st-hair.jpg" alt=""><span class="lb">보브</span></div>
+          <div class="cut"><img src="img/st-age.jpg" alt=""><span class="lb">어린 날</span></div>
+        </div>
+        <div class="foot">CHAERIN · 002</div>
+      </div>
+      <!-- 스트립 3: 내 차례 -->
+      <div class="strip">
+        <div class="cuts">
+          <div class="cut empty"><span>＋</span></div>
+          <div class="cut empty"><span>＋</span></div>
+        </div>
+        <div class="foot">YOUR TURN</div>
+      </div>
+    </div>
+    <div class="rail-hint">← 옆으로 넘겨보세요</div>
+  </div>
+
+  <div class="shoot">
+    <div class="shutter">📷</div>
+    <b>사진 한 장 올리기</b>
+    <small>한 번 올리면 아래 촬영 전부에 그대로 씁니다</small>
+    <div class="lock">🔒 얼굴 원본은 저장하지 않아요 — 결과만 남습니다</div>
+  </div>
+
+  <div class="menu">
+    <div class="hd"><b>촬영 메뉴</b><span>PRICE</span></div>
+
+    <div class="row">
+      <div class="th"><img src="img/st-age.jpg" alt=""></div>
+      <div class="bd"><b>시간여행</b><small>열 살부터 여든까지, 그때의 나</small></div>
+      <div class="pt">100P</div>
+    </div>
+    <div class="row">
+      <div class="th"><img src="img/st-hair.jpg" alt=""></div>
+      <div class="bd"><b>헤어스타일</b><small>48종 중에서 오늘의 머리</small></div>
+      <div class="pt">200P</div>
+    </div>
+    <div class="row">
+      <div class="th"><img src="img/st-hanbok.jpg" alt=""></div>
+      <div class="bd"><b>전통의상</b><small>나라별 왕실의상 전신 화보</small></div>
+      <div class="pt">200P</div>
+    </div>
+    <div class="row">
+      <div class="th none">✨</div>
+      <div class="bd"><b>닮은꼴</b><small>당신과 닮은 얼굴 찾기</small></div>
+      <div class="pt">무료</div>
+    </div>
+  </div>
+
+  <div class="talk">
+    <div class="av">💄</div>
+    <div><b>윤채린에게 물어보기</b><small>피부·화장·스타일 상담</small></div>
+    <div class="go">›</div>
+  </div>
+
+  <div class="foot">
+    <div class="badge">시안 · 스튜디오</div><br>
+    결과물이 먼저 보이고, 메뉴는 그 아래 가격표로 놓았습니다.<br>
+    <span style="opacity:.75">※ 인물은 AI로 만든 가상 이미지입니다(실존 인물 아님)</span>
+  </div>
+</div>
+</body>
+</html>
