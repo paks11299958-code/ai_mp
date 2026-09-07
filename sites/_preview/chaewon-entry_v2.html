@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>윤채원 진입화면 시안 v2 — 트레이딩 데스크</title>
+<style>
+/* 윤채원(수석 애널리스트) 진입화면 시안 v2 (2026-09-07 사장 지시로 v1 개편)
+ *
+ * v1 → v2 변경(사장 지시 4가지):
+ *   ① 전광판을 반으로 — 좌: 코스피·코스닥·환율 / 우: 주가 그래프가 그려지는 효과
+ *   ② 내 종목 분석을 볼 수 있는 메뉴 추가
+ *   ③ 증권 탑뉴스 3개 실시간 표시
+ *   ④ 배경을 살짝 밝게(v1 #0a101a 는 너무 어두웠다)
+ *
+ * ★★표현 규칙(v1에서 이어짐, 절대 완화 금지):
+ *   · "추천/매수"가 아니라 **"관심 종목"**. 점수는 관심 높음/관심/참고로만.
+ *   · 면책을 화면에 **항상** 노출한다.
+ *   · 🔴자동매매 봇의 보유 종목은 표시하지 않는다(계좌 정보).
+ *   · 지수에는 '원'을 붙이지 않는다 — valueKind==='etf' 일 때만 원 + 대용 ETF 병기.
+ *     (목표주가·현재주가 같은 **금액**에는 원을 붙인다 — 지수가 아니다.)
+ *   ★API 요약 원문에는 "투자의견 | 매수 (78점)" 이 들어 있다 — 그 행은 **걸러낸다**.
+ *
+ * ★외부 CDN 0, 이미지 0. 그래프·애니메이션은 전부 인라인 SVG/CSS.
+ */
+:root{
+  /* ④ 배경을 밝게 — 어두운 데스크는 유지하되 한 단계 올린다(#0a101a → #16202e). */
+  --bg:#16202e; --bg2:#1b2738;
+  --panel:#22304380; --panelSolid:#223043;
+  --text:#eef2f8; --muted:#9fb0c6; --line:#33475f;
+  --up:#ff6b74; --down:#6aa9ff; --flat:#9fb0c6;
+  --gold:#e2c79f; --accent:#4fd1a5;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--text);
+  font-family:'Pretendard',system-ui,-apple-system,'Segoe UI',sans-serif;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:520px;margin:0 auto;min-height:100dvh;
+  background:linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);
+  padding-bottom:24px}
+.mono{font-variant-numeric:tabular-nums;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+
+/* ── 헤더 ─────────────────────────────────────────────── */
+.hd{display:flex;align-items:center;gap:10px;padding:16px 18px 12px}
+.hd-logo{width:34px;height:34px;border-radius:9px;background:#2b3d54;
+  display:flex;align-items:center;justify-content:center}
+.hd-t{font-size:14px;font-weight:800;letter-spacing:.06em}
+.hd-s{font-size:11px;color:var(--muted)}
+.hd-x{margin-left:auto;width:32px;height:32px;border-radius:50%;
+  border:1px solid var(--line);background:transparent;color:var(--muted);
+  font-size:14px;cursor:pointer}
+
+/* ── ① 전광판 — 좌(지수·환율) / 우(그래프) ─────────────── */
+.board{margin:0 14px;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,#1d2a3b,#182433)}
+.board-in{display:grid;grid-template-columns:1fr 1fr}
+/* ★반반. 360px 미만에서만 세로로 접는다 — 그보다 넓으면 전광판 느낌이 산다. */
+@media (max-width:359px){ .board-in{grid-template-columns:1fr} }
+.b-left{padding:12px 12px 10px;border-right:1px solid var(--line)}
+@media (max-width:359px){ .b-left{border-right:0;border-bottom:1px solid var(--line)} }
+.b-right{padding:12px 10px 8px;position:relative;min-height:132px}
+.row{display:flex;align-items:baseline;gap:6px;padding:5px 0}
+.row+.row{border-top:1px dashed #2c3f57}
+.r-name{font-size:11px;color:var(--muted);min-width:44px}
+.r-val{font-size:17px;font-weight:800;letter-spacing:-.02em}
+.r-chg{font-size:11px;font-weight:700;margin-left:auto}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--flat)}
+.r-val.up{text-shadow:0 0 14px rgba(255,107,116,.45)}
+.r-cap{font-size:9.5px;color:var(--muted);margin-top:1px}
+
+.g-t{font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:4px}
+.g-wrap{position:absolute;inset:26px 8px 8px}
+.g-wrap svg{width:100%;height:100%}
+/* ★선이 왼→오른쪽으로 '그려지는' 효과. dash 로 그리고, 끝점 원이 따라간다. */
+.g-line{fill:none;stroke:var(--up);stroke-width:2.2;stroke-linecap:round;
+  stroke-dasharray:var(--len);stroke-dashoffset:var(--len)}
+.g-area{fill:url(#gfill);opacity:0}
+.g-dot{fill:var(--up);opacity:0}
+@media (prefers-reduced-motion:no-preference){
+  .g-line{animation:draw 2.6s ease-out forwards}
+  .g-area{animation:fadein .8s ease-out 1.6s forwards}
+  .g-dot{animation:fadein .5s ease-out 2.3s forwards, pulse 1.8s ease-in-out 2.8s infinite}
+}
+@media (prefers-reduced-motion:reduce){
+  .g-line{stroke-dashoffset:0} .g-area{opacity:.5} .g-dot{opacity:1}
+}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes fadein{to{opacity:1}}
+@keyframes pulse{0%,100%{r:3.4}50%{r:5}}
+
+/* 티커 — 잘리지 않게 두 벌을 이어 붙여 흐른다 */
+.tape{margin:10px 14px 0;border:1px solid var(--line);border-radius:10px;
+  background:#1a2634;overflow:hidden;padding:7px 0}
+.tape-in{display:flex;gap:26px;width:max-content;padding-left:14px}
+@media (prefers-reduced-motion:no-preference){ .tape-in{animation:slide 22s linear infinite} }
+@keyframes slide{to{transform:translateX(-50%)}}
+.tape-i{font-size:11px;white-space:nowrap}
+
+.stamp{padding:8px 18px 0;font-size:10.5px;color:var(--muted)}
+
+/* ── 정체성 ───────────────────────────────────────────── */
+.who{padding:20px 18px 6px}
+.who-k{font-size:10.5px;letter-spacing:.16em;color:var(--gold);font-weight:700}
+.who-n{font-size:26px;font-weight:800;letter-spacing:-.02em;margin:6px 0 2px}
+.who-n small{font-size:12px;font-weight:600;color:var(--muted);margin-left:8px}
+.who-q{font-size:15px;font-weight:700;margin-top:12px}
+.who-s{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* ── ② 메뉴 ──────────────────────────────────────────── */
+.menu{padding:16px 14px 0;display:flex;flex-direction:column;gap:8px}
+.mi{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  padding:13px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--panelSolid);color:inherit;font:inherit;
+  transition:border-color .15s ease,transform .12s ease}
+.mi:hover{border-color:#4a6a8c;transform:translateY(-1px)}
+.mi:active{transform:scale(.99)}
+.mi-ic{flex:0 0 34px;height:34px;border-radius:9px;background:#2b3d54;
+  display:flex;align-items:center;justify-content:center;font-size:15px}
+.mi-t{font-size:14px;font-weight:700}
+.mi-d{font-size:11.5px;color:var(--muted);margin-top:2px}
+.mi-go{margin-left:auto;color:var(--muted);font-size:13px}
+
+/* ── ③ 탑뉴스 ────────────────────────────────────────── */
+.sec{padding:22px 18px 0}
+.sec-h{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.sec-t{font-size:15px;font-weight:800}
+.sec-m{font-size:10px;letter-spacing:.12em;color:var(--gold);margin-left:auto}
+.live{display:inline-flex;align-items:center;gap:5px;font-size:10px;color:var(--up);font-weight:700}
+.live i{width:6px;height:6px;border-radius:50%;background:var(--up)}
+@media (prefers-reduced-motion:no-preference){ .live i{animation:blink 1.6s ease-in-out infinite} }
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.nw{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.nw:first-of-type{border-top:0}
+.nw-n{flex:0 0 20px;font-size:12px;font-weight:800;color:var(--gold)}
+.nw-t{font-size:13px;line-height:1.5}
+
+/* ── 관심 종목 ───────────────────────────────────────── */
+.pk{border:1px solid var(--line);border-radius:12px;background:var(--panelSolid);
+  padding:13px 14px;margin-top:9px}
+.pk-h{display:flex;align-items:center;gap:8px}
+.pk-m{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:999px;
+  background:#2b3d54;color:var(--muted)}
+.pk-n{font-size:15px;font-weight:800}
+.pk-b{margin-left:auto;text-align:right}
+.pk-g{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:999px;
+  background:#1f4a3c;color:var(--accent)}
+.pk-s{font-size:12px;font-weight:800;margin-top:3px}
+.pk-tb{width:100%;border-collapse:collapse;margin-top:10px;font-size:11.5px}
+.pk-tb th,.pk-tb td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.pk-tb th{background:#26364a;color:var(--muted);font-weight:700;width:76px}
+
+/* ── 면책 ────────────────────────────────────────────── */
+.dis{margin:20px 14px 0;padding:12px 14px;border-radius:12px;
+  background:#1a2634;border:1px solid var(--line)}
+.dis-t{font-size:10px;letter-spacing:.1em;color:var(--gold);font-weight:800;margin-bottom:5px}
+.dis-b{font-size:11.5px;line-height:1.6;color:var(--muted)}
+.dis-b b{color:var(--text)}
+.err{margin:10px 14px 0;font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hd">
+    <div class="hd-logo">📊</div>
+    <div>
+      <div class="hd-t">CHAEWON DESK</div>
+      <div class="hd-s">데이터로 읽는 시장</div>
+    </div>
+    <button class="hd-x" aria-label="닫기">✕</button>
+  </div>
+
+  <!-- ① 전광판: 좌 지수·환율 / 우 그래프 -->
+  <div class="board">
+    <div class="board-in">
+      <div class="b-left" id="idx"><div class="r-cap">불러오는 중…</div></div>
+      <div class="b-right">
+        <div class="g-t">KOSPI TREND</div>
+        <div class="g-wrap">
+          <svg viewBox="0 0 160 96" preserveAspectRatio="none" role="img" aria-label="코스피 추세 그래프">
+            <defs>
+              <linearGradient id="gfill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff6b74" stop-opacity=".38"/>
+                <stop offset="100%" stop-color="#ff6b74" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <g stroke="#2c3f57" stroke-width=".6">
+              <line x1="0" y1="24" x2="160" y2="24"/><line x1="0" y1="48" x2="160" y2="48"/>
+              <line x1="0" y1="72" x2="160" y2="72"/>
+            </g>
+            <path id="gArea" class="g-area" d=""/>
+            <path id="gLine" class="g-line" d=""/>
+            <circle id="gDot" class="g-dot" cx="0" cy="0" r="3.4"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tape"><div class="tape-in" id="tape"></div></div>
+  <div class="stamp" id="stamp">시장 데이터를 불러오는 중입니다</div>
+
+  <div class="who">
+    <div class="who-k">DATA FIRST. ALWAYS.</div>
+    <div class="who-n">윤채원<small>수석 애널리스트</small></div>
+    <div class="who-q">자신보다 데이터를 믿어라.</div>
+    <div class="who-s">데이터는 거짓을 말하지 않아요.</div>
+  </div>
+
+  <!-- ② 메뉴 — 내 종목 분석 포함 -->
+  <div class="menu">
+    <button class="mi" data-go="stock">
+      <div class="mi-ic">🔬</div>
+      <div><div class="mi-t">내 종목 분석</div>
+           <div class="mi-d">종목을 직접 넣어 3중 AI 정밀분석 · 내 보고서 보관함</div></div>
+      <span class="mi-go">→</span>
+    </button>
+    <button class="mi" data-go="picks">
+      <div class="mi-ic">🔎</div>
+      <div><div class="mi-t">AI 관심 종목</div>
+           <div class="mi-d">매일 아침 시장을 살펴본 기록 · 무료</div></div>
+      <span class="mi-go">→</span>
+    </button>
+    <button class="mi" data-go="chat">
+      <div class="mi-ic">💬</div>
+      <div><div class="mi-t">윤채원과 대화하기</div>
+           <div class="mi-d">보고서를 놓고 궁금한 점을 물어보세요</div></div>
+      <span class="mi-go">→</span>
+    </button>
+  </div>
+
+  <!-- ③ 증권 탑뉴스 -->
+  <div class="sec">
+    <div class="sec-h">
+      <div class="sec-t">증권 탑뉴스</div>
+      <span class="live"><i></i>LIVE</span>
+      <div class="sec-m">MARKET NEWS</div>
+    </div>
+    <div id="news"><div class="dis-b">불러오는 중…</div></div>
+  </div>
+
+  <!-- 관심 종목 -->
+  <div class="sec">
+    <div class="sec-h">
+      <div class="sec-t">오늘의 AI 관심 종목</div>
+      <div class="sec-m">WATCHLIST</div>
+    </div>
+    <div id="picks"><div class="dis-b">불러오는 중…</div></div>
+  </div>
+
+  <div class="dis">
+    <div class="dis-t">PLEASE READ · 투자 유의사항</div>
+    <div class="dis-b">본 화면은 <b>투자 권유가 아닙니다.</b> 관심 종목은 AI가 공개 지표로 산출한 참고 정보이며,
+      최종 투자 판단과 그 결과에 대한 책임은 이용자 본인에게 있습니다.</div>
+  </div>
+  <div class="err" id="err"></div>
+</div>
+
+<script>
+/* 실데이터만 쓴다. 실패하면 그 사실을 화면에 남기고 숫자를 지어내지 않는다. */
+var FAILED = [];
+
+function num(v){ return typeof v === 'number' && isFinite(v) ? v : null; }
+function fmt(v, d){ return v === null ? '—' : v.toLocaleString('ko-KR', {maximumFractionDigits: d}); }
+function cls(pct){ return pct === null || pct === 0 ? 'flat' : (pct > 0 ? 'up' : 'down'); }
+function mark(pct){ return pct === null || pct === 0 ? '·' : (pct > 0 ? '▲' : '▼'); }
+
+/* ★지수에는 '원'을 붙이지 않는다. valueKind==='etf' 일 때만 원 + 대용 이름을 병기한다. */
+function indexValue(m){
+  var v = num(m.price);
+  if (m.valueKind === 'etf') {
+    return { text: v === null ? '—' : fmt(v, 0) + '원',
+             cap: m.proxy && m.proxy.name ? '대용: ' + m.proxy.name : '대용 ETF(확인 필요)' };
+  }
+  return { text: fmt(v, 2), cap: '' };
+}
+
+function rowHTML(name, valText, pct, cap){
+  var c = cls(pct);
+  return '<div class="row"><span class="r-name">' + name + '</span>' +
+         '<span class="r-val mono ' + c + '">' + valText + '</span>' +
+         '<span class="r-chg mono ' + c + '">' + mark(pct) +
+         (pct === null ? '' : ' ' + Math.abs(pct).toFixed(2) + '%') + '</span></div>' +
+         (cap ? '<div class="r-cap">' + cap + '</div>' : '');
+}
+
+/* 그래프 — 종가·전일종가·등락률로 만든 **추세 스케치**다(분봉이 아니다). */
+function drawGraph(close, prev, pct){
+  if (close === null) return;
+  var start = prev !== null ? prev : close / (1 + (pct || 0) / 100);
+  var pts = [], n = 22;
+  for (var i = 0; i <= n; i++) {
+    var t = i / n;
+    var base = start + (close - start) * (t * t * (3 - 2 * t));   // smoothstep
+    var wave = Math.sin(t * 7.5) * (Math.abs(close - start) || close * 0.004) * 0.22;
+    pts.push([t * 160, base + wave]);
+  }
+  var ys = pts.map(function(p){ return p[1]; });
+  var lo = Math.min.apply(null, ys), hi = Math.max.apply(null, ys), span = (hi - lo) || 1;
+  var xy = pts.map(function(p){ return [p[0], 88 - ((p[1] - lo) / span) * 76]; });
+  var d = xy.map(function(p, i){ return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+  var line = document.getElementById('gLine');
+  line.setAttribute('d', d);
+  line.style.setProperty('--len', Math.ceil(line.getTotalLength()));
+  document.getElementById('gArea').setAttribute('d', d + ' L160 96 L0 96 Z');
+  var dot = document.getElementById('gDot');
+  dot.setAttribute('cx', xy[xy.length - 1][0]); dot.setAttribute('cy', xy[xy.length - 1][1]);
+  var down = (pct || 0) < 0;
+  [line, dot].forEach(function(el){ el.style.stroke = el.style.fill = down ? 'var(--down)' : 'var(--up)'; });
+}
+
+fetch('/api/desk/summary').then(function(r){ return r.json(); }).then(function(d){
+  var ms = d.markets || [], box = document.getElementById('idx'), html = '', tape = '';
+  ms.forEach(function(m){
+    var v = indexValue(m), pct = num(m.changePct);
+    html += rowHTML(m.label, v.text, pct, v.cap);
+    tape += '<span class="tape-i mono ' + cls(pct) + '">' + m.label + ' ' + mark(pct) + ' ' +
+            v.text + (pct === null ? '' : ' ' + (pct > 0 ? '+' : '') + pct.toFixed(2) + '%') + '</span>';
+  });
+  var fx = d.fx || {};
+  if (fx.hasRate) {
+    var fpct = num(fx.changePct);
+    html += rowHTML('원/달러', fmt(num(fx.rate), 1), fpct, '');
+    tape += '<span class="tape-i mono ' + cls(fpct) + '">USD/KRW ' + mark(fpct) + ' ' + fmt(num(fx.rate), 1) + '</span>';
+  } else {
+    html += rowHTML('원/달러', '—', null, '환율 미제공');
+  }
+  box.innerHTML = html;
+  /* ★두 벌을 이어 붙여야 흐를 때 왼쪽이 잘리지 않는다. */
+  document.getElementById('tape').innerHTML = tape + tape;
+  var k = ms.filter(function(m){ return m.key === 'kospi' || m.label === '코스피'; })[0];
+  if (k) drawGraph(num(k.price), num(k.prevClose), num(k.changePct));
+  document.getElementById('stamp').textContent =
+    '실시간 시세 · ' + (d.date && d.date.label ? d.date.label : '') + ' 기준';
+}).catch(function(){
+  FAILED.push('시세'); document.getElementById('idx').innerHTML = '<div class="r-cap">시세를 불러오지 못했습니다</div>';
+  showErr();
+});
+
+/* ③ 증권 탑뉴스 3개 — 무료 제목(headline_cues)만 쓴다(본문은 유료). */
+fetch('/api/news/status').then(function(r){ return r.json(); }).then(function(d){
+  var cues = (d.headline_cues && d.headline_cues['경제증시']) || [];
+  var box = document.getElementById('news');
+  if (!cues.length) { box.innerHTML = '<div class="dis-b">오늘 증권 뉴스가 아직 준비되지 않았습니다.</div>'; return; }
+  box.innerHTML = cues.slice(0, 3).map(function(c, i){
+    return '<div class="nw"><div class="nw-n mono">' + (i + 1) + '</div><div class="nw-t">' + c.title + '</div></div>';
+  }).join('');
+}).catch(function(){
+  FAILED.push('뉴스');
+  document.getElementById('news').innerHTML = '<div class="dis-b">뉴스를 불러오지 못했습니다.</div>';
+  showErr();
+});
+
+/* 관심 종목 — summary(마크다운 표)에서 참고 행만 뽑는다.
+   ★★'투자의견' 행은 "매수 (78점)" 같은 권유 표현이라 **제외**한다. */
+var DROP = /투자의견|봇 추세|매수|매도|추천/;
+function pickRows(summary){
+  var out = [];
+  (summary || '').split('\n').forEach(function(line){
+    var m = line.match(/^\s*\|\s*([^|]+?)\s*\|\s*(.+?)\s*\|\s*$/);
+    if (!m) return;
+    var k = m[1].trim(), v = m[2].trim();
+    if (!k || /^-+$/.test(k) || k === '구분' || DROP.test(k) || DROP.test(v)) return;
+    out.push([k, v.replace(/\*\*/g, '')]);
+  });
+  return out.slice(0, 4);
+}
+function grade(s){ return s === null ? '참고' : (s >= 80 ? '관심 높음' : (s >= 60 ? '관심' : '참고')); }
+
+fetch('/api/stock-picks').then(function(r){ return r.json(); }).then(function(d){
+  var box = document.getElementById('picks'), ps = d.picks || [];
+  if (!ps.length) { box.innerHTML = '<div class="dis-b">오늘의 기록이 아직 없습니다.</div>'; return; }
+  box.innerHTML = ps.map(function(p){
+    var rows = pickRows(p.summary), s = num(p.score);
+    return '<div class="pk"><div class="pk-h">' +
+      '<span class="pk-m">' + (p.market || '') + '</span>' +
+      '<span class="pk-n">' + p.name + '</span>' +
+      '<span class="pk-b"><span class="pk-g">' + grade(s) + '</span>' +
+      '<div class="pk-s mono">' + (s === null ? '—' : s + '점') + '</div></span></div>' +
+      (rows.length
+        ? '<table class="pk-tb">' + rows.map(function(r){
+            return '<tr><th>' + r[0] + '</th><td>' + r[1] + '</td></tr>'; }).join('') + '</table>'
+        : '<div class="dis-b" style="margin-top:8px">요약이 아직 준비되지 않았습니다.</div>') +
+      '</div>';
+  }).join('');
+}).catch(function(){
+  FAILED.push('관심 종목');
+  document.getElementById('picks').innerHTML = '<div class="dis-b">관심 종목을 불러오지 못했습니다.</div>';
+  showErr();
+});
+
+/* ★실패를 조용히 넘기지 않는다 — 무엇이 비었는지 한 곳에 모아 한 번만 알린다. */
+function showErr(){
+  document.getElementById('err').textContent =
+    FAILED.length ? '일부 데이터를 불러오지 못했습니다: ' + FAILED.join(', ') : '';
+}
+
+/* 시안이라 이동은 안내만 한다(실제 컴포넌트에서는 onFeature/onStart 로 연결). */
+document.querySelectorAll('.mi').forEach(function(b){
+  b.addEventListener('click', function(){
+    alert('시안입니다 — 실제 화면에서는 "' + b.querySelector('.mi-t').textContent + '"(으)로 이동합니다.');
+  });
+});
+</script>
+</body>
+</html>
