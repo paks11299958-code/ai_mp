@@ -163,6 +163,16 @@ GET /api/news/tts?category=국내뉴스&slot=am
 - `prefers-reduced-motion` 대응 필수.
 - 모바일 분기 **820px**(620px는 780px 실기기에서 좁았다).
 - 새 API는 **캐시**한다 — 네이버·토스를 매 방문 때리지 않는다(60초 권장).
+- 🔴★★**`sn-sheet` 밖에 무언가를 렌더할 때는 배경 클릭·Esc 를 함께 손볼 것**(2026-09-07 사고).
+  `sn-root` 는 자식 클릭을 전부 `onClose` 로 받고 `sn-sheet` 만 `stopPropagation` 을 갖는다.
+  뉴스룸(`TodayNewsBoard`)은 시트 **밖 형제**로 렌더되므로(`SeoaNewsDeskEntry.tsx:1016`)
+  그 안의 ✕ 를 누르면 이벤트가 루트까지 올라가 **랜딩까지 닫히고 메인으로 떨어졌다.**
+  → 배경 클릭 분기에 `if (!openCategory)` 를 둔다(Esc 는 이미 뉴스룸을 먼저 닫고 있었다 —
+  **클릭만 구멍이었다**). 같은 뿌리의 사고를 도결(`SajuEntry`)에서도 같은 날 고쳤다.
+  ★`tsc`·빌드·안전검사가 **전부 통과한다** — 실제로 눌러야만 나온다.
+- ★**서아는 `App.tsx` 의 뉴스 보드를 쓰지 않는다**(랜딩 안에서 직접 렌더). App.tsx 쪽
+  `TodayNewsBoard` 배선은 **카테고리 로딩 실패 시 폴백 버튼**(`onFeature('news')`)과
+  메인 기능카드용이다 — 혼동하면 "고쳤는데 화면이 그대로"가 된다.
 
 ## 8. 완료 조건
 
