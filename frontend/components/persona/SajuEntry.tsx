@@ -2,12 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { MpnFeatureIcon } from '../MainPageNew';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
 import { SAJU_TONE, SAJU_HERO_IMAGES, SAJU_HERO_ASPECT, mountSajuHero, mountSajuLoadingSmoke, prefersReducedMotion } from './sajuHero';
-import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor, inputKindFor, dreamPlaceholder, type SajuInputKind } from './useSajuRunner';
+import { usePersonaMenus, useSajuRunner, useSavedBirth, sheetMenuFor, inputKindFor, dreamPlaceholder, withPartner, withTwoPartners, type SajuInputKind, type SajuBirth } from './useSajuRunner';
 // 2단계 — 기존 모달·결과 카드를 그대로 재사용한다(새로 만들지 않는다).
 import { FaceReadingModal } from '../FaceReadingModal';
 import { FaceReadingResultCard } from '../FaceReadingResultCard';
 import { PalmReadingModal } from '../PalmReadingModal';
 import { PalmReadingResultCard } from '../PalmReadingResultCard';
+// 3단계 — 인연 궁합의 상대방 정보도 창 안에서 받는다(채팅 경로와 **같은 모달**).
+import { PartnerInfoModal } from '../PartnerInfoModal';
 import type { FaceReadingResult, PalmReadingResult } from '../../types';
 
 // 도결(道潔) 선생 전용 진입 화면 — "사주 사이트 같은 큰 랜딩".
@@ -260,6 +262,13 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
     //   새로 만들면 그쪽에 이미 있는 연출(손금 봉인→플립 등)을 잃는다.
     const [inputKind, setInputKind] = useState<SajuInputKind | null>(null);
     const [dream, setDream] = useState('');
+    // 3단계 — 인연 궁합. 상대방 정보를 받는 동안 어떤 항목이었는지 붙들어 둔다.
+    // ★모달이 뜬 사이 `runner.picking` 은 그대로 두어야 취소했을 때 항목 목록으로 돌아간다.
+    const [partnerFor, setPartnerFor] = useState<{ label: string; prompt: string } | null>(null);
+    // 친구 둘 궁합 — 같은 모달을 친구1 → 친구2 로 두 번 받는다(채팅 경로와 동일).
+    const [twoFor, setTwoFor] = useState<{ label: string; prompt: string } | null>(null);
+    const [twoStep, setTwoStep] = useState(0);            // 0=닫힘, 1=친구1, 2=친구2
+    const [firstFriend, setFirstFriend] = useState<SajuBirth | null>(null);
     const [faceResult, setFaceResult] = useState<FaceReadingResult | null>(null);
     const [palmResult, setPalmResult] = useState<{ result: PalmReadingResult; imageUrl: string | null; hand: 'left' | 'right' } | null>(null);
 
@@ -286,19 +295,29 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
         return () => smoke.destroy();
     }, [reduced, runner.loading]);
 
+    // ★★위에 모달이 떠 있는가(2026-09-07). 아래 Esc 훅과 배경 클릭이 함께 쓴다.
+    //   ★훅의 의존성 배열에 들어가므로 **그 훅보다 위**에 선언한다(TDZ 백지 사고 예방).
+    //   `sj-root` 는 자식 클릭을 전부 `onClose` 로 받는데, 모달들은 `sj-sheet` **밖**에
+    //   렌더돼 `stopPropagation` 우산 아래가 없다. 그대로 두면 모달 안의 버튼을 누르는
+    //   순간 이벤트가 루트까지 올라가 **진입화면이 통째로 닫히고 메인으로 튕긴다.**
+    //   ★궁합만의 문제가 아니었다 — 실측하니 **관상·손금(2026-08-27 작업)도 깨져 있었다.**
+    //     개별 모달에 stopPropagation 을 붙이는 대신 닫기 판단을 한곳에서 막는다.
+    const modalUp = !!(inputKind || partnerFor || twoStep > 0 || faceResult || palmResult);
+
     // Esc로 닫기 — 전체를 덮는 화면이라 출구가 하나(✕)뿐이면 갇힌 느낌이 든다.
+    // ★모달이 위에 있으면 진입화면까지 닫지 않는다 — 모달은 자기 취소 버튼으로 닫는다.
     useEffect(() => {
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape' && !modalUp) onClose(); };
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
-    }, [onClose]);
+    }, [onClose, modalUp]);
 
     // ★DB(FEATURES_GRID)에서 온 것만 쓴다. 없는 기능을 지어내지 않는다.
     const features = guide.features ?? [];
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
-        <div className="sj-root" onClick={onClose}>
+        <div className="sj-root" onClick={() => { if (!modalUp) onClose(); }}>
             <style>{SAJU_CSS}</style>
             <div
                 className="sj-sheet"
@@ -382,12 +401,27 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
                                             <div className="sj-picks">
                                                 {(runner.picking.subMenu?.items ?? []).map(it => (
                                                     <button key={it.label} className="sj-pick"
-                                                        onClick={() => it.partnerModal
-                                                            // 상대방 정보가 필요한 항목(인연 궁합)은 아직 채팅 경로다.
-                                                            ? onFeature('yeonn')
-                                                            : runner.pick(it.label, it.prompt)}>
+                                                        onClick={() => {
+                                                            // 상대 정보가 필요한 항목도 창 안에서 받는다(2026-09-07).
+                                                            // ★★`twoPartnerModal` 을 빠뜨리면 상대 정보 없이 실행돼
+                                                            //   포인트만 나간다 — 실제로 그런 상태였다.
+                                                            if (it.twoPartnerModal) {
+                                                                setTwoFor({ label: it.label, prompt: it.prompt });
+                                                                setFirstFriend(null);
+                                                                setTwoStep(1);
+                                                                return;
+                                                            }
+                                                            if (it.partnerModal) {
+                                                                setPartnerFor({ label: it.label, prompt: it.prompt });
+                                                                return;
+                                                            }
+                                                            runner.pick(it.label, it.prompt);
+                                                        }}>
                                                         {it.label}
-                                                        {it.partnerModal && <em className="sj-pickhint">상대 정보 필요</em>}
+                                                        {(it.partnerModal || it.twoPartnerModal) &&
+                                                            <em className="sj-pickhint">
+                                                                {it.twoPartnerModal ? '두 사람 정보 필요' : '상대 정보 필요'}
+                                                            </em>}
                                                     </button>
                                                 ))}
                                             </div>
@@ -517,6 +551,38 @@ export const SajuEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature,
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* ── 3단계: 인연 궁합 — 상대방 정보(2026-09-07) ──────────────
+                ★채팅이 쓰던 `PartnerInfoModal` 을 **그대로** 띄운다. 관상·손금과 같은
+                  방식이며, 새 입력 UI 를 만들면 이름·생년월일·시(時) 3단 흐름을 다시
+                  짜야 하고 두 화면의 문구가 갈린다.
+                ★★차감은 `/quick-menu-result` 한 번뿐이다 — 채팅 경로의 activate 를
+                  흉내내면 **두 번 차감**된다(꿈해몽에서 겪은 함정). */}
+            {partnerFor && (
+                <PartnerInfoModal
+                    onComplete={p => {
+                        // 내 명부는 붙이지 않는다 — `run()` 의 `withBirth()` 가 붙인다(중복 방지).
+                        runner.run(partnerFor.label, withPartner(partnerFor.prompt, p));
+                        setPartnerFor(null);
+                    }}
+                    onClose={() => setPartnerFor(null)}
+                />
+            )}
+
+            {/* 친구 둘 궁합 — 같은 모달을 친구1 → 친구2 로 두 번 받는다.
+                ★`key` 로 단계가 바뀔 때 입력을 초기화한다(안 하면 친구1 값이 그대로 남는다). */}
+            {twoStep > 0 && twoFor && (
+                <PartnerInfoModal
+                    key={twoStep}
+                    title={twoStep === 1 ? '🤝 첫 번째 친구 정보' : '🤝 두 번째 친구 정보'}
+                    onComplete={info => {
+                        if (twoStep === 1) { setFirstFriend(info); setTwoStep(2); return; }
+                        if (firstFriend) runner.run(twoFor.label, withTwoPartners(twoFor.prompt, firstFriend, info));
+                        setTwoStep(0); setFirstFriend(null); setTwoFor(null);
+                    }}
+                    onClose={() => { setTwoStep(0); setFirstFriend(null); setTwoFor(null); }}
+                />
             )}
         </div>
     );

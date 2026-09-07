@@ -15,7 +15,9 @@ export interface SajuMenu {
     partnerModal?: boolean;
     subMenu?: {
         dialog?: string;
-        items?: { label: string; prompt: string; partnerModal?: boolean }[];
+        // ★`twoPartnerModal`(친구 둘 궁합)이 빠져 있으면 그 항목이 **상대 정보 없이**
+        //   그대로 실행돼 포인트만 차감된다(2026-09-07 실측). DB 정본에 있는 필드는 전부 둔다.
+        items?: { label: string; prompt: string; partnerModal?: boolean; twoPartnerModal?: boolean }[];
     };
 }
 
@@ -57,6 +59,32 @@ export const withBirth = (prompt: string, b: SajuBirth | null): string => {
     const t = b.time && b.time !== '모름' ? ` ${b.time}생` : '';
     const cal = b.lunar ? '음력' : '양력';
     return `${prompt}\n\n사용자 정보 — 이름: ${b.name}, 생년월일: ${cal} ${b.year}년 ${b.month}월 ${b.day}일${t}`;
+};
+
+/** 궁합 — 상대방 정보를 프롬프트 **앞에** 붙인다.
+ *  ★채팅 경로(App.tsx `PartnerInfoModal.onComplete`)와 **같은 문장 형식**이다.
+ *    형식이 다르면 같은 기능인데 결과가 달라진다(`withBirth` 와 같은 이유).
+ *  ★★내 명부는 여기서 붙이지 않는다 — `run()` 이 `withBirth()` 로 붙이므로
+ *    여기서도 붙이면 **사용자 정보가 두 번** 들어간다. 채팅 경로는 `runQuickMenuCard`
+ *    가 명부를 안 붙이기 때문에 거기서 직접 붙이는 것이고, 여기는 통로가 다르다. */
+export const withPartner = (prompt: string, p: SajuBirth): string => {
+    const t = p.time && p.time !== '모름' ? ` ${p.time}생` : '';
+    const cal = p.lunar ? '음력' : '양력';
+    return `상대방: ${p.name}, ${cal} ${p.year}년 ${p.month}월 ${p.day}일${t}. ${prompt}`;
+};
+
+/** 친구 둘 궁합 — 제3자 둘의 정보를 앞에 붙인다.
+ *  ★채팅 경로(App.tsx `twoPartnerStep === 2`)와 **같은 문장 형식**이다.
+ *  ★여기는 '나'가 주인공이 아니지만 `run()` 이 명부를 붙이는 것은 그대로 둔다 —
+ *    채팅 경로도 `useBirthInfo` 페르소나면 같은 정보를 갖고 판단하며,
+ *    형식을 여기서만 바꾸면 두 화면의 결과가 갈린다. */
+export const withTwoPartners = (prompt: string, a: SajuBirth, b: SajuBirth): string => {
+    const fmt = (p: SajuBirth) => {
+        const t = p.time && p.time !== '모름' ? ` ${p.time}생` : '';
+        const cal = p.lunar ? '음력' : '양력';
+        return `${p.name}(${cal} ${p.year}년 ${p.month}월 ${p.day}일${t})`;
+    };
+    return `친구1: ${fmt(a)}, 친구2: ${fmt(b)}. ${prompt}`;
 };
 
 /** 포인트 부족은 apiService 가 이미 충전 모달을 띄운다 — 여기서 또 알리지 않는다. */
