@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { buildCandles, type OHLC } from './ChaewonDeskEntry';
 
 // 윤채원 트레이딩 데스크 랜딩 (2026-09-07).
 //
@@ -180,54 +181,99 @@ describe('요약 표 파싱', () => {
     });
 });
 
-describe('★그래프가 잘리지 않는다', () => {
+describe('★일봉 캔들', () => {
     // 2026-09-07 실측 사고: 선을 0~160 끝까지 그렸더니 **오른쪽 끝이 잘렸다** —
-    // 하필 거기가 "오늘 오른 지점"이라 제일 중요한 데가 안 보였다.
+    // 하필 거기가 "오늘 오른 지점"이라 제일 중요한 데가 안 보였다. PAD 는 그 재발방지다.
+    //
+    // 2026-09-08: 그래프가 `Math.sin` 으로 지어낸 가짜였다. 이제 실제 일봉만 그린다.
+    // ★테스트는 **출하되는 함수**를 부른다 — 예전처럼 로직을 복사해 두면 소스가 바뀌어도
+    //   테스트는 옛 사본만 통과시킨다(통과=검증 아님).
     const PAD = 6;
-    const buildPath = (close: number, prev: number | null, pct: number | null) => {
-        const start = prev ?? close / (1 + (pct ?? 0) / 100);
-        const pts: [number, number][] = [];
-        for (let i = 0; i <= 22; i++) {
-            const t = i / 22;
-            const base = start + (close - start) * (t * t * (3 - 2 * t));
-            const wave = Math.sin(t * 7.5) * ((Math.abs(close - start) || close * 0.004) * 0.22);
-            pts.push([PAD + t * (160 - PAD * 2), base + wave]);
-        }
-        const ys = pts.map(p => p[1]);
-        const lo = Math.min(...ys), span = (Math.max(...ys) - lo) || 1;
-        return pts.map(([x, y]) => [x, 90 - PAD - ((y - lo) / span) * (90 - PAD * 2)] as [number, number]);
-    };
 
-    it('모든 점이 여백 안에 있다', () => {
-        // 실측값(코스피 6995.39, 전일 6687.21, +4.61%)
-        for (const [x, y] of buildPath(6995.39, 6687.21, 4.61)) {
-            expect(x).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(x).toBeLessThanOrEqual(160 - PAD + 0.01);
-            expect(y).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(y).toBeLessThanOrEqual(96 - PAD + 0.01);   // 선 굵기·끝점 동그라미 자리
-        }
-    });
+    /** 실측 코스피 일봉(2026-08-25~09-07, 네이버). */
+    const REAL: OHLC[] = [
+        { date: '2026-08-25', open: 6535.93, high: 6747.16, low: 6408.82, close: 6742.74 },
+        { date: '2026-08-26', open: 6727.25, high: 6887.18, low: 6704.10, close: 6808.21 },
+        { date: '2026-08-27', open: 6996.12, high: 6996.12, low: 6841.88, close: 6912.37 },
+        { date: '2026-08-28', open: 6846.54, high: 6901.78, low: 6780.13, close: 6788.88 },
+        { date: '2026-08-31', open: 6613.58, high: 6820.10, low: 6547.76, close: 6820.02 },
+        { date: '2026-09-01', open: 6784.29, high: 6857.35, low: 6732.47, close: 6835.80 },
+        { date: '2026-09-02', open: 6625.47, high: 6694.57, low: 6558.30, close: 6562.72 },
+        { date: '2026-09-03', open: 6650.33, high: 6682.97, low: 6439.49, close: 6579.48 },
+        { date: '2026-09-04', open: 6654.36, high: 6746.14, low: 6632.77, close: 6687.21 },
+        { date: '2026-09-07', open: 6910.78, high: 6995.40, low: 6867.91, close: 6995.39 },
+    ];
 
-    it('내린 날도 여백 안에 있다', () => {
-        for (const [, y] of buildPath(800, 830, -3.6)) {
-            expect(y).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(y).toBeLessThanOrEqual(96 - PAD + 0.01);
+    it('열 개가 전부 여백 안에 들어간다', () => {
+        const bars = buildCandles(REAL);
+        expect(bars.length).toBe(10);
+        for (const b of bars) {
+            expect(b.x - b.w / 2).toBeGreaterThanOrEqual(PAD - 0.01);
+            expect(b.x + b.w / 2).toBeLessThanOrEqual(160 - PAD + 0.01);
+            // ★꼬리까지 재야 한다. 종가만 스케일하면 고가·저가가 칸 밖으로 삐져나간다.
+            expect(b.highY).toBeGreaterThanOrEqual(PAD - 0.01);
+            expect(b.lowY).toBeLessThanOrEqual(96 - PAD + 0.01);
+            expect(b.bodyY).toBeGreaterThanOrEqual(PAD - 0.01);
+            expect(b.bodyY + b.bodyH).toBeLessThanOrEqual(96 - PAD + 0.01);
         }
     });
 
-    it('보합(전일과 같음)이어도 죽지 않는다', () => {
-        const pts = buildPath(1000, 1000, 0);
-        expect(pts.length).toBe(23);
-        expect(pts.every(([, y]) => Number.isFinite(y))).toBe(true);
+    it('캔들이 서로 겹치지 않는다', () => {
+        const bars = buildCandles(REAL);
+        for (let i = 1; i < bars.length; i++) {
+            expect(bars[i].x - bars[i].w / 2).toBeGreaterThanOrEqual(bars[i - 1].x + bars[i - 1].w / 2 - 0.01);
+        }
     });
 
-    it('전일종가가 없으면 등락률로 되짚는다', () => {
-        expect(buildPath(1046.1, null, 4.61).every(([, y]) => Number.isFinite(y))).toBe(true);
+    it('양봉/음봉을 종가 기준으로 가른다 — 한국 관례(양봉=빨강)', () => {
+        const bars = buildCandles(REAL);
+        expect(bars[bars.length - 1].up).toBe(true);    // 09-07 시 6910.78 → 종 6995.39
+        expect(bars[6].up).toBe(false);                 // 09-02 시 6625.47 → 종 6562.72
     });
 
-    it('소스에 PAD 가 살아 있다', () => {
+    it('꼬리는 항상 몸통을 감싼다', () => {
+        for (const b of buildCandles(REAL)) {
+            expect(b.highY).toBeLessThanOrEqual(b.bodyY + 0.01);            // 위가 더 작은 y
+            expect(b.lowY).toBeGreaterThanOrEqual(b.bodyY + b.bodyH - 0.01);
+        }
+    });
+
+    it('도지(시가==종가)도 보이게 최소 높이를 준다', () => {
+        const [b] = buildCandles([{ date: 'd', open: 100, high: 105, low: 95, close: 100 }]);
+        expect(b.bodyH).toBeGreaterThanOrEqual(1);
+    });
+
+    it('전 구간 보합이어도 0으로 나누지 않는다', () => {
+        const flat = buildCandles([
+            { date: 'a', open: 100, high: 100, low: 100, close: 100 },
+            { date: 'b', open: 100, high: 100, low: 100, close: 100 },
+        ]);
+        expect(flat.every(b => Number.isFinite(b.bodyY) && Number.isFinite(b.lowY))).toBe(true);
+    });
+
+    it('깨진 행은 버리고 나머지를 그린다', () => {
+        const bars = buildCandles([
+            { date: 'a', open: 100, high: 110, low: 95, close: 105 },
+            { date: 'bad', open: 0, high: NaN, low: -1, close: 0 } as any,
+        ]);
+        expect(bars.length).toBe(1);
+        expect(bars[0].date).toBe('a');
+    });
+
+    it('데이터가 없으면 빈 배열 — 지어내지 않는다', () => {
+        expect(buildCandles([])).toEqual([]);
+    });
+
+    it('★소스에 사인파 가짜 그래프가 되살아나지 않았다', () => {
         expect(SRC).toContain('const PAD = 6');
-        expect(SRC).not.toContain('pts.push([t * 160,');   // 옛 방식으로 되돌리면 다시 잘린다
+        // 호출만 잡는다 — 사고 경위를 적어 둔 주석의 `Math.sin` 은 남겨야 재발을 막는다.
+        expect(SRC).not.toMatch(/Math\.sin\(/);
+        expect(SRC).toContain('/api/desk/candles');     // 실데이터를 부르는지
+    });
+
+    it('다 찍히면 멈춘다 — 무한 반복이 아니다', () => {
+        expect(SRC).toContain('clearInterval');
+        expect(SRC).toMatch(/}, 500\)/);                // 500ms = 1초에 두 개
     });
 });
 

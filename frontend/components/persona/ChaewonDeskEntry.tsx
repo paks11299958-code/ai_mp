@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
 
 // 윤채원(수석 애널리스트) 전용 진입 화면 — "트레이딩 데스크".
@@ -74,25 +74,62 @@ const pickRows = (summary: string): [string, string][] => {
     return out.slice(0, 4);
 };
 
-/** 코스피 추세 스케치 — 종가·전일종가로 만든 **개형**이다(분봉이 아니다).
+/** 코스피 **일봉 캔들** — 네이버 일봉(시·고·저·종)을 그대로 그린다.
  *
- *  ★가장자리를 비워 둔다(PAD). 선을 0~160 끝까지 그리면 **선 굵기(2.2)와 끝점
- *    동그라미(r 최대 5)의 바깥쪽 절반이 viewBox 밖으로 잘린다** — 하필 오른쪽 끝이
- *    "오늘 오른 지점"이라 제일 중요한 데가 잘려 나갔다(2026-09-07 실측). */
+ *  ★★2026-09-08 이전엔 종가·전일종가 두 점 사이를 `Math.sin` 으로 흔든 **가짜 개형**이었다.
+ *    사인파는 시장이 아니다 — 애널리스트 화면에 지어낸 그래프를 띄우고 있었던 셈이다.
+ *    이제 `/api/desk/candles` 의 실제 OHLC 만 그린다. **데이터가 없으면 아무것도 그리지 않는다**(폴백 금지).
+ *
+ *  ★가장자리를 비워 둔다(PAD). 0~160 끝까지 그리면 **선 굵기와 꼬리 끝이 viewBox 밖으로
+ *    잘린다** — 하필 오른쪽 끝이 "오늘" 이라 제일 중요한 데가 잘려 나갔다(2026-09-07 실측). */
 const PAD = 6;
-const buildPath = (close: number, prev: number | null, pct: number | null) => {
-    const start = prev ?? close / (1 + (pct ?? 0) / 100);
-    const pts: [number, number][] = [];
-    for (let i = 0; i <= 22; i++) {
-        const t = i / 22;
-        const base = start + (close - start) * (t * t * (3 - 2 * t));
-        const wave = Math.sin(t * 7.5) * ((Math.abs(close - start) || close * 0.004) * 0.22);
-        pts.push([PAD + t * (160 - PAD * 2), base + wave]);
-    }
-    const ys = pts.map(p => p[1]);
-    const lo = Math.min(...ys), span = (Math.max(...ys) - lo) || 1;
-    const xy = pts.map(([x, y]) => [x, 90 - PAD - ((y - lo) / span) * (90 - PAD * 2)] as [number, number]);
-    return { d: xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), last: xy[xy.length - 1] };
+const VB_W = 160, VB_H = 96;
+
+export interface CandleBar {
+    x: number;                       // 몸통 중심 x
+    w: number;                       // 몸통 너비
+    bodyY: number; bodyH: number;    // 몸통(시가~종가)
+    highY: number; lowY: number;     // 꼬리(고가~저가)
+    up: boolean;                     // 양봉(종가>=시가) — 한국 관례상 빨강
+    date: string;
+}
+
+export interface OHLC { date: string; open: number; high: number; low: number; close: number; }
+
+/**
+ * 캔들 배치를 계산한다.
+ * ★스케일은 **고가·저가 전 범위**로 잡는다. 종가만으로 잡으면 꼬리가 칸 밖으로 삐져나간다.
+ * ★몸통 높이는 최소 1 을 준다 — 시가==종가(도지)면 높이 0 이라 아예 안 보인다.
+ */
+export const buildCandles = (rows: OHLC[]): CandleBar[] => {
+    const ok = rows.filter(r => [r.open, r.high, r.low, r.close].every(n => typeof n === 'number' && isFinite(n) && n > 0));
+    if (ok.length === 0) return [];
+
+    const lo = Math.min(...ok.map(r => r.low));
+    const hi = Math.max(...ok.map(r => r.high));
+    const span = (hi - lo) || 1;                       // 전 구간 보합이어도 0 으로 나누지 않는다
+    const top = PAD, usableH = VB_H - PAD * 2;
+    const y = (v: number) => top + (1 - (v - lo) / span) * usableH;
+
+    const slot = (VB_W - PAD * 2) / ok.length;
+    // ★몸통 굵기. 상한을 9 로 뒀더니 10개 기준 몸통이 붙어 보여 답답했다(렌더 실측).
+    //   slot 의 절반 정도라야 캔들 사이 간격이 살아난다.
+    const w = Math.max(2.5, Math.min(7, slot * 0.48));  // 10개 기준 약 7.0
+
+    return ok.map((r, i) => {
+        const yo = y(r.open), yc = y(r.close);
+        const bodyY = Math.min(yo, yc);
+        return {
+            x: PAD + slot * (i + 0.5),
+            w,
+            bodyY,
+            bodyH: Math.max(1, Math.abs(yc - yo)),
+            highY: y(r.high),
+            lowY: y(r.low),
+            up: r.close >= r.open,
+            date: r.date,
+        };
+    });
 };
 
 const CSS = `
@@ -130,21 +167,17 @@ const CSS = `
 .cd-gt{font-size:10px;color:#9fb0c6;letter-spacing:.08em;margin-bottom:4px}
 .cd-gw{position:absolute;inset:26px 8px 8px}
 .cd-gw svg{width:100%;height:100%}
-.cd-line{fill:none;stroke-width:2.2;stroke-linecap:round}
-.cd-dot{opacity:0}
+.cd-gerr{position:absolute;inset:26px 8px 8px;display:flex;align-items:center;
+  justify-content:center;font-size:10.5px;color:#9fb0c6;text-align:center}
+/* 캔들 하나가 '띡' 하고 찍히는 순간 — 짧게 튀어나온다. transform-box 가 없으면
+   SVG 안에서 transform-origin 이 뷰박스 원점 기준이라 엉뚱한 데서 커진다. */
+.cd-cd{transform-box:fill-box;transform-origin:center}
 @media (prefers-reduced-motion:no-preference){
-  .cd-line{animation:cd-draw 2.6s ease-out forwards}
-  .cd-area{animation:cd-fade .8s ease-out 1.6s forwards}
-  .cd-dot{animation:cd-fade .5s ease-out 2.3s forwards,cd-pulse 1.8s ease-in-out 2.8s infinite}
+  .cd-cd{animation:cd-pop .26s ease-out backwards}
   .cd-tape-in{animation:cd-slide 22s linear infinite}
   .cd-live i{animation:cd-blink 1.6s ease-in-out infinite}
 }
-@media (prefers-reduced-motion:reduce){
-  .cd-line{stroke-dashoffset:0!important}.cd-area{opacity:.5}.cd-dot{opacity:1}
-}
-@keyframes cd-draw{to{stroke-dashoffset:0}}
-@keyframes cd-fade{to{opacity:1}}
-@keyframes cd-pulse{0%,100%{r:3.4}50%{r:5}}
+@keyframes cd-pop{from{opacity:0;transform:scaleY(.35)}to{opacity:1;transform:scaleY(1)}}
 @keyframes cd-slide{to{transform:translateX(-50%)}}
 @keyframes cd-blink{0%,100%{opacity:1}50%{opacity:.25}}
 
@@ -229,7 +262,9 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
     const [cues, setCues] = useState<Cues | null>(null);
     const [tab, setTab] = useState(NEWS_TABS[0].key);
     const [failed, setFailed] = useState<string[]>([]);
-    const lineRef = useRef<SVGPathElement>(null);
+    const [candles, setCandles] = useState<OHLC[] | null>(null);
+    /** 지금까지 찍힌 캔들 수. 1초에 두 개(500ms 간격)씩 늘어나다 전부 찍히면 멈춘다. */
+    const [shown, setShown] = useState(0);
 
     const fail = (what: string) => setFailed(f => (f.includes(what) ? f : [...f, what]));
 
@@ -245,6 +280,9 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
         get('/api/stock-picks').then(d => alive && setPicks(d.picks || [])).catch(() => alive && fail('관심 종목'));
         get('/api/stock-picks/paper').then(d => alive && setPaper(d)).catch(() => alive && fail('가상매매'));
         get('/api/news/status').then(d => alive && setCues(d.headline_cues || {})).catch(() => alive && fail('뉴스'));
+        // 일봉 — 실패해도 그래프 칸만 비운다(지어낸 값으로 채우지 않는다).
+        get('/api/desk/candles').then(d => alive && setCandles(d.candles || []))
+            .catch(() => { if (alive) { setCandles([]); fail('일봉'); } });
         return () => { alive = false; };
     }, []);
 
@@ -255,20 +293,33 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose]);
 
-    // 그래프 — 길이를 재서 dash 로 '그려지게' 한다(경로가 정해진 뒤에만 가능).
+    // 그래프 — 일봉 캔들. 왼쪽(과거)부터 1초에 두 개씩 '띡띡띡' 찍히고, 다 찍히면 멈춘다.
     const kospi = markets?.find(m => m.key === 'kospi' || m.label === '코스피');
-    const graph = kospi && num(kospi.price) !== null
-        ? buildPath(num(kospi.price)!, num(kospi.prevClose ?? null), num(kospi.changePct)) : null;
-    useEffect(() => {
-        const el = lineRef.current;
-        if (!el || !graph) return;
-        const len = Math.ceil(el.getTotalLength());
-        el.style.strokeDasharray = String(len);
-        el.style.strokeDashoffset = String(len);
-    }, [graph?.d]);
+    const bars = useMemo(() => buildCandles(candles || []), [candles]);
 
+    useEffect(() => {
+        if (bars.length === 0) return;
+        // 모션을 줄이도록 설정한 사용자에겐 애니메이션 없이 즉시 전부 보여 준다.
+        const reduce = typeof window !== 'undefined' && window.matchMedia
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (reduce) { setShown(bars.length); return; }
+
+        setShown(0);
+        // 500ms 간격 = 1초에 두 개. 다 찍히면 인터벌을 걷어낸다(반복하지 않는다).
+        const id = setInterval(() => {
+            setShown(n => {
+                if (n >= bars.length) { clearInterval(id); return n; }
+                return n + 1;
+            });
+        }, 500);
+        return () => clearInterval(id);
+    }, [bars]);
+
+    // 색은 '오늘 등락'이 아니라 **마지막 봉 자체**를 따른다(캔들마다 개별 색이 있으므로
+    // 여기서는 면·끝점 강조용으로만 쓴다).
     const gUp = (num(kospi?.changePct ?? null) ?? 0) >= 0;
     const gColor = gUp ? '#ff6b74' : '#6aa9ff';
+    const UP = '#ff6b74', DOWN = '#6aa9ff';
 
     const rows: { name: string; text: string; pct: number | null; cap: string }[] = [];
     (markets || []).forEach(m => {
@@ -319,25 +370,30 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                         <div className="cd-br">
                             <div className="cd-gt">KOSPI TREND</div>
                             <div className="cd-gw">
-                                <svg viewBox="0 0 160 96" preserveAspectRatio="none" role="img" aria-label="코스피 추세">
-                                    <defs>
-                                        <linearGradient id="cdFill" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="0%" stopColor={gColor} stopOpacity=".38" />
-                                            <stop offset="100%" stopColor={gColor} stopOpacity="0" />
-                                        </linearGradient>
-                                    </defs>
+                                {/* ★preserveAspectRatio 를 'none' 으로 두면 캔들 몸통이 가로로 늘어난다.
+                                    선 하나였을 땐 문제없었지만 막대에는 왜곡이 보이므로 비율을 지킨다. */}
+                                <svg viewBox="0 0 160 96" role="img"
+                                     aria-label={bars.length ? `코스피 최근 ${bars.length}거래일 일봉` : '코스피 일봉'}>
                                     <g stroke="#2c3f57" strokeWidth=".6">
                                         <line x1="0" y1="24" x2="160" y2="24" /><line x1="0" y1="48" x2="160" y2="48" />
                                         <line x1="0" y1="72" x2="160" y2="72" />
                                     </g>
-                                    {graph && <>
-                                        {/* 면은 선 끝에서 바닥으로 내려 닫는다 — PAD 만큼 안쪽이라 선과 어긋나지 않는다. */}
-                                        <path className="cd-area" d={`${graph.d} L${160 - PAD} 96 L${PAD} 96 Z`}
-                                              fill="url(#cdFill)" opacity={0} />
-                                        <path ref={lineRef} className="cd-line" d={graph.d} stroke={gColor} />
-                                        <circle className="cd-dot" cx={graph.last[0]} cy={graph.last[1]} r={3.4} fill={gColor} />
-                                    </>}
+                                    {bars.slice(0, shown).map(b => {
+                                        const c = b.up ? UP : DOWN;
+                                        return (
+                                            <g key={b.date} className="cd-cd">
+                                                {/* 꼬리 먼저 — 몸통이 위에 덮여야 깔끔하다. */}
+                                                <line x1={b.x} y1={b.highY} x2={b.x} y2={b.lowY}
+                                                      stroke={c} strokeWidth=".9" />
+                                                <rect x={b.x - b.w / 2} y={b.bodyY} width={b.w} height={b.bodyH}
+                                                      fill={c} rx=".4" />
+                                            </g>
+                                        );
+                                    })}
                                 </svg>
+                                {candles && bars.length === 0 && (
+                                    <div className="cd-gerr">일봉을 불러오지 못했습니다</div>
+                                )}
                             </div>
                         </div>
                     </div>
