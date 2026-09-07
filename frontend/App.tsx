@@ -1835,7 +1835,7 @@ const AppContent: React.FC = () => {
                 )}
                 {showHotKeyword && (
                     <HotKeywordBoard
-                        onClose={() => setShowHotKeyword(false)}
+                        onClose={closeBoardAndReturn(() => setShowHotKeyword(false))}
                         userEmail={user?.email}
                         userPhone={user?.phone}
                     />
@@ -1844,7 +1844,7 @@ const AppContent: React.FC = () => {
                     <ResearchBoard onClose={() => setShowResearch(false)} user={user} />
                 )}
                 {showUsedItem && (
-                    <UsedItemBoard onClose={() => setShowUsedItem(false)} />
+                    <UsedItemBoard onClose={closeBoardAndReturn(() => setShowUsedItem(false))} />
                 )}
                 {showLuxuryBoard && (
                     <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
@@ -1853,13 +1853,13 @@ const AppContent: React.FC = () => {
                     <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
                 )}
                 {showMarketingBoard && (
-                    <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
+                    <MarketingBoard onClose={closeBoardAndReturn(() => setShowMarketingBoard(false))} />
                 )}
                 {showHomepageBoard && (
                     <HomepageBoard onClose={() => setShowHomepageBoard(false)} isAdmin={user?.role === 'ADMIN'} />
                 )}
                 {showShortsMakerBoard && (
-                    <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
+                    <ShortsMakerBoard onClose={closeBoardAndReturn(() => setShowShortsMakerBoard(false))} />
                 )}
                 {showEbookBoard && (
                     <ErrorBoundary label="전자책 화면 오류" onClose={() => setShowEbookBoard(false)}>
@@ -2043,13 +2043,13 @@ const AppContent: React.FC = () => {
             )}
             {showHotKeyword && (
                 <HotKeywordBoard
-                    onClose={() => setShowHotKeyword(false)}
+                    onClose={closeBoardAndReturn(() => setShowHotKeyword(false))}
                     userEmail={user?.email}
                     userPhone={user?.phone}
                 />
             )}
             {showUsedItem && (
-                <UsedItemBoard onClose={() => setShowUsedItem(false)} />
+                <UsedItemBoard onClose={closeBoardAndReturn(() => setShowUsedItem(false))} />
             )}
             {showLuxuryBoard && (
                 <LuxuryBoard onClose={() => setShowLuxuryBoard(false)} />
@@ -2058,13 +2058,13 @@ const AppContent: React.FC = () => {
                 <InsuranceBoard onClose={() => setShowInsuranceBoard(false)} onConsult={handleInsuranceConsult} />
             )}
             {showMarketingBoard && (
-                <MarketingBoard onClose={() => setShowMarketingBoard(false)} />
+                <MarketingBoard onClose={closeBoardAndReturn(() => setShowMarketingBoard(false))} />
             )}
             {showHomepageBoard && (
                 <HomepageBoard onClose={() => setShowHomepageBoard(false)} isAdmin={user?.role === 'ADMIN'} />
             )}
             {showShortsMakerBoard && (
-                <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
+                <ShortsMakerBoard onClose={closeBoardAndReturn(() => setShowShortsMakerBoard(false))} />
             )}
             {/* ★서아 랜딩에서 열었으면 닫을 때 그 랜딩으로 되돌아간다(2026-09-07).
                 어제(09-06) 복귀 배선을 윤채린 4종에만 걸어 **서아만 메인으로 떨어졌다.**

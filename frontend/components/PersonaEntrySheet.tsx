@@ -3,6 +3,7 @@ import { MpnFeatureIcon } from './MainPageNew';
 import { SajuEntry } from './persona/SajuEntry';
 import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
 import { ChaerinStudioEntry } from './persona/ChaerinStudioEntry';
+import { ArinPromoEntry } from './persona/ArinPromoEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -82,6 +83,13 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     if (guide.title?.startsWith('윤채린')) {
         return <ChaerinStudioEntry guide={guide} onClose={onClose} onStart={onStart}
                                    onFeature={onFeature} onInvite={onInvite} />;
+    }
+    // ★이아린도 같은 규약으로 "우리 동네 가게 홍보" 랜딩으로 갈아 끼운다(2026-09-07 사장 지시).
+    //   담당 기능이 5개인데 전부 기능 카드로 흩어져 "가게 홍보를 맡아주는 곳"이 안 보였다.
+    //   판별 키는 앞의 셋과 **똑같이** guide.title 접두사다.
+    if (guide.title?.startsWith('이아린')) {
+        return <ArinPromoEntry guide={guide} onClose={onClose} onStart={onStart}
+                               onFeature={onFeature} onInvite={onInvite} />;
     }
 
     const who = guide.personaName || guide.title;

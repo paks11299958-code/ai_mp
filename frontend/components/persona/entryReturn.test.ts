@@ -94,15 +94,34 @@ describe('랜딩에서 열리는 보드는 전부 복귀 배선이 걸려 있다
     const BOARDS = [
         'AgeTransformBoard', 'HairStyleBoard', 'OutfitBoard',   // 윤채린
         'TodayNewsBoard',                                        // 서아
+        // 이아린(2026-09-07) — 랜딩을 만들면서 함께 배선했다. 빠지면 서아와 똑같이
+        // "보드를 닫으면 랜딩이 아니라 메인으로 떨어지는" 증상이 난다.
+        'MarketingBoard', 'ShortsMakerBoard', 'UsedItemBoard', 'HotKeywordBoard',
     ];
+
+    /** `<Board ... />` 한 덩어리를 통째로 뽑는다.
+     *  ★HotKeywordBoard 처럼 **여러 줄에 걸쳐** 렌더되는 보드가 있어
+     *    한 줄 단위로 보면 onClose 를 못 찾고 조용히 통과한다(실측). */
+    const blocksOf = (board: string): string[] => {
+        const out: string[] = [];
+        let from = 0;
+        for (;;) {
+            const i = src.indexOf(`<${board}`, from);
+            if (i < 0) break;
+            const end = src.indexOf('/>', i);
+            out.push(src.slice(i, end < 0 ? i + 400 : end + 2));
+            from = i + 1;
+        }
+        return out;
+    };
 
     for (const board of BOARDS) {
         it(`${board} 의 onClose 는 closeBoardAndReturn 을 거친다`, () => {
-            const lines = src.split('\n').filter(l => l.includes(`<${board}`) && l.includes('onClose'));
-            expect(lines.length, `${board} 렌더 지점을 못 찾았다`).toBeGreaterThan(0);
-            for (const l of lines) {
+            const blocks = blocksOf(board);
+            expect(blocks.length, `${board} 렌더 지점을 못 찾았다`).toBeGreaterThan(0);
+            for (const b of blocks) {
                 // ★main·chat 양쪽 return 에 렌더되므로 **모든 지점**이 걸려 있어야 한다.
-                expect(l, `${board} 한 곳이 배선에서 빠졌다: ${l.trim()}`).toContain('closeBoardAndReturn');
+                expect(b, `${board} 한 곳이 배선에서 빠졌다`).toContain('closeBoardAndReturn');
             }
         });
     }
@@ -140,5 +159,31 @@ describe('랜딩 루트의 배경 클릭이 위에 뜬 것까지 닫지 않는�
     it('서아 Esc 는 뉴스룸부터 닫는다 (기존 동작 보존)', () => {
         const s = read('SeoaNewsDeskEntry.tsx');
         expect(s).toMatch(/if\s*\(openCategory\)\s*setOpenCategory\(null\);\s*\n?\s*else\s+onClose\(\);/);
+    });
+});
+
+describe('전용 랜딩 분기 — PersonaEntrySheet 한 곳에서만 갈린다', () => {
+    // ★App.tsx 를 고치면 전 화면 백지 사고가 재발한다(2026-07-29 TDZ).
+    //   그래서 랜딩 분기는 **PersonaEntrySheet 안에서만** 한다 — 이 규약을 고정한다.
+    const sheet = readFileSync(resolve(process.cwd(), 'components/PersonaEntrySheet.tsx'), 'utf8');
+
+    const CASES: [string, string][] = [
+        ['도결',   'SajuEntry'],
+        ['서아',   'SeoaNewsDeskEntry'],
+        ['윤채린', 'ChaerinStudioEntry'],
+        ['이아린', 'ArinPromoEntry'],       // 2026-09-07 추가
+    ];
+
+    for (const [name, comp] of CASES) {
+        it(`${name} → ${comp}`, () => {
+            expect(sheet).toContain(`startsWith('${name}')`);
+            expect(sheet).toContain(`<${comp}`);
+            expect(sheet, `${comp} import 가 빠졌다`).toMatch(new RegExp(`import\\s*\\{\\s*${comp}\\s*\\}`));
+        });
+    }
+
+    it('분기는 훅보다 위의 조기 return 이라 훅 순서를 깨지 않는다', () => {
+        // 이 컴포넌트에는 훅이 없어야 한다 — 있으면 조기 return 이 훅 개수를 바꿔 React #310.
+        expect(sheet).not.toMatch(/\buseState\(|\buseEffect\(|\buseRef\(|\buseCallback\(/);
     });
 });
