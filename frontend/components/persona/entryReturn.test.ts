@@ -187,3 +187,37 @@ describe('전용 랜딩 분기 — PersonaEntrySheet 한 곳에서만 갈린다'
         expect(sheet).not.toMatch(/\buseState\(|\buseEffect\(|\buseRef\(|\buseCallback\(/);
     });
 });
+
+describe('페이지 이동형 기능도 랜딩으로 돌아온다', () => {
+    // 2026-09-07 사장 지적: 아린 랜딩에서 '이미지 → 프롬프트'로 가면 돌아올 수 없었다.
+    // ★그 기능은 보드가 아니라 **최상위 얼리리턴 라우트**(/reverse-prompt)라 앱 전체를
+    //   갈아치운다 — closeBoardAndReturn 이 통하지 않는 유일한 경로다.
+    //   그래서 sessionStorage 에 돌아올 자리를 남기고 저쪽 헤더가 그걸 쓴다.
+    //   ★양쪽 키가 어긋나면 **에러 없이** 그냥 메인으로 떨어진다 → 짝을 테스트로 고정한다.
+    const KEY = 'rp:backTo';
+    const arin = readFileSync(resolve(process.cwd(), 'components/persona/ArinPromoEntry.tsx'), 'utf8');
+    const rp   = readFileSync(resolve(process.cwd(), 'components/reverse-prompt/ReversePromptMain.tsx'), 'utf8');
+
+    it('아린 랜딩은 나가기 전에 돌아올 자리를 남긴다', () => {
+        expect(arin).toContain(`sessionStorage.setItem('${KEY}'`);
+        // 저장 호출이 onFeature 보다 **먼저** 있어야 한다(이동 후엔 이 코드가 안 돈다).
+        expect(arin).toMatch(/rememberReturn\(\);\s*onFeature\('reverse-prompt'\)/);
+    });
+
+    it('리버스 프롬프트 화면은 그 값을 읽어 뒤로가기에 쓴다', () => {
+        expect(rp).toContain(`'${KEY}'`);
+        expect(rp).toMatch(/backTo=\{backTo\}/);
+    });
+
+    it('★외부 URL 은 무시한다 (열린 리다이렉트 방지)', () => {
+        // readBackTo 의 검증식을 그대로 옮겨 시험한다.
+        const ok = (v: string) => /^\/(?!\/)/.test(v);
+        expect(ok('/?p=abc')).toBe(true);
+        expect(ok('/reverse-prompt')).toBe(true);
+        expect(ok('//evil.com')).toBe(false);      // 프로토콜 상대 URL
+        expect(ok('https://evil.com')).toBe(false);
+        expect(ok('javascript:alert(1)')).toBe(false);
+        // 소스에도 같은 가드가 실제로 있어야 한다
+        expect(rp).toMatch(/\/\^\\\/\(\?!\\\/\)\//);
+    });
+});

@@ -24,7 +24,27 @@ import { RpHeader, PromptBlock, RpError, RpLoading, QuotaBadge } from './parts';
 //   독립적으로 도는 얼리리턴 라우트다. 그래서 성공 시 localStorage를 직접 읽어 이어간다
 //   (AuthModal이 이미 localStorage.token을 심는다 — AuthModal.tsx:144).
 
+/** 돌아갈 곳 — 어디서 들어왔는지 기억해 뒀다가 헤더의 '뒤로'에 쓴다(2026-09-07).
+ *
+ *  ★왜 필요한가: 이 화면은 최상위 얼리리턴 라우트라 **앱 전체를 갈아치운다**.
+ *    그래서 페르소나 진입 랜딩(예: 이아린)에서 들어오면 랜딩이 통째로 사라지고,
+ *    헤더의 '← AI 스퀘어'가 메인(/)으로만 보내 **랜딩으로 돌아갈 방법이 없었다**
+ *    (사장 지적, 운영 실측으로 확인).
+ *  ★sessionStorage 를 쓰는 이유: 이동 시 URL 에 붙이면 공유 링크에 지저분하게 남고,
+ *    이 탭 안에서만 유효하면 충분하다. 값이 없으면 종전대로 '/'(AI 스퀘어)다.
+ *  ★★열린 리다이렉트 방지 — **같은 출처의 경로만** 허용한다(`/`로 시작하고 `//` 아님).
+ *    외부 URL 이 들어오면 무시한다. */
+const RP_BACK_KEY = 'rp:backTo';
+const readBackTo = (): string => {
+    try {
+        const v = sessionStorage.getItem(RP_BACK_KEY);
+        if (v && /^\/(?!\/)/.test(v)) return v;
+    } catch { /* 시크릿 모드 등에서 접근이 막히면 기본값으로 */ }
+    return '/';
+};
+
 export const ReversePromptMain: React.FC = () => {
+    const [backTo] = useState(readBackTo);
     const [quota, setQuota] = useState<RpQuota | null>(null);
     const [result, setResult] = useState<RpAnalyzeResult | null>(null);
     const [loading, setLoading] = useState(false);
@@ -172,6 +192,7 @@ export const ReversePromptMain: React.FC = () => {
         <div className="min-h-screen bg-[#F5EFE6] text-[#2D2438]">
             <RpHeader
                 title="🎨 리버스 프롬프트"
+                backTo={backTo}
                 right={
                     loggedIn ? (
                         <button

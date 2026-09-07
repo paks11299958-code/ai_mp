@@ -33,6 +33,17 @@ const prefersReducedMotion = () =>
     typeof window !== 'undefined' &&
     !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
+/** '이미지 → 프롬프트'로 나가기 전에 **돌아올 자리**를 남긴다(2026-09-07 사장 지적).
+ *  ★그 기능은 보드가 아니라 최상위 얼리리턴 라우트(/reverse-prompt)라 **앱 전체를
+ *    갈아치운다** — 다른 기능처럼 closeBoardAndReturn 으로는 못 돌아온다.
+ *    그래서 지금 URL(?p=…)을 남겨두고, 그쪽 헤더의 '뒤로'가 이 값을 쓴다.
+ *  ★키·검증 규칙은 ReversePromptMain 의 RP_BACK_KEY/readBackTo 와 짝이다 —
+ *    한쪽을 고치면 다른 쪽도 고쳐야 한다. */
+const rememberReturn = () => {
+    try { sessionStorage.setItem('rp:backTo', window.location.pathname + window.location.search); }
+    catch { /* 저장이 막히면 종전대로 메인으로 돌아간다 — 기능 자체는 막지 않는다 */ }
+};
+
 /** 업종 카드 — 조사한 "업종별 소품 표"를 그대로 옮겼다. */
 interface Trade {
     key: string;
@@ -472,7 +483,7 @@ export const ArinPromoEntry: React.FC<Props> = ({ guide, onClose, onStart, onFea
                     reverse-prompt 는 보드가 아니라 **페이지 이동**이라 랜딩을 떠난다. */}
                 <div className="ap-aside">
                     <div className="ap-asidetop">🎨 이건 좀 다른 재주예요</div>
-                    <button className="ap-row" onClick={() => onFeature('reverse-prompt')}>
+                    <button className="ap-row" onClick={() => { rememberReturn(); onFeature('reverse-prompt'); }}>
                         <div className="ap-ico" style={{ background: '#FEF6E8' }}>🖼️</div>
                         <div className="ap-rowmain">
                             <div className="ap-rowname">이미지 → 프롬프트</div>
