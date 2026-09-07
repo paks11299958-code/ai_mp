@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>이아린 진입화면 시안 v3 — 아린이 업종 카드를 소환</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* 이아린 진입화면 시안 v2 — "중소 가게 홍보해주는 곳"
+   ★v1(인플루언서 인물 중심)에서 방향 전환(2026-09-07 사장 지시):
+     "컨셉을 인플루언서로 안 봐도 됨. 여러 업종 가게를 움직이게 하는 페이퍼 영상"
+   ★조사 근거(실제 업계 관행):
+     · 얼굴 없는 릴스가 이미 하나의 장르 — 손과 결과물만 보여준다(dnhbo.com)
+     · 구성은 7~12초 4단: 결과물 → 손동작 하나 → 결과 재노출 → 지역명+예약/문의
+     · 업종별로 찍는 소품이 정해져 있다(미용=가위·상담카드, 학원=교재·칠판 …)
+   ★영상 파일이 아니라 **SVG+CSS 모션**이다 — 용량 0KB, 즉시 재생, 반응형·다크 대응.
+   ★병원은 의료광고 사전심의 대상이라 예시에서 뺐다(사장 확정: 음식점으로 교체). */
+:root{
+  --ink:#2A2028; --inkSub:#6B5F68; --inkMute:#9A8D96;
+  --line:rgba(142,111,183,.16); --lineSoft:rgba(142,111,183,.10);
+  --cream:#FDF8F5; --card:#FFFFFF;
+  --coral:#D85C95; --coralSoft:#FDE6F0;
+  --plum:#8E6FB7; --plumSoft:#F3E9F4;
+  /* 종이 톤 — 업종 카드마다 색을 달리해 "다른 가게"임이 한눈에 보이게 */
+  --p1:#F6E8DA; --p2:#E9E3F5; --p3:#DCEBE4; --p4:#FBE3E3;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:#EDE7EA;font-family:'Pretendard',system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;color:var(--ink)}
+img{max-width:100%;height:auto;display:block}
+
+.ar-root{position:fixed;inset:0;z-index:85;overflow-y:auto;overflow-x:hidden;
+  background:linear-gradient(180deg,#F6EFF2 0%,#EDE7EA 100%)}
+.ar-sheet{position:relative;max-width:520px;margin:0 auto;min-height:100%;
+  background:var(--cream);box-shadow:0 0 60px rgba(60,40,55,.14)}
+.ar-close{position:absolute;top:14px;right:14px;z-index:9;width:38px;height:38px;
+  border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.92);
+  color:var(--inkSub);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+/* ── 종이 질감 (SVG 필터, 파일 0KB) ──────────────────────────── */
+.ar-sheet::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23p)' opacity='.42'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;opacity:.085}
+@media (prefers-reduced-motion: no-preference){
+  .ar-sheet::before{animation:grain 12s steps(6) infinite}
+}
+@keyframes grain{
+  0%,100%{transform:translate(0,0)} 16%{transform:translate(-2%,1%)}
+  33%{transform:translate(1%,-2%)}  50%{transform:translate(-1%,-1%)}
+  66%{transform:translate(2%,1%)}   83%{transform:translate(1%,2%)}
+}
+.ar-sheet > *{position:relative;z-index:2}
+
+/* ── 히어로 = 페이퍼 모션 무대 ───────────────────────────────── */
+.ar-stage{position:relative;padding:52px 20px 26px;
+  background:linear-gradient(165deg,#FFF6F9 0%,#F4EEF8 55%,#EFE9F3 100%);
+  overflow:hidden}
+/* 무대 뒤 옅은 색종이 조각들 — 정적이면 허전하고, 크면 산만하다 */
+.ar-confetti{position:absolute;inset:0;pointer-events:none;opacity:.5}
+.ar-confetti span{position:absolute;width:10px;height:13px;border-radius:2px;opacity:.55}
+.ar-confetti span:nth-child(1){left:8%;top:14%;background:var(--p1);transform:rotate(-18deg)}
+.ar-confetti span:nth-child(2){right:11%;top:9%;background:var(--p2);transform:rotate(24deg)}
+.ar-confetti span:nth-child(3){left:14%;bottom:18%;background:var(--p3);transform:rotate(12deg)}
+.ar-confetti span:nth-child(4){right:9%;bottom:22%;background:var(--p4);transform:rotate(-30deg)}
+@media (prefers-reduced-motion: no-preference){
+  .ar-confetti span{animation:float 7s ease-in-out infinite}
+  .ar-confetti span:nth-child(2){animation-delay:-1.8s}
+  .ar-confetti span:nth-child(3){animation-delay:-3.4s}
+  .ar-confetti span:nth-child(4){animation-delay:-5.1s}
+}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-11px) rotate(9deg)}}
+
+.ar-kicker{position:relative;text-align:center;font-size:12px;font-weight:700;color:var(--plum);
+  letter-spacing:.1em;margin-bottom:9px}
+.ar-headline{position:relative;text-align:center;font-size:25px;font-weight:800;
+  line-height:1.36;letter-spacing:-.025em;margin:0 0 6px}
+.ar-sub{position:relative;text-align:center;font-size:13.5px;line-height:1.65;
+  color:var(--inkSub);margin:0 0 20px}
+
+/* ── 소환 무대 ────────────────────────────────────────────────
+   아린이 폰을 들고 있고, **그 폰에서 업종 카드가 한 장씩 튀어나온다**(사장 지시).
+   ★인물과 카드가 한 무대에 있어야 "아린이 불러낸다"로 읽힌다 —
+     따로 놓으면 그냥 사진 + 카드가 된다. */
+.ar-summon{position:relative;height:404px;margin:2px auto 0;max-width:344px}
+
+/* 아린 — 오른쪽 위. ★폰(원본 기준 좌상단)이 **카드 위로 보여야** 소환의 근원이 읽힌다.
+   그래서 인물을 아래로 내리지 않고 위쪽에 두고, 카드를 왼쪽 아래에 깐다. */
+/* 아린 = **종이 컷아웃**(사장 지시 "아린 배경이미지도 종이 느낌").
+   ★배경을 실제로 지운 누끼(arin-paper.webp)라 사각 사진 테두리가 없다 —
+     마스크로 흐리는 방식은 배경이 꽉 찬 사진에선 티가 남아서 실패했다(실측).
+   ★종이처럼 보이게 하는 것은 **그림자**다: 바닥에 옅게 깔리는 그림자 + 살짝 기운 각도. */
+.ar-arin{position:absolute;right:-22px;top:-6px;width:150px;z-index:4;
+  transform:rotate(1.5deg);
+  filter:drop-shadow(0 10px 14px rgba(60,40,55,.26)) drop-shadow(0 2px 0 rgba(255,255,255,.85))}
+.ar-arin img{width:100%}
+@media (prefers-reduced-motion: no-preference){
+  /* 종이가 아주 살짝 흔들린다 — 붙여둔 종이 인형처럼 */
+  .ar-arin{animation:paperbob 6s ease-in-out infinite}
+}
+@keyframes paperbob{0%,100%{transform:rotate(1.5deg) translateY(0)}50%{transform:rotate(.2deg) translateY(-5px)}}
+/* 폰에서 카드 쪽으로 뻗는 빛 — 근원과 결과를 눈으로 잇는다.
+   폰은 이미지 좌상단(약 x28% / y22%)에 있으므로 거기서 왼쪽 아래로 흐르게 둔다. */
+.ar-beam{position:absolute;right:96px;top:44px;width:150px;height:132px;z-index:3;
+  pointer-events:none;
+  background:radial-gradient(closest-side at 88% 12%,rgba(216,92,149,.42),rgba(216,92,149,0) 74%);
+  filter:blur(3px)}
+@media (prefers-reduced-motion: no-preference){
+  .ar-beam{animation:beam 4.6s ease-in-out infinite}
+}
+@keyframes beam{0%,72%{opacity:.35}8%{opacity:.95}24%{opacity:.5}}
+
+/* 종이 카드 — 폰(오른쪽 위)에서 튀어나와 왼쪽 아래에 자리잡는다 */
+.ar-deck{position:absolute;left:0;bottom:0;width:226px;height:300px;z-index:2}
+.ar-paper{position:absolute;inset:0;border-radius:16px;background:var(--card);
+  border:1px solid rgba(60,40,55,.10);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 18px 32px -20px rgba(60,40,55,.55);
+  padding:14px 14px 12px;display:flex;flex-direction:column;
+  opacity:0;transform-origin:100% 0;
+  /* 시작 = 폰이 있는 **오른쪽 위**에서 작게 접힌 상태 */
+  transform:translate(112px,-104px) rotate(-20deg) scale(.34);
+  transition:opacity .5s ease,transform .64s cubic-bezier(.18,.86,.28,1.06)}
+.ar-paper.is-on{opacity:1;transform:translate(0,0) rotate(-1.5deg) scale(1);z-index:3}
+/* 앞서 소환된 장은 뒤에 겹쳐 남는다 — 여러 업종을 이미 만들어 준 느낌 */
+.ar-paper.is-prev{opacity:.4;transform:translate(10px,-12px) rotate(4.5deg) scale(.95);z-index:2}
+
+.ar-ptop{display:flex;align-items:center;gap:7px;margin-bottom:9px}
+.ar-pchip{font-size:9.5px;font-weight:800;padding:4px 9px;border-radius:999px;letter-spacing:.02em}
+.ar-pshop{font-size:11.5px;font-weight:700;color:var(--ink)}
+/* 소품 무대 — 업종별로 다른 그림이 그려진다(전부 인라인 SVG) */
+.ar-art{flex:1;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  margin-bottom:9px;overflow:hidden}
+.ar-art svg{width:100%;height:100%}
+.ar-pcap{font-size:11px;line-height:1.5;color:var(--inkSub)}
+.ar-pcap b{color:var(--ink);font-weight:700}
+
+/* 4단 진행 표시 — 조사한 릴스 공식 그대로 */
+.ar-steps{position:relative;display:flex;justify-content:center;gap:5px;margin-top:15px}
+.ar-step{font-size:10.5px;color:var(--inkMute);padding:4px 9px;border-radius:999px;
+  background:rgba(255,255,255,.72);border:1px solid var(--lineSoft);transition:all .3s ease}
+.ar-step.is-on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ar-dots{position:relative;display:flex;justify-content:center;gap:6px;margin-top:13px}
+.ar-dot{width:7px;height:7px;border-radius:50%;background:rgba(60,40,55,.18);
+  border:0;padding:0;cursor:pointer;transition:all .3s ease}
+.ar-dot.is-on{background:var(--coral);width:20px;border-radius:999px}
+
+/* ── 이하 공통 ─────────────────────────────────────────────── */
+.ar-sec{padding:26px 20px 0}
+.ar-sectitle{display:flex;align-items:baseline;gap:8px;margin:0 0 4px}
+.ar-sectitle b{font-size:16px;font-weight:800;letter-spacing:-.01em}
+.ar-sectitle span{font-size:11.5px;color:var(--inkMute)}
+.ar-sechint{font-size:12.5px;color:var(--inkMute);margin:0 0 14px;line-height:1.6}
+
+.ar-proof{border:1px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 12px 26px -20px rgba(60,40,55,.55)}
+.ar-proofhead{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:9px;
+  padding:12px 14px;background:linear-gradient(90deg,#FBE4EE,#F0E7F5);border-bottom:1px solid var(--lineSoft)}
+.ar-shop{width:32px;height:32px;border-radius:9px;background:#fff;border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:15px}
+.ar-shopname{font-size:13px;font-weight:700;line-height:1.3}
+.ar-shopdesc{font-size:11px;color:var(--inkSub);line-height:1.3}
+.ar-proofbody{padding:14px}
+.ar-tabs{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.ar-tab{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:999px;
+  border:1px solid var(--line);background:#fff;color:var(--inkSub);cursor:pointer}
+.ar-tab.is-on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.ar-pane{display:none}
+.ar-pane.is-on{display:block;transform-origin:50% 0;animation:paperflip .42s cubic-bezier(.2,.7,.3,1)}
+@keyframes paperflip{
+  from{opacity:0;transform:perspective(900px) rotateX(-7deg) translateY(-8px)}
+  to{opacity:1;transform:perspective(900px) rotateX(0) translateY(0)}
+}
+.ar-cap{font-size:13px;line-height:1.75;color:var(--ink);white-space:pre-wrap;margin:0}
+.ar-hash{margin-top:10px;font-size:12px;line-height:1.8;color:var(--plum);word-break:keep-all}
+.ar-scene{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--lineSoft)}
+.ar-scene:last-child{border-bottom:0}
+.ar-time{flex:0 0 52px;font-size:11px;font-weight:700;color:var(--coral);padding-top:2px}
+.ar-what{font-size:12.5px;line-height:1.65;color:var(--inkSub)}
+.ar-what b{color:var(--ink);font-weight:600}
+.ar-note{margin-top:12px;font-size:11.5px;color:var(--inkMute);line-height:1.6;
+  padding-top:10px;border-top:1px solid var(--lineSoft)}
+
+.ar-menu{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.ar-row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  padding:13px 14px;border-radius:14px;border:1px solid var(--line);background:var(--card);
+  cursor:pointer;font:inherit;color:inherit;transition:transform .12s ease,border-color .12s ease}
+.ar-row:hover{border-color:rgba(216,92,149,.45);transform:translateY(-1px)}
+.ar-row:active{transform:scale(.99)}
+.ar-ico{flex:0 0 38px;height:38px;border-radius:11px;display:flex;align-items:center;
+  justify-content:center;font-size:17px;background:var(--coralSoft)}
+.ar-rowmain{flex:1;min-width:0}
+.ar-rowname{font-size:14px;font-weight:700;line-height:1.35}
+.ar-rowdesc{font-size:11.5px;color:var(--inkSub);line-height:1.45;margin-top:2px}
+.ar-cost{flex:0 0 auto;white-space:nowrap;font-size:11px;font-weight:700;color:var(--plum);
+  background:var(--plumSoft);padding:4px 9px;border-radius:999px}
+.ar-cost.is-free{color:#2E7D5B;background:#E4F4EC}
+
+.ar-aside{margin:24px 20px 0;padding:15px 16px;border-radius:14px;
+  background:#F4F0F7;border:1px dashed rgba(142,111,183,.32)}
+.ar-asidetop{font-size:11.5px;font-weight:700;color:var(--plum);letter-spacing:.04em;margin-bottom:8px}
+
+.ar-ctas{padding:24px 20px 8px;display:flex;flex-direction:column;gap:9px}
+.ar-cta{padding:15px;border-radius:14px;border:0;cursor:pointer;font:inherit;
+  font-size:14.5px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--coral),var(--plum));
+  box-shadow:0 10px 22px -12px rgba(216,92,149,.7)}
+.ar-cta:active{transform:translateY(1px)}
+.ar-cta2{padding:13px;border-radius:14px;background:#fff;border:1px solid var(--line);
+  cursor:pointer;font:inherit;font-size:13.5px;font-weight:600;color:var(--inkSub)}
+.ar-foot{padding:14px 20px 34px;font-size:11.5px;color:var(--inkMute);line-height:1.65;text-align:center}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="ar-root">
+  <div class="ar-sheet">
+    <button class="ar-close" aria-label="닫기">✕</button>
+
+    <!-- ═══ 페이퍼 모션 무대 ═══ -->
+    <div class="ar-stage">
+      <div class="ar-confetti" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+
+      <div class="ar-kicker">우리 동네 가게 홍보</div>
+      <h2 class="ar-headline">업종만 말하세요<br/>아린이가 꺼내 드릴게요</h2>
+      <p class="ar-sub">카페든 미용실이든 학원이든,<br/>그 업종에 맞는 장면과 문구가 바로 나와요.</p>
+
+      <!-- ═══ 소환 무대 — 아린이 폰에서 업종 카드를 하나씩 불러낸다 ═══ -->
+      <div class="ar-summon">
+        <div class="ar-arin" aria-hidden="true">
+          <img src="/arin/arin-paper.webp" alt="" />
+        </div>
+        <div class="ar-beam" aria-hidden="true"></div>
+
+      <!-- 업종 카드가 한 장씩 소환된다. 그림은 전부 인라인 SVG(파일 0KB) -->
+      <div class="ar-deck" id="deck" role="region" aria-label="업종별 홍보 영상 예시" aria-live="polite">
+
+        <!-- ① 카페 -->
+        <div class="ar-paper is-on" data-i="0">
+          <div class="ar-ptop">
+            <span class="ar-pchip" style="background:var(--p1);color:#8B5E2B">CAFE</span>
+            <span class="ar-pshop">동네 카페</span>
+          </div>
+          <div class="ar-art" style="background:var(--p1)">
+            <svg viewBox="0 0 200 130" role="img" aria-label="커피잔에 크림이 부어지는 장면">
+              <!-- 잔 -->
+              <path d="M62 52 h58 v34 a29 29 0 0 1-58 0z" fill="#fff" stroke="#C9A57E" stroke-width="2.5"/>
+              <path d="M120 58 a15 15 0 1 1 0 22" fill="none" stroke="#C9A57E" stroke-width="2.5"/>
+              <!-- 커피 -->
+              <path d="M66 60 h50 v25 a25 25 0 0 1-50 0z" fill="#8B5E2B" opacity=".85"/>
+              <!-- 붓는 크림(움직임) -->
+              <g class="pour"><rect x="96" y="18" width="5" height="26" rx="2.5" fill="#FFF6E8"/></g>
+              <!-- 크림 표면 -->
+              <ellipse class="foam" cx="91" cy="61" rx="24" ry="6" fill="#FFF6E8"/>
+              <!-- 김 -->
+              <g class="steam" stroke="#C9A57E" stroke-width="2" fill="none" opacity=".55" stroke-linecap="round">
+                <path d="M80 40 q5-8 0-15"/><path d="M92 38 q5-9 0-17"/><path d="M104 40 q5-8 0-15"/>
+              </g>
+              <!-- 원두 -->
+              <ellipse cx="42" cy="100" rx="9" ry="6" fill="#6F4520" transform="rotate(-25 42 100)"/>
+              <ellipse cx="156" cy="98" rx="9" ry="6" fill="#6F4520" transform="rotate(18 156 98)"/>
+            </svg>
+          </div>
+          <p class="ar-pcap"><b>0-3초</b> 완성된 라떼 한 컷<br/><b>3-8초</b> 크림을 붓는 손</p>
+        </div>
+
+        <!-- ② 미용실 -->
+        <div class="ar-paper" data-i="1">
+          <div class="ar-ptop">
+            <span class="ar-pchip" style="background:var(--p2);color:#6B4FA0">HAIR</span>
+            <span class="ar-pshop">동네 미용실</span>
+          </div>
+          <div class="ar-art" style="background:var(--p2)">
+            <svg viewBox="0 0 200 130" role="img" aria-label="가위가 움직이며 머리를 다듬는 장면">
+              <!-- 거울 속 스타일 결과 — 얼굴은 그리지 않는다(얼굴 없는 릴스 원칙) -->
+              <ellipse cx="139" cy="62" rx="34" ry="42" fill="#fff" stroke="#B49AC9" stroke-width="2.5"/>
+              <!-- 단발 실루엣 -->
+              <path d="M139 28 c-19 0-27 14-27 30 0 14 4 24 7 30 h40 c3-6 7-16 7-30 0-16-8-30-27-30z"
+                    fill="#6B4FA0" opacity=".22"/>
+              <g class="hair" stroke="#6B4FA0" stroke-width="2.6" stroke-linecap="round" opacity=".8" fill="none">
+                <path d="M124 40 q-4 24 1 42"/><path d="M133 36 q-3 26 1 46"/>
+                <path d="M145 36 q3 26-1 46"/><path d="M154 40 q4 24-1 42"/>
+              </g>
+
+              <!-- 가위 — 두 날이 X로 교차하고 손잡이 고리가 아래에 있다 -->
+              <g class="scissor" transform="translate(54 58)">
+                <g class="blade-a">
+                  <path d="M0 0 L-13 -36" stroke="#9B8BC0" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="9" cy="20" r="8.5" fill="none" stroke="#9B8BC0" stroke-width="3.6"/>
+                  <path d="M0 0 L7 12" stroke="#9B8BC0" stroke-width="3.6" stroke-linecap="round"/>
+                </g>
+                <g class="blade-b">
+                  <path d="M0 0 L13 -36" stroke="#6B4FA0" stroke-width="5" stroke-linecap="round"/>
+                  <circle cx="-9" cy="20" r="8.5" fill="none" stroke="#6B4FA0" stroke-width="3.6"/>
+                  <path d="M0 0 L-7 12" stroke="#6B4FA0" stroke-width="3.6" stroke-linecap="round"/>
+                </g>
+                <circle cx="0" cy="0" r="3.6" fill="#4A3670"/>
+              </g>
+
+              <!-- 잘려 떨어지는 머리카락 -->
+              <g class="snip" stroke="#6B4FA0" stroke-width="2.2" stroke-linecap="round" opacity=".6" fill="none">
+                <path d="M40 30 q5-8 11-4"/><path d="M63 24 q6-7 12-2"/>
+              </g>
+            </svg>
+          </div>
+          <p class="ar-pcap"><b>0-3초</b> 완성된 스타일<br/><b>3-8초</b> 가위와 드라이 손동작</p>
+        </div>
+
+        <!-- ③ 학원 -->
+        <div class="ar-paper" data-i="2">
+          <div class="ar-ptop">
+            <span class="ar-pchip" style="background:var(--p3);color:#2E7D5B">STUDY</span>
+            <span class="ar-pshop">동네 학원</span>
+          </div>
+          <div class="ar-art" style="background:var(--p3)">
+            <svg viewBox="0 0 200 130" role="img" aria-label="칠판에 글씨가 써지고 교재가 넘어가는 장면">
+              <!-- 칠판 -->
+              <rect x="26" y="16" width="118" height="72" rx="6" fill="#2F4F42"/>
+              <rect x="26" y="16" width="118" height="72" rx="6" fill="none" stroke="#1F3A30" stroke-width="3"/>
+              <!-- 써지는 글씨 -->
+              <g stroke="#EAF6EF" stroke-width="3" fill="none" stroke-linecap="round">
+                <path class="w1" d="M42 44 h30" stroke-dasharray="30" stroke-dashoffset="30"/>
+                <path class="w2" d="M42 58 h52" stroke-dasharray="52" stroke-dashoffset="52"/>
+                <path class="w3" d="M42 72 h38" stroke-dasharray="38" stroke-dashoffset="38"/>
+              </g>
+              <!-- 분필 -->
+              <rect class="chalk" x="72" y="40" width="12" height="5" rx="2.5" fill="#FFF"/>
+              <!-- 교재(넘어간다) -->
+              <g transform="translate(150 62)">
+                <rect x="0" y="0" width="34" height="44" rx="3" fill="#fff" stroke="#8FBBA6" stroke-width="2"/>
+                <rect class="page" x="0" y="0" width="34" height="44" rx="3" fill="#F2FAF6" stroke="#8FBBA6" stroke-width="2"/>
+                <g stroke="#8FBBA6" stroke-width="2" stroke-linecap="round">
+                  <path d="M7 12 h20"/><path d="M7 20 h20"/><path d="M7 28 h13"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+          <p class="ar-pcap"><b>0-3초</b> 오늘 배울 것 한 줄<br/><b>3-8초</b> 교재와 칠판 클로즈업</p>
+        </div>
+
+        <!-- ④ 음식점 -->
+        <div class="ar-paper" data-i="3">
+          <div class="ar-ptop">
+            <span class="ar-pchip" style="background:var(--p4);color:#C0392B">FOOD</span>
+            <span class="ar-pshop">동네 음식점</span>
+          </div>
+          <div class="ar-art" style="background:var(--p4)">
+            <svg viewBox="0 0 200 130" role="img" aria-label="국물을 붓고 고명을 올리는 장면">
+              <!-- 그릇 -->
+              <path d="M52 56 h96 a48 48 0 0 1-96 0z" fill="#fff" stroke="#D98880" stroke-width="2.5"/>
+              <ellipse cx="100" cy="56" rx="48" ry="10" fill="#fff" stroke="#D98880" stroke-width="2.5"/>
+              <ellipse class="soup" cx="100" cy="57" rx="42" ry="8" fill="#E8743B" opacity=".85"/>
+              <!-- 붓는 국물 -->
+              <g class="pour2"><rect x="97" y="14" width="6" height="30" rx="3" fill="#E8743B" opacity=".9"/></g>
+              <!-- 고명(떨어진다) -->
+              <g class="garnish">
+                <circle cx="84" cy="52" r="4" fill="#5CA75C"/>
+                <circle cx="112" cy="50" r="3.5" fill="#5CA75C"/>
+              </g>
+              <!-- 김 -->
+              <g class="steam2" stroke="#D98880" stroke-width="2" fill="none" opacity=".5" stroke-linecap="round">
+                <path d="M84 40 q5-8 0-15"/><path d="M116 40 q5-8 0-15"/>
+              </g>
+              <!-- 젓가락 -->
+              <g stroke="#B9836F" stroke-width="3" stroke-linecap="round">
+                <path d="M156 96 l18-40"/><path d="M164 98 l18-40"/>
+              </g>
+            </svg>
+          </div>
+          <p class="ar-pcap"><b>0-3초</b> 김 나는 대표 메뉴<br/><b>3-8초</b> 국물 붓고 고명 올리기</p>
+        </div>
+      </div><!-- /.ar-deck -->
+      </div><!-- /.ar-summon -->
+
+      <!-- 조사한 릴스 4단 공식 그대로 -->
+      <div class="ar-steps" aria-hidden="true">
+        <span class="ar-step is-on" data-s="0">결과물</span>
+        <span class="ar-step" data-s="1">손동작</span>
+        <span class="ar-step" data-s="2">다시 보기</span>
+        <span class="ar-step" data-s="3">예약·문의</span>
+      </div>
+
+      <div class="ar-dots">
+        <button class="ar-dot is-on" data-g="0" aria-label="카페 예시"></button>
+        <button class="ar-dot" data-g="1" aria-label="미용실 예시"></button>
+        <button class="ar-dot" data-g="2" aria-label="학원 예시"></button>
+        <button class="ar-dot" data-g="3" aria-label="음식점 예시"></button>
+      </div>
+    </div>
+
+    <!-- 실제 결과물 -->
+    <div class="ar-sec">
+      <div class="ar-sectitle"><b>아린이가 실제로 만든 것</b><span>· 예시</span></div>
+      <p class="ar-sechint">가게 설명 한 줄을 넣었더니 나온 결과예요. 자료 8곳을 직접 찾아보고 썼어요.</p>
+
+      <div class="ar-proof">
+        <div class="ar-proofhead">
+          <div class="ar-shop">☕</div>
+          <div>
+            <div class="ar-shopname">성수동 골목 작은 카페</div>
+            <div class="ar-shopdesc">직접 로스팅 원두 · 수제 바스크 치즈케이크</div>
+          </div>
+        </div>
+        <div class="ar-proofbody">
+          <div class="ar-tabs">
+            <button class="ar-tab is-on" data-t="cap">인스타 글</button>
+            <button class="ar-tab" data-t="reels">릴스 대본</button>
+            <button class="ar-tab" data-t="tag">해시태그</button>
+          </div>
+
+          <div class="ar-pane is-on" data-p="cap">
+<p class="ar-cap">🤫 성수동, 나만 알고 싶은 비밀 아지트 발견!
+
+복잡한 성수동 메인 거리를 살짝 벗어나, 골목 깊숙이 숨겨진 작은 보석 같은 카페를 소개해요. 문을 열고 들어서는 순간, 일상의 모든 소음은 사라지고 아늑하고 감성 가득한 분위기가 당신을 감쌀 거예요. 🌿
+
+이곳의 시그니처는 바로 매일 직접 로스팅하는 신선한 원두로 내린 커피와, 입안에서 사르르 녹아내리는 수제 바스크 치즈케이크! ☕️🧀
+
+오늘, 성수동 데이트 코스는 여기 어때요? 친구 태그해서 같이 갈까요? 🤍</p>
+            <p class="ar-note">후킹 문구는 A/B 두 가지를 함께 드려요 — 어느 쪽이 더 눌리는지 재보실 수 있게.</p>
+          </div>
+
+          <div class="ar-pane" data-p="reels">
+            <div class="ar-scene"><div class="ar-time">0-3초</div><div class="ar-what"><b>후킹</b> — 좁은 골목을 걷는 발걸음, 마지막에 카페 문 클로즈업<br/>“성수동에 이런 곳이 있었다고? 🤫”</div></div>
+            <div class="ar-scene"><div class="ar-time">3-8초</div><div class="ar-what"><b>발견</b> — 문을 열자 펼쳐지는 아늑한 내부 전경</div></div>
+            <div class="ar-scene"><div class="ar-time">8-15초</div><div class="ar-what"><b>시그니처</b> — 원두 그라인딩 ASMR, 치즈케이크 단면 클로즈업</div></div>
+            <div class="ar-scene"><div class="ar-time">15-20초</div><div class="ar-what"><b>공간</b> — 손님들이 사진 찍는 모습, 포토존 빠른 전환</div></div>
+            <div class="ar-scene"><div class="ar-time">20-25초</div><div class="ar-what"><b>마무리</b> — 간판 클로즈업 + 위치 안내 CTA</div></div>
+            <p class="ar-note">음악 톤과 자막 위치까지 같이 적어드려요. 그대로 찍기만 하면 돼요.</p>
+          </div>
+
+          <div class="ar-pane" data-p="tag">
+            <p class="ar-hash">#성수동카페 #성수카페 #성수동핫플 #성수동데이트 #성수동골목 #성수동디저트 #바스크치즈케이크 #로스터리카페 #수제디저트 #감성카페 #사진맛집 #나만알고싶은곳 #성수동숨은맛집 #카페투어 #성수동가볼만한곳</p>
+            <p class="ar-note">무엇을 보고 성과를 판단할지(저장 수·프로필 클릭·DM 문의)도 함께 정리해 드려요.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 메뉴 -->
+    <div class="ar-sec">
+      <div class="ar-sectitle"><b>무엇을 맡기시겠어요?</b></div>
+      <div class="ar-menu">
+        <button class="ar-row">
+          <div class="ar-ico">✍️</div>
+          <div class="ar-rowmain">
+            <div class="ar-rowname">AI 마케팅 글쓰기</div>
+            <div class="ar-rowdesc">글·해시태그·측정안까지 한 번에</div>
+          </div>
+          <span class="ar-cost is-free">첫 회 무료</span>
+        </button>
+        <button class="ar-row">
+          <div class="ar-ico">🎬</div>
+          <div class="ar-rowmain">
+            <div class="ar-rowname">쇼츠 만들기</div>
+            <div class="ar-rowdesc">사진 1장 → 시나리오 5개 → 영상</div>
+          </div>
+          <span class="ar-cost">유료</span>
+        </button>
+        <button class="ar-row">
+          <div class="ar-ico">🔥</div>
+          <div class="ar-rowmain">
+            <div class="ar-rowname">핫 키워드</div>
+            <div class="ar-rowdesc">지금 뭐가 잘 팔리는지 먼저 확인</div>
+          </div>
+          <span class="ar-cost">유료</span>
+        </button>
+        <button class="ar-row">
+          <div class="ar-ico">🛍️</div>
+          <div class="ar-rowmain">
+            <div class="ar-rowname">중고 판매글</div>
+            <div class="ar-rowdesc">사진 한 장이면 팔리는 판매글 완성</div>
+          </div>
+          <span class="ar-cost">유료</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="ar-aside">
+      <div class="ar-asidetop">🎨 이건 좀 다른 재주예요</div>
+      <button class="ar-row" style="background:#fff">
+        <div class="ar-ico" style="background:#FEF6E8">🖼️</div>
+        <div class="ar-rowmain">
+          <div class="ar-rowname">이미지 → 프롬프트</div>
+          <div class="ar-rowdesc">마음에 든 그림, 만드는 법을 뽑아드려요</div>
+        </div>
+        <span class="ar-cost">유료</span>
+      </button>
+    </div>
+
+    <div class="ar-ctas">
+      <button class="ar-cta">🎁 친구 초대하고 1,000P 받기</button>
+      <button class="ar-cta2">아린이와 그냥 대화하기</button>
+    </div>
+
+    <p class="ar-foot">위 결과물은 실제로 아린이가 만든 예시예요.<br/>발행 전에는 사장님이 한 번 확인해 주세요.</p>
+  </div>
+</div>
+
+<style>
+/* ── 소품 모션 — 카드가 보이는 동안에만 돈다 ────────────────────
+   ★`is-on` 안에서만 애니메이션을 건다. 안 그러면 안 보이는 카드도 계속 돌아
+     모바일에서 배터리를 먹는다. */
+@media (prefers-reduced-motion: no-preference){
+  /* 카페 — 크림이 떨어지고 표면이 퍼진다 */
+  .ar-paper.is-on .pour{animation:pour 3.4s ease-in infinite}
+  .ar-paper.is-on .foam{animation:foam 3.4s ease-out infinite}
+  .ar-paper.is-on .steam path{animation:steam 2.6s ease-in-out infinite}
+  .ar-paper.is-on .steam path:nth-child(2){animation-delay:.5s}
+  .ar-paper.is-on .steam path:nth-child(3){animation-delay:1s}
+  @keyframes pour{0%{transform:translateY(-16px);opacity:0}18%{opacity:1}55%{transform:translateY(20px);opacity:1}70%,100%{transform:translateY(24px);opacity:0}}
+  @keyframes foam{0%,50%{rx:14;opacity:.55}72%{rx:24;opacity:1}100%{rx:24;opacity:1}}
+  @keyframes steam{0%{opacity:0;transform:translateY(4px)}45%{opacity:.6}100%{opacity:0;transform:translateY(-9px)}}
+
+  /* 미용실 — 가위가 벌어졌다 닫히고 머리카락이 떨어진다 */
+  .ar-paper.is-on .blade-a{transform-origin:0 0;animation:bladeA 1.5s ease-in-out infinite}
+  .ar-paper.is-on .blade-b{transform-origin:0 0;animation:bladeB 1.5s ease-in-out infinite}
+  .ar-paper.is-on .snip path{animation:snip 1.5s ease-in infinite}
+  .ar-paper.is-on .snip path:nth-child(2){animation-delay:.75s}
+  .ar-paper.is-on .hair path{animation:hairsway 3s ease-in-out infinite}
+  /* 날은 리벳(0,0)을 축으로 벌어졌다 닫힌다 — 축이 어긋나면 날이 따로 논다 */
+  @keyframes bladeA{0%,100%{transform:rotate(-11deg)}50%{transform:rotate(1deg)}}
+  @keyframes bladeB{0%,100%{transform:rotate(11deg)}50%{transform:rotate(-1deg)}}
+  @keyframes snip{0%,55%{opacity:0;transform:translateY(0)}65%{opacity:.6}100%{opacity:0;transform:translateY(22px)}}
+  @keyframes hairsway{0%,100%{transform:translateX(0)}50%{transform:translateX(1.5px)}}
+
+  /* 학원 — 분필이 지나가며 글씨가 써진다 */
+  .ar-paper.is-on .w1{animation:write 3.6s ease-out infinite}
+  .ar-paper.is-on .w2{animation:write 3.6s ease-out .5s infinite}
+  .ar-paper.is-on .w3{animation:write 3.6s ease-out 1s infinite}
+  .ar-paper.is-on .chalk{animation:chalk 3.6s ease-out infinite}
+  .ar-paper.is-on .page{transform-origin:0 50%;animation:pageflip 3.6s ease-in-out infinite}
+  @keyframes write{0%{stroke-dashoffset:60}30%,88%{stroke-dashoffset:0}100%{stroke-dashoffset:60}}
+  @keyframes chalk{0%{transform:translate(-30px,0)}30%{transform:translate(0,0)}55%{transform:translate(-30px,14px)}80%{transform:translate(10px,28px)}100%{transform:translate(-30px,0)}}
+  @keyframes pageflip{0%,55%{transform:rotateY(0);opacity:1}80%{transform:rotateY(-155deg);opacity:.25}100%{transform:rotateY(0);opacity:1}}
+
+  /* 음식점 — 국물을 붓고 고명이 떨어진다 */
+  .ar-paper.is-on .pour2{animation:pour 3.2s ease-in infinite}
+  .ar-paper.is-on .soup{animation:soup 3.2s ease-out infinite}
+  .ar-paper.is-on .garnish circle{animation:drop 3.2s ease-in infinite}
+  .ar-paper.is-on .garnish circle:nth-child(2){animation-delay:.35s}
+  .ar-paper.is-on .steam2 path{animation:steam 2.6s ease-in-out infinite}
+  .ar-paper.is-on .steam2 path:nth-child(2){animation-delay:.7s}
+  @keyframes soup{0%,45%{rx:30;opacity:.7}70%{rx:42;opacity:.9}100%{rx:42;opacity:.9}}
+  @keyframes drop{0%,58%{opacity:0;transform:translateY(-26px)}70%{opacity:1}100%{opacity:1;transform:translateY(0)}}
+}
+</style>
+
+<script>
+// ── 업종 카드 순환 ──────────────────────────────────────────
+// ★4.6초마다 한 장씩. 조사한 릴스 공식(결과물→손동작→재노출→CTA)을 4단계 칩으로 함께 보여준다.
+(function () {
+  var papers = Array.prototype.slice.call(document.querySelectorAll('.ar-paper'));
+  var dots   = Array.prototype.slice.call(document.querySelectorAll('.ar-dot'));
+  var steps  = Array.prototype.slice.call(document.querySelectorAll('.ar-step'));
+  var i = 0, timer = null, stepTimer = null;
+
+  function show(n, manual) {
+    var prev = i;
+    i = (n + papers.length) % papers.length;
+    papers.forEach(function (p, k) {
+      p.classList.toggle('is-on', k === i);
+      p.classList.toggle('is-prev', k === prev && k !== i);
+    });
+    dots.forEach(function (d, k) { d.classList.toggle('is-on', k === i); });
+    runSteps();
+    if (manual) restart();
+  }
+  // 4단 진행 칩 — 카드 한 장이 도는 동안 순서대로 켜진다
+  function runSteps() {
+    clearInterval(stepTimer);
+    var s = 0;
+    steps.forEach(function (x, k) { x.classList.toggle('is-on', k === 0); });
+    stepTimer = setInterval(function () {
+      s = (s + 1) % steps.length;
+      steps.forEach(function (x, k) { x.classList.toggle('is-on', k === s); });
+    }, 1150);
+  }
+  function restart() { clearInterval(timer); timer = setInterval(function () { show(i + 1); }, 4600); }
+
+  dots.forEach(function (d) {
+    d.addEventListener('click', function () { show(parseInt(d.getAttribute('data-g'), 10), true); });
+  });
+
+  // ★모션 감소 설정이면 자동 순환을 걸지 않는다(어지럼증 접근성).
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!reduce) { runSteps(); restart(); }
+
+  // ★탭이 백그라운드면 멈춘다 — 안 보이는 화면을 계속 돌릴 이유가 없다.
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) { clearInterval(timer); clearInterval(stepTimer); }
+    else if (!reduce) { runSteps(); restart(); }
+  });
+})();
+
+// 결과물 탭
+document.querySelectorAll('.ar-tab').forEach(function (t) {
+  t.addEventListener('click', function () {
+    document.querySelectorAll('.ar-tab').forEach(function (x) { x.classList.remove('is-on'); });
+    t.classList.add('is-on');
+    var key = t.getAttribute('data-t');
+    document.querySelectorAll('.ar-pane').forEach(function (p) {
+      p.classList.toggle('is-on', p.getAttribute('data-p') === key);
+    });
+  });
+});
+</script>
+</body>
+</html>
