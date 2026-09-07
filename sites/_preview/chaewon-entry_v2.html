@@ -45,7 +45,8 @@ body{background:var(--bg);color:var(--text);
 .hd{display:flex;align-items:center;gap:10px;padding:16px 18px 12px}
 .hd-logo{width:34px;height:34px;border-radius:9px;background:#2b3d54;
   display:flex;align-items:center;justify-content:center}
-.hd-t{font-size:14px;font-weight:800;letter-spacing:.06em}
+.hd-t{font-size:15px;font-weight:800;letter-spacing:-.01em}
+.hd-r{font-size:10.5px;font-weight:600;color:var(--muted);letter-spacing:0;margin-left:5px}
 .hd-s{font-size:11px;color:var(--muted)}
 .hd-x{margin-left:auto;width:32px;height:32px;border-radius:50%;
   border:1px solid var(--line);background:transparent;color:var(--muted);
@@ -165,8 +166,8 @@ body{background:var(--bg);color:var(--text);
   <div class="hd">
     <div class="hd-logo">📊</div>
     <div>
-      <div class="hd-t">CHAEWON DESK</div>
-      <div class="hd-s">데이터로 읽는 시장</div>
+      <div class="hd-t">윤채원 <span class="hd-r">수석 애널리스트</span></div>
+      <div class="hd-s">데이터로 읽는 시장 · 자신보다 데이터를 믿어라</div>
     </div>
     <button class="hd-x" aria-label="닫기">✕</button>
   </div>
@@ -201,11 +202,15 @@ body{background:var(--bg);color:var(--text);
   <div class="tape"><div class="tape-in" id="tape"></div></div>
   <div class="stamp" id="stamp">시장 데이터를 불러오는 중입니다</div>
 
-  <div class="who">
-    <div class="who-k">DATA FIRST. ALWAYS.</div>
-    <div class="who-n">윤채원<small>수석 애널리스트</small></div>
-    <div class="who-q">자신보다 데이터를 믿어라.</div>
-    <div class="who-s">데이터는 거짓을 말하지 않아요.</div>
+  <!-- ③ 증권 탑뉴스 — 사장 지시(2026-09-07)로 **소개 블록 자리**로 올렸다.
+       전광판 바로 아래가 "지금 시장에서 무슨 일이 있나"를 읽는 자리다. -->
+  <div class="sec">
+    <div class="sec-h">
+      <div class="sec-t">증권 탑뉴스</div>
+      <span class="live"><i></i>LIVE</span>
+      <div class="sec-m">MARKET NEWS</div>
+    </div>
+    <div id="news"><div class="dis-b">불러오는 중…</div></div>
   </div>
 
   <!-- ② 메뉴 — 내 종목 분석 포함 -->
@@ -216,28 +221,12 @@ body{background:var(--bg);color:var(--text);
            <div class="mi-d">종목을 직접 넣어 3중 AI 정밀분석 · 내 보고서 보관함</div></div>
       <span class="mi-go">→</span>
     </button>
-    <button class="mi" data-go="picks">
-      <div class="mi-ic">🔎</div>
-      <div><div class="mi-t">AI 관심 종목</div>
-           <div class="mi-d">매일 아침 시장을 살펴본 기록 · 무료</div></div>
-      <span class="mi-go">→</span>
-    </button>
     <button class="mi" data-go="chat">
       <div class="mi-ic">💬</div>
       <div><div class="mi-t">윤채원과 대화하기</div>
            <div class="mi-d">보고서를 놓고 궁금한 점을 물어보세요</div></div>
       <span class="mi-go">→</span>
     </button>
-  </div>
-
-  <!-- ③ 증권 탑뉴스 -->
-  <div class="sec">
-    <div class="sec-h">
-      <div class="sec-t">증권 탑뉴스</div>
-      <span class="live"><i></i>LIVE</span>
-      <div class="sec-m">MARKET NEWS</div>
-    </div>
-    <div id="news"><div class="dis-b">불러오는 중…</div></div>
   </div>
 
   <!-- 관심 종목 -->
