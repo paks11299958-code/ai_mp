@@ -250,13 +250,26 @@ describe('가상매매 표시', () => {
         expect(SRC).toContain('종목</b></>');          // 개수 표기는 남는다
     });
 
-    it('★가상매매는 관심 종목 뒤에 온다', () => {
-        // 예측을 보여준 다음 "그래서 실제로는 이랬다"로 받는 순서.
-        // 위로 올리면 화면이 수익률 자랑처럼 읽힌다.
-        const picks = SRC.indexOf('오늘의 AI 관심 종목');
-        const paper = SRC.indexOf('가상매매 성적');
-        expect(picks).toBeGreaterThan(0);
-        expect(paper).toBeGreaterThan(picks);
+    it('★★화면 순서 — 살아있나 → 믿을만한가 → 뭘보나 → 내것도', () => {
+        // 2026-09-07 사장 "위치도 중요한 거 같은데".
+        // 회원의 질문 순서대로 답한다. 특히 **메뉴(결제)가 설득보다 앞에 오면 안 된다.**
+        const at = (s: string) => { const i = SRC.indexOf(s); expect(i, `${s} 없음`).toBeGreaterThan(0); return i; };
+        const 뉴스 = at('증권 탑뉴스');
+        const 가상매매 = at('가상매매 성적');
+        const 관심종목 = at('오늘의 AI 관심 종목');
+        const 메뉴 = at('내 종목 분석');
+        const 면책 = at('PLEASE READ');
+
+        expect(가상매매, '가상매매는 뉴스 뒤').toBeGreaterThan(뉴스);
+        expect(관심종목, '관심 종목은 가상매매 뒤').toBeGreaterThan(가상매매);
+        expect(메뉴, '★메뉴(결제)는 설득 뒤에 온다').toBeGreaterThan(관심종목);
+        expect(면책, '면책은 맨 아래').toBeGreaterThan(메뉴);
+    });
+
+    it('★가상매매를 관심 종목 뒤로 내리지 않는다', () => {
+        // 한 번 그렇게 했다가 되돌렸다 — 관심 종목 카드가 표까지 달려 길어서
+        // 그 아래는 스크롤 끝이다. 안 보이는 자리에 둔 신뢰의 근거는 없는 것과 같다.
+        expect(SRC.indexOf('가상매매 성적')).toBeLessThan(SRC.indexOf('오늘의 AI 관심 종목'));
     });
 });
 

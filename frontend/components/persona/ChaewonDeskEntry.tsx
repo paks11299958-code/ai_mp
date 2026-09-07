@@ -376,61 +376,15 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                         : <div className="cd-db">{cues ? '이 분야는 오늘 준비된 소식이 없습니다.' : '불러오는 중…'}</div>}
                 </div>
 
-                {/* 메뉴 — ★featureKey 는 App.tsx FEATURE_ACTIONS 와 같아야 한다. */}
-                <div className="cd-menu">
-                    <button className="cd-mi" onClick={() => onFeature('stock')}>
-                        <div className="cd-mic">🔬</div>
-                        <div>
-                            <div className="cd-mt">내 종목 분석</div>
-                            <div className="cd-md">종목을 직접 넣어 3중 AI 정밀분석 · 내 보고서 보관함</div>
-                        </div>
-                        <span className="cd-mg">→</span>
-                    </button>
-                    <button className="cd-mi" onClick={() => onStart()}>
-                        <div className="cd-mic">💬</div>
-                        <div>
-                            <div className="cd-mt">윤채원과 대화하기</div>
-                            <div className="cd-md">보고서를 놓고 궁금한 점을 물어보세요</div>
-                        </div>
-                        <span className="cd-mg">→</span>
-                    </button>
-                </div>
-
-                {/* 관심 종목 */}
-                <div className="cd-sec">
-                    <div className="cd-sh">
-                        <div className="cd-st">오늘의 AI 관심 종목</div>
-                        <div className="cd-sm">WATCHLIST</div>
-                    </div>
-                    {!picks ? <div className="cd-db">불러오는 중…</div>
-                        : picks.length === 0 ? <div className="cd-db">오늘의 기록이 아직 없습니다.</div>
-                        : picks.map(p => {
-                            const rs = pickRows(p.summary), s = num(p.score);
-                            return (
-                                <div className="cd-pk" key={p.market + p.name}>
-                                    <div className="cd-ph">
-                                        <span className="cd-pm">{p.market}</span>
-                                        <span className="cd-pn">{p.name}</span>
-                                        <span className="cd-pb">
-                                            <span className="cd-pg">{grade(s)}</span>
-                                            <div className="cd-ps cd-mono">{s === null ? '—' : `${s}점`}</div>
-                                        </span>
-                                    </div>
-                                    {rs.length > 0
-                                        ? <table className="cd-tb"><tbody>
-                                            {rs.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}
-                                          </tbody></table>
-                                        : <div className="cd-db" style={{ marginTop: 8 }}>요약이 아직 준비되지 않았습니다.</div>}
-                                </div>
-                            );
-                        })}
-                </div>
-
                 {/* 가상매매 — ★페이퍼(가상) 계좌다. 손실이어도 그대로 낸다(숨기면 더 위험).
                   *
-                  * ★자리: **관심 종목 뒤**다(2026-09-07 사장 지시). 예측(관심 종목)을 보여준
-                  *   다음 "그래서 실제로는 이랬다"로 받아야 순서가 맞는다. 위에 두면
-                  *   성적표가 먼저 눈에 들어와 화면이 수익률 자랑처럼 읽힌다.
+                  * ★자리(2026-09-07 사장 지시 "위치도 중요한 거 같은데"): 이 화면은
+                  *   회원의 질문에 **순서대로** 답한다 —
+                  *     ①여기 살아있나(전광판·뉴스) → ②믿을 만한가(**가상매매**)
+                  *     → ③뭘 보고 있나(관심 종목) → ④내 것도 봐주나(메뉴).
+                  *   ★한 번 관심 종목 **뒤**로 보냈다가 되돌렸다. "예측 다음에 결과"라는
+                  *     서사는 그럴듯했지만, 관심 종목 카드가 표까지 달려 길어서 그 아래는
+                  *     스크롤 끝이었다 — **안 보이는 자리에 둔 신뢰의 근거는 없는 것과 같다.**
                   *
                   * 🔴★★**보유 종목명은 내지 않는다**(사장 지시). 수익률·손익은 지나간
                   *   성과지만 보유 종목은 **지금의 포지션**이라, 페이퍼 계좌라도 회원에겐
@@ -466,6 +420,59 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                                 </div>
                             );
                         })()}
+                </div>
+
+                {/* 관심 종목 */}
+                <div className="cd-sec">
+                    <div className="cd-sh">
+                        <div className="cd-st">오늘의 AI 관심 종목</div>
+                        <div className="cd-sm">WATCHLIST</div>
+                    </div>
+                    {!picks ? <div className="cd-db">불러오는 중…</div>
+                        : picks.length === 0 ? <div className="cd-db">오늘의 기록이 아직 없습니다.</div>
+                        : picks.map(p => {
+                            const rs = pickRows(p.summary), s = num(p.score);
+                            return (
+                                <div className="cd-pk" key={p.market + p.name}>
+                                    <div className="cd-ph">
+                                        <span className="cd-pm">{p.market}</span>
+                                        <span className="cd-pn">{p.name}</span>
+                                        <span className="cd-pb">
+                                            <span className="cd-pg">{grade(s)}</span>
+                                            <div className="cd-ps cd-mono">{s === null ? '—' : `${s}점`}</div>
+                                        </span>
+                                    </div>
+                                    {rs.length > 0
+                                        ? <table className="cd-tb"><tbody>
+                                            {rs.map(([k, v]) => <tr key={k}><th>{k}</th><td>{v}</td></tr>)}
+                                          </tbody></table>
+                                        : <div className="cd-db" style={{ marginTop: 8 }}>요약이 아직 준비되지 않았습니다.</div>}
+                                </div>
+                            );
+                        })}
+                </div>
+
+                {/* 메뉴 — ★featureKey 는 App.tsx FEATURE_ACTIONS 와 같아야 한다.
+                  *   ★자리: **설득 다음**이다. 위쪽(뉴스 바로 뒤)에 뒀더니 회원이 스크롤을
+                  *   시작하자마자 300pt 결제를 만났다 — 윤채원이 뭘 하는 사람인지 보기도
+                  *   전에 권하는 순서였다. */}
+                <div className="cd-menu">
+                    <button className="cd-mi" onClick={() => onFeature('stock')}>
+                        <div className="cd-mic">🔬</div>
+                        <div>
+                            <div className="cd-mt">내 종목 분석</div>
+                            <div className="cd-md">종목을 직접 넣어 3중 AI 정밀분석 · 내 보고서 보관함</div>
+                        </div>
+                        <span className="cd-mg">→</span>
+                    </button>
+                    <button className="cd-mi" onClick={() => onStart()}>
+                        <div className="cd-mic">💬</div>
+                        <div>
+                            <div className="cd-mt">윤채원과 대화하기</div>
+                            <div className="cd-md">보고서를 놓고 궁금한 점을 물어보세요</div>
+                        </div>
+                        <span className="cd-mg">→</span>
+                    </button>
                 </div>
 
                 <button className="cd-cta" onClick={onInvite}>🎁 친구 초대하고 1,000P 받기</button>
