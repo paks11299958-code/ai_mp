@@ -4,6 +4,7 @@ import { SajuEntry } from './persona/SajuEntry';
 import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
 import { ChaerinStudioEntry } from './persona/ChaerinStudioEntry';
 import { ArinPromoEntry } from './persona/ArinPromoEntry';
+import { ChaewonDeskEntry } from './persona/ChaewonDeskEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -90,6 +91,14 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     if (guide.title?.startsWith('이아린')) {
         return <ArinPromoEntry guide={guide} onClose={onClose} onStart={onStart}
                                onFeature={onFeature} onInvite={onInvite} />;
+    }
+    // ★윤채원도 같은 규약으로 트레이딩 데스크 랜딩으로 갈아 끼운다(2026-09-07 사장 지시).
+    //   주식 전문가인데 들어가면 채팅창부터 떠서 **무엇을 볼 수 있는지**가 안 보였다.
+    //   ★★접두사가 '윤채린'과 겹치지 않는다 — startsWith 는 '윤채'까지 같아도
+    //     네 번째 글자('린'≠'원')에서 갈린다. 위 윤채린 분기가 먼저 와도 안전하다.
+    if (guide.title?.startsWith('윤채원')) {
+        return <ChaewonDeskEntry guide={guide} onClose={onClose} onStart={onStart}
+                                 onFeature={onFeature} onInvite={onInvite} />;
     }
 
     const who = guide.personaName || guide.title;
