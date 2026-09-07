@@ -87,7 +87,10 @@ export const FEATURE_BY_KEY: Record<string, FeatureMeta> =
 // 레거시 폴백: features 미설정 페르소나의 이름 → 기능 키 목록 (기존 동작 보존).
 const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     '서아':   ['news'],
-    '윤채원': ['stock', 'hotkeyword'],
+    // ★2026-09-07 'hotkeyword' 제거(사장 지적) — 핫 키워드는 **네이버 쇼핑** 카테고리별
+    //   인기 검색어라(naverShoppingCategory) 주식 애널리스트와 무관하다. 메인 카드의
+    //   담당도 이미 이아린이었다(MainPageNew FEATURES_GRID). 아린 쪽에만 남긴다.
+    '윤채원': ['stock'],
     '이아린': ['used', 'hotkeyword', 'marketing', 'shorts-maker', 'reverse-prompt'],
     '신은비': ['luxury'],
     '지우':   ['mathtutor', 'club'],
