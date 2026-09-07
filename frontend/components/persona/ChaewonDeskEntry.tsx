@@ -74,7 +74,12 @@ const pickRows = (summary: string): [string, string][] => {
     return out.slice(0, 4);
 };
 
-/** 코스피 추세 스케치 — 종가·전일종가로 만든 **개형**이다(분봉이 아니다). */
+/** 코스피 추세 스케치 — 종가·전일종가로 만든 **개형**이다(분봉이 아니다).
+ *
+ *  ★가장자리를 비워 둔다(PAD). 선을 0~160 끝까지 그리면 **선 굵기(2.2)와 끝점
+ *    동그라미(r 최대 5)의 바깥쪽 절반이 viewBox 밖으로 잘린다** — 하필 오른쪽 끝이
+ *    "오늘 오른 지점"이라 제일 중요한 데가 잘려 나갔다(2026-09-07 실측). */
+const PAD = 6;
 const buildPath = (close: number, prev: number | null, pct: number | null) => {
     const start = prev ?? close / (1 + (pct ?? 0) / 100);
     const pts: [number, number][] = [];
@@ -82,11 +87,11 @@ const buildPath = (close: number, prev: number | null, pct: number | null) => {
         const t = i / 22;
         const base = start + (close - start) * (t * t * (3 - 2 * t));
         const wave = Math.sin(t * 7.5) * ((Math.abs(close - start) || close * 0.004) * 0.22);
-        pts.push([t * 160, base + wave]);
+        pts.push([PAD + t * (160 - PAD * 2), base + wave]);
     }
     const ys = pts.map(p => p[1]);
     const lo = Math.min(...ys), span = (Math.max(...ys) - lo) || 1;
-    const xy = pts.map(([x, y]) => [x, 88 - ((y - lo) / span) * 76] as [number, number]);
+    const xy = pts.map(([x, y]) => [x, 90 - PAD - ((y - lo) / span) * (90 - PAD * 2)] as [number, number]);
     return { d: xy.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)} ${y.toFixed(1)}`).join(' '), last: xy[xy.length - 1] };
 };
 
@@ -326,7 +331,9 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                                         <line x1="0" y1="72" x2="160" y2="72" />
                                     </g>
                                     {graph && <>
-                                        <path className="cd-area" d={`${graph.d} L160 96 L0 96 Z`} fill="url(#cdFill)" opacity={0} />
+                                        {/* 면은 선 끝에서 바닥으로 내려 닫는다 — PAD 만큼 안쪽이라 선과 어긋나지 않는다. */}
+                                        <path className="cd-area" d={`${graph.d} L${160 - PAD} 96 L${PAD} 96 Z`}
+                                              fill="url(#cdFill)" opacity={0} />
                                         <path ref={lineRef} className="cd-line" d={graph.d} stroke={gColor} />
                                         <circle className="cd-dot" cx={graph.last[0]} cy={graph.last[1]} r={3.4} fill={gColor} />
                                     </>}

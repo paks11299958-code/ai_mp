@@ -180,6 +180,57 @@ describe('요약 표 파싱', () => {
     });
 });
 
+describe('★그래프가 잘리지 않는다', () => {
+    // 2026-09-07 실측 사고: 선을 0~160 끝까지 그렸더니 **오른쪽 끝이 잘렸다** —
+    // 하필 거기가 "오늘 오른 지점"이라 제일 중요한 데가 안 보였다.
+    const PAD = 6;
+    const buildPath = (close: number, prev: number | null, pct: number | null) => {
+        const start = prev ?? close / (1 + (pct ?? 0) / 100);
+        const pts: [number, number][] = [];
+        for (let i = 0; i <= 22; i++) {
+            const t = i / 22;
+            const base = start + (close - start) * (t * t * (3 - 2 * t));
+            const wave = Math.sin(t * 7.5) * ((Math.abs(close - start) || close * 0.004) * 0.22);
+            pts.push([PAD + t * (160 - PAD * 2), base + wave]);
+        }
+        const ys = pts.map(p => p[1]);
+        const lo = Math.min(...ys), span = (Math.max(...ys) - lo) || 1;
+        return pts.map(([x, y]) => [x, 90 - PAD - ((y - lo) / span) * (90 - PAD * 2)] as [number, number]);
+    };
+
+    it('모든 점이 여백 안에 있다', () => {
+        // 실측값(코스피 6995.39, 전일 6687.21, +4.61%)
+        for (const [x, y] of buildPath(6995.39, 6687.21, 4.61)) {
+            expect(x).toBeGreaterThanOrEqual(PAD - 0.01);
+            expect(x).toBeLessThanOrEqual(160 - PAD + 0.01);
+            expect(y).toBeGreaterThanOrEqual(PAD - 0.01);
+            expect(y).toBeLessThanOrEqual(96 - PAD + 0.01);   // 선 굵기·끝점 동그라미 자리
+        }
+    });
+
+    it('내린 날도 여백 안에 있다', () => {
+        for (const [, y] of buildPath(800, 830, -3.6)) {
+            expect(y).toBeGreaterThanOrEqual(PAD - 0.01);
+            expect(y).toBeLessThanOrEqual(96 - PAD + 0.01);
+        }
+    });
+
+    it('보합(전일과 같음)이어도 죽지 않는다', () => {
+        const pts = buildPath(1000, 1000, 0);
+        expect(pts.length).toBe(23);
+        expect(pts.every(([, y]) => Number.isFinite(y))).toBe(true);
+    });
+
+    it('전일종가가 없으면 등락률로 되짚는다', () => {
+        expect(buildPath(1046.1, null, 4.61).every(([, y]) => Number.isFinite(y))).toBe(true);
+    });
+
+    it('소스에 PAD 가 살아 있다', () => {
+        expect(SRC).toContain('const PAD = 6');
+        expect(SRC).not.toContain('pts.push([t * 160,');   // 옛 방식으로 되돌리면 다시 잘린다
+    });
+});
+
 describe('가상매매 표시', () => {
     it('손실이어도 그대로 낸다', () => {
         // 실측 -1.9756% → "-1.98%". 숨기면 더 위험하다.
