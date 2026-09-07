@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // 진입 랜딩 ↔ 기능 보드 왕복 (2026-09-06).
 //
@@ -68,5 +70,45 @@ describe('보드를 닫으면 랜딩으로 되돌아간다', () => {
         c.run();
         expect(c.close).toHaveBeenCalled();
         expect(c.setGuide).not.toHaveBeenCalled();
+    });
+
+    it('서아 랜딩(뉴스)도 같은 규칙으로 되돌아온다', () => {
+        // 2026-09-07: 09-06 배선을 윤채린 4종에만 걸어 **서아만 메인으로 떨어졌다**
+        // (운영 실측: 뉴스 보드를 닫으면 랜딩이 아니라 메인이 나왔다).
+        const guide = { title: '서아' };
+        const c = makeCloser(guide);
+        c.run();
+        expect(c.setGuide).toHaveBeenCalledWith(guide);
+    });
+});
+
+describe('랜딩에서 열리는 보드는 전부 복귀 배선이 걸려 있다', () => {
+    // ★규칙만 흉내내는 테스트는 "배선을 빠뜨린 것"을 못 잡는다 —
+    //   09-06 에 실제로 그렇게 서아가 누락됐고 테스트는 전부 통과했다.
+    //   그래서 여기서는 **App.tsx 원문을 읽어** 실제 배선을 검사한다.
+    // ★`import.meta.url` 은 vitest 변환 환경에서 file 스킴이 아닐 수 있다 → cwd 기준으로 읽는다
+    //   (vitest 의 root 가 frontend/ 이므로 App.tsx 는 그 바로 아래에 있다).
+    const src = readFileSync(resolve(process.cwd(), 'App.tsx'), 'utf8');
+
+    /** 진입 랜딩(도결·서아·윤채린)에서 열 수 있는 보드들 */
+    const BOARDS = [
+        'AgeTransformBoard', 'HairStyleBoard', 'OutfitBoard',   // 윤채린
+        'TodayNewsBoard',                                        // 서아
+    ];
+
+    for (const board of BOARDS) {
+        it(`${board} 의 onClose 는 closeBoardAndReturn 을 거친다`, () => {
+            const lines = src.split('\n').filter(l => l.includes(`<${board}`) && l.includes('onClose'));
+            expect(lines.length, `${board} 렌더 지점을 못 찾았다`).toBeGreaterThan(0);
+            for (const l of lines) {
+                // ★main·chat 양쪽 return 에 렌더되므로 **모든 지점**이 걸려 있어야 한다.
+                expect(l, `${board} 한 곳이 배선에서 빠졌다: ${l.trim()}`).toContain('closeBoardAndReturn');
+            }
+        });
+    }
+
+    it('뉴스 보드는 main·chat 두 곳 모두에 배선돼 있다', () => {
+        const hits = src.split('\n').filter(l => l.includes('<TodayNewsBoard') && l.includes('closeBoardAndReturn'));
+        expect(hits).toHaveLength(2);
     });
 });

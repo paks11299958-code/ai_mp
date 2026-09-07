@@ -1902,8 +1902,9 @@ const AppContent: React.FC = () => {
                         <AgeTransformBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowAgeBoard(false))} />
                     </ErrorBoundary>
                 )}
+                {/* ★서아 랜딩에서 열었으면 닫을 때 그 랜딩으로 되돌아간다(2026-09-07). */}
                 {showTodayNews && (
-                    <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
+                    <TodayNewsBoard onClose={closeBoardAndReturn(() => setShowTodayNews(false))} />
                 )}
                 {showMathTutor && (
                     <MathTutorBoard onClose={() => setShowMathTutor(false)} />
@@ -2065,8 +2066,11 @@ const AppContent: React.FC = () => {
             {showShortsMakerBoard && (
                 <ShortsMakerBoard onClose={() => setShowShortsMakerBoard(false)} />
             )}
+            {/* ★서아 랜딩에서 열었으면 닫을 때 그 랜딩으로 되돌아간다(2026-09-07).
+                어제(09-06) 복귀 배선을 윤채린 4종에만 걸어 **서아만 메인으로 떨어졌다.**
+                랜딩을 거치지 않은 평소 경로는 entryReturnGuide 가 null 이라 종전과 같다. */}
             {showTodayNews && (
-                <TodayNewsBoard onClose={() => setShowTodayNews(false)} />
+                <TodayNewsBoard onClose={closeBoardAndReturn(() => setShowTodayNews(false))} />
             )}
             {showResearch && (
                 <ResearchBoard onClose={() => setShowResearch(false)} user={user} />
