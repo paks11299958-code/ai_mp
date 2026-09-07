@@ -94,18 +94,18 @@ img{max-width:100%;height:auto;display:block}
    ★배경을 실제로 지운 누끼(arin-paper.webp)라 사각 사진 테두리가 없다 —
      마스크로 흐리는 방식은 배경이 꽉 찬 사진에선 티가 남아서 실패했다(실측).
    ★종이처럼 보이게 하는 것은 **그림자**다: 바닥에 옅게 깔리는 그림자 + 살짝 기운 각도. */
-/* ★아린은 **왼쪽**. 폰이 컷아웃 기준 가로 20%·세로 12% 지점(실측)이라
-     왼쪽에 두면 폰이 화면 왼쪽 위에 오고, 카드가 그 **바로 오른쪽**으로 펼쳐진다.
-     오른쪽에 뒀을 땐 폰(오른쪽 위)과 카드(왼쪽 아래)가 대각선으로 멀어
-     "소환"이 아니라 그냥 두 덩어리로 보였다(렌더로 확인). */
-.ar-arin{position:absolute;left:-30px;top:2px;width:152px;z-index:4;
+/* ★아린은 **오른쪽**. 폰을 없애고 **손바닥을 펼친 자세**로 바꿨다(사장 지시).
+     손바닥은 컷아웃 기준 가로 24%·세로 24% 지점(실측) = 왼쪽 위.
+     그래서 인물을 오른쪽에 두면 손이 화면 가운데를 향하고,
+     카드는 **그 손 위에 얹힌다** — 폰에서 나오는 것보다 훨씬 직관적이다. */
+.ar-arin{position:absolute;right:-46px;bottom:0;width:206px;z-index:6;
   transform:rotate(1.5deg);
   filter:drop-shadow(0 10px 14px rgba(60,40,55,.26)) drop-shadow(0 2px 0 rgba(255,255,255,.85))}
 /* ★발이 화면 밖으로 잘리던 문제 — 아래를 페이드시켜 "잘림"이 아니라
      "종이가 배경에 스미는" 것으로 읽히게 한다. */
 .ar-arin img{width:100%;
-  -webkit-mask-image:linear-gradient(180deg,#000 72%,rgba(0,0,0,.55) 88%,transparent 100%);
-          mask-image:linear-gradient(180deg,#000 72%,rgba(0,0,0,.55) 88%,transparent 100%)}
+  -webkit-mask-image:linear-gradient(180deg,#000 78%,rgba(0,0,0,.6) 92%,transparent 100%);
+          mask-image:linear-gradient(180deg,#000 78%,rgba(0,0,0,.6) 92%,transparent 100%)}
 @media (prefers-reduced-motion: no-preference){
   /* 종이가 아주 살짝 흔들린다 — 붙여둔 종이 인형처럼 */
   .ar-arin{animation:paperbob 6s ease-in-out infinite}
@@ -114,30 +114,30 @@ img{max-width:100%;height:auto;display:block}
 /* 폰에서 카드 쪽으로 뻗는 빛 — 근원과 결과를 눈으로 잇는다.
    폰은 이미지 좌상단(약 x28% / y22%)에 있으므로 거기서 왼쪽 아래로 흐르게 둔다. */
 /* ★z-index 를 아린(4)보다 위로 — 전엔 3이라 **몸에 가려 거의 안 보였다**. */
-.ar-beam{position:absolute;left:6px;top:14px;width:180px;height:150px;z-index:6;
+.ar-beam{position:absolute;right:112px;bottom:120px;width:190px;height:160px;z-index:3;
   pointer-events:none;
-  background:radial-gradient(closest-side at 14% 16%,rgba(216,92,149,.5),rgba(216,92,149,0) 72%);
-  filter:blur(3px)}
+  background:radial-gradient(closest-side at 78% 78%,rgba(216,92,149,.46),rgba(216,92,149,0) 72%);
+  filter:blur(4px)}
 @media (prefers-reduced-motion: no-preference){
   .ar-beam{animation:beam 4.6s ease-in-out infinite}
 }
 @keyframes beam{0%,72%{opacity:.35}8%{opacity:.95}24%{opacity:.5}}
 
-/* 종이 카드 — 폰(왼쪽 위) **바로 옆**에서 튀어나온다.
-   ★거리가 멀면 0.6초 안에 눈이 못 따라가 "그냥 나타났다"로 보인다 —
-     그래서 시작점을 폰 코앞(왼쪽 위, -46/-30)으로 당겼다. */
-.ar-deck{position:absolute;right:0;top:26px;width:214px;height:292px;z-index:5}
+/* 종이 카드 — **손바닥 위**에 얹힌다.
+   ★손 위에서 살짝 떠오르며 나타난다(아래→위). 폰에서 튀어나오던 때와 달리
+     '받쳐 든 것을 보여준다'라 이동이 짧고 자연스럽다. */
+.ar-deck{position:absolute;left:14px;top:34px;width:206px;height:278px;z-index:5}
 .ar-paper{position:absolute;inset:0;border-radius:16px;background:var(--card);
   border:1px solid rgba(60,40,55,.10);
   box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 18px 32px -20px rgba(60,40,55,.55);
   padding:14px 14px 12px;display:flex;flex-direction:column;
-  opacity:0;transform-origin:0 0;
-  /* 시작 = 폰 코앞에서 작게 접힌 상태 */
-  transform:translate(-46px,-30px) rotate(-13deg) scale(.3);
-  transition:opacity .42s ease,transform .6s cubic-bezier(.16,.84,.3,1.05)}
-.ar-paper.is-on{opacity:1;transform:translate(0,0) rotate(1.5deg) scale(1);z-index:3}
+  opacity:0;transform-origin:70% 100%;
+  /* 시작 = 손바닥 위에서 작게 접힌 채 살짝 아래 */
+  transform:translate(26px,58px) rotate(-8deg) scale(.34);
+  transition:opacity .42s ease,transform .62s cubic-bezier(.16,.84,.3,1.05)}
+.ar-paper.is-on{opacity:1;transform:translate(0,0) rotate(-1.5deg) scale(1);z-index:3}
 /* 앞서 소환된 장은 뒤에 겹쳐 남는다 — 여러 업종을 이미 만들어 준 느낌 */
-.ar-paper.is-prev{opacity:.38;transform:translate(-9px,-13px) rotate(-4deg) scale(.95);z-index:2}
+.ar-paper.is-prev{opacity:.38;transform:translate(7px,-12px) rotate(3.5deg) scale(.95);z-index:2}
 
 .ar-ptop{display:flex;align-items:center;gap:7px;margin-bottom:9px}
 .ar-pchip{font-size:9.5px;font-weight:800;padding:4px 9px;border-radius:999px;letter-spacing:.02em}
@@ -229,7 +229,7 @@ img{max-width:100%;height:auto;display:block}
 @media (min-width:520px){
   .ar-stage{padding:44px 24px 24px}
   .ar-summon{height:376px;max-width:392px}
-  .ar-arin{width:168px;left:-24px}
+  .ar-arin{width:224px;right:-40px}
   .ar-deck{width:232px;height:314px}
   .ar-headline{font-size:27px}
 }
@@ -253,7 +253,7 @@ img{max-width:100%;height:auto;display:block}
       <!-- ═══ 소환 무대 — 아린이 폰에서 업종 카드를 하나씩 불러낸다 ═══ -->
       <div class="ar-summon">
         <div class="ar-arin" aria-hidden="true">
-          <img src="/arin/arin-paper.webp" alt="" />
+          <img src="/arin/arin-palm.webp" alt="" />
         </div>
         <div class="ar-beam" aria-hidden="true"></div>
 
