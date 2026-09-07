@@ -241,6 +241,23 @@ describe('가상매매 표시', () => {
     it('기록이 없으면 없다고 말한다', () => {
         expect(SRC).toContain('가상매매 기록이 아직 없습니다');
     });
+
+    it('🔴★★보유 종목명은 내지 않는다 — 개수까지만', () => {
+        // 사장 지시(2026-09-07): 수익률·손익은 지나간 성과지만 보유 종목은 **지금의
+        // 포지션**이라, 페이퍼 계좌라도 회원에겐 매수 신호로 읽힌다.
+        expect(SRC).not.toContain('paper.holdings ||');
+        expect(SRC).not.toMatch(/holdings\s*\|\|\s*\[\]\)\.join/);
+        expect(SRC).toContain('종목</b></>');          // 개수 표기는 남는다
+    });
+
+    it('★가상매매는 관심 종목 뒤에 온다', () => {
+        // 예측을 보여준 다음 "그래서 실제로는 이랬다"로 받는 순서.
+        // 위로 올리면 화면이 수익률 자랑처럼 읽힌다.
+        const picks = SRC.indexOf('오늘의 AI 관심 종목');
+        const paper = SRC.indexOf('가상매매 성적');
+        expect(picks).toBeGreaterThan(0);
+        expect(paper).toBeGreaterThan(picks);
+    });
 });
 
 describe('뉴스 탭 — 주식과 직결된 것만', () => {

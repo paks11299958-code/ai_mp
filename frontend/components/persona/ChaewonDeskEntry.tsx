@@ -376,40 +376,6 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                         : <div className="cd-db">{cues ? '이 분야는 오늘 준비된 소식이 없습니다.' : '불러오는 중…'}</div>}
                 </div>
 
-                {/* 가상매매 — ★페이퍼(가상) 계좌다. 손실이어도 그대로 낸다(숨기면 더 위험). */}
-                <div className="cd-sec">
-                    <div className="cd-sh">
-                        <div className="cd-st">가상매매 성적</div>
-                        <div className="cd-sm">PAPER TRADING</div>
-                    </div>
-                    {!paper ? <div className="cd-db">불러오는 중…</div>
-                        : !paper.available ? <div className="cd-db">가상매매 기록이 아직 없습니다.</div>
-                        : (() => {
-                            const pct = num(paper.returnPct ?? null), pnl = num(paper.pnl ?? null);
-                            return (
-                                <div className="cd-pp">
-                                    <div className="cd-ptop">
-                                        <div>
-                                            <div className="cd-pl">누적 수익률</div>
-                                            <div className={`cd-pv cd-mono cd-${cls(pct)}`}>
-                                                {pct === null ? '—' : `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`}
-                                            </div>
-                                        </div>
-                                        <div className={`cd-pr cd-mono cd-${cls(pct)}`}>
-                                            {mark(pct)} {pnl === null ? '—' : `${fmt(pnl)}원`}
-                                        </div>
-                                    </div>
-                                    <div className="cd-psub">
-                                        가상 자본 <b>{fmt(num(paper.seed ?? null))}원</b>
-                                        {paper.strategy && <> · 전략 <b>{paper.strategy}</b></>}
-                                        {!!paper.holdingCount && <> · 보유 <b>{paper.holdingCount}종목</b>({(paper.holdings || []).join(', ')})</>}
-                                    </div>
-                                    <div className="cd-pnote">실제 주문이 아닌 <b>모의 거래</b> 기록입니다. 과거 성과가 미래를 보장하지 않습니다.</div>
-                                </div>
-                            );
-                        })()}
-                </div>
-
                 {/* 메뉴 — ★featureKey 는 App.tsx FEATURE_ACTIONS 와 같아야 한다. */}
                 <div className="cd-menu">
                     <button className="cd-mi" onClick={() => onFeature('stock')}>
@@ -458,6 +424,48 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                                 </div>
                             );
                         })}
+                </div>
+
+                {/* 가상매매 — ★페이퍼(가상) 계좌다. 손실이어도 그대로 낸다(숨기면 더 위험).
+                  *
+                  * ★자리: **관심 종목 뒤**다(2026-09-07 사장 지시). 예측(관심 종목)을 보여준
+                  *   다음 "그래서 실제로는 이랬다"로 받아야 순서가 맞는다. 위에 두면
+                  *   성적표가 먼저 눈에 들어와 화면이 수익률 자랑처럼 읽힌다.
+                  *
+                  * 🔴★★**보유 종목명은 내지 않는다**(사장 지시). 수익률·손익은 지나간
+                  *   성과지만 보유 종목은 **지금의 포지션**이라, 페이퍼 계좌라도 회원에겐
+                  *   매수 신호로 읽힌다 — 실계좌를 가리는 이유와 똑같다. 개수까지만 낸다. */}
+                <div className="cd-sec">
+                    <div className="cd-sh">
+                        <div className="cd-st">가상매매 성적</div>
+                        <div className="cd-sm">PAPER TRADING</div>
+                    </div>
+                    {!paper ? <div className="cd-db">불러오는 중…</div>
+                        : !paper.available ? <div className="cd-db">가상매매 기록이 아직 없습니다.</div>
+                        : (() => {
+                            const pct = num(paper.returnPct ?? null), pnl = num(paper.pnl ?? null);
+                            return (
+                                <div className="cd-pp">
+                                    <div className="cd-ptop">
+                                        <div>
+                                            <div className="cd-pl">누적 수익률</div>
+                                            <div className={`cd-pv cd-mono cd-${cls(pct)}`}>
+                                                {pct === null ? '—' : `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`}
+                                            </div>
+                                        </div>
+                                        <div className={`cd-pr cd-mono cd-${cls(pct)}`}>
+                                            {mark(pct)} {pnl === null ? '—' : `${fmt(pnl)}원`}
+                                        </div>
+                                    </div>
+                                    <div className="cd-psub">
+                                        가상 자본 <b>{fmt(num(paper.seed ?? null))}원</b>
+                                        {paper.strategy && <> · 전략 <b>{paper.strategy}</b></>}
+                                        {!!paper.holdingCount && <> · 보유 <b>{paper.holdingCount}종목</b></>}
+                                    </div>
+                                    <div className="cd-pnote">실제 주문이 아닌 <b>모의 거래</b> 기록입니다. 과거 성과가 미래를 보장하지 않습니다.</div>
+                                </div>
+                            );
+                        })()}
                 </div>
 
                 <button className="cd-cta" onClick={onInvite}>🎁 친구 초대하고 1,000P 받기</button>
