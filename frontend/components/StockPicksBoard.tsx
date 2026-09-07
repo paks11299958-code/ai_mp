@@ -19,8 +19,14 @@ interface Pick {
     score: number | null;
     summary: string;
 }
+interface Market {
+    kospi: number | null; kospiPct: number | null;
+    kosdaq: number | null; kosdaqPct: number | null;
+    summary: string;
+}
 interface Data {
     tradeDate: string | null;
+    market: Market | null;
     picks: Pick[];
     comment: string;
 }
@@ -86,6 +92,35 @@ export const StockPicksBoard: React.FC<{ onClose: () => void }> = ({ onClose }) 
                             아직 오늘의 기록이 없어요.<br />
                             윤채원이 매일 아침 시장을 살펴본 뒤 여기에 남깁니다.
                         </p>
+                    )}
+
+                    {/* 📉 당일 증시분석 — 이미 매일 수집되던 데이터(2026-09-07 사장 지적으로 노출).
+                        ★한국 증시 관례: 상승=빨강 / 하락=파랑. */}
+                    {data?.market && (
+                        <div className="rounded-xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${T.line}` }}>
+                            <div className="flex gap-3 px-4 pt-3">
+                                {([['코스피', data.market.kospi, data.market.kospiPct],
+                                   ['코스닥', data.market.kosdaq, data.market.kosdaqPct]] as const).map(([label, close, pct]) => (
+                                    <div key={label} className="flex-1 min-w-0">
+                                        <div className="text-[11px]" style={{ color: T.mute }}>{label}</div>
+                                        <div className="text-[17px] font-extrabold" style={{ color: T.ink, fontVariantNumeric: 'tabular-nums' }}>
+                                            {close != null ? close.toLocaleString('ko-KR', { maximumFractionDigits: 2 }) : '—'}
+                                        </div>
+                                        {pct != null && pct !== 0 && (
+                                            <div className="text-[11px] font-bold" style={{ color: pct > 0 ? T.up : '#2C6FD1' }}>
+                                                {pct > 0 ? '▲' : '▼'} {Math.abs(pct).toFixed(2)}%
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                            {data.market.summary && (
+                                <p className="px-4 py-3 mt-2 text-[12.5px] leading-relaxed"
+                                   style={{ color: T.sub, borderTop: `1px solid ${T.line}` }}>
+                                    {data.market.summary}
+                                </p>
+                            )}
+                        </div>
                     )}
 
                     {data?.picks.map(p => {
