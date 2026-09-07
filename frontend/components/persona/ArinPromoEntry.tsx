@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { PersonaEntryGuide } from '../PersonaEntrySheet';
+import { personaApi } from '../../services/apiService';
 
 // 이아린 전용 진입 화면 — "우리 동네 가게 홍보".
 //
@@ -39,8 +40,13 @@ const prefersReducedMotion = () =>
  *    그래서 지금 URL(?p=…)을 남겨두고, 그쪽 헤더의 '뒤로'가 이 값을 쓴다.
  *  ★키·검증 규칙은 ReversePromptMain 의 RP_BACK_KEY/readBackTo 와 짝이다 —
  *    한쪽을 고치면 다른 쪽도 고쳐야 한다. */
-const rememberReturn = () => {
-    try { sessionStorage.setItem('rp:backTo', window.location.pathname + window.location.search); }
+const rememberReturn = (personaId?: string) => {
+    // ★★`window.location.search` 를 그대로 쓰면 **안 된다** — App.tsx 가 딥링크를 소비하면서
+    //   `?p=` 를 URL 에서 지운다(App.tsx:226 history.replaceState). 그래서 랜딩이 열린
+    //   시점엔 주소가 이미 '/' 라 저장해도 메인으로 돌아간다(운영 실측으로 확인).
+    //   → 페르소나 id 를 **직접 붙여** 복귀 URL 을 만든다.
+    const back = personaId ? `/?p=${encodeURIComponent(personaId)}` : '/';
+    try { sessionStorage.setItem('rp:backTo', back); }
     catch { /* 저장이 막히면 종전대로 메인으로 돌아간다 — 기능 자체는 막지 않는다 */ }
 };
 
@@ -370,6 +376,11 @@ interface Props {
 
 export const ArinPromoEntry: React.FC<Props> = ({ guide, onClose, onStart, onFeature, onInvite }) => {
     const [reduce] = useState(prefersReducedMotion);
+    /** 복귀 URL(`/?p=<id>`)을 만들기 위한 페르소나 id.
+     *  ★`guide` 에는 personaId 가 없다(도결도 같은 사정) — App.tsx 에 필드를 추가하면 될
+     *    일이지만 **그 파일은 건드리지 않는다**(2026-07-29 전 화면 백지 사고).
+     *    도결이 쓰는 것과 **같은 API**(personaApi.getAll)로 이름으로 찾는다. */
+    const [personaId, setPersonaId] = useState<string | undefined>();
     const [idx, setIdx] = useState(0);
     const [prev, setPrev] = useState(-1);
     const [step, setStep] = useState(0);
@@ -397,6 +408,20 @@ export const ArinPromoEntry: React.FC<Props> = ({ guide, onClose, onStart, onFea
         }, 1150);
         return () => clearInterval(t);
     }, [idx, reduce]);
+
+    // 페르소나 id — '이미지 → 프롬프트'로 나갈 때 돌아올 주소(/?p=<id>)를 만드는 데 쓴다.
+    // ★실패해도 조용히 둔다(그 경우 종전대로 메인으로 돌아간다) — 화면은 그대로 동작한다.
+    useEffect(() => {
+        let alive = true;
+        const name = guide.personaName || guide.title;
+        personaApi.getAll()
+            .then((list: any[]) => {
+                if (!alive) return;
+                setPersonaId(list.find(x => x.name === name)?.id);
+            })
+            .catch(() => { /* 못 찾으면 기본값(메인)으로 돌아간다 */ });
+        return () => { alive = false; };
+    }, [guide.personaName, guide.title]);
 
     // Esc로 닫기 — 전체를 덮는 화면이라 출구가 하나뿐이면 갇힌 느낌이 든다.
     useEffect(() => {
@@ -483,7 +508,7 @@ export const ArinPromoEntry: React.FC<Props> = ({ guide, onClose, onStart, onFea
                     reverse-prompt 는 보드가 아니라 **페이지 이동**이라 랜딩을 떠난다. */}
                 <div className="ap-aside">
                     <div className="ap-asidetop">🎨 이건 좀 다른 재주예요</div>
-                    <button className="ap-row" onClick={() => { rememberReturn(); onFeature('reverse-prompt'); }}>
+                    <button className="ap-row" onClick={() => { rememberReturn(personaId); onFeature('reverse-prompt'); }}>
                         <div className="ap-ico" style={{ background: '#FEF6E8' }}>🖼️</div>
                         <div className="ap-rowmain">
                             <div className="ap-rowname">이미지 → 프롬프트</div>

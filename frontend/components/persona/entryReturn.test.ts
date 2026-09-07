@@ -201,7 +201,19 @@ describe('페이지 이동형 기능도 랜딩으로 돌아온다', () => {
     it('아린 랜딩은 나가기 전에 돌아올 자리를 남긴다', () => {
         expect(arin).toContain(`sessionStorage.setItem('${KEY}'`);
         // 저장 호출이 onFeature 보다 **먼저** 있어야 한다(이동 후엔 이 코드가 안 돈다).
-        expect(arin).toMatch(/rememberReturn\(\);\s*onFeature\('reverse-prompt'\)/);
+        expect(arin).toMatch(/rememberReturn\(personaId\);\s*onFeature\('reverse-prompt'\)/);
+    });
+
+    it('★복귀 URL 은 personaId 로 직접 만든다 (location.search 를 쓰면 안 된다)', () => {
+        // 2026-09-07 실측 함정: App.tsx 가 딥링크를 소비하며 `?p=` 를 URL 에서 지운다
+        // (history.replaceState). 그래서 랜딩이 열린 시점의 search 는 비어 있고,
+        // 그대로 저장하면 **메인으로 돌아간다**(운영에서 실제로 그랬다).
+        expect(arin).toMatch(/\/\?p=\$\{encodeURIComponent\(personaId\)\}/);
+        expect(arin, 'location.search 로 복귀 URL 을 만들면 안 된다')
+            .not.toMatch(/setItem\('rp:backTo',\s*window\.location\.pathname\s*\+\s*window\.location\.search/);
+        // App.tsx 쪽에 그 삭제 코드가 실제로 있는지도 확인 — 없어지면 이 대비가 무의미해진다
+        const app = readFileSync(resolve(process.cwd(), 'App.tsx'), 'utf8');
+        expect(app).toContain("params.delete('p')");
     });
 
     it('리버스 프롬프트 화면은 그 값을 읽어 뒤로가기에 쓴다', () => {
