@@ -112,3 +112,33 @@ describe('랜딩에서 열리는 보드는 전부 복귀 배선이 걸려 있다
         expect(hits).toHaveLength(2);
     });
 });
+
+describe('랜딩 루트의 배경 클릭이 위에 뜬 것까지 닫지 않는다', () => {
+    // 2026-09-07 실측 사고(같은 뿌리, 두 화면):
+    //   랜딩 루트에 onClick={onClose} 가 걸려 있고 자식 모달·보드는 stopPropagation 을 가진
+    //   시트 **밖 형제**로 렌더된다 → 그 안의 버튼을 누르면 이벤트가 루트까지 올라가
+    //   **랜딩이 통째로 닫히고 메인으로 떨어진다.**
+    //   · 도결(SajuEntry)   — 궁합·관상·손금 모달에서 발생
+    //   · 서아(SeoaNewsDeskEntry) — 뉴스룸 ✕ 에서 발생(Esc 는 이미 정상이었다)
+    // ★"모달을 열어둔 채 배경 클릭을 무시한다"는 규칙을 **루트 한 곳**에서 지켜야 한다.
+    const read = (f: string) => readFileSync(resolve(process.cwd(), 'components/persona/' + f), 'utf8');
+
+    it('도결 랜딩 — 모달이 떠 있으면 onClose 를 부르지 않는다', () => {
+        const s = read('SajuEntry.tsx');
+        // 루트가 onClose 를 **무조건** 부르는 형태(onClick={onClose})면 사고 재발이다.
+        expect(s).not.toMatch(/className="sj-root"\s+onClick=\{onClose\}/);
+        expect(s).toMatch(/modalUp/);
+    });
+
+    it('서아 랜딩 — 뉴스룸이 떠 있으면 onClose 를 부르지 않는다', () => {
+        const s = read('SeoaNewsDeskEntry.tsx');
+        expect(s).not.toMatch(/sn-root[^\n]*\}\s+onClick=\{onClose\}/);
+        // 배경 클릭 분기에 openCategory 조건이 들어가 있어야 한다.
+        expect(s).toMatch(/onClick=\{\(\)\s*=>\s*\{\s*if\s*\(!openCategory\)\s*onClose\(\);\s*\}\}/);
+    });
+
+    it('서아 Esc 는 뉴스룸부터 닫는다 (기존 동작 보존)', () => {
+        const s = read('SeoaNewsDeskEntry.tsx');
+        expect(s).toMatch(/if\s*\(openCategory\)\s*setOpenCategory\(null\);\s*\n?\s*else\s+onClose\(\);/);
+    });
+});

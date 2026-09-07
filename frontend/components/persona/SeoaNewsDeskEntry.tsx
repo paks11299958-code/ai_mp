@@ -818,7 +818,15 @@ export const SeoaNewsDeskEntry: React.FC<Props> = ({ guide, onClose, onInvite, o
 
     return (
         // 배경 클릭 = 닫기. 내용은 max-width로 묶여 있어 넓은 화면의 양옆이 배경이 된다.
-        <div ref={rootRef} className={`sn-root${playing ? ' is-playing' : ''}`} onClick={onClose}>
+        // ★★뉴스룸이 열려 있으면 배경 클릭으로 랜딩을 닫지 않는다(2026-09-07).
+        //   `sn-root` 는 자식 클릭을 전부 onClose 로 받는데, 뉴스룸(TodayNewsBoard)은
+        //   `sn-sheet`(stopPropagation) **밖의 형제**로 렌더돼 우산이 없다. 그래서
+        //   뉴스룸의 ✕ 를 누르면 `setOpenCategory(null)` 뒤 이벤트가 루트까지 올라가
+        //   **랜딩까지 통째로 닫히고 메인으로 떨어졌다.**(운영 실측)
+        //   ★Esc 는 이미 `openCategory` 를 먼저 닫게 돼 있어 정상이었다 — 클릭만 구멍이었다.
+        //   ★같은 뿌리의 사고를 도결(SajuEntry)에서도 같은 날 고쳤다.
+        <div ref={rootRef} className={`sn-root${playing ? ' is-playing' : ''}`}
+             onClick={() => { if (!openCategory) onClose(); }}>
             <style>{SEOA_CSS}</style>
             <div
                 className="sn-sheet"
