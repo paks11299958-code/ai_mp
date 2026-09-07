@@ -131,10 +131,25 @@ body{background:var(--bg);color:var(--text);
 .live i{width:6px;height:6px;border-radius:50%;background:var(--up)}
 @media (prefers-reduced-motion:no-preference){ .live i{animation:blink 1.6s ease-in-out infinite} }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tab{font-size:11.5px;font-weight:700;padding:6px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--muted);font-family:inherit}
+.tab.on{background:var(--text);color:var(--bg);border-color:var(--text)}
 .nw{display:flex;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
 .nw:first-of-type{border-top:0}
 .nw-n{flex:0 0 20px;font-size:12px;font-weight:800;color:var(--gold)}
 .nw-t{font-size:13px;line-height:1.5}
+
+/* ── 가상매매 ─────────────────────────────────────── */
+.pp{border:1px solid var(--line);border-radius:12px;background:var(--panelSolid);padding:14px}
+.pp-top{display:flex;align-items:flex-end;gap:10px}
+.pp-l{font-size:11px;color:var(--muted)}
+.pp-v{font-size:24px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.pp-p{font-size:12px;font-weight:700;margin-left:auto;text-align:right}
+.pp-sub{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--muted);line-height:1.6}
+.pp-sub b{color:var(--text)}
+.pp-note{margin-top:7px;font-size:10.5px;color:var(--muted)}
 
 /* ── 관심 종목 ───────────────────────────────────────── */
 .pk{border:1px solid var(--line);border-radius:12px;background:var(--panelSolid);
@@ -210,10 +225,26 @@ body{background:var(--bg);color:var(--text);
       <span class="live"><i></i>LIVE</span>
       <div class="sec-m">MARKET NEWS</div>
     </div>
+    <!-- ★탭은 주식과 직결된 3개만(사장 확정) — 스포츠·날씨까지 넣으면 이 화면의 정체성이 흐려진다. -->
+    <div class="tabs" id="tabs" role="tablist">
+      <button class="tab on" data-c="경제증시" role="tab">경제·증시</button>
+      <button class="tab" data-c="해외뉴스" role="tab">해외</button>
+      <button class="tab" data-c="AI기술" role="tab">AI·기술</button>
+    </div>
     <div id="news"><div class="dis-b">불러오는 중…</div></div>
   </div>
 
   <!-- ② 메뉴 — 내 종목 분석 포함 -->
+  <!-- 가상매매 성적 — 사장 지시(2026-09-07).
+       ★실계좌가 아니라 **페이퍼(가상) 계좌**다. 손실이어도 그대로 낸다(숨기면 더 위험). -->
+  <div class="sec">
+    <div class="sec-h">
+      <div class="sec-t">가상매매 성적</div>
+      <div class="sec-m">PAPER TRADING</div>
+    </div>
+    <div id="paper"><div class="dis-b">불러오는 중…</div></div>
+  </div>
+
   <div class="menu">
     <button class="mi" data-go="stock">
       <div class="mi-ic">🔬</div>
@@ -327,17 +358,57 @@ fetch('/api/desk/summary').then(function(r){ return r.json(); }).then(function(d
   showErr();
 });
 
-/* ③ 증권 탑뉴스 3개 — 무료 제목(headline_cues)만 쓴다(본문은 유료). */
-fetch('/api/news/status').then(function(r){ return r.json(); }).then(function(d){
-  var cues = (d.headline_cues && d.headline_cues['경제증시']) || [];
+/* ③ 증권 탑뉴스 — 무료 제목(headline_cues)만 쓴다(본문은 유료 50P).
+   ★탭으로 카테고리를 바꾼다. 한 번 받은 응답을 재사용하므로 탭 전환에 추가 호출이 없다. */
+var CUES = null;
+function renderNews(cat){
   var box = document.getElementById('news');
-  if (!cues.length) { box.innerHTML = '<div class="dis-b">오늘 증권 뉴스가 아직 준비되지 않았습니다.</div>'; return; }
+  if (!CUES) return;
+  var cues = CUES[cat] || [];
+  if (!cues.length) { box.innerHTML = '<div class="dis-b">이 분야는 오늘 준비된 소식이 없습니다.</div>'; return; }
   box.innerHTML = cues.slice(0, 3).map(function(c, i){
     return '<div class="nw"><div class="nw-n mono">' + (i + 1) + '</div><div class="nw-t">' + c.title + '</div></div>';
   }).join('');
+}
+fetch('/api/news/status').then(function(r){ return r.json(); }).then(function(d){
+  CUES = d.headline_cues || {};
+  renderNews('경제증시');
 }).catch(function(){
   FAILED.push('뉴스');
   document.getElementById('news').innerHTML = '<div class="dis-b">뉴스를 불러오지 못했습니다.</div>';
+  showErr();
+});
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click', function(){
+    document.querySelectorAll('.tab').forEach(function(x){ x.classList.remove('on'); });
+    t.classList.add('on');
+    renderNews(t.getAttribute('data-c'));
+  });
+});
+
+/* 가상매매 성적 — 페이퍼(가상) 계좌다. ★손실이어도 그대로 낸다.
+   ★실계좌 정보는 서버가 아예 내려주지 않는다(종목명 외 계좌 데이터 없음). */
+fetch('/api/stock-picks/paper').then(function(r){ return r.json(); }).then(function(d){
+  var box = document.getElementById('paper');
+  if (!d.available) { box.innerHTML = '<div class="dis-b">가상매매 기록이 아직 없습니다.</div>'; return; }
+  var pct = num(d.returnPct), pnl = num(d.pnl), c = cls(pct);
+  box.innerHTML =
+    '<div class="pp"><div class="pp-top">' +
+      '<div><div class="pp-l">누적 수익률</div>' +
+      '<div class="pp-v mono ' + c + '">' + (pct === null ? '—' :
+        (pct > 0 ? '+' : '') + pct.toFixed(2) + '%') + '</div></div>' +
+      '<div class="pp-p mono ' + c + '">' + mark(pct) + ' ' +
+        (pnl === null ? '—' : fmt(pnl, 0) + '원') + '</div>' +
+    '</div>' +
+    '<div class="pp-sub">가상 자본 <b>' + fmt(num(d.seed), 0) + '원</b>' +
+      ' · 전략 <b>' + (d.strategy || '—') + '</b>' +
+      (d.holdingCount ? ' · 보유 <b>' + d.holdingCount + '종목</b>(' + d.holdings.join(', ') + ')' : '') +
+    '</div>' +
+    '<div class="pp-note">실제 주문이 아닌 <b>모의 거래</b> 기록입니다. 과거 성과가 미래를 보장하지 않습니다.</div>' +
+    '</div>';
+}).catch(function(){
+  FAILED.push('가상매매');
+  document.getElementById('paper').innerHTML = '<div class="dis-b">가상매매 기록을 불러오지 못했습니다.</div>';
   showErr();
 });
 
