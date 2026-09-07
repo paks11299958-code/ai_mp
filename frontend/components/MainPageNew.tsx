@@ -384,6 +384,10 @@ export const FEATURES_GRID = [
     // ★이름 주의: 전자책에 '그림 프롬프트 뽑기'가 이미 있다(글→그림). 이쪽은 반대 방향
     //   (이미지→프롬프트)이라 같은 이름을 쓰면 구분이 안 돼 '이미지 → 프롬프트'로 붙였다.
     { id: 29, numeral: 'XXIX',latin: 'Reverse',key: 'reverse-prompt',name: '이미지 → 프롬프트', tag: 'AI 프롬프트 역추출', catch: '마음에 든 그림, 어떻게 만들었을까? 🎨', category: 'create', desc: '마음에 드는 이미지를 올리면 Midjourney와 Stable Diffusion 프롬프트를 한 번에 뽑아드려요. 화풍·구도·조명까지 분석해 그대로 따라 만들 수 있어요.', icon: 'sparkles', palette: { bg: '#FEF6E8', deep: '#E2C9A0', accent: '#8B6020' }, personaName: '이아린',  releasedAt: '2026-08-18' },
+    // 🔎 AI 관심 종목(2026-09-07 사장 지시) — 윤채원이 매일 아침 뽑는 발굴을 회원에게 공개.
+    //   ★새로 계산하지 않고 크론 산출물(StockDiscovery)을 읽기만 해서 **무료**다.
+    //   ★★표현은 '추천'이 아니라 '관심 종목' — 투자자문 소지를 피한다(면책 문구는 보드 하단).
+    { id: 31, numeral: 'XXXI',latin: 'Picks',  key: 'stock-picks', name: 'AI 관심 종목', tag: '매일 아침 시장 점검', catch: '오늘 AI는 어디를 보고 있을까? 🔎', category: 'invest', desc: '윤채원이 매일 아침 코스피·코스닥을 살펴보고 눈에 띄는 종목과 시황을 정리해 드려요. 무료로 볼 수 있어요.', icon: 'chart', palette: { bg: '#E4F4EC', deep: '#9CCFB4', accent: '#2E7D5B' }, personaName: '윤채원', releasedAt: '2026-09-07' },
     // ★'learn'(무료 학습자료, 사이트 사용법 강의)과는 완전히 다른 기능이다 — 경로도 /learning 으로 분리.
     { id: 30, numeral: 'XXX', latin: 'Coach',  key: 'learning-coach',name: 'AI 학습코칭',   tag: 'AI 맞춤 커리큘럼', catch: '배우고 싶은 걸 적으면 커리큘럼이 나와요 🎓', category: 'info', desc: '배우고 싶은 주제와 기간만 정하면 AI가 주차별 커리큘럼과 매일 할 학습을 짜드려요. 본문·퀴즈·오답노트·주간 리포트까지 챙겨줍니다.', icon: 'ebook',    palette: { bg: '#E9EBF9', deep: '#A5A9F0', accent: '#6366F1' }, personaName: 'AI 학습코칭', releasedAt: '2026-08-25' },
 ];
@@ -393,6 +397,7 @@ export const FEATURES_GRID = [
 // FEATURES_GRID의 key와 1:1. 새 기능 추가 시 여기도 한 줄 넣어주면 의미검색이 넓어짐.
 export const FEATURE_SYNONYMS: Record<string, string[]> = {
     news:        ['뉴스', '기사', '소식', '신문', '브리핑', '시사', '헤드라인', '오늘일'],
+    'stock-picks': ['관심종목', '추천종목', '오늘의종목', '발굴', '급등주', '유망주', '종목추천', '주식추천', '시황', '증시브리핑'],
     stock:       ['주식', '증시', '투자', '재테크', '재테크', '종목', '코스피', '나스닥', '주가', '돈불리기', '자산'],
     swing:       ['골프', '스윙', '자세', '필드', '라운딩', '운동', '스포츠'],
     luxury:      ['명품', '진품', '가품', '짝퉁', '정품', '감정', '럭셔리', '브랜드', '가방', '시계'],

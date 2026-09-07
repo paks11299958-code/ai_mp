@@ -19,6 +19,8 @@ export function useBoardToggles() {
     const [showPartnerBoard, setShowPartnerBoard] = useState(false);
     const [showUserProfile, setShowUserProfile] = useState(false);
     const [showStockAnalysis, setShowStockAnalysis] = useState(false);
+    // 🔎 AI 관심 종목(2026-09-07) — 윤채원 크론 발굴을 읽기만 하는 무료 보드.
+    const [showStockPicks, setShowStockPicks] = useState(false);
     const [showHotKeyword, setShowHotKeyword] = useState(false);
     const [showResearch, setShowResearch] = useState(false);
     const [showProductExtract, setShowProductExtract] = useState(false);
@@ -40,6 +42,7 @@ export function useBoardToggles() {
         showPartnerBoard, setShowPartnerBoard,
         showUserProfile, setShowUserProfile,
         showStockAnalysis, setShowStockAnalysis,
+        showStockPicks, setShowStockPicks,
         showHotKeyword, setShowHotKeyword,
         showResearch, setShowResearch,
         showProductExtract, setShowProductExtract,

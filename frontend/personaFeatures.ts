@@ -18,6 +18,7 @@ export type FeatureKey =
     | 'news'
     | 'stock'
     | 'hotkeyword'
+    | 'stock-picks'
     | 'used'
     | 'luxury'
     | 'mathtutor'
@@ -55,6 +56,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'tarot-daily', label: '오늘의 카드',  icon: 'Moon',        color: '#B45309', bgColor: '#FEF3C7',                  borderColor: '#FCD34D' },
     { key: 'news',        label: '오늘뉴스',     icon: 'Newspaper',   color: '#5C7BA8', bgColor: '#E8EEF7',                  borderColor: '#9AAFCB' },
     { key: 'stock',       label: '주식 분석',    icon: 'TrendingUp',  color: '#2E6B32', bgColor: '#EAF5EB',                  borderColor: '#9EC4A0' },
+    { key: 'stock-picks', label: 'AI 관심 종목', icon: 'TrendingUp', color: '#2E7D5B', bgColor: '#E4F4EC',                  borderColor: '#9CCFB4' },
     { key: 'hotkeyword',  label: '핫쇼핑키워드', icon: 'ShoppingBag', color: '#8B6020', bgColor: '#FEF6E8',                  borderColor: '#E2C9A0' },
     { key: 'used',        label: '중고 판매',    icon: 'ShoppingBag', color: '#8B6020', bgColor: '#FEF6E8',                  borderColor: '#E2C9A0' },
     { key: 'luxury',      label: '명품 검증',    icon: 'Shield',      color: '#7A5FA0', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
@@ -90,7 +92,7 @@ const NAME_FALLBACK: Record<string, FeatureKey[]> = {
     // ★2026-09-07 'hotkeyword' 제거(사장 지적) — 핫 키워드는 **네이버 쇼핑** 카테고리별
     //   인기 검색어라(naverShoppingCategory) 주식 애널리스트와 무관하다. 메인 카드의
     //   담당도 이미 이아린이었다(MainPageNew FEATURES_GRID). 아린 쪽에만 남긴다.
-    '윤채원': ['stock'],
+    '윤채원': ['stock', 'stock-picks'],
     '이아린': ['used', 'hotkeyword', 'marketing', 'shorts-maker', 'reverse-prompt'],
     '신은비': ['luxury'],
     '지우':   ['mathtutor', 'club'],

@@ -31,6 +31,7 @@ import { BoardPanel } from './components/BoardPanel';
 import { PartnerBoardPanel } from './components/PartnerBoardPanel';
 import { UserProfileModal } from './components/UserProfileModal';
 import { RewardAlertModal } from './components/RewardAlertModal';
+import { StockPicksBoard } from './components/StockPicksBoard';
 import { StockAnalysisBoard } from './components/StockAnalysisBoard';
 import { HotKeywordBoard } from './components/HotKeywordBoard';
 import { ResearchBoard } from './components/ResearchBoard';
@@ -303,6 +304,7 @@ const AppContent: React.FC = () => {
         showPartnerBoard, setShowPartnerBoard,
         showUserProfile, setShowUserProfile,
         showStockAnalysis, setShowStockAnalysis,
+        showStockPicks, setShowStockPicks,
         showHotKeyword, setShowHotKeyword,
         showResearch, setShowResearch,
         showProductExtract, setShowProductExtract,
@@ -459,6 +461,8 @@ const AppContent: React.FC = () => {
     const featureBoardOpeners: Record<string, () => void> = {
         news: () => setShowTodayNews(true),
         stock: () => setShowStockAnalysis(true),
+        // 🔎 AI 관심 종목 — 크론 산출물을 읽기만 하는 무료 보드(과금 없음).
+        'stock-picks': () => setShowStockPicks(true),
         hotkeyword: () => setShowHotKeyword(true),
         used: () => setShowUsedItem(true),
         luxury: () => setShowLuxuryBoard(true),
@@ -1833,6 +1837,10 @@ const AppContent: React.FC = () => {
                 {showStockAnalysis && (
                     <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
                 )}
+                {/* 🔎 AI 관심 종목 — main·chat 양쪽에 렌더한다(한쪽만 넣으면 그 화면에서만 열린다). */}
+                {showStockPicks && (
+                    <StockPicksBoard onClose={closeBoardAndReturn(() => setShowStockPicks(false))} />
+                )}
                 {showHotKeyword && (
                     <HotKeywordBoard
                         onClose={closeBoardAndReturn(() => setShowHotKeyword(false))}
@@ -2040,6 +2048,10 @@ const AppContent: React.FC = () => {
             )}
             {showStockAnalysis && (
                 <StockAnalysisBoard onClose={() => setShowStockAnalysis(false)} onConsult={(pid, stockName) => { setActivePersonaId(pid); addMessageToSession(pid, { id: `learn-${Date.now()}`, role: 'model', text: `${stockName} 학습이 완료되었습니다. 이제 ${stockName}에 대해 보고서 내용을 바탕으로 상담드릴 수 있습니다. 궁금한 점을 물어보세요!` }); }} />
+            )}
+            {/* 🔎 AI 관심 종목 — main·chat 양쪽에 렌더한다(한쪽만 넣으면 그 화면에서만 열린다). */}
+            {showStockPicks && (
+                <StockPicksBoard onClose={closeBoardAndReturn(() => setShowStockPicks(false))} />
             )}
             {showHotKeyword && (
                 <HotKeywordBoard
