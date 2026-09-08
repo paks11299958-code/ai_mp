@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { buildCandles, type OHLC } from './ChaewonDeskEntry';
+import { buildCandles, buildChart, clampX, type OHLC } from './ChaewonDeskEntry';
 
 // 윤채원 트레이딩 데스크 랜딩 (2026-09-07).
 //
@@ -188,9 +188,14 @@ describe('★일봉 캔들', () => {
     // 2026-09-08: 그래프가 `Math.sin` 으로 지어낸 가짜였다. 이제 실제 일봉만 그린다.
     // ★테스트는 **출하되는 함수**를 부른다 — 예전처럼 로직을 복사해 두면 소스가 바뀌어도
     //   테스트는 옛 사본만 통과시킨다(통과=검증 아님).
-    const PAD = 6;
-    // ★높이를 소스에서 읽는다. 상수를 복사해 두면 소스가 바뀌어도 테스트는 옛 값으로 통과한다.
-    const VB_H = Number(SRC.match(/VB_H = (\d+)/)![1]);
+    // 좌표계 상수는 소스에서 읽는다 — 복사해 두면 소스가 바뀌어도 옛 값으로 통과해 버린다.
+    const c = (name: string) => Number(SRC.match(new RegExp(`${name} = (\\d+)`))![1]);
+    const TOP = c('TOP'), PRICE_H = c('PRICE_H'), GAP = c('GAP'), VOL_H = c('VOL_H');
+    const VB_W = c('VB_W'), AX_W = c('AX_W'), L_PAD = c('L_PAD');
+    /** 캔들이 그려지는 가로 구간의 오른쪽 끝(가격축 앞). */
+    const PLOT_R = VB_W - AX_W;
+    /** 가격 패널의 아래쪽 끝. */
+    const PRICE_BOT = TOP + PRICE_H;
 
     /** 실측 코스피 일봉(2026-08-25~09-07, 네이버). */
     const REAL: OHLC[] = [
@@ -210,14 +215,28 @@ describe('★일봉 캔들', () => {
         const bars = buildCandles(REAL);
         expect(bars.length).toBe(10);
         for (const b of bars) {
-            expect(b.x - b.w / 2).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(b.x + b.w / 2).toBeLessThanOrEqual(160 - PAD + 0.01);
+            expect(b.x - b.w / 2).toBeGreaterThanOrEqual(L_PAD - 0.01);
+            // ★★가격축을 침범하면 안 된다. 09-07·09-08 두 번 '오른쪽 끝(=오늘)이 잘리는' 사고가 났다.
+            expect(b.x + b.w / 2).toBeLessThanOrEqual(PLOT_R + 0.01);
             // ★꼬리까지 재야 한다. 종가만 스케일하면 고가·저가가 칸 밖으로 삐져나간다.
-            expect(b.highY).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(b.lowY).toBeLessThanOrEqual(VB_H - PAD + 0.01);
-            expect(b.bodyY).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(b.bodyY + b.bodyH).toBeLessThanOrEqual(VB_H - PAD + 0.01);
+            expect(b.highY).toBeGreaterThanOrEqual(TOP - 0.01);
+            expect(b.lowY).toBeLessThanOrEqual(PRICE_BOT + 0.01);
+            expect(b.bodyY).toBeGreaterThanOrEqual(TOP - 0.01);
+            expect(b.bodyY + b.bodyH).toBeLessThanOrEqual(PRICE_BOT + 0.01);
         }
+    });
+
+    it('거래량 막대가 거래량 패널 안에 있다', () => {
+        const withVol = REAL.map((r, i) => ({ ...r, volume: 100000 + i * 50000 }));
+        const volTop = TOP + PRICE_H + GAP;
+        for (const b of buildCandles(withVol)) {
+            expect(b.volY).toBeGreaterThanOrEqual(volTop - 0.01);
+            expect(b.volY + b.volH).toBeLessThanOrEqual(volTop + VOL_H + 0.01);
+        }
+    });
+
+    it('거래량이 없어도 죽지 않는다 — 막대만 사라진다', () => {
+        expect(buildCandles(REAL).every(b => b.volH === 0)).toBe(true);
     });
 
     it('캔들이 서로 겹치지 않는다', () => {
@@ -276,6 +295,109 @@ describe('★일봉 캔들', () => {
     it('다 찍히면 멈춘다 — 무한 반복이 아니다', () => {
         expect(SRC).toContain('clearInterval');
         expect(SRC).toMatch(/}, 500\)/);                // 500ms = 1초에 두 개
+    });
+});
+
+describe('★차트로 보이는 요소 (HTS 레퍼런스)', () => {
+    // 2026-09-08 사장 지적: "이렇게 챠트처럼 보이게 해봐. 대충하지말고"
+    // 캔들만 떠 있는 건 차트가 아니다 — 값을 읽을 수 있는 축이 있어야 차트다.
+    const REAL: OHLC[] = [
+        { date: '2026-08-25', open: 6535.93, high: 6747.16, low: 6408.82, close: 6742.74, volume: 286782 },
+        { date: '2026-08-26', open: 6727.25, high: 6887.18, low: 6704.10, close: 6808.21, volume: 329362 },
+        { date: '2026-08-27', open: 6996.12, high: 6996.12, low: 6841.88, close: 6912.37, volume: 268465 },
+        { date: '2026-08-28', open: 6846.54, high: 6901.78, low: 6780.13, close: 6788.88, volume: 292615 },
+        { date: '2026-08-31', open: 6613.58, high: 6820.10, low: 6547.76, close: 6820.02, volume: 364254 },
+        { date: '2026-09-01', open: 6784.29, high: 6857.35, low: 6732.47, close: 6835.80, volume: 273600 },
+        { date: '2026-09-02', open: 6625.47, high: 6694.57, low: 6558.30, close: 6562.72, volume: 324053 },
+        { date: '2026-09-03', open: 6650.33, high: 6682.97, low: 6439.49, close: 6579.48, volume: 433473 },
+        { date: '2026-09-04', open: 6654.36, high: 6746.14, low: 6632.77, close: 6687.21, volume: 238152 },
+        { date: '2026-09-07', open: 6910.78, high: 6995.40, low: 6867.91, close: 6995.39, volume: 240446 },
+    ];
+    const m = buildChart(REAL);
+
+    it('가격 눈금이 5개, 위에서 아래로 값이 줄어든다', () => {
+        expect(m.ticks.length).toBe(5);
+        const vals = m.ticks.map(t => Number(t.label.replace(/,/g, '')));
+        for (let i = 1; i < vals.length; i++) expect(vals[i]).toBeLessThan(vals[i - 1]);
+        expect(m.ticks.every((t, i) => i === 0 || t.y > m.ticks[i - 1].y)).toBe(true);
+    });
+
+    it('★가격 눈금에 원을 붙이지 않는다 — 지수다', () => {
+        for (const t of m.ticks) expect(t.label).not.toContain('원');
+        expect(m.last!.label).not.toContain('원');
+    });
+
+    it('눈금 범위가 실제 고가·저가를 담는다', () => {
+        const vals = m.ticks.map(t => Number(t.label.replace(/,/g, '')));
+        expect(Math.max(...vals)).toBeGreaterThanOrEqual(6995.40);
+        expect(Math.min(...vals)).toBeLessThanOrEqual(6408.82);
+    });
+
+    it('날짜 라벨은 MM/DD 형식으로 3개만 — 좁은 폭에서 겹치지 않게', () => {
+        expect(m.dateLabels.length).toBe(3);
+        for (const d of m.dateLabels) expect(d.label).toMatch(/^\d{2}\/\d{2}$/);
+        expect(m.dateLabels[m.dateLabels.length - 1].label).toBe('09/07');
+    });
+
+    it('5일 이동평균선을 그린다', () => {
+        expect(m.ma5).toMatch(/^M[\d.]+ [\d.]+( L[\d.]+ [\d.]+)+$/);
+        expect(m.ma5.split('L').length - 1).toBe(REAL.length - 5);   // 5봉째부터
+    });
+
+    it('봉이 5개 미만이면 이평선을 그리지 않는다', () => {
+        expect(buildChart(REAL.slice(0, 4)).ma5).toBe('');
+    });
+
+    it('최고·최저를 실제 값으로 짚는다', () => {
+        expect(m.peak!.label).toBe('6,996.12');      // 08-27 고가
+        expect(m.trough!.label).toBe('6,408.82');    // 08-25 저가
+    });
+
+    it('현재가는 마지막 종가이고 상승이면 빨강 쪽이다', () => {
+        expect(m.last!.label).toBe('6,995.39');
+        expect(m.last!.up).toBe(true);
+    });
+
+    it('데이터가 없으면 축도 만들지 않는다 — 빈 눈금을 지어내지 않는다', () => {
+        const e = buildChart([]);
+        expect([e.bars.length, e.ticks.length, e.dateLabels.length]).toEqual([0, 0, 0]);
+        expect([e.ma5, e.peak, e.last]).toEqual(['', null, null]);
+    });
+
+    it('★마지막 봉이 가격축을 침범하지 않는다 — 세 번 겪은 자리다', () => {
+        const AX_W = Number(SRC.match(/AX_W = (\d+)/)![1]);
+        const VB_W = Number(SRC.match(/VB_W = (\d+)/)![1]);
+        const R_GAP = Number(SRC.match(/R_GAP = (\d+)/)![1]);
+        const lastBar = m.bars[m.bars.length - 1];
+        // 축 앞에서 최소 R_GAP 의 절반은 떠 있어야 현재가 라벨에 가리지 않는다.
+        expect(lastBar.x + lastBar.w / 2).toBeLessThanOrEqual(VB_W - AX_W - R_GAP / 2);
+    });
+
+    it('★최고·최저 라벨이 패널 밖으로 나가지 않는다', () => {
+        const AX_W = Number(SRC.match(/AX_W = (\d+)/)![1]);
+        const VB_W = Number(SRC.match(/VB_W = (\d+)/)![1]);
+        const L_PAD = Number(SRC.match(/L_PAD = (\d+)/)![1]);
+        for (const x of [clampX(0), clampX(999), clampX(m.peak!.x), clampX(m.trough!.x)]) {
+            expect(x).toBeGreaterThanOrEqual(L_PAD);          // 왼쪽으로 안 새고
+            expect(x).toBeLessThanOrEqual(VB_W - AX_W);       // 가격축도 안 넘는다
+        }
+    });
+
+    it('★날짜축과 거래량 제목이 다른 줄에 있다 — 겹쳐 뭉갰던 자리', () => {
+        const TOP = Number(SRC.match(/TOP = (\d+)/)![1]);
+        const PRICE_H = Number(SRC.match(/PRICE_H = (\d+)/)![1]);
+        const GAP = Number(SRC.match(/GAP = (\d+)/)![1]);
+        const dateY = TOP + PRICE_H + 10;        // 날짜축 줄
+        const volTitleY = TOP + PRICE_H + GAP - 4;  // 거래량 제목 줄
+        expect(volTitleY - dateY).toBeGreaterThanOrEqual(8);   // 글자 높이(7px)보다 벌어져야 한다
+    });
+
+    it('화면에 축·거래량·이평선이 실제로 렌더된다', () => {
+        expect(SRC).toContain('chart.ticks.map');       // 가격축
+        expect(SRC).toContain('chart.dateLabels.map');  // 날짜축
+        expect(SRC).toContain('chart.ma5');             // 이평선
+        expect(SRC).toContain('b.volH');                // 거래량
+        expect(SRC).toContain('거래량');
     });
 });
 

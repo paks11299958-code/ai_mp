@@ -82,12 +82,27 @@ const pickRows = (summary: string): [string, string][] => {
  *
  *  ★가장자리를 비워 둔다(PAD). 0~160 끝까지 그리면 **선 굵기와 꼬리 끝이 viewBox 밖으로
  *    잘린다** — 하필 오른쪽 끝이 "오늘" 이라 제일 중요한 데가 잘려 나갔다(2026-09-07 실측). */
+/** ── 차트 좌표계 ──────────────────────────────────────────────
+ *  HTS(키움·영웅문) 차트를 기준으로 잡았다(2026-09-08 사장 레퍼런스).
+ *  가격축은 **오른쪽**, 날짜축은 **아래**, 거래량은 **아래 별도 패널** — 증권 차트의 관례다.
+ *
+ *  ★가로는 실제 렌더 폭에 맞춘다. viewBox 비율이 칸 비율과 어긋나면 남는 축으로 맞춰지며
+ *    **마지막 봉(=오늘)이 잘린다** — 2026-09-07·09-08 두 번 같은 자리에서 겪었다. */
+const VB_W = 300;                    // 전체 폭
+const AX_W = 42;                     // 오른쪽 가격축 폭
+const L_PAD = 6;                     // 왼쪽 여백
+const TOP = 14;                      // 위 여백 — 최고 표식이 들어갈 자리
+const PRICE_H = 132;                 // 가격(캔들) 패널 높이
+const GAP = 26;                      // 패널 사이 — 날짜축 + 거래량 제목이 각자 줄을 갖는다
+const VOL_H = 34;                    // 거래량 패널 높이
+const VB_H = TOP + PRICE_H + GAP + VOL_H + 4;
+/** ★마지막 봉이 가격축·현재가 라벨에 닿지 않도록 오른쪽을 비운다.
+ *  09-07·09-08 에 이어 미리보기에서도 마지막 봉이 라벨에 가렸다 — 같은 자리에서 세 번째다. */
+const R_GAP = 10;
+/** 캔들이 그려지는 가로 구간(가격축과 오른쪽 숨통을 뺀 부분). */
+const PLOT_W = VB_W - AX_W - L_PAD - R_GAP;
+/** 옛 이름 — 여백 규칙이 살아 있는지 보는 회귀 테스트가 참조한다. */
 const PAD = 6;
-/** ★viewBox 비율은 **실제 칸 비율(약 1.36)** 에 맞춘다.
- *  160×96(1.67)로 두고 preserveAspectRatio 기본값을 쓰면 세로에 맞춰지면서
- *  가로가 넘쳐 **마지막 봉(=오늘)이 잘린다** — 2026-09-08 운영 화면 실측(150.7×111px).
- *  가로로 늘리는(none) 방식은 몸통이 찌그러지므로 비율 자체를 맞추는 쪽을 택한다. */
-const VB_W = 160, VB_H = 118;
 
 export interface CandleBar {
     x: number;                       // 몸통 중심 x
@@ -96,44 +111,114 @@ export interface CandleBar {
     highY: number; lowY: number;     // 꼬리(고가~저가)
     up: boolean;                     // 양봉(종가>=시가) — 한국 관례상 빨강
     date: string;
+    close: number;
+    volY: number; volH: number;      // 거래량 막대(아래 패널)
 }
 
-export interface OHLC { date: string; open: number; high: number; low: number; close: number; }
+export interface OHLC { date: string; open: number; high: number; low: number; close: number; volume?: number; }
+
+export interface ChartTick { y: number; label: string; }
+
+export interface ChartModel {
+    bars: CandleBar[];
+    /** 오른쪽 가격 눈금(위→아래) */
+    ticks: ChartTick[];
+    /** 하단 날짜 라벨 — 다 넣으면 겹치므로 solid 하게 3개만 고른다 */
+    dateLabels: { x: number; label: string }[];
+    /** 5일 이동평균선 path(봉이 5개 미만이면 빈 문자열) */
+    ma5: string;
+    /** 최고·최저 표식 */
+    peak: { x: number; y: number; label: string } | null;
+    trough: { x: number; y: number; label: string } | null;
+    /** 마지막 종가 — 오른쪽에 강조 라벨로 띄운다 */
+    last: { y: number; label: string; up: boolean } | null;
+}
+
+/** 최고·최저 라벨의 가로 위치를 패널 안으로 물린다(라벨 폭 약 56 의 절반 + 여유). */
+export const clampX = (x: number) => Math.max(L_PAD + 30, Math.min(x, VB_W - AX_W - 32));
+
+/** 지수는 소수 둘째 자리까지. ★'원'을 붙이지 않는다. */
+const tickLabel = (v: number) => v.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+/** 'YYYY-MM-DD' → 'MM/DD' (HTS 관례) */
+const shortDate = (d: string) => (d.length >= 10 ? `${d.slice(5, 7)}/${d.slice(8, 10)}` : d);
 
 /**
  * 캔들 배치를 계산한다.
  * ★스케일은 **고가·저가 전 범위**로 잡는다. 종가만으로 잡으면 꼬리가 칸 밖으로 삐져나간다.
+ * ★위아래로 5% 씩 숨통을 준다 — 최고·최저 봉이 패널 모서리에 딱 붙으면 잘린 것처럼 보인다.
  * ★몸통 높이는 최소 1 을 준다 — 시가==종가(도지)면 높이 0 이라 아예 안 보인다.
  */
-export const buildCandles = (rows: OHLC[]): CandleBar[] => {
+export const buildCandles = (rows: OHLC[]): CandleBar[] => buildChart(rows).bars;
+
+export const buildChart = (rows: OHLC[]): ChartModel => {
+    const empty: ChartModel = { bars: [], ticks: [], dateLabels: [], ma5: '', peak: null, trough: null, last: null };
     const ok = rows.filter(r => [r.open, r.high, r.low, r.close].every(n => typeof n === 'number' && isFinite(n) && n > 0));
-    if (ok.length === 0) return [];
+    if (ok.length === 0) return empty;
 
-    const lo = Math.min(...ok.map(r => r.low));
-    const hi = Math.max(...ok.map(r => r.high));
+    const rawLo = Math.min(...ok.map(r => r.low));
+    const rawHi = Math.max(...ok.map(r => r.high));
+    const pad = (rawHi - rawLo) * 0.05 || Math.max(rawHi * 0.002, 0.5);
+    const lo = rawLo - pad, hi = rawHi + pad;
     const span = (hi - lo) || 1;                       // 전 구간 보합이어도 0 으로 나누지 않는다
-    const top = PAD, usableH = VB_H - PAD * 2;
-    const y = (v: number) => top + (1 - (v - lo) / span) * usableH;
+    const y = (v: number) => TOP + (1 - (v - lo) / span) * PRICE_H;
 
-    const slot = (VB_W - PAD * 2) / ok.length;
-    // ★몸통 굵기. 상한을 9 로 뒀더니 10개 기준 몸통이 붙어 보여 답답했다(렌더 실측).
-    //   slot 의 절반 정도라야 캔들 사이 간격이 살아난다.
-    const w = Math.max(2.5, Math.min(7, slot * 0.48));  // 10개 기준 약 7.0
+    const slot = PLOT_W / ok.length;
+    // ★몸통 굵기. slot 의 절반 정도라야 캔들 사이 간격이 살아난다(렌더 실측).
+    const w = Math.max(2.5, Math.min(11, slot * 0.55));
 
-    return ok.map((r, i) => {
+    // 거래량 — 최대치를 패널 높이에 맞춘다. 값이 없으면 막대는 높이 0 이 된다.
+    const volMax = Math.max(...ok.map(r => r.volume || 0), 1);
+    const volTop = TOP + PRICE_H + GAP;
+
+    const bars: CandleBar[] = ok.map((r, i) => {
         const yo = y(r.open), yc = y(r.close);
-        const bodyY = Math.min(yo, yc);
+        const vh = ((r.volume || 0) / volMax) * VOL_H;
         return {
-            x: PAD + slot * (i + 0.5),
+            x: L_PAD + slot * (i + 0.5),
             w,
-            bodyY,
+            bodyY: Math.min(yo, yc),
             bodyH: Math.max(1, Math.abs(yc - yo)),
             highY: y(r.high),
             lowY: y(r.low),
             up: r.close >= r.open,
             date: r.date,
+            close: r.close,
+            volY: volTop + (VOL_H - vh),
+            volH: vh,
         };
     });
+
+    // 가격 눈금 5줄(위→아래). 실제 값을 찍어야 '차트'로 읽힌다.
+    const ticks: ChartTick[] = [0, 1, 2, 3, 4].map(i => {
+        const v = hi - (span / 4) * i;
+        return { y: TOP + (PRICE_H / 4) * i, label: tickLabel(v) };
+    });
+
+    // 날짜는 처음·가운데·끝 3개만 — 10개를 다 쓰면 좁은 폭에서 겹쳐 뭉갠다.
+    const idxs = ok.length <= 3 ? ok.map((_, i) => i) : [0, Math.floor((ok.length - 1) / 2), ok.length - 1];
+    const dateLabels = [...new Set(idxs)].map(i => ({ x: bars[i].x, label: shortDate(ok[i].date) }));
+
+    // 5일 이동평균 — HTS 의 그 선이다. 봉이 5개 미만이면 그리지 않는다.
+    let ma5 = '';
+    if (ok.length >= 5) {
+        const pts: string[] = [];
+        for (let i = 4; i < ok.length; i++) {
+            const avg = ok.slice(i - 4, i + 1).reduce((s, r) => s + r.close, 0) / 5;
+            pts.push(`${pts.length ? 'L' : 'M'}${bars[i].x.toFixed(1)} ${y(avg).toFixed(1)}`);
+        }
+        ma5 = pts.join(' ');
+    }
+
+    const hiIdx = ok.reduce((b, r, i) => (r.high > ok[b].high ? i : b), 0);
+    const loIdx = ok.reduce((b, r, i) => (r.low < ok[b].low ? i : b), 0);
+    const lastRow = ok[ok.length - 1];
+
+    return {
+        bars, ticks, dateLabels, ma5,
+        peak:   { x: bars[hiIdx].x, y: y(ok[hiIdx].high), label: tickLabel(ok[hiIdx].high) },
+        trough: { x: bars[loIdx].x, y: y(ok[loIdx].low),  label: tickLabel(ok[loIdx].low) },
+        last:   { y: y(lastRow.close), label: tickLabel(lastRow.close), up: lastRow.close >= lastRow.open },
+    };
 };
 
 const CSS = `
@@ -171,8 +256,22 @@ const CSS = `
 .cd-gt{font-size:10px;color:#9fb0c6;letter-spacing:.08em;margin-bottom:4px}
 .cd-gw{position:absolute;inset:26px 8px 8px}
 .cd-gw svg{width:100%;height:100%}
-.cd-gerr{position:absolute;inset:26px 8px 8px;display:flex;align-items:center;
-  justify-content:center;font-size:10.5px;color:#9fb0c6;text-align:center}
+.cd-gerr{display:flex;align-items:center;justify-content:center;height:96px;
+  font-size:11px;color:#9fb0c6;text-align:center}
+
+/* 일봉 차트 — 전광판 아래 전체 폭. HTS 차트를 기준으로 잡았다. */
+.cd-chart{border-top:1px solid #33475f;padding:10px 10px 8px;background:#18232f}
+.cd-ch{display:flex;align-items:baseline;gap:7px;margin:0 4px 6px}
+.cd-cht{font-size:12px;font-weight:800;letter-spacing:-.01em}
+.cd-chs{font-size:10px;color:#9fb0c6}
+.cd-chl{margin-left:auto;font-size:9.5px;color:#9fb0c6;display:flex;align-items:center;gap:4px}
+.cd-ma5{width:11px;height:2px;background:#f0b23c;border-radius:1px;display:inline-block}
+.cd-svg{width:100%;height:auto;display:block}
+.cd-axt{fill:#8fa2ba;font-size:7px;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+.cd-now{fill:#fff;font-size:7px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+.cd-pk{font-size:6.6px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+.cd-pkup{fill:#ff8a91}.cd-pkdn{fill:#8ec0ff}
+.cd-note{font-size:10px;color:#9fb0c6;line-height:1.5;margin-top:2px}
 /* 캔들 하나가 '띡' 하고 찍히는 순간 — 짧게 튀어나온다. transform-box 가 없으면
    SVG 안에서 transform-origin 이 뷰박스 원점 기준이라 엉뚱한 데서 커진다. */
 .cd-cd{transform-box:fill-box;transform-origin:center}
@@ -182,6 +281,13 @@ const CSS = `
   .cd-live i{animation:cd-blink 1.6s ease-in-out infinite}
 }
 @keyframes cd-pop{from{opacity:0;transform:scaleY(.35)}to{opacity:1;transform:scaleY(1)}}
+/* 캔들이 다 찍힌 뒤 이평선·현재가가 얹힌다 — 순서가 있어야 '그려지는' 느낌이 산다. */
+@media (prefers-reduced-motion:no-preference){
+  .cd-ma{animation:cd-draw 1s ease-out forwards;stroke-dasharray:300;stroke-dashoffset:300}
+  .cd-nowg,.cd-pk{animation:cd-fadein .5s ease-out .35s backwards}
+}
+@keyframes cd-draw{to{stroke-dashoffset:0}}
+@keyframes cd-fadein{from{opacity:0}to{opacity:1}}
 @keyframes cd-slide{to{transform:translateX(-50%)}}
 @keyframes cd-blink{0%,100%{opacity:1}50%{opacity:.25}}
 
@@ -299,7 +405,8 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
 
     // 그래프 — 일봉 캔들. 왼쪽(과거)부터 1초에 두 개씩 '띡띡띡' 찍히고, 다 찍히면 멈춘다.
     const kospi = markets?.find(m => m.key === 'kospi' || m.label === '코스피');
-    const bars = useMemo(() => buildCandles(candles || []), [candles]);
+    const chart = useMemo(() => buildChart(candles || []), [candles]);
+    const bars = chart.bars;
 
     useEffect(() => {
         if (bars.length === 0) return;
@@ -371,37 +478,93 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                                     </React.Fragment>
                                 ))}
                         </div>
-                        <div className="cd-br">
-                            <div className="cd-gt">KOSPI TREND</div>
-                            <div className="cd-gw">
-                                {/* ★preserveAspectRatio 를 'none' 으로 두면 캔들 몸통이 가로로 늘어난다.
-                                    선 하나였을 땐 문제없었지만 막대에는 왜곡이 보이므로 비율을 지킨다. */}
-                                <svg viewBox={`0 0 ${VB_W} ${VB_H}`} role="img"
-                                     aria-label={bars.length ? `코스피 최근 ${bars.length}거래일 일봉` : '코스피 일봉'}>
-                                    <g stroke="#2c3f57" strokeWidth=".6">
-                                        {/* 격자선 3줄 — viewBox 높이를 4등분한다(높이를 바꿔도 따라온다). */}
-                                        {[1, 2, 3].map(i => (
-                                            <line key={i} x1="0" y1={(VB_H / 4) * i} x2={VB_W} y2={(VB_H / 4) * i} />
-                                        ))}
-                                    </g>
-                                    {bars.slice(0, shown).map(b => {
-                                        const c = b.up ? UP : DOWN;
-                                        return (
-                                            <g key={b.date} className="cd-cd">
-                                                {/* 꼬리 먼저 — 몸통이 위에 덮여야 깔끔하다. */}
-                                                <line x1={b.x} y1={b.highY} x2={b.x} y2={b.lowY}
-                                                      stroke={c} strokeWidth=".9" />
-                                                <rect x={b.x - b.w / 2} y={b.bodyY} width={b.w} height={b.bodyH}
-                                                      fill={c} rx=".4" />
-                                            </g>
-                                        );
-                                    })}
-                                </svg>
-                                {candles && bars.length === 0 && (
-                                    <div className="cd-gerr">일봉을 불러오지 못했습니다</div>
-                                )}
-                            </div>
+                    </div>
+
+                    {/* 코스피 일봉 차트 — 전체 폭. 반쪽 칸(150px)에는 가격축·날짜축·거래량이 들어가지 않는다. */}
+                    <div className="cd-chart">
+                        <div className="cd-ch">
+                            <span className="cd-cht">코스피 일봉</span>
+                            <span className="cd-chs">최근 {bars.length || 10}거래일 · 종가 기준</span>
+                            <span className="cd-chl"><i className="cd-ma5" />5일선</span>
                         </div>
+                        {candles && bars.length === 0 ? (
+                            <div className="cd-gerr">일봉을 불러오지 못했습니다</div>
+                        ) : (
+                            <svg className="cd-svg" viewBox={`0 0 ${VB_W} ${VB_H}`} preserveAspectRatio="xMidYMid meet"
+                                 role="img" aria-label={bars.length
+                                     ? `코스피 최근 ${bars.length}거래일 일봉 차트. 마지막 종가 ${chart.last?.label}`
+                                     : '코스피 일봉 차트'}>
+                                {/* 가로 격자 + 오른쪽 가격 눈금 — 값이 있어야 '차트'로 읽힌다. */}
+                                {chart.ticks.map((t, i) => (
+                                    <g key={i}>
+                                        <line x1={L_PAD} y1={t.y} x2={VB_W - AX_W} y2={t.y}
+                                              stroke="#2c3f57" strokeWidth=".5" strokeDasharray={i === 0 || i === 4 ? '' : '2 2'} />
+                                        <text x={VB_W - AX_W + 4} y={t.y + 2.6} className="cd-axt">{t.label}</text>
+                                    </g>
+                                ))}
+                                {/* 가격축 경계선 */}
+                                <line x1={VB_W - AX_W} y1={TOP} x2={VB_W - AX_W} y2={TOP + PRICE_H}
+                                      stroke="#33475f" strokeWidth=".6" />
+
+                                {/* 날짜축 — 가격 패널 바로 아래 한 줄. */}
+                                {chart.dateLabels.map((d, i) => (
+                                    <text key={i} x={d.x} y={TOP + PRICE_H + 10} className="cd-axt" textAnchor="middle">{d.label}</text>
+                                ))}
+
+                                {/* 거래량 패널 — ★제목은 날짜축과 다른 줄에 둔다(미리보기에서 08/26 과 겹쳐 뭉갰다). */}
+                                <text x={L_PAD} y={TOP + PRICE_H + GAP - 4} className="cd-axt">거래량</text>
+                                <line x1={L_PAD} y1={TOP + PRICE_H + GAP + VOL_H} x2={VB_W - AX_W}
+                                      y2={TOP + PRICE_H + GAP + VOL_H} stroke="#2c3f57" strokeWidth=".5" />
+
+                                {/* 캔들 + 거래량 — 왼쪽(과거)부터 순차로 찍힌다. */}
+                                {chart.bars.slice(0, shown).map(b => {
+                                    const c = b.up ? UP : DOWN;
+                                    return (
+                                        <g key={b.date} className="cd-cd">
+                                            {/* 꼬리 먼저 — 몸통이 위에 덮여야 깔끔하다. */}
+                                            <line x1={b.x} y1={b.highY} x2={b.x} y2={b.lowY} stroke={c} strokeWidth="1" />
+                                            <rect x={b.x - b.w / 2} y={b.bodyY} width={b.w} height={b.bodyH} fill={c} rx=".5" />
+                                            {b.volH > 0 && (
+                                                <rect x={b.x - b.w / 2} y={b.volY} width={b.w} height={b.volH}
+                                                      fill={c} opacity=".8" rx=".4" />
+                                            )}
+                                        </g>
+                                    );
+                                })}
+
+                                {/* 5일 이동평균선 — 캔들이 다 찍힌 뒤에 얹는다(HTS 의 그 선). */}
+                                {chart.ma5 && shown >= bars.length && (
+                                    <path className="cd-ma" d={chart.ma5} fill="none" stroke="#f0b23c" strokeWidth="1.1"
+                                          strokeLinecap="round" strokeLinejoin="round" />
+                                )}
+
+                                {/* 최고·최저 — HTS 처럼 값을 적어 준다.
+                                    ★라벨이 패널 밖이나 가격축으로 넘어가지 않게 양끝을 물린다. */}
+                                {shown >= bars.length && chart.peak && (
+                                    // ★위로 올릴 자리가 없으면 봉 아래로 내린다 — 위쪽 눈금을 가리면 축을 못 읽는다.
+                                    <text x={clampX(chart.peak.x)}
+                                          y={chart.peak.y - 5 < TOP + 2 ? chart.peak.y + 9 : chart.peak.y - 5}
+                                          className="cd-pk cd-pkup" textAnchor="middle">최고 {chart.peak.label}</text>
+                                )}
+                                {shown >= bars.length && chart.trough && (
+                                    <text x={clampX(chart.trough.x)} y={Math.min(chart.trough.y + 9, TOP + PRICE_H - 2)}
+                                          className="cd-pk cd-pkdn" textAnchor="middle">최저 {chart.trough.label}</text>
+                                )}
+
+                                {/* 현재가 — 오른쪽 축에 붙는 강조 라벨(HTS 의 파란/빨간 말풍선). */}
+                                {shown >= bars.length && chart.last && (
+                                    <g className="cd-nowg">
+                                        <line x1={L_PAD} y1={chart.last.y} x2={VB_W - AX_W} y2={chart.last.y}
+                                              stroke={chart.last.up ? UP : DOWN} strokeWidth=".6" strokeDasharray="3 2" opacity=".75" />
+                                        <rect x={VB_W - AX_W + 1} y={chart.last.y - 5.5} width={AX_W - 2} height={11}
+                                              fill={chart.last.up ? UP : DOWN} rx="1.5" />
+                                        <text x={VB_W - AX_W / 2} y={chart.last.y + 2.8} className="cd-now" textAnchor="middle">
+                                            {chart.last.label}
+                                        </text>
+                                    </g>
+                                )}
+                            </svg>
+                        )}
                     </div>
                 </div>
 
