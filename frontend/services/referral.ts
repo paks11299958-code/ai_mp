@@ -67,7 +67,7 @@ export function getMyReferralCode(): string | undefined {
 // MainPageNew의 FEATURES_GRID를 import하면 순환 참조가 되므로 키→라벨만 여기 둔다.
 // 새 기능 카드 추가 시 이 맵에도 한 줄 넣어주면 공유 문구가 기능명으로 나간다.
 const FEATURE_SHARE_LABELS: Record<string, string> = {
-    news: '오늘 뉴스', stock: '주식 분석', 'stock-picks': 'AI 관심 종목', swing: '스윙 분석', luxury: '명품 감정',
+    news: '오늘 뉴스', stock: '주식 분석', 'stock-picks': 'AI 관심 종목', swing: '스윙 분석', 'golf-course': '내 주변 골프장', luxury: '명품 감정',
     insurance: '보험 컨설팅', used: '중고 판매', hotkeyword: '핫 키워드',
     mathtutor: 'AI 수학 튜터', club: '모임 출첵', siwoon: '시운의 흐름',
     wealth: '성취와 재물', yeonn: '인연의 결', dream: '꿈해몽', gwansang: '관상학',
