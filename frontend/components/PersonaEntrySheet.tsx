@@ -5,6 +5,7 @@ import { SeoaNewsDeskEntry } from './persona/SeoaNewsDeskEntry';
 import { ChaerinStudioEntry } from './persona/ChaerinStudioEntry';
 import { ArinPromoEntry } from './persona/ArinPromoEntry';
 import { ChaewonDeskEntry } from './persona/ChaewonDeskEntry';
+import { YunaTarotEntry } from './persona/YunaTarotEntry';
 
 // 페르소나 진입 시트 — 메인/채팅 어느 화면에서든 **화면 전환 없이** 덮어 띄운다.
 //
@@ -99,6 +100,16 @@ export const PersonaEntrySheet: React.FC<Props> = ({ guide, onClose, onStart, on
     if (guide.title?.startsWith('윤채원')) {
         return <ChaewonDeskEntry guide={guide} onClose={onClose} onStart={onStart}
                                  onFeature={onFeature} onInvite={onInvite} />;
+    }
+    // ★유나도 같은 규약으로 별자리 타로 랜딩으로 갈아 끼운다(2026-09-09 사장 지시).
+    //   담당 기능이 둘뿐인데 들어가면 채팅창부터 떠서 "별을 읽는 타로술사"가 안 보였다.
+    //   판별 키는 앞의 다섯과 **똑같이** guide.title 접두사다.
+    //   ★★유나 랜딩은 기능을 onFeature 가 아니라 **onStart(key)** 로 부른다 —
+    //     타로 모달은 App.tsx chat return 안에만 렌더돼 main 에서는 뜨지 않기 때문이다
+    //     (보드형인 윤채린·이아린과 성격이 다르다). 자세한 이유는 YunaTarotEntry 상단 주석.
+    if (guide.title?.startsWith('유나')) {
+        return <YunaTarotEntry guide={guide} onClose={onClose} onStart={onStart}
+                               onFeature={onFeature} onInvite={onInvite} />;
     }
 
     const who = guide.personaName || guide.title;
