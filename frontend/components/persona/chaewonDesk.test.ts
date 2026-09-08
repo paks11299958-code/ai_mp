@@ -392,6 +392,19 @@ describe('★차트로 보이는 요소 (HTS 레퍼런스)', () => {
         expect(volTitleY - dateY).toBeGreaterThanOrEqual(8);   // 글자 높이(7px)보다 벌어져야 한다
     });
 
+    it('★최고가 마지막 봉이면(장중) 라벨이 그 봉을 덮지 않게 왼쪽으로 뺀다', () => {
+        // 운영 실측(09-08 장중): 오늘 봉이 최고가가 되자 "최고 7,095.68" 이 봉 위에 얹혀 겹쳤다.
+        const rising = REAL.map((r, i) => ({ ...r, high: 6500 + i * 60, low: 6400, open: 6450, close: 6480 }));
+        const mm = buildChart(rising);
+        expect(mm.peakIsLast).toBe(true);
+        expect(SRC).toContain('chart.peakIsLast');
+        expect(SRC).toMatch(/textAnchor=\{chart\.peakIsLast \? 'end' : 'middle'\}/);
+    });
+
+    it('최고가 마지막 봉이 아니면 가운데 정렬 그대로', () => {
+        expect(m.peakIsLast).toBe(false);   // 08-27 이 최고가
+    });
+
     it('화면에 축·거래량·이평선이 실제로 렌더된다', () => {
         expect(SRC).toContain('chart.ticks.map');       // 가격축
         expect(SRC).toContain('chart.dateLabels.map');  // 날짜축

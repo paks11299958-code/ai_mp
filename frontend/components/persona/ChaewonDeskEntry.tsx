@@ -121,6 +121,9 @@ export interface ChartTick { y: number; label: string; }
 
 export interface ChartModel {
     bars: CandleBar[];
+    /** 최고·최저가 마지막 봉이면 라벨을 왼쪽에 붙여야 봉을 가리지 않는다. */
+    peakIsLast: boolean;
+    troughIsLast: boolean;
     /** 오른쪽 가격 눈금(위→아래) */
     ticks: ChartTick[];
     /** 하단 날짜 라벨 — 다 넣으면 겹치므로 solid 하게 3개만 고른다 */
@@ -151,7 +154,8 @@ const shortDate = (d: string) => (d.length >= 10 ? `${d.slice(5, 7)}/${d.slice(8
 export const buildCandles = (rows: OHLC[]): CandleBar[] => buildChart(rows).bars;
 
 export const buildChart = (rows: OHLC[]): ChartModel => {
-    const empty: ChartModel = { bars: [], ticks: [], dateLabels: [], ma5: '', peak: null, trough: null, last: null };
+    const empty: ChartModel = { bars: [], ticks: [], dateLabels: [], ma5: '', peak: null, trough: null, last: null,
+                                peakIsLast: false, troughIsLast: false };
     const ok = rows.filter(r => [r.open, r.high, r.low, r.close].every(n => typeof n === 'number' && isFinite(n) && n > 0));
     if (ok.length === 0) return empty;
 
@@ -213,8 +217,12 @@ export const buildChart = (rows: OHLC[]): ChartModel => {
     const loIdx = ok.reduce((b, r, i) => (r.low < ok[b].low ? i : b), 0);
     const lastRow = ok[ok.length - 1];
 
+    const lastI = ok.length - 1;
     return {
         bars, ticks, dateLabels, ma5,
+        // ★장중엔 오늘 봉이 최고가가 되기도 한다. 그때 라벨을 봉 위에 두면 봉을 덮는다(운영 실측).
+        peakIsLast: hiIdx === lastI,
+        troughIsLast: loIdx === lastI,
         peak:   { x: bars[hiIdx].x, y: y(ok[hiIdx].high), label: tickLabel(ok[hiIdx].high) },
         trough: { x: bars[loIdx].x, y: y(ok[loIdx].low),  label: tickLabel(ok[loIdx].low) },
         last:   { y: y(lastRow.close), label: tickLabel(lastRow.close), up: lastRow.close >= lastRow.open },
@@ -542,13 +550,17 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                                     ★라벨이 패널 밖이나 가격축으로 넘어가지 않게 양끝을 물린다. */}
                                 {shown >= bars.length && chart.peak && (
                                     // ★위로 올릴 자리가 없으면 봉 아래로 내린다 — 위쪽 눈금을 가리면 축을 못 읽는다.
-                                    <text x={clampX(chart.peak.x)}
+                                    // ★★최고가 마지막 봉이면(장중에 흔하다) 라벨을 왼쪽으로 빼야 봉을 안 덮는다.
+                                    <text x={chart.peakIsLast ? chart.peak.x - 8 : clampX(chart.peak.x)}
                                           y={chart.peak.y - 5 < TOP + 2 ? chart.peak.y + 9 : chart.peak.y - 5}
-                                          className="cd-pk cd-pkup" textAnchor="middle">최고 {chart.peak.label}</text>
+                                          className="cd-pk cd-pkup"
+                                          textAnchor={chart.peakIsLast ? 'end' : 'middle'}>최고 {chart.peak.label}</text>
                                 )}
                                 {shown >= bars.length && chart.trough && (
-                                    <text x={clampX(chart.trough.x)} y={Math.min(chart.trough.y + 9, TOP + PRICE_H - 2)}
-                                          className="cd-pk cd-pkdn" textAnchor="middle">최저 {chart.trough.label}</text>
+                                    <text x={chart.troughIsLast ? chart.trough.x - 8 : clampX(chart.trough.x)}
+                                          y={Math.min(chart.trough.y + 9, TOP + PRICE_H - 2)}
+                                          className="cd-pk cd-pkdn"
+                                          textAnchor={chart.troughIsLast ? 'end' : 'middle'}>최저 {chart.trough.label}</text>
                                 )}
 
                                 {/* 현재가 — 오른쪽 축에 붙는 강조 라벨(HTS 의 파란/빨간 말풍선). */}
