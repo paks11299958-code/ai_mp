@@ -89,7 +89,7 @@ const pickRows = (summary: string): [string, string][] => {
  *  ★가로는 실제 렌더 폭에 맞춘다. viewBox 비율이 칸 비율과 어긋나면 남는 축으로 맞춰지며
  *    **마지막 봉(=오늘)이 잘린다** — 2026-09-07·09-08 두 번 같은 자리에서 겪었다. */
 const VB_W = 300;                    // 전체 폭
-const AX_W = 42;                     // 오른쪽 가격축 폭
+const AX_W = 48;                     // 오른쪽 가격축 폭 — 축 글자를 8.6px로 키우며 함께 넓혔다
 const L_PAD = 6;                     // 왼쪽 여백
 const TOP = 14;                      // 위 여백 — 최고 표식이 들어갈 자리
 const PRICE_H = 132;                 // 가격(캔들) 패널 높이
@@ -138,7 +138,8 @@ export interface ChartModel {
 }
 
 /** 최고·최저 라벨의 가로 위치를 패널 안으로 물린다(라벨 폭 약 56 의 절반 + 여유). */
-export const clampX = (x: number) => Math.max(L_PAD + 30, Math.min(x, VB_W - AX_W - 32));
+// 라벨 글자가 8px로 커졌으므로 양끝 여유도 30/32 → 36/38로 넓힌다.
+export const clampX = (x: number) => Math.max(L_PAD + 36, Math.min(x, VB_W - AX_W - 38));
 
 /** 지수는 소수 둘째 자리까지. ★'원'을 붙이지 않는다. */
 const tickLabel = (v: number) => v.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -247,37 +248,41 @@ const CSS = `
 .cd-x{margin-left:auto;width:32px;height:32px;border-radius:50%;cursor:pointer;
   border:1px solid #33475f;background:transparent;color:#9fb0c6;font-size:14px}
 
-.cd-board{margin:0 14px;border:1px solid #33475f;border-radius:14px;overflow:hidden;
-  background:linear-gradient(180deg,#1d2a3b,#182433)}
-.cd-bin{display:grid;grid-template-columns:1fr 1fr}
-@media (max-width:359px){.cd-bin{grid-template-columns:1fr}}
-.cd-bl{padding:12px 12px 10px;border-right:1px solid #33475f}
-@media (max-width:359px){.cd-bl{border-right:0;border-bottom:1px solid #33475f}}
-.cd-br{padding:12px 10px 8px;position:relative;min-height:132px}
-.cd-row{display:flex;align-items:baseline;gap:6px;padding:5px 0}
-.cd-row+.cd-row{border-top:1px dashed #2c3f57}
-.cd-rn{font-size:11px;color:#9fb0c6;min-width:44px}
-.cd-rv{font-size:17px;font-weight:800;letter-spacing:-.02em}
+/* 카드는 앱 배경에서 '떠 있어야' 한다. 명도차가 1.03~1.13밖에 안 돼 배경과 같은 면으로
+   읽히던 것을 올렸다(2026-09-08). 테두리도 #33475f→#3d5573으로 세워 경계를 만든다. */
+.cd-board{margin:0 14px;border:1px solid #3d5573;border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,#243449,#1e2c3e);
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 6px 18px rgba(0,0,0,.30)}
+.cd-bl{padding:12px 14px 10px}
+.cd-row{display:flex;align-items:baseline;gap:6px;padding:6px 0}
+.cd-row+.cd-row{border-top:1px dashed #354a63}
+.cd-rn{font-size:11.5px;color:#9fb0c6;min-width:58px}
+/* 보조 지표(코스닥·환율)는 한 단계 낮춘다 — 코스피와 같은 크기면 위계가 없다. */
+.cd-rv{font-size:15.5px;font-weight:700;letter-spacing:-.02em}
 .cd-rv.cd-up{text-shadow:0 0 14px rgba(255,107,116,.45)}
 .cd-rc{font-size:11px;font-weight:700;margin-left:auto}
+/* ★주인공 행 — 코스피. 크기·굵기로 한눈에 잡히게 한다. */
+.cd-hero{padding:8px 0 10px}
+.cd-hero .cd-rn{font-size:12px;color:#c3d0e0;font-weight:600}
+.cd-hero .cd-rv{font-size:24px;font-weight:800;letter-spacing:-.025em}
+.cd-hero .cd-rc{font-size:12.5px}
 .cd-cap{font-size:9.5px;color:#9fb0c6;margin-top:1px}
-.cd-gt{font-size:10px;color:#9fb0c6;letter-spacing:.08em;margin-bottom:4px}
-.cd-gw{position:absolute;inset:26px 8px 8px}
-.cd-gw svg{width:100%;height:100%}
 .cd-gerr{display:flex;align-items:center;justify-content:center;height:96px;
   font-size:11px;color:#9fb0c6;text-align:center}
 
 /* 일봉 차트 — 전광판 아래 전체 폭. HTS 차트를 기준으로 잡았다. */
-.cd-chart{border-top:1px solid #33475f;padding:10px 10px 8px;background:#18232f}
+.cd-chart{border-top:1px solid #3d5573;padding:10px 10px 8px;background:#1a2738}
 .cd-ch{display:flex;align-items:baseline;gap:7px;margin:0 4px 6px}
 .cd-cht{font-size:12px;font-weight:800;letter-spacing:-.01em}
 .cd-chs{font-size:10px;color:#9fb0c6}
 .cd-chl{margin-left:auto;font-size:9.5px;color:#9fb0c6;display:flex;align-items:center;gap:4px}
 .cd-ma5{width:11px;height:2px;background:#f0b23c;border-radius:1px;display:inline-block}
 .cd-svg{width:100%;height:auto;display:block}
-.cd-axt{fill:#8fa2ba;font-size:7px;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
-.cd-now{fill:#fff;font-size:7px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
-.cd-pk{font-size:6.6px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+/* ★축·라벨은 7px/6.6px이라 대비와 무관하게 물리적으로 읽기 힘들었다(2026-09-08).
+   viewBox 300 기준이라 실제 렌더 크기는 이보다 더 작게 보인다. */
+.cd-axt{fill:#a8bacf;font-size:8.6px;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+.cd-now{fill:#fff;font-size:8.4px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
+.cd-pk{font-size:8px;font-weight:700;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
 .cd-pkup{fill:#ff8a91}.cd-pkdn{fill:#8ec0ff}
 .cd-note{font-size:10px;color:#9fb0c6;line-height:1.5;margin-top:2px}
 /* 캔들 하나가 '띡' 하고 찍히는 순간 — 짧게 튀어나온다. transform-box 가 없으면
@@ -412,7 +417,6 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
     }, [onClose]);
 
     // 그래프 — 일봉 캔들. 왼쪽(과거)부터 1초에 두 개씩 '띡띡띡' 찍히고, 다 찍히면 멈춘다.
-    const kospi = markets?.find(m => m.key === 'kospi' || m.label === '코스피');
     const chart = useMemo(() => buildChart(candles || []), [candles]);
     const bars = chart.bars;
 
@@ -434,10 +438,6 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
         return () => clearInterval(id);
     }, [bars]);
 
-    // 색은 '오늘 등락'이 아니라 **마지막 봉 자체**를 따른다(캔들마다 개별 색이 있으므로
-    // 여기서는 면·끝점 강조용으로만 쓴다).
-    const gUp = (num(kospi?.changePct ?? null) ?? 0) >= 0;
-    const gColor = gUp ? '#ff6b74' : '#6aa9ff';
     const UP = '#ff6b74', DOWN = '#6aa9ff';
 
     const rows: { name: string; text: string; pct: number | null; cap: string }[] = [];
@@ -467,25 +467,26 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                     <button className="cd-x" onClick={onClose} aria-label="닫기">✕</button>
                 </div>
 
-                {/* 전광판 — 좌: 지수·환율 / 우: 코스피 추세 그래프 */}
+                {/* 전광판 — 지수·환율. 한때 오른쪽 절반에 추세 그래프가 있었으나 일봉 차트를
+                    전체 폭으로 내리면서 빈 칸만 남았다(2026-09-08). 이제 전체 폭을 쓴다. */}
                 <div className="cd-board">
-                    <div className="cd-bin">
-                        <div className="cd-bl">
-                            {rows.length === 0
-                                ? <div className="cd-cap">{failed.includes('시세') ? '시세를 불러오지 못했습니다' : '불러오는 중…'}</div>
-                                : rows.map(r => (
-                                    <React.Fragment key={r.name}>
-                                        <div className="cd-row">
-                                            <span className="cd-rn">{r.name}</span>
-                                            <span className={`cd-rv cd-mono cd-${cls(r.pct)}`}>{r.text}</span>
-                                            <span className={`cd-rc cd-mono cd-${cls(r.pct)}`}>
-                                                {mark(r.pct)}{r.pct === null ? '' : ` ${Math.abs(r.pct).toFixed(2)}%`}
-                                            </span>
-                                        </div>
-                                        {r.cap && <div className="cd-cap">{r.cap}</div>}
-                                    </React.Fragment>
-                                ))}
-                        </div>
+                    <div className="cd-bl">
+                        {rows.length === 0
+                            ? <div className="cd-cap">{failed.includes('시세') ? '시세를 불러오지 못했습니다' : '불러오는 중…'}</div>
+                            : rows.map(r => (
+                                <React.Fragment key={r.name}>
+                                    {/* ★코스피가 이 화면의 주인공이다. 셋 다 같은 크기면 주인공이 없다.
+                                        순서가 아니라 **이름**으로 고른다(API 순서는 보장되지 않는다). */}
+                                    <div className={`cd-row${r.name === '코스피' ? ' cd-hero' : ''}`}>
+                                        <span className="cd-rn">{r.name}</span>
+                                        <span className={`cd-rv cd-mono cd-${cls(r.pct)}`}>{r.text}</span>
+                                        <span className={`cd-rc cd-mono cd-${cls(r.pct)}`}>
+                                            {mark(r.pct)}{r.pct === null ? '' : ` ${Math.abs(r.pct).toFixed(2)}%`}
+                                        </span>
+                                    </div>
+                                    {r.cap && <div className="cd-cap">{r.cap}</div>}
+                                </React.Fragment>
+                            ))}
                     </div>
 
                     {/* 코스피 일봉 차트 — 전체 폭. 반쪽 칸(150px)에는 가격축·날짜축·거래량이 들어가지 않는다. */}
