@@ -51,7 +51,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDelete, onClose, onImagesChanged, user }) => {
-    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'golf-courses' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault' | 'ai-avatar'>('personas');
+    const [mainView, setMainView] = useState<'personas' | 'categories' | 'announcements' | 'settings' | 'cleanup' | 'points' | 'users' | 'partner-applications' | 'menu-limits' | 'monitor' | 'tools' | 'product-extract' | 'ai-usage' | 'webtoon' | 'hero-cards' | 'card-order' | 'omd-designs' | 'ai-ideas' | 'marketing-assets' | 'learn-shots' | 'homepage-reqs' | 'herdr' | 'kin-answer' | 'skills' | 'shorts' | 'codex-shorts' | 'doc-qna' | 'refund-guide' | 'sample-vault' | 'ai-avatar'>('personas');
 
     // 카테고리 상태는 페르소나 탭(PersonaInfoTab)과 카테고리 탭 양쪽에서 쓰이므로 본체가 소유한다.
     const [categories, setCategories] = useState<Category[]>([]);
@@ -114,7 +114,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                         ] },
                         { id: 'ops', label: '운영', icon: 'Wrench', tabs: [
                             { key: 'cleanup',       label: '메시지 정리', icon: 'Trash2' },
-                            { key: 'golf-courses',  label: '골프장 관리', icon: 'MapPin' },
                             { key: 'product-extract', label: '제품추출',  icon: 'Package' },
                             { key: 'tools',         label: '기능연습',    icon: 'Zap' },
                         ] },
@@ -247,8 +246,6 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ personas, onSave, onDele
                 {mainView === 'marketing-daily' && <MarketingDailyPanel />}
                 {mainView === 'biz' && <BizReportPanel />}
 
-                {/* 골프장 관리 패널 */}
-                {mainView === 'golf-courses' && <GolfCoursesPanel />}
 
                 {/* 제품추출 관리 패널 */}
                 {mainView === 'product-extract' && <ProductExtractPanel />}
@@ -292,7 +289,7 @@ const ALL_FEATURES = Object.keys(FEATURE_LABELS);
 // (Gemini Flash·Claude구독 기준, 합성은 nano-banana 이미지 비용)
 const FEATURE_COST_KRW: Record<string, number> = {
     'news': 3, 'face': 2, 'palm': 2, 'hot-keyword': 3, 'mathtutor': 3, 'quick-menu': 3,
-    'used-item': 5, 'golf': 10, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 92,
+    'used-item': 5, 'golf-course': 4, 'luxury': 15, 'insurance': 15, 'stock': 30, 'hair': 92,
     'agetransform': 92, 'outfit': 92,  // nano-banana(gemini-3.1-flash-image) 1K 이미지 실측단가($0.067×환율, 2026-07-25 공식 가격표 확인)
     'lookalike': 2, 'webtoon': 0, 'club': 0, 'marketing': 12,
     'ebook_docx_per1k': 1,       // Gemini/Claude 텍스트 조립(1,000자당, 저렴)
@@ -643,189 +640,6 @@ const AdminPointStats: React.FC = () => {
                             </div>
                         ))}
                     </div>
-                </div>
-            )}
-        </div>
-    );
-};
-
-// ── 골프장 관리 패널 ──────────────────────────────────────
-interface GolfCourseAdmin {
-    id: number;
-    name: string;
-    sido: string;
-    sigungu: string;
-    address: string | null;
-    bookingUrl: string | null;
-    hasAuto: boolean;
-    bookerType: string | null;
-    hasCredential: boolean;
-    advanceDays: number;
-    openHour: number;
-    openMinute: number;
-}
-
-const EMPTY_FORM = { name: '', sido: '', sigungu: '', address: '', bookingUrl: '', hasAuto: false, bookerType: '', advanceDays: 30, openHour: 0, openMinute: 0 };
-
-const GolfCoursesPanel: React.FC = () => {
-    const [courses, setCourses]   = useState<GolfCourseAdmin[]>([]);
-    const [loading, setLoading]   = useState(true);
-    const [error, setError]       = useState('');
-    const [editing, setEditing]   = useState<number | 'new' | null>(null);
-    const [form, setForm]         = useState({ ...EMPTY_FORM });
-    const [saving, setSaving]     = useState(false);
-    const [deleting, setDeleting] = useState<number | null>(null);
-
-    const load = () => {
-        setLoading(true);
-        fetch('/api/golf/admin/courses', { credentials: 'include' })
-            .then(r => r.json())
-            .then(d => { setCourses(Array.isArray(d) ? d : []); setError(''); })
-            .catch(() => setError('로드 실패'))
-            .finally(() => setLoading(false));
-    };
-
-    useEffect(() => { load(); }, []);
-
-    const openNew = () => { setForm({ ...EMPTY_FORM }); setEditing('new'); setError(''); };
-    const openEdit = (c: GolfCourseAdmin) => {
-        setForm({ name: c.name, sido: c.sido, sigungu: c.sigungu, address: c.address || '', bookingUrl: c.bookingUrl || '', hasAuto: c.hasAuto, bookerType: c.bookerType || '', advanceDays: c.advanceDays ?? 30, openHour: c.openHour ?? 0, openMinute: c.openMinute ?? 0 });
-        setEditing(c.id);
-        setError('');
-    };
-
-    const handleSave = async () => {
-        if (!form.name || !form.sido || !form.sigungu) { setError('골프장명, 시도, 시군구는 필수입니다.'); return; }
-        setSaving(true); setError('');
-        try {
-            const url    = editing === 'new' ? '/api/golf/admin/courses' : `/api/golf/admin/courses/${editing}`;
-            const method = editing === 'new' ? 'POST' : 'PUT';
-            const res    = await fetch(url, { method, credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-            if (!res.ok) { const d = await res.json(); throw new Error(d.error || '저장 실패'); }
-            setEditing(null);
-            load();
-        } catch (e: any) {
-            setError(e.message);
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleDelete = async (id: number) => {
-        if (!confirm('이 골프장을 삭제하시겠습니까?')) return;
-        setDeleting(id);
-        try {
-            await fetch(`/api/golf/admin/courses/${id}`, { method: 'DELETE', credentials: 'include' });
-            load();
-        } finally {
-            setDeleting(null);
-        }
-    };
-
-    const f = (k: keyof typeof EMPTY_FORM, v: string | boolean) => setForm(prev => ({ ...prev, [k]: v }));
-
-    return (
-        <div className="flex-1 overflow-y-auto p-6">
-            <div className="flex items-center justify-between mb-4">
-                <h3 className="text-sm font-bold text-white">골프장 관리</h3>
-                <button onClick={openNew} className="px-3 py-1.5 bg-green-600 hover:bg-green-500 text-white text-xs rounded-lg font-medium">+ 골프장 추가</button>
-            </div>
-
-            {error && <p className="text-red-400 text-xs mb-3">{error}</p>}
-
-            {/* 수정/추가 폼 */}
-            {editing !== null && (
-                <div className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-4 space-y-3">
-                    <p className="text-xs font-semibold text-gray-300">{editing === 'new' ? '새 골프장 추가' : '골프장 수정'}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">골프장명 *</label>
-                            <input value={form.name} onChange={e => f('name', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="청주떼제베CC" />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">시도 *</label>
-                            <input value={form.sido} onChange={e => f('sido', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="충청북도" />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">시군구 *</label>
-                            <input value={form.sigungu} onChange={e => f('sigungu', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="청주시" />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">주소</label>
-                            <input value={form.address} onChange={e => f('address', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="충북 청주시 흥덕구..." />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">예약 URL</label>
-                            <input value={form.bookingUrl} onChange={e => f('bookingUrl', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="https://..." />
-                        </div>
-                        <div>
-                            <label className="text-gray-400 text-xs block mb-1">부커 타입</label>
-                            <input value={form.bookerType} onChange={e => f('bookerType', e.target.value)} className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="adtgv" />
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <input type="checkbox" id="hasAuto" checked={form.hasAuto} onChange={e => f('hasAuto', e.target.checked)} className="rounded" />
-                        <label htmlFor="hasAuto" className="text-xs text-gray-300">자동예약 지원</label>
-                    </div>
-                    {form.hasAuto && (
-                        <div>
-                            <p className="text-gray-400 text-xs mb-2">예약 오픈 규칙 (KST 기준)</p>
-                            <div className="grid grid-cols-3 gap-2">
-                                <div>
-                                    <label className="text-gray-500 text-xs block mb-1">며칠 전 오픈</label>
-                                    <input type="number" min={1} max={180} value={form.advanceDays}
-                                        onChange={e => f('advanceDays', Number(e.target.value) as any)}
-                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="30" />
-                                </div>
-                                <div>
-                                    <label className="text-gray-500 text-xs block mb-1">오픈 시 (0~23)</label>
-                                    <input type="number" min={0} max={23} value={form.openHour}
-                                        onChange={e => f('openHour', Number(e.target.value) as any)}
-                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="0" />
-                                </div>
-                                <div>
-                                    <label className="text-gray-500 text-xs block mb-1">오픈 분 (0~59)</label>
-                                    <input type="number" min={0} max={59} value={form.openMinute}
-                                        onChange={e => f('openMinute', Number(e.target.value) as any)}
-                                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-xs text-white" placeholder="0" />
-                                </div>
-                            </div>
-                            <p className="text-gray-600 text-[11px] mt-1">예: 30일 전 00:00 KST → advanceDays=30, 시=0, 분=0</p>
-                        </div>
-                    )}
-                    <div className="flex gap-2 pt-1">
-                        <button onClick={() => setEditing(null)} className="flex-1 py-2 rounded-lg border border-gray-700 text-gray-400 text-xs hover:text-white">취소</button>
-                        <button onClick={handleSave} disabled={saving} className="flex-1 py-2 rounded-lg bg-green-600 hover:bg-green-500 disabled:opacity-40 text-white text-xs font-medium">{saving ? '저장 중...' : '저장'}</button>
-                    </div>
-                </div>
-            )}
-
-            {/* 목록 */}
-            {loading ? (
-                <div className="text-gray-500 text-xs text-center py-8">불러오는 중...</div>
-            ) : courses.length === 0 ? (
-                <div className="text-gray-500 text-xs text-center py-8">등록된 골프장이 없습니다.</div>
-            ) : (
-                <div className="space-y-2">
-                    {courses.map(c => (
-                        <div key={c.id} className="bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 flex items-center gap-3">
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
-                                    <span className="text-white text-sm font-medium">{c.name}</span>
-                                    {c.hasAuto && <span className="text-[10px] bg-green-900 text-green-400 px-2 py-0.5 rounded-full">자동예약</span>}
-                                    {c.hasCredential
-                                        ? <span className="text-[10px] bg-blue-900 text-blue-400 px-2 py-0.5 rounded-full">🔐 인증 등록됨</span>
-                                        : <span className="text-[10px] bg-red-900/60 text-red-400 px-2 py-0.5 rounded-full">인증 없음</span>
-                                    }
-                                </div>
-                                <p className="text-gray-500 text-xs mt-0.5">{c.sido} {c.sigungu} {c.address && `· ${c.address}`}</p>
-                            </div>
-                            <div className="flex gap-1.5 shrink-0">
-                                <button onClick={() => openEdit(c)} className="px-2.5 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs rounded-lg">수정</button>
-                                <button onClick={() => handleDelete(c.id)} disabled={deleting === c.id} className="px-2.5 py-1.5 bg-red-900/60 hover:bg-red-800 disabled:opacity-40 text-red-400 text-xs rounded-lg">{deleting === c.id ? '...' : '삭제'}</button>
-                            </div>
-                        </div>
-                    ))}
                 </div>
             )}
         </div>

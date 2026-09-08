@@ -54,7 +54,6 @@ import { SwingAnalysisBoard } from './components/SwingAnalysisBoard';
 import { SwingInputModal } from './components/SwingInputModal';
 import { AnnouncementModal } from './components/AnnouncementModal';
 import { ProductExtractDialog } from './components/ProductExtractDialog';
-import { GolfReserveDialog } from './components/GolfReserveDialog';
 import { Icon } from './components/Icons';
 import { PointDisplay } from './components/PointDisplay';
 import { PointModal } from './components/PointModal';
@@ -309,7 +308,6 @@ const AppContent: React.FC = () => {
         showHotKeyword, setShowHotKeyword,
         showResearch, setShowResearch,
         showProductExtract, setShowProductExtract,
-        showGolfReserve, setShowGolfReserve,
         showUsedItem, setShowUsedItem,
         showLuxuryBoard, setShowLuxuryBoard,
         showInsuranceBoard, setShowInsuranceBoard,
@@ -1935,9 +1933,6 @@ const AppContent: React.FC = () => {
                         userEmail={user?.email}
                     />
                 )}
-                {showGolfReserve && (
-                    <GolfReserveDialog onClose={() => setShowGolfReserve(false)} />
-                )}
                 {comingSoonMsg && (
                     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 bg-slate-800 border border-slate-600 rounded-xl shadow-xl flex items-center gap-2 text-sm text-white">
                         <span className="text-yellow-400">🚧</span>
@@ -2107,9 +2102,6 @@ const AppContent: React.FC = () => {
                     onClose={() => setShowProductExtract(false)}
                     userEmail={user?.email}
                 />
-            )}
-            {showGolfReserve && (
-                <GolfReserveDialog onClose={() => setShowGolfReserve(false)} />
             )}
 
             {/* 생년월일 명부 모달 — ErrorBoundary 추가(2026-08-08).

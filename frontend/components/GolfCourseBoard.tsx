@@ -236,9 +236,11 @@ export const GolfCourseBoard: React.FC<Props> = ({ onClose }) => {
                                 <div className="gf-ad">{c.address}</div>
 
                                 <div className="gf-acts">
+                                    {/* ★버튼은 '코스 브리핑'으로만 둔다(2026-09-08 사장 지시).
+                                        설아 화면이라는 건 헤더가 이미 말하고 있어 이름이 겹친다.
+                                        ★주석을 조건식 안(`&& (` 다음)에 넣으면 안 된다 — 거기는
+                                        표현식 자리라 JSX 주석 문법이 통하지 않아 빌드가 깨진다(09-08 실수). */}
                                     {!b && (
-                                        {/* ★버튼은 '코스 브리핑'으로만 둔다(2026-09-08 사장 지시).
-                                            설아 화면이라는 건 헤더가 이미 말하고 있어 이름이 겹친다. */}
                                         <button className="gf-btn pri" onClick={() => openBrief(c)}>
                                             코스 브리핑
                                         </button>

@@ -24,7 +24,6 @@ export function useBoardToggles() {
     const [showHotKeyword, setShowHotKeyword] = useState(false);
     const [showResearch, setShowResearch] = useState(false);
     const [showProductExtract, setShowProductExtract] = useState(false);
-    const [showGolfReserve, setShowGolfReserve] = useState(false);
     const [showUsedItem, setShowUsedItem] = useState(false);
     const [showLuxuryBoard, setShowLuxuryBoard] = useState(false);
     const [showInsuranceBoard, setShowInsuranceBoard] = useState(false);
@@ -46,7 +45,6 @@ export function useBoardToggles() {
         showHotKeyword, setShowHotKeyword,
         showResearch, setShowResearch,
         showProductExtract, setShowProductExtract,
-        showGolfReserve, setShowGolfReserve,
         showUsedItem, setShowUsedItem,
         showLuxuryBoard, setShowLuxuryBoard,
         showInsuranceBoard, setShowInsuranceBoard,
