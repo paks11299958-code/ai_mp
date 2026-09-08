@@ -43,6 +43,7 @@ import { HomepageBoard } from './components/HomepageBoard';
 import { ShortsMakerBoard } from './components/ShortsMakerBoard';
 import { EbookBoard } from './components/EbookBoard';
 import { HairStyleBoard } from './components/HairStyleBoard';
+import { GolfCourseBoard } from './components/GolfCourseBoard';
 import { OutfitBoard } from './components/OutfitBoard';
 import { AgeTransformBoard } from './components/AgeTransformBoard';
 import { WebtoonEpisodeList } from './components/WebtoonEpisodeList';
@@ -382,6 +383,7 @@ const AppContent: React.FC = () => {
     // 전자책 만들기 보드(강지훈 퀵메뉴 ebookModal) — 훅은 조건부 return보다 위에 있어야 함
     const [showEbookBoard, setShowEbookBoard] = useState(false);
     const [showHairBoard, setShowHairBoard] = useState(false);
+    const [showGolfCourseBoard, setShowGolfCourseBoard] = useState(false);
     const [showOutfitBoard, setShowOutfitBoard] = useState(false);
     const [showLookalikeModal, setShowLookalikeModal] = useState(false);
     const [lookalikeResult, setLookalikeResult] = useState<LookalikeResult | null>(null);
@@ -474,6 +476,8 @@ const AppContent: React.FC = () => {
         swing: () => setShowSwingInput(true),
         'golf-swing': () => setShowSwingInput(true),
         'golf-record': () => setShowSwingBoard(true),
+        // 내 주변 골프장 — 무료(2026-09-08). 위치·지역으로 찾고 설아가 코스를 브리핑한다.
+        'golf-course': () => setShowGolfCourseBoard(true),
         ebook: () => setShowEbookBoard(true),
         hair: () => setShowHairBoard(true),
         outfit: () => setShowOutfitBoard(true),
@@ -1879,6 +1883,11 @@ const AppContent: React.FC = () => {
                         <WebtoonEpisodeList personaId={activePersona.id} personaName={activePersona.name} onClose={() => setShowWebtoon(false)} />
                     </ErrorBoundary>
                 )}
+                {showGolfCourseBoard && (
+                    <ErrorBoundary label="골프장 화면 오류" onClose={() => setShowGolfCourseBoard(false)}>
+                        <GolfCourseBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowGolfCourseBoard(false))} />
+                    </ErrorBoundary>
+                )}
                 {showHairBoard && (
                     <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                         <HairStyleBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowHairBoard(false))} />
@@ -2310,6 +2319,11 @@ const AppContent: React.FC = () => {
             )}
 
             {/* 헤어스타일 진단 (윤채린) */}
+            {showGolfCourseBoard && (
+                <ErrorBoundary label="골프장 화면 오류" onClose={() => setShowGolfCourseBoard(false)}>
+                    <GolfCourseBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowGolfCourseBoard(false))} />
+                </ErrorBoundary>
+            )}
             {showHairBoard && (
                 <ErrorBoundary label="헤어스타일 화면 오류" onClose={() => setShowHairBoard(false)}>
                     <HairStyleBoard personaId={activePersona?.id} onClose={closeBoardAndReturn(() => setShowHairBoard(false))} />

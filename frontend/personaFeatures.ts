@@ -25,6 +25,7 @@ export type FeatureKey =
     | 'club'
     | 'golf-swing'
     | 'golf-record'
+    | 'golf-course'
     | 'ebook'
     | 'webtoon'
     | 'insurance'
@@ -64,6 +65,7 @@ export const FEATURE_REGISTRY: FeatureMeta[] = [
     { key: 'club',        label: '모임(출첵)',   icon: 'Handshake',   color: '#FF6B9D', bgColor: 'rgba(255,107,157,0.12)',   borderColor: '#FFB3D1' },
     { key: 'golf-swing',  label: '스윙 분석',    icon: 'Activity',    color: '#C47D0A', bgColor: 'rgba(245,166,35,0.12)',    borderColor: '#F5A623' },
     { key: 'golf-record', label: '스윙 기록',    icon: 'Clock',       color: '#C47D0A', bgColor: 'rgba(245,166,35,0.12)',    borderColor: '#F5A623' },
+    { key: 'golf-course', label: '내 주변 골프장', icon: 'MapPin',    color: '#2F6B3F', bgColor: 'rgba(47,107,63,0.10)',     borderColor: '#7FA98A' },
     { key: 'ebook',       label: '전자책 만들기', icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
     { key: 'webtoon',     label: '웹툰 보기',     icon: 'BookOpen',   color: '#8E6FB7', bgColor: '#F0E9F7',                  borderColor: '#C4B0DC' },
     { key: 'insurance',   label: '보험 분석',     icon: 'Shield',     color: '#8E6FB7', bgColor: '#F5E6F7',                  borderColor: '#B49AC9' },
@@ -125,6 +127,6 @@ export function getPersonaFeatureKeys(persona: Persona | undefined | null): Feat
     }
     // 2) 레거시 폴백 (이름 + 골프)
     const fromName = NAME_FALLBACK[persona.name] ?? [];
-    const golf: FeatureKey[] = isGolf(persona) ? ['golf-swing', 'golf-record'] : [];
+    const golf: FeatureKey[] = isGolf(persona) ? ['golf-swing', 'golf-record', 'golf-course'] : [];
     return [...fromName, ...golf];
 }
