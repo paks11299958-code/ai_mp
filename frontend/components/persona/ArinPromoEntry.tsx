@@ -90,9 +90,10 @@ const CSS = `
 .ap-root img{max-width:100%;height:auto;display:block}
 .ap-sheet{position:relative;max-width:520px;margin:0 auto;min-height:100%;
   background:#FDF8F5;box-shadow:0 0 60px rgba(60,40,55,.14)}
-.ap-close{position:absolute;top:14px;right:14px;z-index:9;width:38px;height:38px;
-  border-radius:50%;border:1px solid rgba(142,111,183,.16);background:rgba(255,255,255,.92);
-  color:#6B5F68;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+/* ★.ap-close 규칙은 아래 `.ap-sheet>*` **뒤**에 둔다 — 106행 참고.
+   여기서 선언하면 특정도가 같은(0,1,0) 그 규칙에 순서로 져서 position 이 relative 가 되고,
+   relative 에서 right:14px 는 "오른쪽 정렬"이 아니라 **왼쪽으로 14px 이동**이라
+   버튼이 화면 밖(x:-14)으로 나간다(2026-09-08 실측). */
 
 /* 종이 질감 — SVG 필터라 파일 0KB. ★pointer-events:none 없으면 이 층이 클릭을 다 먹는다. */
 .ap-sheet::before{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -103,6 +104,11 @@ const CSS = `
   33%{transform:translate(1%,-2%)}50%{transform:translate(-1%,-1%)}
   66%{transform:translate(2%,1%)}83%{transform:translate(1%,2%)}}
 .ap-sheet>*{position:relative;z-index:2}
+/* ★★닫기 버튼은 **오른쪽 위 고정**이다. `.ap-sheet>*` 와 특정도가 같으므로(둘 다 0,1,0)
+   반드시 **그 규칙 뒤**에 와야 이긴다. 앞에 두면 relative 가 먹혀 버튼이 왼쪽 밖으로 나간다. */
+.ap-close{position:absolute;top:14px;right:14px;z-index:9;width:38px;height:38px;
+  border-radius:50%;border:1px solid rgba(142,111,183,.16);background:rgba(255,255,255,.92);
+  color:#6B5F68;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 
 .ap-stage{position:relative;padding:52px 20px 26px;overflow:hidden;
   background:linear-gradient(165deg,#FFF6F9 0%,#F4EEF8 55%,#EFE9F3 100%)}
