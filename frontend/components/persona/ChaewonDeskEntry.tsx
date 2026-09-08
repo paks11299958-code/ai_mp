@@ -231,11 +231,12 @@ export const buildChart = (rows: OHLC[]): ChartModel => {
 };
 
 const CSS = `
+/* ★배경은 더 눌러 카드가 확실히 뜨게 한다 — 카드만 밝히면 격차가 안 벌어진다(2026-09-08). */
 .cd-root{position:fixed;inset:0;z-index:85;overflow-y:auto;overflow-x:hidden;
-  background:#16202e;color:#eef2f8;
+  background:#0e161f;color:#eef2f8;
   font-family:'Pretendard',system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased}
 .cd-wrap{max-width:520px;margin:0 auto;min-height:100%;
-  background:linear-gradient(180deg,#16202e,#1b2738);padding-bottom:28px}
+  background:linear-gradient(180deg,#0e161f,#121d29);padding-bottom:28px}
 .cd-mono{font-variant-numeric:tabular-nums;font-family:'SFMono-Regular',Menlo,Consolas,monospace}
 .cd-up{color:#ff6b74}.cd-down{color:#6aa9ff}.cd-flat{color:#9fb0c6}
 
@@ -250,28 +251,30 @@ const CSS = `
 
 /* 카드는 앱 배경에서 '떠 있어야' 한다. 명도차가 1.03~1.13밖에 안 돼 배경과 같은 면으로
    읽히던 것을 올렸다(2026-09-08). 테두리도 #33475f→#3d5573으로 세워 경계를 만든다. */
-.cd-board{margin:0 14px;border:1px solid #3d5573;border-radius:14px;overflow:hidden;
-  background:linear-gradient(180deg,#243449,#1e2c3e);
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 6px 18px rgba(0,0,0,.30)}
+.cd-board{margin:0 14px;border:1px solid #4a678c;border-radius:14px;overflow:hidden;
+  background:linear-gradient(180deg,#28394f,#223145);
+  box-shadow:0 1px 0 rgba(255,255,255,.07) inset,0 8px 22px rgba(0,0,0,.45)}
 .cd-bl{padding:12px 14px 10px}
-.cd-row{display:flex;align-items:baseline;gap:6px;padding:6px 0}
-.cd-row+.cd-row{border-top:1px dashed #354a63}
-.cd-rn{font-size:11.5px;color:#9fb0c6;min-width:58px}
-/* 보조 지표(코스닥·환율)는 한 단계 낮춘다 — 코스피와 같은 크기면 위계가 없다. */
-.cd-rv{font-size:15.5px;font-weight:700;letter-spacing:-.02em}
+/* ★baseline 정렬은 값(24px)과 등락률(12.5px)의 글꼴 밑선이 달라 13px 어긋나 보였다
+   — 사장님이 "등락률이 떨어져 나갔다"고 보신 원인(2026-09-08). center로 묶는다. */
+.cd-row{display:flex;align-items:center;gap:8px;padding:7px 0}
+.cd-row+.cd-row{border-top:1px dashed #3a5170}
+.cd-rn{font-size:12px;color:#9fb0c6;min-width:58px}
+/* 세 지표의 크기 격차를 좁힌다 — 24 vs 15.5는 위계가 아니라 단절이었다. */
+.cd-rv{font-size:18px;font-weight:700;letter-spacing:-.02em}
 .cd-rv.cd-up{text-shadow:0 0 14px rgba(255,107,116,.45)}
-.cd-rc{font-size:11px;font-weight:700;margin-left:auto}
-/* ★주인공 행 — 코스피. 크기·굵기로 한눈에 잡히게 한다. */
-.cd-hero{padding:8px 0 10px}
-.cd-hero .cd-rn{font-size:12px;color:#c3d0e0;font-weight:600}
-.cd-hero .cd-rv{font-size:24px;font-weight:800;letter-spacing:-.025em}
-.cd-hero .cd-rc{font-size:12.5px}
+.cd-rc{font-size:12px;font-weight:700;margin-left:auto;white-space:nowrap}
+/* ★주인공 행 — 코스피. 한 단계만 위로(18→22). 등락률도 함께 키워 한 줄로 읽히게 한다. */
+.cd-hero{padding:9px 0}
+.cd-hero .cd-rn{font-size:12px;color:#c3d0e0;font-weight:700}
+.cd-hero .cd-rv{font-size:22px;font-weight:800;letter-spacing:-.025em}
+.cd-hero .cd-rc{font-size:13px}
 .cd-cap{font-size:9.5px;color:#9fb0c6;margin-top:1px}
 .cd-gerr{display:flex;align-items:center;justify-content:center;height:96px;
   font-size:11px;color:#9fb0c6;text-align:center}
 
 /* 일봉 차트 — 전광판 아래 전체 폭. HTS 차트를 기준으로 잡았다. */
-.cd-chart{border-top:1px solid #3d5573;padding:10px 10px 8px;background:#1a2738}
+.cd-chart{border-top:1px solid #4a678c;padding:10px 10px 8px;background:#1b2a3c}
 .cd-ch{display:flex;align-items:baseline;gap:7px;margin:0 4px 6px}
 .cd-cht{font-size:12px;font-weight:800;letter-spacing:-.01em}
 .cd-chs{font-size:10px;color:#9fb0c6}
@@ -304,8 +307,9 @@ const CSS = `
 @keyframes cd-slide{to{transform:translateX(-50%)}}
 @keyframes cd-blink{0%,100%{opacity:1}50%{opacity:.25}}
 
-.cd-tape{margin:10px 14px 0;border:1px solid #33475f;border-radius:10px;
-  background:#1a2634;overflow:hidden;padding:7px 0}
+/* 티커는 헤더 바로 아래. 전광판이 주인공이므로 톤을 한 단계 눌러 둔다. */
+.cd-tape{margin:2px 14px 10px;border:1px solid #2f4460;border-radius:10px;
+  background:#16222f;overflow:hidden;padding:6px 0}
 .cd-tape-in{display:flex;gap:26px;width:max-content;padding-left:14px}
 .cd-ti{font-size:11px;white-space:nowrap}
 .cd-stamp{padding:8px 18px 0;font-size:10.5px;color:#9fb0c6}
@@ -467,6 +471,18 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                     <button className="cd-x" onClick={onClose} aria-label="닫기">✕</button>
                 </div>
 
+                {/* 티커 — ★두 벌을 이어 붙여야 흐를 때 왼쪽이 잘리지 않는다.
+                    ★★헤더 바로 아래로 올렸다(2026-09-08 사장 지시). 전광판 아래에 있을 때는
+                      같은 지수가 위아래로 흩어져 시선이 갈라졌다. 위에서 한 번 흐르고
+                      아래 전광판이 받는 순서가 증권사 단말의 동선과도 맞는다. */}
+                {tapeItems.length > 0 && (
+                    <div className="cd-tape"><div className="cd-tape-in">
+                        {[...tapeItems, ...tapeItems].map((t, i) => (
+                            <span key={i} className={`cd-ti cd-mono cd-${cls(rows[i % rows.length].pct)}`}>{t}</span>
+                        ))}
+                    </div></div>
+                )}
+
                 {/* 전광판 — 지수·환율. 한때 오른쪽 절반에 추세 그래프가 있었으나 일봉 차트를
                     전체 폭으로 내리면서 빈 칸만 남았다(2026-09-08). 이제 전체 폭을 쓴다. */}
                 <div className="cd-board">
@@ -581,14 +597,6 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                     </div>
                 </div>
 
-                {/* 티커 — ★두 벌을 이어 붙여야 흐를 때 왼쪽이 잘리지 않는다. */}
-                {tapeItems.length > 0 && (
-                    <div className="cd-tape"><div className="cd-tape-in">
-                        {[...tapeItems, ...tapeItems].map((t, i) => (
-                            <span key={i} className={`cd-ti cd-mono cd-${cls(rows[i % rows.length].pct)}`}>{t}</span>
-                        ))}
-                    </div></div>
-                )}
                 <div className="cd-stamp">{dateLabel ? `실시간 시세 · ${dateLabel} 기준` : '시장 데이터를 불러오는 중입니다'}</div>
 
                 {/* 증권 탑뉴스 — 무료 제목만(본문은 유료 50P). 탭 전환에 추가 호출이 없다. */}
