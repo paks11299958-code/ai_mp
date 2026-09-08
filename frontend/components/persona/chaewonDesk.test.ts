@@ -189,6 +189,8 @@ describe('★일봉 캔들', () => {
     // ★테스트는 **출하되는 함수**를 부른다 — 예전처럼 로직을 복사해 두면 소스가 바뀌어도
     //   테스트는 옛 사본만 통과시킨다(통과=검증 아님).
     const PAD = 6;
+    // ★높이를 소스에서 읽는다. 상수를 복사해 두면 소스가 바뀌어도 테스트는 옛 값으로 통과한다.
+    const VB_H = Number(SRC.match(/VB_H = (\d+)/)![1]);
 
     /** 실측 코스피 일봉(2026-08-25~09-07, 네이버). */
     const REAL: OHLC[] = [
@@ -212,9 +214,9 @@ describe('★일봉 캔들', () => {
             expect(b.x + b.w / 2).toBeLessThanOrEqual(160 - PAD + 0.01);
             // ★꼬리까지 재야 한다. 종가만 스케일하면 고가·저가가 칸 밖으로 삐져나간다.
             expect(b.highY).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(b.lowY).toBeLessThanOrEqual(96 - PAD + 0.01);
+            expect(b.lowY).toBeLessThanOrEqual(VB_H - PAD + 0.01);
             expect(b.bodyY).toBeGreaterThanOrEqual(PAD - 0.01);
-            expect(b.bodyY + b.bodyH).toBeLessThanOrEqual(96 - PAD + 0.01);
+            expect(b.bodyY + b.bodyH).toBeLessThanOrEqual(VB_H - PAD + 0.01);
         }
     });
 

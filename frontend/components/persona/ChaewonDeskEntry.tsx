@@ -83,7 +83,11 @@ const pickRows = (summary: string): [string, string][] => {
  *  ★가장자리를 비워 둔다(PAD). 0~160 끝까지 그리면 **선 굵기와 꼬리 끝이 viewBox 밖으로
  *    잘린다** — 하필 오른쪽 끝이 "오늘" 이라 제일 중요한 데가 잘려 나갔다(2026-09-07 실측). */
 const PAD = 6;
-const VB_W = 160, VB_H = 96;
+/** ★viewBox 비율은 **실제 칸 비율(약 1.36)** 에 맞춘다.
+ *  160×96(1.67)로 두고 preserveAspectRatio 기본값을 쓰면 세로에 맞춰지면서
+ *  가로가 넘쳐 **마지막 봉(=오늘)이 잘린다** — 2026-09-08 운영 화면 실측(150.7×111px).
+ *  가로로 늘리는(none) 방식은 몸통이 찌그러지므로 비율 자체를 맞추는 쪽을 택한다. */
+const VB_W = 160, VB_H = 118;
 
 export interface CandleBar {
     x: number;                       // 몸통 중심 x
@@ -372,11 +376,13 @@ export const ChaewonDeskEntry: React.FC<Props> = ({ guide, onClose, onStart, onF
                             <div className="cd-gw">
                                 {/* ★preserveAspectRatio 를 'none' 으로 두면 캔들 몸통이 가로로 늘어난다.
                                     선 하나였을 땐 문제없었지만 막대에는 왜곡이 보이므로 비율을 지킨다. */}
-                                <svg viewBox="0 0 160 96" role="img"
+                                <svg viewBox={`0 0 ${VB_W} ${VB_H}`} role="img"
                                      aria-label={bars.length ? `코스피 최근 ${bars.length}거래일 일봉` : '코스피 일봉'}>
                                     <g stroke="#2c3f57" strokeWidth=".6">
-                                        <line x1="0" y1="24" x2="160" y2="24" /><line x1="0" y1="48" x2="160" y2="48" />
-                                        <line x1="0" y1="72" x2="160" y2="72" />
+                                        {/* 격자선 3줄 — viewBox 높이를 4등분한다(높이를 바꿔도 따라온다). */}
+                                        {[1, 2, 3].map(i => (
+                                            <line key={i} x1="0" y1={(VB_H / 4) * i} x2={VB_W} y2={(VB_H / 4) * i} />
+                                        ))}
                                     </g>
                                     {bars.slice(0, shown).map(b => {
                                         const c = b.up ? UP : DOWN;
